@@ -1,0 +1,18 @@
+  
+# This workflow will do a clean install of node dependencies, build the source code and run tests
+
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
