@@ -40,7 +40,11 @@ The workflow will be:
 3. Once consensus is reached, ADR can be transitioned to either an
    "accepted" or "rejected" state.
 4. Only after an ADR is accepted should implementing code be committed
+<<<<<<< HEAD
    to the main branch of the relevant project/module.
+=======
+   to the master branch of the relevant project/module.
+>>>>>>> c3600ae (Initial ADRs)
 5. If a decision is revisited and a different conclusion is reached, a
    new ADR should be created documenting the context and rationale for
    the change. The new ADR should reference the old one, and once the
@@ -62,6 +66,10 @@ Proposed
 2. We will have a concrete artifact around which to focus discussion,
    before finalizing decisions.
 3. If we follow the process, decisions will be made deliberately, as a group.
+<<<<<<< HEAD
 4. The main branch of our repositories will reflect the high-level
+=======
+4. The master branch of our repositories will reflect the high-level
+>>>>>>> c3600ae (Initial ADRs)
    consensus of the steering group.
 5. We will have a useful persistent record of why the system is the way it is.
