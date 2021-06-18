@@ -51,7 +51,7 @@ The workflow will be:
 
 ## Status
 
-Proposed
+Approved
 
 ## Consequences
 
