@@ -47,7 +47,7 @@ modules.
 
 ## Status
 
-Proposed
+Approved
 
 ## Consequences
 
@@ -62,4 +62,3 @@ Proposed
 - Developers will need to carefully decide what types of things are
   appropriate to encode statically in the configuration, and what must
   be dynamic at runtime.
-  
