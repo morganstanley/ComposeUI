@@ -26,6 +26,6 @@ Proposed
 
 ## Consequences
 
-- We would need to implement an atuoamted tooling for csproj maintainance
+- We would need to implement an automated tooling for csproj maintainance
 - We would need to add that tooling as part of a build check (e.g. run that tool in dry run and break if it would 
 have done any changes)
