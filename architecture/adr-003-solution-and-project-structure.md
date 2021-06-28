@@ -4,10 +4,10 @@
 
 ## Context
 
-When it comes to creating and maintaining projects, multiple parallel 
-approaches are known, like monorepo, individual repos, submodules, etc. 
-And same way, when it comes to maintaining the actual source code, multiple 
-different approaches do exist, depending on each particular language or 
+When it comes to creating and maintaining projects, multiple parallel
+approaches are known, like monorepo, individual repos, submodules, etc.
+And same way, when it comes to maintaining the actual source code, multiple
+different approaches do exist, depending on each particular language or
 technology and its capabilities or best practices.
 
 ## Decision
@@ -26,6 +26,6 @@ Proposed
 
 ## Consequences
 
-- We would need to implement an automated tooling for csproj maintainance
-- We would need to add that tooling as part of a build check (e.g. run that tool in dry run and break if it would 
+- We would need to implement an automated tooling for csproj maintenance
+- We would need to add that tooling as part of a build check (e.g. run that tool in dry run and break if it would
 have done any changes)
