@@ -23,7 +23,11 @@ A few concrete examples include (but not limited to):
 - Pub-Sub
 - Window management
 
-The underlying library that is going to be used is SignalR Core.
+Since consumers can decide which modules they want to plug into ComposeUI,
+we provide one out-of-the-box implementation for being able to send and receive messages between processes.
+The public API should not contain any dependency on any library.
+This default implementation is going be based on SignalR Core.
+
 There are multiple advantages when it comes to SignalR:
 
 - An open-source out-of-the-box library that is fast and reliable
