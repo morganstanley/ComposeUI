@@ -2,9 +2,5 @@
 
 {
     "recommendations": [
-        "streetsidesoftware.code-spell-checker",
-        "donjayamanne.githistory",
-        "felipecaputo.git-project-manager",
-        "davidanson.vscode-markdownlint"
     ]
 }
