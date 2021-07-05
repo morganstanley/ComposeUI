@@ -7,14 +7,14 @@ This means any module and functionality should be configurable ([ADR-002](adr-00
 One of the core modules of ComposeUI is the messaging module, or the message router. The message router
 should be responsible for every communication that happens between processes.
 It should be an independent pluggable module that runs under the main ComposeUI process, delivering
-messages between processes and computers.
+messages between processes and optionally other devices.
 
 ## Decision
 
 Since there are going to be
-multiple kinds of consumers of ComposeUI (Web, WPF, WinForms, ASP.NET, etc) we differentiate two kinds of
+different types of consumers of ComposeUI (Web, WPF, WinForms, ASP.NET, etc) we differentiate two kinds of
 messaging: cross-process and cross-machine. Cross-process messaging is strictly between processes on the same PC,
-while Cross-machine is between one or more computers.
+while Cross-machine is between one or more devices.
 A few concrete examples include (but not limited to):
 
 - Notifications
