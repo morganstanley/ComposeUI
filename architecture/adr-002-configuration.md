@@ -49,7 +49,7 @@ modules.
 
 ## Status
 
-Proposed
+Approved
 
 ## Consequences
 

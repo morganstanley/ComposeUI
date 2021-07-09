@@ -16,13 +16,13 @@ When it comes to actually to render C4, once you have the architecture models co
 
 ## Decision
 
-Within ComposeUI, we are to position C4 as the preferred way to capture system architecture and how it is deployed, both as a a means to creating consistent and easily to understand diagrams as code that can live in the source control, and also as a data model that can be used to feed static analysis systems thereby reducing the overhead for developers and improving accuracy of the decisions and suggestions of those systems.
+Within ComposeUI, we are to position C4 as the preferred way to capture system architecture and how it is deployed, both as a means to creating consistent and easy to understand diagrams as code that can live in the source control, and also as a data model that can be used to feed static analysis systems thereby reducing the overhead for developers and improving accuracy of the decisions and suggestions of those systems.
 
 To describe the actual C4, we would use PlantUML extensions and rendering.
 
 ## Status
 
-Proposed
+Approved
 
 ## Consequences
 
