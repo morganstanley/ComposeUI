@@ -31,3 +31,4 @@ _ReSharper.*
 *.sln.docstates
 [Bb]uild[Ll]og.*
 *.nupkg
+src/.idea/
