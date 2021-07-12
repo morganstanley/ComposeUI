@@ -22,7 +22,7 @@ repeatedly entered into the csproj files
 
 ## Status
 
-Proposed
+Approved
 
 ## Consequences
 
