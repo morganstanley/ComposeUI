@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net5.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+	  <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="bender.jpg" />
+    <None Remove="dog.PNG" />
+    <None Remove="Images\dvd_disc_clock_256.png" />
+    <None Remove="Images\eject_zoom_256.png" />
+    <None Remove="Images\fade_in_level_256.png" />
+    <None Remove="Images\first_256.png" />
+    <None Remove="Images\graph.PNG" />
+    <None Remove="Images\Icons\books.png" />
+    <None Remove="Images\Icons\sphere.png" />
+    <None Remove="Images\Icons\stats.png" />
+    <None Remove="Images\Icons\window.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DockManagerCore\DockManagerCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="bender.jpg" />
+    <Resource Include="dog.PNG" />
+    <Resource Include="Images\dvd_disc_clock_256.png" />
+    <Resource Include="Images\eject_zoom_256.png" />
+    <Resource Include="Images\fade_in_level_256.png" />
+    <Resource Include="Images\first_256.png" />
+    <Resource Include="Images\graph.PNG" />
+    <Resource Include="Images\Icons\books.png" />
+    <Resource Include="Images\Icons\sphere.png" />
+    <Resource Include="Images\Icons\stats.png" />
+    <Resource Include="Images\Icons\window.png" />
+  </ItemGroup>
+
+</Project>

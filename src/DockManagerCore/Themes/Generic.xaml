@@ -1,0 +1,721 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:dockManager="clr-namespace:DockManagerCore"
+    xmlns:converters="clr-namespace:DockManagerCore.Converters"
+    xmlns:desktop="clr-namespace:DockManagerCore.Desktop"> 
+    <Style x:Key="TabItemFocusVisual">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Rectangle SnapsToDevicePixels="true" Stroke="Black" StrokeDashArray="1 2" StrokeThickness="1" Margin="3,3,3,1"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <SolidColorBrush x:Key="{x:Static dockManager:ResourceKeys.ScreenDockignGridBorderBrushKey}" Color="Green" />
+    <SolidColorBrush x:Key="{x:Static dockManager:ResourceKeys.ScreenDockingGridBackgroundBrushKey}" Color="LightGray" />
+    <SolidColorBrush x:Key="{x:Static dockManager:ResourceKeys.DockignGridBorderBrushKey}" Color="LightGreen" />
+    <SolidColorBrush x:Key="{x:Static dockManager:ResourceKeys.DockingGridBackgroundBrushKey}" Color="Transparent" />
+
+    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1" x:Key="{x:Static dockManager:ResourceKeys.CaptionBarUnselectedBrushKey}">
+        <GradientStop Color="#E2EAF3" Offset="0" />
+        <GradientStop Color="#C3CEDC" Offset="0.45" />
+        <GradientStop Color="#A2B1C4" Offset="0.45" />
+        <GradientStop Color="#B4C3DB" Offset="1" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1" x:Key="{x:Static dockManager:ResourceKeys.CaptionBarActiveBrushKey}">
+        <GradientStop Color="#FF9BAECF" Offset="0" />
+        <GradientStop Color="#FF6884B6" Offset="0.45" />
+        <GradientStop Color="#FF4C6A9E" Offset="0.45" />
+        <GradientStop Color="#FF33486B" Offset="1" />
+    </LinearGradientBrush>
+
+
+    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1" x:Key="{x:Static dockManager:ResourceKeys.CaptionBarGroupedBrushKey}">
+        <GradientStop Color="#FFFF9999" Offset="0" />
+        <GradientStop Color="#FF4D4D" Offset="0.45" />
+        <GradientStop Color="#FFCC0000" Offset="0.45" />
+        <GradientStop Color="#FF990000" Offset="1" />
+    </LinearGradientBrush>
+
+    <Style TargetType="{x:Type dockManager:MinimizedPaneContainer}" BasedOn="{StaticResource {x:Type Button}}" x:Shared="false">
+        <Setter Property="Content">
+            <Setter.Value>
+                <StackPanel Orientation="Horizontal" >
+                    <Image Source="{Binding Icon}" MaxWidth="16" MaxHeight="16" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center"></Image>
+                    <TextBlock Text="{Binding Caption}" Margin="2"></TextBlock>
+                </StackPanel>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Path=Container.IsLocked, RelativeSource={RelativeSource Self}}" 
+                                     Value="true">
+                <Setter Property="IsEnabled" Value="False"></Setter>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+    <converters:DockLocationConverter x:Key="DockLocationConverter" />
+    <converters:DockLocationConverter2 x:Key="DockLocationConverter2" />
+    
+    <Style TargetType="dockManager:DockingHintBlock">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="dockManager:DockingHintBlock">
+                    <Border Background="{DynamicResource {x:Static dockManager:ResourceKeys.ScreenDockingGridBackgroundBrushKey}}" BorderThickness="0" >
+                        <Viewbox StretchDirection="DownOnly">
+                            <TextBlock Background="Transparent" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   FontSize="20" FontWeight="Bold" Text="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Dock, Converter={StaticResource DockLocationConverter}}"/>
+
+                        </Viewbox>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="Dock" Value="Center">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="dockManager:DockingHintBlock">
+                            <Grid>
+                                <Grid.RowDefinitions> 
+                                    <RowDefinition Height="*"></RowDefinition>
+                                    <RowDefinition Height="4*"></RowDefinition>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"></ColumnDefinition>
+                                    <ColumnDefinition Width="2*"></ColumnDefinition>
+                                </Grid.ColumnDefinitions>
+                                <Border BorderThickness="0" Background="{DynamicResource {x:Static dockManager:ResourceKeys.ScreenDockingGridBackgroundBrushKey}}"/>
+                                <Border BorderThickness="0" Background="{DynamicResource {x:Static dockManager:ResourceKeys.ScreenDockingGridBackgroundBrushKey}}" Grid.ColumnSpan="2" Grid.Row="1">
+                                    <Viewbox StretchDirection="DownOnly">
+                                        <TextBlock Background="Transparent" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   FontSize="20" FontWeight="Bold" Text="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Dock, Converter={StaticResource DockLocationConverter}}"/>
+                                    </Viewbox>
+                                </Border>
+                            </Grid>  
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    
+    <Style TargetType="dockManager:WindowButton" >
+        <Setter Property="Width" Value="22" />
+        <Setter Property="Height" Value="12" />
+        <Setter Property="Margin" Value="-1, 0, 0, 0"></Setter>
+        <Setter Property="CornerRadius" Value="3,3,3,3"></Setter>
+        <!--<Setter Property="BorderBrush" Value="#4C5258" />-->
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground">
+            <Setter.Value>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#ADCEE8" Offset="0" />
+                    <GradientStop Color="#70A3C7" Offset="0.45" />
+                    <GradientStop Color="#1E6FA5" Offset="0.45" />
+                    <GradientStop Color="#2782B4" Offset="0.80" />
+                    <GradientStop Color="#17FBFA" Offset="1" />
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter> 
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="dockManager:WindowButton">
+                    <Border x:Name="MainBorder" BorderBrush="{TemplateBinding BorderBrush}" 
+                    BorderThickness="0,0,0,0" CornerRadius="{TemplateBinding CornerRadius}"
+                    Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Background="{TemplateBinding Background}">
+                        <Grid>
+                            <Border x:Name="HighlightBorder" CornerRadius="{TemplateBinding CornerRadius}">
+                                <ContentControl x:Name="ContentPlaceHolder" Content="{TemplateBinding ContentEnabled}" Margin="0,-1,0,0" />
+                            </Border>
+                            <Border x:Name="WhiteBorder" BorderBrush="Transparent" BorderThickness="0,0,0,0"
+                            CornerRadius="{TemplateBinding CornerRadius}" />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="HighlightBorder" Property="Background" Value="{Binding Path=Foreground, RelativeSource={RelativeSource TemplatedParent}}" />
+                        </Trigger> 
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="ContentPlaceHolder"  Property="Content" Value="{Binding Path=ContentDisabled, RelativeSource={RelativeSource TemplatedParent}}"></Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter> 
+    </Style>
+
+    <!--<SolidColorBrush x:Key="TabControlNormalBorderBrush" Color="#8C8E94"/>-->
+    <SolidColorBrush x:Key="TabControlNormalBorderBrush" Color="White"/>
+    <LinearGradientBrush x:Key="TabItemHotBackground" EndPoint="0,1" StartPoint="0,0">
+        <GradientStop Color="#EAF6FD" Offset="0.15"/>
+        <GradientStop Color="#D9F0FC" Offset=".5"/>
+        <GradientStop Color="#BEE6FD" Offset=".5"/>
+        <GradientStop Color="#A7D9F5" Offset="1"/>
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="TabItemSelectedBackground" Color="#F9F9F9"/>
+    <SolidColorBrush x:Key="TabItemHotBorderBrush" Color="#3C7FB1"/>
+    <SolidColorBrush x:Key="TabItemDisabledBackground" Color="#F4F4F4"/>
+    <SolidColorBrush x:Key="TabItemDisabledBorderBrush" Color="#FFC9C7BA"/>
+
+    <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"></BooleanToVisibilityConverter>
+    <Style TargetType="{x:Type dockManager:ContentPaneWrapper}" >
+        <Style.Resources>
+            <LinearGradientBrush x:Key="ButtonNormalBackground" EndPoint="0,1" StartPoint="0,0">
+                <GradientStop Color="#F3F3F3" Offset="0"/>
+                <GradientStop Color="#EBEBEB" Offset="0.5"/>
+                <GradientStop Color="#DDDDDD" Offset="0.5"/>
+                <GradientStop Color="#CDCDCD" Offset="1"/>
+            </LinearGradientBrush>
+            <LinearGradientBrush x:Key="ButtonOverBackground" EndPoint="0,1" StartPoint="0,0">
+                <GradientStop Color="#FFFAFAFA" Offset="0"/>
+                <GradientStop Color="#FFE0E0E3" Offset="1"/>
+            </LinearGradientBrush>
+            <LinearGradientBrush x:Key="ButtonPressedBackground" EndPoint="0,1" StartPoint="0,0">
+                <GradientStop Color="#FFE0E0E2" Offset="0"/>
+                <GradientStop Color="#FFF8F8F8" Offset="1"/>
+            </LinearGradientBrush>
+            <SolidColorBrush x:Key="ButtonNormalBorder" Color="#FF969696"/>
+            <Style x:Key="CloseableTabItemButtonStyle" TargetType="{x:Type Button}">
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                <Setter Property="Background" Value="{StaticResource ButtonNormalBackground}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource ButtonNormalBorder}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="Padding" Value="4"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Grid>
+                                <Border SnapsToDevicePixels="true" x:Name="Chrome" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2" Opacity="0" />
+                                <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RecognizesAccessKey="True"/>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Opacity" TargetName="Chrome" Value="1"/>
+                                    <Setter Property="Background" TargetName="Chrome" Value="{DynamicResource ButtonOverBackground}" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter Property="Opacity" TargetName="Chrome" Value="1"/>
+                                    <Setter Property="Background" TargetName="Chrome" Value="{DynamicResource ButtonPressedBackground}" />
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="false">
+                                    <Setter Property="Foreground" Value="#ADADAD"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </Style.Resources>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource TabItemFocusVisual}"/>
+        <Setter Property="Foreground" Value="Black"/>
+        <Setter Property="Padding" Value="6,1,6,1"/>
+        <Setter Property="BorderBrush" Value="{StaticResource TabControlNormalBorderBrush}"/>
+        <Setter Property="Background" Value="{StaticResource ButtonNormalBackground}"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+        <Setter Property="FontSize" Value="10"/>
+        <Setter Property="Height" Value="{x:Static dockManager:ResourceKeys.PaneHeaderHeight}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type dockManager:ContentPaneWrapper}">
+                    <Grid SnapsToDevicePixels="true"> 
+                        <Border x:Name="Bd" CornerRadius="0" Background="Transparent" BorderThickness="0" >
+                            <DockPanel x:Name="ContentPanel" LastChildFill="True">
+                                <Button x:Name="PART_Close" HorizontalAlignment="Center" Margin="3,0,3,0" VerticalAlignment="Center" Width="16" Height="16" DockPanel.Dock="Right" Style="{DynamicResource CloseableTabItemButtonStyle}" ToolTip="Close Tab" Visibility="Collapsed">
+                                    <Path x:Name="Path" Stretch="Fill" StrokeThickness="0.5" Stroke="#FF333333" Fill="#FF969696" Data="F1 M 2.28484e-007,1.33331L 1.33333,0L 4.00001,2.66669L 6.66667,6.10352e-005L 8,1.33331L 5.33334,4L 8,6.66669L 6.66667,8L 4,5.33331L 1.33333,8L 1.086e-007,6.66669L 2.66667,4L 2.28484e-007,1.33331 Z " HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Button>
+                                <Image Margin="{TemplateBinding Padding}" MaxWidth="16" MaxHeight="16" Stretch="UniformToFill" Source="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Pane.Icon}" DockPanel.Dock="Left" HorizontalAlignment="Center" VerticalAlignment="Center"></Image>
+                                <desktop:EditableTextBlock Text="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Pane.Caption}" VerticalAlignment="Center" Margin="0,-2,0,0"
+                                                               IsInEditMode="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Pane.Renaming, Mode=TwoWay}">
+                                    
+                                </desktop:EditableTextBlock>  
+                                <!--<ContentPresenter x:Name="Content" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" ContentSource="Header" RecognizesAccessKey="True" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>-->
+                            </DockPanel>
+                        </Border>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsSingleTab" Value="False">
+                            <Setter Property="Background" TargetName="Bd" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Background}"></Setter>
+                            <Setter Property="BorderThickness" TargetName="Bd" Value="1,1,1,0"></Setter>
+                            <Setter Property="BorderBrush" TargetName="Bd" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=BorderBrush}"></Setter>
+                            <Setter Property="CornerRadius" TargetName="Bd" Value="5,5,0,0"></Setter>
+                            <Setter Property="Visibility" TargetName="PART_Close" Value="Visible"></Setter>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" SourceName="PART_Close" Value="True">
+                            <Setter Property="Fill" TargetName="Path" Value="#FFB83C3D"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" SourceName="PART_Close" Value="True">
+                            <Setter Property="Fill" TargetName="Path" Value="#FF9D3838"/>
+                        </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="true"></Condition>
+                                <Condition Property="IsSingleTab" Value="false"></Condition>
+                            </MultiTrigger.Conditions>
+                            <Setter Property="Background" TargetName="Bd" Value="{StaticResource TabItemHotBackground}"/>
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsSelected" Value="true"></Condition>
+                                <Condition Property="IsSingleTab" Value="false"></Condition>
+                            </MultiTrigger.Conditions>
+                            <Setter Property="Background" TargetName="Bd" Value="{StaticResource TabItemSelectedBackground}"/>
+                        </MultiTrigger>
+                        <Trigger Property="IsSelected" Value="true">
+                            <Setter Property="Panel.ZIndex" Value="1"/> 
+                        </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsSelected" Value="false"/>
+                                <Condition Property="IsMouseOver" Value="true"/>
+                                <Condition Property="IsSingleTab" Value="false"></Condition>
+                            </MultiTrigger.Conditions>
+                            <Setter Property="BorderBrush" TargetName="Bd" Value="{StaticResource TabItemHotBorderBrush}"/>
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="TabStripPlacement" Value="Bottom"></Condition>
+                                <Condition Property="IsSingleTab" Value="false"></Condition>
+                            </MultiTrigger.Conditions>
+                            <Setter Property="BorderThickness" TargetName="Bd" Value="1,0,1,1"/>
+                        </MultiTrigger> 
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="TabStripPlacement" Value="Left"></Condition>
+                                <Condition Property="IsSingleTab" Value="false"></Condition>
+                            </MultiTrigger.Conditions>
+                            <Setter Property="BorderThickness" TargetName="Bd" Value="1,1,0,1"/>
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="TabStripPlacement" Value="Right"></Condition>
+                                <Condition Property="IsSingleTab" Value="false"></Condition>
+                            </MultiTrigger.Conditions>
+                            <Setter Property="BorderThickness" TargetName="Bd" Value="0,1,1,1"/>
+                        </MultiTrigger>
+                         
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsSelected" Value="true"/>
+                                <Condition Property="TabStripPlacement" Value="Top"/>
+                                <Condition Property="IsSingleTab" Value="false"></Condition>
+                            </MultiTrigger.Conditions>
+                            <Setter Property="Margin" Value="-2,-2,-2,-1"/>
+                            <Setter Property="Margin" TargetName="ContentPanel" Value="0,0,0,1"/>
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsSelected" Value="true"/>
+                                <Condition Property="TabStripPlacement" Value="Bottom"/>
+                                <Condition Property="IsSingleTab" Value="false"></Condition>
+                            </MultiTrigger.Conditions>
+                            <Setter Property="Margin" Value="-2,-1,-2,-2"/>
+                            <Setter Property="Margin" TargetName="ContentPanel" Value="0,1,0,0"/>
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsSelected" Value="true"/>
+                                <Condition Property="TabStripPlacement" Value="Left"/>
+                                <Condition Property="IsSingleTab" Value="false"></Condition>
+                            </MultiTrigger.Conditions>
+                            <Setter Property="Margin" Value="-2,-2,-1,-2"/>
+                            <Setter Property="Margin" TargetName="ContentPanel" Value="0,0,1,0"/>
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsSelected" Value="true"/>
+                                <Condition Property="TabStripPlacement" Value="Right"/>
+                                <Condition Property="IsSingleTab" Value="false"></Condition>
+                            </MultiTrigger.Conditions>
+                            <Setter Property="Margin" Value="-1,-2,-2,-2"/>
+                            <Setter Property="Margin" TargetName="ContentPanel" Value="1,0,0,0"/>
+                        </MultiTrigger>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter Property="Background" TargetName="Bd" Value="{StaticResource TabItemDisabledBackground}"/>
+                            <Setter Property="BorderBrush" TargetName="Bd" Value="{StaticResource TabItemDisabledBorderBrush}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                        </Trigger> 
+
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter> 
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Path=Host.ParentContainer.IsHeaderVisible, RelativeSource={RelativeSource Self}}" 
+                                     Value="false">
+                <Setter Property="Visibility" Value="Collapsed"></Setter>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    
+    <!--
+    <Style TargetType="{x:Type dockManager:PaneContainer}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type dockManager:PaneContainer}">
+                    <Border Name="BorderBlack" BorderThickness=".8" BorderBrush="Black" CornerRadius="3,3,3,3">
+                        <Border Name="BorderWhite" BorderThickness=".8" BorderBrush="DarkGray" CornerRadius="3,3,3,3" >
+                            <Border BorderThickness=".8" CornerRadius="3,3,3,3">
+                                <Grid Name="TopGrid" Margin="0">
+                                    <DockPanel>
+                                        <Border DockPanel.Dock="Top"  Name="PART_CaptionBar" Height="20" CornerRadius="3,3,3,3"  
+                                TextBlock.Foreground="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}"
+                                TextBlock.FontFamily="{DynamicResource {x:Static SystemFonts.CaptionFontFamilyKey}}"
+                                TextBlock.FontSize="{DynamicResource {x:Static SystemFonts.CaptionFontSizeKey}}"
+                                TextBlock.FontStyle="{DynamicResource {x:Static SystemFonts.CaptionFontStyleKey}}"
+                                TextBlock.FontWeight="{DynamicResource {x:Static SystemFonts.CaptionFontWeightKey}}" >
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Style.Triggers>
+                                                        <Trigger Property="dockManager:CaptionBar.State" Value="Active">
+                                                            <Setter Property="Border.Background" Value="{DynamicResource {x:Static dockManager:ResourceKeys.CaptionBarActiveBrushKey}}"></Setter>
+                                                        </Trigger>
+                                                        <Trigger Property="dockManager:CaptionBar.State" Value="Grouped">
+                                                            <Setter Property="Border.Background" Value="{DynamicResource {x:Static dockManager:ResourceKeys.CaptionBarGroupedBrushKey}}"></Setter>
+                                                        </Trigger>
+                                                        <Trigger Property="dockManager:CaptionBar.State" Value="Unselected">
+                                                            <Setter Property="Border.Background" Value="{DynamicResource {x:Static dockManager:ResourceKeys.CaptionBarUnselectedBrushKey}}"></Setter>
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                        </Border>
+                                        <Border>
+                                        </Border>
+                                    </DockPanel>
+                                    <dockManager:ContentPaneWrapperHost Name="PART_WrapperHost" Margin="0" ParentContainer="{TemplateBinding}">
+                                    </dockManager:ContentPaneWrapperHost>
+
+                                    <dockManager:PaneContainerHeaderControl x:Name="PART_Header" PaneContainer="{TemplateBinding}"
+                                                            VerticalAlignment="Top" HorizontalAlignment="Right"/>
+                                    <Rectangle IsHitTestVisible="False" Fill="Red" Opacity="0.3" 
+                                               Visibility="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsDockSource, Converter={StaticResource BooleanToVisibilityConverter}}"></Rectangle>
+                                    <Rectangle IsHitTestVisible="False" Fill="Green" Opacity="0.3" 
+                                               Visibility="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsDockTarget, Converter={StaticResource BooleanToVisibilityConverter}}"></Rectangle>
+                                </Grid>
+                            </Border>
+                        </Border>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="ShowBorder" Value="False">
+                            <Setter TargetName="BorderBlack" Property="BorderThickness" Value="0"></Setter>
+                            <Setter TargetName="BorderWhite" Property="BorderThickness" Value="0"></Setter>
+                        </Trigger>
+                        <Trigger Property="WindowState" Value="Maximized">
+                            <Setter TargetName="PART_CaptionBar" Property="TextBlock.Foreground" Value="White"></Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    -->
+    
+    <!-- TopLeft -->
+    <Canvas x:Key="WindowButtonTopLeftIcon" x:Shared="false">
+        <Border BorderBrush="Black" BorderThickness="1" Width="14" Height="1" Canvas.Top="5" Canvas.Left="6"/>
+        <Border BorderBrush="Black" BorderThickness="1" Width="1" Height="11" Canvas.Top="5" Canvas.Left="6"/>
+        <Border BorderBrush="Black" BorderThickness="8" Width="8" Height="8" Canvas.Top="5" Canvas.Left="6"/>
+    </Canvas>
+    <!-- Top -->
+    <Canvas x:Key="WindowButtonTopIcon"  x:Shared="false">
+        <Border BorderBrush="Black" BorderThickness="1" Width="20" Height="1" Canvas.Top="5" Canvas.Left="0"/>
+        <Border BorderBrush="Black" BorderThickness="8" Width="8" Height="8" Canvas.Top="5" Canvas.Left="6"/>
+    </Canvas>
+    <!-- TopRight -->
+    <Canvas x:Key="WindowButtonTopRightIcon"  x:Shared="false">
+        <Border BorderBrush="Black" BorderThickness="1" Width="14" Height="1" Canvas.Top="5" Canvas.Left="0"/>
+        <Border BorderBrush="Black" BorderThickness="1" Width="1" Height="11" Canvas.Top="5" Canvas.Left="14"/>
+        <Border BorderBrush="Black" BorderThickness="8" Width="8" Height="8" Canvas.Top="5" Canvas.Left="6"/>
+    </Canvas>
+    <!-- Left -->
+    <Canvas x:Key="WindowButtonLeftIcon"  x:Shared="false">
+        <Border BorderBrush="Black" BorderThickness="1" Width="1" Height="20" Canvas.Top="0" Canvas.Left="6"/>
+        <Border BorderBrush="Black" BorderThickness="8" Width="8" Height="8" Canvas.Top="5" Canvas.Left="6"/>
+    </Canvas>
+    <!-- Center -->
+    <Canvas x:Key="WindowButtonCenterIcon" x:Shared="false">
+        <Border BorderBrush="Black" BorderThickness="1" Width="9" Height="8" Canvas.Top="6" Canvas.Left="6"/>
+        <Border BorderBrush="Black" BorderThickness="1" Width="4" Height="2" Canvas.Top="4" Canvas.Left="7"/>
+    </Canvas>
+    <!-- Right -->
+    <Canvas x:Key="WindowButtonRightIcon" x:Shared="false">
+        <Border BorderBrush="Black" BorderThickness="1" Width="1" Height="20" Canvas.Top="0" Canvas.Left="14"/>
+        <Border BorderBrush="Black" BorderThickness="8" Width="8" Height="8" Canvas.Top="5" Canvas.Left="6"/>
+    </Canvas>
+    <!-- BottomLeft -->
+    <Canvas x:Key="WindowButtonBottomLeftIcon" x:Shared="false">
+        <Border BorderBrush="Black" BorderThickness="1" Width="1" Height="12" Canvas.Top="0" Canvas.Left="6"/>
+        <Border BorderBrush="Black" BorderThickness="1" Width="14" Height="1" Canvas.Top="12" Canvas.Left="6"/>
+        <Border BorderBrush="Black" BorderThickness="8" Width="8" Height="8" Canvas.Top="4" Canvas.Left="6"/>
+    </Canvas>
+    <!-- Bottom -->
+    <Canvas x:Key="WindowButtonBottomIcon" x:Shared="false">
+        <Border BorderBrush="Black" BorderThickness="1" Width="20" Height="1" Canvas.Top="12" Canvas.Left="0"/>
+        <Border BorderBrush="Black" BorderThickness="8" Width="8" Height="8" Canvas.Top="4" Canvas.Left="6"/>
+    </Canvas>
+    <!-- BottomRight -->
+    <Canvas x:Key="WindowButtonBottomRightIcon" x:Shared="false">
+        <Border BorderBrush="Black" BorderThickness="1" Width="14" Height="1" Canvas.Top="12" Canvas.Left="0"/>
+        <Border BorderBrush="Black" BorderThickness="1" Width="1" Height="13" Canvas.Top="0" Canvas.Left="14"/>
+        <Border BorderBrush="Black" BorderThickness="8" Width="8" Height="8" Canvas.Top="4" Canvas.Left="6"/>
+    </Canvas>
+    
+    <Style TargetType="{x:Type dockManager:WindowPlainButton}"  BasedOn="{StaticResource {x:Type dockManager:WindowButton}}" >
+        <Setter Property="Height" Value="16"></Setter>
+        <Setter Property="Width" Value="26"></Setter>
+        <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=PlacementLocation, Converter={StaticResource DockLocationConverter2} }"></Setter>
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush  EndPoint="0,1" StartPoint="0,0">
+                    <GradientStop Color="#FFE2EAF3" Offset="0"/>
+                    <GradientStop Color="#FFC3CEDC" Offset=".45"/>
+                    <GradientStop Color="#FFA2B1C4" Offset=".45"/>
+                    <GradientStop Color="#FFB4C3BD" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="PlacementLocation" Value="Bottom">
+                <Setter Property="ContentEnabled" Value="{StaticResource WindowButtonBottomIcon}"></Setter>  
+            </Trigger>
+            <Trigger Property="PlacementLocation" Value="Top">
+                <Setter Property="ContentEnabled" Value="{StaticResource WindowButtonTopIcon}"></Setter> 
+            </Trigger>
+
+            <Trigger Property="PlacementLocation" Value="Left">
+                <Setter Property="ContentEnabled" Value="{StaticResource WindowButtonLeftIcon}"></Setter> 
+            </Trigger>
+
+            <Trigger Property="PlacementLocation" Value="Right">
+                <Setter Property="ContentEnabled" Value="{StaticResource WindowButtonRightIcon}"></Setter> 
+            </Trigger>
+
+            <Trigger Property="PlacementLocation" Value="Center">
+                <Setter Property="ContentEnabled" Value="{StaticResource WindowButtonCenterIcon}"></Setter> 
+            </Trigger>
+            <Trigger Property="PlacementLocation" Value="BottomLeft">
+                <Setter Property="ContentEnabled" Value="{StaticResource WindowButtonBottomLeftIcon}"></Setter> 
+            </Trigger>
+            <Trigger Property="PlacementLocation" Value="BottomRight">
+                <Setter Property="ContentEnabled" Value="{StaticResource WindowButtonBottomRightIcon}"></Setter> 
+            </Trigger>
+            <Trigger Property="PlacementLocation" Value="TopLeft">
+                <Setter Property="ContentEnabled" Value="{StaticResource WindowButtonTopLeftIcon}"></Setter> 
+            </Trigger>
+            <Trigger Property="PlacementLocation" Value="TopRight">
+                <Setter Property="ContentEnabled" Value="{StaticResource WindowButtonTopRightIcon}"></Setter> 
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    <!-- LOCK -->
+    <Canvas x:Key="WindowButtonLockIcon" x:Shared="false">
+        <Border BorderBrush="Black" BorderThickness="1" Width="5" Height="1" Canvas.Top="1.4" Canvas.Left="8"/>
+        <Border BorderBrush="Black" BorderThickness="1" Width="1" Height="4" Canvas.Top="1.4" Canvas.Left="8"/>
+
+        <Border BorderBrush="#535666" BorderThickness="1" Width="9" Height="6" Canvas.Top="5.4" Canvas.Left="6">
+            <Border BorderBrush="#FCFCFC" BorderThickness="1" >
+                <Border BorderBrush="#535666" BorderThickness=".8" />
+            </Border>
+        </Border>
+    </Canvas>
+    <Style TargetType="{x:Type dockManager:WindowLockButton}"  BasedOn="{StaticResource {x:Type dockManager:WindowButton}}">
+        <Setter Property="ContentEnabled" Value="{StaticResource WindowButtonLockIcon}"></Setter>  
+        <Setter Property="ToolTip" Value="Lock"></Setter>
+    </Style>
+
+    <!-- UNLOCK -->
+    <Canvas x:Key="WindowButtonUnLockIcon" x:Shared="false">
+        <Border BorderBrush="Black" BorderThickness="1" Width="4" Height="1" Canvas.Top="1.4" Canvas.Left="8"/>
+        <Border BorderBrush="Black" BorderThickness="1" Width="1" Height="4" Canvas.Top="1.4" Canvas.Left="8"/>
+        <Border BorderBrush="Black" BorderThickness="1" Width="1" Height="4" Canvas.Top="1.4" Canvas.Left="12"/>
+
+        <Border BorderBrush="#535666" BorderThickness="1" Width="9" Height="6" Canvas.Top="5.4" Canvas.Left="6">
+            <Border BorderBrush="#FCFCFC" BorderThickness="1" >
+                <Border BorderBrush="#535666" BorderThickness=".8" />
+            </Border>
+        </Border>
+    </Canvas>
+    <Style TargetType="{x:Type dockManager:WindowUnLockButton}"   BasedOn="{StaticResource {x:Type dockManager:WindowButton}}">
+        <Setter Property="ContentEnabled" Value="{StaticResource WindowButtonUnLockIcon}"></Setter>  
+        <Setter Property="ToolTip" Value="Unlock"></Setter>
+    </Style>
+
+    <!-- MINIMIZE -->
+    <Border x:Key="WindowButtonMinimizeIcon" Width="12" Height="5" Margin="0,5,0,0" BorderBrush="#535666" BorderThickness="1" Background="#FFFFFF"  x:Shared="false"/>
+
+    <!-- MINIMIZE (disabled) -->
+    <Border x:Key="WindowButtonMinimizeIconDisabled" Width="12" Height="5" Margin="0,5,0,0" 
+          BorderBrush="#9FA5B2" BorderThickness="1" Background="#FFFFFF"  x:Shared="false"/>
+    <Style TargetType="{x:Type dockManager:WindowMinimizeButton}"  BasedOn="{StaticResource {x:Type dockManager:WindowButton}}" >
+        <Setter Property="ContentEnabled" Value="{StaticResource WindowButtonMinimizeIcon}"></Setter>
+        <Setter Property="ContentDisabled" Value="{StaticResource WindowButtonMinimizeIconDisabled}"></Setter>
+        <Setter Property="ToolTip" Value="Minimize"></Setter>
+    </Style>
+    <!-- RESTORE -->
+    <Canvas x:Key="WindowButtonRestoreIcon" x:Shared="false">
+        <Rectangle Stroke="#535666" Fill="White" Width="10" Height="10" Canvas.Top="1" Canvas.Left="7" />
+        <Rectangle Stroke="#535666" Fill="White" Width="4" Height="4" Canvas.Top="4" Canvas.Left="10" />
+        <Rectangle Stroke="#535666" Fill="White" Width="10" Height="10" Canvas.Top="3" Canvas.Left="5" />
+        <Rectangle Stroke="#535666" Fill="White" Width="4" Height="4" Canvas.Top="6" Canvas.Left="8" />
+    </Canvas>
+
+    <!-- RESTORE (disabled) -->
+    <Canvas x:Key="WindowButtonRestoreIconDisabled" x:Shared="false">
+
+        <Rectangle Stroke="#9FA5B2" Fill="White" Width="10" Height="10" Canvas.Top="1" Canvas.Left="7" />
+        <Rectangle Stroke="#9FA5B2" Fill="White" Width="4" Height="4" Canvas.Top="4" Canvas.Left="10" />
+        <Rectangle Stroke="#9FA5B2" Fill="White" Width="10" Height="10" Canvas.Top="3" Canvas.Left="5" />
+        <Rectangle Stroke="#9FA5B2" Fill="White" Width="4" Height="4" Canvas.Top="6" Canvas.Left="8" />
+    </Canvas>
+    <Style TargetType="{x:Type dockManager:WindowRestoreButton}"   BasedOn="{StaticResource {x:Type dockManager:WindowButton}}">
+        <Setter Property="ContentEnabled" Value="{StaticResource WindowButtonRestoreIcon}"></Setter>
+        <Setter Property="ContentDisabled" Value="{StaticResource WindowButtonRestoreIconDisabled}"></Setter>
+        <Setter Property="ToolTip" Value="Restore Down"></Setter>
+    </Style>
+    <!-- MAXIMIZE -->
+    <Border x:Key="WindowButtonMaximizeIcon" BorderBrush="#535666" BorderThickness="1" Width="12" Height="10" x:Shared="false">
+        <Border BorderBrush="#FCFCFC" BorderThickness="2">
+            <Border BorderBrush="#535666" BorderThickness="1" />
+        </Border>
+    </Border>
+
+    <!-- MAXIMIZE (disabled) -->
+    <Border x:Key="WindowButtonMaximizeIconDisabled" BorderBrush="#9FA5B2" BorderThickness="1" Width="12" Height="10" x:Shared="false">
+        <Border BorderBrush="#FCFCFC" BorderThickness="2">
+            <Border BorderBrush="#9FA5B2" BorderThickness="1" />
+        </Border>
+    </Border>
+    <Style TargetType="{x:Type dockManager:WindowMaximizeButton}"   BasedOn="{StaticResource {x:Type dockManager:WindowButton}}">
+        <Setter Property="ContentEnabled" Value="{StaticResource WindowButtonMaximizeIcon}"></Setter>
+        <Setter Property="ContentDisabled" Value="{StaticResource WindowButtonMaximizeIconDisabled}"></Setter>
+        <Setter Property="ToolTip" Value="Maximize"></Setter>
+    </Style>
+
+    <!-- HEADER -->
+    <Canvas x:Key="WindowButtonHeaderIcon" x:Shared="false">
+        <Border BorderBrush="#535666" BorderThickness="1" Width="10" Height="10" Canvas.Top="1" Canvas.Left="6">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="3" />
+                    <RowDefinition Height="6" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="10" />
+                </Grid.ColumnDefinitions>
+                <Rectangle Grid.Row="0" Grid.Column="0" Height="3" Width="10" Fill="Black" />
+
+                <Rectangle Grid.Row="1" Grid.Column="0" Height="7" Width="10" Fill="White"/>
+
+            </Grid>
+        </Border>
+    </Canvas>
+    <Style TargetType="{x:Type dockManager:WindowHeaderButton}"   BasedOn="{StaticResource {x:Type dockManager:WindowButton}}">
+        <Setter Property="ContentEnabled" Value="{StaticResource WindowButtonHeaderIcon}"></Setter> 
+        <Setter Property="ToolTip" Value="Show Header"></Setter>
+    </Style>
+
+    <!-- NOHEADER -->
+    <Canvas x:Key="WindowButtonNoHeaderIcon" x:Shared="false">
+        <Border BorderBrush="#535666" BorderThickness="1" Width="10" Height="10" Canvas.Top="1" Canvas.Left="6">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1" />
+                    <RowDefinition Height="8" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="10" />
+                </Grid.ColumnDefinitions>
+                <Rectangle Grid.Row="0" Grid.Column="0" Height="1" Width="10" Fill="Black" />
+
+                <Rectangle Grid.Row="1" Grid.Column="0" Height="9" Width="10" Fill="White"/>
+
+            </Grid>
+        </Border>
+    </Canvas>
+
+    <Style TargetType="{x:Type dockManager:WindowNoHeaderButton}"   BasedOn="{StaticResource {x:Type dockManager:WindowButton}}">
+        <Setter Property="ContentEnabled" Value="{StaticResource WindowButtonNoHeaderIcon}"></Setter>  
+        <Setter Property="ToolTip" Value="Hide Header"></Setter>
+    </Style>
+
+
+    <Image Source="/DockManager;component/Images/buttonX.png" Width="10" Height="8" x:Key="WindowButtonCloseIcon"  x:Shared="false"/>
+    <!-- CLOSE -->
+    <Style TargetType="{x:Type dockManager:WindowCloseButton}"  BasedOn="{StaticResource {x:Type dockManager:WindowButton}}">
+        <Setter Property="ContentEnabled" Value="{StaticResource WindowButtonCloseIcon}"></Setter>  
+        <Setter Property="ToolTip" Value="Close"></Setter>
+    </Style>
+
+    <!-- DOCK -->
+    <Canvas x:Key="WindowButtonDockIcon" x:Shared="false">
+        <Border BorderBrush="#535666" BorderThickness="1" Width="10" Height="10" Canvas.Top="1" Canvas.Left="6">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="4" />
+                    <RowDefinition Height="4" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="4" />
+                    <ColumnDefinition Width="4" />
+                </Grid.ColumnDefinitions>
+                <Rectangle Grid.Row="0" Grid.Column="0" Height="4" Width="4" Fill="Black" />
+                <Rectangle Grid.Row="0" Grid.Column="1" Height="4" Width="4" Fill="White"/>
+                <Rectangle Grid.Row="1" Grid.Column="0" Height="4" Width="4" Fill="White"/>
+                <Rectangle Grid.Row="1" Grid.Column="1" Height="4" Width="4" Fill="Black" />
+            </Grid>
+        </Border>
+    </Canvas>
+    <Style TargetType="{x:Type dockManager:WindowDockButton}"  BasedOn="{StaticResource {x:Type dockManager:WindowButton}}" >
+        <Setter Property="ContentEnabled" Value="{StaticResource WindowButtonDockIcon}"></Setter>  
+        <Setter Property="ToolTip" Value="Dock To This"></Setter>
+    </Style>
+
+    <!-- Background colors for red button (e.g close button) -->
+    <LinearGradientBrush x:Key="RedButtonBackground" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Offset="0" Color="#F89C8C" />
+        <GradientStop Offset="0.45" Color="#D47F75" />
+        <GradientStop Offset="0.45" Color="#C04C3C" />
+        <GradientStop Offset="1" Color="#C98172" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="RedButtonMouseOverBackground" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Offset="0" Color="#F89C8C" />
+        <GradientStop Offset="0.45" Color="#E36A53" />
+        <GradientStop Offset="0.45" Color="#C72B0E" />
+        <GradientStop Offset="0.75" Color="#D44310" />
+        <GradientStop Offset="1" Color="#F5E478" />
+    </LinearGradientBrush>
+    
+    <Style TargetType="{x:Type dockManager:DockingPlaceholder}">
+        <Setter Property="Opacity" Value="0.5"></Setter>
+        <Setter Property="Background" Value="{DynamicResource {x:Static dockManager:ResourceKeys.DockingGridBackgroundBrushKey}}"></Setter>
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static dockManager:ResourceKeys.DockignGridBorderBrushKey}}"></Setter>
+        <Setter Property="BorderThickness" Value="10"></Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Border BorderThickness="{TemplateBinding Border.BorderThickness}" BorderBrush="{TemplateBinding Border.BorderBrush}" Background="{TemplateBinding Panel.Background}">
+                        <Canvas>
+                            <dockManager:DockingHintBlock Name="PART_HintBlock" />
+                        </Canvas>
+                    </Border> 
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter> 
+        <Style.Triggers>
+            <Trigger Property="IsGlobalDocker" Value="True">
+                <Setter Property="Background" Value="{DynamicResource {x:Static dockManager:ResourceKeys.ScreenDockingGridBackgroundBrushKey}}"></Setter>
+                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static dockManager:ResourceKeys.ScreenDockignGridBorderBrushKey}}"></Setter>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

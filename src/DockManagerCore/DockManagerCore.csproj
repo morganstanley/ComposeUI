@@ -1,0 +1,65 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net5.0-windows</TargetFramework>
+		<UseWPF>true</UseWPF>
+		<UseWindowsForms>true</UseWindowsForms>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Remove="Images\buttonX.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+		<PackageReference Include="System.Drawing.Primitives" Version="4.3.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Resource Include="Images\buttonX.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Resource>
+	</ItemGroup>
+
+	<ItemGroup>
+    <Compile Update="PaneContainer.xaml.cs">
+      <DependentUpon>PaneContainer.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="PaneContainerHeaderControl.xaml.cs">
+      <DependentUpon>PaneContainerHeaderControl.xaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="PaneContainer.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="PaneContainerHeaderControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Themes\Generic.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="PaneContainer.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="PaneContainerHeaderControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Themes\Generic.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+	<!--<PropertyGroup>
+		<LanguageTargets>$(MSBuildToolsPath)\Microsoft.CSharp.targets</LanguageTargets>
+	</PropertyGroup>
+	<ItemGroup>
+		<None Remove="**\*.xaml"/>
+		<Page Include="**\*.xaml" SubType="Designer" Generator="MSBuild:Compile" Exclude="App.xaml" />
+		<Compile Update="**\*.xaml.cs" SubType="Designer" DependentUpon="%(Filename)" />
+		<Compile Include="**\*.cs" Exclude="**\*.g.cs;**\*.g.i.cs;**\DockManagerCore.AssemblyInfo.cs"/>
+	</ItemGroup>-->
+</Project>

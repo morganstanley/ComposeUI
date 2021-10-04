@@ -1,0 +1,86 @@
+﻿<UserControl x:Class="DockManagerCore.PaneContainer"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:converters="clr-namespace:DockManagerCore.Converters"
+             xmlns:dockManager="clr-namespace:DockManagerCore"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300" x:Name="Container" >
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"></BooleanToVisibilityConverter>
+        <converters:BoolToThicknessConverter x:Key="BoolToThicknessConverter" FalseValue="0" TrueValue=".8" />
+        <converters:WindowStateToBrushConverter x:Key="WindowStateToBrushConverter" 
+                                                NormalBrush="{x:Static SystemColors.ActiveCaptionBrush}"
+                                                MaximizedBrush="White"/>
+    </UserControl.Resources>
+    <Border Name="BorderBlack" BorderThickness="{Binding ElementName=Container, Path=IsHeaderVisible, Converter={StaticResource BoolToThicknessConverter}}" BorderBrush="Black" CornerRadius="{x:Static dockManager:ResourceKeys.FloatingWindowBorderCornerRadius}">
+        <Border Name="BorderWhite" BorderThickness="{Binding ElementName=Container, Path=IsHeaderVisible, Converter={StaticResource BoolToThicknessConverter}}"  BorderBrush="DarkGray" CornerRadius="{x:Static dockManager:ResourceKeys.FloatingWindowBorderCornerRadius}">
+            <Border BorderThickness="{Binding ElementName=Container, Path=IsHeaderVisible, Converter={StaticResource BoolToThicknessConverter}}" CornerRadius="{x:Static dockManager:ResourceKeys.FloatingWindowBorderCornerRadius}">
+                <Grid Name="TopGrid" Margin="0">
+                    <DockPanel>
+                        <Border DockPanel.Dock="Top"  Name="captionBarControl" Height="{x:Static dockManager:ResourceKeys.CaptionBarHeight}" CornerRadius="{x:Static dockManager:ResourceKeys.FloatingWindowBorderCornerRadius}"  
+                                TextBlock.Foreground="{Binding ElementName=Container, Path=WindowState, Converter={StaticResource WindowStateToBrushConverter}}"
+                                TextBlock.FontFamily="{DynamicResource {x:Static SystemFonts.CaptionFontFamilyKey}}"
+                                TextBlock.FontSize="{DynamicResource {x:Static SystemFonts.CaptionFontSizeKey}}"
+                                TextBlock.FontStyle="{DynamicResource {x:Static SystemFonts.CaptionFontStyleKey}}"
+                                TextBlock.FontWeight="{DynamicResource {x:Static SystemFonts.CaptionFontWeightKey}}"
+                                PreviewMouseLeftButtonDown="OnCaptionBarClick" 
+                                Visibility="{Binding ElementName=Container, Path=IsHeaderVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Style.Triggers>
+                                        <Trigger Property="dockManager:CaptionBar.State" Value="Active">
+                                            <Setter Property="Border.Background" Value="{DynamicResource {x:Static dockManager:ResourceKeys.CaptionBarActiveBrushKey}}"></Setter>
+                                        </Trigger>
+                                        <Trigger Property="dockManager:CaptionBar.State" Value="Grouped">
+                                            <Setter Property="Border.Background" Value="{DynamicResource {x:Static dockManager:ResourceKeys.CaptionBarGroupedBrushKey}}"></Setter>
+                                        </Trigger>
+                                        <Trigger Property="dockManager:CaptionBar.State" Value="Unselected">
+                                            <Setter Property="Border.Background" Value="{DynamicResource {x:Static dockManager:ResourceKeys.CaptionBarUnselectedBrushKey}}"></Setter>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                        </Border>
+                        <Border>
+                        </Border>
+                    </DockPanel>
+
+                    <dockManager:ContentPaneWrapperHost x:Name="paneWrapperHost" Margin="0" ParentContainer="{Binding ElementName=Container}"  >
+                    </dockManager:ContentPaneWrapperHost>
+                    
+                    <dockManager:PaneContainerHeaderControl x:Name="headerControl" PaneContainer="{Binding ElementName=Container}"
+                                                            VerticalAlignment="Top" HorizontalAlignment="Right" Height="{x:Static dockManager:ResourceKeys.PaneHeaderHeight}" />
+ 
+                    <Popup x:Name="popupSource" PlacementTarget="{Binding ElementName=Container}" StaysOpen="True"
+                                    Placement="Center" AllowsTransparency="True" IsHitTestVisible="False">
+                        <Grid>
+                            <Border IsHitTestVisible="False" Background="Red" Opacity="0.3" BorderThickness="0" >
+
+                            </Border>
+                            <Viewbox StretchDirection="DownOnly">
+                                <TextBlock IsHitTestVisible="False" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   FontSize="20" Text="Dock This Pane" FontWeight="Bold" Opacity="1" />
+                            </Viewbox>
+                        </Grid> 
+                    </Popup>
+ 
+                    <Popup x:Name="popupTarget" PlacementTarget="{Binding ElementName=Container}" StaysOpen="True"
+                                    Placement="Center"  AllowsTransparency="True" IsHitTestVisible="False">
+                        <Grid>
+                            <Border IsHitTestVisible="False" Background="Green" Opacity="0.3" BorderThickness="0" > 
+                            </Border>
+                            <Viewbox StretchDirection="DownOnly">
+                                <TextBlock IsHitTestVisible="False" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   FontSize="20" Text="To This Pane" FontWeight="Bold" Opacity="1" />
+                            </Viewbox>
+                        </Grid>
+
+                    </Popup>
+
+                </Grid>
+            </Border>
+        </Border>
+    </Border> 
+</UserControl>

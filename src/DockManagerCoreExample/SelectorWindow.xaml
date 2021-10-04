@@ -1,0 +1,120 @@
+﻿<Window
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:services="clr-namespace:DockManagerCore.Services;assembly=DockManagerCore"
+    xmlns:dockManager="clr-namespace:DockManagerCore;assembly=DockManagerCore"
+    mc:Ignorable="d" x:Class="DockManagerCoreExample.SelectorWindow"
+        Title="Selector"
+    Top="0" ShowInTaskbar="False" WindowStyle="None" AllowsTransparency="True" 
+    Background="Transparent" Topmost="True" d:DesignWidth="1054" d:DesignHeight="100" Name="Selector">
+    <Window.Resources>
+        <ObjectDataProvider ObjectType="{x:Type dockManager:ContentPaneCommands}" MethodName="GetAllCommands" x:Key="lstCommands" />
+        <ObjectDataProvider ObjectType="{x:Type dockManager:PaneContainerCommands}" MethodName="GetAllCommands" x:Key="lstCommands2" />
+        
+    </Window.Resources>
+    <Border x:Name="borderBlack" BorderThickness=".8" BorderBrush="Black" CornerRadius="5">
+        <Border x:Name="borderWhite" BorderThickness=".8" CornerRadius="5">
+            <Border BorderThickness=".8" CornerRadius="5">
+                <Grid x:Name="topGrid">
+                    <DockPanel x:Name="windowDockPanel" Background="#B4C3DB">
+                        <Border x:Name="_selectorControl" DockPanel.Dock="Top" Height="25" 
+							PreviewMouseDown="OnSelectorBarClick" BorderBrush="Transparent">
+                            <Border.Style>
+                                <Style>
+                                    <Setter Property="Border.Background">
+                                        <Setter.Value>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                <GradientStop Color="#E2EAF3" Offset="0" />
+                                                <GradientStop Color="#C3CEDC" Offset="0.45" />
+                                                <GradientStop Color="#A2B1C4" Offset="0.45" />
+                                                <GradientStop Color="#B4C3DB" Offset="1" />
+                                            </LinearGradientBrush>
+                                        </Setter.Value>
+                                    </Setter>
+
+
+                                </Style>
+                            </Border.Style>
+                        </Border>
+                        <Border DockPanel.Dock="Bottom" BorderBrush="Transparent" Background="#B4C3DB"/>
+                    </DockPanel>
+                    <Border x:Name="buttonsBorder" VerticalAlignment="Bottom" HorizontalAlignment="Left"
+						Background="Transparent" BorderBrush="Transparent" BorderThickness="0">
+                        <StackPanel Orientation="Horizontal" Margin="0" Background="Transparent" x:Name="buttonsStackPanel">
+                            <StackPanel>
+                                <CheckBox Name="flagUseContentPane" Checked="FlagUseContentPane_OnChecked">Use ContentPaneFactory</CheckBox>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Name="btnSaveLayout" Click="BtnSaveLayout_OnClick">Save Layout</Button> 
+                                    <Button Name="btnLoadLayout" Click="BtnLoadLayout_OnClick">Load Layout</Button>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Width="60" Height="60" x:Name="benderButton" Click="benderButton_Click">
+                                        <Image Source="/DockManagerCoreExample;component/bender.jpg"/>
+                                    </Button>
+                                    <Button Width="60" Height="60" x:Name="dogButton" Click="dogButton_Click">
+                                        <Image Source="/DockManagerCoreExample;component/dog.PNG"/>
+                                    </Button>
+                                    <Button Width="60" Height="60" x:Name="comboButton" Click="comboButton_Click">
+                                        <Image Source="/DockManagerCoreExample;component/Images/Icons/books.png"/>
+                                    </Button>
+                                    <Button Width="60" Height="60" x:Name="graphButton" Click="graphButton_Click">
+                                        <Image Source="/DockManagerCoreExample;component/Images/Icons/stats.png"/>
+                                    </Button>
+                                    <Button Width="60" Height="60" x:Name="treeButton" Click="treeButton_Click">
+                                        <Image Source="/DockManagerCoreExample;component/Images/Icons/window.png"/>
+                                    </Button>
+                                    <Button Width="60" Height="60" x:Name="listButton" Click="listButton_Click">
+                                        <Image Source="/DockManagerCoreExample;component/Images/Icons/sphere.png"/>
+                                    </Button>
+                                    <Button Width="60" Height="60" x:Name="windowsFormButton" Click="windowsFormButton_Click">
+                                        <Image Source="/DockManagerCoreExample;component/Images/Icons/sphere.png"/>
+                                    </Button>
+                                </StackPanel>
+                            </StackPanel>
+                            <GroupBox Header="ContentPane Commands" >
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition/>
+                                        <RowDefinition/>
+                                        <RowDefinition/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Label Content="Select Pane:"/>
+                                    <ComboBox x:Name="cboPanes" Width="200" Margin="3,0,3,0" Grid.Row="0" Grid.Column="1" DropDownOpened="CboPanes_OnDropDownOpened"/>
+                                    <Label Content="Select Command:" Grid.Row="1" Grid.Column="0"/>
+                                    <ComboBox x:Name="cboPaneCommands" Width="200" Margin="3,0,3,0" Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Source={StaticResource lstCommands}}" DisplayMemberPath="Text"/>
+                                    <Button x:Name="btnExecuteCommand" Content="Execute" Margin="3,0,3,0" Grid.Row="2" Grid.Column="1" Click="BtnExecuteCommand_OnClick"/>
+                                </Grid>
+                            </GroupBox>
+
+                            <GroupBox Header="PaneContainer Commands" >
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition/>
+                                        <RowDefinition/>
+                                        <RowDefinition/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Label Content="Select Container:"/>
+                                    <ComboBox x:Name="cboContainers" Width="200" Margin="3,0,3,0" Grid.Row="0" Grid.Column="1" DropDownOpened="CboContainers_OnDropDownOpened"/>
+                                    <Label Content="Select Command:" Grid.Row="1"/>
+                                    <ComboBox x:Name="cboContainerCommands" Width="200" Margin="3,0,3,0" Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Source={StaticResource lstCommands2}}" DisplayMemberPath="Text"/>
+                                    <Button x:Name="btnExecuteCommand2" Content="Execute" Margin="3,0,3,0" Grid.Row="2" Grid.Column="1" Click="BtnExecuteCommand2_OnClick"/>
+                                </Grid>
+                            </GroupBox>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+        </Border>
+
+    </Border> 
+
+</Window>

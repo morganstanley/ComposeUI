@@ -1,0 +1,81 @@
+﻿<UserControl x:Class="DockManagerCoreExample.DemoApp3"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Height="300" Width="300">
+    <Grid>
+        <TreeView>
+            <TreeViewItem Header="Desktop" IsExpanded="True" TextBlock.FontSize="14">
+                <TreeViewItem Header="Computer" IsExpanded="False">
+                    <TreeViewItem Header="C:"/>
+                    <TreeViewItem Header="D:"/>
+                    <TreeViewItem Header="H:"/>
+                    <TreeViewItem Header="U:"/>
+                </TreeViewItem>
+                <TreeViewItem Header="Recycle Bin" IsExpanded="False">
+                    <TreeViewItem Header="doc1"/>
+                    <TreeViewItem Header="doc2"/>
+                    <TreeViewItem Header="txt1"/>
+                    <TreeViewItem Header="txt2"/>
+                </TreeViewItem>
+                <TreeViewItem Header="Control Panel" IsExpanded="True">
+                    <TreeViewItem Header="Programs">
+                        <TreeViewItem Header="Office 2007"/>
+                        <TreeViewItem Header="Visual Studio 2010"/>
+                        <TreeViewItem Header="Notepad++"/>
+                        <TreeViewItem Header="Communicator 2009"/>
+                        <TreeViewItem Header="Putty"/>
+                        <TreeViewItem Header="Internet Explorer"/>
+                        <TreeViewItem Header="Mozilla Firefox"/>
+                    </TreeViewItem>
+                </TreeViewItem>
+                <TreeViewItem Header="Network" IsExpanded="True">
+                    <TreeViewItem Header="MS">
+                        <TreeViewItem Header="Dist"/>
+                        <TreeViewItem Header="Dev"/>
+                        <TreeViewItem Header="User"/>
+                    </TreeViewItem>
+                    <TreeViewItem Header="MSAD"/>
+                    <TreeViewItem Header="Node3"/>
+                    <TreeViewItem Header="ABC00548"/>
+                    <TreeViewItem Header="KBC78154"/>
+                </TreeViewItem>
+            </TreeViewItem>
+            <TreeViewItem Header="Desktop 2" IsExpanded="True" TextBlock.FontSize="14">
+                <TreeViewItem Header="Computer" IsExpanded="False">
+                    <TreeViewItem Header="C:"/>
+                    <TreeViewItem Header="D:"/>
+                    <TreeViewItem Header="H:"/>
+                    <TreeViewItem Header="U:"/>
+                </TreeViewItem>
+                <TreeViewItem Header="Recycle Bin" IsExpanded="False">
+                    <TreeViewItem Header="doc1"/>
+                    <TreeViewItem Header="doc2"/>
+                    <TreeViewItem Header="txt1"/>
+                    <TreeViewItem Header="txt2"/>
+                </TreeViewItem>
+                <TreeViewItem Header="Control Panel" IsExpanded="True">
+                    <TreeViewItem Header="Programs">
+                        <TreeViewItem Header="Office 2007"/>
+                        <TreeViewItem Header="Visual Studio 2010"/>
+                        <TreeViewItem Header="Notepad++"/>
+                        <TreeViewItem Header="Communicator 2009"/>
+                        <TreeViewItem Header="Putty"/>
+                        <TreeViewItem Header="Internet Explorer"/>
+                        <TreeViewItem Header="Mozilla Firefox"/>
+                    </TreeViewItem>
+                </TreeViewItem>
+                <TreeViewItem Header="Network" IsExpanded="True">
+                    <TreeViewItem Header="MS">
+                        <TreeViewItem Header="Dist"/>
+                        <TreeViewItem Header="Dev"/>
+                        <TreeViewItem Header="User"/>
+                    </TreeViewItem>
+                    <TreeViewItem Header="MSAD"/>
+                    <TreeViewItem Header="Node3"/>
+                    <TreeViewItem Header="ABC00548"/>
+                    <TreeViewItem Header="KBC78154"/>
+                </TreeViewItem>
+            </TreeViewItem>
+        </TreeView>
+    </Grid>
+</UserControl>

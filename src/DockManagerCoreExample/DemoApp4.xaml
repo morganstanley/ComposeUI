@@ -1,0 +1,35 @@
+﻿<UserControl x:Class="DockManagerCoreExample.DemoApp4"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <Grid>
+        <ListView TextBlock.FontSize="14">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Width="100" Header="Date"/>
+                    <GridViewColumn Width="200" Header="Day of Week" DisplayMemberBinding="{Binding DayOfWeek}"/>
+                    <GridViewColumn Width="100" Header="Year" DisplayMemberBinding="{Binding Year}"/>
+                </GridView>
+            </ListView.View>
+            <sys:DateTime>1/1/2010</sys:DateTime>
+            <sys:DateTime>2/2/2003</sys:DateTime>
+            <sys:DateTime>1/3/2005</sys:DateTime>
+            <sys:DateTime>7/4/2010</sys:DateTime>
+            <sys:DateTime>1/5/2010</sys:DateTime>
+            <sys:DateTime>2/6/2006</sys:DateTime>
+            <sys:DateTime>1/7/1998</sys:DateTime>
+            <sys:DateTime>1/8/2003</sys:DateTime>
+            <sys:DateTime>5/9/1998</sys:DateTime>
+            <sys:DateTime>1/10/1997</sys:DateTime>
+            <sys:DateTime>10/11/2010</sys:DateTime>
+            <sys:DateTime>1/12/1998</sys:DateTime>
+            <sys:DateTime>6/20/1997</sys:DateTime>
+            <sys:DateTime>1/12/1998</sys:DateTime>
+            <sys:DateTime>12/2/2005</sys:DateTime>
+            <sys:DateTime>9/23/1994</sys:DateTime>
+            <sys:DateTime>7/21/1995</sys:DateTime>
+            <sys:DateTime>8/18/1991</sys:DateTime>
+        </ListView>
+        
+    </Grid>
+</UserControl>

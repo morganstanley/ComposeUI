@@ -1,0 +1,69 @@
+﻿<Border x:Class="DockManagerCore.PaneContainerHeaderControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:dockManagerCore="clr-namespace:DockManagerCore"
+             xmlns:desktop="clr-namespace:DockManagerCore.Desktop"
+             mc:Ignorable="d"  x:Name="HeaderControl">
+
+
+    <StackPanel Margin="0,2,0,0" Orientation="Horizontal" HorizontalAlignment="Right" Name="ButtonPanel" >
+
+        <Popup Margin="10,10,0,13" Name="_dockPopUp" 
+                                    Width="60" Height="48" StaysOpen="False"
+                                    PlacementTarget="{Binding ElementName=_dockButton}"
+                                    Placement="Left">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="16" />
+                    <RowDefinition Height="16" />
+                    <RowDefinition Height="16" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="20" />
+                    <ColumnDefinition Width="20" />
+                    <ColumnDefinition Width="20" />
+                </Grid.ColumnDefinitions>
+                <dockManagerCore:WindowPlainButton PlacementLocation="TopLeft" Click="OnPopupClick" Grid.Row="0" Grid.Column="0" >
+
+                </dockManagerCore:WindowPlainButton>
+                <dockManagerCore:WindowPlainButton PlacementLocation="Top" Click="OnPopupClick" Grid.Row="0" Grid.Column="1">
+
+                </dockManagerCore:WindowPlainButton>
+                <dockManagerCore:WindowPlainButton PlacementLocation="TopRight" Click="OnPopupClick" Grid.Row="0" Grid.Column="2">
+
+                </dockManagerCore:WindowPlainButton>
+                <dockManagerCore:WindowPlainButton PlacementLocation="Left" Click="OnPopupClick" Grid.Row="1" Grid.Column="0">
+
+                </dockManagerCore:WindowPlainButton>
+                <dockManagerCore:WindowPlainButton PlacementLocation="Center" Click="OnPopupClick" Grid.Row="1" Grid.Column="1">
+
+                </dockManagerCore:WindowPlainButton>
+                <dockManagerCore:WindowPlainButton  PlacementLocation="Right" Click="OnPopupClick" Grid.Row="1" Grid.Column="2">
+
+                </dockManagerCore:WindowPlainButton>
+                <dockManagerCore:WindowPlainButton PlacementLocation="BottomLeft" Click="OnPopupClick" Grid.Row="2" Grid.Column="0" d:IsHidden="True">
+
+                </dockManagerCore:WindowPlainButton>
+                <dockManagerCore:WindowPlainButton  PlacementLocation="Bottom" Click="OnPopupClick" Grid.Row="2" Grid.Column="1">
+
+                </dockManagerCore:WindowPlainButton>
+                <dockManagerCore:WindowPlainButton PlacementLocation="BottomRight" Click="OnPopupClick" Grid.Row="2" Grid.Column="2">
+
+                </dockManagerCore:WindowPlainButton>
+            </Grid>
+        </Popup>
+        <desktop:HeaderItemsHolder x:Name="paneHeaderControl" ItemsSource="{Binding ElementName=HeaderControl, Path=PaneContainer.ActivePane.CustomItems}" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+        <dockManagerCore:WindowNoHeaderButton x:Name="_noHeaderButton"  State="{Binding ElementName=HeaderControl, Path=PaneContainer.HideButtonState}" Click="Button_OnClick" VerticalAlignment="Center" />
+        <dockManagerCore:WindowHeaderButton  x:Name="_headerButton"  State="{Binding ElementName=HeaderControl, Path=PaneContainer.HideButtonState}" Click="Button_OnClick" VerticalAlignment="Center" />
+        <dockManagerCore:WindowDockButton x:Name="_dockButton" State="{Binding ElementName=HeaderControl, Path=PaneContainer.DockButtonState}" 
+                                          Click="OnButtonDock_Click" VerticalAlignment="Center" />
+        <dockManagerCore:WindowUnLockButton x:Name="_unlockButton" State="{Binding ElementName=HeaderControl, Path=PaneContainer.LockButtonState}" Click="Button_OnClick" VerticalAlignment="Center" />
+        <dockManagerCore:WindowLockButton x:Name="_lockButton" State="{Binding ElementName=HeaderControl, Path=PaneContainer.LockButtonState}" Click="Button_OnClick" VerticalAlignment="Center" />
+        <dockManagerCore:WindowMinimizeButton x:Name="_minimizeButton" State="{Binding ElementName=HeaderControl, Path=PaneContainer.MinimizeButtonState}"  VerticalAlignment="Center" />
+        <dockManagerCore:WindowMaximizeButton  x:Name="_maximizeButton"  State="{Binding ElementName=HeaderControl, Path=PaneContainer.MaximizeButtonState}" Click="Button_OnClick" VerticalAlignment="Center" />
+        <dockManagerCore:WindowRestoreButton x:Name="_restoreButton" State="{Binding ElementName=HeaderControl, Path=PaneContainer.MaximizeButtonState}" Click="Button_OnClick" VerticalAlignment="Center" />
+        <dockManagerCore:WindowCloseButton x:Name="_closeButton" State="{Binding ElementName=HeaderControl, Path=PaneContainer.CloseButtonState}"  VerticalAlignment="Center" />
+    </StackPanel>
+</Border>
