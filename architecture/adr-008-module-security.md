@@ -4,28 +4,52 @@
 
 ## Context
 
-ComposeUI is modular, the modules communicate with each other and the host application via a central
-Messaging Module. The aim of this ADR is to establish how we make the communications secure.
+ComposeUI is modular, and although the core and loader are responsible for loading a module, the only
+way for a module to interact with Compose modules is via the Message Router. Therefore the communication
+needs to be secure so that the other modules can be sure that the messages are coming from a trusted source.
 
-When a module connects to the Messaging Module, it is likely to be with a WebSocket connection.
-We could use Secure WebSocket (wss://) to encrypt the messages on the channel, but how do we make sure 
-that the Module that connects is who it says it is? What if some malicious party tries to connect to our 
-message bus and send messages?
+The aim of this ADR is to establish what type of security measures are going to be implemented.
 
-There is no way to make the application 100% secure and prevent every angle of attack. Especially with a
-web based client application, where all the data is available on the client side. One way to make it harder 
-for an attacker to send harmful messages is to send some secret to the client and require it to send back
-(some form of) the secret with every message. This is still vulnerable to man-in-the-middle attacks.
+When a module connects to the Message Router, it is likely to be with a WebSocket connection.
+As a first line of defense, we could use Secure WebSocket (wss://) to encrypt the messages on the channel,
+however, since the communication is going to happen within the same machine (localhost), this might not be 
+necessary. 
+
+### Authenticating/Identifying a module
+
+These are the scenarios that we account for:
+1. A .NET assembly is loaded by Compose
+	- We can verify it by using Authenticode
+2. A Web application is loaded into a Compose embedded browser
+	- We will use WebView2 and verify the URL that is loaded
+	- We can intercept any navigation event and check the new URL against an allowed URL/domain list
+3. A Web application loaded into a desktop browser (i.e. Chrome)
+	- We can use OAuth to authenticate the web app 
+	
+We distribute a generated token offline to each client app developer team.
+They bundle the token into the application. The app sends this token to Compose when connecting.
+This token identifies the app and it can also be used to associate entitlements with the app.
+
+Once we verify that it is a valid token, we allow the app to connect to the Message Router.
+
+### Opt-out of Authentication
+
+The app developer might decide that they want to allow modules without authentication, but the default
+will be to allow authenticated clients only. 
+If authentication fails, we mark it as "anonymous" and give it an ID, but with the strict option, 
+we reject the connection in this case.
 
 ## Decision
-- We are conscious that there is no way to fully secure the communication channel
-- We want modules to easily communicate, therefore the default is that we do not enforce any security measures
-- Provide an option to make it harder for an attacker to do harm
+- The default is that we allow authenticated clients only
+- Provide an option for the application to opt-out of authentication
+- We mark modules/apps that are not identified with an "anonymous" flag
 
 ## Status
 
-Proposed
+Pending
 
 ## Consequences
-- Modules can simply connect to the central Messaging Module and start communicating
-- A Module can choose (by config) to use stricter security measures if needed
+- Modules need a token to connect to the central Message Router
+- The app can choose (by config) to allow unauthenticated modules to communicate
+- A module can choose to not receive messages from unauthenticated modules
+- The central Message Router will filter out messages from anonymous modules if needed
