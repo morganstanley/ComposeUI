@@ -46,7 +46,7 @@ we reject the connection in this case.
 
 ## Status
 
-Pending
+Approved
 
 ## Consequences
 - Modules need a token to connect to the central Message Router
