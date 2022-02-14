@@ -1,0 +1,11 @@
+<div class="column-layout column" width="1000px">
+  <button igxButton="icon" type="icon" [disabled]="false" routerLink="/master-view/processes">
+    <igx-icon>close</igx-icon>
+  </button>
+  <highcharts-chart 
+    [Highcharts]="Highcharts"
+    [options]="chartOptions"
+
+    style="width: 100%; height: 400px; display: block;"
+></highcharts-chart>
+</div>
