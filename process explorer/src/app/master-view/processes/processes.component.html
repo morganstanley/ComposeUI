@@ -11,14 +11,15 @@
 </div>
 <div class="column-layout_1 column">
   <div class="row-layout row">
-  <igx-grid [data]="mockProcessesData" [rowSelection]= "'multiple'" [autoGenerate]="false" width="100%" height="607px" displayDensity="cosy" primaryKey="id" class="grid">
-    <igx-column field="id" header="id" title="id" dataType="string" [groupable]="true" [editable]="true"></igx-column>
-    <igx-column field="bits" header="bits" title="bits" dataType="string" [groupable]="true" [editable]="true"></igx-column>
-    <igx-column field="PID" header="PID" title="PID" dataType="number" [groupable]="true" [editable]="true"></igx-column>
+    <igx-tree-grid #treeGrid [data]="mockProcessesData" childDataKey="Children" [rowSelection]= "'multiple'"
+        [autoGenerate]="false" width="100%" height="607px" displayDensity="cosy" primaryKey="id" class="grid">
+    <igx-column field="id" header="id" title="id" dataType="string" [groupable]="true"></igx-column>
+    <igx-column field="bits" header="bits" title="bits" dataType="string" [groupable]="true"></igx-column>
+    <igx-column field="PID" header="PID" title="PID" dataType="number" [groupable]="true"></igx-column>
     <igx-action-strip #actionstrip>
       <igx-grid-pinning-actions></igx-grid-pinning-actions>
 
-      <!-- custom controls -->
+      <!-- custom controls  -->
       <button title="Pause" igxButton="icon" igxRipple (click)='actionstrip.context.delete()'>
         <igx-icon>pause</igx-icon>
       </button>
@@ -31,6 +32,6 @@
     <igx-grid-toolbar>
       <igx-grid-toolbar-title>Processes</igx-grid-toolbar-title>
     </igx-grid-toolbar>
-  </igx-grid>
+  </igx-tree-grid>
   </div>
 </div>
