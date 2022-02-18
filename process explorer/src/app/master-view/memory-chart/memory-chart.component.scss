@@ -1,0 +1,28 @@
+:host {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.column-layout {
+  align-items: flex-end;
+  position: relative;
+  height: 794px;
+  min-width: 50px;
+  min-height: 50px;
+  background-color: var(--igx-secondary-600);
+}
+.image {
+  width: 1526px;
+  height: 754px;
+  min-width: 0;
+  min-height: 0;
+  flex-shrink: 0;
+  border-radius:0;
+  object-fit: fill;
+}
+.column {
+  display: flex;
+  flex-direction: column;
+  width: 900px;
+}
