@@ -46,7 +46,7 @@ namespace ProcessExplorer
                 client.BaseAddress = new Uri(url);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                HttpResponseMessage responseMessage = await client.PostAsJsonAsync("/api/info", this);
+                HttpResponseMessage responseMessage = await client.PostAsJsonAsync("", this);
                 var result = await responseMessage.Content.ReadAsStringAsync();
                 if (responseMessage.IsSuccessStatusCode)
                 {
