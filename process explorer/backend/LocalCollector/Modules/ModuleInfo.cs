@@ -10,11 +10,11 @@ namespace ProcessExplorer.Entities.Modules
         {
             Name = assembly.GetName().Name;
             Version = module.ModuleVersionId;
-            VersionRedirectedFrom = module.Assembly.ImageRuntimeVersion;
-            PublicKeyToken = module.MetadataToken;
+            VersionRedirectedFrom = assembly.ManifestModule.ModuleVersionId.ToString(); //module.Assembly.ImageRuntimeVersion;
+            PublicKeyToken = assembly.GetName().GetPublicKeyToken(); //module.MetadataToken; 
             Path = module.Assembly.Location;
         }
-        public ModuleInfo(string name, Guid version, string versionrf, int publickey, 
+        public ModuleInfo(string name, Guid version, string versionrf, byte[] publickey, 
             string path,  IEnumerable<CustomAttributeData> dependencies)
         {
             Name = name;
@@ -32,7 +32,7 @@ namespace ProcessExplorer.Entities.Modules
         public string? Name { get; protected set; }
         public Guid? Version { get; protected set; }
         public string? VersionRedirectedFrom { get; protected set; }
-        public int? PublicKeyToken { get; protected set; }
+        public byte[]? PublicKeyToken { get; protected set; }
         public string? Path { get; protected set; }
         public IEnumerable<CustomAttributeData>? Dependencies { get; protected set; }
     }
