@@ -4,12 +4,22 @@ namespace ProcessExplorer.Entities.EnvironmentVariables
 {
     public class EnvironmentInfo
     {
-        public EnvironmentInfo(string? variable, string? value)
+        public EnvironmentInfoDto Data { get; set; }
+        EnvironmentInfo()
         {
-            Variable = variable;
-            Value = value;
+            Data = new EnvironmentInfoDto();
         }
-        public string? Variable { get; protected set; }
-        public string? Value { get; protected set; }
+        public EnvironmentInfo(string? variable, string? value)
+            :this()
+        {
+            Data.Variable = variable;
+            Data.Value = value;
+        }
+    }
+
+    public class EnvironmentInfoDto
+    {
+        public string? Variable { get; set; }
+        public string? Value { get; set; }
     }
 }

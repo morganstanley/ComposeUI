@@ -12,75 +12,60 @@ namespace ProcessExplorer.Entities.Connections
         Stopped,
         Failed
     }
-
-    public interface IConnection 
+    public class ConnectionDto 
     {
-        public Guid? Id { get; init; }
-        public string? Name { get; set; }
-        public string? LocalEndpoint { get;  set; }
-        public string? RemoteEndpoint { get;  set; }
-        public string? RemoteApplication { get;  set; }
-        public string? RemoteHostname { get;  set; }
-        public ConcurrentDictionary<string, string>? ConnectionInformation { get; set; }
-        public ConnectionStatus GetConnectionStatus(object clientStatus);
-    }
-    public class DummyConnectionInfo : IConnection
-    {
-        public DummyConnectionInfo(ref ClientWebSocket client, Uri remote)
-        {
-            Id = Guid.NewGuid();
-            RemoteEndpoint = remote.AbsolutePath; 
-            RemoteApplication = remote.IdnHost;
-            RemoteHostname = remote.Host;
-            LocalEndpoint = Assembly.GetEntryAssembly()?.Location;
-            Status = GetConnectionStatus(client.State);
-        }
-        public DummyConnectionInfo(Guid id, ConnectionStatus status, string name, string local,string remoteendpoint, 
-            string remoteApplication, string remotehost, ConcurrentDictionary<string, string>? connectionInformation)
-        {
-            this.Id = id;
-            this.Status = status;
-            this.Name = name;
-            this.LocalEndpoint = local;
-            this.RemoteEndpoint = remoteendpoint;
-            this.RemoteHostname = remotehost;
-            this.ConnectionInformation = connectionInformation;
-            this.RemoteApplication = remoteApplication;
-        }
-
-        private ConnectionStatus status;
-        public ConnectionStatus Status { 
-            get
-                => status; 
-            set {
-                SetField(ref status, value);
-            } }
+        public Guid? Id { get; set; }
         public string? Name { get; set; }
         public string? LocalEndpoint { get; set; }
         public string? RemoteEndpoint { get; set; }
         public string? RemoteApplication { get; set; }
         public string? RemoteHostname { get; set; }
         public ConcurrentDictionary<string, string>? ConnectionInformation { get; set; }
-        public Guid? Id { get; init;  }
+        public string? Status { get; set; }
+    }
 
-        private bool SetField<T>(ref T status, T value)
+    public class DummyConnectionInfo 
+    {
+        DummyConnectionInfo()
         {
-            if(EqualityComparer<T>.Default.Equals(value, status)) return false;
-            status = value;
-            return true;
+            Data = new ConnectionDto();
         }
-        public ConnectionStatus GetConnectionStatus(object clientStatus)
+        public DummyConnectionInfo(ClientWebSocket client, Uri remote)
+            :this()
         {
-            var clientState = (WebSocketState)clientStatus;
+            Data.Id = Guid.NewGuid();
+            Data.RemoteEndpoint = remote.AbsolutePath;
+            Data.RemoteApplication = remote.IdnHost;
+            Data.RemoteHostname = remote.Host;
+            Data.LocalEndpoint = Assembly.GetEntryAssembly()?.Location;
+            Data.Status = StatusChanged(client.State);
+        }
+        public DummyConnectionInfo(Guid id, ConnectionStatus status, string name, string local,string remoteendpoint, 
+            string remoteApplication, string remotehost, ConcurrentDictionary<string, string>? connectionInformation)
+            :this()
+        {
+            this.Data.Id = id;
+            this.Data.Status = status.ToString();
+            this.Data.Name = name;
+            this.Data.LocalEndpoint = local;
+            this.Data.RemoteEndpoint = remoteendpoint;
+            this.Data.RemoteHostname = remotehost;
+            this.Data.ConnectionInformation = connectionInformation;
+            this.Data.RemoteApplication = remoteApplication;
+        }
+
+        public ConnectionDto Data { get; set; }
+
+        public string StatusChanged(WebSocketState clientStatus)
+        {
+            var clientState = clientStatus;
 
             if (clientState == WebSocketState.Open)
-                return ConnectionStatus.Running;
+                return ConnectionStatus.Running.ToString();
             else if (clientState == WebSocketState.Closed || clientState == WebSocketState.None
                  || clientState == WebSocketState.CloseSent)
-                return ConnectionStatus.Stopped;
-            else if (clientState == WebSocketState.Aborted || clientState == WebSocketState.CloseReceived)
-                return ConnectionStatus.Failed;
-            return ConnectionStatus.Failed;
+                return ConnectionStatus.Stopped.ToString();
+            return ConnectionStatus.Failed.ToString();
         }
     }
 }

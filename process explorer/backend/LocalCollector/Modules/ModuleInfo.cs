@@ -1,5 +1,5 @@
 ﻿/* Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */
-using System.Collections.Concurrent;
+
 using System.Reflection;
 
 namespace ProcessExplorer.Entities.Modules
@@ -7,51 +7,76 @@ namespace ProcessExplorer.Entities.Modules
     public class ModuleInfo
     {
         public ModuleInfo(Assembly assembly, Module module)
+            :this()
         {
-            Name = assembly.GetName().Name;
-            Version = module.ModuleVersionId;
-            VersionRedirectedFrom = assembly.ManifestModule.ModuleVersionId.ToString(); //module.Assembly.ImageRuntimeVersion;
-            PublicKeyToken = assembly.GetName().GetPublicKeyToken(); //module.MetadataToken; 
-            Path = module.Assembly.Location;
+            Data.Name = assembly.GetName().Name;
+            Data.Version = module.ModuleVersionId;
+            Data.VersionRedirectedFrom = assembly.ManifestModule.ModuleVersionId.ToString(); 
+            Data.PublicKeyToken = assembly?.GetName()?.GetPublicKeyToken()?.ToString(); 
+            Data.Path = module.Assembly.Location;
         }
-        public ModuleInfo(string name, Guid version, string versionrf, byte[] publickey, 
-            string path,  IEnumerable<CustomAttributeData> dependencies)
+
+        public ModuleInfo(string name, Guid version, string versionrf, string publickey, 
+            string path,  List<CustomAttributeData> information)
+            :this()
         {
-            Name = name;
-            Version = version;
-            VersionRedirectedFrom = versionrf;
-            PublicKeyToken = publickey;
-            Path = path;
-            Dependencies = dependencies;
+            Data.Name = name;
+            Data.Version = version;
+            Data.VersionRedirectedFrom = versionrf;
+            Data.PublicKeyToken = publickey;
+            Data.Path = path;
+            Data.Information = information;
         }
+
         public ModuleInfo(string name)
             :this(name, default, default, default, default, default)
         {
 
         }
-        public string? Name { get; protected set; }
-        public Guid? Version { get; protected set; }
-        public string? VersionRedirectedFrom { get; protected set; }
-        public byte[]? PublicKeyToken { get; protected set; }
-        public string? Path { get; protected set; }
-        public IEnumerable<CustomAttributeData>? Dependencies { get; protected set; }
+
+        ModuleInfo()
+            => Data = new ModuleDto();
+
+        public ModuleDto Data { get; set; }
+    }
+
+    public class ModuleDto
+    {
+        public string? Name { get; set; }
+        public Guid? Version { get; set; }
+        public string? VersionRedirectedFrom { get; set; }
+        public string? PublicKeyToken { get; set; }
+        public string? Path { get; internal set; }
+        public List<CustomAttributeData>? Information { get; set; } = new List<CustomAttributeData>();
     }
 
     public class ModuleMonitor
     {
-        public ConcurrentBag<ModuleInfo> currentModules;
-        public ModuleMonitor()
+        public ModuleMonitorDto Data { get; set; }
+        ModuleMonitor()
         {
-            currentModules = new ConcurrentBag<ModuleInfo>();
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            Data = new ModuleMonitorDto();
+        }
+        public ModuleMonitor(bool constless)
+            :this()
+        {
+            if (constless)
             {
-                foreach (var module in assembly.GetLoadedModules())
+                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
                 {
-                    currentModules.Add(new ModuleInfo(assembly, module));
+                    foreach (var module in assembly.GetLoadedModules())
+                    {
+                        Data.CurrentModules.Add(new ModuleInfo(assembly, module).Data);
+                    }
                 }
             }
         }
-        public ConcurrentBag<ModuleInfo>? GetModules()
-            => currentModules;
+        public List<ModuleDto>? GetModules()
+            => Data.CurrentModules;
+    }
+
+    public class ModuleMonitorDto
+    {
+        public List<ModuleDto>? CurrentModules { get; set; } = new List<ModuleDto>();
     }
 }
