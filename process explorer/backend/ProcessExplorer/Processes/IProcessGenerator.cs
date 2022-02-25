@@ -16,7 +16,26 @@ namespace LocalCollector.Processes
         public ProcessStartInfo KillProcessByName(string processName);
         public ProcessStartInfo KillProcessById(int processId);
         public void ProcessChanged(Process process);
-        public void WatchProcesses();
+        public void WatchProcesses(List<int> processes);
+
+        public List<int> GetProcessIds(List<ProcessInfoDto> processes)
+        {
+            var list = new List<int>();
+            foreach (var process in processes)
+            {
+                if (process.PID != default)
+                    list.Add((int)process.PID);
+                if (process.Children != default)
+                {
+                    foreach (var child in process.Children)
+                    {
+                        if (child.PID != default)
+                            list.Add((int)child.PID);
+                    }
+                }
+            }
+            return list;
+        }
     }
 
     public class ProcessInfoLinux : IProcessGenerator
@@ -107,12 +126,12 @@ namespace LocalCollector.Processes
             => new ProcessStartInfo("/bin/bash", string.Format(" -c 'sudo pkill -f {0}'", processId.ToString()));
 
 
-        public void WatchProcesses()
+        public void ProcessChanged(Process process)
         {
-            //tbc
+            throw new NotImplementedException();
         }
 
-        public void ProcessChanged(Process process)
+        public void WatchProcesses(List<int> processes)
         {
             throw new NotImplementedException();
         }
@@ -120,7 +139,7 @@ namespace LocalCollector.Processes
 
     public class ProcessInfoWindows : IProcessGenerator
     {
-        private IProcessGenerator manager;
+        private List<int> processes;
         internal ProcessInfoWindows()
         {
 
@@ -173,8 +192,9 @@ namespace LocalCollector.Processes
 
             return children;
         }
-        public void WatchProcesses()
+        public void WatchProcesses(List<int> processes)
         {
+            this.processes = processes;
             // create the watcher and start to listen
             try
             {
@@ -207,7 +227,7 @@ namespace LocalCollector.Processes
             Console.WriteLine("TargetInstance.Name :      " + ((ManagementBaseObject)e.NewEvent.Properties["TargetInstance"].Value)["Name"]);
             Console.WriteLine("TargetInstance.ID :      " + ((ManagementBaseObject)e.NewEvent.Properties["TargetInstance"].Value)["ProcessId"]);
             int pid = Convert.ToInt32(((ManagementBaseObject)e.NewEvent.Properties["TargetInstance"].Value)["ProcessId"]);
-            if(GetParentId(Process.GetProcessById(pid)) == Process.GetCurrentProcess().Id) //Sample
+            if(processes.Contains(pid))
             {
                 ProcessChanged(Process.GetProcessById(pid));
             }

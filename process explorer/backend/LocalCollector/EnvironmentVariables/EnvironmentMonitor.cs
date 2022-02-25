@@ -5,45 +5,18 @@ using System.Collections.Concurrent;
 
 namespace ProcessExplorer.Entities.EnvironmentVariables
 {
-    public class EnvironmentMonitor
-    {
-        public EnvironmentMonitorDto? Data { get; set; }
-
-        EnvironmentMonitor()
-            :this(false)
-        {
-
-        }
-
-        public EnvironmentMonitor(bool constless = false)
-        {
-            Data = new EnvironmentMonitorDto();
-            if (constless)
-            {
-                GetEnvironmentVariables();
-            }
-        }
-
-        public EnvironmentMonitor(ConcurrentDictionary<string, string>? environmentVariables)
-            => Data.EnvironmentVariables = environmentVariables;
-            
-        private void LoadEnvironmentVariables()
-        {
-            foreach (DictionaryEntry item in Environment.GetEnvironmentVariables())
-            {
-                Data?.EnvironmentVariables?.AddOrUpdate(item.Key.ToString(), item.Value?.ToString(), (key, oldValue) => oldValue = item.Value.ToString());
-            }
-        }
-
-        private ConcurrentDictionary<string, string>? GetEnvironmentVariables()
-        {
-            LoadEnvironmentVariables();
-            return Data?.EnvironmentVariables;
-        }
-    }
-
     public class EnvironmentMonitorDto
     {
         public ConcurrentDictionary<string, string>? EnvironmentVariables { get; set; } = new ConcurrentDictionary<string, string>();
+
+        public static EnvironmentMonitorDto FromEnvironment()
+        {
+            var envs = new EnvironmentMonitorDto();
+            foreach (DictionaryEntry item in Environment.GetEnvironmentVariables())
+            {
+                envs.EnvironmentVariables.AddOrUpdate(item.Key.ToString(), item.Value?.ToString(), (key, oldValue) => oldValue = item.Value.ToString());
+            }
+            return envs;
+        }
     }
 }

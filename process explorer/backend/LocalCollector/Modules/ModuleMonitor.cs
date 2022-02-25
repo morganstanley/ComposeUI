@@ -39,34 +39,20 @@ namespace ProcessExplorer.Entities.Modules
             };
         }
     }
-
-    public class ModuleMonitor
-    {
-        public ModuleMonitorDto Data { get; set; }
-        ModuleMonitor()
-        {
-            Data = new ModuleMonitorDto();
-        }
-        public ModuleMonitor(bool constless)
-            :this()
-        {
-            if (constless)
-            {
-                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-                {
-                    foreach (var module in assembly.GetLoadedModules())
-                    {
-                        Data.CurrentModules.Add(ModuleDto.FromModule(assembly,module));
-                    }
-                }
-            }
-        }
-        public List<ModuleDto>? GetModules()
-            => Data.CurrentModules;
-    }
-
     public class ModuleMonitorDto
     {
         public List<ModuleDto>? CurrentModules { get; set; } = new List<ModuleDto>();
+        public static ModuleMonitorDto FromAssembly()
+        {
+            var monduleMonitor = new ModuleMonitorDto();
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (var module in assembly.GetLoadedModules())
+                {
+                    monduleMonitor.CurrentModules.Add(ModuleDto.FromModule(assembly, module));
+                }
+            }
+            return monduleMonitor;
+        }
     }
 }

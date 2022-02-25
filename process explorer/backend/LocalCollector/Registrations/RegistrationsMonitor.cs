@@ -18,29 +18,18 @@ namespace ProcessExplorer.Entities.Registrations
             };
         }
     }
-
-    public class RegistrationMonitor
-    {
-        public RegistrationMonitorDto Data { get; set;}
-        public RegistrationMonitor(ICollection<RegistrationDto> services)
-            :this()
-        {
-            foreach (var item in services)
-            {
-                Data?.Services?.Add(item);
-            }
-        }
-        private RegistrationMonitor()
-        {
-            Data = new RegistrationMonitorDto();
-        }
-
-        public List<RegistrationDto>? GetServices()
-            => Data.Services;
-    }
-
     public class RegistrationMonitorDto
     {
         public List<RegistrationDto>? Services { get; set; } = new List<RegistrationDto>();
+
+        public static RegistrationMonitorDto FromCollection(ICollection<RegistrationDto> services)
+        {
+            var monitor = new RegistrationMonitorDto();
+            foreach(var item in services)
+            {
+                monitor.Services.Add(item);
+            }
+            return monitor;
+        }
     }
 }

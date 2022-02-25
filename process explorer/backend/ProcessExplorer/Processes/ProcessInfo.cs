@@ -37,7 +37,7 @@ namespace ProcessExplorer.Entities
                     var list = new List<ProcessThreadInfoDto>();
                     foreach (ProcessThread processThread in process.Threads)
                     {
-                        list.Add(new ProcessThreadInfo(processThread).Data);
+                        list.Add(ProcessThreadInfoDto.FromProcessThread(processThread));
                     }
                     Data.Threads = list;
                     Data.ProcessStatus = process.HasExited == false ? Status.Running.ToString() : Status.Stopped.ToString();
@@ -59,26 +59,7 @@ namespace ProcessExplorer.Entities
                 }
             }
         }
-
         public ProcessInfoDto? Data { get; set; }
-    }
-
-    public class ProcessThreadInfo
-    {
-        public ProcessThreadInfoDto Data { get; set; }
-        public ProcessThreadInfo(ProcessThread processThread)
-        {
-            Data = new ProcessThreadInfoDto();
-            if (processThread != null)
-            {
-                Data.StartTime = processThread.StartTime.ToString();
-                Data.PriorityLevel = processThread.CurrentPriority;
-                Data.Id = processThread.Id;
-                Data.Status = processThread.ThreadState.ToString();
-                Data.ProcessorUsageTime = processThread.TotalProcessorTime;
-                Data.WaitReason = processThread.WaitReason.ToString();
-            }
-        }
     }
 
     public class ProcessThreadInfoDto
@@ -89,6 +70,21 @@ namespace ProcessExplorer.Entities
         public string? Status { get; internal set; } = default;
         public TimeSpan? ProcessorUsageTime { get; internal set; } = default;
         public string? WaitReason { get; internal set; } = default;
+
+        public static ProcessThreadInfoDto FromProcessThread(ProcessThread processThread)
+        {
+            var Data = new ProcessThreadInfoDto();
+            if (processThread != null)
+            {
+                Data.StartTime = processThread.StartTime.ToString();
+                Data.PriorityLevel = processThread.CurrentPriority;
+                Data.Id = processThread.Id;
+                Data.Status = processThread.ThreadState.ToString();
+                Data.ProcessorUsageTime = processThread.TotalProcessorTime;
+                Data.WaitReason = processThread.WaitReason.ToString();
+            }
+            return Data;
+        }
     }
 
     public class ProcessInfoDto

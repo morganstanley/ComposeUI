@@ -18,5 +18,15 @@ namespace ProcessExplorer
             ProcessMonitor = new ProcessMonitor();
             return ProcessMonitor.GetProcesses();
         }
+
+        private static async Task SendProcessCreated()
+        {
+
+        }
+
+        public static void ProcessCreated()
+        {
+            SendProcessCreated().Wait();
+        }
     }
 }

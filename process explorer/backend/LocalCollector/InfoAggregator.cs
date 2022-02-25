@@ -24,11 +24,11 @@ namespace ProcessExplorer
             Data.Connections = cons.Data;
         }
         public InfoAggregator(Guid id, AppUserInfoDto user, EnvironmentMonitor envs, ConnectionMonitor cons,
-            RegistrationMonitor registrations, ModuleMonitor modules)
+            RegistrationMonitorDto registrations, ModuleMonitorDto modules)
             : this(id, user, envs, cons)
         {
-            Data.Registrations = registrations.Data;
-            Data.Modules = modules.Data;
+            Data.Registrations = registrations;
+            Data.Modules = modules;
         }
         
         public InfoAggregatorDto Data { get; set; }
