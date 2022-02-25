@@ -12,12 +12,12 @@ namespace ProcessExplorer.Entities.Connections
         public ConnectionMonitor(List<ConnectionDto> connections)
             => this.Data.Connections = connections;
         public void AddConnection(ConnectionDto connectionInfo)
-            => Data.Connections.Add(connectionInfo);
+            => Data?.Connections?.Add(connectionInfo);
         public void RemoveConnection(ConnectionDto connectionInfo)
-            => Data?.Connections.Remove(connectionInfo);
+            => Data?.Connections?.Remove(connectionInfo);
         public void ChangeElement(ConnectionDto connection)
         {
-            var temp = Data.Connections.ToList();
+            var temp = Data?.Connections?.ToList();
             var element = temp.FindIndex(conn => conn.Id == connection.Id);
             if (element != default)
             {
@@ -30,7 +30,7 @@ namespace ProcessExplorer.Entities.Connections
             }
         }
         public ConnectionDto? GetConnection(ConnectionDto connection) 
-            => Data.Connections.Where(conn => conn.Equals(connection)).FirstOrDefault();
+            => Data?.Connections?.Where(conn => conn.Equals(connection)).FirstOrDefault();
 
         public List<ConnectionDto>? GetConnections()
             => Data.Connections;

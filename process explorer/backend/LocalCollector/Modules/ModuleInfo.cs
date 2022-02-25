@@ -12,11 +12,11 @@ namespace ProcessExplorer.Entities.Modules
             Data.Name = assembly.GetName().Name;
             Data.Version = module.ModuleVersionId;
             Data.VersionRedirectedFrom = assembly.ManifestModule.ModuleVersionId.ToString(); 
-            Data.PublicKeyToken = assembly?.GetName()?.GetPublicKeyToken()?.ToString(); 
+            Data.PublicKeyToken = assembly?.GetName()?.GetPublicKeyToken(); 
             Data.Path = module.Assembly.Location;
         }
 
-        public ModuleInfo(string name, Guid version, string versionrf, string publickey, 
+        public ModuleInfo(string name, Guid version, string versionrf, byte[] publickey, 
             string path,  List<CustomAttributeData> information)
             :this()
         {
@@ -45,7 +45,7 @@ namespace ProcessExplorer.Entities.Modules
         public string? Name { get; set; }
         public Guid? Version { get; set; }
         public string? VersionRedirectedFrom { get; set; }
-        public string? PublicKeyToken { get; set; }
+        public byte[]? PublicKeyToken { get; set; }
         public string? Path { get; internal set; }
         public List<CustomAttributeData>? Information { get; set; } = new List<CustomAttributeData>();
     }
