@@ -6,8 +6,6 @@ using ProcessExplorer.Entities.EnvironmentVariables;
 using ProcessExplorer.Entities.Modules;
 using ProcessExplorer.Entities.Registrations;
 using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json;
 
 namespace ProcessExplorer
 {
@@ -17,15 +15,15 @@ namespace ProcessExplorer
         {
             Data = new InfoAggregatorDto();
         }
-        public InfoAggregator(Guid id, AppUserInfo user, EnvironmentMonitor envs, ConnectionMonitor cons)
+        public InfoAggregator(Guid id, AppUserInfoDto user, EnvironmentMonitor envs, ConnectionMonitor cons)
             :this()
         {
             Data.Id = id;
-            Data.User = user.Data;
+            Data.User = user;
             Data.EnvironmentVariables = envs.Data;
             Data.Connections = cons.Data;
         }
-        public InfoAggregator(Guid id, AppUserInfo user, EnvironmentMonitor envs, ConnectionMonitor cons,
+        public InfoAggregator(Guid id, AppUserInfoDto user, EnvironmentMonitor envs, ConnectionMonitor cons,
             RegistrationMonitor registrations, ModuleMonitor modules)
             : this(id, user, envs, cons)
         {

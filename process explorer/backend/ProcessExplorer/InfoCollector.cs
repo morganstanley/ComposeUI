@@ -7,12 +7,12 @@ namespace ProcessExplorer
 {
     public static class InfoCollector
     {
-        public static ConcurrentDictionary<string, InfoAggregatorDto> Informations { get; set; } = new ConcurrentDictionary<string, InfoAggregatorDto>();
-        public static ProcessMonitor ProcessMonitor { get; set; }
+        public static ConcurrentDictionary<string, InfoAggregatorDto> Information { get; set; } = new ConcurrentDictionary<string, InfoAggregatorDto>();
+        public static ProcessMonitor? ProcessMonitor { get; set; } = new ProcessMonitor();
         public static void AddInformation(string assembly, InfoAggregatorDto info)
-            => Informations.AddOrUpdate(assembly, info, (key, oldValue) => oldValue = info);
+            => Information.AddOrUpdate(assembly, info, (_, _) => info);
         public static void Remove(string assembly)
-            => Informations.TryRemove(assembly, out _);
+            => Information.TryRemove(assembly, out _);
         public static List<ProcessInfoDto> GetProcesses()
         {
             ProcessMonitor = new ProcessMonitor();

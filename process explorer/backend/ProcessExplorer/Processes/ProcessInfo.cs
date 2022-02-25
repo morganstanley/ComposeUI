@@ -2,7 +2,6 @@
 
 using LocalCollector.Processes;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 
 namespace ProcessExplorer.Entities
 {
@@ -14,13 +13,13 @@ namespace ProcessExplorer.Entities
 
     public class ProcessInfo
     {
-        public ProcessInfoManager infoGenerator;
-        public ProcessInfo(int processId, ProcessInfoManager manager)
+        public IProcessGenerator infoGenerator;
+        public ProcessInfo(int processId, IProcessGenerator manager)
             : this(Process.GetProcessById(processId), manager)
         {
 
         }
-        public ProcessInfo(Process process, ProcessInfoManager manager)
+        public ProcessInfo(Process process, IProcessGenerator manager)
         {
             Data = new ProcessInfoDto();
             infoGenerator = manager;
@@ -32,7 +31,6 @@ namespace ProcessExplorer.Entities
                     Data.StartTime = process.StartTime.ToString("yyyy.mm.dd. hh:mm:s");
                     Data.ProcessorUsageTime = process.TotalProcessorTime;
                     Data.PhysicalMemoryUsageBit = process.WorkingSet64;
-                    UserProcessorTime = process.UserProcessorTime;
                     Data.ProcessPriorityClass = process.PriorityClass.ToString();
                     Data.VirtualMemorySize = process.VirtualMemorySize64;
 
@@ -53,12 +51,7 @@ namespace ProcessExplorer.Entities
                     Data.PID = process.Id;
                     Data.ProcessName = process.ProcessName;
                     Data.PriorityLevel = process.BasePriority;
-                    PagedMemoryUsage = process.PagedMemorySize64;
-                    NonPagedMemoryUsage = process.NonpagedSystemMemorySize64;
-                    PagedSystemMemoryUsage = process.PagedSystemMemorySize64;
-                    NonPagedSystemMemoryUsage = process.NonpagedSystemMemorySize64;
                     Data.PrivateMemoryUsage = process.PrivateMemorySize64;
-                    IsLinux = (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux));
                     Data.Children = infoGenerator.GetChildProcesses(process);
                     Data.ParentId = infoGenerator.GetParentId(process);
                     Data.MemoryUsage = infoGenerator.GetMemoryUsage(process);
@@ -68,12 +61,6 @@ namespace ProcessExplorer.Entities
         }
 
         public ProcessInfoDto? Data { get; set; }
-        public bool IsLinux { get; internal set; } = false;
-        public long? PagedMemoryUsage { get; internal set; } = default;
-        public long? NonPagedMemoryUsage { get; internal set; } = default;
-        public long? PagedSystemMemoryUsage { get; internal set; } = default;
-        public long? NonPagedSystemMemoryUsage { get; internal set; } = default;
-        public TimeSpan? UserProcessorTime { get; internal set; } = default;
     }
 
     public class ProcessThreadInfo
@@ -108,18 +95,18 @@ namespace ProcessExplorer.Entities
     {
         public string? StartTime { get; internal set; } = default;
         public TimeSpan? ProcessorUsageTime { get; internal set; } = default;
-        public long PhysicalMemoryUsageBit { get; internal set; } = default;
+        public long? PhysicalMemoryUsageBit { get; internal set; } = default;
         public string? ProcessName { get; internal set; } = default;
-        public int PID { get; internal set; } = default;
-        public int PriorityLevel { get; internal set; } = default;
-        public string ProcessPriorityClass { get; internal set; } = default;
+        public int? PID { get; internal set; } = default;
+        public int? PriorityLevel { get; internal set; } = default;
+        public string? ProcessPriorityClass { get; internal set; } = default;
         public List<ProcessThreadInfoDto>? Threads { get; set; } = new List<ProcessThreadInfoDto>();
-        public long VirtualMemorySize { get; internal set; } = default;
+        public long? VirtualMemorySize { get; internal set; } = default;
         public int? ParentId { get; internal set; } = null;
-        public long PrivateMemoryUsage { get; internal set; } = default;
-        public string ProcessStatus { get; internal set; } = Status.Running.ToString();
+        public long? PrivateMemoryUsage { get; internal set; } = default;
+        public string? ProcessStatus { get; internal set; } = Status.Running.ToString();
         public List<ProcessInfoDto>? Children { get; internal set; } = new List<ProcessInfoDto>();
-        public float MemoryUsage { get; internal set; } = default;
-        public float ProcessorUsage { get; internal set; } = default;
+        public float? MemoryUsage { get; internal set; } = default;
+        public float? ProcessorUsage { get; internal set; } = default;
     }
 }

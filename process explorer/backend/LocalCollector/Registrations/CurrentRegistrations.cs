@@ -2,39 +2,32 @@
 
 namespace ProcessExplorer.Entities.Registrations
 {
-    public class Registration 
-    {
-        public Registration(string type, string serviceType, string lifeTime)
-            :this()
-        {
-            Data.ImplementationType = type;
-            Data.ServiceType = serviceType;
-            Data.LifeTime = lifeTime;
-        }
-        Registration()
-        {
-            Data = new RegistrationDto();
-        }
-
-        public RegistrationDto Data { get; set; }
-    }
-
     public class RegistrationDto 
     {
         public string? ImplementationType { get; set; }
         public string? LifeTime { get; set; }
         public string? ServiceType { get; set; }
+
+        public static RegistrationDto FromProperties(string type, string serviceType, string lifeTime)
+        {
+            return new RegistrationDto()
+            {
+                ImplementationType = type,
+                LifeTime = lifeTime,
+                ServiceType = type
+            };
+        }
     }
 
     public class RegistrationMonitor
     {
         public RegistrationMonitorDto Data { get; set;}
-        public RegistrationMonitor(ICollection<Registration> services)
+        public RegistrationMonitor(ICollection<RegistrationDto> services)
             :this()
         {
             foreach (var item in services)
             {
-                Data?.Services?.Add(item.Data);
+                Data?.Services?.Add(item);
             }
         }
         private RegistrationMonitor()

@@ -4,42 +4,6 @@ using System.Reflection;
 
 namespace ProcessExplorer.Entities.Modules
 {
-    public class ModuleInfo
-    {
-        public ModuleInfo(Assembly assembly, Module module)
-            :this()
-        {
-            Data.Name = assembly.GetName().Name;
-            Data.Version = module.ModuleVersionId;
-            Data.VersionRedirectedFrom = assembly.ManifestModule.ModuleVersionId.ToString(); 
-            Data.PublicKeyToken = assembly?.GetName()?.GetPublicKeyToken(); 
-            Data.Path = module.Assembly.Location;
-        }
-
-        public ModuleInfo(string name, Guid version, string versionrf, byte[] publickey, 
-            string path,  List<CustomAttributeData> information)
-            :this()
-        {
-            Data.Name = name;
-            Data.Version = version;
-            Data.VersionRedirectedFrom = versionrf;
-            Data.PublicKeyToken = publickey;
-            Data.Path = path;
-            Data.Information = information;
-        }
-
-        public ModuleInfo(string name)
-            :this(name, default, default, default, default, default)
-        {
-
-        }
-
-        ModuleInfo()
-            => Data = new ModuleDto();
-
-        public ModuleDto Data { get; set; }
-    }
-
     public class ModuleDto
     {
         public string? Name { get; set; }
@@ -48,6 +12,32 @@ namespace ProcessExplorer.Entities.Modules
         public byte[]? PublicKeyToken { get; set; }
         public string? Path { get; internal set; }
         public List<CustomAttributeData>? Information { get; set; } = new List<CustomAttributeData>();
+
+        public static ModuleDto FromModule(Assembly assembly, Module module)
+        {
+            return new ModuleDto()
+            {
+                Name = assembly.GetName().Name,
+                Version = module.ModuleVersionId,
+                VersionRedirectedFrom = assembly.ManifestModule.ModuleVersionId.ToString(),
+                PublicKeyToken = assembly?.GetName()?.GetPublicKeyToken(),
+                Path = module.Assembly.Location
+            };
+        }
+
+        public static ModuleDto FromProperties(string name, Guid version, string versionrf, byte[] publickey,
+            string path, List<CustomAttributeData> information)
+        {
+            return new ModuleDto()
+            {
+                Name = name,
+                Version = version,
+                VersionRedirectedFrom = versionrf,
+                PublicKeyToken = publickey,
+                Path = path,
+                Information = information
+            };
+        }
     }
 
     public class ModuleMonitor
@@ -66,7 +56,7 @@ namespace ProcessExplorer.Entities.Modules
                 {
                     foreach (var module in assembly.GetLoadedModules())
                     {
-                        Data.CurrentModules.Add(new ModuleInfo(assembly, module).Data);
+                        Data.CurrentModules.Add(ModuleDto.FromModule(assembly,module));
                     }
                 }
             }

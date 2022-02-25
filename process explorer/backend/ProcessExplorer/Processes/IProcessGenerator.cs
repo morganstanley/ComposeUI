@@ -7,43 +7,19 @@ using System.Management;
 
 namespace LocalCollector.Processes
 {
-    public abstract class ProcessInfoGeneratorBase
+    public interface IProcessGenerator
     {
-        public abstract int? GetParentId(Process process);
-        public abstract float GetMemoryUsage(Process process);
-        public abstract float GetCPUUsage(Process process);
-        public abstract List<ProcessInfoDto> GetChildProcesses(Process process, ProcessInfoManager manager);
-        public abstract ProcessStartInfo KillProcessByName(string processName);
-        public abstract ProcessStartInfo KillProcessById(int processId);
+        public int? GetParentId(Process process);
+        public float GetMemoryUsage(Process process);
+        public float GetCPUUsage(Process process);
+        public List<ProcessInfoDto> GetChildProcesses(Process process);
+        public ProcessStartInfo KillProcessByName(string processName);
+        public ProcessStartInfo KillProcessById(int processId);
+        public void ProcessChanged(Process process);
+        public void WatchProcesses();
     }
 
-    public class ProcessInfoManager
-    {
-        public ProcessInfoGeneratorBase ProcessInfoGenerator;
-
-        public ProcessInfoManager(bool isLinux)
-        {
-            if (isLinux)
-                ProcessInfoGenerator = new ProcessInfoLinux();
-            else
-                ProcessInfoGenerator = new ProcessInfoWindows();
-        }
-
-        public int? GetParentId(Process process)
-            => ProcessInfoGenerator.GetParentId(process);
-        public float GetMemoryUsage(Process process)
-            => ProcessInfoGenerator.GetMemoryUsage(process);
-        public float GetCPUUsage(Process process)
-            => ProcessInfoGenerator.GetCPUUsage(process);
-        public List<ProcessInfoDto> GetChildProcesses(Process process)
-            => ProcessInfoGenerator.GetChildProcesses(process, this);
-        public ProcessStartInfo KillProcessByName(string processName)
-            => ProcessInfoGenerator.KillProcessByName(processName);
-        public ProcessStartInfo KillProcessById(int processId)
-            => ProcessInfoGenerator.KillProcessById(processId);
-    }
-
-    public class ProcessInfoLinux : ProcessInfoGeneratorBase
+    public class ProcessInfoLinux : IProcessGenerator
     {
         internal ProcessInfoLinux()
         {
@@ -74,13 +50,13 @@ namespace LocalCollector.Processes
             return result;
         }
 
-        public override float GetCPUUsage(Process process)
+        public float GetCPUUsage(Process process)
         {
             var result = RunLinuxPSCommand(process, "cpu");
             return float.Parse(result.Split("\n")[1], CultureInfo.InvariantCulture.NumberFormat);
         }
 
-        public override float GetMemoryUsage(Process process)
+        public float GetMemoryUsage(Process process)
         {
             var result = RunLinuxPSCommand(process, "mem");
             return float.Parse(result.Split("\n")[1], CultureInfo.InvariantCulture.NumberFormat);
@@ -101,14 +77,14 @@ namespace LocalCollector.Processes
             return line.Substring(endOfName).Split(new char[] { ' ' }, 4);
         }
 
-        public override int? GetParentId(Process child)
+        public int? GetParentId(Process child)
         {
             string[] parts = GetLinuxInfo(child.Id);
             if (parts.Length >= 3 && parts != default) return Int32.Parse(parts[2]);
             return default;
         }
 
-        public override List<ProcessInfoDto> GetChildProcesses(Process parent, ProcessInfoManager manager)
+        public List<ProcessInfoDto> GetChildProcesses(Process parent)
         {
             List<ProcessInfoDto> children = new List<ProcessInfoDto>();
 
@@ -118,26 +94,38 @@ namespace LocalCollector.Processes
                 int? ppid = GetParentId(process);
                 if (ppid == parent.Id && ppid != default)
                 {
-                    children.Add(new ProcessInfo(process, manager).Data);
+                    children.Add(new ProcessInfo(process, this).Data);
                 }
             }
             return children;
         }
 
-        public override ProcessStartInfo KillProcessByName(string processName)
+        public ProcessStartInfo KillProcessByName(string processName)
             => new ProcessStartInfo("/bin/bash", string.Format( " -c 'sudo pkill -f {0}'", processName));
 
-        public override ProcessStartInfo KillProcessById(int processId)
+        public ProcessStartInfo KillProcessById(int processId)
             => new ProcessStartInfo("/bin/bash", string.Format(" -c 'sudo pkill -f {0}'", processId.ToString()));
+
+
+        public void WatchProcesses()
+        {
+            //tbc
+        }
+
+        public void ProcessChanged(Process process)
+        {
+            throw new NotImplementedException();
+        }
     }
 
-    public class ProcessInfoWindows : ProcessInfoGeneratorBase
+    public class ProcessInfoWindows : IProcessGenerator
     {
+        private IProcessGenerator manager;
         internal ProcessInfoWindows()
         {
 
         }
-        public override int? GetParentId(Process process)
+        public int? GetParentId(Process process)
         {
             int parentPid = 0;
             using (ManagementObject mo = new ManagementObject("win32_process.handle='" + process.Id.ToString() + "'"))
@@ -148,7 +136,7 @@ namespace LocalCollector.Processes
             return parentPid;
         }
 
-        public override float GetMemoryUsage(Process process)
+        public float GetMemoryUsage(Process process)
         {
             int memsize = 0;
             PerformanceCounter PC = new PerformanceCounter();
@@ -168,24 +156,24 @@ namespace LocalCollector.Processes
             return (double)installedMemory / 1048576.0;
         }
 
-        public override float GetCPUUsage(Process process)
+        public float GetCPUUsage(Process process)
         {
             var cpu = new PerformanceCounter("Process", "% Processor Time", process.ProcessName);
             return cpu.NextValue() * 100;
         }
 
-        public override List<ProcessInfoDto> GetChildProcesses(Process process, ProcessInfoManager manager)
+        public List<ProcessInfoDto> GetChildProcesses(Process process)
         {
             List<ProcessInfoDto> children = new List<ProcessInfoDto>();
             ManagementObjectSearcher mos = new ManagementObjectSearcher(string.Format("Select * From Win32_Process Where ParentProcessID={0}", process.Id));
             foreach (ManagementObject mo in mos.Get())
             {
-                children.Add(new ProcessInfo(Process.GetProcessById(Convert.ToInt32(mo["ProcessID"])), manager).Data);
+                children.Add(new ProcessInfo(Process.GetProcessById(Convert.ToInt32(mo["ProcessID"])), this).Data);
             }
 
             return children;
         }
-        public static void WatchProcesses()
+        public void WatchProcesses()
         {
             // create the watcher and start to listen
             try
@@ -201,7 +189,7 @@ namespace LocalCollector.Processes
                 "Where TargetInstance ISA 'Win32_Process' ";
 
                 Watcher = new ManagementEventWatcher(Scope, new EventQuery(WmiQuery));
-                Watcher.EventArrived += new EventArrivedEventHandler(ProcessInfoWindows.WmiEventHandler);
+                Watcher.EventArrived += new EventArrivedEventHandler(WmiEventHandler);
                 Watcher.Start();
                 //Watcher.Stop();
             }
@@ -211,20 +199,29 @@ namespace LocalCollector.Processes
             }
         }
 
-        private static void WmiEventHandler(object sender, EventArrivedEventArgs e)
+        private void WmiEventHandler(object sender, EventArrivedEventArgs e)
         {
             //in this point the new events arrives
             //you can access to any property of the Win32_Process class
             Console.WriteLine("TargetInstance.Handle :    " + ((ManagementBaseObject)e.NewEvent.Properties["TargetInstance"].Value)["Handle"]);
             Console.WriteLine("TargetInstance.Name :      " + ((ManagementBaseObject)e.NewEvent.Properties["TargetInstance"].Value)["Name"]);
             Console.WriteLine("TargetInstance.ID :      " + ((ManagementBaseObject)e.NewEvent.Properties["TargetInstance"].Value)["ProcessId"]);
-
+            int pid = Convert.ToInt32(((ManagementBaseObject)e.NewEvent.Properties["TargetInstance"].Value)["ProcessId"]);
+            if(GetParentId(Process.GetProcessById(pid)) == Process.GetCurrentProcess().Id) //Sample
+            {
+                ProcessChanged(Process.GetProcessById(pid));
+            }
         }
 
-        public override ProcessStartInfo KillProcessByName(string processName)
+        public ProcessStartInfo KillProcessByName(string processName)
             => new ProcessStartInfo("cmd.exe", string.Format("/c taskkill /f /im {0}", processName));
 
-        public override ProcessStartInfo KillProcessById(int processId)
+        public ProcessStartInfo KillProcessById(int processId)
              => new ProcessStartInfo("cmd.exe", string.Format("/c taskkill /f /im {0}", processId.ToString()));
+
+        public void ProcessChanged(Process process)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

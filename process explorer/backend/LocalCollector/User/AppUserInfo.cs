@@ -3,53 +3,31 @@
 using ProcessExplorer.Entities.User;
 
 namespace ProcessExplorer.Entities
-{
-    public class AppUserInfo
-    {
-        #region Constructors
-        AppUserInfo()
-        {
-            Data = new AppUserInfoDto();
-        }
-        public AppUserInfo(string userName, bool admin = false)
-            :this(admin)
-        {
-            Data.UserName = userName;
-        }
-
-        public AppUserInfo(bool admin = false)
-            :this()
-        {
-            Data.UserName = Environment.UserName;
-            Data.MachineInfo = new MachineInfo(true).Data;
-            Data.IsAdmin = admin;
-        }
-        public AppUserInfo(string userName, MachineInfo machine, bool admin = false)
-            :this(userName, admin)
-        {
-            Data.MachineInfo = machine.Data;
-        }
-        public AppUserInfo(MachineInfo machine)
-            :this(false)
-        {
-            Data.MachineInfo = machine.Data;
-        }
-        public AppUserInfo(string userName, MachineInfo machine)
-            : this(userName, machine, false)
-        {
-
-        }
-        #endregion
-
-        public AppUserInfoDto Data { get; set; }
-    }
-
-    public class AppUserInfoDto
+{    public class AppUserInfoDto
     {
         #region Properties
         public string? UserName { get; set; }
         public bool? IsAdmin { get; set; }
         public MachineDto? MachineInfo { get; set; } = default;
         #endregion
+
+        public static AppUserInfoDto FromProperties(MachineDto machine, string userName, bool admin = false)
+        {
+            return new AppUserInfoDto()
+            {
+                UserName = userName,
+                IsAdmin = admin,
+                MachineInfo = machine
+            };
+        }
+        public static AppUserInfoDto FromProperties(MachineDto machine, bool admin = false)
+        {
+            return new AppUserInfoDto()
+            {
+                UserName = Environment.UserName,
+                IsAdmin = admin,
+                MachineInfo = machine
+            };
+        }
     }
 }

@@ -7,7 +7,7 @@ namespace ProcessExplorer.Entities.EnvironmentVariables
 {
     public class EnvironmentMonitor
     {
-        public EnvironmentMonitorDto Data { get; set; }
+        public EnvironmentMonitorDto? Data { get; set; }
 
         EnvironmentMonitor()
             :this(false)
@@ -24,21 +24,21 @@ namespace ProcessExplorer.Entities.EnvironmentVariables
             }
         }
 
-        public EnvironmentMonitor(ConcurrentDictionary<string, string> environmentVariables)
-            => this.Data.EnvironmentVariables = environmentVariables;
+        public EnvironmentMonitor(ConcurrentDictionary<string, string>? environmentVariables)
+            => Data.EnvironmentVariables = environmentVariables;
             
         private void LoadEnvironmentVariables()
         {
             foreach (DictionaryEntry item in Environment.GetEnvironmentVariables())
             {
-                Data.EnvironmentVariables.AddOrUpdate(item.Key.ToString(), item.Value?.ToString(), (key, oldValue) => oldValue = item.Value.ToString());
+                Data?.EnvironmentVariables?.AddOrUpdate(item.Key.ToString(), item.Value?.ToString(), (key, oldValue) => oldValue = item.Value.ToString());
             }
         }
 
-        private ConcurrentDictionary<string, string> GetEnvironmentVariables()
+        private ConcurrentDictionary<string, string>? GetEnvironmentVariables()
         {
             LoadEnvironmentVariables();
-            return Data.EnvironmentVariables;
+            return Data?.EnvironmentVariables;
         }
     }
 

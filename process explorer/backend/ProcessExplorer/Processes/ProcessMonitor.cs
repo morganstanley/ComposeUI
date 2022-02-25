@@ -8,12 +8,15 @@ namespace ProcessExplorer.Entities
 {
     public class ProcessMonitor
     {
-        internal ProcessInfoManager processInfoManager { get; set; }
+        internal IProcessGenerator processInfoManager { get; set; }
         public ProcessMonitorDto Data { get; set; }
         public ProcessMonitor()
         {
             Data = new ProcessMonitorDto();
-            processInfoManager = new ProcessInfoManager((RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux)));
+            if ((RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux)))
+                processInfoManager = new ProcessInfoLinux();
+            else
+                processInfoManager = new ProcessInfoWindows();
             ClearBag();
             FillBag();
         }
@@ -25,6 +28,7 @@ namespace ProcessExplorer.Entities
         private void FillBag()
         {
             Data.Processes.Add(new ProcessInfo(Process.GetCurrentProcess(), processInfoManager).Data);
+            //processInfoManager.WatchProcesses();
         }
 
         public List<ProcessInfoDto> GetProcesses() 
