@@ -13,7 +13,7 @@ namespace ProcessExplorer
             => Information.AddOrUpdate(assembly, info, (_, _) => info);
         public static void Remove(string assembly)
             => Information.TryRemove(assembly, out _);
-        public static ConcurrentBag<ProcessInfoDto> GetProcesses()
+        public static SynchronizedCollection<ProcessInfoDto> GetProcesses()
         {
             ProcessMonitor = new ProcessMonitor();
             return ProcessMonitor.GetProcesses();

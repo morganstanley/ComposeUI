@@ -35,7 +35,7 @@ namespace ProcessExplorer.Entities
                     Data.ProcessPriorityClass = process.PriorityClass.ToString();
                     Data.VirtualMemorySize = process.VirtualMemorySize64;
 
-                    var list = new ConcurrentBag<ProcessThreadInfoDto>();
+                    var list = new SynchronizedCollection<ProcessThreadInfoDto>();
                     foreach (ProcessThread processThread in process.Threads)
                     {
                         list.Add(ProcessThreadInfoDto.FromProcessThread(processThread));

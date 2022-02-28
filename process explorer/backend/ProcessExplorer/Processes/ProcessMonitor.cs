@@ -22,7 +22,7 @@ namespace ProcessExplorer.Entities
             FillBag();
         }
 
-        public ProcessMonitor(ConcurrentBag<ProcessInfoDto> processes)
+        public ProcessMonitor(SynchronizedCollection<ProcessInfoDto> processes)
             => Data.Processes = processes;
 
         private void ClearBag() => Data.Processes.Clear();
@@ -32,7 +32,7 @@ namespace ProcessExplorer.Entities
             processInfoManager.WatchProcesses(processInfoManager.GetProcessIds(Data.Processes));
         }
 
-        public ConcurrentBag<ProcessInfoDto> GetProcesses() 
+        public SynchronizedCollection<ProcessInfoDto> GetProcesses() 
         {
             ClearBag();
             FillBag();
@@ -77,6 +77,6 @@ namespace ProcessExplorer.Entities
 
     public class ProcessMonitorDto
     {
-        public ConcurrentBag<ProcessInfoDto> Processes { get; set; } = new ConcurrentBag<ProcessInfoDto>();
+        public SynchronizedCollection<ProcessInfoDto> Processes { get; set; } = new SynchronizedCollection<ProcessInfoDto>();
     }
 }
