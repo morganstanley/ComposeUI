@@ -1,6 +1,7 @@
 ﻿/* Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */
 
 using LocalCollector.Processes;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 
 namespace ProcessExplorer.Entities
@@ -34,7 +35,7 @@ namespace ProcessExplorer.Entities
                     Data.ProcessPriorityClass = process.PriorityClass.ToString();
                     Data.VirtualMemorySize = process.VirtualMemorySize64;
 
-                    var list = new List<ProcessThreadInfoDto>();
+                    var list = new ConcurrentBag<ProcessThreadInfoDto>();
                     foreach (ProcessThread processThread in process.Threads)
                     {
                         list.Add(ProcessThreadInfoDto.FromProcessThread(processThread));
@@ -96,12 +97,12 @@ namespace ProcessExplorer.Entities
         public int? PID { get; internal set; } = default;
         public int? PriorityLevel { get; internal set; } = default;
         public string? ProcessPriorityClass { get; internal set; } = default;
-        public List<ProcessThreadInfoDto>? Threads { get; set; } = new List<ProcessThreadInfoDto>();
+        public SynchronizedCollection<ProcessThreadInfoDto>? Threads { get; set; } = new SynchronizedCollection<ProcessThreadInfoDto>();
         public long? VirtualMemorySize { get; internal set; } = default;
         public int? ParentId { get; internal set; } = null;
         public long? PrivateMemoryUsage { get; internal set; } = default;
         public string? ProcessStatus { get; internal set; } = Status.Running.ToString();
-        public List<ProcessInfoDto>? Children { get; internal set; } = new List<ProcessInfoDto>();
+        public SynchronizedCollection<ProcessInfoDto>? Children { get; internal set; } = new SynchronizedCollection<ProcessInfoDto>();
         public float? MemoryUsage { get; internal set; } = default;
         public float? ProcessorUsage { get; internal set; } = default;
     }

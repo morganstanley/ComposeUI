@@ -14,6 +14,7 @@ namespace ProcessExplorer.Entities.Connections
     }
     public class ConnectionDto 
     {
+        #region Properties
         public Guid? Id { get; set; }
         public string? Name { get; set; }
         public string? LocalEndpoint { get; set; }
@@ -22,6 +23,7 @@ namespace ProcessExplorer.Entities.Connections
         public string? RemoteHostname { get; set; }
         public ConcurrentDictionary<string, string>? ConnectionInformation { get; set; }
         public string? Status { get; set; }
+        #endregion
     }
 
     public class DummyConnectionInfo 

@@ -1,6 +1,7 @@
 ﻿/* Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */
 
 using ProcessExplorer.Entities;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Globalization;
 using System.Management;
@@ -12,15 +13,15 @@ namespace LocalCollector.Processes
         public int? GetParentId(Process process);
         public float GetMemoryUsage(Process process);
         public float GetCPUUsage(Process process);
-        public List<ProcessInfoDto> GetChildProcesses(Process process);
+        public SynchronizedCollection<ProcessInfoDto> GetChildProcesses(Process process);
         public ProcessStartInfo KillProcessByName(string processName);
         public ProcessStartInfo KillProcessById(int processId);
         public void ProcessChanged(Process process);
-        public void WatchProcesses(List<int> processes);
+        public void WatchProcesses(SynchronizedCollection<int> processes);
 
-        public List<int> GetProcessIds(List<ProcessInfoDto> processes)
+        public SynchronizedCollection<int> GetProcessIds(SynchronizedCollection<ProcessInfoDto> processes)
         {
-            var list = new List<int>();
+            var list = new SynchronizedCollection<int>();
             foreach (var process in processes)
             {
                 if (process.PID != default)
@@ -40,14 +41,13 @@ namespace LocalCollector.Processes
 
     public class ProcessInfoLinux : IProcessGenerator
     {
+        object locker = new object();
         internal ProcessInfoLinux()
         {
 
         }
         private string RunLinuxPSCommand(Process process, string command)
         {
-            object locker = new object();
-
             string result;
             var cli = new Process()
             {
@@ -58,15 +58,13 @@ namespace LocalCollector.Processes
                     RedirectStandardOutput = true
                 }
             };
-            cli.Start();
-
             lock (locker)
             {
+                cli.Start();
                 result = cli.StandardOutput.ReadToEnd();
+                cli.Close();
+                return result;
             }
-
-            cli.Close();
-            return result;
         }
 
         public float GetCPUUsage(Process process)
@@ -103,9 +101,9 @@ namespace LocalCollector.Processes
             return default;
         }
 
-        public List<ProcessInfoDto> GetChildProcesses(Process parent)
+        public SynchronizedCollection<ProcessInfoDto> GetChildProcesses(Process parent)
         {
-            List<ProcessInfoDto> children = new List<ProcessInfoDto>();
+            SynchronizedCollection<ProcessInfoDto> children = new SynchronizedCollection<ProcessInfoDto>();
 
             Process[] processes = Process.GetProcesses(Environment.MachineName);
             foreach (Process process in processes)
@@ -131,7 +129,7 @@ namespace LocalCollector.Processes
             throw new NotImplementedException();
         }
 
-        public void WatchProcesses(List<int> processes)
+        public void WatchProcesses(SynchronizedCollection<int> processes)
         {
             throw new NotImplementedException();
         }
@@ -139,7 +137,7 @@ namespace LocalCollector.Processes
 
     public class ProcessInfoWindows : IProcessGenerator
     {
-        private List<int> processes;
+        private SynchronizedCollection<int> processes;
         internal ProcessInfoWindows()
         {
 
@@ -181,9 +179,9 @@ namespace LocalCollector.Processes
             return cpu.NextValue() * 100;
         }
 
-        public List<ProcessInfoDto> GetChildProcesses(Process process)
+        public SynchronizedCollection<ProcessInfoDto> GetChildProcesses(Process process)
         {
-            List<ProcessInfoDto> children = new List<ProcessInfoDto>();
+            SynchronizedCollection<ProcessInfoDto> children = new SynchronizedCollection<ProcessInfoDto>();
             ManagementObjectSearcher mos = new ManagementObjectSearcher(string.Format("Select * From Win32_Process Where ParentProcessID={0}", process.Id));
             foreach (ManagementObject mo in mos.Get())
             {
@@ -192,7 +190,7 @@ namespace LocalCollector.Processes
 
             return children;
         }
-        public void WatchProcesses(List<int> processes)
+        public void WatchProcesses(SynchronizedCollection<int> processes)
         {
             this.processes = processes;
             // create the watcher and start to listen

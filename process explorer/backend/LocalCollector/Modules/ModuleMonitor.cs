@@ -6,12 +6,14 @@ namespace ProcessExplorer.Entities.Modules
 {
     public class ModuleDto
     {
+        #region Properties
         public string? Name { get; set; }
         public Guid? Version { get; set; }
         public string? VersionRedirectedFrom { get; set; }
         public byte[]? PublicKeyToken { get; set; }
         public string? Path { get; internal set; }
-        public List<CustomAttributeData>? Information { get; set; } = new List<CustomAttributeData>();
+        public SynchronizedCollection<CustomAttributeData>? Information { get; set; } = new SynchronizedCollection<CustomAttributeData>();
+        #endregion
 
         public static ModuleDto FromModule(Assembly assembly, Module module)
         {
@@ -26,7 +28,7 @@ namespace ProcessExplorer.Entities.Modules
         }
 
         public static ModuleDto FromProperties(string name, Guid version, string versionrf, byte[] publickey,
-            string path, List<CustomAttributeData> information)
+            string path, SynchronizedCollection<CustomAttributeData> information)
         {
             return new ModuleDto()
             {
@@ -41,7 +43,7 @@ namespace ProcessExplorer.Entities.Modules
     }
     public class ModuleMonitorDto
     {
-        public List<ModuleDto>? CurrentModules { get; set; } = new List<ModuleDto>();
+        public SynchronizedCollection<ModuleDto>? CurrentModules { get; set; } = new SynchronizedCollection<ModuleDto>();
         public static ModuleMonitorDto FromAssembly()
         {
             var monduleMonitor = new ModuleMonitorDto();

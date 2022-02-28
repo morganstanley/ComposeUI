@@ -7,32 +7,22 @@ namespace ProcessExplorer.Entities.Connections
         public ConnectionMonitorDto Data { get; set; } = new ConnectionMonitorDto();
         public ConnectionMonitor()
         {
-            Data.Connections = new List<ConnectionDto>();
+            Data.Connections = new SynchronizedCollection<ConnectionDto>();
         }
-        public ConnectionMonitor(List<ConnectionDto> connections)
+        public ConnectionMonitor(SynchronizedCollection<ConnectionDto> connections)
             => this.Data.Connections = connections;
         public void AddConnection(ConnectionDto connectionInfo)
             => Data?.Connections?.Add(connectionInfo);
         public void RemoveConnection(ConnectionDto connectionInfo)
-            => Data?.Connections?.Remove(connectionInfo);
+            => Data?.Connections.Remove(connectionInfo);
         public void ChangeElement(ConnectionDto connection)
         {
-            var temp = Data?.Connections?.ToList();
-            var element = temp.FindIndex(conn => conn.Id == connection.Id);
-            if (element != default)
-            {
-                temp[element] = connection;
-                Data.Connections = temp;
-            }
-            else
-            {
-                AddConnection(connection);
-            }
+            AddConnection(connection);
         }
         public ConnectionDto? GetConnection(ConnectionDto connection) 
             => Data?.Connections?.Where(conn => conn.Equals(connection)).FirstOrDefault();
 
-        public List<ConnectionDto>? GetConnections()
+        public SynchronizedCollection<ConnectionDto>? GetConnections()
             => Data.Connections;
 
         public void StatusChanged(ConnectionDto conn)
@@ -43,6 +33,6 @@ namespace ProcessExplorer.Entities.Connections
 
     public class ConnectionMonitorDto
     {
-        public List<ConnectionDto>? Connections { get; set; } = new List<ConnectionDto>();
+        public SynchronizedCollection<ConnectionDto>? Connections { get; set; } = new SynchronizedCollection<ConnectionDto>();
     }
 }

@@ -4,10 +4,11 @@ namespace ProcessExplorer.Entities.Registrations
 {
     public class RegistrationDto 
     {
+        #region Properties
         public string? ImplementationType { get; set; }
         public string? LifeTime { get; set; }
         public string? ServiceType { get; set; }
-
+        #endregion
         public static RegistrationDto FromProperties(string type, string serviceType, string lifeTime)
         {
             return new RegistrationDto()
@@ -20,7 +21,7 @@ namespace ProcessExplorer.Entities.Registrations
     }
     public class RegistrationMonitorDto
     {
-        public List<RegistrationDto>? Services { get; set; } = new List<RegistrationDto>();
+        public SynchronizedCollection<RegistrationDto>? Services { get; set; } = new SynchronizedCollection<RegistrationDto>();
 
         public static RegistrationMonitorDto FromCollection(ICollection<RegistrationDto> services)
         {

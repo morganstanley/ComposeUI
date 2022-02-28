@@ -15,15 +15,15 @@ namespace ProcessExplorer
         {
             Data = new InfoAggregatorDto();
         }
-        public InfoAggregator(Guid id, AppUserInfoDto user, EnvironmentMonitor envs, ConnectionMonitor cons)
+        public InfoAggregator(Guid id, AppUserInfoDto user, EnvironmentMonitorDto envs, ConnectionMonitor cons)
             :this()
         {
             Data.Id = id;
             Data.User = user;
-            Data.EnvironmentVariables = envs.Data;
+            Data.EnvironmentVariables = envs;
             Data.Connections = cons.Data;
         }
-        public InfoAggregator(Guid id, AppUserInfoDto user, EnvironmentMonitor envs, ConnectionMonitor cons,
+        public InfoAggregator(Guid id, AppUserInfoDto user, EnvironmentMonitorDto envs, ConnectionMonitor cons,
             RegistrationMonitorDto registrations, ModuleMonitorDto modules)
             : this(id, user, envs, cons)
         {
@@ -33,7 +33,7 @@ namespace ProcessExplorer
         
         public InfoAggregatorDto Data { get; set; }
 
-        //SAMPLE MESSAGE SENDING?
+        //SAMPLE MESSAGE SENDING
         private async Task SendMessage(string url)
         {
             using (var client = new HttpClient())
