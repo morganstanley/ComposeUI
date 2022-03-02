@@ -1,69 +1,51 @@
 ﻿/* Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */
 
-using ProcessExplorer.Entities;
+using LocalCollector;
+using LocalCollector.Modules;
 using ProcessExplorer.Entities.Connections;
 using ProcessExplorer.Entities.EnvironmentVariables;
-using ProcessExplorer.Entities.Modules;
 using ProcessExplorer.Entities.Registrations;
-using System.Net.Http.Headers;
+using System.Diagnostics;
 
 namespace ProcessExplorer
 {
-    public class InfoAggregator
+    public class InfoAggregator : IInfoAggregator
     {
-        InfoAggregator()
+        //later maybe it will be removed.
+        private readonly HttpClient? httpClient;
+
+        InfoAggregator(HttpClient? httpClient = null)
         {
             Data = new InfoAggregatorDto();
+            this.httpClient = httpClient;
         }
-        public InfoAggregator(Guid id, AppUserInfoDto user, EnvironmentMonitorDto envs, ConnectionMonitor cons)
-            :this()
+        public InfoAggregator(Guid id, EnvironmentMonitorDto envs,
+            ConnectionMonitor cons, HttpClient? httpClient = null)
+            : this(httpClient)
         {
             Data.Id = id;
-            Data.User = user;
             Data.EnvironmentVariables = envs;
             Data.Connections = cons.Data;
         }
-        public InfoAggregator(Guid id, AppUserInfoDto user, EnvironmentMonitorDto envs, ConnectionMonitor cons,
-            RegistrationMonitorDto registrations, ModuleMonitorDto modules)
-            : this(id, user, envs, cons)
+        public InfoAggregator(Guid id, EnvironmentMonitorDto envs, ConnectionMonitor cons,
+            RegistrationMonitorDto registrations, ModuleMonitorDto modules, HttpClient? httpClient = null)
+            : this(id, envs, cons, httpClient)
         {
             Data.Registrations = registrations;
             Data.Modules = modules;
         }
-        
+
         public InfoAggregatorDto Data { get; set; }
 
         //SAMPLE MESSAGE SENDING
-        private async Task SendMessage(string url)
+        public async Task SendMessage(string url)
         {
-            using (var client = new HttpClient())
+            if (httpClient != default)
             {
-                client.BaseAddress = new Uri(url);
-                client.DefaultRequestHeaders.Accept.Clear();
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                HttpResponseMessage responseMessage = await client.PostAsJsonAsync("", this.Data);
+                HttpResponseMessage responseMessage = await httpClient.PostAsJsonAsync(url, this.Data);
                 var result = await responseMessage.Content.ReadAsStringAsync();
-                if (responseMessage.IsSuccessStatusCode)
-                {
-                    Uri? infoUrl = responseMessage.Headers.Location;
-                    Console.WriteLine(infoUrl);
-                }
+                Debug.WriteLine(result);
             }
         }
-        public void Send(string url)
-        {
-            var task = SendMessage(url);
-            task.Wait();
-        }
-    }
-
-    public class InfoAggregatorDto
-    {
-        public Guid? Id { get; set; }
-        public AppUserInfoDto? User { get; set; } 
-        public RegistrationMonitorDto? Registrations { get; set; }
-        public EnvironmentMonitorDto? EnvironmentVariables { get; set; }
-        public ConnectionMonitorDto? Connections { get; set; } 
-        public ModuleMonitorDto? Modules { get; set; } 
     }
 }

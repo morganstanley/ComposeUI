@@ -29,18 +29,13 @@ namespace ProcessExplorer.Entities.User
         public static MachineDto FromMachine()
         {
             var Data = new MachineDto();
-            try
-            {
-                Data.MachineName = Environment.MachineName;
-                Data.IsUnix = (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux));
-                Data.OSVersion = Environment.OSVersion;
-                Data.Is64BIOS = Environment.Is64BitOperatingSystem;
-                Data.Is64BitProcess = Environment.Is64BitProcess;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+
+            Data.MachineName = Environment.MachineName;
+            Data.IsUnix = (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux));
+            Data.OSVersion = Environment.OSVersion;
+            Data.Is64BIOS = Environment.Is64BitOperatingSystem;
+            Data.Is64BitProcess = Environment.Is64BitProcess;
+
             return Data;
         }
     }

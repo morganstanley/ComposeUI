@@ -11,19 +11,28 @@ namespace ProcessExplorer.Entities.Modules
         public Guid? Version { get; set; }
         public string? VersionRedirectedFrom { get; set; }
         public byte[]? PublicKeyToken { get; set; }
-        public string? Path { get; internal set; }
+        public string? Location { get; internal set; }
         public SynchronizedCollection<CustomAttributeData>? Information { get; set; } = new SynchronizedCollection<CustomAttributeData>();
         #endregion
 
         public static ModuleDto FromModule(Assembly assembly, Module module)
         {
+            string? location = string.Empty;
+            try
+            {
+                location = Path.GetDirectoryName(Uri.UnescapeDataString(new UriBuilder(module?.Assembly?.CodeBase).Path));
+            }
+            catch (Exception)
+            {
+                location = null;
+            }
             return new ModuleDto()
             {
                 Name = assembly.GetName().Name,
                 Version = module.ModuleVersionId,
                 VersionRedirectedFrom = assembly.ManifestModule.ModuleVersionId.ToString(),
                 PublicKeyToken = assembly?.GetName()?.GetPublicKeyToken(),
-                Path = module.Assembly.Location
+                Location = location
             };
         }
 
@@ -36,25 +45,9 @@ namespace ProcessExplorer.Entities.Modules
                 Version = version,
                 VersionRedirectedFrom = versionrf,
                 PublicKeyToken = publickey,
-                Path = path,
+                Location = path,
                 Information = information
             };
-        }
-    }
-    public class ModuleMonitorDto
-    {
-        public SynchronizedCollection<ModuleDto>? CurrentModules { get; set; } = new SynchronizedCollection<ModuleDto>();
-        public static ModuleMonitorDto FromAssembly()
-        {
-            var monduleMonitor = new ModuleMonitorDto();
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                foreach (var module in assembly.GetLoadedModules())
-                {
-                    monduleMonitor.CurrentModules.Add(ModuleDto.FromModule(assembly, module));
-                }
-            }
-            return monduleMonitor;
         }
     }
 }
