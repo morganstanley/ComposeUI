@@ -12,7 +12,7 @@ namespace ProcessExplorer.Entities.Modules
         public string? VersionRedirectedFrom { get; set; }
         public byte[]? PublicKeyToken { get; set; }
         public string? Location { get; internal set; }
-        public SynchronizedCollection<CustomAttributeData>? Information { get; set; } = new SynchronizedCollection<CustomAttributeData>();
+        public SynchronizedCollection<CustomAttributeData> Information { get; set; } = new SynchronizedCollection<CustomAttributeData>();
         #endregion
 
         public static ModuleDto FromModule(Assembly assembly, Module module)
@@ -20,7 +20,7 @@ namespace ProcessExplorer.Entities.Modules
             string? location = string.Empty;
             try
             {
-                location = Path.GetDirectoryName(Uri.UnescapeDataString(new UriBuilder(module?.Assembly?.CodeBase).Path));
+                location = Path.GetDirectoryName(Uri.UnescapeDataString(new UriBuilder(module?.Assembly?.Location).Path));
             }
             catch (Exception)
             {

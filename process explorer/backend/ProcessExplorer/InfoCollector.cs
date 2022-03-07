@@ -23,9 +23,9 @@ namespace ProcessExplorer
             => Information?.AddOrUpdate(assembly, info, (_, _) => info);
         public void Remove(string assembly)
             => Information?.TryRemove(assembly, out _);
-        public void SetProcessMonitorMainPID(int pid)
+        public void SetComposePID(int pid)
             => ProcessMonitor?.SetComposePID(pid);
-        public SynchronizedCollection<ProcessInfoDto>? GetProcesses()
+        public SynchronizedCollection<ProcessInfoDto>? RefreshProcessList()
         {
             var processes = ProcessMonitor?.GetProcesses();
             if (processes != default)
@@ -34,6 +34,11 @@ namespace ProcessExplorer
         }
         public void SetSubribeUrl(string url)
             =>ProcessMonitor?.SetSubribeUrl(url);
-
+        public SynchronizedCollection<ProcessInfoDto>? GetProcesses()
+            => ProcessMonitor?.GetProcesses();
+        public void InitProcessExplorer()
+            =>  ProcessMonitor?.FillListWithRelatedProcesses();
+        public void SetWatcher()
+            => ProcessMonitor?.SetWatcher();
     }
 }

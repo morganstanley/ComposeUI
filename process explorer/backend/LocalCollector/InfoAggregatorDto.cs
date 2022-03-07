@@ -2,7 +2,6 @@
 
 using LocalCollector.Connections;
 using LocalCollector.Modules;
-using ProcessExplorer.Entities;
 using ProcessExplorer.Entities.EnvironmentVariables;
 using ProcessExplorer.Entities.Registrations;
 

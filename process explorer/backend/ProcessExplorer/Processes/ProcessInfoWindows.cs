@@ -11,8 +11,8 @@ namespace ProcessExplorer.Processes
     public class ProcessInfoWindows : ProcessGeneratorBase
     {
         private readonly ILogger<ProcessInfoWindows>? logger;
-
-        public ProcessInfoWindows(ILogger<ProcessInfoWindows> logger)
+        private readonly object locker = new object();
+        public ProcessInfoWindows(ILogger<ProcessInfoWindows>? logger)
         {
             this.logger = logger;
         }
@@ -92,7 +92,8 @@ namespace ProcessExplorer.Processes
 
         public override void WatchProcesses(SynchronizedCollection<ProcessInfoDto> processes)
         {
-            this.Processes = GetProcessIds(processes);
+            //this.Processes = GetProcessIds(processes);
+            this.ProcessIds = GetProcessIds(processes);
             try
             {
                 string WmiQuery;
@@ -119,7 +120,7 @@ namespace ProcessExplorer.Processes
         {
             int pid = Convert.ToInt32(((ManagementBaseObject)e.NewEvent.Properties["TargetInstance"].Value)["ProcessId"]);
             string? wclass = ((ManagementBaseObject)e.NewEvent).SystemProperties["__Class"].Value.ToString();
-            if (wclass != null)
+            if (wclass is not null)
             {
                 try
                 {
@@ -136,7 +137,7 @@ namespace ProcessExplorer.Processes
                             break;
 
                         case "__InstanceDeletionEvent":
-                            SendDeletedDataPIDToCheck(pid);
+                            SendDeletedDataPIDToCheckAsync(pid);
                             break;
 
                         case "__InstanceModificationEvent":
@@ -163,49 +164,11 @@ namespace ProcessExplorer.Processes
             return default;
         }
 
-        protected void SendNewDataIfPPIDExists(int ppid, int pid)
-        {
-            lock (Processes)
-            {
-                if (Processes.Contains(ppid))
-                {
-                    Processes.Add(pid);
-                    SendNewProcess?.Invoke(ProcessCreated(Process.GetProcessById(pid)));
-                }
-            }
-        }
-
-        protected void SendDeletedDataPIDToCheck(int pid)
-        {
-            lock (Processes)
-            {
-                if (Processes.Contains(pid))
-                {
-                    Processes.Remove(pid);
-                    SendTerminatedProcess?.Invoke(pid);
-                }
-            }
-        }
-
-        protected void SendModifiedIfData(int pid)
-        {
-            lock (Processes)
-            {
-                if (Processes.Contains(pid))
-                {
-                    SendModifiedProcess?.Invoke(pid);
-                }
-            }
-        }
-
         public override ProcessStartInfo KillProcessByName(string processName)
             => new ProcessStartInfo("cmd.exe", string.Format("/c taskkill /f /im {0}", processName));
 
         public override ProcessStartInfo KillProcessById(int processId)
              => new ProcessStartInfo("cmd.exe", string.Format("/c taskkill /f /im {0}", processId.ToString()));
-
-        public override ProcessInfo ProcessCreated(Process process)
-            => new ProcessInfo(process, this);
 
     }
 }

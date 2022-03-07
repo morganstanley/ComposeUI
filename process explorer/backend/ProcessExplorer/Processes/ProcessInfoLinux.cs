@@ -86,14 +86,17 @@ namespace ProcessExplorer.Processes
             SynchronizedCollection<ProcessInfoDto> children = new SynchronizedCollection<ProcessInfoDto>();
 
             Process[] processes = Process.GetProcesses(Environment.MachineName);
-            foreach (Process process in processes)
+            lock (locker)
             {
-                int? ppid = GetParentId(process);
-                if (ppid == parent.Id && ppid != default)
+                foreach (Process process in processes)
                 {
-                    var child = new ProcessInfo(process, this);
-                    if (child != default && child.Data != default)
-                        children.Add(child.Data);
+                    int? ppid = GetParentId(process);
+                    if (ppid == parent.Id && ppid != default)
+                    {
+                        var child = new ProcessInfo(process, this);
+                        if (child != default && child.Data != default)
+                            children.Add(child.Data);
+                    }
                 }
             }
             return children;
@@ -105,14 +108,105 @@ namespace ProcessExplorer.Processes
         public override ProcessStartInfo KillProcessById(int processId)
             => new ProcessStartInfo("/bin/bash", string.Format(" -c 'sudo pkill -f {0}'", processId.ToString()));
 
-        public override ProcessInfo ProcessCreated(Process process)
-        {
-            throw new NotImplementedException();
-        }
-
         public override void WatchProcesses(SynchronizedCollection<ProcessInfoDto> processes)
         {
-            throw new NotImplementedException();
+            using var watcher = new FileSystemWatcher(@"/proc");
+
+            watcher.NotifyFilter = NotifyFilters.Attributes
+                                 | NotifyFilters.CreationTime
+                                 | NotifyFilters.DirectoryName
+                                 | NotifyFilters.FileName
+                                 | NotifyFilters.LastWrite
+                                 | NotifyFilters.Security
+                                 | NotifyFilters.Size;
+
+            watcher.Changed += OnChanged;
+            watcher.Created += OnCreated;
+            watcher.Deleted += OnDeleted;
+            watcher.Renamed += OnRenamed;
+            watcher.Error += OnError;
+
+            watcher.IncludeSubdirectories = true;
+            watcher.EnableRaisingEvents = true;
+        }
+
+        private void OnCreated(object sender, FileSystemEventArgs e)
+        {
+            string value = SplitPath(e.FullPath);
+            if (CheckIfItsNumber(value))
+            {
+                int pid = Convert.ToInt32(value);
+                int ppid = Convert.ToInt32(GetParentId(Process.GetProcessById(pid)));
+                SendNewDataIfPPIDExists(ppid, pid);
+            }
+        }
+
+        private void OnDeleted(object sender, FileSystemEventArgs e)
+        {
+            string value = SplitPath(e.FullPath);
+            if (CheckIfItsNumber(value))
+            {
+                int pid = Convert.ToInt32(value);
+                SendDeletedDataPIDToCheckAsync(pid);
+            }
+        }
+
+        private void ProcessModifiedAction(string value)
+        {
+            if (CheckIfItsNumber(value))
+            {
+                int pid = Convert.ToInt32(value);
+                SendModifiedIfData(pid);
+            }
+        }
+
+        private void OnChanged(object sender, FileSystemEventArgs e)
+        {
+            if (e.ChangeType != WatcherChangeTypes.Changed)
+            {
+                return;
+            }
+            string value = SplitPath(e.FullPath);
+            ProcessModifiedAction(value);
+        }
+
+        private void OnRenamed(object sender, RenamedEventArgs e)
+        {
+            string value = SplitPath(e.FullPath);
+            logger?.LogWarning($"Renamed:");
+            logger?.LogWarning($"    Old: {e.OldFullPath}");
+            logger?.LogWarning($"    New: {value}");
+            ProcessModifiedAction(value);
+        }
+
+        private void OnError(object sender, ErrorEventArgs e) =>
+            PrintException(e.GetException());
+
+        private void PrintException(Exception? ex)
+        {
+            if (ex != null)
+            {
+                logger?.LogError(string.Format("Message: {0}", ex.Message));
+                logger?.LogError(string.Format("StackTrace: {0}", ex.StackTrace));
+                PrintException(ex.InnerException);
+            }
+        }
+
+        private string SplitPath(string pathString)
+            => pathString.Split("/")[2];
+
+        private bool CheckIfItsNumber(string pid)
+        {
+            try
+            {
+                int convertedPID = Convert.ToInt32(pid);
+                return true;
+            }
+            catch (Exception exception)
+            {
+                logger?.LogError(exception.Message);
+                return false;
+            }
         }
     }
 }

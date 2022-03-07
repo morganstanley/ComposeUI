@@ -2,6 +2,7 @@
 
 using ProcessExplorer.Entities;
 using ProcessExplorer.Processes;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 
 namespace LocalCollector.Processes
@@ -12,15 +13,73 @@ namespace LocalCollector.Processes
         Action<ProcessInfo>? SendNewProcess { get; set; }
         Action<int>? SendTerminatedProcess { get; set; }
 
+        /// <summary>
+        /// Returns the a list conatining the child processes of the given process.
+        /// </summary>
+        /// <param name="process"></param>
+        /// <returns></returns>
         SynchronizedCollection<ProcessInfoDto> GetChildProcesses(Process process);
+
+        /// <summary>
+        /// Adds the childs of the main process to the list.
+        /// </summary>
+        void AddChildProcessesToList();
+
+        /// <summary>
+        /// Returns the CPU usage of the goven process.
+        /// </summary>
+        /// <param name="process"></param>
+        /// <returns></returns>
         float GetCPUUsage(Process process);
+
+        /// <summary>
+        /// Returns the memory usage of the given process.
+        /// </summary>
+        /// <param name="process"></param>
+        /// <returns></returns>
         float GetMemoryUsage(Process process);
+
+        /// <summary>
+        /// Returns the PPID of the given process.
+        /// </summary>
+        /// <param name="process"></param>
+        /// <returns></returns>
         int? GetParentId(Process process);
-        SynchronizedCollection<int>? GetProcessIds(SynchronizedCollection<ProcessInfoDto> processes);
-        bool IsComposeProcess(object process, SynchronizedCollection<int> processes);
+
+        /// <summary>
+        /// Returns a list containing the PID's.
+        /// </summary>
+        /// <param name="processes"></param>
+        /// <returns></returns>
+        //SynchronizedCollection<int>? GetProcessIds(SynchronizedCollection<ProcessInfoDto> processes);
+        ConcurrentDictionary<int, byte[]>? GetProcessIds(SynchronizedCollection<ProcessInfoDto> processes);
+
+        /// <summary>
+        /// Returns if the process is a Compose process.
+        /// </summary>
+        /// <param name="process"></param>
+        /// <returns></returns>
+        bool IsComposeProcess(object process);
+
+        /// <summary>
+        /// Terminates a process by ID.
+        /// </summary>
+        /// <param name="processId"></param>
+        /// <returns></returns>
         ProcessStartInfo KillProcessById(int processId);
+        
+        /// <summary>
+        /// Terminates a process by name
+        /// </summary>
+        /// <param name="processName"></param>
+        /// <returns></returns>
         ProcessStartInfo KillProcessByName(string processName);
         ProcessInfo ProcessCreated(Process process);
+
+        /// <summary>
+        /// Sets the events for creating/terminating/modifying a process.
+        /// </summary>
+        /// <param name="processes"></param>
         void WatchProcesses(SynchronizedCollection<ProcessInfoDto> processes);
     }
 }

@@ -2,6 +2,7 @@
 
 using ProcessExplorer.Entities;
 using ProcessExplorer.Processes;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 
 namespace LocalCollector.Processes
@@ -12,7 +13,8 @@ namespace LocalCollector.Processes
         public Action<int>? SendTerminatedProcess { get; set; }
         public Action<int>? SendModifiedProcess { get; set; }
 
-        internal SynchronizedCollection<int> Processes = new SynchronizedCollection<int>();
+        internal ConcurrentDictionary<int, byte[]>? ProcessIds = new ConcurrentDictionary<int, byte[]>();
+        private readonly object locker = new object();
 
         /// <summary>
         /// Returns the PPID of the given process.
@@ -61,7 +63,8 @@ namespace LocalCollector.Processes
         /// </summary>
         /// <param name="process"></param>
         /// <returns></returns>
-        public abstract ProcessInfo ProcessCreated(Process process);
+        public ProcessInfo ProcessCreated(Process process)
+            => new ProcessInfo(process, this);
 
         /// <summary>
         /// Continuously watching created processes.
@@ -70,29 +73,49 @@ namespace LocalCollector.Processes
         public abstract void WatchProcesses(SynchronizedCollection<ProcessInfoDto> processes);
 
         /// <summary>
+        /// It will add the childs to the list which is containing the relevant processes
+        /// </summary>
+        public void AddChildProcessesToList()
+        {
+            Process main = Process.GetProcessById(ProcessMonitor.ComposePID);
+            if (main is not null)
+            {
+                var children = GetChildProcesses(main);
+                lock (locker)
+                {
+                    if (children is not null)
+                        foreach (var child in children)
+                        {
+                            if (child is not null && child.PID is not null && child.ParentId is not null)
+                            {
+                                var ppid = Convert.ToInt32(child.ParentId);
+                                var pid = Convert.ToInt32(child.PID);
+                                SendNewDataIfPPIDExists(ppid, pid);
+                            }
+                        }
+                }
+            }
+        }
+
+        /// <summary>
         /// Creates a list, containing the process ids, which are running under the main process.
         /// </summary>
         /// <param name="processes"></param>
         /// <returns></returns>
-        public SynchronizedCollection<int>? GetProcessIds(SynchronizedCollection<ProcessInfoDto> processes)
+        public ConcurrentDictionary<int, byte[]>? GetProcessIds(SynchronizedCollection<ProcessInfoDto> processes)
         {
-            SynchronizedCollection<int>? list = new SynchronizedCollection<int>();
-            lock (processes)
+            ConcurrentDictionary<int, byte[]>? list = new ConcurrentDictionary<int, byte[]>();
+            lock (locker)
             {
                 foreach (var process in processes)
                 {
-                    if (process.PID != default)
-                        list.Add(Convert.ToInt32(process.PID));
-                    if (process.Children != default)
+                    if (process.PID != default && process.ParentId is not null)
                     {
-                        lock (process.Children)
-                        {
-                            foreach (var child in process.Children)
-                            {
-                                if (child.PID != default && child.PID != default)
-                                    list.Add(Convert.ToInt32(child.PID));
-                            }
-                        }
+                        var ppid = Convert.ToInt32(process.ParentId);
+                        var bytes = GetBytesFromPPID(ppid);
+
+                        if (bytes is not null)
+                            list.TryAdd(Convert.ToInt32(process.PID), bytes);
                     }
                 }
             }
@@ -106,12 +129,11 @@ namespace LocalCollector.Processes
         /// <param name="pid"></param>
         /// <param name="processes"></param>
         /// <returns></returns>
-        internal bool CheckIfPIDExists(int pid, SynchronizedCollection<int> processes)
+        internal bool CheckIfPIDExists(int pid)
         {
-            lock (processes)
+            if (IsComposeProcess(Process.GetProcessById(pid)))
             {
-                if (processes.Contains(pid))
-                    return true;
+                return true;
             }
             return false;
         }
@@ -121,29 +143,105 @@ namespace LocalCollector.Processes
         /// </summary>
         /// <param name="process"></param>
         /// <returns></returns>
-        public bool IsComposeProcess(object process, SynchronizedCollection<int> processes)
+        public bool IsComposeProcess(object process)
         {
             try
             {
                 var proc = process as Process;
-                if (proc != null && ProcessMonitor.ComposePID != default)
-                    while (proc?.Id != default)
+                if (proc is not null && ProcessMonitor.ComposePID != default)
+                    while (proc?.Id != 0)
                     {
                         proc?.Refresh();
                         if (proc?.Id == ProcessMonitor.ComposePID)
                             return true;
 
-                        int? ppid = GetParentId(proc);
-                        if (ppid.HasValue) process = Process.GetProcessById(Convert.ToInt32(ppid));
+                        if (proc is not null)
+                        {
+                            int? ppid = GetParentId(proc);
+                            if (ppid is not null)
+                                proc = Process.GetProcessById(Convert.ToInt32(ppid));
+                        }
                     }
             }
-            catch
+            catch (Exception)
             {
-                var pid = Convert.ToInt32(process);
-                if (CheckIfPIDExists(pid, processes))
-                    return true;
+                return false;
             }
+
             return false;
+        }
+
+        /// <summary>
+        /// Sends a created process to publish
+        /// </summary>
+        /// <param name="ppid"></param>
+        /// <param name="pid"></param>
+        internal void SendNewDataIfPPIDExists(int ppid, int pid)
+        {
+            lock (locker)
+            {
+                if (CheckIfPIDExists(pid))
+                {
+                    var bytes = GetBytesFromPPID(ppid);
+                    if (bytes is not null && ProcessIds is not null)
+                        ProcessIds.AddOrUpdate(pid, bytes, (_,_) => bytes);
+                    SendNewProcess?.Invoke(ProcessCreated(Process.GetProcessById(pid)));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Creates a byte array from PPID.
+        /// </summary>
+        /// <param name="ppid"></param>
+        /// <returns></returns>
+        private byte[]? GetBytesFromPPID(int ppid)
+        {
+            var bytes = BitConverter.GetBytes(ppid);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(bytes);
+            return bytes;
+        }
+
+        /// <summary>
+        /// Sends a terminated process information to publish
+        /// </summary>
+        /// <param name="pid"></param>
+        internal void SendDeletedDataPIDToCheckAsync(int pid)
+        {
+            if (ProcessIds is not null)
+            {
+                bool PIDExists = false;
+                lock (locker)
+                {
+                    PIDExists = ProcessIds.ContainsKey(pid);
+                }
+
+                if (PIDExists)
+                {
+                    SendTerminatedProcess?.Invoke(pid);
+                    lock (locker)
+                    {
+                        ProcessIds?.TryRemove(pid, out byte[]? ppid);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Sends a modified process information to publish
+        /// </summary>
+        /// <param name="pid"></param>
+        internal void SendModifiedIfData(int pid)
+        {
+            lock (locker)
+            {
+                if(ProcessIds is not null)
+                    if (ProcessIds.ContainsKey(pid))
+                    {
+                        SendModifiedProcess?.Invoke(pid);
+                    }
+            }
         }
     }
 }

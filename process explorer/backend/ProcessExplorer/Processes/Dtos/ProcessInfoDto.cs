@@ -11,12 +11,12 @@ namespace ProcessExplorer.Processes
         public int? PID { get; set; } = default;
         public int? PriorityLevel { get; set; } = default;
         public string? ProcessPriorityClass { get; set; } = default;
-        public SynchronizedCollection<ProcessThreadInfoDto>? Threads { get; set; } = new SynchronizedCollection<ProcessThreadInfoDto>();
+        public SynchronizedCollection<ProcessThreadInfoDto> Threads { get; set; } = new SynchronizedCollection<ProcessThreadInfoDto>();
         public long? VirtualMemorySize { get; set; } = default;
         public int? ParentId { get; set; } = null;
         public long? PrivateMemoryUsage { get; set; } = default;
         public string? ProcessStatus { get; set; } = Status.Running.ToString();
-        public SynchronizedCollection<ProcessInfoDto>? Children { get; set; } = new SynchronizedCollection<ProcessInfoDto>();
+        //public SynchronizedCollection<ProcessInfoDto> Children { get; set; } = new SynchronizedCollection<ProcessInfoDto>();
         public float? MemoryUsage { get; set; } = default;
         public float? ProcessorUsage { get; set; } = default;
     }

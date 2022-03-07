@@ -7,14 +7,15 @@ namespace ProcessExplorer.Entities.EnvironmentVariables
 {
     public class EnvironmentMonitorDto
     {
-        public ConcurrentDictionary<string, string>? EnvironmentVariables { get; set; } = new ConcurrentDictionary<string, string>();
+        public ConcurrentDictionary<string, string> EnvironmentVariables { get; set; } = new ConcurrentDictionary<string, string>();
 
+        private static readonly object locker = new object();
         public static EnvironmentMonitorDto FromEnvironment()
         {
             var envs = new EnvironmentMonitorDto();
             if (envs.EnvironmentVariables != null)
             {
-                lock (envs.EnvironmentVariables)
+                lock (locker)
                 {
                     foreach (DictionaryEntry item in Environment.GetEnvironmentVariables())
                     {

@@ -6,6 +6,6 @@ namespace LocalCollector.Connections
 {
     public class ConnectionMonitorDto
     {
-        public SynchronizedCollection<ConnectionDto>? Connections { get; set; } = new SynchronizedCollection<ConnectionDto>();
+        public SynchronizedCollection<ConnectionDto> Connections { get; set; } = new SynchronizedCollection<ConnectionDto>();
     }
 }

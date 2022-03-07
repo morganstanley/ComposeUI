@@ -10,6 +10,7 @@ namespace ProcessExplorer.Entities
     public class ProcessInfo
     {
         public IProcessGenerator infoGenerator;
+        private readonly object locker = new object();
 
         public ProcessInfo(int processId, IProcessGenerator manager)
             : this(Process.GetProcessById(processId), manager)
@@ -26,17 +27,29 @@ namespace ProcessExplorer.Entities
             {
                 try
                 {
-                    Data.StartTime = process.StartTime.ToString("yyyy.mm.dd. hh:mm:s");
+                    Data.StartTime = process.StartTime.ToString("yyyy.MM.dd. hh:mm:s");
                     Data.ProcessorUsageTime = process.TotalProcessorTime;
                     Data.PhysicalMemoryUsageBit = process.WorkingSet64;
                     Data.ProcessPriorityClass = process.PriorityClass.ToStringCached();
                     Data.VirtualMemorySize = process.VirtualMemorySize64;
 
                     var list = new SynchronizedCollection<ProcessThreadInfoDto>();
-                    foreach (ProcessThread processThread in process.Threads)
+                    lock (locker)
                     {
-                        list.Add(ProcessThreadInfoDto.FromProcessThread(processThread));
+                        int i;
+                        for (i = 0; i < process.Threads.Count; i++)
+                        {
+                            try
+                            {
+                                list.Add(ProcessThreadInfoDto.FromProcessThread(process.Threads[i]));
+                            }
+                            catch(Exception exception)
+                            {
+                                Debug.WriteLine(string.Format("Cannot add thread to the list: {0}", exception.Message));
+                            }
+                        }
                     }
+
                     Data.Threads = list;
                     Data.ProcessStatus = process.HasExited == false ? Status.Running.ToStringCached() : Status.Stopped.ToStringCached();
                 }
@@ -50,7 +63,7 @@ namespace ProcessExplorer.Entities
                     Data.ProcessName = process.ProcessName;
                     Data.PriorityLevel = process.BasePriority;
                     Data.PrivateMemoryUsage = process.PrivateMemorySize64;
-                    Data.Children = infoGenerator.GetChildProcesses(process);
+                    //Data.Children = infoGenerator.GetChildProcesses(process);
                     Data.ParentId = infoGenerator.GetParentId(process);
                     Data.MemoryUsage = infoGenerator.GetMemoryUsage(process);
                     Data.ProcessorUsage = infoGenerator.GetCPUUsage(process);

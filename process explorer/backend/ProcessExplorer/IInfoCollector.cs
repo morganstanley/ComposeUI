@@ -10,16 +10,65 @@ namespace ProcessExplorer
     public interface IInfoCollector
     {
         #region Properties
+        /// <summary>
+        /// Contains information.
+        /// (connection/registrations/modules/environment variables)
+        /// </summary>
         public ConcurrentDictionary<string, InfoAggregatorDto>? Information { get; set; }
+
+        /// <summary>
+        /// Contains the information about the processes.
+        /// </summary>
         public IProcessMonitor? ProcessMonitor { get; set; }
         #endregion
 
         #region Methods
+        /// <summary>
+        /// Adds a module information to the collection.
+        /// </summary>
+        /// <param name="assembly"></param>
+        /// <param name="info"></param>
         public void AddInformation(string assembly, InfoAggregatorDto info);
+
+        /// <summary>
+        /// Removes a module information to the collection.
+        /// </summary>
+        /// <param name="assembly"></param>
         public void Remove(string assembly);
-        public void SetProcessMonitorMainPID(int pid);
+
+        /// <summary>
+        /// Sets Compose PID.
+        /// </summary>
+        /// <param name="pid"></param>
+        public void SetComposePID(int pid);
+
+        /// <summary>
+        /// Reinitializes the list conatining the current, relevant processes
+        /// </summary>
+        /// <returns>A collection</returns>
+        public SynchronizedCollection<ProcessInfoDto>? RefreshProcessList();
+
+        /// <summary>
+        /// Returns the list containing the processes.
+        /// </summary>
+        /// <returns></returns>
         public SynchronizedCollection<ProcessInfoDto>? GetProcesses();
+
+        /// <summary>
+        /// Fills the list.
+        /// </summary>
+        public void InitProcessExplorer();
+
+        /// <summary>
+        /// Sets the url, where the new information can be pushed continouosly.
+        /// </summary>
+        /// <param name="url"></param>
         public void SetSubribeUrl(string url);
+
+        /// <summary>
+        /// Initalizes the process creator/modifier/terminator events.
+        /// </summary>
+        public void SetWatcher();
         #endregion
     }
 }
