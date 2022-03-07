@@ -27,7 +27,8 @@
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
-              "src/favicon.ico"
+              "src/favicon.ico",
+              "src/assets"
             ],
             "styles": [
               "src/styles.scss"
@@ -108,7 +109,8 @@
               "./node_modules/hammerjs/hammer.min.js"
             ],
             "assets": [
-              "src/favicon.ico"
+              "src/favicon.ico",
+              "src/assets"
             ]
           }
         },
