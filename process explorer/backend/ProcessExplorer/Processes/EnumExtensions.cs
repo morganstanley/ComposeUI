@@ -10,6 +10,7 @@ namespace ProcessExplorer.Processes
         {
             return status switch
             {
+                Status.Terminated => nameof(Status.Terminated),
                 Status.Running => nameof(Status.Running),
                 Status.Stopped => nameof(Status.Stopped),
                 _ => status.ToString(),

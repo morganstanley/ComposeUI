@@ -18,6 +18,11 @@ namespace ProcessExplorer.Entities
         public static int ComposePID { get; set; }
 
         /// <summary>
+        /// Delay time for keeping the process in the list after it is terminated.
+        /// </summary>
+        public static int DelayTime { get; set; } = 60000;
+
+        /// <summary>
         /// Url, where we can push the changes (if a process is created/modified/terminated).
         /// </summary>
         internal static string? ProcessChangedPushingUrl { get; set; }
@@ -77,9 +82,9 @@ namespace ProcessExplorer.Entities
         }
 
         public ProcessMonitor(IProcessGenerator processInfoGenerator, ICommunicator? communicator, int composePID)
-            : this(processInfoGenerator, null, communicator)
+            : this(processInfoGenerator, null, communicator, composePID)
         {
-            ComposePID = composePID;
+            
         }
 
         public ProcessMonitor(IProcessGenerator processInfoGenerator, ILogger<ProcessMonitor>? logger, ICommunicator? communicator, int composePID, string url = "")
@@ -95,9 +100,9 @@ namespace ProcessExplorer.Entities
         }
 
         public ProcessMonitor(IProcessGenerator processInfoGenerator, ILogger<ProcessMonitor>? logger, ICommunicator? communicator, string? url = "") 
-            : this(processInfoGenerator, logger, communicator)
+            : this(processInfoGenerator, logger, communicator, null, url)
         {
-            ProcessChangedPushingUrl = url;
+            
         }
 
         public ProcessMonitor(IProcessGenerator processInfoGenerator, ILogger<ProcessMonitor>? logger, ICommunicator? communicator, SynchronizedCollection<ProcessInfoDto>? processes, string? url = "")
@@ -115,6 +120,16 @@ namespace ProcessExplorer.Entities
         /// </summary>
         private void ClearList()
             => Data.Processes.Clear();
+
+        /// <summary>
+        /// Sets the delay for keeping a process after it was terminated. (ms)
+        /// Default 1 minute.
+        /// </summary>
+        /// <param name="delay"></param>
+        /// <exception cref="NotImplementedException"></exception>
+        public void SetDelay(int delay)
+            => DelayTime = delay;
+
 
         /// <summary>
         /// Fills the list with related processes.
@@ -263,7 +278,8 @@ namespace ProcessExplorer.Entities
                 {
                     await ProcessStatusChanged(pid);
                     logger?.LogInformation(string.Format("A process with PID: {0} is terminated", pid));
-                    DeleteFromListAfter1Minute(item);
+                    ModifyStatus(item);
+                    DeleteFromListAfter1Minute(item, DelayTime);
                     return true;
                 }
             }
@@ -275,15 +291,24 @@ namespace ProcessExplorer.Entities
             return false;
         }
 
+        private void ModifyStatus(ProcessInfoDto item)
+        {
+            lock (locker)
+            {
+                var index = Data.Processes.IndexOf(item);
+                Data.Processes[index].ProcessStatus = Status.Terminated.ToStringCached();
+            }
+        }
+
         /// <summary>
         /// Delays the removing process from the list.
         /// </summary>
         /// <param name="item"></param>
-        private async void DeleteFromListAfter1Minute(ProcessInfoDto item)
+        private void DeleteFromListAfter1Minute(ProcessInfoDto item, int delay)
         {
-            await Task.Factory.StartNew(async () =>
+            Task.Run(async () =>
             {
-                await Task.Delay(60000);
+                await Task.Delay(delay);
                 lock (locker)
                 {
                     Data.Processes.Remove(item);

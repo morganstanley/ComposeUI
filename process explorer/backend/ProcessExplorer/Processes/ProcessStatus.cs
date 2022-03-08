@@ -4,6 +4,7 @@ namespace ProcessExplorer.Processes
 {
     public enum Status
     {
+        Terminated = 2,
         Running = 1,
         Stopped = 0
     }
