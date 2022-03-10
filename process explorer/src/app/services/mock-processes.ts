@@ -11,6 +11,11 @@ export const MockProcesses: { [key: string]: any[] } = {
       "PhysicalMemoryUsageBit": 61440000,
       "PriorityLevel": "low",
       "VirtualMemorySize": 54136,
+      "EnvironmentVar" : {
+        "ComputerName": "testpc1",
+        "Username": "testuser",
+        "Homepath": "C:\\Documents and Settings\\testuser"
+      },
       "Children": [
         {
           "ProcessName": "process",
@@ -21,6 +26,11 @@ export const MockProcesses: { [key: string]: any[] } = {
           "PhysicalMemoryUsageBit": 61440000,
           "PriorityLevel": "low",
           "VirtualMemorySize": 54136,
+          "EnvironmentVar" : {
+            "ComputerName": "testpc2",
+            "Username": "testuser",
+            "Homepath": "C:\\Documents and Settings\\testuser"
+          },
           "Children": []
         },
         {
@@ -32,6 +42,11 @@ export const MockProcesses: { [key: string]: any[] } = {
           "PhysicalMemoryUsageBit": 61440000,
           "PriorityLevel": "low",
           "VirtualMemorySize": 54136,
+          "EnvironmentVar" : {
+            "ComputerName": "testpc3",
+            "Username": "testuser",
+            "Homepath": "C:\\Documents and Settings\\testuser"
+          },
           "Children": []
         },
         {
@@ -43,6 +58,11 @@ export const MockProcesses: { [key: string]: any[] } = {
           "PhysicalMemoryUsageBit": 61440000,
           "PriorityLevel": "low",
           "VirtualMemorySize": 54136,
+          "EnvironmentVar" : {
+            "ComputerName": "testpc4",
+            "Username": "testuser",
+            "Homepath": "C:\\Documents and Settings\\testuser"
+          },
           "Children": []
         }
       ]
@@ -55,6 +75,11 @@ export const MockProcesses: { [key: string]: any[] } = {
       "PhysicalMemoryUsageBit": 61440000,
       "PriorityLevel": "low",
       "VirtualMemorySize": 54136,
+      "EnvironmentVar" : {
+        "ComputerName": "testpc5",
+        "Username": "testuser",
+        "Homepath": "C:\\Documents and Settings\\testuser"
+      },
       "Children": [
         {
           "ProcessName": "process",
@@ -65,6 +90,11 @@ export const MockProcesses: { [key: string]: any[] } = {
           "PhysicalMemoryUsageBit": 61440000,
           "PriorityLevel": "low",
           "VirtualMemorySize": 54136,
+          "EnvironmentVar" : {
+            "ComputerName": "testpc6",
+            "Username": "testuser",
+            "Homepath": "C:\\Documents and Settings\\testuser"
+          },
           "Children": []
         },
         {
@@ -76,6 +106,11 @@ export const MockProcesses: { [key: string]: any[] } = {
           "PhysicalMemoryUsageBit": 61440000,
           "PriorityLevel": "low",
           "VirtualMemorySize": 54136,
+          "EnvironmentVar" : {
+            "ComputerName": "testpc7",
+            "Username": "testuser",
+            "Homepath": "C:\\Documents and Settings\\testuser"
+          },
           "Children": []
         },
         {
@@ -87,6 +122,11 @@ export const MockProcesses: { [key: string]: any[] } = {
           "PhysicalMemoryUsageBit": 61440000,
           "PriorityLevel": "low",
           "VirtualMemorySize": 54136,
+          "EnvironmentVar" : {
+            "ComputerName": "testpc8",
+            "Username": "testuser",
+            "Homepath": "C:\\Documents and Settings\\testuser"
+          },
           "Children": []
         }
       ]
@@ -99,6 +139,11 @@ export const MockProcesses: { [key: string]: any[] } = {
       "PhysicalMemoryUsageBit": 61440000,
       "PriorityLevel": "low",
       "VirtualMemorySize": 54136,
+      "EnvironmentVar" : {
+        "ComputerName": "testpc",
+        "Username": "testuser",
+        "Homepath": "C:\\Documents and Settings\\testuser"
+      },
       "Children": [
         {
           "ProcessName": "process",
@@ -109,6 +154,11 @@ export const MockProcesses: { [key: string]: any[] } = {
           "PhysicalMemoryUsageBit": 61440000,
           "PriorityLevel": "low",
           "VirtualMemorySize": 54136,
+          "EnvironmentVar" : {
+            "ComputerName": "testpc",
+            "Username": "testuser",
+            "Homepath": "C:\\Documents and Settings\\testuser"
+          },
           "Children": []
         },
         {
@@ -120,6 +170,11 @@ export const MockProcesses: { [key: string]: any[] } = {
           "PhysicalMemoryUsageBit": 61440000,
           "PriorityLevel": "high",
           "VirtualMemorySize": 54136,
+          "EnvironmentVar" : {
+            "ComputerName": "testpc",
+            "Username": "testuser",
+            "Homepath": "C:\\Documents and Settings\\testuser"
+          },
           "Children": []
         },
         {
@@ -131,6 +186,11 @@ export const MockProcesses: { [key: string]: any[] } = {
           "PhysicalMemoryUsageBit": 61440000,
           "PriorityLevel": "high",
           "VirtualMemorySize": 54136,
+          "EnvironmentVar" : {
+            "ComputerName": "testpc",
+            "Username": "testuser",
+            "Homepath": "C:\\Documents and Settings\\testuser"
+          },
           "Children": []
         }
       ]
@@ -143,6 +203,11 @@ export const MockProcesses: { [key: string]: any[] } = {
       "PhysicalMemoryUsageBit": 61440000,
       "PriorityLevel": "high",
       "VirtualMemorySize": 54136,
+      "EnvironmentVar" : {
+        "ComputerName": "testpc",
+        "Username": "testuser",
+        "Homepath": "C:\\Documents and Settings\\testuser"
+      },
       "Children": [
         {
           "ProcessName": "process",
@@ -153,6 +218,11 @@ export const MockProcesses: { [key: string]: any[] } = {
           "PhysicalMemoryUsageBit": 61440000,
           "PriorityLevel": "high",
           "VirtualMemorySize": 54136,
+          "EnvironmentVar" : {
+            "ComputerName": "testpc",
+            "Username": "testuser",
+            "Homepath": "C:\\Documents and Settings\\testuser"
+          },
           "Children": []
         },
         {
@@ -164,6 +234,11 @@ export const MockProcesses: { [key: string]: any[] } = {
           "PhysicalMemoryUsageBit": 61440000,
           "PriorityLevel": "high",
           "VirtualMemorySize": 54136,
+          "EnvironmentVar" : {
+            "ComputerName": "testpc",
+            "Username": "testuser",
+            "Homepath": "C:\\Documents and Settings\\testuser"
+          },
           "Children": []
         },
         {
@@ -175,6 +250,11 @@ export const MockProcesses: { [key: string]: any[] } = {
           "PhysicalMemoryUsageBit": 61440000,
           "PriorityLevel": "high",
           "VirtualMemorySize": 54136,
+          "EnvironmentVar" : {
+            "ComputerName": "testpc",
+            "Username": "testuser",
+            "Homepath": "C:\\Documents and Settings\\testuser"
+          },
           "Children": []
         }
       ]
@@ -188,6 +268,11 @@ export const MockProcesses: { [key: string]: any[] } = {
       "PriorityLevel": "high",
       "VirtualMemorySize": 54136,
       "PID": 296157,
+      "EnvironmentVar" : {
+        "ComputerName": "testpc",
+        "Username": "testuser",
+        "Homepath": "C:\\Documents and Settings\\testuser"
+      },
       "Children": [
         {
           "ProcessName": "process",
@@ -280,8 +365,13 @@ export const MockProcesses: { [key: string]: any[] } = {
       "PriorityLevel": "low",
       "VirtualMemorySize": 54136,
       "PID": 193308,
+      "EnvironmentVar" : {
+        "ComputerName": "testpc",
+        "Username": "testuser",
+        "Homepath": "C:\\Documents and Settings\\testuser"
+      },
       "Children": [
-          {
+        {
           "ProcessName": "process",
           "ProcessStatus": "Running",
           "StartTime": "2022.02.21. 17:33:06",
@@ -542,6 +632,11 @@ export const MockProcesses: { [key: string]: any[] } = {
       "PriorityLevel": "medium",
       "VirtualMemorySize": 54136,
       "PID": 378783,
+      "EnvironmentVar" : {
+        "ComputerName": "testpc",
+        "Username": "testuser",
+        "Homepath": "C:\\Documents and Settings\\testuser"
+      },
       "Children": [
         {
           "ProcessName": "process",
@@ -844,6 +939,11 @@ export const MockProcesses: { [key: string]: any[] } = {
       "PriorityLevel": "low",
       "VirtualMemorySize": 54136,
       "PID": 175961,
+      "EnvironmentVar" : {
+        "ComputerName": "testpc",
+        "Username": "testuser",
+        "Homepath": "C:\\Documents and Settings\\testuser"
+      },
       "Children": [
         {
           "ProcessName": "process",
