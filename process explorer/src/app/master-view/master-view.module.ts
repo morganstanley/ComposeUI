@@ -8,7 +8,7 @@ import { ConnectionsComponent } from './connections/connections.component';
 import {
   IgxListModule, IgxAvatarModule, IgxIconModule, IgxGridModule, IgxActionStripModule, IgxButtonModule,
   IgxButtonGroupModule, IgxCheckboxModule, IgxSelectModule, IgxNavbarModule, IgxToggleModule,
-  IgxNavigationDrawerModule,  IgxTreeGridModule } from 'igniteui-angular';
+  IgxNavigationDrawerModule, IgxDialogModule, IgxTreeGridModule } from 'igniteui-angular';
 import { FormsModule } from '@angular/forms';
 import { ProcessesComponent } from './processes/processes.component';
 import { MemoryChartComponent } from './memory-chart/memory-chart.component';
@@ -47,10 +47,11 @@ import {
     IgxToggleModule,
     IgxNavigationDrawerModule,
     IgxDoughnutChartModule,
-	IgxRingSeriesModule,
-	IgxLegendModule,
-	IgxItemLegendModule,
-    IgxTreeGridModule
+	  IgxRingSeriesModule,
+	  IgxLegendModule,
+	  IgxItemLegendModule,
+    IgxTreeGridModule,
+    IgxDialogModule
   ]
 })
 export class MasterViewModule {

@@ -71,3 +71,12 @@
   display: flex;
   flex-direction: column;
 }
+
+.dialog-container {
+  min-width:800px;
+  display: flex;
+}
+
+.dialog-container > igx-icon {
+  margin-right: 8px;
+}
