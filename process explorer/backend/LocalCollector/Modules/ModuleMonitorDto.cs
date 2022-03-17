@@ -4,7 +4,7 @@ using ProcessExplorer.Entities.Modules;
 
 namespace LocalCollector.Modules
 {
-    public class ModuleMonitorDto
+    public class ModuleMonitorDto 
     {
         public SynchronizedCollection<ModuleDto> CurrentModules { get; set; } = new SynchronizedCollection<ModuleDto>();
 
@@ -20,7 +20,7 @@ namespace LocalCollector.Modules
                     var modules = assembly.GetLoadedModules();
                     foreach (var module in modules)
                     {
-                        monduleMonitor?.CurrentModules?.Add(ModuleDto.FromModule(assembly, module));
+                        monduleMonitor.CurrentModules.Add(ModuleDto.FromModule(assembly, module));
                     }
                 }
             }

@@ -21,7 +21,7 @@ namespace LocalCollector.Processes
         /// </summary>
         /// <param name="process"></param>
         /// <returns></returns>
-        public abstract int? GetParentId(Process process);
+        public abstract int? GetParentId(Process? process);
 
         /// <summary>
         /// Returns the memory usage (%) of the given process.
@@ -102,9 +102,9 @@ namespace LocalCollector.Processes
         /// </summary>
         /// <param name="processes"></param>
         /// <returns></returns>
-        public ConcurrentDictionary<int, byte[]>? GetProcessIds(SynchronizedCollection<ProcessInfoDto> processes)
+        public ConcurrentDictionary<int, byte[]> GetProcessIds(SynchronizedCollection<ProcessInfoDto> processes)
         {
-            ConcurrentDictionary<int, byte[]>? list = new ConcurrentDictionary<int, byte[]>();
+            ConcurrentDictionary<int, byte[]> list = new ConcurrentDictionary<int, byte[]>();
             lock (locker)
             {
                 foreach (var process in processes)
@@ -148,19 +148,21 @@ namespace LocalCollector.Processes
             try
             {
                 var proc = process as Process;
+                proc?.Refresh();
+
                 if (proc is not null && ProcessMonitor.ComposePID != default)
                     while (proc?.Id != 0)
                     {
-                        proc?.Refresh();
                         if (proc?.Id == ProcessMonitor.ComposePID)
+                        {
                             return true;
-
-                        if (proc is not null)
+                        }
+                        else
                         {
                             int? ppid = GetParentId(proc);
                             if (ppid is not null)
                                 proc = Process.GetProcessById(Convert.ToInt32(ppid));
-                        }
+                        } 
                     }
             }
             catch (Exception)
@@ -195,7 +197,7 @@ namespace LocalCollector.Processes
         /// </summary>
         /// <param name="ppid"></param>
         /// <returns></returns>
-        private byte[]? GetBytesFromPPID(int ppid)
+        private byte[] GetBytesFromPPID(int ppid)
         {
             var bytes = BitConverter.GetBytes(ppid);
             if (BitConverter.IsLittleEndian)
@@ -222,7 +224,7 @@ namespace LocalCollector.Processes
                     SendTerminatedProcess?.Invoke(pid);
                     lock (locker)
                     {
-                        ProcessIds?.TryRemove(pid, out byte[]? ppid);
+                        ProcessIds.TryRemove(pid, out byte[]? ppid);
                     }
                 }
             }

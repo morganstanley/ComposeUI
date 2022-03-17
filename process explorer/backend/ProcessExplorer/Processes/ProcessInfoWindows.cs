@@ -3,6 +3,7 @@
 using LocalCollector.Processes;
 using Microsoft.Extensions.Logging;
 using ProcessExplorer.Entities;
+using ProcessExplorer.Processes.Logging;
 using System.Diagnostics;
 using System.Management;
 
@@ -25,22 +26,27 @@ namespace ProcessExplorer.Processes
             this.SendModifiedProcess = SendModifiedProcess;
         }
 
-        public override int? GetParentId(Process process)
+        public override int? GetParentId(Process? process)
         {
-            int ppid = 0;
-            using (ManagementObject mo = new ManagementObject(string.Format("win32_process.handle='{0}'", process.Id.ToString())))
+            if (process is not null)
             {
-                try
+                int ppid = 0;
+                using (ManagementObject mo = new ManagementObject(string.Format("win32_process.handle='{0}'", process.Id.ToString())))
                 {
-                    mo.Get();
-                    ppid = Convert.ToInt32(mo["ParentProcessId"]);
+                    try
+                    {
+                        mo.Get();
+                        ppid = Convert.ToInt32(mo["ParentProcessId"]);
+                    }
+                    catch (Exception exception)
+                    {
+                        if (process.Id > 0)
+                            logger?.ManagementObjectPPIDError(process.Id, exception);
+                    }
                 }
-                catch (Exception exception)
-                {
-                    logger?.LogError(exception.Message);
-                }
+                return ppid;
             }
-            return ppid;
+            return default;
         }
 
         public override float GetMemoryUsage(Process process)
@@ -72,18 +78,21 @@ namespace ProcessExplorer.Processes
         public override SynchronizedCollection<ProcessInfoDto> GetChildProcesses(Process process)
         {
             SynchronizedCollection<ProcessInfoDto> children = new SynchronizedCollection<ProcessInfoDto>();
-            ManagementObjectSearcher mos = new ManagementObjectSearcher(string.Format("Select * From Win32_Process Where ParentProcessID={0}", process.Id));
+            ManagementObjectSearcher mos = new ManagementObjectSearcher(string.Format("Select * From Win32_Process Where ParentProcessID={0} Or ProcessID={0}", process.Id));
             foreach (ManagementObject mo in mos.Get())
             {
                 try
                 {
                     var proc = new ProcessInfo(Process.GetProcessById(Convert.ToInt32(mo["ProcessID"])), this);
                     if (proc.Data != default)
-                        children.Add(proc.Data);
+                        lock (locker)
+                        {
+                            children.Add(proc.Data);
+                        }  
                 }
                 catch (Exception exception)
                 {
-                    logger?.LogError(exception.Message);
+                    logger?.ManagementObjectChildError(exception);
                 }
             }
 
@@ -92,7 +101,6 @@ namespace ProcessExplorer.Processes
 
         public override void WatchProcesses(SynchronizedCollection<ProcessInfoDto> processes)
         {
-            //this.Processes = GetProcessIds(processes);
             this.ProcessIds = GetProcessIds(processes);
             try
             {
@@ -112,13 +120,14 @@ namespace ProcessExplorer.Processes
             }
             catch (Exception exception)
             {
-                logger?.LogError(exception.Message);
+                logger?.ManagementObjectWatchError(exception);
             }
         }
 
         private void WmiEventHandler(object sender, EventArrivedEventArgs e)
         {
             int pid = Convert.ToInt32(((ManagementBaseObject)e.NewEvent.Properties["TargetInstance"].Value)["ProcessId"]);
+   
             string? wclass = ((ManagementBaseObject)e.NewEvent).SystemProperties["__Class"].Value.ToString();
             if (wclass is not null)
             {
@@ -147,7 +156,7 @@ namespace ProcessExplorer.Processes
                 }
                 catch (Exception exception)
                 {
-                    logger?.LogError(exception.Message);
+                    logger?.ManagementObjectWatchEventError(exception);
                 }
             }
         }
@@ -159,7 +168,8 @@ namespace ProcessExplorer.Processes
 
             if (process != null && process.Id != 0)
             {
-                return process;
+                lock(locker)
+                    return process;
             }
             return default;
         }

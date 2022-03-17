@@ -4,6 +4,7 @@ using LocalCollector.Processes;
 using LocalCollector.RPCCommunicator;
 using Microsoft.Extensions.Logging;
 using ProcessExplorer.Processes;
+using ProcessExplorer.Processes.Logging;
 using ProcessExplorer.Processes.RPCCommunicator;
 using System.Diagnostics;
 
@@ -18,7 +19,7 @@ namespace ProcessExplorer.Entities
         public static int ComposePID { get; set; }
 
         /// <summary>
-        /// Delay time for keeping the process in the list after it is terminated.
+        /// Delay time for keeping the process in the list of processes after it is terminated.
         /// </summary>
         public static int DelayTime { get; set; } = 60000;
 
@@ -47,10 +48,6 @@ namespace ProcessExplorer.Entities
         /// </summary>
         private readonly object locker = new object();
 
-        
-        //Sample for later might not needed
-        private readonly HttpClient? httpClient = new HttpClient();
-
 
         /// <summary>
         /// Sample communicator, what we can use for sending object, later it might be modified.
@@ -63,15 +60,15 @@ namespace ProcessExplorer.Entities
         {
             this.processInfoManager = processInfoGenerator;
             this.logger = logger;
-
-            if (communicator is not null)
-                this.channel = communicator;
-
+            lock (locker)
+            {
+                if (communicator is not null)
+                    this.channel = communicator;
+            }
             SetProcessInfoManager();
             SetActionsIfTheyAreNotDeclared();
             ClearList();
             FillListWithRelatedProcesses();
-
             SetWatcher();
         }
 
@@ -84,7 +81,7 @@ namespace ProcessExplorer.Entities
         public ProcessMonitor(IProcessGenerator processInfoGenerator, ICommunicator? communicator, int composePID)
             : this(processInfoGenerator, null, communicator, composePID)
         {
-            
+
         }
 
         public ProcessMonitor(IProcessGenerator processInfoGenerator, ILogger<ProcessMonitor>? logger, ICommunicator? communicator, int composePID, string url = "")
@@ -99,18 +96,21 @@ namespace ProcessExplorer.Entities
 
         }
 
-        public ProcessMonitor(IProcessGenerator processInfoGenerator, ILogger<ProcessMonitor>? logger, ICommunicator? communicator, string? url = "") 
+        public ProcessMonitor(IProcessGenerator processInfoGenerator, ILogger<ProcessMonitor>? logger, ICommunicator? communicator, string? url = "")
             : this(processInfoGenerator, logger, communicator, null, url)
         {
-            
+
         }
 
         public ProcessMonitor(IProcessGenerator processInfoGenerator, ILogger<ProcessMonitor>? logger, ICommunicator? communicator, SynchronizedCollection<ProcessInfoDto>? processes, string? url = "")
             : this(processInfoGenerator, logger, communicator)
         {
             if (processes is not null)
-                Data.Processes = processes;
-            ProcessChangedPushingUrl = url;
+                lock (locker)
+                {
+                    Data.Processes = processes;
+                    ProcessChangedPushingUrl = url;
+                }
         }
         #endregion
 
@@ -119,7 +119,12 @@ namespace ProcessExplorer.Entities
         /// Clears all of the element from the list of this instance.
         /// </summary>
         private void ClearList()
-            => Data.Processes.Clear();
+        {
+            lock (locker)
+            {
+                Data.Processes.Clear();
+            }
+        }
 
         /// <summary>
         /// Sets the delay for keeping a process after it was terminated. (ms)
@@ -128,7 +133,12 @@ namespace ProcessExplorer.Entities
         /// <param name="delay"></param>
         /// <exception cref="NotImplementedException"></exception>
         public void SetDelay(int delay)
-            => DelayTime = delay;
+        {
+            lock (locker)
+            {
+                DelayTime = delay;
+            }
+        }
 
 
         /// <summary>
@@ -139,17 +149,24 @@ namespace ProcessExplorer.Entities
             if (processInfoManager != null && ComposePID != default)
             {
                 ClearList();
-                var main = Process.GetProcessById(ComposePID);
-                lock (locker)
+                try
                 {
-                    var proc = new ProcessInfo(main, processInfoManager);
-                    if (Data != default && proc.Data != default && Data != default)
+                    var main = Process.GetProcessById(ComposePID);
+                    lock (locker)
                     {
-                        Data.Processes.Add(proc.Data);
+                        var proc = new ProcessInfo(main, processInfoManager);
+                        if (Data != default && proc.Data != default)
+                        {
+                            Data.Processes.Add(proc.Data);
+                        }
                     }
                 }
+                catch (Exception ex)
+                {
+                    logger?.CannotFillList(ex);
+                }
                 processInfoManager?.AddChildProcessesToList();
-                logger?.LogInformation("The Process Explorer list is initalized");
+                logger?.ProcessListIsInitalized();
             }
         }
 
@@ -169,17 +186,27 @@ namespace ProcessExplorer.Entities
         /// </summary>
         /// <param name="url"></param>
         public void SetSubribeUrl(string url)
-            => ProcessChangedPushingUrl = url;
+        {
+            lock (locker)
+            {
+                ProcessChangedPushingUrl = url;
+            }
+        }
 
         /// <summary>
         /// Sets Compose PID.
         /// </summary>
         /// <param name="pid"></param>
         public void SetComposePID(int pid)
-            => ComposePID = pid;
+        {
+            lock (locker)
+            {
+                ComposePID = pid;
+            }
+        }
 
         /// <summary>
-        /// Sets the delegates to the OS based process info generator.
+        /// Sets the delegate actions in the OS based process info generator.
         /// </summary>
         protected void SetActionsIfTheyAreNotDeclared()
         {
@@ -200,7 +227,10 @@ namespace ProcessExplorer.Entities
         protected void SetProcessInfoManager()
         {
             if (processInfoManager == null)
-                processInfoManager = ProcessInfoManagerFactory.SetProcessInfoGeneratorBasedOnOS(SendNew, SendDeleted, SendModified);
+                lock (locker)
+                {
+                    processInfoManager = ProcessInfoManagerFactory.SetProcessInfoGeneratorBasedOnOS(SendNew, SendDeleted, SendModified);
+                }
         }
         #endregion
 
@@ -209,14 +239,24 @@ namespace ProcessExplorer.Entities
         {
             ClearList();
             FillListWithRelatedProcesses();
-            return Data?.Processes;
+            return Data.Processes;
         }
 
         internal IEnumerable<ProcessInfoDto>? GetProcessByName(string name)
-            => Data?.Processes.Where(p => p.ProcessName == name);
+        {
+            lock (locker)
+            {
+                return Data.Processes.Where(p => p.ProcessName == name);
+            }
+        }
 
         internal IEnumerable<ProcessInfoDto>? GetProcessByID(int id)
-            => Data?.Processes.Where(p => p.PID == id);
+        {
+            lock (locker)
+            {
+                return Data.Processes.Where(p => p.PID == id);
+            }
+        }
         #endregion
 
         #region Kill/terminate process
@@ -238,7 +278,7 @@ namespace ProcessExplorer.Entities
             }
             catch (Exception exception)
             {
-                logger?.LogError(exception.Message);
+                logger?.CannotKillProcess(exception);
             }
         }
 
@@ -265,7 +305,7 @@ namespace ProcessExplorer.Entities
 
         #region Delete terminated process from the list helper
         /// <summary>
-        /// Searches for the index of the given process and calls the publishing method if it is relevant.
+        /// Searches for the list index of the given process and calls the publishing method if it is relevant.
         /// </summary>
         /// <param name="pid"></param>
         /// <returns></returns>
@@ -273,11 +313,17 @@ namespace ProcessExplorer.Entities
         {
             try
             {
-                var item = Data.Processes.Single(p => p.PID == pid);
+                ProcessInfoDto? item;
+                lock (locker)
+                {
+                    item = Data.Processes.Single(p => p.PID == pid);
+                }
                 if (item != default)
                 {
                     await ProcessStatusChanged(pid);
-                    logger?.LogInformation(string.Format("A process with PID: {0} is terminated", pid));
+
+                    logger?.ProcessTerminated(pid);
+
                     ModifyStatus(item);
                     DeleteFromListAfter1Minute(item, DelayTime);
                     return true;
@@ -285,7 +331,7 @@ namespace ProcessExplorer.Entities
             }
             catch (Exception exception)
             {
-                logger?.LogError(exception.Message);
+                logger?.CannotFindElement(pid, exception);
                 return false;
             }
             return false;
@@ -301,7 +347,7 @@ namespace ProcessExplorer.Entities
         }
 
         /// <summary>
-        /// Delays the removing process from the list.
+        /// Delays the removing of a process from the list.
         /// </summary>
         /// <param name="item"></param>
         private void DeleteFromListAfter1Minute(ProcessInfoDto item, int delay)
@@ -323,7 +369,12 @@ namespace ProcessExplorer.Entities
         /// </summary>
         /// <param name="communicator"></param>
         public void SetCommunicator(ICommunicator communicator)
-            => channel = communicator;
+        {
+            lock (locker)
+            {
+                channel = communicator;
+            }
+        }
 
         /// <summary>
         /// Sends a message.
@@ -342,15 +393,18 @@ namespace ProcessExplorer.Entities
         /// <param name="process"></param>
         public async void SendNew(ProcessInfo process)
         {
-            var temp = GetCopyList(Convert.ToInt32(process?.Data?.PID));
+            var pid = Convert.ToInt32(process.Data?.PID);
+            var temp = GetCopyList(pid);
             if (temp != null)
+            {
                 if (temp?.Count == 0 && process?.Data != default)
                 {
-                    if (!CheckIfPIDExists(Convert.ToInt32(process.Data.PID)))
-                        Data?.Processes.Add(process.Data);
+                    if (!CheckIfPIDExists(pid))
+                        Data.Processes.Add(process.Data);
                     await ProcessStatusChanged(process.Data);
+                    logger?.ProcessCreated(pid);
                 }
-            logger?.LogInformation(string.Format("A process {0} is created under the Compose module.", process?.Data?.PID));
+            }
         }
 
         /// <summary>
@@ -360,7 +414,7 @@ namespace ProcessExplorer.Entities
         public void SendDeleted(int pid)
         {
             if (!TryDeleteMainProcesses(pid).Result)
-                logger?.LogInformation(string.Format("The process {0} is not exist in the ProcessMonitor list", pid));
+                logger?.ProcessNotFound(pid);
         }
 
         /// <summary>
@@ -373,18 +427,18 @@ namespace ProcessExplorer.Entities
             {
                 var process = Process.GetProcessById(pid);
                 process.Refresh();
-                if (process != null && process.Id > 0 && processInfoManager != default)
+                if (process is not null && process.Id > 0 && processInfoManager is not null)
                 {
                     var processInfo = new ProcessInfo(process, processInfoManager);
                     ModifyElement(processInfo);
                     if (processInfo != null && processInfo.Data != null)
                         await ProcessStatusChanged(processInfo.Data);
+                    logger?.ProcessModified(pid);
                 }
-                logger?.LogInformation(string.Format("The process {0} is modified", pid));
             }
             catch (Exception exception)
             {
-                logger?.LogError(exception.Message);
+                logger?.CouldNotFoundModifiableProcess(pid, exception);
             }
 
         }
@@ -399,7 +453,7 @@ namespace ProcessExplorer.Entities
         private List<ProcessInfoDto>? GetCopyList(int pid)
         {
             if (Data.Processes != default)
-                return Data?.Processes.Where(p => p.PID == pid).ToList();
+                return Data.Processes.Where(p => p.PID == pid).ToList();
             return default;
         }
 
@@ -410,19 +464,19 @@ namespace ProcessExplorer.Entities
         /// <returns></returns>
         private bool CheckIfPIDExists(int pid)
         {
-            lock (locker)
+            try
             {
-                try
+                lock (locker)
                 {
                     var count = Data.Processes.Where(p => p.PID.Equals(pid)).Count();
                     if (count > 0)
                         return true;
                 }
-                catch (Exception exception)
-                {
-                    logger?.LogError(exception?.Message);
-                    return false;
-                }
+            }
+            catch (Exception exception)
+            {
+                logger?.NotExists(pid, exception);
+                return false;
             }
             return false;
         }
@@ -434,24 +488,27 @@ namespace ProcessExplorer.Entities
         /// <returns></returns>
         private int TryGetIndexFromMainProcesses(int pid)
         {
-            lock (locker)
+            try
             {
-                try
+                lock (locker)
                 {
-                    var index = Data.Processes.IndexOf(
-                        Data.Processes.Where(p => p.PID == pid).FirstOrDefault());
-                    return index;
-                }
-                catch (Exception exception)
-                {
-                    logger?.LogError(exception.Message);
+                    var item = Data.Processes.Where(p => p.PID == pid).FirstOrDefault();
+                    if(item is not null)
+                    {
+                        return Data.Processes.IndexOf(item);
+                    }
                 }
             }
+            catch (Exception exception)
+            {
+                logger?.IndexDoesNotExists(pid, exception);
+            }
+
             return -1;
         }
 
         /// <summary>
-        /// Modifies a related element inside the list, if a process is changed. //innerlist
+        /// Modifies an element inside the list of processes, if this process is changed. 
         /// </summary>
         /// <param name="processInfo"></param>
         private void ModifyElement(ProcessInfo processInfo)

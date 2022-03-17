@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace ProcessExplorer.Entities.Modules
 {
-    public class ModuleDto
+    public class ModuleDto 
     {
         #region Properties
         public string? Name { get; set; }
@@ -20,7 +20,7 @@ namespace ProcessExplorer.Entities.Modules
             string? location = string.Empty;
             try
             {
-                location = Path.GetDirectoryName(Uri.UnescapeDataString(new UriBuilder(module?.Assembly?.Location).Path));
+                location = Path.GetDirectoryName(Uri.UnescapeDataString(new UriBuilder(module.Assembly.Location).Path));
             }
             catch (Exception)
             {
@@ -31,7 +31,7 @@ namespace ProcessExplorer.Entities.Modules
                 Name = assembly.GetName().Name,
                 Version = module.ModuleVersionId,
                 VersionRedirectedFrom = assembly.ManifestModule.ModuleVersionId.ToString(),
-                PublicKeyToken = assembly?.GetName()?.GetPublicKeyToken(),
+                PublicKeyToken = assembly.GetName()?.GetPublicKeyToken(),
                 Location = location
             };
         }

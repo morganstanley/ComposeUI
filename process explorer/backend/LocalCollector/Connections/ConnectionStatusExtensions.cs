@@ -2,9 +2,9 @@
 
 namespace LocalCollector.Connections
 {
-    internal static class ConnectionStatusExtensions
+    public static class ConnectionStatusExtensions
     {
-        internal static string ToStringCached(this ConnectionStatus status)
+        public static string ToStringCached(this ConnectionStatus status)
         {
             return status switch
             {

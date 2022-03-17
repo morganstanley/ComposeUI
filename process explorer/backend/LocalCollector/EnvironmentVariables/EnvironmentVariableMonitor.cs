@@ -5,7 +5,7 @@ using System.Collections.Concurrent;
 
 namespace ProcessExplorer.Entities.EnvironmentVariables
 {
-    public class EnvironmentMonitorDto
+    public class EnvironmentMonitorDto 
     {
         public ConcurrentDictionary<string, string> EnvironmentVariables { get; set; } = new ConcurrentDictionary<string, string>();
 
@@ -13,17 +13,14 @@ namespace ProcessExplorer.Entities.EnvironmentVariables
         public static EnvironmentMonitorDto FromEnvironment()
         {
             var envs = new EnvironmentMonitorDto();
-            if (envs.EnvironmentVariables != null)
+            lock (locker)
             {
-                lock (locker)
+                foreach (DictionaryEntry item in Environment.GetEnvironmentVariables())
                 {
-                    foreach (DictionaryEntry item in Environment.GetEnvironmentVariables())
-                    {
-                        var itemV = item.Value?.ToString();
-                        var itemK = item.Key?.ToString();
-                        if (itemV != default && itemK != default)
-                            envs.EnvironmentVariables.AddOrUpdate(itemK, itemV, (_, _) => itemV);
-                    }
+                    var itemV = item.Value?.ToString();
+                    var itemK = item.Key?.ToString();
+                    if (itemV != default && itemK != default)
+                        envs.EnvironmentVariables.AddOrUpdate(itemK, itemV, (_, _) => itemV);
                 }
             }
             return envs;

@@ -16,7 +16,6 @@ namespace ProcessExplorer.Processes
         public int? ParentId { get; set; } = null;
         public long? PrivateMemoryUsage { get; set; } = default;
         public string? ProcessStatus { get; set; } = Status.Running.ToString();
-        //public SynchronizedCollection<ProcessInfoDto> Children { get; set; } = new SynchronizedCollection<ProcessInfoDto>();
         public float? MemoryUsage { get; set; } = default;
         public float? ProcessorUsage { get; set; } = default;
     }

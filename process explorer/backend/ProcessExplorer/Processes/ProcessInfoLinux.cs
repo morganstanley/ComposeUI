@@ -3,6 +3,7 @@
 using LocalCollector.Processes;
 using Microsoft.Extensions.Logging;
 using ProcessExplorer.Entities;
+using ProcessExplorer.Processes.Logging;
 using System.Diagnostics;
 using System.Globalization;
 
@@ -74,10 +75,14 @@ namespace ProcessExplorer.Processes
             return line.Substring(endOfName).Split(new char[] { ' ' }, 4);
         }
 
-        public override int? GetParentId(Process child)
+        public override int? GetParentId(Process? child)
         {
-            string[]? parts = GetLinuxInfo(child.Id);
-            if (parts?.Length >= 3 && parts != default) return Convert.ToInt32(parts[2]);
+            if(child is not null)
+            {
+                string[]? parts = GetLinuxInfo(child.Id);
+                if (parts?.Length >= 3 && parts != default) return Convert.ToInt32(parts[2]);
+                return default;
+            }
             return default;
         }
 
@@ -95,7 +100,10 @@ namespace ProcessExplorer.Processes
                     {
                         var child = new ProcessInfo(process, this);
                         if (child != default && child.Data != default)
-                            children.Add(child.Data);
+                            lock (locker)
+                            {
+                                children.Add(child.Data);
+                            }  
                     }
                 }
             }
@@ -173,9 +181,7 @@ namespace ProcessExplorer.Processes
         private void OnRenamed(object sender, RenamedEventArgs e)
         {
             string value = SplitPath(e.FullPath);
-            logger?.LogWarning($"Renamed:");
-            logger?.LogWarning($"    Old: {e.OldFullPath}");
-            logger?.LogWarning($"    New: {value}");
+            logger?.ProcessRenamed(e.OldFullPath, value);
             ProcessModifiedAction(value);
         }
 
@@ -186,8 +192,7 @@ namespace ProcessExplorer.Processes
         {
             if (ex != null)
             {
-                logger?.LogError(string.Format("Message: {0}", ex.Message));
-                logger?.LogError(string.Format("StackTrace: {0}", ex.StackTrace));
+                logger?.CannotSetWatcherLinux(ex);
                 PrintException(ex.InnerException);
             }
         }
@@ -204,7 +209,7 @@ namespace ProcessExplorer.Processes
             }
             catch (Exception exception)
             {
-                logger?.LogError(exception.Message);
+                logger?.CouldNotConvertToInt(pid, exception);
                 return false;
             }
         }

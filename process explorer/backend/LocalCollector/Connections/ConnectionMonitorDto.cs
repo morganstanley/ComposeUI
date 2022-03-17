@@ -4,7 +4,7 @@ using ProcessExplorer.Entities.Connections;
 
 namespace LocalCollector.Connections
 {
-    public class ConnectionMonitorDto
+    public class ConnectionMonitorDto 
     {
         public SynchronizedCollection<ConnectionDto> Connections { get; set; } = new SynchronizedCollection<ConnectionDto>();
     }

@@ -3,14 +3,32 @@
 using LocalCollector.Processes;
 using System.Diagnostics;
 using ProcessExplorer.Processes;
+using ThreadState = System.Diagnostics.ThreadState;
+using Microsoft.Extensions.Logging;
+using ProcessExplorer.Processes.Logging;
 
 namespace ProcessExplorer.Entities
 {
 
-    public class ProcessInfo
+    public class ProcessInfo 
     {
         public IProcessGenerator infoGenerator;
         private readonly object locker = new object();
+        private readonly ILogger<ProcessInfo>? logger;
+
+        public ProcessInfoDto? Data { get; set; }
+
+        public ProcessInfo(ILogger<ProcessInfo> logger, IProcessGenerator manager, int processId)
+            : this(processId, manager)
+        {
+            this.logger = logger;
+        }
+
+        public ProcessInfo(ILogger<ProcessInfo> logger, IProcessGenerator manager, Process process)
+            : this(process.Id, manager)
+        {
+            this.logger = logger;
+        }
 
         public ProcessInfo(int processId, IProcessGenerator manager)
             : this(Process.GetProcessById(processId), manager)
@@ -18,10 +36,11 @@ namespace ProcessExplorer.Entities
 
         }
 
-        public ProcessInfo(Process process, IProcessGenerator manager)
+        internal ProcessInfo(Process process, IProcessGenerator manager)
         {
             Data = new ProcessInfoDto();
             infoGenerator = manager;
+
             process.Refresh();
             if (process != null && process.Id != 0)
             {
@@ -41,11 +60,18 @@ namespace ProcessExplorer.Entities
                         {
                             try
                             {
-                                list.Add(ProcessThreadInfoDto.FromProcessThread(process.Threads[i]));
+                                if (process.Threads[i].ThreadState == ThreadState.Wait)
+                                {
+                                    list.Add(ProcessThreadInfoDto.FromProcessThread(process.Threads[i]));
+                                }
+                                else
+                                {
+                                    AddThreadToList(list, process.Threads[i]);
+                                }
                             }
-                            catch(Exception exception)
+                            catch (Exception exception)
                             {
-                                Debug.WriteLine(string.Format("Cannot add thread to the list: {0}", exception.Message));
+                                logger?.CannotAddProcessThread(exception);
                             }
                         }
                     }
@@ -63,14 +89,19 @@ namespace ProcessExplorer.Entities
                     Data.ProcessName = process.ProcessName;
                     Data.PriorityLevel = process.BasePriority;
                     Data.PrivateMemoryUsage = process.PrivateMemorySize64;
-                    //Data.Children = infoGenerator.GetChildProcesses(process);
                     Data.ParentId = infoGenerator.GetParentId(process);
                     Data.MemoryUsage = infoGenerator.GetMemoryUsage(process);
                     Data.ProcessorUsage = infoGenerator.GetCPUUsage(process);
                 }
             }
         }
-        public ProcessInfoDto? Data { get; set; }
+
+        public void AddThreadToList(SynchronizedCollection<ProcessThreadInfoDto> list, ProcessThread process)
+        {
+
+            list.Add(ProcessThreadInfoDto.FromProcessThread(process.StartTime,process.CurrentPriority, 
+                                        process.Id, process.ThreadState,process.TotalProcessorTime));
+        }
     }
 
 }

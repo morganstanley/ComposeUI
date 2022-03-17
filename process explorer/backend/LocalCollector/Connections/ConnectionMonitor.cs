@@ -4,35 +4,74 @@ using LocalCollector.Connections;
 
 namespace ProcessExplorer.Entities.Connections
 {
-    public class ConnectionMonitor 
+    public class ConnectionMonitor : IConnectionMonitor
     {
         public ConnectionMonitorDto Data { get; set; } = new ConnectionMonitorDto();
+        private readonly object locker = new object();
+        internal Func<ConnectionDto, Task>? SendConnectionStatusChanged;
+
         public ConnectionMonitor()
         {
-            Data.Connections = new SynchronizedCollection<ConnectionDto>();
+            lock(locker)
+                Data.Connections = new SynchronizedCollection<ConnectionDto>();
         }
+
         public ConnectionMonitor(SynchronizedCollection<ConnectionDto> connections)
-            => this.Data.Connections = connections;
+        {
+            lock (locker)
+                Data.Connections = connections;
+        }
+
         public void AddConnection(ConnectionDto connectionInfo)
-            => Data?.Connections?.Add(connectionInfo);
+        {
+            lock (locker)
+            {
+                Data.Connections.Add(connectionInfo);
+            }
+        }
+
         public void RemoveConnection(ConnectionDto connectionInfo)
         {
-            if(Data.Connections != default)
-                Data?.Connections.Remove(connectionInfo);
+            lock (locker)
+                Data.Connections.Remove(connectionInfo);
         }
-        public void ChangeElement(ConnectionDto connection)
-        {
-            AddConnection(connection);
-        }
-        public ConnectionDto? GetConnection(ConnectionDto connection) 
-            => Data?.Connections?.Where(conn => conn.Equals(connection)).FirstOrDefault();
 
-        public SynchronizedCollection<ConnectionDto>? GetConnections()
-            => Data.Connections;
+        public void ChangeElement(ConnectionDto connection)
+            => AddConnection(connection);
+
+        public ConnectionDto? GetConnection(ConnectionDto connection)
+        {
+            lock (locker)
+            {
+                return Data.Connections.Where(conn => conn.Equals(connection)).FirstOrDefault();
+            }
+        }
 
         public void StatusChanged(ConnectionDto conn)
         {
-            //triggering event tbc
+            if (Data.Connections.Count > 0)
+            {
+                int i = 0;
+                lock (locker)
+                {
+                    foreach (var connection in Data.Connections)
+                    {
+                        if (connection.Id == conn.Id)
+                        {
+                            Data.Connections[i].Status = conn.Status;
+                            SendConnectionStatusChanged?.Invoke(conn);
+                            break;
+                        }
+                        i++;
+                    }
+                }
+            }
+        }
+
+        public void SetSendConnectionStatusChanged(Func<ConnectionDto, Task> action)
+        {
+            lock(locker)
+                SendConnectionStatusChanged = action;
         }
     }
 }

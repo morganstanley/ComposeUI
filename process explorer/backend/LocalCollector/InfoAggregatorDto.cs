@@ -4,12 +4,13 @@ using LocalCollector.Connections;
 using LocalCollector.Modules;
 using ProcessExplorer.Entities.EnvironmentVariables;
 using ProcessExplorer.Entities.Registrations;
+using System.Diagnostics;
 
 namespace LocalCollector
 {
     public class InfoAggregatorDto
     {
-        public Guid? Id { get; set; }
+        public int? Id { get; set; } = Process.GetCurrentProcess().Id;
         public RegistrationMonitorDto? Registrations { get; set; }
         public EnvironmentMonitorDto? EnvironmentVariables { get; set; }
         public ConnectionMonitorDto? Connections { get; set; }

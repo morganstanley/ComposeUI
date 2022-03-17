@@ -3,10 +3,12 @@
 using LocalCollector;
 using LocalCollector.Connections;
 using LocalCollector.Modules;
+using Microsoft.Extensions.Logging;
 using ProcessExplorer.Entities.Connections;
 using ProcessExplorer.Entities.EnvironmentVariables;
 using ProcessExplorer.Entities.Registrations;
 using ProcessExplorer.Processes.RPCCommunicator;
+using System.Diagnostics;
 
 namespace ProcessExplorer
 {
@@ -14,41 +16,81 @@ namespace ProcessExplorer
     {
         #region Properties
         public InfoAggregatorDto Data { get; set; } = new InfoAggregatorDto();
-
-        //later it will be removed.
-        private readonly HttpClient? httpClient = new HttpClient();
-
+        internal ConnectionMonitor? ConnectionMonitor { get; set; }
         private readonly ICommunicator? channel;
         private readonly object locker = new object();
+        private readonly ILogger<InfoAggregator>? logger;
         #endregion
 
         #region Constructors
-        InfoAggregator(ICommunicator? channel)
+        InfoAggregator(ICommunicator? channel, ILogger<InfoAggregator>? logger)
         {
             this.channel = channel;
+            this.logger = logger;
         }
-        public InfoAggregator(Guid id, EnvironmentMonitorDto envs,
-            ConnectionMonitor cons, ICommunicator? channel = null)
-            : this(channel)
+
+        public InfoAggregator(EnvironmentMonitorDto envs, ConnectionMonitor cons, ICommunicator? channel = null, ILogger<InfoAggregator>? logger = null)
+            : this(channel, logger)
         {
-            Data.Id = id;
+            Data.Id = Process.GetCurrentProcess().Id;
             Data.EnvironmentVariables = envs;
             Data.Connections = cons.Data;
+
+            ConnectionMonitor = cons;
+            SetConnectionChangedEvent();
         }
-        public InfoAggregator(Guid id, EnvironmentMonitorDto envs, ConnectionMonitor cons,
-            RegistrationMonitorDto registrations, ModuleMonitorDto modules, ICommunicator? channel = null)
-            : this(id, envs, cons, channel)
+
+        public InfoAggregator(EnvironmentMonitorDto envs, ConnectionMonitor cons,
+            RegistrationMonitorDto registrations, ModuleMonitorDto modules, ICommunicator? channel = null, ILogger<InfoAggregator>? logger = null)
+            : this(envs, cons, channel, logger)
         {
             Data.Registrations = registrations;
             Data.Modules = modules;
         }
         #endregion
 
-        //SAMPLE MESSAGE SENDING
-        public async Task SendMessage(object changedElement)
+        protected void SetConnectionChangedEvent()
         {
-            if (changedElement is not null && channel is not null)
-                await channel.SendMessage(changedElement);
+            ConnectionMonitor?.SetSendConnectionStatusChanged(SendMessageConnection);
+        }
+
+        public async Task SendMessageConnection(ConnectionDto? conn)
+        {
+            if (channel is not null && conn is not null)
+            {
+                lock (locker)
+                {
+                    try
+                    {
+                        var info = Data.Connections?.Connections.Where(p => p.Id == conn.Id).FirstOrDefault();
+                        if(info is not null)
+                        {
+                            var index = Data.Connections?.Connections.IndexOf(info);
+                            if (index >= 0 && Data.Connections?.Connections.Count <= index)
+                            {
+                                Data.Connections?.Connections.RemoveAt(Convert.ToInt32(index));
+                                Data.Connections?.Connections.Add(conn);
+                            }   
+                        }
+                    }
+                    catch (Exception exception)
+                    {
+                        logger?.LogError(string.Format("Cannot send connection status changed message to the server. Detailed exception: ", exception.Message));
+                    }
+                }
+                await channel.SendMessage(conn);
+            }
+        }
+
+        public async Task SendMessage(object? changedElement = null)
+        {
+            if(channel is not null)
+            {
+                if (changedElement is not null)
+                    await channel.SendMessage(changedElement);
+                else
+                    await channel.SendMessage(this.Data);
+            }
         }
 
         public void AddConnectionMonitor(ConnectionMonitorDto connections)
@@ -69,8 +111,7 @@ namespace ProcessExplorer
 
         public void AddEnvironmentVariables(EnvironmentMonitorDto environmentVariables)
         {
-            if (Data.EnvironmentVariables is null ||
-                !Data.EnvironmentVariables.EnvironmentVariables.IsEmpty)
+            if (Data.EnvironmentVariables is null)
                 Data.EnvironmentVariables = environmentVariables;
             else
                 lock (locker)
@@ -85,16 +126,16 @@ namespace ProcessExplorer
 
         public void AddRegistrations(RegistrationMonitorDto registrations)
         {
-            if (registrations.Services is not null && Data is not null)
+            if (registrations.Services is not null)
                 lock (locker)
                 {
-                    if (Data?.Registrations is null && Data is not null)
+                    if (Data.Registrations is null)
                         Data.Registrations = registrations;
                     else
                     {
                         foreach (var reg in registrations.Services)
                         {
-                            if (reg is not null && Data is not null)
+                            if (reg is not null)
                                 Data.Registrations.Services.Add(reg);
                         }
                     }
@@ -103,17 +144,17 @@ namespace ProcessExplorer
 
         public void AddModules(ModuleMonitorDto modules)
         {
-            if(modules.CurrentModules is not null && Data is not null)
+            if(modules.CurrentModules is not null)
                 lock (locker)
                 {
-                    if(Data?.Modules is null && Data is not null)
+                    if(Data.Modules is null)
                         Data.Modules = modules;
                     else
                     {
                         foreach (var module in modules.CurrentModules)
                         {
                             if(module is not null)
-                                Data?.Modules.CurrentModules.Add(module);
+                                Data.Modules.CurrentModules.Add(module);
                         }
                     }
                 }
