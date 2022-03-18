@@ -40,7 +40,7 @@ namespace ProcessExplorer
             =>  ProcessMonitor?.FillListWithRelatedProcesses();
         public void SetWatcher()
             => ProcessMonitor?.SetWatcher();
-        public void SetDelay(int delay)
-            => ProcessMonitor?.SetDelay(delay);
+        public void SetDeadProcessRemovalDelay(int delay)
+            => ProcessMonitor?.SetDeadProcessRemovalDelay(delay);
     }
 }

@@ -19,9 +19,10 @@ namespace ProcessExplorer.Entities
         public static int ComposePID { get; set; }
 
         /// <summary>
-        /// Delay time for keeping the process in the list of processes after it is terminated.
+        /// Delay time for keeping the process in the list of processes after it is terminated. (seconds) 
+        /// Default: 1 minute.
         /// </summary>
-        public static int DelayTime { get; set; } = 60000;
+        public static int DelayTime = 60000;
 
         /// <summary>
         /// Url, where we can push the changes (if a process is created/modified/terminated).
@@ -127,16 +128,16 @@ namespace ProcessExplorer.Entities
         }
 
         /// <summary>
-        /// Sets the delay for keeping a process after it was terminated. (ms)
+        /// Sets the delay for keeping a process after it was terminated. (s)
         /// Default 1 minute.
         /// </summary>
         /// <param name="delay"></param>
         /// <exception cref="NotImplementedException"></exception>
-        public void SetDelay(int delay)
+        public void SetDeadProcessRemovalDelay(int delay)
         {
             lock (locker)
             {
-                DelayTime = delay;
+                DelayTime = delay * 1000;
             }
         }
 
@@ -325,7 +326,7 @@ namespace ProcessExplorer.Entities
                     logger?.ProcessTerminated(pid);
 
                     ModifyStatus(item);
-                    DeleteFromListAfter1Minute(item, DelayTime);
+                    RemoveAfterTimeout(item);
                     return true;
                 }
             }
@@ -350,11 +351,11 @@ namespace ProcessExplorer.Entities
         /// Delays the removing of a process from the list.
         /// </summary>
         /// <param name="item"></param>
-        private void DeleteFromListAfter1Minute(ProcessInfoDto item, int delay)
+        private void RemoveAfterTimeout(ProcessInfoDto item)
         {
             Task.Run(async () =>
             {
-                await Task.Delay(delay);
+                await Task.Delay(DelayTime);
                 lock (locker)
                 {
                     Data.Processes.Remove(item);

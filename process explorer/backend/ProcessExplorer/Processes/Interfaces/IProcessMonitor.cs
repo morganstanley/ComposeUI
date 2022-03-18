@@ -15,7 +15,7 @@ namespace ProcessExplorer.Entities
         void KillProcessByName(string processName);
         void SetSubribeUrl(string url);
         void SetComposePID(int pid);
-        void SetDelay(int delay);
+        void SetDeadProcessRemovalDelay(int delay);
         void FillListWithRelatedProcesses();
         void SetCommunicator(ICommunicator communicator);
         void SetWatcher();

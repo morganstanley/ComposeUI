@@ -43,11 +43,11 @@ namespace ProcessExplorer
         public void SetComposePID(int pid);
 
         /// <summary>
-        /// Sets the delay for keeping a process after it was terminated.(ms)
+        /// Sets the delay time for keeping a process after it was terminated.(s)
         /// Default: 1 minute.
         /// </summary>
         /// <param name="delay"></param>
-        public void SetDelay(int delay);
+        public void SetDeadProcessRemovalDelay(int delay);
 
         /// <summary>
         /// Reinitializes the list conatining the current, relevant processes

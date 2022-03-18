@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ProcessExplorer\LocalCollector.csproj" />
+    <ProjectReference Include="..\LocalCollector\LocalCollector.csproj" />
   </ItemGroup>
 
 </Project>
