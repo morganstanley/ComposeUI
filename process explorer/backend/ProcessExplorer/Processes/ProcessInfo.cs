@@ -98,7 +98,6 @@ namespace ProcessExplorer.Entities
 
         public void AddThreadToList(SynchronizedCollection<ProcessThreadInfoDto> list, ProcessThread process)
         {
-
             list.Add(ProcessThreadInfoDto.FromProcessThread(process.StartTime,process.CurrentPriority, 
                                         process.Id, process.ThreadState,process.TotalProcessorTime));
         }

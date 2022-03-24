@@ -14,11 +14,11 @@ namespace ProcessExplorer.Processes.Logging
         [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "A process with PID: `{pid}` is terminated", SkipEnabledCheck = true)]
         static partial void ProcessTerminatedInformation(ILogger logger, int pid);
 
-        [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "A process with PID: `{pid}` is created", SkipEnabledCheck = true)]
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "A process with PID: `{pid}` is created", SkipEnabledCheck = true)]
         static partial void ProcessCreatedInformation(ILogger logger, int pid);
 
         [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "A process with PID: `{pid}` is modified", SkipEnabledCheck = true)]
-        static partial void ProcessModifiedInformation(ILogger logger, int pid);
+        static partial void ProcessModifiedDebug(ILogger logger, int pid);
 
         [LoggerMessage(EventId = 3, Level = LogLevel.Warning, Message = "The process `{pid}` is not exist in the ProcessMonitor list", SkipEnabledCheck = true)]
         static partial void ProcessNotFoundWarning(ILogger logger, int pid);
@@ -91,7 +91,7 @@ namespace ProcessExplorer.Processes.Logging
 
         internal static void ProcessCreated(this ILogger logger, int pid)
         {
-            if (logger is not null && logger.IsEnabled(LogLevel.Debug))
+            if (logger is not null && logger.IsEnabled(LogLevel.Information))
             {
                 ProcessCreatedInformation(logger, pid);
             }
@@ -101,7 +101,7 @@ namespace ProcessExplorer.Processes.Logging
         {
             if (logger is not null && logger.IsEnabled(LogLevel.Debug))
             {
-                ProcessModifiedInformation(logger, pid);
+                ProcessModifiedDebug(logger, pid);
             }
         }
 
