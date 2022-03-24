@@ -4,6 +4,7 @@ using LocalCollector;
 using Microsoft.Extensions.Logging;
 using ProcessExplorer.Entities;
 using ProcessExplorer.Processes;
+using ProcessExplorer.Processes.RPCCommunicator;
 using System.Collections.Concurrent;
 
 namespace ProcessExplorer
@@ -26,14 +27,9 @@ namespace ProcessExplorer
         public void SetComposePID(int pid)
             => ProcessMonitor?.SetComposePID(pid);
         public SynchronizedCollection<ProcessInfoDto>? RefreshProcessList()
-        {
-            var processes = ProcessMonitor?.GetProcesses();
-            if (processes != default)
-                return processes;
-            return default;
-        }
-        public void SetSubribeUrl(string url)
-            =>ProcessMonitor?.SetSubribeUrl(url);
+            => ProcessMonitor?.GetProcesses();
+        public void SetSubscribeUrl(string url)
+            =>ProcessMonitor?.SetSubscribeUrl(url);
         public SynchronizedCollection<ProcessInfoDto>? GetProcesses()
             => ProcessMonitor?.GetProcesses();
         public void InitProcessExplorer()
@@ -42,5 +38,7 @@ namespace ProcessExplorer
             => ProcessMonitor?.SetWatcher();
         public void SetDeadProcessRemovalDelay(int delay)
             => ProcessMonitor?.SetDeadProcessRemovalDelay(delay);
+        public void SetProcessMonitorCommunicator(ICommunicator communicator)
+            => ProcessMonitor?.SetCommunicator(communicator);
     }
 }

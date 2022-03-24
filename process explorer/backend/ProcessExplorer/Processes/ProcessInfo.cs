@@ -12,31 +12,31 @@ namespace ProcessExplorer.Entities
 
     public class ProcessInfo 
     {
-        public IProcessGenerator infoGenerator;
+        public ProcessGeneratorBase infoGenerator;
         private readonly object locker = new object();
         private readonly ILogger<ProcessInfo>? logger;
 
         public ProcessInfoDto? Data { get; set; }
 
-        public ProcessInfo(ILogger<ProcessInfo> logger, IProcessGenerator manager, int processId)
+        public ProcessInfo(ILogger<ProcessInfo> logger, ProcessGeneratorBase manager, int processId)
             : this(processId, manager)
         {
             this.logger = logger;
         }
 
-        public ProcessInfo(ILogger<ProcessInfo> logger, IProcessGenerator manager, Process process)
+        public ProcessInfo(ILogger<ProcessInfo> logger, ProcessGeneratorBase manager, Process process)
             : this(process.Id, manager)
         {
             this.logger = logger;
         }
 
-        public ProcessInfo(int processId, IProcessGenerator manager)
+        public ProcessInfo(int processId, ProcessGeneratorBase manager)
             : this(Process.GetProcessById(processId), manager)
         {
 
         }
 
-        internal ProcessInfo(Process process, IProcessGenerator manager)
+        internal ProcessInfo(Process process, ProcessGeneratorBase manager)
         {
             Data = new ProcessInfoDto();
             infoGenerator = manager;

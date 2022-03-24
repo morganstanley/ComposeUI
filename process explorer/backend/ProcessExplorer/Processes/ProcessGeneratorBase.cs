@@ -7,7 +7,7 @@ using System.Diagnostics;
 
 namespace LocalCollector.Processes
 {
-    public abstract class ProcessGeneratorBase : IProcessGenerator
+    public abstract class ProcessGeneratorBase 
     {
         public Action<ProcessInfo>? SendNewProcess { get; set; }
         public Action<int>? SendTerminatedProcess { get; set; }

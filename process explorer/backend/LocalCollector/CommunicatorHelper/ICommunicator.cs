@@ -7,6 +7,6 @@ namespace ProcessExplorer.Processes.RPCCommunicator
     public interface ICommunicator
     {
         public CommunicatorState? State { get; set; }
-        public Task SendMessage(object message);
+        public Task<object> SendMessage(object message);
     }
 }

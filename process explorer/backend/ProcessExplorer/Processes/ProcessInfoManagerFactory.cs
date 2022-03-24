@@ -8,8 +8,8 @@ namespace ProcessExplorer.Processes
 {
     public static class ProcessInfoManagerFactory
     {
-        private static IProcessGenerator? processInfoManager;
-        public static IProcessGenerator? SetProcessInfoGeneratorBasedOnOS(Action<ProcessInfo> SendNewProcess, Action<int> SendTerminatedProcess, Action<int> SendModifiedProcess)
+        private static ProcessGeneratorBase? processInfoManager;
+        public static ProcessGeneratorBase? SetProcessInfoGeneratorBasedOnOS(Action<ProcessInfo> SendNewProcess, Action<int> SendTerminatedProcess, Action<int> SendModifiedProcess)
         {
             if ((RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux)))
                 processInfoManager = new ProcessInfoLinux(SendNewProcess, SendTerminatedProcess, SendModifiedProcess);

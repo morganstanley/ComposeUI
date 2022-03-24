@@ -22,7 +22,7 @@ namespace ProcessExplorer.Entities.Modules
             {
                 location = Path.GetDirectoryName(Uri.UnescapeDataString(new UriBuilder(module.Assembly.Location).Path));
             }
-            catch (Exception)
+            catch
             {
                 location = null;
             }

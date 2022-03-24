@@ -3,6 +3,7 @@
 using LocalCollector;
 using ProcessExplorer.Entities;
 using ProcessExplorer.Processes;
+using ProcessExplorer.Processes.RPCCommunicator;
 using System.Collections.Concurrent;
 
 namespace ProcessExplorer
@@ -70,12 +71,18 @@ namespace ProcessExplorer
         /// Sets the url, where the new information can be pushed continouosly.
         /// </summary>
         /// <param name="url"></param>
-        public void SetSubribeUrl(string url);
+        public void SetSubscribeUrl(string url);
 
         /// <summary>
         /// Initalizes the process creator/modifier/terminator events.
         /// </summary>
         public void SetWatcher();
+
+        /// <summary>
+        /// Sets the message router.
+        /// </summary>
+        /// <param name="channel"></param>
+        public void SetProcessMonitorCommunicator(ICommunicator channel);
         #endregion
     }
 }

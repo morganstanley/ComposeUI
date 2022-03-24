@@ -13,7 +13,7 @@ namespace ProcessExplorer.Processes
         public string? ProcessPriorityClass { get; set; } = default;
         public SynchronizedCollection<ProcessThreadInfoDto> Threads { get; set; } = new SynchronizedCollection<ProcessThreadInfoDto>();
         public long? VirtualMemorySize { get; set; } = default;
-        public int? ParentId { get; set; } = null;
+        public int? ParentId { get; set; } = default;
         public long? PrivateMemoryUsage { get; set; } = default;
         public string? ProcessStatus { get; set; } = Status.Running.ToString();
         public float? MemoryUsage { get; set; } = default;

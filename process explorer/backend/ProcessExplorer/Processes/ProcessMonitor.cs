@@ -37,7 +37,7 @@ namespace ProcessExplorer.Entities
         /// <summary>
         /// OS based handler, which will generate OS specific information related to the given process.
         /// </summary>
-        internal IProcessGenerator? processInfoManager { get; set; }
+        internal ProcessGeneratorBase? processInfoManager { get; set; }
 
         /// <summary>
         /// Logger instance to log out messages.(DI works)
@@ -57,7 +57,7 @@ namespace ProcessExplorer.Entities
         #endregion
 
         #region Constructors
-        ProcessMonitor(IProcessGenerator processInfoGenerator, ILogger<ProcessMonitor>? logger, ICommunicator? communicator)
+        ProcessMonitor(ProcessGeneratorBase processInfoGenerator, ILogger<ProcessMonitor>? logger, ICommunicator? communicator)
         {
             this.processInfoManager = processInfoGenerator;
             this.logger = logger;
@@ -73,37 +73,37 @@ namespace ProcessExplorer.Entities
             SetWatcher();
         }
 
-        public ProcessMonitor(IProcessGenerator processInfoGenerator, ILogger<ProcessMonitor>? logger, ICommunicator? communicator, int composePID)
+        public ProcessMonitor(ProcessGeneratorBase processInfoGenerator, ILogger<ProcessMonitor>? logger, ICommunicator? communicator, int composePID)
             : this(processInfoGenerator, logger, communicator)
         {
             ComposePID = composePID;
         }
 
-        public ProcessMonitor(IProcessGenerator processInfoGenerator, ICommunicator? communicator, int composePID)
+        public ProcessMonitor(ProcessGeneratorBase processInfoGenerator, ICommunicator? communicator, int composePID)
             : this(processInfoGenerator, null, communicator, composePID)
         {
 
         }
 
-        public ProcessMonitor(IProcessGenerator processInfoGenerator, ILogger<ProcessMonitor>? logger, ICommunicator? communicator, int composePID, string url = "")
+        public ProcessMonitor(ProcessGeneratorBase processInfoGenerator, ILogger<ProcessMonitor>? logger, ICommunicator? communicator, int composePID, string url = "")
             : this(processInfoGenerator, logger, communicator, composePID)
         {
             ProcessChangedPushingUrl = url;
         }
 
-        public ProcessMonitor(IProcessGenerator processInfoGenerator, ILogger<ProcessMonitor>? logger)
+        public ProcessMonitor(ProcessGeneratorBase processInfoGenerator, ILogger<ProcessMonitor>? logger)
             : this(processInfoGenerator, logger, null)
         {
 
         }
 
-        public ProcessMonitor(IProcessGenerator processInfoGenerator, ILogger<ProcessMonitor>? logger, ICommunicator? communicator, string? url = "")
+        public ProcessMonitor(ProcessGeneratorBase processInfoGenerator, ILogger<ProcessMonitor>? logger, ICommunicator? communicator, string? url = "")
             : this(processInfoGenerator, logger, communicator, null, url)
         {
 
         }
 
-        public ProcessMonitor(IProcessGenerator processInfoGenerator, ILogger<ProcessMonitor>? logger, ICommunicator? communicator, SynchronizedCollection<ProcessInfoDto>? processes, string? url = "")
+        public ProcessMonitor(ProcessGeneratorBase processInfoGenerator, ILogger<ProcessMonitor>? logger, ICommunicator? communicator, SynchronizedCollection<ProcessInfoDto>? processes, string? url = "")
             : this(processInfoGenerator, logger, communicator)
         {
             if (processes is not null)
@@ -186,7 +186,7 @@ namespace ProcessExplorer.Entities
         /// Sets an url, where we can continuouosly push data.
         /// </summary>
         /// <param name="url"></param>
-        public void SetSubribeUrl(string url)
+        public void SetSubscribeUrl(string url)
         {
             lock (locker)
             {
