@@ -1,28 +1,32 @@
 ﻿/* Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */
 
-using LocalCollector.Connections;
+using ProcessExplorer.LocalCollector.Connections.Interfaces;
 
-namespace ProcessExplorer.Entities.Connections
+namespace ProcessExplorer.LocalCollector.Connections
 {
     public class ConnectionMonitor : IConnectionMonitor
     {
-        public ConnectionMonitorDto Data { get; set; } = new ConnectionMonitorDto();
+        internal ConnectionMonitorInfo Data { get; set; } = new ConnectionMonitorInfo();
+        ConnectionMonitorInfo IConnectionMonitor.Data
+        {
+            get => this.Data;
+            set => this.Data = value;
+        }
+
         private readonly object locker = new object();
-        internal Func<ConnectionDto, Task>? SendConnectionStatusChanged;
+        internal Func<ConnectionInfo, Task>? SendConnectionStatusChanged;
 
         public ConnectionMonitor()
         {
-            lock(locker)
-                Data.Connections = new SynchronizedCollection<ConnectionDto>();
+            Data.Connections = new SynchronizedCollection<ConnectionInfo>();
         }
 
-        public ConnectionMonitor(SynchronizedCollection<ConnectionDto> connections)
+        public ConnectionMonitor(SynchronizedCollection<ConnectionInfo> connections)
         {
-            lock (locker)
-                Data.Connections = connections;
+            Data.Connections = connections;
         }
 
-        public void AddConnection(ConnectionDto connectionInfo)
+        public void AddConnection(ConnectionInfo connectionInfo)
         {
             lock (locker)
             {
@@ -30,16 +34,16 @@ namespace ProcessExplorer.Entities.Connections
             }
         }
 
-        public void RemoveConnection(ConnectionDto connectionInfo)
+        public void RemoveConnection(ConnectionInfo connectionInfo)
         {
             lock (locker)
                 Data.Connections.Remove(connectionInfo);
         }
 
-        public void ChangeElement(ConnectionDto connection)
+        public void ChangeElement(ConnectionInfo connection)
             => AddConnection(connection);
 
-        public ConnectionDto? GetConnection(ConnectionDto connection)
+        public ConnectionInfo? GetConnection(ConnectionInfo connection)
         {
             lock (locker)
             {
@@ -47,7 +51,7 @@ namespace ProcessExplorer.Entities.Connections
             }
         }
 
-        public void StatusChanged(ConnectionDto conn)
+        public void StatusChanged(ConnectionInfo conn)
         {
             if (Data.Connections.Count > 0)
             {
@@ -56,7 +60,7 @@ namespace ProcessExplorer.Entities.Connections
                 {
                     foreach (var connection in Data.Connections)
                     {
-                        if (connection.Id == conn.Id)
+                        if (connection.Id == conn.Id && connection.Status != conn.Status)
                         {
                             Data.Connections[i].Status = conn.Status;
                             SendConnectionStatusChanged?.Invoke(conn);
@@ -68,10 +72,23 @@ namespace ProcessExplorer.Entities.Connections
             }
         }
 
-        public void SetSendConnectionStatusChanged(Func<ConnectionDto, Task> action)
+        public void SetSendConnectionStatusChanged(Func<ConnectionInfo, Task> action)
         {
-            lock(locker)
+            lock (locker)
                 SendConnectionStatusChanged = action;
+        }
+
+        public void AddConnections(SynchronizedCollection<ConnectionInfo> connections)
+        {
+            lock (locker)
+            {
+                Data.Connections = connections;
+            }
+        }
+
+        public void UpdateConnection(ConnectionInfo connectionInfo)
+        {
+            StatusChanged(connectionInfo);
         }
     }
 }

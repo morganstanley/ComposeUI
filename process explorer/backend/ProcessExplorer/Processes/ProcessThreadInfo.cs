@@ -5,7 +5,7 @@ using ThreadState = System.Diagnostics.ThreadState;
 
 namespace ProcessExplorer.Processes
 {
-    public class ProcessThreadInfoDto
+    public class ProcessThreadInfo
     {
         public string? StartTime { get; internal set; } = default;
         public int? PriorityLevel { get; internal set; } = default;
@@ -14,25 +14,25 @@ namespace ProcessExplorer.Processes
         public TimeSpan? ProcessorUsageTime { get; internal set; } = default;
         public string? WaitReason { get; internal set; } = default;
 
-        public static ProcessThreadInfoDto FromProcessThread(ProcessThread processThread)
+        public static ProcessThreadInfo FromProcessThread(ProcessThread processThread)
         {
-            var Data = new ProcessThreadInfoDto();
+            var Data = new ProcessThreadInfo();
             if (processThread != null)
             {
                 Data.StartTime = processThread.StartTime.ToString("yyyy.MM.dd. hh:mm:s");
                 Data.PriorityLevel = processThread.CurrentPriority;
                 Data.Id = processThread.Id;
-                Data.Status = processThread.ThreadState.ToString();
+                Data.Status = processThread.ThreadState.ToStringCached();
                 Data.ProcessorUsageTime = processThread.TotalProcessorTime;
-                Data.WaitReason = processThread.WaitReason.ToString();
+                Data.WaitReason = processThread.WaitReason.ToStringCached();
             }
             return Data;
         }
 
-        public static ProcessThreadInfoDto FromProcessThread(DateTime startTime, int currentPriority, 
+        public static ProcessThreadInfo FromProcessThread(DateTime startTime, int currentPriority,
             int id, ThreadState status, TimeSpan cpuUsageTime, ThreadWaitReason? waitReason = null)
         {
-            var Data = new ProcessThreadInfoDto();
+            var Data = new ProcessThreadInfo();
             Data.StartTime = startTime.ToString("yyyy.MM.dd. hh:mm:s");
             Data.PriorityLevel = currentPriority;
             Data.Id = id;

@@ -6,7 +6,7 @@ namespace ProcessExplorer.Processes.Logging
 {
     internal static partial class SourceGeneratedLogMessages
     {
-// Disable the warning.
+        // Disable the warning.
 #pragma warning disable SYSLIB1006
         [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "The Process Explorer list is initalized", SkipEnabledCheck = true)]
         static partial void ProcessListIsInitalizedInformation(ILogger logger);
@@ -27,7 +27,10 @@ namespace ProcessExplorer.Processes.Logging
         static partial void ProcessRenamedWarning(ILogger logger, string oldValue, string newValue);
 
         [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "Couldn't find the PPID for the PID `{pid}`. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
-        static partial void ManagementObjecPPIDtError(ILogger logger, int pid, string exception);
+        static partial void ManagementObjectPPIDError(ILogger logger, int pid, string exception);
+
+        [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "ProcessMonitor UICommunicator is set.", SkipEnabledCheck = true)]
+        static partial void ProcessMonitorCommunicatorIsSet(ILogger logger);
 
         [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Couldn't read the child process. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
         static partial void ManagementObjectChildError(ILogger logger, string exception);
@@ -35,13 +38,28 @@ namespace ProcessExplorer.Processes.Logging
         [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Couldn't watch the processes. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
         static partial void ManagementObjectWatchError(ILogger logger, string exception);
 
+        [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Cannot add the connections to collection. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
+        static partial void ConnectionCollectionCannotBeAddedError(ILogger logger, string exception);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Conenction cannot be updated. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
+        static partial void ConnectionCannotBeUpdatedError(ILogger logger, string exception);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Couldn't watch the processes. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
+        static partial void EnvironmentVariablesCannotBeUpdatedError(ILogger logger, string exception);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Registrations cannot be updated. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
+        static partial void RegistrationsCannotBeUpdatedError(ILogger logger, string exception);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Modules cannot be updated. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
+        static partial void ModulesCannotBeUpdatedError(ILogger logger, string exception);
+
         [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "Couldn't read the event of the process. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
         static partial void ManagementObjectWatchEventError(ILogger logger, string exception);
 
         [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Cannot find an element with PID `{pid}` in the current process list. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
         static partial void CannotFindElementError(ILogger logger, int pid, string exception);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Cannot find an element with PID `{pid}`. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
+        [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Cannot find an element with PID `{pid}` or the communicator has benn not set properly. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
         static partial void CouldNotFoundModifiableProcessError(ILogger logger, int pid, string exception);
 
         [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Cannot convert object `{pid}` to Integer32. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
@@ -59,7 +77,7 @@ namespace ProcessExplorer.Processes.Logging
         [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Detailed exception: `{exception}`, StackTrace: `{stackTrace}`", SkipEnabledCheck = true)]
         static partial void LinuxWatcherError(ILogger logger, string exception, string stackTrace);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Error while initalizing list. The main process might be deleted. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
+        [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Error while initializing list. The main process might be deleted. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
         static partial void CannotFillListError(ILogger logger, string exception);
 
         [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Cannot add processthread to the list. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
@@ -69,7 +87,7 @@ namespace ProcessExplorer.Processes.Logging
         {
             if (logger is not null && logger.IsEnabled(LogLevel.Debug))
             {
-                ManagementObjecPPIDtError(logger, pid, exception.Message);
+                ManagementObjectPPIDError(logger, pid, exception.Message);
             }
         }
 
@@ -118,6 +136,46 @@ namespace ProcessExplorer.Processes.Logging
             if (logger is not null && logger.IsEnabled(LogLevel.Error))
             {
                 ManagementObjectChildError(logger, exception.Message);
+            }
+        }
+
+        internal static void ConnectionCollectionCannotBeAdded(this ILogger logger, Exception exception)
+        {
+            if (logger is not null && logger.IsEnabled(LogLevel.Error))
+            {
+                ConnectionCollectionCannotBeAddedError(logger, exception.Message);
+            }
+        }
+
+        internal static void ConnectionCannotBeUpdated(this ILogger logger, Exception exception)
+        {
+            if (logger is not null && logger.IsEnabled(LogLevel.Error))
+            {
+                ConnectionCannotBeUpdatedError(logger, exception.Message);
+            }
+        }
+
+        internal static void EnvironmentVariablesCannotBeUpdated(this ILogger logger, Exception exception)
+        {
+            if (logger is not null && logger.IsEnabled(LogLevel.Error))
+            {
+                EnvironmentVariablesCannotBeUpdatedError(logger, exception.Message);
+            }
+        }
+
+        internal static void RegistrationsCannotBeUpdated(this ILogger logger, Exception exception)
+        {
+            if (logger is not null && logger.IsEnabled(LogLevel.Error))
+            {
+                RegistrationsCannotBeUpdatedError(logger, exception.Message);
+            }
+        }
+
+        internal static void ModulesCannotBeUpdated(this ILogger logger, Exception exception)
+        {
+            if (logger is not null && logger.IsEnabled(LogLevel.Error))
+            {
+                ModulesCannotBeUpdatedError(logger, exception.Message);
             }
         }
 
@@ -216,7 +274,15 @@ namespace ProcessExplorer.Processes.Logging
                 ProcessRenamedWarning(logger, oldValue, newValue);
             }
         }
-// Re-enable the warning.
+
+        internal static void ProcessCommunicatorIsSet(this ILogger logger)
+        {
+            if (logger is not null && logger.IsEnabled(LogLevel.Debug))
+            {
+                ProcessCommunicatorIsSet(logger);
+            }
+        }
+        // Re-enable the warning.
 #pragma warning restore SYSLIB1006
     }
 }

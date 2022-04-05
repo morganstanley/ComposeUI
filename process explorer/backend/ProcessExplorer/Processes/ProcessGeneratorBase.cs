@@ -1,13 +1,11 @@
 ﻿/* Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */
 
-using ProcessExplorer.Entities;
-using ProcessExplorer.Processes;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 
-namespace LocalCollector.Processes
+namespace ProcessExplorer.Processes
 {
-    public abstract class ProcessGeneratorBase 
+    public abstract class ProcessGeneratorBase
     {
         public Action<ProcessInfo>? SendNewProcess { get; set; }
         public Action<int>? SendTerminatedProcess { get; set; }
@@ -42,7 +40,7 @@ namespace LocalCollector.Processes
         /// </summary>
         /// <param name="process"></param>
         /// <returns></returns>
-        public abstract SynchronizedCollection<ProcessInfoDto> GetChildProcesses(Process process);
+        public abstract SynchronizedCollection<ProcessInfoData> GetChildProcesses(Process process);
 
         /// <summary>
         /// Kills a process by the given process name.
@@ -70,7 +68,7 @@ namespace LocalCollector.Processes
         /// Continuously watching created processes.
         /// </summary>
         /// <param name="processes"></param>
-        public abstract void WatchProcesses(SynchronizedCollection<ProcessInfoDto> processes);
+        public abstract void WatchProcesses(SynchronizedCollection<ProcessInfoData> processes);
 
         /// <summary>
         /// It will add the childs to the list which is containing the relevant processes
@@ -102,7 +100,7 @@ namespace LocalCollector.Processes
         /// </summary>
         /// <param name="processes"></param>
         /// <returns></returns>
-        public ConcurrentDictionary<int, byte[]> GetProcessIds(SynchronizedCollection<ProcessInfoDto> processes)
+        public ConcurrentDictionary<int, byte[]> GetProcessIds(SynchronizedCollection<ProcessInfoData> processes)
         {
             ConcurrentDictionary<int, byte[]> list = new ConcurrentDictionary<int, byte[]>();
             lock (locker)
@@ -162,7 +160,7 @@ namespace LocalCollector.Processes
                             int? ppid = GetParentId(proc);
                             if (ppid is not null)
                                 proc = Process.GetProcessById(Convert.ToInt32(ppid));
-                        } 
+                        }
                     }
             }
             catch (Exception)
@@ -174,7 +172,7 @@ namespace LocalCollector.Processes
         }
 
         /// <summary>
-        /// Sends a created process to publish
+        /// Sends a created process information to publish
         /// </summary>
         /// <param name="ppid"></param>
         /// <param name="pid"></param>
@@ -186,7 +184,7 @@ namespace LocalCollector.Processes
                 {
                     var bytes = GetBytesFromPPID(ppid);
                     if (bytes is not null && ProcessIds is not null)
-                        ProcessIds.AddOrUpdate(pid, bytes, (_,_) => bytes);
+                        ProcessIds.AddOrUpdate(pid, bytes, (_, _) => bytes);
                     SendNewProcess?.Invoke(ProcessCreated(Process.GetProcessById(pid)));
                 }
             }
@@ -238,7 +236,7 @@ namespace LocalCollector.Processes
         {
             lock (locker)
             {
-                if(ProcessIds is not null)
+                if (ProcessIds is not null)
                     if (ProcessIds.ContainsKey(pid))
                     {
                         SendModifiedProcess?.Invoke(pid);

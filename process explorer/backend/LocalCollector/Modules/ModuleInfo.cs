@@ -2,22 +2,22 @@
 
 using System.Reflection;
 
-namespace ProcessExplorer.Entities.Modules
+namespace ProcessExplorer.LocalCollector.Modules
 {
-    public class ModuleDto 
+    public class ModuleInfo
     {
         #region Properties
         public string? Name { get; set; }
         public Guid? Version { get; set; }
         public string? VersionRedirectedFrom { get; set; }
         public byte[]? PublicKeyToken { get; set; }
-        public string? Location { get; internal set; }
+        public string? Location { get; set; }
         public SynchronizedCollection<CustomAttributeData> Information { get; set; } = new SynchronizedCollection<CustomAttributeData>();
         #endregion
 
-        public static ModuleDto FromModule(Assembly assembly, Module module)
+        public static ModuleInfo FromModule(Assembly assembly, Module module)
         {
-            string? location = string.Empty;
+            string? location;
             try
             {
                 location = Path.GetDirectoryName(Uri.UnescapeDataString(new UriBuilder(module.Assembly.Location).Path));
@@ -26,7 +26,7 @@ namespace ProcessExplorer.Entities.Modules
             {
                 location = null;
             }
-            return new ModuleDto()
+            return new ModuleInfo()
             {
                 Name = assembly.GetName().Name,
                 Version = module.ModuleVersionId,
@@ -36,10 +36,10 @@ namespace ProcessExplorer.Entities.Modules
             };
         }
 
-        public static ModuleDto FromProperties(string name, Guid version, string versionrf, byte[] publickey,
+        public static ModuleInfo FromProperties(string name, Guid version, string versionrf, byte[] publickey,
             string path, SynchronizedCollection<CustomAttributeData> information)
         {
-            return new ModuleDto()
+            return new ModuleInfo()
             {
                 Name = name,
                 Version = version,

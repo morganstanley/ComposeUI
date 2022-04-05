@@ -1,22 +1,19 @@
 ﻿/* Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */
 
-using LocalCollector.Processes;
 using System.Diagnostics;
-using ProcessExplorer.Processes;
 using ThreadState = System.Diagnostics.ThreadState;
 using Microsoft.Extensions.Logging;
 using ProcessExplorer.Processes.Logging;
 
-namespace ProcessExplorer.Entities
+namespace ProcessExplorer.Processes
 {
-
-    public class ProcessInfo 
+    public class ProcessInfo
     {
         public ProcessGeneratorBase infoGenerator;
         private readonly object locker = new object();
         private readonly ILogger<ProcessInfo>? logger;
 
-        public ProcessInfoDto? Data { get; set; }
+        public ProcessInfoData? Data { get; internal set; }
 
         public ProcessInfo(ILogger<ProcessInfo> logger, ProcessGeneratorBase manager, int processId)
             : this(processId, manager)
@@ -38,7 +35,7 @@ namespace ProcessExplorer.Entities
 
         internal ProcessInfo(Process process, ProcessGeneratorBase manager)
         {
-            Data = new ProcessInfoDto();
+            Data = new ProcessInfoData();
             infoGenerator = manager;
 
             process.Refresh();
@@ -52,34 +49,31 @@ namespace ProcessExplorer.Entities
                     Data.ProcessPriorityClass = process.PriorityClass.ToStringCached();
                     Data.VirtualMemorySize = process.VirtualMemorySize64;
 
-                    var list = new SynchronizedCollection<ProcessThreadInfoDto>();
-                    lock (locker)
+                    var list = new SynchronizedCollection<ProcessThreadInfo>();
+                    int i;
+                    for (i = 0; i < process.Threads.Count; i++)
                     {
-                        int i;
-                        for (i = 0; i < process.Threads.Count; i++)
+                        try
                         {
-                            try
+                            if (process.Threads[i].ThreadState == ThreadState.Wait)
                             {
-                                if (process.Threads[i].ThreadState == ThreadState.Wait)
-                                {
-                                    list.Add(ProcessThreadInfoDto.FromProcessThread(process.Threads[i]));
-                                }
-                                else
-                                {
-                                    AddThreadToList(list, process.Threads[i]);
-                                }
+                                list.Add(ProcessThreadInfo.FromProcessThread(process.Threads[i]));
                             }
-                            catch (Exception exception)
+                            else
                             {
-                                logger?.CannotAddProcessThread(exception);
+                                AddThreadToList(list, process.Threads[i]);
                             }
+                        }
+                        catch (Exception exception)
+                        {
+                            logger?.CannotAddProcessThread(exception);
                         }
                     }
 
                     Data.Threads = list;
                     Data.ProcessStatus = process.HasExited == false ? Status.Running.ToStringCached() : Status.Stopped.ToStringCached();
                 }
-                catch (Exception)
+                catch
                 {
                     Data.ProcessStatus = Status.Stopped.ToStringCached();
                 }
@@ -96,10 +90,10 @@ namespace ProcessExplorer.Entities
             }
         }
 
-        public void AddThreadToList(SynchronizedCollection<ProcessThreadInfoDto> list, ProcessThread process)
+        public void AddThreadToList(SynchronizedCollection<ProcessThreadInfo> list, ProcessThread process)
         {
-            list.Add(ProcessThreadInfoDto.FromProcessThread(process.StartTime,process.CurrentPriority, 
-                                        process.Id, process.ThreadState,process.TotalProcessorTime));
+            list.Add(ProcessThreadInfo.FromProcessThread(process.StartTime, process.CurrentPriority,
+                                        process.Id, process.ThreadState, process.TotalProcessorTime));
         }
     }
 

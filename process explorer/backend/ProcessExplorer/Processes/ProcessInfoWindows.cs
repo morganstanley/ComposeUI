@@ -1,8 +1,6 @@
 ﻿/* Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */
 
-using LocalCollector.Processes;
 using Microsoft.Extensions.Logging;
-using ProcessExplorer.Entities;
 using ProcessExplorer.Processes.Logging;
 using System.Diagnostics;
 using System.Management;
@@ -19,7 +17,7 @@ namespace ProcessExplorer.Processes
         }
 
         public ProcessInfoWindows(Action<ProcessInfo> SendNewProcess, Action<int> SendTerminatedProcess, Action<int> SendModifiedProcess, ILogger<ProcessInfoWindows>? logger = null)
-            :this(logger)
+            : this(logger)
         {
             this.SendNewProcess = SendNewProcess;
             this.SendTerminatedProcess = SendTerminatedProcess;
@@ -71,13 +69,14 @@ namespace ProcessExplorer.Processes
 
         public override float GetCPUUsage(Process process)
         {
-            var cpu = new PerformanceCounter("Process", "% Processor Time", process.ProcessName);
-            return cpu.NextValue() * 100;
+            var cpu = new PerformanceCounter("Process", "% Processor Time", process.ProcessName, true);
+            cpu.NextValue();
+            return cpu.NextValue();
         }
 
-        public override SynchronizedCollection<ProcessInfoDto> GetChildProcesses(Process process)
+        public override SynchronizedCollection<ProcessInfoData> GetChildProcesses(Process process)
         {
-            SynchronizedCollection<ProcessInfoDto> children = new SynchronizedCollection<ProcessInfoDto>();
+            SynchronizedCollection<ProcessInfoData> children = new SynchronizedCollection<ProcessInfoData>();
             ManagementObjectSearcher mos = new ManagementObjectSearcher(string.Format("Select * From Win32_Process Where ParentProcessID={0} Or ProcessID={0}", process.Id));
             foreach (ManagementObject mo in mos.Get())
             {
@@ -88,7 +87,7 @@ namespace ProcessExplorer.Processes
                         lock (locker)
                         {
                             children.Add(proc.Data);
-                        }  
+                        }
                 }
                 catch (Exception exception)
                 {
@@ -99,7 +98,7 @@ namespace ProcessExplorer.Processes
             return children;
         }
 
-        public override void WatchProcesses(SynchronizedCollection<ProcessInfoDto> processes)
+        public override void WatchProcesses(SynchronizedCollection<ProcessInfoData> processes)
         {
             this.ProcessIds = GetProcessIds(processes);
             try
@@ -127,7 +126,7 @@ namespace ProcessExplorer.Processes
         private void WmiEventHandler(object sender, EventArrivedEventArgs e)
         {
             int pid = Convert.ToInt32(((ManagementBaseObject)e.NewEvent.Properties["TargetInstance"].Value)["ProcessId"]);
-   
+
             string? wclass = ((ManagementBaseObject)e.NewEvent).SystemProperties["__Class"].Value.ToString();
             if (wclass is not null)
             {
@@ -168,7 +167,7 @@ namespace ProcessExplorer.Processes
 
             if (process != null && process.Id != 0)
             {
-                lock(locker)
+                lock (locker)
                     return process;
             }
             return default;

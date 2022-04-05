@@ -2,9 +2,9 @@
 
 using System.Collections.Concurrent;
 
-namespace ProcessExplorer.Entities.Connections
+namespace ProcessExplorer.LocalCollector.Connections
 {
-    public class ConnectionDto 
+    public class ConnectionInfo
     {
         #region Properties
         public Guid? Id { get; set; }

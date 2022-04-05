@@ -47,5 +47,27 @@ namespace ProcessExplorer.Processes
                 _ => threadState.ToString(),
             };
         }
+
+        internal static string ToStringCached(this ThreadWaitReason waitReason)
+        {
+            return waitReason switch
+            {
+                ThreadWaitReason.LpcReceive => nameof(ThreadWaitReason.LpcReceive),
+                ThreadWaitReason.LpcReply => nameof(ThreadWaitReason.LpcReply),
+                ThreadWaitReason.EventPairHigh => nameof(ThreadWaitReason.EventPairHigh),
+                ThreadWaitReason.EventPairLow => nameof(ThreadWaitReason.EventPairLow),
+                ThreadWaitReason.ExecutionDelay => nameof(ThreadWaitReason.ExecutionDelay),
+                ThreadWaitReason.Executive => nameof(ThreadWaitReason.Executive),
+                ThreadWaitReason.FreePage => nameof(ThreadWaitReason.FreePage),
+                ThreadWaitReason.PageOut => nameof(ThreadWaitReason.PageOut),
+                ThreadWaitReason.PageIn => nameof(ThreadWaitReason.PageIn),
+                ThreadWaitReason.Suspended => nameof(ThreadWaitReason.Suspended),
+                ThreadWaitReason.SystemAllocation => nameof(ThreadWaitReason.SystemAllocation),
+                ThreadWaitReason.UserRequest => nameof(ThreadWaitReason.UserRequest),
+                ThreadWaitReason.Unknown => nameof(ThreadWaitReason.Unknown),
+                ThreadWaitReason.VirtualMemory => nameof(ThreadWaitReason.VirtualMemory),
+                _ => waitReason.ToString(),
+            };
+        }
     }
 }
