@@ -12,7 +12,7 @@
 <div class="column-layout_1 column">
   <div class="row-layout row">
     <igx-tree-grid #treeGrid [data]="mockProcessesData" childDataKey="Children" [rowSelection]= "'multiple'"
-        [autoGenerate]="false" width="100%" height="607px" displayDensity="cosy" primaryKey="id" class="grid">
+        [autoGenerate]="false" width="100%" height="607px" displayDensity="cosy" class="grid">
         <igx-column field="ProcessName" header="Process Name" title="Process Name" dataType="string" [groupable]="true"></igx-column>
         <igx-column field="PID" header="PID" title="PID" dataType="number" [groupable]="true"></igx-column>
         <igx-column field="ProcessStatus" header="Process Status" title="Status" dataType="string" [groupable]="true"></igx-column>
@@ -32,6 +32,9 @@
       <button title="Stop" igxButton="icon" igxRipple (click)='actionstrip.context.delete()'>
         <igx-icon>stop</igx-icon>
       </button>
+      <button igxButton="icon" igxRipple (click)="openProcessDetailsDialog(actionstrip.context, dialog)">
+        <igx-icon>info</igx-icon>
+      </button>
     </igx-action-strip>
     <igx-paginator [perPage]="10"></igx-paginator>
     <igx-grid-toolbar>
@@ -40,3 +43,29 @@
   </igx-tree-grid>
   </div>
 </div>
+
+
+  <igx-dialog #dialog>
+    <igx-dialog-title>
+      <div class="dialog-container">
+        <igx-icon>info</igx-icon>
+        <label class="dialog-title">Details</label>
+      </div>
+    </igx-dialog-title>
+
+    <div class="dialog-body">
+      <igx-list>
+        <igx-list-header isHeader="true" igxListLineTitle>
+          Environment Variables
+        </igx-list-header>
+        <igx-list-item *ngFor="let item of rowData | keyvalue">
+          <p igxListLineSubTitle>{{ item.key }}</p>
+          <p>{{ item.value }}</p>
+        </igx-list-item>
+      </igx-list>
+    </div>
+
+    <div igxDialogActions>
+      <button igxButton (click)="dialog.close()">CANCEL</button>
+    </div>
+  </igx-dialog>

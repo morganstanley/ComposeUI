@@ -19,10 +19,16 @@ export class ProcessesComponent implements OnInit {
     }]
   };
 
+  public rowData:any;
   constructor(private mockProcessesService: MockProcessesService) {}
 
   ngOnInit() {
     // depending on implementation, data subscriptions might need to be unsubbed later
     this.mockProcessesService.getData('Processes').subscribe(data => this.mockProcessesData = data);
+  }
+
+  openProcessDetailsDialog(row:any, dialog: any){
+     this.rowData= row.rowData.EnvironmentVar;
+     dialog.open();
   }
 }
