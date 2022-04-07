@@ -9,7 +9,6 @@ namespace ProcessExplorer.Processes.Communicator;
 
 public interface IUIHandler
 {
-    CommunicatorState State { get; set; }
     Task AddProcesses(IEnumerable<ProcessInfoData>? processes);
     Task AddProcess(ProcessInfoData process);
     Task UpdateProcess(ProcessInfoData process);

@@ -31,7 +31,7 @@ namespace ProcessExplorer.LocalCollector.Modules
                 Name = assembly.GetName().Name,
                 Version = module.ModuleVersionId,
                 VersionRedirectedFrom = assembly.ManifestModule.ModuleVersionId.ToString(),
-                PublicKeyToken = assembly.GetName()?.GetPublicKeyToken(),
+                PublicKeyToken = assembly.GetName().GetPublicKeyToken(),
                 Location = location
             };
         }

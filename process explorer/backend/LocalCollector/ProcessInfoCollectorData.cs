@@ -12,82 +12,82 @@ namespace ProcessExplorer.LocalCollector
     public class ProcessInfoCollectorData
     {
         public int Id { get; set; } = Process.GetCurrentProcess().Id;
-        public RegistrationMonitorInfo? Registrations { get; set; }
-        public EnvironmentMonitorInfo? EnvironmentVariables { get; set; }
-        public ConnectionMonitorInfo? Connections { get; set; }
-        public ModuleMonitorInfo? Modules { get; set; }
+        public SynchronizedCollection<RegistrationInfo> Registrations { get; set; } = new SynchronizedCollection<RegistrationInfo>();
+        public ConcurrentDictionary<string, string> EnvironmentVariables { get; set; } = EnvironmentMonitorInfo.FromEnvironment().EnvironmentVariables;
 
-        public static ProcessInfoCollectorData AddOrUpdateConnections(object locker ,ProcessInfoCollectorData Data, SynchronizedCollection<ConnectionInfo> connections)
+        public SynchronizedCollection<ConnectionInfo> Connections { get; set; } =
+            new SynchronizedCollection<ConnectionInfo>();
+        public SynchronizedCollection<ModuleInfo> Modules { get; set; } = ModuleMonitorInfo.FromAssembly().CurrentModules;
+
+        private readonly object locker = new object();
+
+        public void AddOrUpdateConnections(SynchronizedCollection<ConnectionInfo> connections)
         {
-            lock (locker)
+            if (connections.Count > 0)
             {
-                foreach (var conn in connections)
+                lock (locker)
                 {
-                    if (Data.Connections is not null)
+                    foreach (var conn in connections)
                     {
-                        var index = Data.Connections.Connections.IndexOf(conn);
-                        if (index >= 0)
+                        if (conn is not null)
                         {
-                            Data.Connections.Connections.RemoveAt(index);
+                            var element = Connections.FirstOrDefault(c => c.Id == conn.Id);
+                            if (element is not null)
+                            {
+                                var index = Connections.IndexOf(conn);
+                                if (index >= 0)
+                                {
+                                    Connections[index] = conn;
+                                }
+                                else
+                                {
+                                    Connections.Add(conn);
+                                }
+                            }
+                            else
+                            {
+                                Connections.Add(conn);
+                            }
                         }
-                        Data.Connections.Connections.Add(conn);
                     }
                 }
             }
-            return Data;
         }
 
-        public static ProcessInfoCollectorData UpdateConnection(object locker, ProcessInfoCollectorData Data, ConnectionInfo connection)
+        public void UpdateConnection(ConnectionInfo connection)
         {
             lock (locker)
             {
-                if(Data.Connections is not null)
+                var index = Connections.IndexOf(connection);
+                if (index >= 0)
                 {
-                    var index = Data.Connections.Connections.IndexOf(connection);
-                    if(index >= 0)
-                    {
-                        Data.Connections.Connections.RemoveAt(index);
-                        Data.Connections.Connections.Add(connection);
-                    }
+                    Connections[index] = connection;
                 }
             }
-            return Data;
         }
 
-        public static ProcessInfoCollectorData UpdateEnvironmentVariables(object locker, ProcessInfoCollectorData Data, ConcurrentDictionary<string, string> envs)
+        public void UpdateEnvironmentVariables(ConcurrentDictionary<string, string> envs)
         {
             lock (locker)
             {
-                if (Data.EnvironmentVariables is not null)
-                {
-                    Data.EnvironmentVariables.EnvironmentVariables = envs;
-                }
+                EnvironmentVariables = envs;
             }
-            return Data;
         }
 
-        public static ProcessInfoCollectorData UpdateRegistrations(object locker, ProcessInfoCollectorData Data, SynchronizedCollection<RegistrationInfo> services)
+        public void UpdateRegistrations(SynchronizedCollection<RegistrationInfo> services)
         {
             lock (locker)
             {
-                if (Data.Registrations is not null)
-                {
-                    Data.Registrations.Services = services;
-                }
+                Registrations = services;
             }
-            return Data;
         }
 
-        public static ProcessInfoCollectorData UpdateModules(object locker, ProcessInfoCollectorData Data, SynchronizedCollection<ModuleInfo> currentModules)
+        public void UpdateModules(SynchronizedCollection<ModuleInfo> currentModules)
         {
             lock (locker)
             {
-                if (Data.Modules is not null)
-                {
-                    Data.Modules.CurrentModules = currentModules;
-                }
+                Modules = currentModules;
             }
-            return Data;
         }
     }
 }

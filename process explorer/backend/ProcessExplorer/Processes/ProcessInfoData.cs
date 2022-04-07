@@ -4,19 +4,19 @@ namespace ProcessExplorer.Processes
 {
     public class ProcessInfoData
     {
-        public string? StartTime { get; internal set; } = default;
-        public TimeSpan? ProcessorUsageTime { get; internal set; } = default;
-        public long? PhysicalMemoryUsageBit { get; internal set; } = default;
-        public string? ProcessName { get; internal set; } = default;
-        public int? PID { get; internal set; } = default;
-        public int? PriorityLevel { get; internal set; } = default;
-        public string? ProcessPriorityClass { get; internal set; } = default;
+        public string? StartTime { get; internal set; }
+        public TimeSpan? ProcessorUsageTime { get; internal set; }
+        public long? PhysicalMemoryUsageBit { get; internal set; }
+        public string? ProcessName { get; internal set; }
+        public int? PID { get; internal set; }
+        public int? PriorityLevel { get; internal set; }
+        public string? ProcessPriorityClass { get; internal set; }
         public SynchronizedCollection<ProcessThreadInfo> Threads { get; internal set; } = new SynchronizedCollection<ProcessThreadInfo>();
-        public long? VirtualMemorySize { get; internal set; } = default;
-        public int? ParentId { get; internal set; } = default;
-        public long? PrivateMemoryUsage { get; internal set; } = default;
+        public long? VirtualMemorySize { get; internal set; }
+        public int? ParentId { get; internal set; }
+        public long? PrivateMemoryUsage { get; internal set; }
         public string? ProcessStatus { get; internal set; } = Status.Running.ToStringCached();
-        public float? MemoryUsage { get; internal set; } = default;
-        public float? ProcessorUsage { get; internal set; } = default;
+        public float? MemoryUsage { get; internal set; }
+        public float? ProcessorUsage { get; internal set; }
     }
 }

@@ -11,15 +11,14 @@ namespace ProcessExplorer.LocalCollector
     public interface IProcessInfoCollector
     {
         ProcessInfoCollectorData Data { get; }
-        void AddConnectionMonitor(ConnectionMonitorInfo connections);
-        void AddConnectionMonitor(ConnectionMonitor connections);
-        void AddEnvironmentVariables(EnvironmentMonitorInfo environmentVariables);
-        void AddRegistrations(RegistrationMonitorInfo registrations);
-        void AddModules(ModuleMonitorInfo modules);
-        void AddRuntimeInformation(ConnectionMonitor connections, EnvironmentMonitorInfo environmentVariables,
+        Task AddConnectionMonitor(ConnectionMonitorInfo connections);
+        Task AddConnectionMonitor(ConnectionMonitor connections);
+        Task AddEnvironmentVariables(EnvironmentMonitorInfo environmentVariables);
+        Task AddRegistrations(RegistrationMonitorInfo registrations);
+        Task AddModules(ModuleMonitorInfo modules);
+        Task AddRuntimeInformation(ConnectionMonitor connections, EnvironmentMonitorInfo environmentVariables,
             RegistrationMonitorInfo registrations, ModuleMonitorInfo modules);
         void SetCommunicator(ICommunicator communicator);
-        Task SendMessageAboutConnectionChangedEvent(ConnectionInfo? conn);
         Task SendRuntimeInfo();
         void SetAssemblyID(string assemblyID);
         void SetClientPID(int clientPID);

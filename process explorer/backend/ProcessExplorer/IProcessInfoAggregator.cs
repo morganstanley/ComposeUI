@@ -28,11 +28,11 @@ namespace ProcessExplorer
 
         #region Methods
         /// <summary>
-        /// Adds a module information to the collection.
+        /// Adds a runtime information to the collection.
         /// </summary>
-        /// <param name="assembly"></param>
+        /// <param name="assemblyId"></param>
         /// <param name="processInfo"></param>
-        void AddInformation(string assemblyId, ProcessInfoCollectorData processInfo);
+        Task AddInformation(string assemblyId, ProcessInfoCollectorData processInfo);
 
         /// <summary>
         /// Removes a module information from the collection.
@@ -54,7 +54,7 @@ namespace ProcessExplorer
         void SetDeadProcessRemovalDelay(int delay);
 
         /// <summary>
-        /// Reinitializes the list conatining the current, relevant processes
+        /// Reinitialized the list containing the current, relevant processes
         /// </summary>
         /// <returns>A collection</returns>
         SynchronizedCollection<ProcessInfoData>? RefreshProcessList();
@@ -66,20 +66,14 @@ namespace ProcessExplorer
         SynchronizedCollection<ProcessInfoData>? GetProcesses();
 
         /// <summary>
-        /// Inititilazes the Process Monitor and fills the list -containing the related processes.
+        /// Initializes the Process Monitor and fills the list -containing the related processes.
         /// </summary>
         void InitProcessExplorer();
 
         /// <summary>
-        /// Initalizes the process creator/modifier/terminator actions.
+        /// Initializes the process creator/modifier/terminator actions.
         /// </summary>
         void SetWatcher();
-
-        /// <summary>
-        /// Sets the message router.
-        /// </summary>
-        /// <param name="communicator"></param>
-        void SetProcessMonitorCommunicator(IUIHandler communicator);
 
         /// <summary>
         /// Adds a UIClient to the collection. Keeps track of the UIClients.
@@ -92,35 +86,35 @@ namespace ProcessExplorer
         /// </summary>
         /// <param name="assemblyId"></param>
         /// <param name="connections"></param>
-        void AddConnectionCollection(string assemblyId, SynchronizedCollection<ConnectionInfo> connections);
+        Task AddConnectionCollection(string assemblyId, SynchronizedCollection<ConnectionInfo> connections);
 
         /// <summary>
-        /// Updates a conenction.
+        /// Updates a connection.
         /// </summary>
         /// <param name="assemblyId"></param>
         /// <param name="connectionInfo"></param>
-        void UpdateConnectionInfo(string assemblyId, ConnectionInfo connectionInfo);
+        Task UpdateConnectionInfo(string assemblyId, ConnectionInfo connectionInfo);
 
         /// <summary>
         /// Updates the environment variables.
         /// </summary>
         /// <param name="assemblyId"></param>
         /// <param name="environmentVariables"></param>
-        void UpdateEnvironmentVariablesInfo(string assemblyId, EnvironmentMonitorInfo environmentVariables);
+        Task UpdateEnvironmentVariablesInfo(string assemblyId, EnvironmentMonitorInfo environmentVariables);
 
         /// <summary>
         /// Updates the registrations in the collection.
         /// </summary>
         /// <param name="assemblyId"></param>
         /// <param name="registrations"></param>
-        void UpdateRegistrationInfo(string assemblyId, RegistrationMonitorInfo registrations);
+        Task UpdateRegistrationInfo(string assemblyId, RegistrationMonitorInfo registrations);
 
         /// <summary>
         /// Updates the modules in the collection.
         /// </summary>
         /// <param name="assemblyId"></param>
         /// <param name="modules"></param>
-        void UpdateModuleInfo(string assemblyId, ModuleMonitorInfo modules);
+        Task UpdateModuleInfo(string assemblyId, ModuleMonitorInfo modules);
         #endregion
     }
 }

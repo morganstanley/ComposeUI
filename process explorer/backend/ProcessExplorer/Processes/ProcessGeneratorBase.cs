@@ -7,11 +7,15 @@ namespace ProcessExplorer.Processes
 {
     public abstract class ProcessGeneratorBase
     {
-        public Action<ProcessInfo>? SendNewProcess { get; set; }
-        public Action<int>? SendTerminatedProcess { get; set; }
-        public Action<int>? SendModifiedProcess { get; set; }
+        public event EventHandler<ProcessInfo>? SendNewProcess;
+        public event EventHandler<int>? SendTerminatedProcess;
+        public event EventHandler<int>? SendModifiedProcess;
 
-        internal ConcurrentDictionary<int, byte[]>? ProcessIds = new ConcurrentDictionary<int, byte[]>();
+        internal bool SendNewProcessAlreadyAdded = false;
+        internal bool SendModifiedProcessAlreadyAdded = false;
+        internal bool SendTerminatedProcessAlreadyAdded = false;
+
+        internal ConcurrentDictionary<int, byte[]> ProcessIds = new ConcurrentDictionary<int, byte[]>();
         private readonly object locker = new object();
 
         /// <summary>
@@ -47,14 +51,14 @@ namespace ProcessExplorer.Processes
         /// </summary>
         /// <param name="processName"></param>
         /// <returns></returns>
-        public abstract ProcessStartInfo KillProcessByName(string processName);
+        public abstract Process? KillProcessByName(string processName);
 
         /// <summary>
         /// Kills a process by the given process ID.
         /// </summary>
         /// <param name="processId"></param>
         /// <returns></returns>
-        public abstract ProcessStartInfo KillProcessById(int processId);
+        public abstract Process? KillProcessById(int processId);
 
         /// <summary>
         /// Creates an event behavior when a related process has been created.
@@ -71,29 +75,9 @@ namespace ProcessExplorer.Processes
         public abstract void WatchProcesses(SynchronizedCollection<ProcessInfoData> processes);
 
         /// <summary>
-        /// It will add the childs to the list which is containing the relevant processes
+        /// It will add all of the the children to the list which is containing the relevant processes
         /// </summary>
-        public void AddChildProcessesToList()
-        {
-            Process main = Process.GetProcessById(ProcessMonitor.ComposePID);
-            if (main is not null)
-            {
-                var children = GetChildProcesses(main);
-                lock (locker)
-                {
-                    if (children is not null)
-                        foreach (var child in children)
-                        {
-                            if (child is not null && child.PID is not null && child.ParentId is not null)
-                            {
-                                var ppid = Convert.ToInt32(child.ParentId);
-                                var pid = Convert.ToInt32(child.PID);
-                                SendNewDataIfPPIDExists(ppid, pid);
-                            }
-                        }
-                }
-            }
-        }
+        public abstract void AddChildProcessesToList();
 
         /// <summary>
         /// Creates a list, containing the process ids, which are running under the main process.
@@ -112,8 +96,7 @@ namespace ProcessExplorer.Processes
                         var ppid = Convert.ToInt32(process.ParentId);
                         var bytes = GetBytesFromPPID(ppid);
 
-                        if (bytes is not null)
-                            list.TryAdd(Convert.ToInt32(process.PID), bytes);
+                        list.TryAdd(Convert.ToInt32(process.PID), bytes);
                     }
                 }
             }
@@ -125,7 +108,6 @@ namespace ProcessExplorer.Processes
         /// Checks if the process ID exists in the current context.
         /// </summary>
         /// <param name="pid"></param>
-        /// <param name="processes"></param>
         /// <returns></returns>
         internal bool CheckIfPIDExists(int pid)
         {
@@ -133,6 +115,7 @@ namespace ProcessExplorer.Processes
             {
                 return true;
             }
+
             return false;
         }
 
@@ -183,9 +166,8 @@ namespace ProcessExplorer.Processes
                 if (CheckIfPIDExists(pid))
                 {
                     var bytes = GetBytesFromPPID(ppid);
-                    if (bytes is not null && ProcessIds is not null)
-                        ProcessIds.AddOrUpdate(pid, bytes, (_, _) => bytes);
-                    SendNewProcess?.Invoke(ProcessCreated(Process.GetProcessById(pid)));
+                    ProcessIds.AddOrUpdate(pid, bytes, (_, _) => bytes);
+                    SendNewProcess?.Invoke(this, ProcessCreated(Process.GetProcessById(pid)));
                 }
             }
         }
@@ -209,20 +191,18 @@ namespace ProcessExplorer.Processes
         /// <param name="pid"></param>
         internal void SendDeletedDataPIDToCheckAsync(int pid)
         {
-            if (ProcessIds is not null)
+            if (!ProcessIds.IsEmpty)
             {
-                bool PIDExists = false;
-                lock (locker)
-                {
-                    PIDExists = ProcessIds.ContainsKey(pid);
-                }
+                bool PIDExists;
+                PIDExists = ProcessIds.ContainsKey(pid);
+
 
                 if (PIDExists)
                 {
-                    SendTerminatedProcess?.Invoke(pid);
+                    SendTerminatedProcess?.Invoke(this, pid);
                     lock (locker)
                     {
-                        ProcessIds.TryRemove(pid, out byte[]? ppid);
+                        ProcessIds.TryRemove(pid, out var _);
                     }
                 }
             }
@@ -236,11 +216,10 @@ namespace ProcessExplorer.Processes
         {
             lock (locker)
             {
-                if (ProcessIds is not null)
-                    if (ProcessIds.ContainsKey(pid))
-                    {
-                        SendModifiedProcess?.Invoke(pid);
-                    }
+                if (ProcessIds.ContainsKey(pid))
+                {
+                    SendModifiedProcess?.Invoke(this, pid);
+                }
             }
         }
     }

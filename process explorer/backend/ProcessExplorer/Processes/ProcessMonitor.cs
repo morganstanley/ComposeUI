@@ -2,7 +2,6 @@
 
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
-using ProcessExplorer.Processes.Communicator;
 using ProcessExplorer.Processes.Logging;
 
 namespace ProcessExplorer.Processes
@@ -10,6 +9,7 @@ namespace ProcessExplorer.Processes
     public class ProcessMonitor : IProcessMonitor
     {
         #region Properties
+
         /// <summary>
         /// Main process ID, with we can recognize the related processes.
         /// </summary>
@@ -19,17 +19,17 @@ namespace ProcessExplorer.Processes
         /// Delay time for keeping the process in the list of processes after it is terminated. (seconds)
         /// Default: 1 minute.
         /// </summary>
-        public static int DelayTime = 60000;
+        internal static int DelayTime = 60000;
 
         /// <summary>
         /// It contains the important information,that we need to pass.
         /// </summary>
-        public ProcessMonitorInfo Data { get; set; } = new ProcessMonitorInfo();
+        public ProcessMonitorInfo Data { get; } = new ProcessMonitorInfo();
 
         /// <summary>
         /// OS based handler, which will generate OS specific information related to the given process.
         /// </summary>
-        internal ProcessGeneratorBase? processInfoManager { get; set; }
+        private ProcessGeneratorBase? processInfoManager { get; }
 
         /// <summary>
         /// Logger instance to logging out messages.
@@ -43,52 +43,51 @@ namespace ProcessExplorer.Processes
 
 
         /// <summary>
-        /// Sample communicator, what we can use for sending object, later it might be modified.
+        /// Sample communicators, what we can use for sending object.
         /// </summary>
-        private IUIHandler? UICommunicator;
+        public event EventHandler<int> processTerminatedAction;
+        public event EventHandler<ProcessInfoData> processCreatedAction;
+        public event EventHandler<ProcessInfoData> processModifiedAction;
+
         #endregion
 
         #region Constructors
-        ProcessMonitor(ProcessGeneratorBase processInfoGenerator, ILogger<ProcessMonitor>? logger, IUIHandler? communicator)
-        {
-            this.processInfoManager = processInfoGenerator;
-            this.logger = logger;
 
-            if (communicator is not null)
-                this.UICommunicator = communicator;
-            SetActionsIfTheyAreNotDeclared();
-            ClearList();
-            FillListWithRelatedProcesses();
-            SetWatcher();
-        }
-
-        public ProcessMonitor(ProcessGeneratorBase processInfoGenerator, ILogger<ProcessMonitor>? logger, IUIHandler? communicator, int composePID)
-            : this(processInfoGenerator, logger, communicator)
+        public ProcessMonitor(ProcessGeneratorBase processInfoGenerator, ILogger<ProcessMonitor>? logger, int composePID)
+            : this(processInfoGenerator, logger)
         {
             SetComposePID(composePID);
         }
 
-        public ProcessMonitor(ProcessGeneratorBase processInfoGenerator, IUIHandler? communicator, int composePID)
-            : this(processInfoGenerator, null, communicator, composePID)
+        public ProcessMonitor(ProcessGeneratorBase processInfoGenerator,int composePID)
+            : this(processInfoGenerator, null, composePID)
         {
 
         }
 
         public ProcessMonitor(ProcessGeneratorBase processInfoGenerator, ILogger<ProcessMonitor>? logger)
-            : this(processInfoGenerator, logger, null)
         {
+            this.processInfoManager = processInfoGenerator;
+            this.logger = logger;
+
+            SetActionsIfTheyAreNotDeclared();
+            ClearList();
+            FillListWithRelatedProcesses();
+            SetWatcher();
 
         }
 
-        public ProcessMonitor(ProcessGeneratorBase processInfoGenerator, ILogger<ProcessMonitor>? logger, IUIHandler? communicator, SynchronizedCollection<ProcessInfoData>? processes)
-            : this(processInfoGenerator, logger, communicator)
+        public ProcessMonitor(ProcessGeneratorBase processInfoGenerator, ILogger<ProcessMonitor>? logger, SynchronizedCollection<ProcessInfoData>? processes)
+            : this(processInfoGenerator, logger)
         {
             if (processes is not null)
                 Data.Processes = processes;
         }
+
         #endregion
 
         #region Setters
+
         /// <summary>
         /// Clears all of the element from the list.
         /// </summary>
@@ -138,9 +137,9 @@ namespace ProcessExplorer.Processes
                 {
                     logger?.CannotFillList(ex);
                 }
-                processInfoManager?.AddChildProcessesToList();
-                logger?.ProcessListIsInitalized();
 
+                processInfoManager?.AddChildProcessesToList();
+                logger?.ProcessListIsInitialized();
             }
         }
 
@@ -161,10 +160,7 @@ namespace ProcessExplorer.Processes
         /// <param name="pid"></param>
         public void SetComposePID(int pid)
         {
-            lock (locker)
-            {
-                ComposePID = pid;
-            }
+            ComposePID = pid;
         }
 
         /// <summary>
@@ -174,22 +170,30 @@ namespace ProcessExplorer.Processes
         {
             if (processInfoManager != null)
             {
-                if (processInfoManager.SendModifiedProcess == default)
-                    processInfoManager.SendModifiedProcess = SendModified;
-                if (processInfoManager.SendNewProcess == default)
-                    processInfoManager.SendNewProcess = SendNew;
-                if (processInfoManager.SendTerminatedProcess == default)
-                    processInfoManager.SendTerminatedProcess = SendDeleted;
+                if (!processInfoManager.SendModifiedProcessAlreadyAdded)
+                {
+                    processInfoManager.SendModifiedProcess += SendModifiedProcess;
+                    processInfoManager.SendModifiedProcessAlreadyAdded = true;
+                }
+
+                if (!processInfoManager.SendNewProcessAlreadyAdded)
+                {
+                    processInfoManager.SendNewProcess += SendNewProcess;
+                    processInfoManager.SendNewProcessAlreadyAdded = true;
+                }
+
+                if (!processInfoManager.SendTerminatedProcessAlreadyAdded)
+                {
+                    processInfoManager.SendTerminatedProcess += SendTerminatedProcess;
+                    processInfoManager.SendTerminatedProcessAlreadyAdded = true;
+                }
             }
         }
 
-        public void SetUICommunicatorToWatchProcessChanges(IUIHandler handler)
-        {
-            this.UICommunicator = handler;
-        }
         #endregion
 
         #region Getters
+
         public SynchronizedCollection<ProcessInfoData> GetProcesses()
         {
             ClearList();
@@ -199,37 +203,23 @@ namespace ProcessExplorer.Processes
 
         internal IEnumerable<ProcessInfoData> GetProcessByName(string name)
         {
-            lock (locker)
-            {
-                return Data.Processes.Where(p => p.ProcessName == name);
-            }
+            return Data.Processes.Where(p => p.ProcessName == name);
         }
 
         internal IEnumerable<ProcessInfoData> GetProcessByID(int id)
         {
-            lock (locker)
-            {
-                return Data.Processes.Where(p => p.PID == id);
-            }
+            return Data.Processes.Where(p => p.PID == id);
         }
+
         #endregion
 
         #region Kill/terminate process
-        private async Task KillProcess(ProcessStartInfo info)
+
+        private void KillProcess(Process process)
         {
             try
             {
-                info.RedirectStandardError = true;
-                info.RedirectStandardInput = true;
-                info.RedirectStandardOutput = true;
-                info.UseShellExecute = false;
-                info.CreateNoWindow = true;
-
-                Process process = new Process();
-                process.StartInfo = info;
-                process.Start();
-                process.StandardOutput.ReadToEnd();
-                await process.WaitForExitAsync();
+                process.Kill();
             }
             catch (Exception exception)
             {
@@ -243,8 +233,14 @@ namespace ProcessExplorer.Processes
         /// <param name="processName"></param>
         public void KillProcessByName(string processName)
         {
+            Process? process = null;
             if (processInfoManager != null)
-                KillProcess(processInfoManager.KillProcessByName(processName)).Wait();
+            {
+                process = processInfoManager.KillProcessByName(processName);
+            }
+
+            if (process is not null)
+                KillProcess(process);
         }
 
         /// <summary>
@@ -253,19 +249,26 @@ namespace ProcessExplorer.Processes
         /// <param name="processId"></param>
         public void KillProcessById(int processId)
         {
+            Process? process = null;
             if (processInfoManager != null)
-                KillProcess(processInfoManager.KillProcessById(processId)).Wait();
+            {
+                process = processInfoManager.KillProcessById(processId);
+            }
+            if(process is not null)
+                KillProcess(process);
         }
+
         #endregion
 
         #region Delete terminated process from the list helper
+
         /// <summary>
         /// Searches for the list index of a given process
         /// and calls the publishing method for deleting an element, if it is relevant.
         /// </summary>
         /// <param name="pid"></param>
         /// <returns></returns>
-        private async Task<bool> TryDeleteMainProcesses(int pid)
+        private bool TryDeleteMainProcesses(int pid)
         {
             try
             {
@@ -274,16 +277,12 @@ namespace ProcessExplorer.Processes
                 {
                     item = Data.Processes.Single(p => p.PID == pid);
                 }
+
                 if (item != default)
                 {
-                    if (CheckCommunicatorState())
-                    {
-                        await UICommunicator.RemoveProcess(pid);
-                    }
-
                     logger?.ProcessTerminated(pid);
-
                     ModifyStatus(item);
+                    processTerminatedAction.Invoke(this, pid);
                     RemoveAfterTimeout(item);
                     return true;
                 }
@@ -293,6 +292,7 @@ namespace ProcessExplorer.Processes
                 logger?.CannotFindElement(pid, exception);
                 return false;
             }
+
             return false;
         }
 
@@ -320,29 +320,28 @@ namespace ProcessExplorer.Processes
                 }
             });
         }
+
         #endregion
 
         #region Send process changed helper
+
         /// <summary>
         /// Sends a message about creation of a process.
         /// </summary>
         /// <param name="process"></param>
-        public async void SendNew(ProcessInfo process)
+        private void SendNewProcess(object? sender, ProcessInfo process)
         {
             var pid = Convert.ToInt32(process.Data?.PID);
             var temp = GetCopyList(pid);
-            if (temp is not null)
+
+            if (temp.Count == 0 && process.Data != default)
             {
-                if (temp?.Count == 0 && process?.Data != default)
-                {
-                    if (!CheckIfPIDExists(pid))
-                        Data.Processes.Add(process.Data);
-                    if (CheckCommunicatorState())
-                    {
-                        await UICommunicator?.AddProcess(process.Data);
-                    }
-                    logger?.ProcessCreated(pid);
-                }
+                if (!CheckIfPIDExists(pid))
+                    Data.Processes.Add(process.Data);
+
+                processCreatedAction.Invoke(this, process.Data);
+
+                logger?.ProcessCreated(pid);
             }
         }
 
@@ -350,9 +349,9 @@ namespace ProcessExplorer.Processes
         /// Sends a message about termination of a process.
         /// </summary>
         /// <param name="pid"></param>
-        public void SendDeleted(int pid)
+        private void SendTerminatedProcess(object? sender, int pid)
         {
-            if (!TryDeleteMainProcesses(pid).Result)
+            if (!TryDeleteMainProcesses(pid))
                 logger?.ProcessNotFound(pid);
         }
 
@@ -360,7 +359,7 @@ namespace ProcessExplorer.Processes
         /// Sends a message about modification of a process and calls the modfier methods.
         /// </summary>
         /// <param name="pid"></param>
-        public async void SendModified(int pid)
+        private void SendModifiedProcess(object? sender, int pid)
         {
             try
             {
@@ -370,10 +369,11 @@ namespace ProcessExplorer.Processes
                 {
                     var processInfo = new ProcessInfo(process, processInfoManager);
                     ModifyElement(processInfo);
-                    if (processInfo.Data is not null && CheckCommunicatorState())
+                    if (processInfo.Data is not null)
                     {
-                        await UICommunicator.UpdateProcess(processInfo.Data);
+                        processModifiedAction.Invoke(this, processInfo.Data);
                     }
+
                     logger?.ProcessModified(pid);
                 }
             }
@@ -381,17 +381,18 @@ namespace ProcessExplorer.Processes
             {
                 logger?.CouldNotFoundModifiableProcess(pid, exception);
             }
-
         }
+
         #endregion
 
         #region Private helper methods
+
         /// <summary>
         /// Creates a copy of the base list.
         /// </summary>
         /// <param name="pid"></param>
         /// <returns></returns>
-        private List<ProcessInfoData>? GetCopyList(int pid)
+        private List<ProcessInfoData> GetCopyList(int pid)
         {
             return Data.Processes.Where(p => p.PID == pid).ToList();
         }
@@ -417,6 +418,7 @@ namespace ProcessExplorer.Processes
                 logger?.NotExists(pid, exception);
                 return false;
             }
+
             return false;
         }
 
@@ -425,13 +427,13 @@ namespace ProcessExplorer.Processes
         /// </summary>
         /// <param name="pid"></param>
         /// <returns></returns>
-        private int TryGetIndex(int pid)
+        private int? TryGetIndex(int pid)
         {
             try
             {
                 lock (locker)
                 {
-                    var item = Data.Processes.Where(p => p.PID == pid).FirstOrDefault();
+                    var item = Data.Processes.FirstOrDefault(p => p.PID == pid);
                     if (item is not null)
                     {
                         return Data.Processes.IndexOf(item);
@@ -452,22 +454,15 @@ namespace ProcessExplorer.Processes
         /// <param name="processInfo"></param>
         private void ModifyElement(ProcessInfo processInfo)
         {
-            int pid = Convert.ToInt32(processInfo?.Data?.PID);
-            if (processInfo?.Data is not null && pid != default)
+            int pid = Convert.ToInt32(processInfo.Data?.PID);
+            if (processInfo.Data is not null && pid != default)
             {
-                int index = TryGetIndex(pid);
+                int? index = TryGetIndex(pid);
                 if (index != -1)
                     lock (locker)
-                        Data.Processes[index] = processInfo.Data;
+                        Data.Processes[Convert.ToInt32(index)] = processInfo.Data;
             }
         }
-
-        /// <summary>
-        /// Checks if the communicator is instantiated and the communicator channel is opened.
-        /// </summary>
-        /// <returns></returns>
-        private bool CheckCommunicatorState()
-            => UICommunicator is not null && UICommunicator.State == CommunicatorState.Opened;
 
         #endregion
     }

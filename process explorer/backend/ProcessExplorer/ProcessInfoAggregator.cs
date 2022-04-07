@@ -15,71 +15,138 @@ namespace ProcessExplorer
 {
     public class ProcessInfoAggregator : IProcessInfoAggregator
     {
-        private ILogger<ProcessInfoAggregator>? logger;
-        public ConcurrentDictionary<string, ProcessInfoCollectorData>? Information { get; } = new ConcurrentDictionary<string, ProcessInfoCollectorData>();
+        private readonly ILogger<ProcessInfoAggregator>? logger;
+
+        public ConcurrentDictionary<string, ProcessInfoCollectorData>? Information { get; } =
+            new ConcurrentDictionary<string, ProcessInfoCollectorData>();
+
         public IProcessMonitor? ProcessMonitor { get; }
 
         private SynchronizedCollection<IUIHandler> UIClients = new SynchronizedCollection<IUIHandler>();
 
         private readonly object informationLocker = new object();
         private readonly object uiClientLocker = new object();
-        
+
 
         public ProcessInfoAggregator(ILogger<ProcessInfoAggregator> logger, IProcessMonitor processMonitor)
         {
             this.logger = logger;
             ProcessMonitor = processMonitor;
+            SetUICommunicatorsToWatchProcessChanges();
         }
-        public void AddInformation(string assemblyId, ProcessInfoCollectorData processInfo)
+
+        private SynchronizedCollection<IUIHandler> CreateCopyOfClients()
         {
-            lock(informationLocker)
-                Information?.AddOrUpdate(assemblyId, processInfo, (_, _) => processInfo);
+            SynchronizedCollection<IUIHandler> UIHandlersCopy;
             lock (uiClientLocker)
             {
-                foreach (var uiClient in UIClients)
+                UIHandlersCopy = UIClients;
+            }
+
+            return UIHandlersCopy;
+        }
+
+        public async Task AddInformation(string assemblyId, ProcessInfoCollectorData processInfo)
+        {
+            lock (informationLocker)
+                Information?.AddOrUpdate(assemblyId, processInfo, (_, _) => processInfo);
+
+            SynchronizedCollection<IUIHandler> UIHandlersCopy = CreateCopyOfClients();
+
+            foreach (var uiClient in UIHandlersCopy)
+            {
+                await uiClient.AddRuntimeInfo(processInfo);
+            }
+        }
+
+        public void RemoveAInfoAggregatorInformation(string assembly)
+        {
+            lock (informationLocker)
+                Information?.TryRemove(assembly, out _);
+        }
+
+        public void SetComposePID(int pid)
+            => ProcessMonitor?.SetComposePID(pid);
+
+        public SynchronizedCollection<ProcessInfoData>? RefreshProcessList()
+            => ProcessMonitor?.GetProcesses();
+
+        public SynchronizedCollection<ProcessInfoData>? GetProcesses()
+            => ProcessMonitor?.GetProcesses();
+
+        public void InitProcessExplorer()
+            => ProcessMonitor?.FillListWithRelatedProcesses();
+
+        public void SetWatcher()
+            => ProcessMonitor?.SetWatcher();
+
+        private void SetUICommunicatorsToWatchProcessChanges()
+        {
+            if (ProcessMonitor is not null)
+            {
+                ProcessMonitor.processCreatedAction += ProcessCreated;
+                ProcessMonitor.processModifiedAction += ProcessModified;
+                ProcessMonitor.processTerminatedAction += ProcessTerminated;
+            }
+        }
+
+        private void ProcessTerminated(object? sender, int e)
+        {
+            lock (uiClientLocker)
+            {
+                foreach (var client in UIClients)
                 {
-                    uiClient.AddRuntimeInfo(processInfo);
+                    client.RemoveProcess(e);
                 }
             }
         }
-        public void RemoveAInfoAggregatorInformation(string assembly)
+
+        private void ProcessModified(object? sender, ProcessInfoData e)
         {
-            lock( informationLocker)
-                Information?.TryRemove(assembly, out _);
+            lock (uiClientLocker)
+            {
+                foreach (var client in UIClients)
+                {
+                    client.UpdateProcess(e);
+                }
+            }
         }
-        public void SetComposePID(int pid)
-            => ProcessMonitor?.SetComposePID(pid);
-        public SynchronizedCollection<ProcessInfoData>? RefreshProcessList()
-            => ProcessMonitor?.GetProcesses();
-        public SynchronizedCollection<ProcessInfoData>? GetProcesses()
-            => ProcessMonitor?.GetProcesses();
-        public void InitProcessExplorer()
-            => ProcessMonitor?.FillListWithRelatedProcesses();
-        public void SetWatcher()
-            => ProcessMonitor?.SetWatcher();
-        public void SetProcessMonitorCommunicator(IUIHandler communicator)
-            => ProcessMonitor?.SetUICommunicatorToWatchProcessChanges(communicator);
+
+        private void ProcessCreated(object? sender, ProcessInfoData e)
+        {
+            lock (uiClientLocker)
+            {
+                foreach (var client in UIClients)
+                {
+                    client.AddProcess(e);
+                }
+            }
+        }
+
         public void SetDeadProcessRemovalDelay(int delay)
             => ProcessMonitor?.SetDeadProcessRemovalDelay(delay);
+
         public void AddUIConnection(IUIHandler uiHandler)
         {
             lock (uiClientLocker)
             {
                 UIClients.Add(uiHandler);
             }
+
             uiHandler.AddProcesses(ProcessMonitor?.Data.Processes);
-            ProcessMonitor?.SetUICommunicatorToWatchProcessChanges(uiHandler);
+
             logger?.ProcessCommunicatorIsSet();
         }
 
         private ProcessInfoCollectorData? GetDataToModify(string assemblyId)
         {
-            ProcessInfoCollectorData data = null;
+            ProcessInfoCollectorData? data = null;
             lock (informationLocker)
             {
-                if(Information is not null)
+                if (Information is not null)
                     data = Information.FirstOrDefault(kvp => kvp.Key == assemblyId).Value;
             }
+
             return data;
         }
 
@@ -87,20 +154,21 @@ namespace ProcessExplorer
         {
             lock (informationLocker)
             {
-                if(Information is not null)
-                    Information.AddOrUpdate(assemblyId, data, (key, oldValue) => oldValue = data);
+                if (Information is not null)
+                    Information.AddOrUpdate(assemblyId, data, (_, _) => data);
             }
         }
-        public void AddConnectionCollection(string assemblyId, SynchronizedCollection<ConnectionInfo> connections)
+
+        public async Task AddConnectionCollection(string assemblyId, SynchronizedCollection<ConnectionInfo> connections)
         {
             ProcessInfoCollectorData? data = GetDataToModify(assemblyId);
-            if(data is not null)
+            if (data is not null)
             {
                 try
                 {
-                    if(Information is not null)
+                    if (Information is not null)
                     {
-                        data = ProcessInfoCollectorData.AddOrUpdateConnections(informationLocker, data, connections);
+                        data.AddOrUpdateConnections(connections);
                         UpdateProcessInfoCollectorData(assemblyId, data);
                     }
                 }
@@ -109,24 +177,22 @@ namespace ProcessExplorer
                     logger?.ConnectionCollectionCannotBeAdded(exception);
                 }
 
-                lock (uiClientLocker)
+                SynchronizedCollection<IUIHandler> UIHandlersCopy = CreateCopyOfClients();
+                foreach (var uiClient in UIHandlersCopy)
                 {
-                    foreach (var uiClient in UIClients)
-                    {
-                        uiClient.AddConnections(connections);
-                    }
+                    await uiClient.AddConnections(connections);
                 }
             }
         }
 
-        public void UpdateConnectionInfo(string assemblyId, ConnectionInfo connectionInfo)
+        public async Task UpdateConnectionInfo(string assemblyId, ConnectionInfo connectionInfo)
         {
             ProcessInfoCollectorData? data = GetDataToModify(assemblyId);
             if (data is not null)
             {
                 try
                 {
-                    data = ProcessInfoCollectorData.UpdateConnection(informationLocker, data, connectionInfo);
+                    data.UpdateConnection(connectionInfo);
                     UpdateProcessInfoCollectorData(assemblyId, data);
                 }
                 catch (Exception exception)
@@ -134,24 +200,22 @@ namespace ProcessExplorer
                     logger?.ConnectionCannotBeUpdated(exception);
                 }
 
-                lock (uiClientLocker)
+                SynchronizedCollection<IUIHandler> UIHandlersCopy = CreateCopyOfClients();
+                foreach (var uiClient in UIHandlersCopy)
                 {
-                    foreach (var uiClient in UIClients)
-                    {
-                        uiClient.UpdateConnection(connectionInfo);
-                    }
+                    await uiClient.UpdateConnection(connectionInfo);
                 }
             }
         }
 
-        public void UpdateEnvironmentVariablesInfo(string assemblyId, EnvironmentMonitorInfo environmentVariables)
+        public async Task UpdateEnvironmentVariablesInfo(string assemblyId, EnvironmentMonitorInfo environmentVariables)
         {
             ProcessInfoCollectorData? data = GetDataToModify(assemblyId);
             if (data is not null)
             {
                 try
                 {
-                    data = ProcessInfoCollectorData.UpdateEnvironmentVariables(informationLocker, data, environmentVariables.EnvironmentVariables);
+                    data.UpdateEnvironmentVariables(environmentVariables.EnvironmentVariables);
                     UpdateProcessInfoCollectorData(assemblyId, data);
                 }
                 catch (Exception exception)
@@ -159,60 +223,56 @@ namespace ProcessExplorer
                     logger?.EnvironmentVariablesCannotBeUpdated(exception);
                 }
 
-                lock (uiClientLocker)
+                SynchronizedCollection<IUIHandler> UIHandlersCopy = CreateCopyOfClients();
+                foreach (var uiClient in UIHandlersCopy)
                 {
-                    foreach (var uiClient in UIClients)
-                    {
-                        uiClient.UpdateEnvironmentVariables(environmentVariables.EnvironmentVariables);
-                    }
+                    await uiClient.UpdateEnvironmentVariables(environmentVariables.EnvironmentVariables);
                 }
             }
         }
 
-        public void UpdateRegistrationInfo(string assemblyId, RegistrationMonitorInfo registrations)
+        public async Task UpdateRegistrationInfo(string assemblyId, RegistrationMonitorInfo registrations)
         {
             ProcessInfoCollectorData? data = GetDataToModify(assemblyId);
             if (data is not null)
             {
                 try
                 {
-                    data = ProcessInfoCollectorData.UpdateRegistrations(informationLocker, data, registrations.Services);
+                    data.UpdateRegistrations(registrations.Services);
                     UpdateProcessInfoCollectorData(assemblyId, data);
                 }
                 catch (Exception exception)
                 {
                     logger?.RegistrationsCannotBeUpdated(exception);
                 }
-                lock (uiClientLocker)
+
+                SynchronizedCollection<IUIHandler> UIHandlersCopy = CreateCopyOfClients();
+                foreach (var uiClient in UIHandlersCopy)
                 {
-                    foreach (var uiClient in UIClients)
-                    {
-                        uiClient.UpdateRegistrations(registrations.Services);
-                    }
+                    await uiClient.UpdateRegistrations(registrations.Services);
                 }
             }
         }
 
-        public void UpdateModuleInfo(string assemblyId, ModuleMonitorInfo modules)
+        public async Task UpdateModuleInfo(string assemblyId, ModuleMonitorInfo modules)
         {
             ProcessInfoCollectorData? data = GetDataToModify(assemblyId);
             if (data is not null)
             {
                 try
                 {
-                    data = ProcessInfoCollectorData.UpdateModules(informationLocker, data, modules.CurrentModules);
+                    data.UpdateModules(modules.CurrentModules);
                     UpdateProcessInfoCollectorData(assemblyId, data);
                 }
                 catch (Exception exception)
                 {
                     logger?.ModulesCannotBeUpdated(exception);
                 }
-                lock (uiClientLocker)
+
+                SynchronizedCollection<IUIHandler> UIHandlersCopy = CreateCopyOfClients();
+                foreach (var uiClient in UIHandlersCopy)
                 {
-                    foreach (var uiClient in UIClients)
-                    {
-                        uiClient.UpdateModules(modules.CurrentModules);
-                    }
+                    await uiClient.UpdateModules(modules.CurrentModules);
                 }
             }
         }

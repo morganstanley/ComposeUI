@@ -6,7 +6,7 @@ namespace ProcessExplorer.LocalCollector.Connections
 {
     public class ConnectionMonitor : IConnectionMonitor
     {
-        internal ConnectionMonitorInfo Data { get; set; } = new ConnectionMonitorInfo();
+        internal ConnectionMonitorInfo Data { get; private set; } = new ConnectionMonitorInfo();
         ConnectionMonitorInfo IConnectionMonitor.Data
         {
             get => this.Data;
@@ -14,7 +14,7 @@ namespace ProcessExplorer.LocalCollector.Connections
         }
 
         private readonly object locker = new object();
-        internal Func<ConnectionInfo, Task>? SendConnectionStatusChanged;
+        internal event EventHandler<ConnectionInfo>? ConnectionStatusChanged;
 
         public ConnectionMonitor()
         {
@@ -47,7 +47,7 @@ namespace ProcessExplorer.LocalCollector.Connections
         {
             lock (locker)
             {
-                return Data.Connections.Where(conn => conn.Equals(connection)).FirstOrDefault();
+                return Data.Connections.FirstOrDefault(conn => conn.Equals(connection));
             }
         }
 
@@ -55,27 +55,22 @@ namespace ProcessExplorer.LocalCollector.Connections
         {
             if (Data.Connections.Count > 0)
             {
-                int i = 0;
                 lock (locker)
                 {
-                    foreach (var connection in Data.Connections)
+                    for(int i = 0; i < Data.Connections.Count; i++)
                     {
-                        if (connection.Id == conn.Id && connection.Status != conn.Status)
+                        if (Data.Connections[i].Id == conn.Id) 
                         {
-                            Data.Connections[i].Status = conn.Status;
-                            SendConnectionStatusChanged?.Invoke(conn);
+                            if(Data.Connections[i].Status != conn.Status)
+                            {
+                                Data.Connections[i].Status = conn.Status;
+                                ConnectionStatusChanged?.Invoke(this, conn);
+                            }
                             break;
                         }
-                        i++;
                     }
                 }
             }
-        }
-
-        public void SetSendConnectionStatusChanged(Func<ConnectionInfo, Task> action)
-        {
-            lock (locker)
-                SendConnectionStatusChanged = action;
         }
 
         public void AddConnections(SynchronizedCollection<ConnectionInfo> connections)

@@ -10,7 +10,6 @@ namespace ProcessExplorer.Processes
     public class ProcessInfo
     {
         public ProcessGeneratorBase infoGenerator;
-        private readonly object locker = new object();
         private readonly ILogger<ProcessInfo>? logger;
 
         public ProcessInfoData? Data { get; internal set; }
@@ -39,7 +38,7 @@ namespace ProcessExplorer.Processes
             infoGenerator = manager;
 
             process.Refresh();
-            if (process != null && process.Id != 0)
+            if (process.Id != 0)
             {
                 try
                 {
@@ -53,21 +52,7 @@ namespace ProcessExplorer.Processes
                     int i;
                     for (i = 0; i < process.Threads.Count; i++)
                     {
-                        try
-                        {
-                            if (process.Threads[i].ThreadState == ThreadState.Wait)
-                            {
-                                list.Add(ProcessThreadInfo.FromProcessThread(process.Threads[i]));
-                            }
-                            else
-                            {
-                                AddThreadToList(list, process.Threads[i]);
-                            }
-                        }
-                        catch (Exception exception)
-                        {
-                            logger?.CannotAddProcessThread(exception);
-                        }
+                        list.Add(ProcessThreadInfo.FromProcessThread(process.Threads[i]));
                     }
 
                     Data.Threads = list;
@@ -90,11 +75,6 @@ namespace ProcessExplorer.Processes
             }
         }
 
-        public void AddThreadToList(SynchronizedCollection<ProcessThreadInfo> list, ProcessThread process)
-        {
-            list.Add(ProcessThreadInfo.FromProcessThread(process.StartTime, process.CurrentPriority,
-                                        process.Id, process.ThreadState, process.TotalProcessorTime));
-        }
     }
 
 }
