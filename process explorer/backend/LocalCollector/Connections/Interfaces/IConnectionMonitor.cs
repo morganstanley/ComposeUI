@@ -8,10 +8,10 @@ namespace ProcessExplorer.LocalCollector.Connections.Interfaces
 
         void AddConnection(ConnectionInfo connectionInfo);
         void AddConnections(SynchronizedCollection<ConnectionInfo> connections);
-        void UpdateConnection(ConnectionInfo connectionInfo);
+        void UpdateConnection(ConnectionInfo connectionInfo, ConnectionStatus status);
         void ChangeElement(ConnectionInfo connection);
         ConnectionInfo? GetConnection(ConnectionInfo connection);
         void RemoveConnection(ConnectionInfo connectionInfo);
-        void StatusChanged(ConnectionInfo conn);
+        void StatusChanged(ConnectionInfo conn, ConnectionStatus status);
     }
 }

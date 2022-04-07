@@ -4,7 +4,7 @@ using System.Collections.Concurrent;
 
 namespace ProcessExplorer.LocalCollector.Connections
 {
-    public class ConnectionInfo
+    public record ConnectionInfo
     {
         #region Properties
         public Guid? Id { get; set; }
