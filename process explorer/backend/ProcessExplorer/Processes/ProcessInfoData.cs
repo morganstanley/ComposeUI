@@ -2,6 +2,7 @@
 
 namespace ProcessExplorer.Processes
 {
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     public class ProcessInfoData
     {
         public string? StartTime { get; internal set; }

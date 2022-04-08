@@ -2,6 +2,7 @@
 
 namespace ProcessExplorer.Processes
 {
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     public class ProcessMonitorInfo
     {
         public SynchronizedCollection<ProcessInfoData> Processes { get; internal set; } = new SynchronizedCollection<ProcessInfoData>();

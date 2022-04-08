@@ -9,7 +9,7 @@ namespace ProcessExplorer.LocalCollector.Logging
         [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Cannot send connection status changed message to the server. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
         static partial void ConnectionStatusSendError(ILogger logger, string exception);
 
-        internal static void ConnectionStatusChanged(this ILogger logger, Exception exception)
+        internal static void ConnectionStatusChangedError(this ILogger logger, Exception exception)
         {
             if (logger.IsEnabled(LogLevel.Error))
             {
