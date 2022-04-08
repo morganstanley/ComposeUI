@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace ProcessExplorer.Processes
 {
-    public abstract class ProcessGeneratorBase
+    public abstract class ProcessInfoManager
     {
         public event EventHandler<ProcessInfo>? SendNewProcess;
         public event EventHandler<int>? SendTerminatedProcess;

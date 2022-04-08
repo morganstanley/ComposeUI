@@ -8,7 +8,7 @@ namespace ProcessExplorer.LocalCollector.Connections.Interfaces
 
         void AddConnection(ConnectionInfo connectionInfo);
         void AddConnections(SynchronizedCollection<ConnectionInfo> connections);
-        void UpdateConnection(ConnectionInfo connectionInfo, ConnectionStatus status);
+        void UpdateConnection(Guid connId, ConnectionStatus status);
         void RemoveConnection(ConnectionInfo connectionInfo);
     }
 }

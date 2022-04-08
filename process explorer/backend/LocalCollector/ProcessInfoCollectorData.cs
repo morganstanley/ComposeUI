@@ -68,26 +68,18 @@ namespace ProcessExplorer.LocalCollector
 
         public void UpdateEnvironmentVariables(ConcurrentDictionary<string, string> envs)
         {
-            lock (locker)
-            {
-                EnvironmentVariables = envs;
-            }
+            EnvironmentVariables = envs;
         }
 
         public void UpdateRegistrations(SynchronizedCollection<RegistrationInfo> services)
         {
-            lock (locker)
-            {
-                Registrations = services;
-            }
+            Registrations = services;
         }
 
         public void UpdateModules(SynchronizedCollection<ModuleInfo> currentModules)
         {
-            lock (locker)
-            {
-                Modules = currentModules;
-            }
+            Modules = currentModules;
+
         }
     }
 }
