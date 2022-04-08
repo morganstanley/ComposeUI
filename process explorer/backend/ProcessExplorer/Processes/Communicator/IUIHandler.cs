@@ -15,6 +15,7 @@ public interface IUIHandler
     Task RemoveProcess(int pid);
 
     Task AddRuntimeInfo(ProcessInfoCollectorData dataObject);
+    Task AddRuntimeInfos(IEnumerable<ProcessInfoCollectorData> runtimeInfos);
     Task AddConnections(IEnumerable<ConnectionInfo> connections);
     Task UpdateConnection(ConnectionInfo connection);
     Task UpdateEnvironmentVariables(IEnumerable<KeyValuePair<string,string>> environmentVariables);
