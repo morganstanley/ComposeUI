@@ -161,15 +161,17 @@ namespace ProcessExplorer.Processes
         /// <param name="pid"></param>
         internal void SendNewDataIfPPIDExists(int ppid, int pid)
         {
-            lock (locker)
+
+            if (CheckIfPIDExists(pid))
             {
-                if (CheckIfPIDExists(pid))
+                var bytes = GetBytesFromPPID(ppid);
+                lock (locker)
                 {
-                    var bytes = GetBytesFromPPID(ppid);
                     ProcessIds.AddOrUpdate(pid, bytes, (_, _) => bytes);
-                    SendNewProcess?.Invoke(this, ProcessCreated(Process.GetProcessById(pid)));
                 }
+                SendNewProcess?.Invoke(this, ProcessCreated(Process.GetProcessById(pid)));
             }
+
         }
 
         /// <summary>
