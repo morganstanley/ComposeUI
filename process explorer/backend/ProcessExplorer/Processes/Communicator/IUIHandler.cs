@@ -9,7 +9,7 @@ namespace ProcessExplorer.Processes.Communicator;
 
 public interface IUIHandler
 {
-    Task AddProcesses(IEnumerable<ProcessInfoData>? processes);
+    Task AddProcesses(IEnumerable<ProcessInfoData> processes);
     Task AddProcess(ProcessInfoData process);
     Task UpdateProcess(ProcessInfoData process);
     Task RemoveProcess(int pid);

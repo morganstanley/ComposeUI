@@ -9,24 +9,5 @@ namespace ProcessExplorer.Processes.User
         public bool? IsAdmin { get; internal set; }
         public MachineInfo? MachineInfo { get; internal set; } = default;
         #endregion
-
-        public static AppUserInfo FromProperties(MachineInfo machine, string userName, bool admin = false)
-        {
-            return new AppUserInfo()
-            {
-                UserName = userName,
-                IsAdmin = admin,
-                MachineInfo = machine
-            };
-        }
-        public static AppUserInfo FromProperties(MachineInfo machine, bool admin = false)
-        {
-            return new AppUserInfo()
-            {
-                UserName = Environment.UserName,
-                IsAdmin = admin,
-                MachineInfo = machine
-            };
-        }
     }
 }

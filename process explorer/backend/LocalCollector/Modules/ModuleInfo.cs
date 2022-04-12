@@ -15,7 +15,7 @@ namespace ProcessExplorer.LocalCollector.Modules
         public SynchronizedCollection<CustomAttributeData> Information { get; set; } = new SynchronizedCollection<CustomAttributeData>();
         #endregion
 
-        public static ModuleInfo FromModule(Assembly assembly, Module module)
+        internal static ModuleInfo FromModule(Assembly assembly, Module module)
         {
             string? location;
             try
@@ -33,20 +33,6 @@ namespace ProcessExplorer.LocalCollector.Modules
                 VersionRedirectedFrom = assembly.ManifestModule.ModuleVersionId.ToString(),
                 PublicKeyToken = assembly.GetName().GetPublicKeyToken(),
                 Location = location
-            };
-        }
-
-        public static ModuleInfo FromProperties(string name, Guid version, string versionrf, byte[] publickey,
-            string path, SynchronizedCollection<CustomAttributeData> information)
-        {
-            return new ModuleInfo()
-            {
-                Name = name,
-                Version = version,
-                VersionRedirectedFrom = versionrf,
-                PublicKeyToken = publickey,
-                Location = path,
-                Information = information
             };
         }
     }

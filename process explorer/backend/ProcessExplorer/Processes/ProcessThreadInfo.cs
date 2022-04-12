@@ -15,7 +15,7 @@ namespace ProcessExplorer.Processes
         public TimeSpan? ProcessorUsageTime { get; internal set; }
         public string? WaitReason { get; internal set; }
 
-        public static ProcessThreadInfo FromProcessThread(ProcessThread processThread)
+        internal static ProcessThreadInfo FromProcessThread(ProcessThread processThread)
         {
             var Data = new ProcessThreadInfo();
             try

@@ -9,14 +9,5 @@ namespace ProcessExplorer.LocalCollector.Registrations
         public string? LifeTime { get; set; }
         public string? ServiceType { get; set; }
         #endregion
-        public static RegistrationInfo FromProperties(string implementationType, string serviceType, string lifeTime)
-        {
-            return new RegistrationInfo()
-            {
-                ImplementationType = implementationType,
-                LifeTime = lifeTime,
-                ServiceType = serviceType
-            };
-        }
     }
 }

@@ -82,6 +82,12 @@ namespace ProcessExplorer
         void AddUIConnection(IUIHandler UIHandler);
 
         /// <summary>
+        /// Removes  a UIClient from the collection.
+        /// </summary>
+        /// <param name="UIHandler"></param>
+        void RemoveUIConnection(IUIHandler UIHandler);
+
+        /// <summary>
         /// Adds or updates the connections in the collection.
         /// </summary>
         /// <param name="assemblyId"></param>

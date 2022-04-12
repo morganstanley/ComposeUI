@@ -8,6 +8,7 @@ namespace ProcessExplorer.Processes
         event EventHandler<int> processTerminatedAction;
         event EventHandler<ProcessInfoData> processCreatedAction;
         event EventHandler<ProcessInfoData> processModifiedAction;
+        event EventHandler<SynchronizedCollection<ProcessInfoData>> processesModifiedAction;
 
         SynchronizedCollection<ProcessInfoData>? GetProcesses();
         void KillProcessById(int processId);

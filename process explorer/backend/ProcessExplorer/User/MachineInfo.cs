@@ -17,20 +17,6 @@ namespace ProcessExplorer.Processes.User
         public double? AvailableRAM { get; internal set; }
         #endregion
 
-        public static MachineInfo FromProperties(string machineName, bool isLinux, OperatingSystem system, bool is64BIOS, bool is64BitProcess, long ram, double availableRAM)
-        {
-            return new MachineInfo()
-            {
-                MachineName = machineName,
-                IsUnix = isLinux,
-                OSVersion = system,
-                Is64BitProcess = is64BitProcess,
-                Is64BIOS = is64BIOS,
-                TotalRAM = ram,
-                AvailableRAM = availableRAM,
-            };
-        }
-
         public static MachineInfo FromMachine()
         {
             var Data = new MachineInfo();

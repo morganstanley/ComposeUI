@@ -7,9 +7,9 @@ namespace ProcessExplorer.Processes
 {
     public abstract class ProcessInfoManager
     {
-        public event EventHandler<ProcessInfo>? SendNewProcess;
-        public event EventHandler<int>? SendTerminatedProcess;
-        public event EventHandler<int>? SendModifiedProcess;
+        internal event EventHandler<ProcessInfo>? SendNewProcess;
+        internal event EventHandler<int>? SendTerminatedProcess;
+        internal event EventHandler<int>? SendModifiedProcess;
 
         internal bool SendNewProcessAlreadyAdded = false;
         internal bool SendModifiedProcessAlreadyAdded = false;
@@ -23,68 +23,68 @@ namespace ProcessExplorer.Processes
         /// </summary>
         /// <param name="process"></param>
         /// <returns></returns>
-        public abstract int? GetParentId(Process? process);
+        internal abstract int? GetParentId(Process? process);
 
         /// <summary>
         /// Returns the memory usage (%) of the given process.
         /// </summary>
         /// <param name="process"></param>
         /// <returns></returns>
-        public abstract float GetMemoryUsage(Process process);
+        internal abstract float GetMemoryUsage(Process process);
 
         /// <summary>
         /// Returns the CPU usage (%) of the given process.
         /// </summary>
         /// <param name="process"></param>
         /// <returns></returns>
-        public abstract float GetCPUUsage(Process process);
+        internal abstract float GetCPUUsage(Process process);
 
         /// <summary>
         /// Returns a list, which will contain the child processes of the given process.
         /// </summary>
         /// <param name="process"></param>
         /// <returns></returns>
-        public abstract SynchronizedCollection<ProcessInfoData> GetChildProcesses(Process process);
+        internal abstract SynchronizedCollection<ProcessInfoData> GetChildProcesses(Process process);
 
         /// <summary>
         /// Kills a process by the given process name.
         /// </summary>
         /// <param name="processName"></param>
         /// <returns></returns>
-        public abstract Process? KillProcessByName(string processName);
+        internal abstract Process? KillProcessByName(string processName);
 
         /// <summary>
         /// Kills a process by the given process ID.
         /// </summary>
         /// <param name="processId"></param>
         /// <returns></returns>
-        public abstract Process? KillProcessById(int processId);
+        internal abstract Process? KillProcessById(int processId);
 
         /// <summary>
         /// Creates an event behavior when a related process has been created.
         /// </summary>
         /// <param name="process"></param>
         /// <returns></returns>
-        public ProcessInfo ProcessCreated(Process process)
+        internal ProcessInfo ProcessCreated(Process process)
             => new ProcessInfo(process, this);
 
         /// <summary>
         /// Continuously watching created processes.
         /// </summary>
         /// <param name="processes"></param>
-        public abstract void WatchProcesses(SynchronizedCollection<ProcessInfoData> processes);
+        internal abstract void WatchProcesses(SynchronizedCollection<ProcessInfoData> processes);
 
         /// <summary>
         /// It will add all of the the children to the list which is containing the relevant processes
         /// </summary>
-        public abstract void AddChildProcessesToList();
+        internal abstract void AddChildProcessesToList();
 
         /// <summary>
         /// Creates a list, containing the process ids, which are running under the main process.
         /// </summary>
         /// <param name="processes"></param>
         /// <returns></returns>
-        public ConcurrentDictionary<int, byte[]> GetProcessIds(SynchronizedCollection<ProcessInfoData> processes)
+        internal ConcurrentDictionary<int, byte[]> GetProcessIds(SynchronizedCollection<ProcessInfoData> processes)
         {
             ConcurrentDictionary<int, byte[]> list = new ConcurrentDictionary<int, byte[]>();
             lock (locker)
@@ -124,7 +124,7 @@ namespace ProcessExplorer.Processes
         /// </summary>
         /// <param name="process"></param>
         /// <returns></returns>
-        public bool IsComposeProcess(object process)
+        internal bool IsComposeProcess(object process)
         {
             try
             {
@@ -182,8 +182,12 @@ namespace ProcessExplorer.Processes
         private byte[] GetBytesFromPPID(int ppid)
         {
             var bytes = BitConverter.GetBytes(ppid);
+
             if (BitConverter.IsLittleEndian)
+            {
                 Array.Reverse(bytes);
+            }
+                
             return bytes;
         }
 

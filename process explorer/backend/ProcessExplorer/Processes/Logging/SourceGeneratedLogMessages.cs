@@ -56,10 +56,13 @@ namespace ProcessExplorer.Processes.Logging
         [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "Couldn't read the event of the process. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
         static partial void ManagementObjectWatchEvent(ILogger logger, string exception);
 
+        [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "A UIHandler is removed from the collection", SkipEnabledCheck = true)]
+        static partial void UICommunicatorIsRemoved(ILogger logger);
+
         [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Cannot find an element with PID `{pid}` in the current process list. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
         static partial void CannotFindElement(ILogger logger, int pid, string exception);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Cannot find an element with PID `{pid}` or the communicator has benn not set properly. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
+        [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Cannot find an element with PID `{pid}` or the communicator has been not set properly. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
         static partial void CouldNotFoundModifiableProcess(ILogger logger, int pid, string exception);
 
         [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Cannot convert object `{pid}` to Integer32. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
@@ -251,6 +254,14 @@ namespace ProcessExplorer.Processes.Logging
             if (logger.IsEnabled(LogLevel.Information))
             {
                 ProcessTerminated(logger, pid);
+            }
+        }
+
+        internal static void UICommunicatorIsRemovedDebug(this ILogger logger)
+        {
+            if (logger.IsEnabled(LogLevel.Debug))
+            {
+                UICommunicatorIsRemoved(logger);
             }
         }
 

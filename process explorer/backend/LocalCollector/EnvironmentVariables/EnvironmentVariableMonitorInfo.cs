@@ -18,7 +18,9 @@ namespace ProcessExplorer.LocalCollector.EnvironmentVariables
                 var itemV = item.Value?.ToString();
                 var itemK = item.Key?.ToString();
                 if (itemV != default && itemK != default)
+                {
                     envs.EnvironmentVariables.AddOrUpdate(itemK, itemV, (_, _) => itemV);
+                }
             }
 
             return envs;
