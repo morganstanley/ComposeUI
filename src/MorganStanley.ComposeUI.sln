@@ -1,9 +1,21 @@
-﻿# Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31410.357
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalCollector", "LocalCollector\LocalCollector.csproj", "{34C7F0B5-1FB0-40D3-83A1-632DBAF86D17}"
+EndProject
 Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{34C7F0B5-1FB0-40D3-83A1-632DBAF86D17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34C7F0B5-1FB0-40D3-83A1-632DBAF86D17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34C7F0B5-1FB0-40D3-83A1-632DBAF86D17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34C7F0B5-1FB0-40D3-83A1-632DBAF86D17}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
