@@ -4,11 +4,34 @@ namespace ProcessExplorer.LocalCollector.Connections.Interfaces
 {
     public interface IConnectionMonitor
     {
+        /// <summary>
+        /// Contains the information of the relevant connections.
+        /// </summary>
         ConnectionMonitorInfo Data { get; internal set; }
 
+        /// <summary>
+        /// Adds a connection to the collection.
+        /// </summary>
+        /// <param name="connectionInfo"></param>
         void AddConnection(ConnectionInfo connectionInfo);
+
+        /// <summary>
+        /// Adds elements or updates the elements of the collection.
+        /// </summary>
+        /// <param name="connections"></param>
         void AddConnections(SynchronizedCollection<ConnectionInfo> connections);
+
+        /// <summary>
+        /// Updates a connection in the collection.
+        /// </summary>
+        /// <param name="connId"></param>
+        /// <param name="status"></param>
         void UpdateConnection(Guid connId, ConnectionStatus status);
+
+        /// <summary>
+        /// Removes a connection from the list.
+        /// </summary>
+        /// <param name="connectionInfo"></param>
         void RemoveConnection(ConnectionInfo connectionInfo);
     }
 }

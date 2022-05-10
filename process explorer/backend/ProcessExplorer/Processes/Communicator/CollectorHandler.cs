@@ -3,7 +3,6 @@
 using ProcessExplorer.LocalCollector;
 using ProcessExplorer.LocalCollector.Communicator;
 using ProcessExplorer.LocalCollector.Connections;
-using ProcessExplorer.LocalCollector.EnvironmentVariables;
 using ProcessExplorer.LocalCollector.Modules;
 using ProcessExplorer.LocalCollector.Registrations;
 
@@ -28,7 +27,7 @@ public class CollectorHandler : ICommunicator
         await aggregator.AddInformation(assemblyId.Name, dataObject);
     }
 
-    public async Task AddConnectionCollection(AssemblyInformation assemblyId, SynchronizedCollection<ConnectionInfo> connections)
+    public async Task AddConnectionCollection(AssemblyInformation assemblyId, IEnumerable<ConnectionInfo> connections)
     {
         await aggregator.AddConnectionCollection(assemblyId.Name, connections);
     }
@@ -38,17 +37,17 @@ public class CollectorHandler : ICommunicator
         await aggregator.UpdateConnectionInfo(assemblyId.Name, connection);
     }
 
-    public async Task UpdateEnvironmentVariableInformation(AssemblyInformation assemblyId, EnvironmentMonitorInfo environmentVariables)
+    public async Task UpdateEnvironmentVariableInformation(AssemblyInformation assemblyId, IEnumerable<KeyValuePair<string,string>> environmentVariables)
     {
         await aggregator.UpdateEnvironmentVariablesInfo(assemblyId.Name, environmentVariables);
     }
 
-    public async Task UpdateRegistrationInformation(AssemblyInformation assemblyId, RegistrationMonitorInfo registrations)
+    public async Task UpdateRegistrationInformation(AssemblyInformation assemblyId, IEnumerable<RegistrationInfo> registrations)
     {
         await aggregator.UpdateRegistrationInfo(assemblyId.Name, registrations);
     }
 
-    public async Task UpdateModuleInformation(AssemblyInformation assemblyId, ModuleMonitorInfo modules)
+    public async Task UpdateModuleInformation(AssemblyInformation assemblyId, IEnumerable<ModuleInfo> modules)
     {
         await aggregator.UpdateModuleInfo(assemblyId.Name, modules);
     }

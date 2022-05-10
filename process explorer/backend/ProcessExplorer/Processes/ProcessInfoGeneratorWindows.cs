@@ -2,6 +2,7 @@
 
 using Microsoft.Extensions.Logging;
 using ProcessExplorer.Processes.Logging;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Management;
 
@@ -11,7 +12,8 @@ namespace ProcessExplorer.Processes
     public class ProcessInfoGeneratorWindows : ProcessInfoManager
     {
         private readonly ILogger<ProcessInfoGeneratorWindows>? logger;
-
+        private ConcurrentDictionary<int, PerformanceCounter> cpuPerformanceCounters = new ConcurrentDictionary<int, PerformanceCounter>();
+        private ConcurrentDictionary<int, PerformanceCounter> memoryPerformanceCounters = new ConcurrentDictionary<int, PerformanceCounter>();
         public ProcessInfoGeneratorWindows(ILogger<ProcessInfoGeneratorWindows>? logger)
         {
             this.logger = logger;
@@ -58,13 +60,16 @@ namespace ProcessExplorer.Processes
         internal override float GetMemoryUsage(Process process)
         {
             int memsize;
-            PerformanceCounter PC = new PerformanceCounter();
-            PC.CategoryName = "Process";
-            PC.CounterName = "Working Set - Private";
-            PC.InstanceName = process.ProcessName;
-            memsize = Convert.ToInt32(PC.NextValue()) / Convert.ToInt32(1024) / Convert.ToInt32(1024);
-            PC.Close();
-            PC.Dispose();
+            
+            if(!memoryPerformanceCounters.TryGetValue(process.Id, out var perf))
+            {
+                perf = new PerformanceCounter();
+                perf.CategoryName = "Process";
+                perf.CounterName = "Working Set - Private";
+                perf.InstanceName = process.ProcessName;
+                memoryPerformanceCounters[process.Id] = perf;
+            }
+            memsize = Convert.ToInt32(perf.NextValue()) / Convert.ToInt32(1024) / Convert.ToInt32(1024);
             return (float)((memsize / GetTotalMemoryInMB()) * 100);
         }
 
@@ -77,14 +82,15 @@ namespace ProcessExplorer.Processes
 
         internal override float GetCPUUsage(Process process)
         {
-            PerformanceCounter? cpuProcess = new PerformanceCounter("Process", "% Processor Time", process.ProcessName, true);
-            cpuProcess.NextValue();
-            float processCpuUsage = 0;
-
-            while(processCpuUsage == 0)
+            if(!cpuPerformanceCounters.TryGetValue(process.Id, out var performanceCounter))
             {
-                processCpuUsage = cpuProcess.NextValue();
+                performanceCounter = new PerformanceCounter("Process", "% Processor Time", process.ProcessName, true);
+                cpuPerformanceCounters[process.Id] = performanceCounter;
             }
+            
+            float processCpuUsage;
+            processCpuUsage = performanceCounter.NextValue();
+
             return processCpuUsage / Environment.ProcessorCount;
         }
 
@@ -93,6 +99,7 @@ namespace ProcessExplorer.Processes
             SynchronizedCollection<ProcessInfoData> children = new SynchronizedCollection<ProcessInfoData>();
             ManagementObjectSearcher mos = new ManagementObjectSearcher(
                 string.Format("Select * From Win32_Process Where ParentProcessID={0} Or ProcessID={0}", process.Id));
+
             foreach (var o in mos.Get())
             {
                 var mo = (ManagementObject)o;
@@ -186,6 +193,12 @@ namespace ProcessExplorer.Processes
                             break;
 
                         case "__InstanceDeletionEvent":
+                            cpuPerformanceCounters.TryRemove(pid, out var cpuPerf);
+                            cpuPerf?.Close();
+                            cpuPerf?.Dispose();
+                            memoryPerformanceCounters.TryRemove(pid, out var memoryPerf);
+                            memoryPerf?.Close();
+                            memoryPerf?.Dispose();
                             SendDeletedDataPIDToCheckAsync(pid);
                             break;
 

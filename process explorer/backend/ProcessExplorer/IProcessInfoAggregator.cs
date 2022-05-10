@@ -5,7 +5,6 @@ using System.Collections.Concurrent;
 using ProcessExplorer.LocalCollector;
 using ProcessExplorer.Processes.Communicator;
 using ProcessExplorer.LocalCollector.Connections;
-using ProcessExplorer.LocalCollector.EnvironmentVariables;
 using ProcessExplorer.LocalCollector.Registrations;
 using ProcessExplorer.LocalCollector.Modules;
 
@@ -57,13 +56,13 @@ namespace ProcessExplorer
         /// Reinitialized the list containing the current, relevant processes
         /// </summary>
         /// <returns>A collection</returns>
-        SynchronizedCollection<ProcessInfoData>? RefreshProcessList();
+        IEnumerable<ProcessInfoData>? RefreshProcessList();
 
         /// <summary>
         /// Returns the list containing the processes.
         /// </summary>
         /// <returns></returns>
-        SynchronizedCollection<ProcessInfoData>? GetProcesses();
+        IEnumerable<ProcessInfoData>? GetProcesses();
 
         /// <summary>
         /// Initializes the Process Monitor and fills the list -containing the related processes.
@@ -92,7 +91,7 @@ namespace ProcessExplorer
         /// </summary>
         /// <param name="assemblyId"></param>
         /// <param name="connections"></param>
-        Task AddConnectionCollection(string assemblyId, SynchronizedCollection<ConnectionInfo> connections);
+        Task AddConnectionCollection(string assemblyId, IEnumerable<ConnectionInfo> connections);
 
         /// <summary>
         /// Updates a connection.
@@ -106,21 +105,21 @@ namespace ProcessExplorer
         /// </summary>
         /// <param name="assemblyId"></param>
         /// <param name="environmentVariables"></param>
-        Task UpdateEnvironmentVariablesInfo(string assemblyId, EnvironmentMonitorInfo environmentVariables);
+        Task UpdateEnvironmentVariablesInfo(string assemblyId, IEnumerable<KeyValuePair<string,string>> environmentVariables);
 
         /// <summary>
         /// Updates the registrations in the collection.
         /// </summary>
         /// <param name="assemblyId"></param>
         /// <param name="registrations"></param>
-        Task UpdateRegistrationInfo(string assemblyId, RegistrationMonitorInfo registrations);
+        Task UpdateRegistrationInfo(string assemblyId, IEnumerable<RegistrationInfo> registrations);
 
         /// <summary>
         /// Updates the modules in the collection.
         /// </summary>
         /// <param name="assemblyId"></param>
         /// <param name="modules"></param>
-        Task UpdateModuleInfo(string assemblyId, ModuleMonitorInfo modules);
+        Task UpdateModuleInfo(string assemblyId, IEnumerable<ModuleInfo> modules);
         #endregion
     }
 }

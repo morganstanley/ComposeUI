@@ -7,7 +7,6 @@ using ProcessExplorer.LocalCollector;
 using ProcessExplorer.Processes.Communicator;
 using ProcessExplorer.Processes.Logging;
 using ProcessExplorer.LocalCollector.Connections;
-using ProcessExplorer.LocalCollector.EnvironmentVariables;
 using ProcessExplorer.LocalCollector.Registrations;
 using ProcessExplorer.LocalCollector.Modules;
 
@@ -46,16 +45,10 @@ namespace ProcessExplorer
         public async Task AddInformation(string assemblyId, ProcessInfoCollectorData processInfo)
         {
             lock (informationLocker)
-                Information?.AddOrUpdate(assemblyId, processInfo, (_, _) => processInfo);
-
-            SynchronizedCollection<IUIHandler> UIHandlersCopy = CreateCopyOfClients();
-
-            foreach (var uiClient in UIHandlersCopy)
             {
-                await uiClient.AddRuntimeInfo(processInfo);
-                if (Information is not null)
-                    await uiClient.AddRuntimeInfos(Information.Values);
+                Information?.AddOrUpdate(assemblyId, processInfo, (_, _) => processInfo);
             }
+            await UpdateInfoOnUI(processInfo);
         }
 
         public void RemoveAInfoAggregatorInformation(string assembly)
@@ -67,10 +60,10 @@ namespace ProcessExplorer
         public void SetComposePID(int pid)
             => ProcessMonitor.SetComposePID(pid);
 
-        public SynchronizedCollection<ProcessInfoData>? RefreshProcessList()
+        public IEnumerable<ProcessInfoData>? RefreshProcessList()
             => ProcessMonitor.GetProcesses();
 
-        public SynchronizedCollection<ProcessInfoData>? GetProcesses()
+        public IEnumerable<ProcessInfoData>? GetProcesses()
             => ProcessMonitor.GetProcesses();
 
         public void InitProcessExplorer()
@@ -177,14 +170,13 @@ namespace ProcessExplorer
             }
         }
 
-        public async Task AddConnectionCollection(string assemblyId, SynchronizedCollection<ConnectionInfo> connections)
+        public async Task AddConnectionCollection(string assemblyId, IEnumerable<ConnectionInfo> connections)
         {
             ProcessInfoCollectorData? data = GetDataToModify(assemblyId);
             if (data is not null)
             {
                 try
                 {
-
                     data.AddOrUpdateConnections(connections);
                     UpdateProcessInfoCollectorData(assemblyId, data);
                 }
@@ -193,12 +185,7 @@ namespace ProcessExplorer
                 {
                     logger?.ConnectionCollectionCannotBeAddedError(exception);
                 }
-
-                SynchronizedCollection<IUIHandler> UIHandlersCopy = CreateCopyOfClients();
-                foreach (var uiClient in UIHandlersCopy)
-                {
-                    await uiClient.AddConnections(connections);
-                }
+                await UpdateInfoOnUI(connections);
             }
         }
 
@@ -216,81 +203,111 @@ namespace ProcessExplorer
                 {
                     logger?.ConnectionCannotBeUpdatedError(exception);
                 }
-
-                SynchronizedCollection<IUIHandler> UIHandlersCopy = CreateCopyOfClients();
-                foreach (var uiClient in UIHandlersCopy)
-                {
-                    await uiClient.UpdateConnection(connectionInfo);
-                }
+                await UpdateInfoOnUI(connectionInfo);
             }
         }
 
-        public async Task UpdateEnvironmentVariablesInfo(string assemblyId, EnvironmentMonitorInfo environmentVariables)
+        public async Task UpdateEnvironmentVariablesInfo(string assemblyId, IEnumerable<KeyValuePair<string, string>> environmentVariables)
         {
             ProcessInfoCollectorData? data = GetDataToModify(assemblyId);
             if (data is not null)
             {
                 try
                 {
-                    data.UpdateEnvironmentVariables(environmentVariables.EnvironmentVariables);
+                    data.UpdateEnvironmentVariables(environmentVariables);
                     UpdateProcessInfoCollectorData(assemblyId, data);
                 }
                 catch (Exception exception)
                 {
                     logger?.EnvironmentVariablesCannotBeUpdatedError(exception);
                 }
-
-                SynchronizedCollection<IUIHandler> UIHandlersCopy = CreateCopyOfClients();
-                foreach (var uiClient in UIHandlersCopy)
-                {
-                    await uiClient.UpdateEnvironmentVariables(environmentVariables.EnvironmentVariables);
-                }
+                await UpdateInfoOnUI(environmentVariables);
             }
         }
 
-        public async Task UpdateRegistrationInfo(string assemblyId, RegistrationMonitorInfo registrations)
+        public async Task UpdateRegistrationInfo(string assemblyId, IEnumerable<RegistrationInfo> registrations)
         {
             ProcessInfoCollectorData? data = GetDataToModify(assemblyId);
             if (data is not null)
             {
                 try
                 {
-                    data.UpdateRegistrations(registrations.Services);
+                    data.UpdateRegistrations(registrations);
                     UpdateProcessInfoCollectorData(assemblyId, data);
                 }
                 catch (Exception exception)
                 {
                     logger?.RegistrationsCannotBeUpdatedError(exception);
                 }
-
-                SynchronizedCollection<IUIHandler> UIHandlersCopy = CreateCopyOfClients();
-                foreach (var uiClient in UIHandlersCopy)
-                {
-                    await uiClient.UpdateRegistrations(registrations.Services);
-                }
+                await UpdateInfoOnUI(registrations);
             }
         }
 
-        public async Task UpdateModuleInfo(string assemblyId, ModuleMonitorInfo modules)
+        public async Task UpdateModuleInfo(string assemblyId, IEnumerable<ModuleInfo> modules)
         {
             ProcessInfoCollectorData? data = GetDataToModify(assemblyId);
             if (data is not null)
             {
                 try
                 {
-                    data.UpdateModules(modules.CurrentModules);
+                    data.UpdateModules(modules);
                     UpdateProcessInfoCollectorData(assemblyId, data);
                 }
                 catch (Exception exception)
                 {
                     logger?.ModulesCannotBeUpdatedError(exception);
                 }
+                await UpdateInfoOnUI(modules);
+            }
+        }
 
-                SynchronizedCollection<IUIHandler> UIHandlersCopy = CreateCopyOfClients();
-                foreach (var uiClient in UIHandlersCopy)
-                {
-                    await uiClient.UpdateModules(modules.CurrentModules);
-                }
+        private async Task NotifyUI(IUIHandler handler, dynamic collectionOrObjectToTransform)
+        {
+            if (CastTo<ProcessInfoCollectorData>(collectionOrObjectToTransform) is not null)
+            {
+                await handler.AddRuntimeInfo(CastTo<ProcessInfoCollectorData>(collectionOrObjectToTransform));
+            }
+            else if (CastTo<IEnumerable<ModuleInfo>>(collectionOrObjectToTransform) is not null)
+            {
+                await handler.UpdateModules(CastTo<IEnumerable<ModuleInfo>>(collectionOrObjectToTransform));
+            }
+            else if (CastTo<IEnumerable<RegistrationInfo>>(collectionOrObjectToTransform) is not null)
+            {
+                await handler.UpdateRegistrations(CastTo<IEnumerable<RegistrationInfo>>(collectionOrObjectToTransform));
+            }
+            else if (CastTo<IEnumerable<ConnectionInfo>>(collectionOrObjectToTransform) is not null)
+            {
+                await handler.AddConnections(CastTo<IEnumerable<ConnectionInfo>>(collectionOrObjectToTransform));
+            }
+            else if (CastTo<ConnectionInfo>(collectionOrObjectToTransform) is not null)
+            {
+                await handler.UpdateConnection(CastTo<ConnectionInfo>(collectionOrObjectToTransform));
+            }
+            else if (CastTo<IEnumerable<KeyValuePair<string, string>>>(collectionOrObjectToTransform) is not null)
+            {
+                await handler.UpdateEnvironmentVariables(CastTo<IEnumerable<KeyValuePair<string, string>>>(collectionOrObjectToTransform));
+            }
+        }
+
+        private async Task UpdateInfoOnUI(object changedElement)
+        {
+            SynchronizedCollection<IUIHandler> UIHandlersCopy = CreateCopyOfClients();
+            foreach (var uiClient in UIHandlersCopy)
+            {
+                await NotifyUI(uiClient, changedElement);
+            }
+        }
+
+        private T? CastTo<T>(dynamic objectToConvert)
+        {
+            try
+            {
+                T element = (T)objectToConvert;
+                return element;
+            }
+            catch
+            {
+                return default(T);
             }
         }
     }
