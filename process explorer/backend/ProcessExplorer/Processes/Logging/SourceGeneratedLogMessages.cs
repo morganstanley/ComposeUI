@@ -20,7 +20,7 @@ namespace ProcessExplorer.Processes.Logging
         [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "A process with PID: `{pid}` is modified", SkipEnabledCheck = true)]
         static partial void ProcessModified(ILogger logger, int pid);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Warning, Message = "The process `{pid}` is not exist in the ProcessMonitor list", SkipEnabledCheck = true)]
+        [LoggerMessage(EventId = 3, Level = LogLevel.Warning, Message = "The process `{pid}` does not exist in the ProcessMonitor list", SkipEnabledCheck = true)]
         static partial void ProcessNotFound(ILogger logger, int pid);
 
         [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "Couldn't find the PPID for the PID `{pid}`. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
@@ -68,13 +68,13 @@ namespace ProcessExplorer.Processes.Logging
         [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Cannot convert object `{pid}` to Integer32. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
         static partial void CouldNotConvertToInt(ILogger logger, string pid, string exception);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Nor PID is not exists: `{pid}` or the process list is not exists. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
+        [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Nor PID does not exists: `{pid}` or the process list does not exists. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
         static partial void PIDNotExists(ILogger logger, int pid, string exception);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Index does not exists for the PID: `{pid}` or the process list is not exists. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
+        [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Index does not exists for the PID: `{pid}` or the process list does not exists. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
         static partial void IndexDoesNotExists(ILogger logger, int pid, string exception);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Cannot terminate process or the process is not exists in the current context. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
+        [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Cannot terminate process or the process does not exists in the current context. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
         static partial void CannotKillProcess(ILogger logger, string exception);
 
         [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Error while initializing list. The main process might be deleted. Detailed exception: `{exception}`", SkipEnabledCheck = true)]

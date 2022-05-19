@@ -290,7 +290,6 @@ namespace ProcessExplorer.Processes
                 {
                     logger?.ProcessTerminatedInformation(pid);
                     ModifyStatus(item);
-                    processTerminatedAction.Invoke(this, pid);
                     RemoveAfterTimeout(item);
                     return true;
                 }
@@ -335,6 +334,7 @@ namespace ProcessExplorer.Processes
                 {
                     Data.Processes.Remove(item);
                     processesModifiedAction.Invoke(this, Data.Processes);
+                    processTerminatedAction.Invoke(this, Convert.ToInt32(item.PID));
                 }
             });
         }

@@ -23,30 +23,7 @@ namespace ProcessExplorer.LocalCollector
 
         public void AddOrUpdateConnections(IEnumerable<ConnectionInfo> connections)
         {
-            int numberOfElements = connections.Count();
-            if (numberOfElements > 0)
-            {
-                lock (locker)
-                {
-                    foreach (var conn in connections)
-                    {
-                        if (conn is not null)
-                        {
-                            var element = Connections.FirstOrDefault(c => c.Id == conn.Id);
-                            var index = Connections.IndexOf(conn);
-
-                            if (element is not null && index >= 0)
-                            {
-                                Connections[index] = conn;
-                            }
-                            else
-                            {
-                                Connections.Add(conn);
-                            }
-                        }
-                    }
-                }
-            }
+            UpdateOrAdd(connections, Connections, (item) => c => c.Id == item.Id);
         }
 
         public void UpdateConnection(ConnectionInfo connection)
@@ -71,47 +48,36 @@ namespace ProcessExplorer.LocalCollector
 
         public void UpdateRegistrations(IEnumerable<RegistrationInfo> services)
         {
-            foreach (var item in services)
-            {
-                int index;
-                if(item is not null)
-                {
-                    var possibleItem = Registrations
-                    .FirstOrDefault(reg => reg.ImplementationType == item.ImplementationType &&
+            UpdateOrAdd(services, Registrations, (item) => reg => reg.ImplementationType == item.ImplementationType &&
                     reg.ServiceType == item.ServiceType && reg.LifeTime == item.LifeTime);
-
-                    if (possibleItem is not null)
-                    {
-                        index = Registrations.IndexOf(possibleItem);
-
-                        if (index >= 0)
-                        {
-                            Registrations[index] = item;
-                        }
-                        else
-                        {
-                            Registrations.Add(item);
-                        }
-                    }
-                }  
-            }
         }
 
         public void UpdateModules(IEnumerable<ModuleInfo> currentModules)
         {
-            foreach (var item in currentModules)
+            UpdateOrAdd(currentModules, Modules, (item) => (item2) => item.Name == item2.Name && item.PublicKeyToken == item2.PublicKeyToken);
+        }
+
+        private void UpdateOrAdd<T>(IEnumerable<T> source, SynchronizedCollection<T> target, Func<T, Func<T, bool>> predicate)
+        {
+            if (source.Any())
             {
-                var possibleItem = Modules.FirstOrDefault(mod => mod.Name == item.Name && mod.PublicKeyToken == item.PublicKeyToken);
-                if(possibleItem is not null)
+                lock (locker)
                 {
-                    int index = Modules.IndexOf(possibleItem);
-                    if (index >= 0)
+                    foreach (var item in source)
                     {
-                        Modules[index] = item;
-                    }
-                    else
-                    {
-                        Modules.Add(item);
+                        var element = target.FirstOrDefault(predicate(item));
+                        if (element is not null)
+                        {
+                            var index = target.IndexOf(element);
+                            if (index >= 0)
+                            {
+                                target[index] = item;
+                            }
+                            else
+                            {
+                                target.Add(item);
+                            }
+                        }
                     }
                 }
             }
