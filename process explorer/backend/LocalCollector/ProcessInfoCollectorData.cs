@@ -14,7 +14,6 @@ namespace ProcessExplorer.LocalCollector
         public int Id { get; set; } = Process.GetCurrentProcess().Id;
         public SynchronizedCollection<RegistrationInfo> Registrations { get; set; } = new SynchronizedCollection<RegistrationInfo>();
         public ConcurrentDictionary<string, string> EnvironmentVariables { get; set; } = EnvironmentMonitorInfo.FromEnvironment().EnvironmentVariables;
-
         public SynchronizedCollection<ConnectionInfo> Connections { get; set; } =
             new SynchronizedCollection<ConnectionInfo>();
         public SynchronizedCollection<ModuleInfo> Modules { get; set; } = ModuleMonitorInfo.FromAssembly().CurrentModules;
