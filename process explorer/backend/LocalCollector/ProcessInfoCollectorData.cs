@@ -21,37 +21,9 @@ namespace ProcessExplorer.LocalCollector
 
         private readonly object locker = new object();
 
-        public void AddOrUpdateConnections(SynchronizedCollection<ConnectionInfo> connections)
+        public void AddOrUpdateConnections(IEnumerable<ConnectionInfo> connections)
         {
-            if (connections.Count > 0)
-            {
-                lock (locker)
-                {
-                    foreach (var conn in connections)
-                    {
-                        if (conn is not null)
-                        {
-                            var element = Connections.FirstOrDefault(c => c.Id == conn.Id);
-                            if (element is not null)
-                            {
-                                var index = Connections.IndexOf(conn);
-                                if (index >= 0)
-                                {
-                                    Connections[index] = conn;
-                                }
-                                else
-                                {
-                                    Connections.Add(conn);
-                                }
-                            }
-                            else
-                            {
-                                Connections.Add(conn);
-                            }
-                        }
-                    }
-                }
-            }
+            UpdateOrAdd(connections, Connections, (item) => c => c.Id == item.Id);
         }
 
         public void UpdateConnection(ConnectionInfo connection)
@@ -66,20 +38,49 @@ namespace ProcessExplorer.LocalCollector
             }
         }
 
-        public void UpdateEnvironmentVariables(ConcurrentDictionary<string, string> envs)
+        public void UpdateEnvironmentVariables(IEnumerable<KeyValuePair<string, string>> envs)
         {
-            EnvironmentVariables = envs;
+            foreach (var item in envs)
+            {
+                EnvironmentVariables.AddOrUpdate(item.Key, item.Value, (_, _) => item.Value);
+            }
         }
 
-        public void UpdateRegistrations(SynchronizedCollection<RegistrationInfo> services)
+        public void UpdateRegistrations(IEnumerable<RegistrationInfo> services)
         {
-            Registrations = services;
+            UpdateOrAdd(services, Registrations, (item) => reg => reg.ImplementationType == item.ImplementationType &&
+                    reg.ServiceType == item.ServiceType && reg.LifeTime == item.LifeTime);
         }
 
-        public void UpdateModules(SynchronizedCollection<ModuleInfo> currentModules)
+        public void UpdateModules(IEnumerable<ModuleInfo> currentModules)
         {
-            Modules = currentModules;
+            UpdateOrAdd(currentModules, Modules, (item) => (item2) => item.Name == item2.Name && item.PublicKeyToken == item2.PublicKeyToken);
+        }
 
+        private void UpdateOrAdd<T>(IEnumerable<T> source, SynchronizedCollection<T> target, Func<T, Func<T, bool>> predicate)
+        {
+            if (source.Any())
+            {
+                lock (locker)
+                {
+                    foreach (var item in source)
+                    {
+                        var element = target.FirstOrDefault(predicate(item));
+                        if (element is not null)
+                        {
+                            var index = target.IndexOf(element);
+                            if (index >= 0)
+                            {
+                                target[index] = item;
+                            }
+                            else
+                            {
+                                target.Add(item);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
