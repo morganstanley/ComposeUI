@@ -340,9 +340,14 @@ namespace ProcessExplorer.Processes
                 await Task.Delay(DelayTime);
                 lock (locker)
                 {
-                    Data.Processes.Remove(item);
-                    processesModifiedAction.Invoke(this, Data.Processes);
-                    processTerminatedAction.Invoke(this, Convert.ToInt32(item.PID));
+                    var element = Data.Processes.FirstOrDefault(proc => proc.PID == item.PID);
+                    if (element is not null)
+                    {
+                        var index = Data.Processes.IndexOf(element);
+                        Data.Processes.RemoveAt(index);
+                        processesModifiedAction.Invoke(this, Data.Processes);
+                        processTerminatedAction.Invoke(this, Convert.ToInt32(item.PID));
+                    }
                 }
             });
         }

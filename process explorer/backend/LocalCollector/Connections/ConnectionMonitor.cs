@@ -39,25 +39,33 @@ namespace ProcessExplorer.LocalCollector.Connections
         {
             lock (locker)
             {
-                Data.Connections.Remove(connectionInfo);
+                var element = Data.Connections.FirstOrDefault(x => x.Id == connectionInfo.Id);
+                if (element != null)
+                {
+                    var index = Data.Connections.IndexOf(element);
+                    Data.Connections.RemoveAt(index);
+                }
             }
         }
 
         public void AddConnections(SynchronizedCollection<ConnectionInfo> connections)
         {
-            foreach (var conn in connections)
+            lock (locker)
             {
-                lock (locker)
+                foreach (var conn in connections)
                 {
                     var element = Data.Connections.FirstOrDefault(item => item.Id == conn.Id);
-                    var index = Data.Connections.IndexOf(conn);
-                    if (index != -1)
+                    if(element is not null)
                     {
-                        Data.Connections[index] = conn;
-                    }
-                    else
-                    {
-                        Data.Connections.Add(conn);
+                        var index = Data.Connections.IndexOf(element);
+                        if (index != -1)
+                        {
+                            Data.Connections[index] = conn;
+                        }
+                        else
+                        {
+                            Data.Connections.Add(conn);
+                        }
                     }
                 }
             }
