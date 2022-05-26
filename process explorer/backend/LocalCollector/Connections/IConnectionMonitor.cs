@@ -10,6 +10,11 @@ namespace ProcessExplorer.LocalCollector.Connections.Interfaces
         ConnectionMonitorInfo Data { get; internal set; }
 
         /// <summary>
+        /// Event for status change of a connection.
+        /// </summary>
+        event EventHandler<ConnectionInfo>? ConnectionStatusChanged;
+
+        /// <summary>
         /// Adds a connection to the collection.
         /// </summary>
         /// <param name="connectionInfo"></param>

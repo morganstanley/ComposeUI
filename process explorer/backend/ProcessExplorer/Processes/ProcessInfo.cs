@@ -24,7 +24,6 @@ namespace ProcessExplorer.Processes
         internal ProcessInfo(int processId, ProcessInfoManager manager)
             : this(Process.GetProcessById(processId), manager)
         {
-
         }
 
         internal ProcessInfo(Process process, ProcessInfoManager manager)
