@@ -26,6 +26,7 @@ The Messaging API is a high level, object based communication API with the follo
     * `Task UnsubscribeAsync(string topic)`
 * Provides a request-response type service calls
     * `Task RegisterQueryResponderAsync<TResult>(string serviceId, IServiceResponder<TResult> responder)`
+    * `Task UnregisterQueryResponderAsync<TResult>(string serviceId)`
     * `Task<TResult> QueryAsync(string serviceId, IServiceParams params)`
 * Provides a way to swap out the default serialization and channel implementations
     * `void SetMessageSerializer(ISerializer serializer)`
