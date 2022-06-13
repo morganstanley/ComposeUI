@@ -21,15 +21,15 @@ The Message Router should be divided into three layers:
 The Messaging API is a high level, object based communication API with the following features.
 
 * Provides a publish-subscribe communication API
-    * `Task Publish<TMessage>(string topic, TMessage message)`
-    * `Task<IObservable<TMessage>> Subscribe<TMessage>(string topic)`
-    * `UnSubscribe(string topic)`
+    * `Task PublishAsync<TMessage>(string topic, TMessage message)`
+    * `Task<IObservable<TMessage>> SubscribeAsync<TMessage>(string topic)`
+    * `Task UnsubscribeAsync(string topic)`
 * Provides a request-response type service calls
-    * `Task RegisterQueryService<TResult>(string serviceId, IServiceHandler<TResult> handler)`
-    * `Task<TResult> Query(string serviceId, IServiceParams params)`
+    * `Task RegisterQueryResponderAsync<TResult>(string serviceId, IServiceResponder<TResult> responder)`
+    * `Task<TResult> QueryAsync(string serviceId, IServiceParams params)`
 * Provides a way to swap out the default serialization and channel implementations
-    * `SetMessageSerializer(ISerializer serializer)`
-    * `SetMessageChannel(IChannel channel)`
+    * `void SetMessageSerializer(ISerializer serializer)`
+    * `void SetMessageChannel(IChannel channel)`
 
 ### Serialization API
 
@@ -46,10 +46,10 @@ but the serializer converts the whole message object that the higher level messa
 
 The channel API provides the functionality to send and receive packages asynchronously.
 
-* `Task Connect()`
+* `Task ConnectAsync()`
 * `Task SendAsync(ReadOnlyMemory<byte> package)`
 * `Task<ReadOnlyMemory<byte>> ReceiveAsync()`
-* `Task Disconnect()`
+* `Task DisconnectAsync()`
 
 ## Status
 
