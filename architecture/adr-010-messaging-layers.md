@@ -22,8 +22,8 @@ The Messaging API is a high level, object based communication API with the follo
 
 * Provides a publish-subscribe communication API
     * `Task PublishAsync<TMessage>(string topic, TMessage message)`
-    * `Task<IObservable<TMessage>> SubscribeAsync<TMessage>(string topic)`
-    * `Task UnsubscribeAsync(string topic)`
+    * `Task SubscribeAsync<TMessage>(string topic, Action<RouterMessage<TMessage>> handler)`
+    * `Task UnsubscribeAsync(string topic, Action<RouterMessage<TMessage>> handler)`
 * Provides a request-response type service calls
     * `Task RegisterQueryResponderAsync<TResult>(string serviceId, IServiceResponder<TResult> responder)`
     * `Task UnregisterQueryResponderAsync<TResult>(string serviceId)`
@@ -31,6 +31,8 @@ The Messaging API is a high level, object based communication API with the follo
 * Provides a way to swap out the default serialization and channel implementations
     * `void SetMessageSerializer(ISerializer serializer)`
     * `void SetMessageChannel(IChannel channel)`
+* Error callback when something happens - e.g. the connection goes down
+    * `void OnError(Action<RouterError> handler)`
 
 ### Serialization API
 
