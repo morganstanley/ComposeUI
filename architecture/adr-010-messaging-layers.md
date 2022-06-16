@@ -54,6 +54,11 @@ The channel API provides the functionality to send and receive packages asynchro
 * `Task<ReadOnlyMemory<byte>> ReceiveAsync()`
 * `Task DisconnectAsync()`
 
+On the Router side, it also needs to act as a "server" to which the clients connect.
+* `void StartServer()`
+* `void StopServer()`
+* `event EventHandler<ClientConnectedArgs> ClientConnected`
+* `event EventHandler<ClientConnectedArgs> ClientDisconnected`
 ## Status
 
 Draft
