@@ -1,0 +1,15 @@
+@startuml LAYOUT_LANDSCAPE Sample
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_LANDSCAPE()
+
+Container(Server, "Server", "Listens on a port", "Each new connection creates a ChannelClient")
+Container(Client1, "Client1", "", "* Creates ChannelClient\n* Connects to Server")
+Container(Client2, "Client2", "", "* Creates ChannelClient\n* Connects to Server")
+
+Rel_Left(Client1, Server, "connect")
+Rel_Left(Client2, Server, "connect")
+
+SHOW_LEGEND()
+
+@enduml
