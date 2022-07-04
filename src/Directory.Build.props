@@ -32,9 +32,4 @@
     </ItemGroup>
 
     <Import Project="eng\Dependencies.props" />
-
-    <ItemGroup>
-        <Reference Include="Microsoft.CSharp" />
-    </ItemGroup>
-
 </Project>
