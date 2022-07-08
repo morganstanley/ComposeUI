@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "module": "ESNext",
+        "target": "ESNext",
+        "declaration": true,
+        "declarationDir": "output",
+        "lib": ["ES2021", "DOM"],
+        "strict": true
+    }
+}

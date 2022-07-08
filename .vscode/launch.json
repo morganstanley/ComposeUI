@@ -4,13 +4,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": ".NET Core Launch (console)",
+            "name": ".NET Core Server Launch (console)",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build",
-            "program": "${workspaceFolder}/bin/Debug/<target-framework>/<project-name.dll>",
+            //"preLaunchTask": "build",
+            "program": "${workspaceFolder}/src/ComposeUI.Messaging.Server/bin/Debug/ComposeUI.Messaging.Server.exe",
             "args": [],
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/src/ComposeUI.Messaging.Server",
             "stopAtEntry": false,
             "console": "internalConsole"
         }
