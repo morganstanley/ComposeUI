@@ -12,6 +12,8 @@
 //  * and limitations under the License.
 //  */
 
+using Microsoft.Extensions.FileProviders;
+
 namespace ComposeUI.Messaging.Prototypes;
 
 public partial class Program
@@ -25,6 +27,14 @@ public partial class Program
         var app = builder.Build();
 
         app.UseWebSockets();
+        app.UseStaticFiles();
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            FileProvider = new PhysicalFileProvider(
+                Path.Combine(builder.Environment.ContentRootPath, "..", "messaging-web-client", "output")),
+            RequestPath = "/messaging-web-client"
+        });
+
 
         app.Use(
             async (context, next) =>
