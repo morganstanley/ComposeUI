@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="System.Text.Json" Version="6.0.5" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="ComposeUI.Messaging.IntegrationTests" />
+		<InternalsVisibleTo Include="ComposeUI.Messaging.Server.Tests" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="../ComposeUI.Messaging.Core/ComposeUI.Messaging.Core.csproj" />
+	</ItemGroup>
+
+</Project>
