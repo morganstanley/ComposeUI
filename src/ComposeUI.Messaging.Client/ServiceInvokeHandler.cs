@@ -12,19 +12,9 @@
 //  * and limitations under the License.
 //  */
 
-namespace ComposeUI.Messaging.Core.Messages;
+namespace ComposeUI.Messaging.Client;
 
-public sealed class ConnectRequest : Message
-{
-    public ConnectRequest()
-    {
-    }
-
-    public ConnectRequest(Guid clientId)
-    {
-        ClientId = clientId;
-    }
-
-    public override MessageType Type => MessageType.Connect;
-    public Guid? ClientId { get; init; }
-}
+/// <summary>
+///     The delegate type that gets called when a registered service is invoked.
+/// </summary>
+public delegate ValueTask<byte[]?> ServiceInvokeHandler(string topicName, byte[]? payload);

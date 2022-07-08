@@ -12,19 +12,11 @@
 //  * and limitations under the License.
 //  */
 
-namespace ComposeUI.Messaging.Core.Messages;
+namespace ComposeUI.Messaging.Client;
 
-public sealed class ConnectRequest : Message
+public sealed class RouterMessage
 {
-    public ConnectRequest()
-    {
-    }
+    public string Topic { get; private set; }
 
-    public ConnectRequest(Guid clientId)
-    {
-        ClientId = clientId;
-    }
-
-    public override MessageType Type => MessageType.Connect;
-    public Guid? ClientId { get; init; }
+    public byte[]? Payload { get; private set; }
 }

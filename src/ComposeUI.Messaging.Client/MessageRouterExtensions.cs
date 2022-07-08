@@ -12,19 +12,24 @@
 //  * and limitations under the License.
 //  */
 
-namespace ComposeUI.Messaging.Core.Messages;
+using System.Reactive;
+using System.Text;
 
-public sealed class ConnectRequest : Message
+namespace ComposeUI.Messaging.Client;
+
+public static class MessageRouterExtensions
 {
-    public ConnectRequest()
+    public static ValueTask<IDisposable> SubscribeAsync(
+        this IMessageRouter messageRouter,
+        string topicName,
+        IObserver<string?> observer,
+        CancellationToken cancellationToken = default)
     {
-    }
+        var innerObserver = Observer.Create<RouterMessage>(
+            message => observer.OnNext(message.Payload == null ? null : Encoding.UTF8.GetString(message.Payload)),
+            observer.OnError,
+            observer.OnCompleted);
 
-    public ConnectRequest(Guid clientId)
-    {
-        ClientId = clientId;
+        return messageRouter.SubscribeAsync(topicName, innerObserver, cancellationToken);
     }
-
-    public override MessageType Type => MessageType.Connect;
-    public Guid? ClientId { get; init; }
 }
