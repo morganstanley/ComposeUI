@@ -16,7 +16,13 @@ namespace ComposeUI.Messaging.Client;
 
 public sealed class RouterMessage
 {
-    public string Topic { get; private set; }
+    internal RouterMessage(string topic, string? payload)
+    {
+        Topic = topic;
+        Payload = payload;
+    }
 
-    public byte[]? Payload { get; private set; }
+    public string Topic { get; }
+
+    public string? Payload { get; }
 }

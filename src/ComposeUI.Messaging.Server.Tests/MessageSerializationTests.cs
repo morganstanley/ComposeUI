@@ -15,7 +15,7 @@
 using System.Buffers;
 using System.Text;
 using ComposeUI.Messaging.Core.Messages;
-using ComposeUI.Messaging.Prototypes.Serialization;
+using ComposeUI.Messaging.Core.Serialization;
 
 namespace ComposeUI.Messaging.Server.Tests;
 

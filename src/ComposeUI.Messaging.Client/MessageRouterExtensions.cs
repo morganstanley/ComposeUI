@@ -13,7 +13,6 @@
 //  */
 
 using System.Reactive;
-using System.Text;
 
 namespace ComposeUI.Messaging.Client;
 
@@ -26,7 +25,7 @@ public static class MessageRouterExtensions
         CancellationToken cancellationToken = default)
     {
         var innerObserver = Observer.Create<RouterMessage>(
-            message => observer.OnNext(message.Payload == null ? null : Encoding.UTF8.GetString(message.Payload)),
+            message => observer.OnNext(message.Payload),
             observer.OnError,
             observer.OnCompleted);
 

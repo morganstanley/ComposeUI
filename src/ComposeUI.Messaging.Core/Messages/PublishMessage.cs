@@ -16,6 +16,10 @@ namespace ComposeUI.Messaging.Core.Messages;
 
 public sealed class PublishMessage : Message
 {
+    public PublishMessage()
+    {
+    }
+
     public PublishMessage(string topic, string? payload)
     {
         Topic = topic;

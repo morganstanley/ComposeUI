@@ -65,5 +65,10 @@ public enum MessageType : int
     ///     Service sends the response of an invocation to server, or server sends the result of a service invocation to the
     ///     caller
     /// </summary>
-    InvokeResponse
+    InvokeResponse,
+
+    /// <summary>
+    ///     Client unregisters itself from a previously registered service name.
+    /// </summary>
+    UnregisterService
 }

@@ -12,19 +12,13 @@
 //  * and limitations under the License.
 //  */
 
-namespace ComposeUI.Messaging.Core.Messages;
+using Microsoft.Extensions.Options;
 
-public sealed class UnsubscribeMessage : Message
+namespace ComposeUI.Messaging.Client;
+
+public class MessageRouterWebSocketOptions : IOptions<MessageRouterWebSocketOptions>
 {
-    public UnsubscribeMessage()
-    {
-    }
+    public Uri Uri { get; set; }
 
-    public UnsubscribeMessage(string topic)
-    {
-        Topic = topic;
-    }
-
-    public override MessageType Type => MessageType.Unsubscribe;
-    public string Topic { get; init; }
+    public MessageRouterWebSocketOptions Value => this;
 }

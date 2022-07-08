@@ -9,7 +9,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComposeUI.Messaging.Server.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComposeUI.Messaging.Core", "ComposeUI.Messaging.Core\ComposeUI.Messaging.Core.csproj", "{EA24BA3D-255A-46CF-98D4-E08E63ECE26E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComposeUI.Messaging.Client", "ComposeUI.Messaging.Client\ComposeUI.Messaging.Client.csproj", "{7E420786-BF7E-45BE-954F-8DE8382983C7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComposeUI.Messaging.Client", "ComposeUI.Messaging.Client\ComposeUI.Messaging.Client.csproj", "{7E420786-BF7E-45BE-954F-8DE8382983C7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComposeUI.Messaging.IntegrationTests", "ComposeUI.Messaging.IntegrationTests\ComposeUI.Messaging.IntegrationTests.csproj", "{DA2930E7-B927-4360-9FA0-3D9DB6BE9856}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{0CEA7D2A-7842-465C-83B8-662761167852}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{F118AD37-3D46-4D0C-A94D-03E269084D3E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,9 +39,20 @@ Global
 		{7E420786-BF7E-45BE-954F-8DE8382983C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7E420786-BF7E-45BE-954F-8DE8382983C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7E420786-BF7E-45BE-954F-8DE8382983C7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA2930E7-B927-4360-9FA0-3D9DB6BE9856}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA2930E7-B927-4360-9FA0-3D9DB6BE9856}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA2930E7-B927-4360-9FA0-3D9DB6BE9856}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA2930E7-B927-4360-9FA0-3D9DB6BE9856}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{62EEC21F-1DB9-426C-8D08-2ECF6D303F56} = {F118AD37-3D46-4D0C-A94D-03E269084D3E}
+		{00D054F4-D600-4909-8D18-DD581A416C05} = {0CEA7D2A-7842-465C-83B8-662761167852}
+		{EA24BA3D-255A-46CF-98D4-E08E63ECE26E} = {F118AD37-3D46-4D0C-A94D-03E269084D3E}
+		{7E420786-BF7E-45BE-954F-8DE8382983C7} = {F118AD37-3D46-4D0C-A94D-03E269084D3E}
+		{DA2930E7-B927-4360-9FA0-3D9DB6BE9856} = {0CEA7D2A-7842-465C-83B8-662761167852}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {08EDF812-166D-441E-9676-62548452714F}
