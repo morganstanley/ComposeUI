@@ -16,6 +16,10 @@ namespace ComposeUI.Messaging.Core.Messages;
 
 public sealed class InvokeResponse : Message
 {
+    public InvokeResponse()
+    {
+    }
+
     public InvokeResponse(string requestId, string? payload, string? error = null)
     {
         RequestId = requestId;

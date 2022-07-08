@@ -16,6 +16,10 @@ namespace ComposeUI.Messaging.Core.Messages;
 
 public sealed class UpdateMessage : Message
 {
+    public UpdateMessage()
+    {
+    }
+
     public UpdateMessage(string topic, string? payload)
     {
         Topic = topic;

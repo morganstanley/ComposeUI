@@ -14,17 +14,18 @@
 
 namespace ComposeUI.Messaging.Core.Messages;
 
-public sealed class UnsubscribeMessage : Message
+public class UnregisterServiceMessage : Message
 {
-    public UnsubscribeMessage()
+    public UnregisterServiceMessage()
     {
     }
 
-    public UnsubscribeMessage(string topic)
+    public UnregisterServiceMessage(string serviceName)
     {
-        Topic = topic;
+        ServiceName = serviceName;
     }
 
-    public override MessageType Type => MessageType.Unsubscribe;
-    public string Topic { get; init; }
+    public override MessageType Type => MessageType.UnregisterService;
+
+    public string ServiceName { get; init; }
 }

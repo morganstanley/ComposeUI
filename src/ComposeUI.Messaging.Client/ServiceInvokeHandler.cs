@@ -17,4 +17,4 @@ namespace ComposeUI.Messaging.Client;
 /// <summary>
 ///     The delegate type that gets called when a registered service is invoked.
 /// </summary>
-public delegate ValueTask<byte[]?> ServiceInvokeHandler(string topicName, byte[]? payload);
+public delegate ValueTask<string?> ServiceInvokeHandler(string serviceName, string? payload);

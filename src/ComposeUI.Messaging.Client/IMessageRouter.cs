@@ -17,6 +17,17 @@ namespace ComposeUI.Messaging.Client;
 public interface IMessageRouter : IAsyncDisposable
 {
     /// <summary>
+    ///     Asynchronously connects to the Message Router server endpoint.
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    /// <remarks>
+    ///     Clients don't need to call this method before calling other methods on this type.
+    ///     The client should automatically establish a connection when needed.
+    /// </remarks>
+    ValueTask ConnectAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     ///     Gets an observable that represents a topic.
     /// </summary>
     /// <param name="topicName"></param>
@@ -35,7 +46,19 @@ public interface IMessageRouter : IAsyncDisposable
     /// <param name="payload"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    ValueTask PublishAsync(string topicName, byte[]? payload = null, CancellationToken cancellationToken = default);
+    ValueTask PublishAsync(string topicName, string? payload = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    ///     Invokes a named service.
+    /// </summary>
+    /// <param name="serviceName"></param>
+    /// <param name="payload"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    ValueTask<string?> InvokeAsync(
+        string serviceName,
+        string? payload = null,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     ///     Registers a service by providing a name and handler.

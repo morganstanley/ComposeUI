@@ -11,7 +11,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<InternalsVisibleTo Include="Messaging.Prototypes.Tests" />
+		<InternalsVisibleTo Include="ComposeUI.Messaging.IntegrationTests" />
+		<InternalsVisibleTo Include="ComposeUI.Messaging.Server.Tests" />
 	</ItemGroup>
 
 	<ItemGroup>

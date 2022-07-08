@@ -20,9 +20,9 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace ComposeUI.Messaging.Server.Tests;
 
-public class MessageRouterServerEndToEndTests
+public class MessageRouterServerWebSocketTests
 {
-    public MessageRouterServerEndToEndTests()
+    public MessageRouterServerWebSocketTests()
     {
         App = new WebApplicationFactory<Program>();
         WebSocketUri = new Uri(App.Server.BaseAddress, relativeUri: "ws");
@@ -44,7 +44,7 @@ public class MessageRouterServerEndToEndTests
         var client1 = await App.Server.CreateWebSocketClient().ConnectAsync(WebSocketUri, CancellationToken.None);
         var clientId = await ConnectAndWaitForResponse(client1);
         client1.Dispose();
-
+        await Task.Delay(100);
         var client2 = await App.Server.CreateWebSocketClient().ConnectAsync(WebSocketUri, CancellationToken.None);
         await client2.SendUtf8BytesAsync($@" {{ ""type"": ""Connect"", ""clientId"": ""{clientId}"" }}");
         var response = await client2.ReceiveJsonAsync();

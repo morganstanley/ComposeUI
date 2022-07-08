@@ -31,7 +31,7 @@ internal static class WebSocketExtensions
         var messageBytes = Encoding.UTF8.GetBytes(message);
         await webSocket.SendAsync(
             messageBytes,
-            WebSocketMessageType.Binary,
+            WebSocketMessageType.Text,
             WebSocketMessageFlags.EndOfMessage,
             CancellationToken.None);
     }

@@ -16,6 +16,10 @@ namespace ComposeUI.Messaging.Core.Messages;
 
 public sealed class ConnectResponse : Message
 {
+    public ConnectResponse()
+    {
+    }
+
     public ConnectResponse(Guid clientId)
     {
         ClientId = clientId;

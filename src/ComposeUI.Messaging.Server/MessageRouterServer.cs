@@ -21,7 +21,7 @@ using System.Net.WebSockets;
 using System.Threading.Channels;
 using ComposeUI.Messaging.Core.Exceptions;
 using ComposeUI.Messaging.Core.Messages;
-using ComposeUI.Messaging.Prototypes.Serialization;
+using ComposeUI.Messaging.Core.Serialization;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ComposeUI.Messaging.Prototypes;
@@ -136,6 +136,7 @@ public class MessageRouterServer : IAsyncDisposable
         if (string.IsNullOrWhiteSpace(message.Topic)) return;
         var topic = _topics.GetOrAdd(message.Topic, topicName => new Topic(topicName, ImmutableHashSet<Guid>.Empty));
         var outgoingMessage = new UpdateMessage(message.Topic, message.Payload);
+        //var outgoingMessage = new UpdateMessage(message.Topic, Encoding.UTF8.GetBytes(message.Payload));
         await Task.WhenAll(
             topic.Subscribers.Select(
                 async subscriberId =>
@@ -178,6 +179,15 @@ public class MessageRouterServer : IAsyncDisposable
                 return topic;
             },
             client);
+    }
+
+    private async Task HandleUnregisterServiceMessage(
+        ClientConnection client,
+        UnregisterServiceMessage message,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(message.ServiceName)) return;
+        _serviceRegistrations.TryRemove(new KeyValuePair<string, Guid>(message.ServiceName, client.Id));
     }
 
     private async Task HandleUnsubscribeMessage(
@@ -223,6 +233,9 @@ public class MessageRouterServer : IAsyncDisposable
                 case MessageType.RegisterService:
                     await HandleRegisterServiceRequest(client, (RegisterServiceRequest) message, cancellationToken);
                     break;
+                case MessageType.UnregisterService:
+                    await HandleUnregisterServiceMessage(client, (UnregisterServiceMessage) message, cancellationToken);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -249,7 +262,11 @@ public class MessageRouterServer : IAsyncDisposable
                     var readResult = await pipe.Reader.ReadAsync(CancellationToken.None);
                     var readBuffer = readResult.Buffer;
                     while (!readBuffer.IsEmpty && TryReadMessage(ref readBuffer, out var message))
+                    {
+                        if (_logger.IsEnabled(LogLevel.Debug))
+                            _logger.LogDebug($"Received message '{message.Type}' from client '{client.Id}'");
                         await client.InputChannel.Writer.WriteAsync(message, cancellationToken);
+                    }
 
                     pipe.Reader.AdvanceTo(readBuffer.Start, readBuffer.End);
                 }
@@ -275,6 +292,8 @@ public class MessageRouterServer : IAsyncDisposable
         {
             if (webSocket.State != WebSocketState.Open) break;
             var buffer = JsonMessageSerializer.SerializeMessage(message);
+            if (_logger.IsEnabled(LogLevel.Debug))
+                _logger.LogDebug($"Sending message '{message.Type}' to client '{client.Id}'");
             await webSocket.SendAsync(
                 buffer,
                 WebSocketMessageType.Text,
@@ -285,7 +304,6 @@ public class MessageRouterServer : IAsyncDisposable
 
     private bool TryReadMessage(ref ReadOnlySequence<byte> buffer, [NotNullWhen(true)] out Message? message)
     {
-        message = null;
         var innerBuffer = buffer;
         try
         {
