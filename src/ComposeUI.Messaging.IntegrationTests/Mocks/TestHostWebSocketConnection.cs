@@ -12,19 +12,8 @@
 //  * and limitations under the License.
 //  */
 
-namespace ComposeUI.Messaging.Core.Messages;
+namespace ComposeUI.Messaging.IntegrationTests.Mocks;
 
-public sealed class UnsubscribeMessage : Message
+public class TestHostWebSocketConnection
 {
-    public UnsubscribeMessage()
-    {
-    }
-
-    public UnsubscribeMessage(string topic)
-    {
-        Topic = topic;
-    }
-
-    public override MessageType Type => MessageType.Unsubscribe;
-    public string Topic { get; init; }
 }

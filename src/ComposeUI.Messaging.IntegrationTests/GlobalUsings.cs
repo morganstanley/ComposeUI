@@ -12,19 +12,6 @@
 //  * and limitations under the License.
 //  */
 
-namespace ComposeUI.Messaging.Core.Messages;
-
-public sealed class UnsubscribeMessage : Message
-{
-    public UnsubscribeMessage()
-    {
-    }
-
-    public UnsubscribeMessage(string topic)
-    {
-        Topic = topic;
-    }
-
-    public override MessageType Type => MessageType.Unsubscribe;
-    public string Topic { get; init; }
-}
+global using FluentAssertions;
+global using Xunit;
+global using Moq;

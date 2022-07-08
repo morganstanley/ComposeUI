@@ -12,19 +12,13 @@
 //  * and limitations under the License.
 //  */
 
-namespace ComposeUI.Messaging.Core.Messages;
+using ComposeUI.Messaging.Core.Messages;
 
-public sealed class UnsubscribeMessage : Message
+namespace ComposeUI.Messaging.Client.Transport.Abstractions;
+
+internal interface IClientConnection : IAsyncDisposable
 {
-    public UnsubscribeMessage()
-    {
-    }
-
-    public UnsubscribeMessage(string topic)
-    {
-        Topic = topic;
-    }
-
-    public override MessageType Type => MessageType.Unsubscribe;
-    public string Topic { get; init; }
+    ValueTask ConnectAsync(CancellationToken cancellationToken = default);
+    ValueTask SendAsync(Message message, CancellationToken cancellationToken = default);
+    IAsyncEnumerable<Message> ReceiveAsync(CancellationToken cancellationToken = default);
 }

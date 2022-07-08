@@ -16,6 +16,10 @@ namespace ComposeUI.Messaging.Core.Messages;
 
 public sealed class RegisterServiceRequest : Message
 {
+    public RegisterServiceRequest()
+    {
+    }
+
     public RegisterServiceRequest(string serviceName)
     {
         ServiceName = serviceName;
