@@ -10,11 +10,19 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace ComposeUI.Messaging.Core.Exceptions;
+using Microsoft.Extensions.Options;
 
-public sealed class ServiceUnavailableException : MessageRouterException
+namespace ComposeUI.Messaging.Client.Transport.WebSocket;
+
+/// <summary>
+///     Options object for WebSocket connections to the Message Router server.
+/// </summary>
+public class MessageRouterWebSocketOptions : IOptions<MessageRouterWebSocketOptions>
 {
-    public ServiceUnavailableException() : base("Service unavailable")
-    {
-    }
+    /// <summary>
+    ///     The URI to connect to. The scheme of this URI must be "ws" or "wss".
+    /// </summary>
+    public Uri Uri { get; set; } = null!;
+
+    MessageRouterWebSocketOptions IOptions<MessageRouterWebSocketOptions>.Value => this;
 }

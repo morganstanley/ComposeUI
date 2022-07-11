@@ -1,16 +1,14 @@
-﻿// /*
-//  * Morgan Stanley makes this available to you under the Apache License,
-//  * Version 2.0 (the "License"). You may obtain a copy of the License at
-//  *
-//  *      http://www.apache.org/licenses/LICENSE-2.0.
-//  *
-//  * See the NOTICE file distributed with this work for additional information
-//  * regarding copyright ownership. Unless required by applicable law or agreed
-//  * to in writing, software distributed under the License is distributed on an
-//  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
-//  * or implied. See the License for the specific language governing permissions
-//  * and limitations under the License.
-//  */
+﻿// Morgan Stanley makes this available to you under the Apache License,
+// Version 2.0 (the "License"). You may obtain a copy of the License at
+// 
+//      http://www.apache.org/licenses/LICENSE-2.0.
+// 
+// See the NOTICE file distributed with this work for additional information
+// regarding copyright ownership. Unless required by applicable law or agreed
+// to in writing, software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+// or implied. See the License for the specific language governing permissions
+// and limitations under the License.
 
 using ComposeUI.Messaging.Client;
 using ComposeUI.Messaging.Client.Transport.WebSocket;
@@ -19,11 +17,14 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace ComposeUI.Messaging.IntegrationTests;
 
+// To run these tests, first start the server (ComposeUI.Messaging.Server) without debugging.
+// The tests will not leave the server in a clean state.
+// Some tests might fail if not run after a clean start.
+
 public class WebSocketEndToEndTests
 {
     public WebSocketEndToEndTests()
     {
-        //App = new WebApplicationFactory<Program>();
         WebSocketUri = new Uri("wss://localhost:7098/ws");
     }
 
@@ -83,7 +84,11 @@ public class WebSocketEndToEndTests
 
     private IMessageRouter CreateClient()
     {
-        return new MessageRouterClient(
-            new WebSocketClientConnection(new MessageRouterWebSocketOptions {Uri = WebSocketUri}));
+        return MessageRouter.Create(
+            mr => mr.UseWebSocket(
+                new MessageRouterWebSocketOptions
+                {
+                    Uri = WebSocketUri
+                }));
     }
 }
