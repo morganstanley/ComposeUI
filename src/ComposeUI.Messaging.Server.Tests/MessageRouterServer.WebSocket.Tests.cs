@@ -1,16 +1,14 @@
-﻿// /*
-//  * Morgan Stanley makes this available to you under the Apache License,
-//  * Version 2.0 (the "License"). You may obtain a copy of the License at
-//  *
-//  *      http://www.apache.org/licenses/LICENSE-2.0.
-//  *
-//  * See the NOTICE file distributed with this work for additional information
-//  * regarding copyright ownership. Unless required by applicable law or agreed
-//  * to in writing, software distributed under the License is distributed on an
-//  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
-//  * or implied. See the License for the specific language governing permissions
-//  * and limitations under the License.
-//  */
+﻿// Morgan Stanley makes this available to you under the Apache License,
+// Version 2.0 (the "License"). You may obtain a copy of the License at
+// 
+//      http://www.apache.org/licenses/LICENSE-2.0.
+// 
+// See the NOTICE file distributed with this work for additional information
+// regarding copyright ownership. Unless required by applicable law or agreed
+// to in writing, software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+// or implied. See the License for the specific language governing permissions
+// and limitations under the License.
 
 using System.Net.WebSockets;
 using ComposeUI.Messaging.Prototypes;
@@ -20,9 +18,9 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace ComposeUI.Messaging.Server.Tests;
 
-public class MessageRouterServerEndToEndTests
+public class MessageRouterServerWebSocketTests
 {
-    public MessageRouterServerEndToEndTests()
+    public MessageRouterServerWebSocketTests()
     {
         App = new WebApplicationFactory<Program>();
         WebSocketUri = new Uri(App.Server.BaseAddress, relativeUri: "ws");
@@ -44,7 +42,7 @@ public class MessageRouterServerEndToEndTests
         var client1 = await App.Server.CreateWebSocketClient().ConnectAsync(WebSocketUri, CancellationToken.None);
         var clientId = await ConnectAndWaitForResponse(client1);
         client1.Dispose();
-
+        await Task.Delay(100);
         var client2 = await App.Server.CreateWebSocketClient().ConnectAsync(WebSocketUri, CancellationToken.None);
         await client2.SendUtf8BytesAsync($@" {{ ""type"": ""Connect"", ""clientId"": ""{clientId}"" }}");
         var response = await client2.ReceiveJsonAsync();

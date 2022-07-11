@@ -10,11 +10,13 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace ComposeUI.Messaging.Core.Exceptions;
+using ComposeUI.Messaging.Core.Messages;
 
-public sealed class ServiceUnavailableException : MessageRouterException
+namespace ComposeUI.Messaging.Client.Transport.Abstractions;
+
+internal interface IClientConnection : IAsyncDisposable
 {
-    public ServiceUnavailableException() : base("Service unavailable")
-    {
-    }
+    ValueTask ConnectAsync(CancellationToken cancellationToken = default);
+    ValueTask SendAsync(Message message, CancellationToken cancellationToken = default);
+    IAsyncEnumerable<Message> ReceiveAsync(CancellationToken cancellationToken = default);
 }

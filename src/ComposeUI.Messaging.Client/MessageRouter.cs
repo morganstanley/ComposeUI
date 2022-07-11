@@ -10,27 +10,26 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using ComposeUI.Messaging.Client.Startup;
+using Microsoft.Extensions.DependencyInjection;
+
 namespace ComposeUI.Messaging.Client;
 
 /// <summary>
-///     Represents a message received from the Message Router server.
+///     Static utility for creating <see cref="IMessageRouter" /> without a service collection.
 /// </summary>
-public sealed class RouterMessage
+public static class MessageRouter
 {
-    internal RouterMessage(string topic, string? payload)
+    /// <summary>
+    ///     Creates a new instance of <see cref="IMessageRouter" /> and configures it using
+    ///     the provided callback.
+    /// </summary>
+    /// <param name="builderAction"></param>
+    /// <returns></returns>
+    public static IMessageRouter Create(Action<MessageRouterBuilder> builderAction)
     {
-        Topic = topic;
-        Payload = payload;
+        var serviceCollection = new ServiceCollection();
+        serviceCollection.AddMessageRouter(builderAction);
+        return serviceCollection.BuildServiceProvider().GetRequiredService<IMessageRouter>();
     }
-
-    /// <summary>
-    ///     The topic name of the message.
-    /// </summary>
-    public string Topic { get; }
-
-    /// <summary>
-    ///     The payload of the message. The format of the message is arbitrary and should
-    ///     be defined and documented with the message definition.
-    /// </summary>
-    public string? Payload { get; }
 }

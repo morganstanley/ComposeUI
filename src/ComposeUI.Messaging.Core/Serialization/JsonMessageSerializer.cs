@@ -1,16 +1,14 @@
-﻿// /*
-//  * Morgan Stanley makes this available to you under the Apache License,
-//  * Version 2.0 (the "License"). You may obtain a copy of the License at
-//  *
-//  *      http://www.apache.org/licenses/LICENSE-2.0.
-//  *
-//  * See the NOTICE file distributed with this work for additional information
-//  * regarding copyright ownership. Unless required by applicable law or agreed
-//  * to in writing, software distributed under the License is distributed on an
-//  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
-//  * or implied. See the License for the specific language governing permissions
-//  * and limitations under the License.
-//  */
+﻿// Morgan Stanley makes this available to you under the Apache License,
+// Version 2.0 (the "License"). You may obtain a copy of the License at
+// 
+//      http://www.apache.org/licenses/LICENSE-2.0.
+// 
+// See the NOTICE file distributed with this work for additional information
+// regarding copyright ownership. Unless required by applicable law or agreed
+// to in writing, software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+// or implied. See the License for the specific language governing permissions
+// and limitations under the License.
 
 using System.Buffers;
 using System.Text;
@@ -18,7 +16,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using ComposeUI.Messaging.Core.Messages;
 
-namespace ComposeUI.Messaging.Prototypes.Serialization;
+namespace ComposeUI.Messaging.Core.Serialization;
 
 /// <summary>
 ///     Serializes/deserializes messages to/from JSON
@@ -29,7 +27,7 @@ public static class JsonMessageSerializer
         new()
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            Converters = {new JsonMessageConverter(), new JsonStringEnumConverter()},
+            Converters = {new MessageConverter(), new Utf8ByteArrayConverter(), new JsonStringEnumConverter()},
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
@@ -56,7 +54,7 @@ public static class JsonMessageSerializer
         return message;
     }
 
-    private class JsonMessageConverter : JsonConverter<Message>
+    private class MessageConverter : JsonConverter<Message>
     {
         public override Message? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
@@ -105,5 +103,21 @@ public static class JsonMessageSerializer
         }
 
         private static readonly byte[] TypePropertyNameBytes = Encoding.UTF8.GetBytes("type");
+    }
+
+    // TODO: Allow raw byte payloads
+    private class Base64ByteArrayConverter : JsonConverter<byte[]>
+    {
+        public override byte[]? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            return reader.TokenType == JsonTokenType.String
+                ? reader.GetBytesFromBase64()
+                : null;
+        }
+
+        public override void Write(Utf8JsonWriter writer, byte[] value, JsonSerializerOptions options)
+        {
+            writer.WriteBase64StringValue(value);
+        }
     }
 }
