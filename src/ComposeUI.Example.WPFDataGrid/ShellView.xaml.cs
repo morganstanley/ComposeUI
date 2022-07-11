@@ -30,18 +30,18 @@ namespace ComposeUI.Example.WPFDataGrid;
 public partial class ShellView : Window
 {
     private readonly ILogger<ShellView>? _logger;
-    private readonly IMessageRouter _messageRouterClient;
+    private readonly IMessageRouter _messageRouter;
     private readonly List<SymbolModel> _symbols;
 
     /// <summary>
     /// Constructor for the View.
     /// </summary>
     /// <param name="logger"></param>
-    /// <param name="messageRouterClient"></param>
-    public ShellView(ILogger<ShellView> logger, IMessageRouter messageRouterClient)
+    /// <param name="messageRouter"></param>
+    public ShellView(ILogger<ShellView> logger, IMessageRouter messageRouter)
     {
         _logger = logger;
-        _messageRouterClient = messageRouterClient;
+        _messageRouter = messageRouter;
         _symbols = MarketDataAccess.InitMarketData();
         InitializeComponent();
     }
@@ -61,7 +61,7 @@ public partial class ShellView : Window
         {
             foreach (var symbol in _symbols)
             {
-                await _messageRouterClient.PublishAsync("proto_register_marketData", symbol.ToString());
+                await _messageRouter.PublishAsync("proto_register_marketData", symbol.ToString());
             }
         }
         catch (Exception exception)
@@ -97,7 +97,7 @@ public partial class ShellView : Window
                             {
                                 var message = string.Format("You have selected: {0}", selectedObject.Fullname);
                                 _logger?.LogInformation(message);
-                                await _messageRouterClient.PublishAsync("proto_select_marketData", selectedObject.ToString());
+                                await _messageRouter.PublishAsync("proto_select_marketData", selectedObject.ToString());
                             }
                         }
                     }
