@@ -10,11 +10,16 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace ComposeUI.Messaging.Core.Exceptions;
+using Microsoft.Extensions.DependencyInjection;
 
-public sealed class ServiceUnavailableException : MessageRouterException
+namespace ComposeUI.Messaging.Client.Startup;
+
+public sealed class MessageRouterBuilder
 {
-    public ServiceUnavailableException() : base("Service unavailable")
+    internal MessageRouterBuilder(IServiceCollection serviceCollection)
     {
+        ServiceCollection = serviceCollection;
     }
+
+    internal IServiceCollection ServiceCollection { get; }
 }
