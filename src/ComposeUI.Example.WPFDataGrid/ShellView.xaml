@@ -1,0 +1,34 @@
+﻿<Window x:Class="ComposeUI.Example.WPFDataGrid.ShellView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:local="clr-namespace:ComposeUI.Example.WPFDataGrid.Models"
+        Title="ComposeMarketDataSample"
+        Height="450" Width="800">
+    
+    <Window.Resources>
+        
+        <ObjectDataProvider MethodName="GetValues" ObjectType="{x:Type sys:Enum}" x:Key="GetEnumValues">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="local:SymbolRating"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+        
+    </Window.Resources>
+    
+    <Grid>
+        <DataGrid x:Name="MyDataGridMarketData" Loaded="Window_Loaded" CanUserAddRows="False" IsReadOnly="True"
+                      AutoGenerateColumns="False" SelectionChanged="DataGrid_SelectionChanged" SelectionMode="Single">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Symbol" Binding="{Binding Path=Symbol}" Width="200"/>
+                <DataGridTextColumn Header="Name" Binding ="{Binding Path=Name}" Width="200"/>
+                <DataGridTextColumn Header="Amount" Binding ="{Binding Path=Amount}" Width="200"/>
+                <DataGridTextColumn Header="Price" Binding ="{Binding Path=Price}" Width="180"/>
+                <DataGridTextColumn Header="SymbolRating" Binding="{Binding Path=SymbolRating}" Width="180"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Window>
