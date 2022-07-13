@@ -11,7 +11,10 @@
 //  * or implied. See the License for the specific language governing permissions
 //  * and limitations under the License.
 //  */
+
 using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ComposeUI.Example.WPFDataGrid.Models;
 
@@ -19,7 +22,7 @@ namespace ComposeUI.Example.WPFDataGrid.Models;
 /// Model for symbol. We can show the short and long market of the product. (The amount of the symbolRating's trading, the avarage profit of the stock's position)
 /// </summary>
 [Serializable]
-public class SymbolModel
+public sealed class SymbolModel
 {
     /// <summary>
     /// Name for the symbol.
@@ -34,7 +37,7 @@ public class SymbolModel
     /// <summary>
     /// Price of the symbol for the rating.
     /// </summary>
-    public decimal AvarageProfit { get; set; }
+    public decimal AverageProfit { get; set; }
 
     /// <summary>
     /// Count of the symbol.
@@ -44,14 +47,17 @@ public class SymbolModel
     /// <summary>
     /// Rating/type of the symbol. (LONG/SHORT)
     /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public SymbolRating SymbolRating { get; set; }
 
     /// <summary>
-    /// Overriding ToString method, because we are sending strings.
+    /// Gets a JsonSerializableOptions, which contains EnumConverter
     /// </summary>
-    /// <returns></returns>
-    public override string ToString()
+    public static JsonSerializerOptions JsonSerializerOptions = new()
     {
-        return $@"{{""Symbol"": ""{Symbol}"", ""Fullname"": ""{Fullname}"", ""AvarageProfit"": ""{AvarageProfit}"", ""Amount"": ""{Amount}"", ""SymbolRating"": ""{SymbolRating}"" }}";
-    }
+        Converters =
+        {
+            new JsonStringEnumConverter()
+        }
+    };
 }
