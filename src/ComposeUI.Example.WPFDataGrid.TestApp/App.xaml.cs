@@ -55,18 +55,18 @@ public partial class App : Application
             builder.AddSerilog(serilogger);
         });
 
-        var client = MessageRouter.Create(
+        var messageRouter = MessageRouter.Create(
             mr => mr.UseWebSocket(
                 new MessageRouterWebSocketOptions
                 {
                     Uri = WebsocketURI
                 }));
-        _serviceCollection.AddSingleton<IMessageRouter>(client);
+        _serviceCollection.AddSingleton<IMessageRouter>(messageRouter);
         _serviceCollection.AddTransient(typeof(DataGridView));
         var provider = _serviceCollection.BuildServiceProvider();
-        var shell = provider.GetRequiredService<DataGridView>();
+        var dataGridView = provider.GetRequiredService<DataGridView>();
 
-        shell?.Show();
+        dataGridView?.Show();
     }
 }
 
