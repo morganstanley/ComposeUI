@@ -29,8 +29,8 @@ internal static class MarketDataAccess
         new() { Fullname = "Google", Symbol = "GOOG", Amount = 4897, AverageProfit = 1234, SymbolRating = SymbolRating.Short },
         new() { Fullname = "IBM", Symbol = "IBM", Amount = 6543, AverageProfit = 65496, SymbolRating = SymbolRating.Long },
         new() { Fullname = "IBM", Symbol = "IBM", Amount = 7894, AverageProfit = 464332, SymbolRating = SymbolRating.Short },
-        new() { Fullname = "Samsung Electronics Co Ltd", Symbol = "Samsung", Amount = 9872, AverageProfit = 156313, SymbolRating = SymbolRating.Long },
-        new() { Fullname = "Samsung Electronics Co Ltd", Symbol = "Samsung", Amount = 1234, AverageProfit = 789465, SymbolRating = SymbolRating.Short },
+        new() { Fullname = "Samsung Electronics Co Ltd", Symbol = "SMSN", Amount = 9872, AverageProfit = 156313, SymbolRating = SymbolRating.Long },
+        new() { Fullname = "Samsung Electronics Co Ltd", Symbol = "SMSN", Amount = 1234, AverageProfit = 789465, SymbolRating = SymbolRating.Short },
         new() { Fullname = "Tesla", Symbol = "TSLA", Amount = 45678, AverageProfit = 978546, SymbolRating = SymbolRating.Long },
         new() { Fullname = "Tesla", Symbol = "TSLA", Amount = 65478, AverageProfit = 987877, SymbolRating = SymbolRating.Short }
     };
