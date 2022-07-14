@@ -33,18 +33,18 @@ namespace ComposeUI.Example.WPFDataGrid.Views;
 public partial class DataGridView : Window
 {
     private readonly ILogger<DataGridView>? _logger;
-    private readonly IMessageRouter _messageRouterClient;
+    private readonly IMessageRouter _messageRouter;
     private readonly ObservableCollection<SymbolModel> _symbols;
 
     /// <summary>
     /// Constructor for the View.
     /// </summary>
     /// <param name="logger"></param>
-    /// <param name="messageRouterClient"></param>
-    public DataGridView(ILogger<DataGridView> logger, IMessageRouter messageRouterClient)
+    /// <param name="messageRouter"></param>
+    public DataGridView(ILogger<DataGridView> logger, IMessageRouter messageRouter)
     {
         _logger = logger;
-        _messageRouterClient = messageRouterClient;
+        _messageRouter = messageRouter;
         _symbols = new(MarketDataAccess.MarketData);
         InitializeComponent();
     }
@@ -56,7 +56,7 @@ public partial class DataGridView : Window
         {
             foreach (var symbol in _symbols)
             {
-                await _messageRouterClient.PublishAsync("proto_register_marketData", JsonSerializer.Serialize(symbol, SymbolModel.JsonSerializerOptions));
+                await _messageRouter.PublishAsync("proto_register_marketData", JsonSerializer.Serialize(symbol, SymbolModel.JsonSerializerOptions));
             }
         }
         catch (Exception exception)
@@ -74,7 +74,7 @@ public partial class DataGridView : Window
             if (selectedObject is not null)
             {
                 _logger?.LogInformation(string.Format("You have selected: {0}", selectedObject.Fullname));
-                await _messageRouterClient.PublishAsync("proto_select_marketData", JsonSerializer.Serialize(selectedObject, SymbolModel.JsonSerializerOptions));
+                await _messageRouter.PublishAsync("proto_select_marketData", JsonSerializer.Serialize(selectedObject, SymbolModel.JsonSerializerOptions));
             }
         }
         catch (Exception exception)
