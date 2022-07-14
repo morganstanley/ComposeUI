@@ -20,6 +20,7 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using System;
 using System.IO;
+using System.Linq;
 using System.Windows;
 
 namespace ComposeUI.Example.WPFDataGrid.TestApp;
@@ -33,7 +34,7 @@ public partial class App : Application
     /// <summary>
     /// Url to connect
     /// </summary>
-    public static Uri WebsocketURI { get; } = new("ws://localhost:5098/ws");
+    public static Uri WebsocketURI { get; set; } = new("ws://localhost:5098/ws");
 
     /// <summary>
     /// Overriding Statup so we can do DI.
@@ -44,6 +45,12 @@ public partial class App : Application
         ServiceCollection serviceCollection = new();
 
         base.OnStartup(e);
+
+        Uri? uri;
+        if (e.Args.Any() && Uri.TryCreate(e.Args[0], UriKind.Absolute, out uri))
+        {
+            WebsocketURI = uri;
+        }
 
         ILoggerFactory loggerFactory = new LoggerFactory();
 

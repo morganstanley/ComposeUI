@@ -64,6 +64,7 @@ public sealed class SymbolModel
         Converters =
         {
             new JsonStringEnumConverter()
-        }
+        },
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 }

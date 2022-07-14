@@ -25,7 +25,7 @@ internal class CommunicationModule : IModule, IDisposable
 {
     Process? _process;
     private bool _disposed;
-
+    
     public async Task Initialize(IMessageRouter messageRouter)
     {
         _process = new Process();
@@ -36,7 +36,7 @@ internal class CommunicationModule : IModule, IDisposable
         _process.StartInfo.FileName = location;
         _process.StartInfo.WorkingDirectory = Path.GetDirectoryName(location);
         _process.Start();
-        await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+        await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
     }
 
     public async Task Teardown()
