@@ -67,25 +67,20 @@ async function requestData() {
   let mockData = new Mocks();
   let client;
   (async () => {
-    client = new ComposeMessagingClient("ws://localhost:5098/ws");
+    client = new ComposeMessagingClient("ws://localhost:5000/ws");
   
     window.client = client;
   
     await client.connect();
     /* message symbol*/
     let symbol;
-    client.subscribe('testTopic', (message) => {
+    client.subscribe('proto_select_marketData', (message) => {
+      symbol = message.symbol;
       
-
-      let parsed = JSON.parse(message);
-      symbol = parsed.symbol;
-
-      console.log("message=", message);
       console.log("symbol=", symbol);
 
       chart.setTitle({text: "Monthly sales for " + symbol});
     
-
       chart.series[0].setData([]);
       chart.series[1].setData([]);
 
