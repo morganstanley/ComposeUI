@@ -29,8 +29,7 @@ namespace ComposeUI.Example.WPFDataGrid.TestApp;
 /// </summary>
 public partial class App : Application
 {
-    private ServiceCollection _serviceCollection = new();
-
+    private IServiceProvider? _serviceProvider;
     /// <summary>
     /// Url to connect
     /// </summary>
@@ -42,6 +41,8 @@ public partial class App : Application
     /// <param name="e"></param>
     protected async override void OnStartup(StartupEventArgs e)
     {
+        ServiceCollection serviceCollection = new();
+
         base.OnStartup(e);
 
         ILoggerFactory loggerFactory = new LoggerFactory();
@@ -50,7 +51,7 @@ public partial class App : Application
             .WriteTo.File(string.Format("{0}/log.log", Directory.GetCurrentDirectory()))
             .CreateLogger();
 
-        _serviceCollection.AddLogging(builder =>
+        serviceCollection.AddLogging(builder =>
         {
             builder.AddSerilog(serilogger);
         });
@@ -61,10 +62,10 @@ public partial class App : Application
                 {
                     Uri = WebsocketURI
                 }));
-        _serviceCollection.AddSingleton<IMessageRouter>(messageRouter);
-        _serviceCollection.AddTransient(typeof(DataGridView));
-        var provider = _serviceCollection.BuildServiceProvider();
-        var dataGridView = provider.GetRequiredService<DataGridView>();
+        serviceCollection.AddSingleton<IMessageRouter>(messageRouter);
+        serviceCollection.AddSingleton(typeof(DataGridView));
+        _serviceProvider = serviceCollection.BuildServiceProvider();
+        var dataGridView = _serviceProvider?.GetRequiredService<DataGridView>();
 
         dataGridView?.Show();
     }
