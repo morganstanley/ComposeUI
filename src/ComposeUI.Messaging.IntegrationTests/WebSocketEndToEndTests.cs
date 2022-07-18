@@ -12,7 +12,7 @@
 
 using ComposeUI.Messaging.Client;
 using ComposeUI.Messaging.Client.Transport.WebSocket;
-using ComposeUI.Messaging.Prototypes;
+using ComposeUI.Messaging.Server;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace ComposeUI.Messaging.IntegrationTests;
@@ -34,15 +34,15 @@ public class WebSocketEndToEndTests
     [Fact]
     public async Task Client_can_connect()
     {
-        var client = CreateClient();
+        await using var client = CreateClient();
         await client.ConnectAsync();
     }
 
     [Fact]
     public async Task Client_can_subscribe_and_receive_messages()
     {
-        var publisher = CreateClient();
-        var subscriber = CreateClient();
+        await using var publisher = CreateClient();
+        await using var subscriber = CreateClient();
         var observerMock = new Mock<IObserver<RouterMessage>>();
 
         await subscriber.SubscribeAsync(topicName: "test-topic", observerMock.Object);
@@ -56,7 +56,7 @@ public class WebSocketEndToEndTests
     [Fact]
     public async Task Client_can_register_itself_as_a_service()
     {
-        var client = CreateClient();
+        await using var client = CreateClient();
         await client.RegisterServiceAsync(serviceName: "test-service", (name, payload) => default);
         await client.UnregisterServiceAsync("test-service");
     }
@@ -64,7 +64,7 @@ public class WebSocketEndToEndTests
     [Fact]
     public async Task Client_can_invoke_a_registered_service()
     {
-        var service = CreateClient();
+        await using var service = CreateClient();
 
         var handlerMock = new Mock<ServiceInvokeHandler>();
         handlerMock
@@ -72,7 +72,7 @@ public class WebSocketEndToEndTests
             .Returns(new ValueTask<string?>("test-response"));
         await service.RegisterServiceAsync(serviceName: "test-service", handlerMock.Object);
 
-        var client = CreateClient();
+        await using var client = CreateClient();
 
         var response = await client.InvokeAsync(serviceName: "test-service", payload: "test-request");
 

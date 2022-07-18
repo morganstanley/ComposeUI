@@ -10,9 +10,10 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using ComposeUI.Messaging.Server.Transport.WebSocket;
 using Microsoft.Extensions.FileProviders;
 
-namespace ComposeUI.Messaging.Prototypes;
+namespace ComposeUI.Messaging.Server;
 
 public partial class Program
 {
@@ -20,7 +21,7 @@ public partial class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.AddSingleton<MessageRouterServer>();
+        builder.Services.AddMessageRouterServer();
 
         var app = builder.Build();
 
@@ -39,27 +40,7 @@ public partial class Program
             });
 
 
-        app.Use(
-            async (context, next) =>
-            {
-                if (context.Request.Path == "/ws")
-                {
-                    if (context.WebSockets.IsWebSocketRequest)
-                    {
-                        using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-                        var messageRouter = context.RequestServices.GetRequiredService<MessageRouterServer>();
-                        await messageRouter.HandleWebSocketRequest(webSocket, CancellationToken.None);
-                    }
-                    else
-                    {
-                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
-                    }
-                }
-                else
-                {
-                    await next(context);
-                }
-            });
+        app.MapMessageRouterWebSocketEndpoint("/ws");
 
         app.Run();
     }

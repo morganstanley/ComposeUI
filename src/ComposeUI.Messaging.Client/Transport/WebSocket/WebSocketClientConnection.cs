@@ -34,10 +34,17 @@ internal class WebSocketClientConnection : IClientConnection
         _logger = logger ?? NullLogger<WebSocketClientConnection>.Instance;
     }
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         _stopTokenSource.Cancel();
-        return default;
+
+        if (_webSocket.State == WebSocketState.Open)
+        {
+            await _webSocket.CloseAsync(
+                WebSocketCloseStatus.NormalClosure,
+                statusDescription: null,
+                CancellationToken.None);
+        }
     }
 
     public async ValueTask ConnectAsync(CancellationToken cancellationToken = default)
@@ -59,14 +66,24 @@ internal class WebSocketClientConnection : IClientConnection
     }
 
     private readonly Channel<Message> _inputChannel = Channel.CreateUnbounded<Message>(
-        new UnboundedChannelOptions {AllowSynchronousContinuations = false, SingleReader = true, SingleWriter = true});
+        new UnboundedChannelOptions
+        {
+            AllowSynchronousContinuations = false,
+            SingleReader = true,
+            SingleWriter = true
+        });
 
     private readonly ILogger<WebSocketClientConnection> _logger;
 
     private readonly IOptions<MessageRouterWebSocketOptions> _options;
 
     private readonly Channel<Message> _outputChannel = Channel.CreateUnbounded<Message>(
-        new UnboundedChannelOptions {AllowSynchronousContinuations = false, SingleReader = true, SingleWriter = true});
+        new UnboundedChannelOptions
+        {
+            AllowSynchronousContinuations = false,
+            SingleReader = true,
+            SingleWriter = true
+        });
 
     private readonly CancellationTokenSource _stopTokenSource = new();
 
@@ -81,18 +98,34 @@ internal class WebSocketClientConnection : IClientConnection
             while (!_webSocket.CloseStatus.HasValue && !_stopTokenSource.IsCancellationRequested)
             {
                 var buffer = pipe.Writer.GetMemory(1024 * 4);
-                var receiveResult = await _webSocket.ReceiveAsync(buffer, _stopTokenSource.Token);
-                if (receiveResult.MessageType == WebSocketMessageType.Close) break;
-                pipe.Writer.Advance(receiveResult.Count);
-                if (receiveResult.EndOfMessage)
+                try
                 {
-                    await pipe.Writer.FlushAsync(CancellationToken.None);
-                    var readResult = await pipe.Reader.ReadAsync(CancellationToken.None);
-                    var readBuffer = readResult.Buffer;
-                    while (!readBuffer.IsEmpty && TryReadMessage(ref readBuffer, out var message))
-                        await _inputChannel.Writer.WriteAsync(message, _stopTokenSource.Token);
+                    // The cancellation token is None intentionally, see https://github.com/dotnet/runtime/issues/31566
+                    var receiveResult = await _webSocket.ReceiveAsync(buffer, CancellationToken.None);
 
-                    pipe.Reader.AdvanceTo(readBuffer.Start, readBuffer.End);
+                    if (receiveResult.MessageType == WebSocketMessageType.Close)
+                    {
+                        await _webSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
+                        break;
+                    }
+
+                    pipe.Writer.Advance(receiveResult.Count);
+
+                    if (receiveResult.EndOfMessage)
+                    {
+                        await pipe.Writer.FlushAsync(CancellationToken.None);
+                        var readResult = await pipe.Reader.ReadAsync(CancellationToken.None);
+                        var readBuffer = readResult.Buffer;
+
+                        while (!readBuffer.IsEmpty && TryReadMessage(ref readBuffer, out var message))
+                            await _inputChannel.Writer.WriteAsync(message, _stopTokenSource.Token);
+
+                        pipe.Reader.AdvanceTo(readBuffer.Start, readBuffer.End);
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
                 }
             }
         }
@@ -109,32 +142,45 @@ internal class WebSocketClientConnection : IClientConnection
 
     private async void StartSendingMessages()
     {
-        while (await _outputChannel.Reader.WaitToReadAsync(_stopTokenSource.Token)
-               && !_stopTokenSource.Token.IsCancellationRequested)
-        while (_outputChannel.Reader.TryRead(out var message) && !_stopTokenSource.Token.IsCancellationRequested)
+        try
         {
-            // TODO: use pooled buffer
-            var messageBytes = JsonMessageSerializer.SerializeMessage(message);
-            await _webSocket.SendAsync(
-                messageBytes,
-                WebSocketMessageType.Text,
-                WebSocketMessageFlags.EndOfMessage,
-                _stopTokenSource.Token);
+            await foreach (var message in _outputChannel.Reader.ReadAllAsync(_stopTokenSource.Token))
+            {
+                // TODO: use pooled buffer
+                var messageBytes = JsonMessageSerializer.SerializeMessage(message);
+
+                await _webSocket.SendAsync(
+                    messageBytes,
+                    WebSocketMessageType.Text,
+                    WebSocketMessageFlags.EndOfMessage,
+                    _stopTokenSource.Token);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Normal closure on our end
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Unhandled exception while sending the message: {ExceptionMessage}", e.Message);
         }
     }
 
     private bool TryReadMessage(ref ReadOnlySequence<byte> buffer, [NotNullWhen(true)] out Message? message)
     {
         var innerBuffer = buffer;
+
         try
         {
             message = JsonMessageSerializer.DeserializeMessage(ref innerBuffer);
             buffer = buffer.Slice(innerBuffer.Start);
+
             return true;
         }
         catch
         {
             message = null;
+
             return false;
         }
     }

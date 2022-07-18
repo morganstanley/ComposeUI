@@ -11,7 +11,6 @@
 // and limitations under the License.
 
 using System.Net.WebSockets;
-using ComposeUI.Messaging.Prototypes;
 using ComposeUI.Messaging.Server.Tests.TestUtils;
 using FluentAssertions.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
