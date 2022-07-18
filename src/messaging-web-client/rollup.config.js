@@ -4,7 +4,7 @@ export default {
   input: 'src/index.ts',
   output: {
     dir: 'output',
-    format: 'umd',
+    format: 'cjs',
     name: "composeMessaging"
   },
   plugins: [typescript()]
