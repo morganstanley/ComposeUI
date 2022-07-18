@@ -1,0 +1,27 @@
+{
+  "name": "compose-prototype-chart",
+  "version": "1.0.0",
+  "description": "",
+  "main": "chat.js",
+  "scripts": {
+    "clean": "rimraf dist",
+    "bundle": "rollup -c",
+    "build": "npm run clean && npm run bundle",
+    "serve": "http-server"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bootstrap": "^5.1.3",
+    "highcharts": "^10.2.0",
+    "jquery": "^3.6.0",
+    "tslib": "^2.4.0"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "rimraf": "^3.0.2",
+    "rollup": "^2.76.0",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-node-resolve": "^5.2.0"
+  }
+}
