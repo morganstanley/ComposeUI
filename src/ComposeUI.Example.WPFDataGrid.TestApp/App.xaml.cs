@@ -20,6 +20,7 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using System;
 using System.IO;
+using System.Linq;
 using System.Windows;
 
 namespace ComposeUI.Example.WPFDataGrid.TestApp;
@@ -29,12 +30,11 @@ namespace ComposeUI.Example.WPFDataGrid.TestApp;
 /// </summary>
 public partial class App : Application
 {
-    private ServiceCollection _serviceCollection = new();
-
+    private IServiceProvider? _serviceProvider;
     /// <summary>
     /// Url to connect
     /// </summary>
-    public static Uri WebsocketURI { get; } = new("ws://localhost:5098/ws");
+    public static Uri WebsocketURI { get; set; } = new("ws://localhost:5098/ws");
 
     /// <summary>
     /// Overriding Statup so we can do DI.
@@ -42,7 +42,15 @@ public partial class App : Application
     /// <param name="e"></param>
     protected async override void OnStartup(StartupEventArgs e)
     {
+        ServiceCollection serviceCollection = new();
+
         base.OnStartup(e);
+
+        Uri? uri;
+        if (e.Args.Any() && Uri.TryCreate(e.Args[0], UriKind.Absolute, out uri))
+        {
+            WebsocketURI = uri;
+        }
 
         ILoggerFactory loggerFactory = new LoggerFactory();
 
@@ -50,7 +58,7 @@ public partial class App : Application
             .WriteTo.File(string.Format("{0}/log.log", Directory.GetCurrentDirectory()))
             .CreateLogger();
 
-        _serviceCollection.AddLogging(builder =>
+        serviceCollection.AddLogging(builder =>
         {
             builder.AddSerilog(serilogger);
         });
@@ -61,10 +69,10 @@ public partial class App : Application
                 {
                     Uri = WebsocketURI
                 }));
-        _serviceCollection.AddSingleton<IMessageRouter>(messageRouter);
-        _serviceCollection.AddTransient(typeof(DataGridView));
-        var provider = _serviceCollection.BuildServiceProvider();
-        var dataGridView = provider.GetRequiredService<DataGridView>();
+        serviceCollection.AddSingleton<IMessageRouter>(messageRouter);
+        serviceCollection.AddSingleton(typeof(DataGridView));
+        _serviceProvider = serviceCollection.BuildServiceProvider();
+        var dataGridView = _serviceProvider?.GetRequiredService<DataGridView>();
 
         dataGridView?.Show();
     }

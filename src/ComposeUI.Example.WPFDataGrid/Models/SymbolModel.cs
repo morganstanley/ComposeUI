@@ -20,6 +20,7 @@ namespace ComposeUI.Example.WPFDataGrid.Models;
 
 /// <summary>
 /// Model for symbol. We can show the short and long market of the product. (The amount of the symbolRating's trading, the avarage profit of the stock's position)
+/// For now we are just sending the symbol name.
 /// </summary>
 [Serializable]
 public sealed class SymbolModel
@@ -32,21 +33,26 @@ public sealed class SymbolModel
     /// <summary>
     /// Fullname of the symbol.
     /// </summary>
+    
+    [JsonIgnore]
     public string Fullname { get; set; } = string.Empty;
 
     /// <summary>
     /// Price of the symbol for the rating.
     /// </summary>
+    [JsonIgnore]
     public decimal AverageProfit { get; set; }
 
     /// <summary>
     /// Count of the symbol.
     /// </summary>
+    [JsonIgnore]
     public double Amount { get; set; }
 
     /// <summary>
     /// Rating/type of the symbol. (LONG/SHORT)
     /// </summary>
+    [JsonIgnore]
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public SymbolRating SymbolRating { get; set; }
 
@@ -58,6 +64,7 @@ public sealed class SymbolModel
         Converters =
         {
             new JsonStringEnumConverter()
-        }
+        },
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 }

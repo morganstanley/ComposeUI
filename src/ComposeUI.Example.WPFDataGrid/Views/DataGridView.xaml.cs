@@ -52,17 +52,6 @@ public partial class DataGridView : Window
     private async void Window_Loaded(object sender, RoutedEventArgs e)
     {
         MyDataGridMarketData.ItemsSource = _symbols;
-        try
-        {
-            foreach (var symbol in _symbols)
-            {
-                await _messageRouter.PublishAsync("proto_register_marketData", JsonSerializer.Serialize(symbol, SymbolModel.JsonSerializerOptions));
-            }
-        }
-        catch (Exception exception)
-        {
-            _logger?.LogError(exception.ToString());
-        }
     }
 
     private async void DataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
