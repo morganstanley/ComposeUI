@@ -1,11 +1,8 @@
-import typescript from '@rollup/plugin-typescript';
-
 export default {
-  input: 'src/index.ts',
+  input: 'output/index.js',
   output: {
-    dir: 'output',
-    format: 'cjs',
+    file: 'output/bundle.umd.js',
+    format: 'umd',
     name: "composeMessaging"
-  },
-  plugins: [typescript()]
+  }
 };
