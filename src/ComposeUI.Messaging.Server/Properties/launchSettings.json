@@ -8,7 +8,7 @@
     }
   },
   "profiles": {
-    "ComposeUI.Messaging.Prototypes": {
+    "ComposeUI.Messaging.Server": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,

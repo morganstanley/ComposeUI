@@ -12,11 +12,25 @@
 
 using ComposeUI.Messaging.Core.Messages;
 
-namespace ComposeUI.Messaging.Client.Transport.Abstractions;
+namespace ComposeUI.Messaging.Server.Transport.Abstractions;
 
-internal interface IClientConnection : IAsyncDisposable
+/// <summary>
+/// Abstraction of a client connected to the Message Router server.
+/// </summary>
+public interface IClientConnection : IAsyncDisposable
 {
-    ValueTask ConnectAsync(CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Sends a message to the client.
+    /// </summary>
+    /// <param name="message"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     ValueTask SendAsync(Message message, CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Returns the async stream of messages received from the client.
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     IAsyncEnumerable<Message> ReceiveAsync(CancellationToken cancellationToken = default);
 }
