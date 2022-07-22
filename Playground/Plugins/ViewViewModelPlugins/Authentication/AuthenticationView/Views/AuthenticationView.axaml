@@ -1,0 +1,66 @@
+<!--
+********************************************************************************************************
+
+Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License").
+You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
+See the NOTICE file distributed with this work for additional information regarding copyright ownership.
+Unless required by applicable law or agreed to in writing, software distributed under the License
+is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and limitations under the License.
+
+********************************************************************************************************
+-->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+					xmlns:np="https://np.com/visuals">
+	<DataTemplate x:Key="AuthenticationViewDataTemplate">
+		<Grid Background="{DynamicResource WindowBackgroundBrush}"
+			  RowDefinitions="*, Auto"
+			  IsVisible="{Binding Path=IsAuthenticated, Converter={x:Static np:BoolConverters.Not}}">
+			<Control.Styles>
+				<StyleInclude Source="avares://NP.Avalonia.Visuals/Themes/ThemeStyles.axaml"/>
+			</Control.Styles>
+			<StackPanel HorizontalAlignment="Center"
+						VerticalAlignment="Center"
+						Margin="10">
+				<np:LabeledControl x:Name="EnterUserNameControl"
+								   Text="Enter User Name: "
+								   Classes="Bla"
+								   HorizontalAlignment="Center">
+					<np:LabeledControl.ContainedControlTemplate>
+						<ControlTemplate>
+							<TextBox Width="150"
+									 Text="{Binding Path=UserName, Mode=TwoWay}"/>
+						</ControlTemplate>
+					</np:LabeledControl.ContainedControlTemplate>
+				</np:LabeledControl>
+
+				<np:LabeledControl x:Name="EnterPasswordControl"
+								   Text="Enter Password: "
+								   HorizontalAlignment="Center"
+								   Margin="0,15,0,0">
+					<np:LabeledControl.ContainedControlTemplate>
+						<ControlTemplate>
+							<TextBox Width="150"
+									 Text="{Binding Path=Password, Mode=TwoWay}"/>
+						</ControlTemplate>
+					</np:LabeledControl.ContainedControlTemplate>
+				</np:LabeledControl>
+			</StackPanel>
+			<StackPanel Orientation="Horizontal"
+						Margin="10"
+						Grid.Row="1"
+						HorizontalAlignment="Right"
+						VerticalAlignment="Center">
+				<Button Content="Exit"
+						np:CallAction.TheEvent="{x:Static Button.ClickEvent}"
+						np:CallAction.MethodName="ExitApplication"/>
+				<Button Content="Login"
+						Margin="10,0,0,0"
+						IsEnabled="{Binding Path=CanAuthenticate}"
+						np:CallAction.TheEvent="{x:Static Button.ClickEvent}"
+						np:CallAction.MethodName="Authenticate"/>
+			</StackPanel>
+		</Grid>
+	</DataTemplate>
+</ResourceDictionary>

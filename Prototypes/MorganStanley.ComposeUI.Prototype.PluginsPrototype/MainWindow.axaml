@@ -1,0 +1,61 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:utils="clr-namespace:NP.Utilities.PluginUtils;assembly=NP.Utilities"
+		xmlns:basicServices="clr-namespace:NP.Utilities.BasicServices;assembly=NP.Utilities"
+		xmlns:np="https://np.com/visuals"
+		xmlns:local="clr-namespace:MorganStanley.ComposeUI.Prototypes.PluginsPrototype"
+        x:Class="MorganStanley.ComposeUI.Prototypes.PluginsPrototype.MainWindow"
+        Title="Plugins Test"
+	    Width="600"
+	    Height="400">
+	<Window.Resources>
+		<np:DockManager x:Key="TheDockManager"/>
+	</Window.Resources>
+	<Grid>
+		<np:PluginControl x:Name="AuthenticationPluginControl"
+						  TheContainer="{x:Static local:App.TheContainer}">
+			<np:PluginControl.PluginInfo>
+				<utils:VisualPluginInfo ViewModelType="{x:Type utils:IPlugin}"
+										ViewModelKey="AuthenticationVM"
+										ViewDataTemplateResourcePath="avares://AuthenticationViewPlugin/Views/AuthenticationView.axaml"
+										ViewDataTemplateResourceKey="AuthenticationViewDataTemplate"/>
+			</np:PluginControl.PluginInfo>
+		</np:PluginControl>
+		<Grid x:Name="DockContainer"
+			  IsVisible="{Binding Path=(np:PluginAttachedProperties.PluginDataContext).IsAuthenticated, 
+								  RelativeSource={RelativeSource Self}}"
+			  np:PluginAttachedProperties.TheContainer="{x:Static local:App.TheContainer}">
+			<np:PluginAttachedProperties.PluginVmInfo>
+				<utils:ViewModelPluginInfo ViewModelType="{x:Type basicServices:IAuthenticationService}"/>
+			</np:PluginAttachedProperties.PluginVmInfo>
+			<np:RootDockGroup TheDockManager="{StaticResource TheDockManager}">
+				<np:StackDockGroup TheOrientation="Horizontal">
+					<np:DockItem Header="Enter Text">
+						<np:PluginControl x:Name="EnterTextPluginControl"
+										  TheContainer="{x:Static local:App.TheContainer}"
+										  HorizontalAlignment="Center"
+										  VerticalAlignment="Center">
+							<np:PluginControl.PluginInfo>
+								<utils:VisualPluginInfo ViewModelType="{x:Type utils:IPlugin}"
+														ViewModelKey="EnterTextViewModel"
+														ViewDataTemplateResourcePath="avares://EnterTextViewPlugin/Views/EnterTextView.axaml"
+														ViewDataTemplateResourceKey="EnterTextView"/>
+							</np:PluginControl.PluginInfo>
+						</np:PluginControl>
+					</np:DockItem>
+					<np:DockItem Header="Received Text">
+						<np:PluginControl x:Name="ReceiveTextPluginControl"
+										  TheContainer="{x:Static local:App.TheContainer}">
+							<np:PluginControl.PluginInfo>
+								<utils:VisualPluginInfo ViewModelType="{x:Type utils:IPlugin}"
+														ViewModelKey="ReceiveTextViewModel"
+														ViewDataTemplateResourcePath="avares://ReceiveTextViewPlugin/Views/ReceiveTextView.axaml"
+														ViewDataTemplateResourceKey="ReceiveTextView"/>
+							</np:PluginControl.PluginInfo>
+						</np:PluginControl>
+					</np:DockItem>
+				</np:StackDockGroup>
+			</np:RootDockGroup>
+		</Grid>
+	</Grid>
+</Window>
