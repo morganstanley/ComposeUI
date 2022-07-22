@@ -67,6 +67,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReceiveTextViewModelPlugin"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReceiveTextViewPlugin", "..\..\Tryouts\Plugins\ViewViewModelPlugins\ReceiveText\ReceiveTextViewPlugin\ReceiveTextViewPlugin.csproj", "{112817A1-2EA3-4BB8-9588-CAD3398A8CB4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "javascript-binding", "javascript-binding", "{35515B44-4144-44F2-857D-022E6C0F98E3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "javascript-binding", "javascript-binding", "{4357A061-58A1-49C8-9C1D-97D7EECA8027}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -175,6 +179,8 @@ Global
 		{FDA1F534-8505-4365-B59E-ADBB778B1A0C} = {810759F8-6499-4598-9622-4B7C5726E71D}
 		{FEB6A4EE-B625-44B5-AFFA-0B73B1F7360C} = {83B48655-18AE-4576-B5FD-0E35F99FEFBD}
 		{112817A1-2EA3-4BB8-9588-CAD3398A8CB4} = {83B48655-18AE-4576-B5FD-0E35F99FEFBD}
+		{35515B44-4144-44F2-857D-022E6C0F98E3} = {1ED5A035-825C-40C9-95F9-F0E275F3187A}
+		{4357A061-58A1-49C8-9C1D-97D7EECA8027} = {98535B63-D3C3-4CE7-8495-CA559C186DC1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {98497725-4038-46B9-910E-2BADC6FDC7E4}
