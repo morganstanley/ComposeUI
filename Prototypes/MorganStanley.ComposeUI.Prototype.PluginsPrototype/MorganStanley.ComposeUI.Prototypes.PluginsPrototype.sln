@@ -1,4 +1,4 @@
-﻿<!-- Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License").You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.See the NOTICE file distributed with this work for additional information regarding copyright ownership.nless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.-->
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.32112.339
@@ -19,15 +19,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Com
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Common.Utilities", "..\..\src\Common\MorganStanley.ComposeUI.Common.Utilities\MorganStanley.ComposeUI.Common.Utilities.csproj", "{60A6B771-3B8B-4CF7-81F7-E8D1A20E22CC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Common.VisualUtils", "..\..\src\Common\MorganStanley.ComposeUI.Common.VisualUtils\MorganStanley.ComposeUI.Common.VisualUtils.csproj", "{AD4ABE76-2E9D-49E2-AFD5-2722D410A987}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Avalonia.VisualUtils", "..\..\src\Common\MorganStanley.ComposeUI.Common.VisualUtils\MorganStanley.ComposeUI.Avalonia.VisualUtils.csproj", "{AD4ABE76-2E9D-49E2-AFD5-2722D410A987}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Playground", "Playground", "{2D94959E-539E-43A8-B50D-435D969059FF}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shell", "Shell", "{2D94959E-539E-43A8-B50D-435D969059FF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Playground.BasicModels", "..\..\Playground\MorganStanley.ComposeUI.Playground.BasicModels\MorganStanley.ComposeUI.Playground.BasicModels.csproj", "{D25CF673-216B-450C-840A-039ECF088CB7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Shell.BasicModels", "..\..\Playground\MorganStanley.ComposeUI.Playground.BasicModels\MorganStanley.ComposeUI.Shell.BasicModels.csproj", "{D25CF673-216B-450C-840A-039ECF088CB7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Playground.Interfaces", "..\..\Playground\MorganStanley.ComposeUI.Playground.Interfaces\MorganStanley.ComposeUI.Playground.Interfaces.csproj", "{6BCE1270-464D-42CB-B07E-1B0A88A70D6F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Shell.Interfaces", "..\..\Playground\MorganStanley.ComposeUI.Playground.Interfaces\MorganStanley.ComposeUI.Shell.Interfaces.csproj", "{6BCE1270-464D-42CB-B07E-1B0A88A70D6F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Playground.Utilities", "..\..\Playground\MorganStanley.ComposeUI.Playground.Utilities\MorganStanley.ComposeUI.Playground.Utilities.csproj", "{E2CC1CB0-7895-4A50-B62A-20F313A4C3B0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Shell.Utilities", "..\..\Playground\MorganStanley.ComposeUI.Playground.Utilities\MorganStanley.ComposeUI.Shell.Utilities.csproj", "{E2CC1CB0-7895-4A50-B62A-20F313A4C3B0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Playground.VisualUtils", "..\..\Playground\MorganStanley.ComposeUI.Playground.VisualUtils\MorganStanley.ComposeUI.Playground.VisualUtils.csproj", "{AE26BC29-2929-4A96-9789-1039D7806D98}"
 EndProject
@@ -54,6 +54,18 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReceiveTextViewPlugin", "..\..\Playground\Plugins\ViewViewModelPlugins\ReceiveText\ReceiveTextViewPlugin\ReceiveTextViewPlugin.csproj", "{CFE2D220-9DFB-4ECA-BD60-2BD67511143A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{713AD7B2-EB14-40B5-A49F-6447C3F5254A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{CF641292-1147-4C98-B1CB-DB3C1F9A0F32}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Visuals", "Visuals", "{7BB764D5-EA1D-4655-8B31-2A039DBB5010}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Avalonia", "Avalonia", "{5BE85F0E-C2E5-4B36-992C-FB39790C320B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{5F5BF1DA-BEF9-4A6B-A5A4-5B2743691903}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Visuals", "Visuals", "{8D5C6058-B764-4AEA-9A16-97359D8CA3CD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Avalonia", "Avalonia", "{459F48A2-EBEB-4C16-9C7E-46EEB1C8E65C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -137,14 +149,14 @@ Global
 		{B9CCFFB5-9132-47F4-86C3-7968666E0AEB} = {A5689C2B-802C-4AD9-BE88-2E8744153BFE}
 		{810759F8-6499-4598-9622-4B7C5726E71D} = {A5689C2B-802C-4AD9-BE88-2E8744153BFE}
 		{83B48655-18AE-4576-B5FD-0E35F99FEFBD} = {A5689C2B-802C-4AD9-BE88-2E8744153BFE}
-		{40EC45C4-0325-4851-AB1C-64B27ED28BAD} = {1ED5A035-825C-40C9-95F9-F0E275F3187A}
-		{D5EBE540-94D0-4E33-A467-C3BDAD5DCB14} = {1ED5A035-825C-40C9-95F9-F0E275F3187A}
-		{60A6B771-3B8B-4CF7-81F7-E8D1A20E22CC} = {1ED5A035-825C-40C9-95F9-F0E275F3187A}
-		{AD4ABE76-2E9D-49E2-AFD5-2722D410A987} = {1ED5A035-825C-40C9-95F9-F0E275F3187A}
-		{D25CF673-216B-450C-840A-039ECF088CB7} = {2D94959E-539E-43A8-B50D-435D969059FF}
-		{6BCE1270-464D-42CB-B07E-1B0A88A70D6F} = {2D94959E-539E-43A8-B50D-435D969059FF}
-		{E2CC1CB0-7895-4A50-B62A-20F313A4C3B0} = {2D94959E-539E-43A8-B50D-435D969059FF}
-		{AE26BC29-2929-4A96-9789-1039D7806D98} = {2D94959E-539E-43A8-B50D-435D969059FF}
+		{40EC45C4-0325-4851-AB1C-64B27ED28BAD} = {CF641292-1147-4C98-B1CB-DB3C1F9A0F32}
+		{D5EBE540-94D0-4E33-A467-C3BDAD5DCB14} = {CF641292-1147-4C98-B1CB-DB3C1F9A0F32}
+		{60A6B771-3B8B-4CF7-81F7-E8D1A20E22CC} = {CF641292-1147-4C98-B1CB-DB3C1F9A0F32}
+		{AD4ABE76-2E9D-49E2-AFD5-2722D410A987} = {5BE85F0E-C2E5-4B36-992C-FB39790C320B}
+		{D25CF673-216B-450C-840A-039ECF088CB7} = {5F5BF1DA-BEF9-4A6B-A5A4-5B2743691903}
+		{6BCE1270-464D-42CB-B07E-1B0A88A70D6F} = {5F5BF1DA-BEF9-4A6B-A5A4-5B2743691903}
+		{E2CC1CB0-7895-4A50-B62A-20F313A4C3B0} = {5F5BF1DA-BEF9-4A6B-A5A4-5B2743691903}
+		{AE26BC29-2929-4A96-9789-1039D7806D98} = {459F48A2-EBEB-4C16-9C7E-46EEB1C8E65C}
 		{B530EC0C-92A5-445F-8938-DBCD083DCF19} = {2D94959E-539E-43A8-B50D-435D969059FF}
 		{2C8750D7-FDA6-40CA-A668-663903687C3B} = {B530EC0C-92A5-445F-8938-DBCD083DCF19}
 		{A5689C2B-802C-4AD9-BE88-2E8744153BFE} = {B530EC0C-92A5-445F-8938-DBCD083DCF19}
@@ -156,6 +168,12 @@ Global
 		{B435094B-1BD7-402E-A817-585DDDB5499F} = {810759F8-6499-4598-9622-4B7C5726E71D}
 		{4500A720-227D-4EE4-A7DB-CAB77DB5FB8F} = {83B48655-18AE-4576-B5FD-0E35F99FEFBD}
 		{CFE2D220-9DFB-4ECA-BD60-2BD67511143A} = {83B48655-18AE-4576-B5FD-0E35F99FEFBD}
+		{CF641292-1147-4C98-B1CB-DB3C1F9A0F32} = {1ED5A035-825C-40C9-95F9-F0E275F3187A}
+		{7BB764D5-EA1D-4655-8B31-2A039DBB5010} = {1ED5A035-825C-40C9-95F9-F0E275F3187A}
+		{5BE85F0E-C2E5-4B36-992C-FB39790C320B} = {7BB764D5-EA1D-4655-8B31-2A039DBB5010}
+		{5F5BF1DA-BEF9-4A6B-A5A4-5B2743691903} = {2D94959E-539E-43A8-B50D-435D969059FF}
+		{8D5C6058-B764-4AEA-9A16-97359D8CA3CD} = {2D94959E-539E-43A8-B50D-435D969059FF}
+		{459F48A2-EBEB-4C16-9C7E-46EEB1C8E65C} = {8D5C6058-B764-4AEA-9A16-97359D8CA3CD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {98497725-4038-46B9-910E-2BADC6FDC7E4}

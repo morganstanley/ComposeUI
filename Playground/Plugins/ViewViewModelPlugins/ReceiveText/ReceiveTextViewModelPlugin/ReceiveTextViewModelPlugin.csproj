@@ -24,6 +24,6 @@ See the License for the specific language governing permissions and limitations 
 	</Target>
 	
 	<ItemGroup>
-	  <ProjectReference Include="..\..\..\..\MorganStanley.ComposeUI.Playground.BasicModels\MorganStanley.ComposeUI.Playground.BasicModels.csproj" />
+	  <ProjectReference Include="..\..\..\..\MorganStanley.ComposeUI.Playground.BasicModels\MorganStanley.ComposeUI.Shell.BasicModels.csproj" />
 	</ItemGroup>
 </Project>

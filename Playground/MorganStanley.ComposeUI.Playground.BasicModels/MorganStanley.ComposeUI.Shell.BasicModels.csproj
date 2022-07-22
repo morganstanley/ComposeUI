@@ -20,8 +20,8 @@ See the License for the specific language governing permissions and limitations 
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Common\MorganStanley.ComposeUI.Common.BasicModels\MorganStanley.ComposeUI.Common.BasicModels.csproj" />
-    <ProjectReference Include="..\MorganStanley.ComposeUI.Playground.Interfaces\MorganStanley.ComposeUI.Playground.Interfaces.csproj" />
-    <ProjectReference Include="..\MorganStanley.ComposeUI.Playground.Utilities\MorganStanley.ComposeUI.Playground.Utilities.csproj" />
+    <ProjectReference Include="..\MorganStanley.ComposeUI.Playground.Interfaces\MorganStanley.ComposeUI.Shell.Interfaces.csproj" />
+    <ProjectReference Include="..\MorganStanley.ComposeUI.Playground.Utilities\MorganStanley.ComposeUI.Shell.Utilities.csproj" />
   </ItemGroup>
 
 </Project>

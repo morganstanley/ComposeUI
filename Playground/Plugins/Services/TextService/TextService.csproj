@@ -25,7 +25,7 @@ See the License for the specific language governing permissions and limitations 
 	
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)..\..\src\Common\MorganStanley.ComposeUI.Common.Utilities\MorganStanley.ComposeUI.Common.Utilities.csproj" />
-    <ProjectReference Include="..\..\..\MorganStanley.ComposeUI.Playground.Interfaces\MorganStanley.ComposeUI.Playground.Interfaces.csproj" />
+    <ProjectReference Include="..\..\..\MorganStanley.ComposeUI.Playground.Interfaces\MorganStanley.ComposeUI.Shell.Interfaces.csproj" />
   </ItemGroup>
 
 </Project>

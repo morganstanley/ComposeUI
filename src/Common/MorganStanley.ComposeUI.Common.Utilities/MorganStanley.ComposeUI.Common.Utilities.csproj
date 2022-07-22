@@ -19,7 +19,7 @@ See the License for the specific language governing permissions and limitations 
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NP.Concepts.Behaviors" Version="1.0.9" />
+    <PackageReference Include="NP.Utilities" Version="1.0.13" />
   </ItemGroup>
 
 </Project>

@@ -17,8 +17,8 @@ See the License for the specific language governing permissions and limitations 
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Common\MorganStanley.ComposeUI.Common.VisualUtils\MorganStanley.ComposeUI.Common.VisualUtils.csproj" />
-    <ProjectReference Include="..\MorganStanley.ComposeUI.Playground.Utilities\MorganStanley.ComposeUI.Playground.Utilities.csproj" />
+    <ProjectReference Include="..\..\src\Common\MorganStanley.ComposeUI.Common.VisualUtils\MorganStanley.ComposeUI.Avalonia.VisualUtils.csproj" />
+    <ProjectReference Include="..\MorganStanley.ComposeUI.Playground.Utilities\MorganStanley.ComposeUI.Shell.Utilities.csproj" />
   </ItemGroup>
 
 </Project>
