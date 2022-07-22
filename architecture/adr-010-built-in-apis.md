@@ -9,7 +9,7 @@ However, there might be other framework services that we provide, such as login,
 local/profile storage, telemetry, etc. These APIs need client libraries for all the
 languages and technologies we support, including at minimum JavaScript and .NET.
 Since ComposeUI modules can run in their own process, we have to implement cross-process
-communication and build our client libraries around technologies like WebSocket and gRPC
+communication and build our client libraries around communication protocols like WebSocket and gRPC
 - we can call these communication technologies _ports_, each port harbouring _endpoints_ for
 individual APIs.
 Every built-in API must work using any of the ports, resulting in a cascade of dependencies and liabilities:
