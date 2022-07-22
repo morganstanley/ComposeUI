@@ -15,7 +15,6 @@
   <ItemGroup>
     <ProjectReference Include="..\ComposeUI.Messaging.Server\ComposeUI.Messaging.Server.csproj" />
     <ProjectReference Include="..\MorganStanley.ComposeUI.Interfaces\MorganStanley.ComposeUI.Interfaces.csproj" />
-    <ProjectReference Include="..\WpfDemoApp\WpfDemoApp.csproj" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

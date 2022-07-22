@@ -10,10 +10,8 @@
         Closing="Window_Closing">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200"></ColumnDefinition>
             <ColumnDefinition Width="*"></ColumnDefinition>
-        </Grid.ColumnDefinitions>
-        <ContentPresenter Name="App1" Grid.Column="0"></ContentPresenter>
-        <ContentPresenter Name="App2" Grid.Column="1"></ContentPresenter>
+        </Grid.ColumnDefinitions>        
+        <ContentPresenter Name="App2" Grid.Column="0"></ContentPresenter>
     </Grid>
 </Window>
