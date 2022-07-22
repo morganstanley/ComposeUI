@@ -1,0 +1,11 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+	<DataTemplate x:Key="SimpleTimeView">
+		<TextBlock x:Name="TheTextBlock"
+				   FontSize="40"
+				   Text="{Binding Path=TheTime, StringFormat='\{0:HH:mm:ss\}', Mode=OneWay}"
+				   HorizontalAlignment="Center"
+				   VerticalAlignment="Center"/>
+	</DataTemplate>
+</ResourceDictionary>

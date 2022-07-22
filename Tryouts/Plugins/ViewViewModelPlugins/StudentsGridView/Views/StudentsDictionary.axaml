@@ -1,0 +1,18 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+	<DataTemplate x:Key="StudentsDataGrid">
+		<DataGrid AutoGenerateColumns="False"
+				  Items="{Binding}"
+				  SelectedItem="{Binding TheSelectedItem, Mode=TwoWay}">
+			<DataGrid.Columns>
+				<DataGridTextColumn Header="First Name"
+									Binding="{Binding Path=FirstName}"/>
+				<DataGridTextColumn Header="Last Name"
+									Binding="{Binding Path=LastName}"/>
+				<DataGridTextColumn Header="Major"
+									Binding="{Binding Path=Major}"/>
+			</DataGrid.Columns>
+
+		</DataGrid>
+	</DataTemplate>
+</ResourceDictionary>
