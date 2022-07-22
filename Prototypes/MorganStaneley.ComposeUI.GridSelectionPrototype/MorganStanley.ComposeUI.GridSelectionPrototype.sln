@@ -7,23 +7,23 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.GridSelection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{1ED5A035-825C-40C9-95F9-F0E275F3187A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Common.BasicModels", "..\..\src\Common\MorganStanley.ComposeUI.Common.BasicModels\MorganStanley.ComposeUI.Common.BasicModels.csproj", "{40EC45C4-0325-4851-AB1C-64B27ED28BAD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Common.BasicModels", "..\..\src\Common\Core\MorganStanley.ComposeUI.Common.BasicModels\MorganStanley.ComposeUI.Common.BasicModels.csproj", "{40EC45C4-0325-4851-AB1C-64B27ED28BAD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Common.Interfaces", "..\..\src\Common\MorganStanley.ComposeUI.Common.Interfaces\MorganStanley.ComposeUI.Common.Interfaces.csproj", "{D5EBE540-94D0-4E33-A467-C3BDAD5DCB14}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Common.Interfaces", "..\..\src\Common\Core\MorganStanley.ComposeUI.Common.Interfaces\MorganStanley.ComposeUI.Common.Interfaces.csproj", "{D5EBE540-94D0-4E33-A467-C3BDAD5DCB14}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Common.Utilities", "..\..\src\Common\MorganStanley.ComposeUI.Common.Utilities\MorganStanley.ComposeUI.Common.Utilities.csproj", "{60A6B771-3B8B-4CF7-81F7-E8D1A20E22CC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Common.Utilities", "..\..\src\Common\Core\MorganStanley.ComposeUI.Common.Utilities\MorganStanley.ComposeUI.Common.Utilities.csproj", "{60A6B771-3B8B-4CF7-81F7-E8D1A20E22CC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Common.VisualUtils", "..\..\src\Common\MorganStanley.ComposeUI.Common.VisualUtils\MorganStanley.ComposeUI.Common.VisualUtils.csproj", "{AD4ABE76-2E9D-49E2-AFD5-2722D410A987}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Avalonia.VisualUtils", "..\..\src\Common\Visuals\Avalonia\MorganStanley.ComposeUI.Common.VisualUtils\MorganStanley.ComposeUI.Avalonia.VisualUtils.csproj", "{AD4ABE76-2E9D-49E2-AFD5-2722D410A987}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Playground", "Playground", "{2D94959E-539E-43A8-B50D-435D969059FF}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tryouts", "Tryouts", "{2D94959E-539E-43A8-B50D-435D969059FF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Playground.BasicModels", "..\..\Playground\MorganStanley.ComposeUI.Playground.BasicModels\MorganStanley.ComposeUI.Playground.BasicModels.csproj", "{D25CF673-216B-450C-840A-039ECF088CB7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Tryouts.BasicModels", "..\..\Tryouts\Core\MorganStanley.ComposeUI.Tryouts.BasicModels\MorganStanley.ComposeUI.Tryouts.BasicModels.csproj", "{D25CF673-216B-450C-840A-039ECF088CB7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Playground.Interfaces", "..\..\Playground\MorganStanley.ComposeUI.Playground.Interfaces\MorganStanley.ComposeUI.Playground.Interfaces.csproj", "{6BCE1270-464D-42CB-B07E-1B0A88A70D6F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Tryouts.Interfaces", "..\..\Tryouts\Core\MorganStanley.ComposeUI.Tryouts.Interfaces\MorganStanley.ComposeUI.Tryouts.Interfaces.csproj", "{6BCE1270-464D-42CB-B07E-1B0A88A70D6F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Playground.Utilities", "..\..\Playground\MorganStanley.ComposeUI.Playground.Utilities\MorganStanley.ComposeUI.Playground.Utilities.csproj", "{E2CC1CB0-7895-4A50-B62A-20F313A4C3B0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Tryouts.Utilities", "..\..\Tryouts\Core\MorganStanley.ComposeUI.Tryouts.Utilities\MorganStanley.ComposeUI.Tryouts.Utilities.csproj", "{E2CC1CB0-7895-4A50-B62A-20F313A4C3B0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Playground.VisualUtils", "..\..\Playground\MorganStanley.ComposeUI.Playground.VisualUtils\MorganStanley.ComposeUI.Playground.VisualUtils.csproj", "{AE26BC29-2929-4A96-9789-1039D7806D98}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Tryouts.Avalonia.VisualUtils", "..\..\Tryouts\Visuals\Avalonia\MorganStanley.ComposeUI.Tryouts.VisualUtils\MorganStanley.ComposeUI.Tryouts.Avalonia.VisualUtils.csproj", "{AE26BC29-2929-4A96-9789-1039D7806D98}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{B530EC0C-92A5-445F-8938-DBCD083DCF19}"
 EndProject
@@ -31,17 +31,29 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{2C
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ViewViewModelPlugins", "ViewViewModelPlugins", "{A5689C2B-802C-4AD9-BE88-2E8744153BFE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MockAuthentication", "..\..\Playground\Plugins\Services\MockAuthentication\MockAuthentication.csproj", "{F6E50150-E678-418F-B09C-262B828A4F4C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MockAuthentication", "..\..\Tryouts\Plugins\Services\MockAuthentication\MockAuthentication.csproj", "{F6E50150-E678-418F-B09C-262B828A4F4C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TextService", "..\..\Playground\Plugins\Services\TextService\TextService.csproj", "{C38FC7B6-284E-406F-800F-38D714F044AE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TextService", "..\..\Tryouts\Plugins\Services\TextService\TextService.csproj", "{C38FC7B6-284E-406F-800F-38D714F044AE}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{713AD7B2-EB14-40B5-A49F-6447C3F5254A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StudentsGridView", "..\..\Playground\Plugins\ViewViewModelPlugins\StudentsGridView\StudentsGridView.csproj", "{C83472F7-4E3F-47F0-B249-D5015DF0D252}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StudentsGridView", "..\..\Tryouts\Plugins\ViewViewModelPlugins\StudentsGridView\StudentsGridView.csproj", "{C83472F7-4E3F-47F0-B249-D5015DF0D252}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StudentsViewModel", "..\..\Playground\Plugins\ViewViewModelPlugins\StudentsViewModel\StudentsViewModel.csproj", "{E17B39FF-BFF9-41B3-91C2-B760BF158608}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StudentsViewModel", "..\..\Tryouts\Plugins\ViewViewModelPlugins\StudentsViewModel\StudentsViewModel.csproj", "{E17B39FF-BFF9-41B3-91C2-B760BF158608}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SingleStudentDetailView", "..\..\Playground\Plugins\ViewViewModelPlugins\SingleStudentDetailView\SingleStudentDetailView.csproj", "{3F149E56-CF33-49AD-B6BE-4711BA93D8DE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SingleStudentDetailView", "..\..\Tryouts\Plugins\ViewViewModelPlugins\SingleStudentDetailView\SingleStudentDetailView.csproj", "{3F149E56-CF33-49AD-B6BE-4711BA93D8DE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{3BB103D4-530B-48AD-8C72-844C2D274955}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Visuals", "Visuals", "{F912C29A-EFA8-426D-A595-9B9952F2FEDB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Avalonia", "Avalonia", "{B7517075-A165-43AE-AABD-2C857844E4DD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{E4E3B888-2AA7-4A83-A0D8-725C1B40C2EB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Visuals", "Visuals", "{7F7ADA0F-B201-4A49-9F40-F8794D6FC94F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Avalonia", "Avalonia", "{203F3F68-B6FD-4B61-B191-A8207AB436BA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -110,14 +122,14 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{40EC45C4-0325-4851-AB1C-64B27ED28BAD} = {1ED5A035-825C-40C9-95F9-F0E275F3187A}
-		{D5EBE540-94D0-4E33-A467-C3BDAD5DCB14} = {1ED5A035-825C-40C9-95F9-F0E275F3187A}
-		{60A6B771-3B8B-4CF7-81F7-E8D1A20E22CC} = {1ED5A035-825C-40C9-95F9-F0E275F3187A}
-		{AD4ABE76-2E9D-49E2-AFD5-2722D410A987} = {1ED5A035-825C-40C9-95F9-F0E275F3187A}
-		{D25CF673-216B-450C-840A-039ECF088CB7} = {2D94959E-539E-43A8-B50D-435D969059FF}
-		{6BCE1270-464D-42CB-B07E-1B0A88A70D6F} = {2D94959E-539E-43A8-B50D-435D969059FF}
-		{E2CC1CB0-7895-4A50-B62A-20F313A4C3B0} = {2D94959E-539E-43A8-B50D-435D969059FF}
-		{AE26BC29-2929-4A96-9789-1039D7806D98} = {2D94959E-539E-43A8-B50D-435D969059FF}
+		{40EC45C4-0325-4851-AB1C-64B27ED28BAD} = {3BB103D4-530B-48AD-8C72-844C2D274955}
+		{D5EBE540-94D0-4E33-A467-C3BDAD5DCB14} = {3BB103D4-530B-48AD-8C72-844C2D274955}
+		{60A6B771-3B8B-4CF7-81F7-E8D1A20E22CC} = {3BB103D4-530B-48AD-8C72-844C2D274955}
+		{AD4ABE76-2E9D-49E2-AFD5-2722D410A987} = {B7517075-A165-43AE-AABD-2C857844E4DD}
+		{D25CF673-216B-450C-840A-039ECF088CB7} = {E4E3B888-2AA7-4A83-A0D8-725C1B40C2EB}
+		{6BCE1270-464D-42CB-B07E-1B0A88A70D6F} = {E4E3B888-2AA7-4A83-A0D8-725C1B40C2EB}
+		{E2CC1CB0-7895-4A50-B62A-20F313A4C3B0} = {E4E3B888-2AA7-4A83-A0D8-725C1B40C2EB}
+		{AE26BC29-2929-4A96-9789-1039D7806D98} = {203F3F68-B6FD-4B61-B191-A8207AB436BA}
 		{B530EC0C-92A5-445F-8938-DBCD083DCF19} = {2D94959E-539E-43A8-B50D-435D969059FF}
 		{2C8750D7-FDA6-40CA-A668-663903687C3B} = {B530EC0C-92A5-445F-8938-DBCD083DCF19}
 		{A5689C2B-802C-4AD9-BE88-2E8744153BFE} = {B530EC0C-92A5-445F-8938-DBCD083DCF19}
@@ -126,6 +138,12 @@ Global
 		{C83472F7-4E3F-47F0-B249-D5015DF0D252} = {A5689C2B-802C-4AD9-BE88-2E8744153BFE}
 		{E17B39FF-BFF9-41B3-91C2-B760BF158608} = {A5689C2B-802C-4AD9-BE88-2E8744153BFE}
 		{3F149E56-CF33-49AD-B6BE-4711BA93D8DE} = {A5689C2B-802C-4AD9-BE88-2E8744153BFE}
+		{3BB103D4-530B-48AD-8C72-844C2D274955} = {1ED5A035-825C-40C9-95F9-F0E275F3187A}
+		{F912C29A-EFA8-426D-A595-9B9952F2FEDB} = {1ED5A035-825C-40C9-95F9-F0E275F3187A}
+		{B7517075-A165-43AE-AABD-2C857844E4DD} = {F912C29A-EFA8-426D-A595-9B9952F2FEDB}
+		{E4E3B888-2AA7-4A83-A0D8-725C1B40C2EB} = {2D94959E-539E-43A8-B50D-435D969059FF}
+		{7F7ADA0F-B201-4A49-9F40-F8794D6FC94F} = {2D94959E-539E-43A8-B50D-435D969059FF}
+		{203F3F68-B6FD-4B61-B191-A8207AB436BA} = {7F7ADA0F-B201-4A49-9F40-F8794D6FC94F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {98497725-4038-46B9-910E-2BADC6FDC7E4}

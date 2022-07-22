@@ -10,8 +10,11 @@
 		<Exec Command="xcopy &quot;$(OutDir)\$(AssemblyName).pdb&quot; &quot;$(SolutionDir)\bin\$(Configuration)\net6.0\Plugins\ViewModelPlugins\$(ProjectName)\&quot; /R /Y /I" />
 	</Target>
 	<ItemGroup>
-	  <ProjectReference Include="..\..\..\MorganStanley.ComposeUI.Playground.BasicModels\MorganStanley.ComposeUI.Playground.BasicModels.csproj" />
-	  <ProjectReference Include="..\..\..\MorganStanley.ComposeUI.Playground.Interfaces\MorganStanley.ComposeUI.Playground.Interfaces.csproj" />
-	  <ProjectReference Include="..\..\..\MorganStanley.ComposeUI.Playground.Utilities\MorganStanley.ComposeUI.Playground.Utilities.csproj" />
+	  <PackageReference Include="NP.Concepts.Behaviors" Version="1.0.10" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\..\..\Core\MorganStanley.ComposeUI.Tryouts.BasicModels\MorganStanley.ComposeUI.Tryouts.BasicModels.csproj" />
+	  <ProjectReference Include="..\..\..\Core\MorganStanley.ComposeUI.Tryouts.Interfaces\MorganStanley.ComposeUI.Tryouts.Interfaces.csproj" />
+	  <ProjectReference Include="..\..\..\Core\MorganStanley.ComposeUI.Tryouts.Utilities\MorganStanley.ComposeUI.Tryouts.Utilities.csproj" />
 	</ItemGroup>
 </Project>

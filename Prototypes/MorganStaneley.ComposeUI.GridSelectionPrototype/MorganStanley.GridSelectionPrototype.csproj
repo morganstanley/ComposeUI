@@ -36,9 +36,9 @@ See the License for the specific language governing permissions and limitations 
     <PackageReference Include="XamlNameReferenceGenerator" Version="1.3.4" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Playground\MorganStanley.ComposeUI.Playground.BasicModels\MorganStanley.ComposeUI.Playground.BasicModels.csproj" />
-    <ProjectReference Include="..\..\Playground\MorganStanley.ComposeUI.Playground.Interfaces\MorganStanley.ComposeUI.Playground.Interfaces.csproj" />
-    <ProjectReference Include="..\..\Playground\MorganStanley.ComposeUI.Playground.Utilities\MorganStanley.ComposeUI.Playground.Utilities.csproj" />
-    <ProjectReference Include="..\..\Playground\MorganStanley.ComposeUI.Playground.VisualUtils\MorganStanley.ComposeUI.Playground.VisualUtils.csproj" />
+    <ProjectReference Include="..\..\Tryouts\Core\MorganStanley.ComposeUI.Tryouts.BasicModels\MorganStanley.ComposeUI.Tryouts.BasicModels.csproj" />
+    <ProjectReference Include="..\..\Tryouts\Core\MorganStanley.ComposeUI.Tryouts.Interfaces\MorganStanley.ComposeUI.Tryouts.Interfaces.csproj" />
+    <ProjectReference Include="..\..\Tryouts\Core\MorganStanley.ComposeUI.Tryouts.Utilities\MorganStanley.ComposeUI.Tryouts.Utilities.csproj" />
+    <ProjectReference Include="..\..\Tryouts\Visuals\Avalonia\MorganStanley.ComposeUI.Tryouts.VisualUtils\MorganStanley.ComposeUI.Tryouts.Avalonia.VisualUtils.csproj" />
   </ItemGroup>
 </Project>

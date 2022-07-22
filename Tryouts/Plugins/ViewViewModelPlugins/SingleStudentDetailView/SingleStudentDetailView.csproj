@@ -10,9 +10,9 @@
 		<Exec Command="xcopy &quot;$(OutDir)\$(AssemblyName).dll&quot; &quot;$(SolutionDir)\bin\$(Configuration)\net6.0\Plugins\ViewPlugins\$(ProjectName)\&quot; /R /Y /I" />
 		<Exec Command="xcopy &quot;$(OutDir)\$(AssemblyName).pdb&quot; &quot;$(SolutionDir)\bin\$(Configuration)\net6.0\Plugins\ViewPlugins\$(ProjectName)\&quot; /R /Y /I" />
 	</Target>
-	
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\MorganStanley.ComposeUI.Playground.VisualUtils\MorganStanley.ComposeUI.Playground.VisualUtils.csproj" />
-  </ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\..\Visuals\Avalonia\MorganStanley.ComposeUI.Tryouts.VisualUtils\MorganStanley.ComposeUI.Tryouts.Avalonia.VisualUtils.csproj" />
+	</ItemGroup>
 
 </Project>
