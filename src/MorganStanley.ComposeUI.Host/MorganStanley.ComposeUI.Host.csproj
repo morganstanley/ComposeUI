@@ -18,4 +18,9 @@
     <ProjectReference Include="..\WpfDemoApp\WpfDemoApp.csproj" />
   </ItemGroup>
 
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="powershell -ExecutionPolicy RemoteSigned -file &quot;$(SolutionDir)\scripts\npm-builds.ps1&quot;" />
+	  <Exec Command="powershell -ExecutionPolicy RemoteSigned -file &quot;$(SolutionDir)\scripts\copy-folder.ps1&quot; &quot;$(SolutionDir)\messaging-web-client&quot; &quot;$(SolutionDir)\ComposeUi.Messaging.Server\bin\messaging-web-client&quot;" />
+  </Target>
+
 </Project>
