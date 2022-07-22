@@ -26,14 +26,14 @@ See the License for the specific language governing permissions and limitations 
     <PackageReference Include="System.Reactive" Version="5.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\MorganStanley.ComposeUI.Tryouts.Interfaces\MorganStanley.ComposeUI.Tryouts.Interfaces.csproj" />
+    <ProjectReference Include="..\..\..\Core\MorganStanley.ComposeUI.Tryouts.Utilities\MorganStanley.ComposeUI.Tryouts.Utilities.csproj" />
+  </ItemGroup>
+
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
   	<Exec Command="xcopy &quot;$(OutDir)\$(AssemblyName).dll&quot; &quot;$(SolutionDir)\bin\$(Configuration)\net6.0\Plugins\Services\$(ProjectName)\&quot; /R /Y /I" />
   	<Exec Command="xcopy &quot;$(OutDir)\$(AssemblyName).pdb&quot; &quot;$(SolutionDir)\bin\$(Configuration)\net6.0\Plugins\Services\$(ProjectName)\&quot; /R /Y /I" />
   </Target>
-  
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\MorganStanley.ComposeUI.Playground.Interfaces\MorganStanley.ComposeUI.Playground.Interfaces.csproj" />
-    <ProjectReference Include="..\..\..\MorganStanley.ComposeUI.Playground.Utilities\MorganStanley.ComposeUI.Playground.Utilities.csproj" />
-  </ItemGroup>
 
 </Project>
