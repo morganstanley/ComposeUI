@@ -137,12 +137,13 @@ internal class MessageRouterClient : IMessageRouter
             }
             catch (Exception e)
             {
-                _connectionState = ConnectionState.NotConnected;
+                _connectionState = ConnectionState.Closed;
                 _connectTaskSource.SetException(e);
             }
         }
 
         await _connectTaskSource.Task;
+        _connectionState = ConnectionState.Connected;
     }
 
     private Task HandleConnectResponse(ConnectResponse message)

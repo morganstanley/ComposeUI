@@ -6,13 +6,11 @@ import Mocks from './mockData.js';
 
 //-----------------------------
 //register Market data
-//selec market data
+//select market data
 
-//random time series data for the month
+//time series data for the month
 // table only sents the symbol
 //------------------------------------------
-
-
 
 
 let chart;
@@ -67,36 +65,27 @@ async function requestData() {
   let mockData = new Mocks();
   let client;
   (async () => {
-    client = new ComposeMessagingClient("ws://localhost:5098/ws");
+    client = new ComposeMessagingClient("ws://localhost:5000/ws");
   
     window.client = client;
   
     await client.connect();
     /* message symbol*/
     let symbol;
-    client.subscribe('testTopic', (message) => {
-      
-
-      let parsed = JSON.parse(message);
-      symbol = parsed.symbol;
-
-      console.log("message=", message);
+    client.subscribe('proto_select_marketData', (message) => {
+      symbol = message.symbol;
       console.log("symbol=", symbol);
 
       chart.setTitle({text: "Monthly sales for " + symbol});
-    
-
       chart.series[0].setData([]);
       chart.series[1].setData([]);
 
-      //let buyData = [49.9, 71.5, 106.4, 129.2, 144.0, 63.45, 89.13, 15.26, 203.2, 58.7, 115.4, 32.8];
       let buyData = mockData.getBuyDataBySymbol(symbol);
 
       buyData.forEach(function(p) {
           chart.series[0].addPoint(p, false);
       });
 
-      //let sellData =  [83.6, 78.8, 98.5, 93.4, 106.0, 82.3, 45.6, 305.6, 263.5, 33.5, 112.6, 87.3];
       let sellData =  mockData.getSellDataBySymbol(symbol);
 
       sellData.forEach(function(p) {
@@ -104,7 +93,6 @@ async function requestData() {
       });
 
       chart.redraw(); 
-
     });
   })();
 }

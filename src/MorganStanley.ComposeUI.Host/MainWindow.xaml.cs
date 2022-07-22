@@ -14,13 +14,11 @@
 
 using MorganStanley.ComposeUI.Host.Modules;
 using MorganStanley.ComposeUI.Interfaces;
-using MorganStanley.ComposeUI.Prototypes.WebAppHost;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using WpfDemoApp;
 
 namespace MorganStanley.ComposeUI.Host;
 
@@ -36,8 +34,8 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        _apps.Add(new HelloWorldApp());
-        _apps.Add(new WebApplication());
+        _apps.Add(new DotNetCoreApplication("../../../ComposeUI.Example.WPFDataGrid.TestApp/bin/Debug/ComposeUI.Example.WPFDataGrid.TestApp.dll"));
+        _apps.Add(new ComposeHostedWebApplication("../../../prototype-web/chart/src"));
         _moduleLoader = new ModuleLoader(_apps, _communicationModule);
     }
 
