@@ -1,0 +1,29 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+					xmlns:np="https://np.com/visuals">
+	<DataTemplate x:Key="StudentDetailView">
+		<np:AutoGrid DataContext="{Binding Path=TheSelectedItem}">
+			<np:AutoGrid.Styles>
+				<Style Selector="np|LabeledControl">
+					<Setter Property="ContainedControlTemplate">
+						<Setter.Value>
+							<ControlTemplate>
+								<TextBlock Text="{Binding}"/>
+							</ControlTemplate>
+						</Setter.Value>
+					</Setter>
+					<Setter Property="Margin"
+							Value="0,0,0,10"/>
+				</Style>
+			</np:AutoGrid.Styles>
+			<np:LabeledControl Text="First Name:"
+							   DataContext="{Binding Path=FirstName}"/>
+			<np:LabeledControl Text="Last Name:"
+							   DataContext="{Binding Path=LastName}"
+							   np:AutoGrid.Row="1"/>
+			<np:LabeledControl Text="Major:"
+							   DataContext="{Binding Path=Major}"
+							   np:AutoGrid.Row="2"/>
+		</np:AutoGrid>
+	</DataTemplate>
+</ResourceDictionary>

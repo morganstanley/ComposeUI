@@ -2,3 +2,11 @@ Morgan Stanley ComposeUI
 Copyright 2021 Morgan Stanley
 
 This product includes software developed at Morgan Stanley (http://www.morganstanley.com).
+
+=======================================================================
+3rd party software used by ComposeUI
+=======================================================================
+Software libraries are provided as nuget packages
+and their content is not part of ComposeUI. Their
+licenses can be found under the respective software repositories.
+

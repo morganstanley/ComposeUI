@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32112.339
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IpcServer", "IpcServer\IpcServer.csproj", "{468FB46A-A7B7-46E7-A6FD-6116E7E63F5B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IpcClient", "IpcClient\IpcClient.csproj", "{CF72B5BC-587E-469C-BD65-0840C01E0034}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{468FB46A-A7B7-46E7-A6FD-6116E7E63F5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{468FB46A-A7B7-46E7-A6FD-6116E7E63F5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{468FB46A-A7B7-46E7-A6FD-6116E7E63F5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{468FB46A-A7B7-46E7-A6FD-6116E7E63F5B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF72B5BC-587E-469C-BD65-0840C01E0034}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF72B5BC-587E-469C-BD65-0840C01E0034}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF72B5BC-587E-469C-BD65-0840C01E0034}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF72B5BC-587E-469C-BD65-0840C01E0034}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B9C2DCB2-9EEA-4CCD-AAF0-409FC56357D5}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,55 @@
+<!-- Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. -->
+
+# Architecture Decision Record: Module Communication Security
+
+## Context
+
+ComposeUI is modular, and although the core and loader are responsible for loading a module, the only
+way for a module to interact with Compose modules is via the Message Router. Therefore the communication
+needs to be secure so that the other modules can be sure that the messages are coming from a trusted source.
+
+The aim of this ADR is to establish what type of security measures are going to be implemented.
+
+When a module connects to the Message Router, it is likely to be with a WebSocket connection.
+As a first line of defense, we could use Secure WebSocket (wss://) to encrypt the messages on the channel,
+however, since the communication is going to happen within the same machine (localhost), this might not be 
+necessary. 
+
+### Authenticating/Identifying a module
+
+These are the scenarios that we account for:
+1. A .NET assembly is loaded by Compose
+	- We can verify it by using Authenticode
+2. A Web application is loaded into a Compose embedded browser
+	- We will use WebView2 and verify the URL that is loaded
+	- We can intercept any navigation event and check the new URL against an allowed URL/domain list
+3. A Web application loaded into a desktop browser (i.e. Chrome)
+	- We can use OAuth to authenticate the web app 
+	
+We distribute a generated token offline to each client app developer team.
+They bundle the token into the application. The app sends this token to Compose when connecting.
+This token identifies the app and it can also be used to associate entitlements with the app.
+
+Once we verify that it is a valid token, we allow the app to connect to the Message Router.
+
+### Opt-out of Authentication
+
+The app developer might decide that they want to allow modules without authentication, but the default
+will be to allow authenticated clients only. 
+If authentication fails, we mark it as "anonymous" and give it an ID, but with the strict option, 
+we reject the connection in this case.
+
+## Decision
+- The default is that we allow authenticated clients only
+- Provide an option for the application to opt-out of authentication
+- We mark modules/apps that are not identified with an "anonymous" flag
+
+## Status
+
+Approved
+
+## Consequences
+- Modules need a token to connect to the central Message Router
+- The app can choose (by config) to allow unauthenticated modules to communicate
+- A module can choose to not receive messages from unauthenticated modules
+- The central Message Router will filter out messages from anonymous modules if needed

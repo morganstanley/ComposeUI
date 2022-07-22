@@ -1,0 +1,44 @@
+﻿<!--
+********************************************************************************************************
+
+Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License").
+You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
+See the NOTICE file distributed with this work for additional information regarding copyright ownership.
+Unless required by applicable law or agreed to in writing, software distributed under the License
+is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and limitations under the License.
+
+********************************************************************************************************
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <!--Avalonia doesen't support TrimMode=link currently,but we are working on that https://github.com/AvaloniaUI/Avalonia/issues/6892 -->
+    <TrimMode>copyused</TrimMode>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove=".gitignore" />
+  </ItemGroup>
+  <ItemGroup>
+    <!--This helps with theme dll-s trimming.
+	If you will publish your application in self-contained mode with p:PublishTrimmed=true and it will use Fluent theme Default theme will be trimmed from the output and vice versa.
+	https://github.com/AvaloniaUI/Avalonia/issues/5593 -->
+    <TrimmableAssembly Include="Avalonia.Themes.Fluent" />
+    <TrimmableAssembly Include="Avalonia.Themes.Default" />
+  </ItemGroup>
+  <ItemGroup>
+    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    <PackageReference Include="NP.Avalonia.Gidon" Version="0.99.3" />
+    <PackageReference Include="NP.NLogAdapter" Version="1.0.5" />
+    <PackageReference Include="XamlNameReferenceGenerator" Version="1.3.4" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Playground\MorganStanley.ComposeUI.Playground.BasicModels\MorganStanley.ComposeUI.Playground.BasicModels.csproj" />
+    <ProjectReference Include="..\..\Playground\MorganStanley.ComposeUI.Playground.Interfaces\MorganStanley.ComposeUI.Playground.Interfaces.csproj" />
+    <ProjectReference Include="..\..\Playground\MorganStanley.ComposeUI.Playground.Utilities\MorganStanley.ComposeUI.Playground.Utilities.csproj" />
+    <ProjectReference Include="..\..\Playground\MorganStanley.ComposeUI.Playground.VisualUtils\MorganStanley.ComposeUI.Playground.VisualUtils.csproj" />
+  </ItemGroup>
+</Project>
