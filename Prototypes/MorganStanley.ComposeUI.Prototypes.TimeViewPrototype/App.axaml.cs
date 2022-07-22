@@ -26,23 +26,23 @@ namespace MorganStanley.ComposeUI.Prototypes.TimeViewPrototype
         /// "Plugins/Services" - to load the services (non-visual singletons)
         /// "Plugins/ViewModelPlugins" - to load view model plugins
         /// "Plugins/ViewPlugins" - to load view plugins
-        public static PluginManager ThePluginManager { get; } =
-            new PluginManager
-            (
-                "Plugins/Services",
-                "Plugins/ViewModelPlugins",
-                "Plugins/ViewPlugins");
+        //public static PluginManager ThePluginManager { get; } =
+        //    new PluginManager
+        //    (
+        //        "Plugins/Services",
+        //        "Plugins/ViewModelPlugins",
+        //        "Plugins/ViewPlugins");
 
-        // the IoC container
-        public static IoCContainer TheContainer => ThePluginManager.TheContainer;
+        //// the IoC container
+        //public static IoCContainer TheContainer => ThePluginManager.TheContainer;
 
         public App()
         {
-            // inject a type from a statically loaded project NLogAdapter
-            ThePluginManager.InjectType(typeof(NLogWrapper));
+            //// inject a type from a statically loaded project NLogAdapter
+            //ThePluginManager.InjectType(typeof(NLogWrapper));
 
-            // inject all dynamically loaded assemblies
-            ThePluginManager.CompleteConfiguration();
+            //// inject all dynamically loaded assemblies
+            //ThePluginManager.CompleteConfiguration();
         }
 
         public override void Initialize()
