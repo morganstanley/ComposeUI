@@ -34,9 +34,9 @@ See the License for the specific language governing permissions and limitations 
     <PackageReference Include="XamlNameReferenceGenerator" Version="1.3.4" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)..\..\src\Common\MorganStanley.ComposeUI.Common.BasicModels\MorganStanley.ComposeUI.Common.BasicModels.csproj" />
-    <ProjectReference Include="$(SolutionDir)..\..\src\Common\MorganStanley.ComposeUI.Common.Interfaces\MorganStanley.ComposeUI.Common.Interfaces.csproj" />
-    <ProjectReference Include="$(SolutionDir)..\..\src\Common\MorganStanley.ComposeUI.Common.Utilities\MorganStanley.ComposeUI.Common.Utilities.csproj" />
-    <ProjectReference Include="$(SolutionDir)..\..\src\Common\MorganStanley.ComposeUI.Common.VisualUtils\MorganStanley.ComposeUI.Common.VisualUtils.csproj" />
+    <ProjectReference Include="..\Common\Core\MorganStanley.ComposeUI.Common.BasicModels\MorganStanley.ComposeUI.Common.BasicModels.csproj" />
+    <ProjectReference Include="..\Common\Core\MorganStanley.ComposeUI.Common.Interfaces\MorganStanley.ComposeUI.Common.Interfaces.csproj" />
+    <ProjectReference Include="..\Common\Core\MorganStanley.ComposeUI.Common.Utilities\MorganStanley.ComposeUI.Common.Utilities.csproj" />
+    <ProjectReference Include="..\Common\Visuals\Avalonia\MorganStanley.ComposeUI.Common.VisualUtils\MorganStanley.ComposeUI.Avalonia.VisualUtils.csproj" />
   </ItemGroup>
 </Project>

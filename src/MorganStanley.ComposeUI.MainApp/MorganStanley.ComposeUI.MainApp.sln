@@ -1,4 +1,4 @@
-﻿<!-- Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License").You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.See the NOTICE file distributed with this work for additional information regarding copyright ownership.nless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.-->
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.32112.339
@@ -9,13 +9,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{44AEE3
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{3224C0CA-18A4-4E10-A5B4-D282DAAC97E5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Common.BasicModels", "..\Common\MorganStanley.ComposeUI.Common.BasicModels\MorganStanley.ComposeUI.Common.BasicModels.csproj", "{B948F483-BBD0-4E23-A505-E19BCED44297}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Common.BasicModels", "..\Common\Core\MorganStanley.ComposeUI.Common.BasicModels\MorganStanley.ComposeUI.Common.BasicModels.csproj", "{B948F483-BBD0-4E23-A505-E19BCED44297}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Common.Interfaces", "..\Common\MorganStanley.ComposeUI.Common.Interfaces\MorganStanley.ComposeUI.Common.Interfaces.csproj", "{652DAAE1-C09C-421D-9BAE-BE648EB17D1B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Common.Interfaces", "..\Common\Core\MorganStanley.ComposeUI.Common.Interfaces\MorganStanley.ComposeUI.Common.Interfaces.csproj", "{652DAAE1-C09C-421D-9BAE-BE648EB17D1B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Common.Utilities", "..\Common\MorganStanley.ComposeUI.Common.Utilities\MorganStanley.ComposeUI.Common.Utilities.csproj", "{0D8FC7CA-C6EF-4CB9-B165-F8DB8B61E7C1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Common.Utilities", "..\Common\Core\MorganStanley.ComposeUI.Common.Utilities\MorganStanley.ComposeUI.Common.Utilities.csproj", "{0D8FC7CA-C6EF-4CB9-B165-F8DB8B61E7C1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Common.VisualUtils", "..\Common\MorganStanley.ComposeUI.Common.VisualUtils\MorganStanley.ComposeUI.Common.VisualUtils.csproj", "{B7C7C6B2-B896-4781-A19C-6422AFC70944}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Avalonia.VisualUtils", "..\Common\Visuals\Avalonia\MorganStanley.ComposeUI.Common.VisualUtils\MorganStanley.ComposeUI.Avalonia.VisualUtils.csproj", "{B7C7C6B2-B896-4781-A19C-6422AFC70944}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{2F3E88D8-966F-4DB1-8E90-3F3DDF0A5515}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Visuals", "Visuals", "{AA0D08E1-FB9B-42AD-A99C-777CF7C2DE6B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Avalonia", "Avalonia", "{89B16966-AAA4-42F9-B7FF-6C9FB83B2FF3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,10 +54,13 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{B948F483-BBD0-4E23-A505-E19BCED44297} = {44AEE361-98BE-47C5-94CE-3851C09129A4}
-		{652DAAE1-C09C-421D-9BAE-BE648EB17D1B} = {44AEE361-98BE-47C5-94CE-3851C09129A4}
-		{0D8FC7CA-C6EF-4CB9-B165-F8DB8B61E7C1} = {44AEE361-98BE-47C5-94CE-3851C09129A4}
-		{B7C7C6B2-B896-4781-A19C-6422AFC70944} = {44AEE361-98BE-47C5-94CE-3851C09129A4}
+		{B948F483-BBD0-4E23-A505-E19BCED44297} = {2F3E88D8-966F-4DB1-8E90-3F3DDF0A5515}
+		{652DAAE1-C09C-421D-9BAE-BE648EB17D1B} = {2F3E88D8-966F-4DB1-8E90-3F3DDF0A5515}
+		{0D8FC7CA-C6EF-4CB9-B165-F8DB8B61E7C1} = {2F3E88D8-966F-4DB1-8E90-3F3DDF0A5515}
+		{B7C7C6B2-B896-4781-A19C-6422AFC70944} = {89B16966-AAA4-42F9-B7FF-6C9FB83B2FF3}
+		{2F3E88D8-966F-4DB1-8E90-3F3DDF0A5515} = {44AEE361-98BE-47C5-94CE-3851C09129A4}
+		{AA0D08E1-FB9B-42AD-A99C-777CF7C2DE6B} = {44AEE361-98BE-47C5-94CE-3851C09129A4}
+		{89B16966-AAA4-42F9-B7FF-6C9FB83B2FF3} = {AA0D08E1-FB9B-42AD-A99C-777CF7C2DE6B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AC408A30-6542-4A25-A6DE-450E325BDE69}
