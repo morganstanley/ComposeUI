@@ -1,4 +1,4 @@
-﻿<!-- Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License").You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.See the NOTICE file distributed with this work for additional information regarding copyright ownership.nless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.-->
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.32112.339
@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Com
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Common.Utilities", "..\..\src\Common\Core\MorganStanley.ComposeUI.Common.Utilities\MorganStanley.ComposeUI.Common.Utilities.csproj", "{60A6B771-3B8B-4CF7-81F7-E8D1A20E22CC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Common.VisualUtils", "..\..\src\Common\Visuals\Avalonia\MorganStanley.ComposeUI.Common.VisualUtils\MorganStanley.ComposeUI.Avalonia.VisualUtils.csproj", "{AD4ABE76-2E9D-49E2-AFD5-2722D410A987}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Avalonia.VisualUtils", "..\..\src\Common\Visuals\Avalonia\MorganStanley.ComposeUI.Common.VisualUtils\MorganStanley.ComposeUI.Avalonia.VisualUtils.csproj", "{AD4ABE76-2E9D-49E2-AFD5-2722D410A987}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tryouts", "Tryouts", "{2D94959E-539E-43A8-B50D-435D969059FF}"
 EndProject
@@ -23,7 +23,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Try
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Tryouts.Utilities", "..\..\Tryouts\Core\MorganStanley.ComposeUI.Tryouts.Utilities\MorganStanley.ComposeUI.Tryouts.Utilities.csproj", "{E2CC1CB0-7895-4A50-B62A-20F313A4C3B0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Tryouts.VisualUtils", "..\..\Tryouts\Visuals\Avalonia\MorganStanley.ComposeUI.Tryouts.VisualUtils\MorganStanley.ComposeUI.Tryouts.Avalonia.VisualUtils.csproj", "{AE26BC29-2929-4A96-9789-1039D7806D98}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Tryouts.Avalonia.VisualUtils", "..\..\Tryouts\Visuals\Avalonia\MorganStanley.ComposeUI.Tryouts.VisualUtils\MorganStanley.ComposeUI.Tryouts.Avalonia.VisualUtils.csproj", "{AE26BC29-2929-4A96-9789-1039D7806D98}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{B530EC0C-92A5-445F-8938-DBCD083DCF19}"
 EndProject
@@ -37,7 +37,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Plu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Plugins.TimeViewModel", "..\..\Tryouts\Plugins\ViewViewModelPlugins\TimeViewModel\MorganStanley.ComposeUI.Plugins.TimeViewModel.csproj", "{C0AA9B1E-9C4B-4AB9-9A75-F7AC090A72F9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MorganStanley.ComposeUI.Plugins.TimeViewPlugin", "..\..\Tryouts\Plugins\ViewViewModelPlugins\TimeViewPlugin\MorganStanley.ComposeUI.Plugins.TimeViewPlugin.csproj", "{F7301C40-14D3-49DD-9109-861AC2D6B6D2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Plugins.TimeViewPlugin", "..\..\Tryouts\Plugins\ViewViewModelPlugins\TimeViewPlugin\MorganStanley.ComposeUI.Plugins.TimeViewPlugin.csproj", "{F7301C40-14D3-49DD-9109-861AC2D6B6D2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{B4C7744F-F9BF-48BD-9BB8-9133AEC1DE4B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Visuals", "Visuals", "{F2395CA3-E8A3-4000-ABE3-BFC11E654B80}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Avalonia", "Avalonia", "{2DE7F640-6D31-4CE0-AC98-9409734A1846}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{B3315AEE-E5D2-4B74-BAFB-BF6E4497A375}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Visuals", "Visuals", "{F26BE702-F10A-494E-95BF-853CDAE583B9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Avalonia", "Avalonia", "{AD817B6A-3C76-4E1F-AE86-599DBA17A96A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -98,20 +110,26 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{40EC45C4-0325-4851-AB1C-64B27ED28BAD} = {1ED5A035-825C-40C9-95F9-F0E275F3187A}
-		{D5EBE540-94D0-4E33-A467-C3BDAD5DCB14} = {1ED5A035-825C-40C9-95F9-F0E275F3187A}
-		{60A6B771-3B8B-4CF7-81F7-E8D1A20E22CC} = {1ED5A035-825C-40C9-95F9-F0E275F3187A}
-		{AD4ABE76-2E9D-49E2-AFD5-2722D410A987} = {1ED5A035-825C-40C9-95F9-F0E275F3187A}
-		{D25CF673-216B-450C-840A-039ECF088CB7} = {2D94959E-539E-43A8-B50D-435D969059FF}
-		{6BCE1270-464D-42CB-B07E-1B0A88A70D6F} = {2D94959E-539E-43A8-B50D-435D969059FF}
-		{E2CC1CB0-7895-4A50-B62A-20F313A4C3B0} = {2D94959E-539E-43A8-B50D-435D969059FF}
-		{AE26BC29-2929-4A96-9789-1039D7806D98} = {2D94959E-539E-43A8-B50D-435D969059FF}
+		{40EC45C4-0325-4851-AB1C-64B27ED28BAD} = {B4C7744F-F9BF-48BD-9BB8-9133AEC1DE4B}
+		{D5EBE540-94D0-4E33-A467-C3BDAD5DCB14} = {B4C7744F-F9BF-48BD-9BB8-9133AEC1DE4B}
+		{60A6B771-3B8B-4CF7-81F7-E8D1A20E22CC} = {2DE7F640-6D31-4CE0-AC98-9409734A1846}
+		{AD4ABE76-2E9D-49E2-AFD5-2722D410A987} = {B4C7744F-F9BF-48BD-9BB8-9133AEC1DE4B}
+		{D25CF673-216B-450C-840A-039ECF088CB7} = {B3315AEE-E5D2-4B74-BAFB-BF6E4497A375}
+		{6BCE1270-464D-42CB-B07E-1B0A88A70D6F} = {B3315AEE-E5D2-4B74-BAFB-BF6E4497A375}
+		{E2CC1CB0-7895-4A50-B62A-20F313A4C3B0} = {B3315AEE-E5D2-4B74-BAFB-BF6E4497A375}
+		{AE26BC29-2929-4A96-9789-1039D7806D98} = {AD817B6A-3C76-4E1F-AE86-599DBA17A96A}
 		{B530EC0C-92A5-445F-8938-DBCD083DCF19} = {2D94959E-539E-43A8-B50D-435D969059FF}
 		{D1DC0BB5-C429-4192-BF01-EF58D6B0F9AB} = {B530EC0C-92A5-445F-8938-DBCD083DCF19}
 		{E83B541E-8621-47EA-8227-A36A196A66E0} = {B530EC0C-92A5-445F-8938-DBCD083DCF19}
 		{16A74606-712A-4A58-BF68-D6A0DE20BD95} = {D1DC0BB5-C429-4192-BF01-EF58D6B0F9AB}
 		{C0AA9B1E-9C4B-4AB9-9A75-F7AC090A72F9} = {E83B541E-8621-47EA-8227-A36A196A66E0}
 		{F7301C40-14D3-49DD-9109-861AC2D6B6D2} = {E83B541E-8621-47EA-8227-A36A196A66E0}
+		{B4C7744F-F9BF-48BD-9BB8-9133AEC1DE4B} = {1ED5A035-825C-40C9-95F9-F0E275F3187A}
+		{F2395CA3-E8A3-4000-ABE3-BFC11E654B80} = {1ED5A035-825C-40C9-95F9-F0E275F3187A}
+		{2DE7F640-6D31-4CE0-AC98-9409734A1846} = {F2395CA3-E8A3-4000-ABE3-BFC11E654B80}
+		{B3315AEE-E5D2-4B74-BAFB-BF6E4497A375} = {2D94959E-539E-43A8-B50D-435D969059FF}
+		{F26BE702-F10A-494E-95BF-853CDAE583B9} = {2D94959E-539E-43A8-B50D-435D969059FF}
+		{AD817B6A-3C76-4E1F-AE86-599DBA17A96A} = {F26BE702-F10A-494E-95BF-853CDAE583B9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {98497725-4038-46B9-910E-2BADC6FDC7E4}
