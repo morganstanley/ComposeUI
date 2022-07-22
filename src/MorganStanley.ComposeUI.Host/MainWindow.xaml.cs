@@ -41,7 +41,7 @@ public partial class MainWindow : Window
 
     private void DisplayApps()
     {
-        _apps[0].Render(App1);
+        _apps[0].Render(null);
         _apps[1].Render(App2);
     }
 
