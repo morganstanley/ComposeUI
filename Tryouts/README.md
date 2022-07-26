@@ -1,20 +1,12 @@
 <!-- Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. -->
 
-ComposeUI
+Tryouts
 =========
 
-![Lifecycle Incubating](https://badgen.net/badge/Lifecycle/Incubating/yellow)
+Tryouts folder contains
+1. Prototypes folder with visual and non-visual
+prototypes for various features (check Prototype Driven Development or PDD).
 
-Feature gaps with respect to UI components, layout management, and subpar native hosting in other industry container solutions pointed us to investing in the creation of this standard container as an open desktop platform. It will provide a hybrid solution that meets the needs of a diverse application catalog as well as a compelling opensource alternative.
-
-Usage
------
-
-Building
---------
-
-Development
------------
-
-Examples
---------
+2. src folder containing the projects similar to those under src/Common.
+The re-usable code should first be placed into these projects and only when
+the code is close to optimal should be moved further - under src/Common

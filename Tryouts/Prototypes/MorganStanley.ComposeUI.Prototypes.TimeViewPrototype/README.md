@@ -1,20 +1,9 @@
 <!-- Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. -->
 
-ComposeUI
-=========
+TimeViewPrototype
+================
 
-![Lifecycle Incubating](https://badgen.net/badge/Lifecycle/Incubating/yellow)
+This is a prototype showing how to create a View. It is preferred that the views are created as DataTemplates with properties on their elements bound to their corresponding view models, since this will help avoinding code-behind anti-pattern. The clients are however free to create views as they wish.
+Views can be created in WPF or in Avalonia (multiplatform version of WPF). Note that WPF views will only run on Windows.
+Both Avalonia and WPF views can host HTML/Javascript applications within themselves. 
 
-Feature gaps with respect to UI components, layout management, and subpar native hosting in other industry container solutions pointed us to investing in the creation of this standard container as an open desktop platform. It will provide a hybrid solution that meets the needs of a diverse application catalog as well as a compelling opensource alternative.
-
-Usage
------
-
-Building
---------
-
-Development
------------
-
-Examples
---------
