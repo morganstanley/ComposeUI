@@ -19,10 +19,6 @@ See the License for the specific language governing permissions and limitations 
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NP.Avalonia.Visuals" Version="1.0.24" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\..\Core\MorganStanley.ComposeUI.Common.Interfaces\MorganStanley.ComposeUI.Common.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Core\MorganStanley.ComposeUI.Common.Utilities\MorganStanley.ComposeUI.Common.Utilities.csproj" />
   </ItemGroup>

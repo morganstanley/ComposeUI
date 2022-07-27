@@ -23,7 +23,7 @@ See the License for the specific language governing permissions and limitations 
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\src\Common\Core\MorganStanley.ComposeUI.Common.Interfaces\MorganStanley.ComposeUI.Common.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Common\Core\MorganStanley.ComposeUI.Common.Abstractions\MorganStanley.ComposeUI.Common.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

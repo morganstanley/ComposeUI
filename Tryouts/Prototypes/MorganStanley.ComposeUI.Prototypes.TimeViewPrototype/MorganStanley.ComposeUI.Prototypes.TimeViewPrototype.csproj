@@ -37,8 +37,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
     <PackageReference Include="XamlNameReferenceGenerator" Version="1.3.4" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Core\MorganStanley.ComposeUI.Tryouts.Abstractions\MorganStanley.ComposeUI.Tryouts.Abstractions.csproj" />
     <ProjectReference Include="..\..\src\Core\MorganStanley.ComposeUI.Tryouts.BasicModels\MorganStanley.ComposeUI.Tryouts.BasicModels.csproj" />
-    <ProjectReference Include="..\..\src\Core\MorganStanley.ComposeUI.Tryouts.Interfaces\MorganStanley.ComposeUI.Tryouts.Abstractions.csproj" />
     <ProjectReference Include="..\..\src\Core\MorganStanley.ComposeUI.Tryouts.Utilities\MorganStanley.ComposeUI.Tryouts.Utilities.csproj" />
     <ProjectReference Include="..\..\src\Plugins\Services\MorganStanley.ComposeUI.Plugins.TimeService\MorganStanley.ComposeUI.Plugins.TimeService.csproj" />
     <ProjectReference Include="..\..\src\Plugins\ViewViewModelPlugins\TimeViewModel\MorganStanley.ComposeUI.Plugins.TimeViewModel.csproj" />

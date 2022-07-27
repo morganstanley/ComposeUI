@@ -49,9 +49,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "javascript-binding", "javas
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "javascript-binding", "javascript-binding", "{519D1633-9591-4123-8D6B-CE142FDAA7DF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Common.Abstractions", "..\..\..\src\Common\Core\MorganStanley.ComposeUI.Common.Interfaces\MorganStanley.ComposeUI.Common.Abstractions.csproj", "{0F96C6B6-1D8B-4B93-92E4-DF52314CAEEA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Common.Abstractions", "..\..\..\src\Common\Core\MorganStanley.ComposeUI.Common.Abstractions\MorganStanley.ComposeUI.Common.Abstractions.csproj", "{0F96C6B6-1D8B-4B93-92E4-DF52314CAEEA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Tryouts.Abstractions", "..\..\src\Core\MorganStanley.ComposeUI.Tryouts.Interfaces\MorganStanley.ComposeUI.Tryouts.Abstractions.csproj", "{2CD78E0B-F6E3-4A47-8D22-DDA7A33703AB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Tryouts.Abstractions", "..\..\src\Core\MorganStanley.ComposeUI.Tryouts.Abstractions\MorganStanley.ComposeUI.Tryouts.Abstractions.csproj", "{2CD78E0B-F6E3-4A47-8D22-DDA7A33703AB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
