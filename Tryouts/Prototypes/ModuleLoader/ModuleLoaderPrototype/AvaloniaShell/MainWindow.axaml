@@ -1,0 +1,48 @@
+<!--
+    Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License").
+    You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
+    See the NOTICE file distributed with this work for additional information regarding copyright ownership.
+    Unless required by applicable law or agreed to in writing, software distributed under the License
+    is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and limitations under the License.
+-->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ms="clr-namespace:MorganStanley.ComposeUI.Playground.VisualUtils;assembly=MorganStanley.ComposeUI.Playground.VisualUtils"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="AvaloniaShell.MainWindow"
+        Title="AvaloniaShell"
+        d:DataContext="MainViewModel">
+  <Grid x:Name="RootPanel"
+        RowDefinitions="*, Auto"
+        ColumnDefinitions="*, *"
+        Margin="10">
+    <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0">
+      <TextBox Name="App1Path" Text="{Binding App1Path}" Width="500" Height="20"></TextBox>
+      <Button Name="App1Start" Grid.Row="0" Grid.Column="0" Width="55" Command="{Binding StartApp1}">Start</Button>
+      <Button Name="App1Stop" Grid.Row="0" Grid.Column="1" Width="55" Command="{Binding StopApp1}">Stop</Button>
+    </StackPanel>
+    <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="1">
+      <TextBox Name="App2Path" Text="{Binding App2Path}" Width="500" Height="20"></TextBox>
+      <Button Name="App2Start" Grid.Row="0" Grid.Column="2" Width="55" Command="{Binding StartApp2}">Start</Button>
+      <Button Name="App2Stop" Grid.Row="0" Grid.Column="3" Width="55" Command="{Binding StopApp2}">Stop</Button>
+    </StackPanel>
+    <ms:EmbeddedNativeControl
+        Name="App1"
+        Grid.Row="1"
+        Grid.Column="0"
+        Width="800"
+        Height="600"
+        ProcessId="{Binding $parent[Window].DataContext.Pid1}"/>
+
+    <ms:EmbeddedNativeControl
+        Name="App2"
+        Grid.Row="1"
+        Grid.Column="1"
+        Width="800"
+        Height="600"
+        ProcessId="{Binding $parent[Window].DataContext.Pid2}"/>
+  </Grid>
+</Window>
