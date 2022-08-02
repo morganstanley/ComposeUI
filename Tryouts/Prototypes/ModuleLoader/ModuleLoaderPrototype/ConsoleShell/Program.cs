@@ -1,18 +1,24 @@
-﻿using ModuleLoaderPrototype;
+﻿using ConsoleShell;
+using ModuleLoaderPrototype;
 // See https://aka.ms/new-console-template for more information
 Console.WriteLine("Hello, ComposeUI!");
-var loader = new DirectlyStartingModuleLoader();
-int pid;
-loader.ProcessRestarted.Subscribe(pr =>
+Console.WriteLine("Choose module loader type 'A' or 'B'");
+char type = Console.ReadKey().KeyChar;
+IDemo demo = null;
+switch (type)
 {
-    Console.WriteLine($"Process restart detected: {pr.oldPid} -> {pr.newPid}");
-    pid = pr.newPid;
-});
-pid = loader.StartProcess(new LaunchRequest() { path = @"..\..\..\..\CrashingApp\bin\Debug\net6.0\CrashingApp.exe" });
+    case 'a':
+    case 'A':
+        demo = new TypeADemo();
+        break;
+    case 'b':
+    case 'B':
+        demo = new TypeBDemo();
+        break;
+    default:
+        Console.WriteLine("No such demo");
+        break;
+}
 
+demo?.RunDemo();
 
-Console.ReadLine();
-
-Console.WriteLine("Exiting subprocesses");
-await loader.StopProcess(pid);
-Console.WriteLine("Bye, ComposeUI!");

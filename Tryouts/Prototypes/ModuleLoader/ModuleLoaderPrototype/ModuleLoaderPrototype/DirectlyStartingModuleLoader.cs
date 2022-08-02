@@ -1,12 +1,7 @@
 ﻿using ModuleLoaderPrototype.Interfaces;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ModuleLoaderPrototype
 {
@@ -17,17 +12,14 @@ namespace ModuleLoaderPrototype
 
         private readonly Dictionary<int, Process> _processes = new Dictionary<int, Process>();
 
-        public int StartProcess(LaunchRequest request, CancellationToken cancellationToken = default)
+        public int StartProcess(LaunchRequest request)
         {
-            return StartProcessImpl(request.path, cancellationToken);
+            return StartProcessImpl(request.path);
         }
 
-        private int StartProcessImpl(string path, CancellationToken cancellationToken = default)
+        private int StartProcessImpl(string path)
         {
-            Process process = new Process();
-            process.StartInfo.FileName = path;
-            process.EnableRaisingEvents = true;
-            process.StartInfo.UseShellExecute = false;
+            Process process = ProcessLauncher.LaunchProcess(path);
 
             process.Exited += HandleProcessExitedUnexpectedly;
             process.Start();

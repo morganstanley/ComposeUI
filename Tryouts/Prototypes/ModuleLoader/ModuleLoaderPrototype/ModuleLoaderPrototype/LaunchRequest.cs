@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ModuleLoaderPrototype
+﻿namespace ModuleLoaderPrototype
 {
     public struct LaunchRequest
     {
+        public string name;
         public string path;
     }
 }
