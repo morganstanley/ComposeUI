@@ -22,7 +22,7 @@ namespace ConsoleShell
 
                 canExit = e.expected && e.eventType == LifecycleEventType.Stopped;
             });
-            loader.RequestStartProcess(new LaunchRequest() { name = crashingApp, path = @"..\..\..\..\CrashingApp\bin\Debug\net6.0\CrashingApp.exe" });
+            loader.RequestStartProcess(new LaunchRequest() { name = crashingApp, path = @"..\..\..\..\TestApp\bin\Debug\net6.0-windows\TestApp.exe" });
 
             Console.ReadLine();
 

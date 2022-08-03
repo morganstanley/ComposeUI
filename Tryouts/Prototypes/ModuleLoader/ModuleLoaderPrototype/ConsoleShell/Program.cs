@@ -4,6 +4,7 @@ using ModuleLoaderPrototype;
 Console.WriteLine("Hello, ComposeUI!");
 Console.WriteLine("Choose module loader type 'A' or 'B'");
 char type = Console.ReadKey().KeyChar;
+Console.WriteLine();
 IDemo demo = null;
 switch (type)
 {
@@ -20,5 +21,5 @@ switch (type)
         break;
 }
 
-demo?.RunDemo();
+await (demo?.RunDemo() ?? Task.CompletedTask);
 

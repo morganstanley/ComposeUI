@@ -13,7 +13,7 @@ namespace ConsoleShell
                 Console.WriteLine($"Process restart detected: {pr.oldPid} -> {pr.newPid}");
                 pid = pr.newPid;
             });
-            pid = loader.StartProcess(new LaunchRequest() { path = @"..\..\..\..\CrashingApp\bin\Debug\net6.0\CrashingApp.exe" });
+            pid = loader.StartProcess(new LaunchRequest() { path = @"..\..\..\..\TestApp\bin\Debug\net6.0-windows\TestApp.exe" });
 
             Console.ReadLine();
 

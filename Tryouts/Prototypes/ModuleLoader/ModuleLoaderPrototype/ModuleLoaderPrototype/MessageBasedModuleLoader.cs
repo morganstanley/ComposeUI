@@ -70,8 +70,7 @@ namespace ModuleLoaderPrototype
             _lifecycleEvents.OnNext(LifecycleEvent.Stopped(processInfo?.Name ?? String.Empty, p.Id, false));
             var filename = p.StartInfo.FileName;
             _processes.Remove(processInfo);
-            var pid = StartProcess(new LaunchRequest { path = filename, name = processInfo.Name });
-            _lifecycleEvents.OnNext(LifecycleEvent.Started(processInfo.Name, pid));
+            var pid = StartProcess(new LaunchRequest { path = filename, name = processInfo.Name });            
         }
     }
 }

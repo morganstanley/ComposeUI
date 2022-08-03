@@ -8,6 +8,7 @@ namespace ModuleLoaderPrototype
         {
             Process process = new Process();
             process.StartInfo.FileName = path;
+            process.EnableRaisingEvents = true;
             process.Start();
             return process;
         }

@@ -19,10 +19,8 @@ namespace ModuleLoaderPrototype
 
         private int StartProcessImpl(string path)
         {
-            Process process = ProcessLauncher.LaunchProcess(path);
-
-            process.Exited += HandleProcessExitedUnexpectedly;
-            process.Start();
+            Process process = ProcessLauncher.LaunchProcess(path);            
+            process.Exited += HandleProcessExitedUnexpectedly;            
             _processes.Add(process.Id, process);
             return process.Id;
         }
@@ -56,6 +54,7 @@ namespace ModuleLoaderPrototype
         {
             Process p = (Process)sender;
             p.Exited -= HandleProcessExitedUnexpectedly;
+
             var filename = p.StartInfo.FileName;
             _processes.Remove(p.Id);
             var pid = StartProcessImpl(filename);
