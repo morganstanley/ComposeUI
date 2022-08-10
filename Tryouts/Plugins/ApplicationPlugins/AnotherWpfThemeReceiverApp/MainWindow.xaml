@@ -10,16 +10,22 @@ See the License for the specific language governing permissions and limitations 
 
 ********************************************************************************************************
 -->
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\Utilities\MorganStanley.ComposeUI.Core.Utilities.csproj" />
-  </ItemGroup>
-
-</Project>
+<Window x:Class="AnotherWpfThemeReceiverApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow"
+        Left="-9999"
+        Width="1400"
+        Height="500">
+    <Grid Margin="10">
+        <Grid Margin="10">
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                <TextBlock Text="{Binding Path=Theme, RelativeSource={RelativeSource AncestorType=Window}, StringFormat='Theme: \{0\}'}"
+                           FontSize="30"
+                           FontFamily="Segoe Script"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

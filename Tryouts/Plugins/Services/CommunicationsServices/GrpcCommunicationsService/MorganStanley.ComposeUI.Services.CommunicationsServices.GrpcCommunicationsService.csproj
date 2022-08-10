@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 ********************************************************************************************************
 
 Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License").
@@ -7,6 +7,7 @@ See the NOTICE file distributed with this work for additional information regard
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and limitations under the License.
+Microsoft Visual Studio Solution File, Format Version 12.00
 
 ********************************************************************************************************
 -->
@@ -19,27 +20,25 @@ See the License for the specific language governing permissions and limitations 
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="ITimeService.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="Topic.proto" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.21.4" />
+    <PackageReference Include="Grpc" Version="2.46.3" />
     <PackageReference Include="Grpc.Tools" Version="2.47.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="NP.Utilities" Version="1.0.13" />
   </ItemGroup>
-
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Exec Command="xcopy &quot;$(OutDir)&quot; &quot;$(SolutionDir)\bin\$(Configuration)\net6.0\Plugins\Services\GrpcCommunicationsService\&quot; /S /R /Y /I" />
+<!--
+	    <Exec Command="xcopy &quot;$(OutDir)\$(AssemblyName).dll&quot; &quot;$(SolutionDir)\bin\$(Configuration)\net6.0\Plugins\Services\$(ProjectName)\&quot; /R /Y /I" />
+		<Exec Command="xcopy &quot;$(OutDir)\$(AssemblyName).pdb&quot; &quot;$(SolutionDir)\bin\$(Configuration)\net6.0\Plugins\Services\$(ProjectName)\&quot; /R /Y /I" />
+		-->
+	</Target>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Core\Abstractions\MorganStanley.ComposeUI.Core.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\..\Core\BasicModels\MorganStanley.ComposeUI.Tryouts.Core.BasicModels.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Protobuf Include="Topic.proto" />
-  </ItemGroup>
-
+	<ItemGroup>
+		<Protobuf Include="../../../../Plugins/Services/CommunicationsServices/GrpcCommunicationsService/SubscriptionsService.proto" GrpcServices="Both" ProtoRoot="../../../.." />
+	</ItemGroup>
 </Project>
