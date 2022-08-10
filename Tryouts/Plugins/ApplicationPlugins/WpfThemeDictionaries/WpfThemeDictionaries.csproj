@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Exec Command="xcopy &quot;$(OutDir)&quot; &quot;$(SolutionDir)\bin\$(Configuration)\net6.0\Plugins\WpfServices\$(ProjectName)\&quot; /S /R /Y /I" />
+	</Target>
+	<!--<ItemGroup>
+	  <ProjectReference Include="..\..\..\Core\Utilities\MorganStanley.ComposeUI.Tryouts.Core.Utilities.csproj" />
+	  <ProjectReference Include="..\..\Services\MessagingService\MessagingService.csproj" />
+	</ItemGroup>-->
+</Project>

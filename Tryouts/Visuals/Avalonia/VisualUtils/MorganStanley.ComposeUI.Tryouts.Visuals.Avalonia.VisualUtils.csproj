@@ -17,6 +17,10 @@ See the License for the specific language governing permissions and limitations 
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="NP.Avalonia.UniDock" Version="1.0.35" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\Visuals\Avalonia\VisualUtils\MorganStanley.ComposeUI.Visuals.Avalonia.VisualUtils.csproj" />
     <ProjectReference Include="..\..\..\Core\Utilities\MorganStanley.ComposeUI.Tryouts.Core.Utilities.csproj" />
   </ItemGroup>

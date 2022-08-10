@@ -7,6 +7,7 @@ See the NOTICE file distributed with this work for additional information regard
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and limitations under the License.
+Microsoft Visual Studio Solution File, Format Version 12.00
 
 ********************************************************************************************************
 -->
@@ -19,7 +20,19 @@ See the License for the specific language governing permissions and limitations 
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\Utilities\MorganStanley.ComposeUI.Core.Utilities.csproj" />
+    <PackageReference Include="Grpc" Version="2.46.3" />
+    <PackageReference Include="Grpc.Tools" Version="2.47.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="protobuf-net" Version="3.1.17" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\Abstractions\MorganStanley.ComposeUI.Tryouts.Core.Abstractions.csproj" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<Protobuf Include="../../../Plugins/Services/MessagingService/Messages.proto" GrpcServices="Both" ProtoRoot="../../.." />
+	</ItemGroup>
 </Project>

@@ -10,16 +10,11 @@ See the License for the specific language governing permissions and limitations 
 
 ********************************************************************************************************
 -->
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\Utilities\MorganStanley.ComposeUI.Core.Utilities.csproj" />
-  </ItemGroup>
-
-</Project>
+<Application x:Class="WpfThemeChooserApp.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+         
+    </Application.Resources>
+</Application>
