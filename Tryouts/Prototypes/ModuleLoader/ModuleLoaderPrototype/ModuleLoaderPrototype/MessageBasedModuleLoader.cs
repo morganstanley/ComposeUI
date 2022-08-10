@@ -11,6 +11,11 @@ namespace ModuleLoaderPrototype
         public IObservable<LifecycleEvent> LifecycleEvents => _lifecycleEvents;
         private List<ProcessInfo> _processes = new List<ProcessInfo>();
 
+        private readonly bool _autoRestart;
+        public MessageBasedModuleLoader(bool autoRestart)
+        {
+            _autoRestart = autoRestart;
+        }
 
         public void RequestStartProcess(LaunchRequest request)
         {
@@ -70,7 +75,10 @@ namespace ModuleLoaderPrototype
             _lifecycleEvents.OnNext(LifecycleEvent.Stopped(processInfo?.Name ?? String.Empty, p.Id, false));
             var filename = p.StartInfo.FileName;
             _processes.Remove(processInfo);
-            var pid = StartProcess(new LaunchRequest { path = filename, name = processInfo.Name });            
+            if (_autoRestart)
+            {
+                var pid = StartProcess(new LaunchRequest { path = filename, name = processInfo.Name });
+            }
         }
     }
 }

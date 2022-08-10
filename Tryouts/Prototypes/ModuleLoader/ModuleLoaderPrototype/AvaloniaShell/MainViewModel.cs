@@ -12,12 +12,12 @@ namespace AvaloniaShell
     internal class MainViewModel : ReactiveObject
     {
 
-        private readonly MessageBasedModuleLoader _moduleLoader = new MessageBasedModuleLoader();
+        private readonly MessageBasedModuleLoader _moduleLoader;
 
 
         public MainViewModel()
         {
-            _moduleLoader = new MessageBasedModuleLoader();
+            _moduleLoader = new MessageBasedModuleLoader(false);
             _moduleLoader.LifecycleEvents.Subscribe(HandleAppLifecycleEvent);
         }
 
@@ -60,7 +60,7 @@ namespace AvaloniaShell
 
         public void StartApp2()
         {
-            _moduleLoader.RequestStartProcess(new LaunchRequest() { name = "app2", path = _app1Path });
+            _moduleLoader.RequestStartProcess(new LaunchRequest() { name = "app2", path = _app2Path });
         }
         public void StopApp2()
         {
@@ -69,6 +69,7 @@ namespace AvaloniaShell
 
         private async void HandleAppLifecycleEvent(LifecycleEvent lifecycleEvent)
         {
+            await Task.Delay(TimeSpan.FromSeconds(2));
             switch (lifecycleEvent.eventType)
             {
                 case LifecycleEventType.Started:

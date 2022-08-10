@@ -11,8 +11,10 @@ namespace ConsoleShell
     {
         public async Task RunDemo()
         {
+            Console.WriteLine("Restart with module loader? (1 = yes)");
+            bool loaderRestart = Console.ReadLine().StartsWith('1');
             const string crashingApp = "crashingapp";
-            var loader = new MessageBasedModuleLoader();
+            var loader = new MessageBasedModuleLoader(loaderRestart);
             bool canExit = false;
             int pid;
             loader.LifecycleEvents.Subscribe(e =>
@@ -21,13 +23,20 @@ namespace ConsoleShell
                 Console.WriteLine($"LifecycleEvent detected: {e.pid} {e.eventType}{unexpected}");
 
                 canExit = e.expected && e.eventType == LifecycleEventType.Stopped;
+
+                if (e.eventType == LifecycleEventType.Stopped && !e.expected && !loaderRestart)
+                {
+                    loader.RequestStartProcess(new LaunchRequest() { name = crashingApp, path = @"..\..\..\..\TestApp\bin\Debug\net6.0-windows\TestApp.exe" });
+                }
             });
             loader.RequestStartProcess(new LaunchRequest() { name = crashingApp, path = @"..\..\..\..\TestApp\bin\Debug\net6.0-windows\TestApp.exe" });
 
             Console.ReadLine();
 
             Console.WriteLine("Exiting subprocesses");
+
             loader.RequestStopProcess(crashingApp);
+
 
             while (!canExit)
             {

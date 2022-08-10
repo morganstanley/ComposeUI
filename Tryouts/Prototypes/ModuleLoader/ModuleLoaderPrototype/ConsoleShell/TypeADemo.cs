@@ -6,7 +6,10 @@ namespace ConsoleShell
     {
         public async Task RunDemo()
         {
-            var loader = new DirectlyStartingModuleLoader();
+            Console.WriteLine("Restart with module loader? (1 = yes)");
+            bool loaderRestart = Console.ReadLine().StartsWith('1');
+
+            var loader = new DirectlyStartingModuleLoader(loaderRestart);
             int pid;
             loader.ProcessRestarted.Subscribe(pr =>
             {
@@ -18,7 +21,10 @@ namespace ConsoleShell
             Console.ReadLine();
 
             Console.WriteLine("Exiting subprocesses");
-            await loader.StopProcess(pid);
+            if (loaderRestart)
+            {
+                await loader.StopProcess(pid);
+            }
             Console.WriteLine("Bye, ComposeUI!");
         }
     }
