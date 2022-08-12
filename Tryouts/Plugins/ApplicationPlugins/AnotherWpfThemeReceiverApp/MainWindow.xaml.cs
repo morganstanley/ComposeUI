@@ -10,6 +10,7 @@
 /// ********************************************************************************************************
 
 using MorganStanley.ComposeUI.Tryouts.Core.Abstractions;
+using NP.Utilities.Attributes;
 using System.Windows;
 
 namespace AnotherWpfThemeReceiverApp
@@ -21,25 +22,23 @@ namespace AnotherWpfThemeReceiverApp
     {
         IThemingService _themeService;
 
-        public MainWindow()
+        [CompositeConstructor]
+        public MainWindow(IThemingService themeService)
         {
-            InitializeComponent();
+            _themeService = themeService;
 
-            _themeService = ((App)App.Current).Container.Resolve<IThemingService>();
+            InitializeComponent();
 
             Theme = _themeService.Theme.ToString();
 
             _themeService.SetTheme();
 
-            _themeService.PropertyChanged += _themeService_PropertyChanged;
+            _themeService.ThemeChangedEvent += OnThemeChanged;
         }
 
-        private void _themeService_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void OnThemeChanged()
         {
-            if (e.PropertyName == nameof(IThemingService.Theme))
-            {
-                Theme = _themeService.Theme.ToString();
-            }
+            Theme = _themeService.Theme.ToString();
         }
 
         public string Theme

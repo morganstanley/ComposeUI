@@ -16,7 +16,15 @@ namespace AnotherWpfApp
 
             Container.InjectPluginsFromSubFolders("Plugins/Services");
 
+            Container.MapSingleton<ViewModel, ViewModel>();
+
             Container.CompleteConfiguration();
+
+            MainWindow = new MainWindow();
+
+            MainWindow.DataContext = Container.Resolve<ViewModel>();
+
+            MainWindow.Show();
         }
     }
 }

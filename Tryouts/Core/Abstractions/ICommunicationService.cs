@@ -18,7 +18,7 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.Abstractions
     {
         void AddTopics(params (Topic topic, Type messageType) [] messageTypes);
      
-        public void SetHostAndPort(string host, int port);  
+        void SetHostAndPort(string host, int port);  
 
         void Start();
 

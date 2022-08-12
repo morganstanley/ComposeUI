@@ -10,8 +10,6 @@ namespace SimpleWpfApp
         public MainWindow()
         {
             InitializeComponent();
-
-            this.DataContext = new ViewModel();
         }
     }
 }

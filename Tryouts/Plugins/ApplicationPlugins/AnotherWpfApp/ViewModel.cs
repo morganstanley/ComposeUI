@@ -1,5 +1,6 @@
 ﻿using MorganStanley.ComposeUI.Tryouts.Core.Abstractions;
 using MorganStanley.ComposeUI.Tryouts.Core.Utilities;
+using NP.Utilities.Attributes;
 using Subscriptions;
 using System;
 using System.Linq;
@@ -15,9 +16,10 @@ namespace AnotherWpfApp
         private readonly ISubscriptionClient _subscriptionClient;
 
         IDisposable? _subscription;
-        public ViewModel()
+        [CompositeConstructor]
+        public ViewModel(ISubscriptionClient subscriptionClient)
         {
-            _subscriptionClient = ((App)App.Current).Container.Resolve<ISubscriptionClient>();
+            _subscriptionClient = subscriptionClient;
 
             ReceivedText = "Initial Text";
 

@@ -14,9 +14,11 @@ using System.ComponentModel;
 
 namespace MorganStanley.ComposeUI.Tryouts.Core.Abstractions
 {
-    public interface IThemingService : INotifyPropertyChanged
+    public interface IThemingService 
     {
         ThemeId Theme { get; }
+
+        event Action ThemeChangedEvent;
 
         void SetTheme();
     }
