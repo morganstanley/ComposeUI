@@ -1,0 +1,53 @@
+﻿/// ********************************************************************************************************
+///
+/// Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License").
+/// You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
+/// See the NOTICE file distributed with this work for additional information regarding copyright ownership.
+/// Unless required by applicable law or agreed to in writing, software distributed under the License
+/// is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+/// See the License for the specific language governing permissions and limitations under the License.
+/// 
+/// ********************************************************************************************************
+
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/any.proto";
+import "Core/Abstractions/Topic.proto";
+
+package subscriptions;
+
+service SubscriptionsService
+{
+	rpc Subscribe(SubscriptionRequest) returns (stream ReturnedSubscriptionItem) {}
+	rpc Publish(PublishRequest) returns (PublishReply) {}
+}
+
+message SubscriptionRequest
+{
+	google.protobuf.Timestamp dateTimeStamp = 1;
+	Topic topic = 2;
+	string plugin_id = 3;
+}
+
+message ReturnedSubscriptionItem
+{
+	google.protobuf.Timestamp dateTimeStamp = 1;
+	Topic topic = 2;
+    google.protobuf.Any message = 3;
+}
+
+message PublishRequest
+{
+	google.protobuf.Timestamp dateTimeStamp = 1;
+	Topic topic = 2;
+
+	google.protobuf.Any message = 3;
+}
+
+message PublishReply
+{
+	google.protobuf.Timestamp dateTimeStamp = 1;
+	Topic topic = 2;
+}
