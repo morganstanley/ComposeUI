@@ -44,11 +44,5 @@ See the License for the specific language governing permissions and limitations 
 				</np:DockItem>
 			</np:StackDockGroup>
 		</np:RootDockGroup>
-		<!--
-		<Button x:Name="TestButton"
-				Content="Do Nothing Test Button"
-				Grid.Row="1"
-				Margin="0,10,0,0"/>
-		-->
 	</Grid>
 </Window>
