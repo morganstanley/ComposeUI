@@ -10,7 +10,6 @@ namespace AnotherWpfApp
         public MainWindow()
         {
             InitializeComponent();
-            this.DataContext = new ViewModel();
         }
     }
 }

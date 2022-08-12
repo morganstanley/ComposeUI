@@ -11,6 +11,7 @@
 
 using MorganStanley.ComposeUI.Tryouts.Core.Abstractions;
 using MorganStanley.ComposeUI.Tryouts.Core.Utilities;
+using NP.Utilities.Attributes;
 using Subscriptions;
 using System.Threading;
 
@@ -22,12 +23,11 @@ namespace WpfThemeChooserApp
 
         private readonly ISubscriptionClient _subscriptionClient;
 
-
-        public ViewModel()
+        [CompositeConstructor]
+        public ViewModel(ISubscriptionClient subscriptionClient)
         {
+            _subscriptionClient = subscriptionClient;
             StatusText = "Initializing the client";
-
-            _subscriptionClient = ((App)App.Current).Container.Resolve<ISubscriptionClient>();
 
             _ = _subscriptionClient.Connect(CommunicationsConstants.MachineName, CommunicationsConstants.Port);
 

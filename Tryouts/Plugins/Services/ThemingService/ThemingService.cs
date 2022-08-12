@@ -22,16 +22,17 @@ namespace MorganStanley.ComposeUI.Plugins.Services.ThemingService
     {
         private readonly ISubscriptionClient _subscriptionClient;
 
-        IDisposable? _subscription;
+        public event Action? ThemeChangedEvent;
 
         [CompositeConstructor]
-        public ThemingService([Part]ISubscriptionClient subscriptionClient)
+        public ThemingService(ISubscriptionClient subscriptionClient)
         {
             _subscriptionClient = subscriptionClient;
 
             _ = ConnectAndSubscribe();
         }
 
+        IDisposable? _subscription;
         private async Task ConnectAndSubscribe()
         {
             await _subscriptionClient.Connect(CommunicationsConstants.MachineName, CommunicationsConstants.Port);
@@ -50,6 +51,7 @@ namespace MorganStanley.ComposeUI.Plugins.Services.ThemingService
 
         #region Theme Property
         private ThemeId _theme = ThemeId.Light;
+
         public ThemeId Theme
         {
             get
@@ -65,6 +67,8 @@ namespace MorganStanley.ComposeUI.Plugins.Services.ThemingService
 
                 this._theme = value;
                 this.OnPropertyChanged(nameof(Theme));
+
+                ThemeChangedEvent?.Invoke();
 
                 ChangeTheme();
             }

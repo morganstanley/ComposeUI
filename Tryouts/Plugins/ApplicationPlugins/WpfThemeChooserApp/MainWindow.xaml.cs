@@ -21,8 +21,6 @@ namespace WpfThemeChooserApp
         public MainWindow()
         {
             InitializeComponent();
-
-            this.DataContext = new ViewModel();
         }
     }
 }

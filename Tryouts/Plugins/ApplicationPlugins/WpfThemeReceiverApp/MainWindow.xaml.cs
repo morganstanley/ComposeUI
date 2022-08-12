@@ -10,6 +10,7 @@
 /// ********************************************************************************************************
 
 using MorganStanley.ComposeUI.Tryouts.Core.Abstractions;
+using NP.Utilities.Attributes;
 using System.Windows;
 
 namespace WpfThemeReceiverApp
@@ -20,11 +21,13 @@ namespace WpfThemeReceiverApp
     public partial class MainWindow : Window
     {
         IThemingService _themingService;
-        public MainWindow()
-        {
-            InitializeComponent();
 
-            _themingService = ((App)App.Current).Container.Resolve<IThemingService>();
+        [CompositeConstructor]
+        public MainWindow(IThemingService themingService)
+        {
+            _themingService = themingService;
+
+            InitializeComponent();
 
             _themingService.SetTheme();
         }
