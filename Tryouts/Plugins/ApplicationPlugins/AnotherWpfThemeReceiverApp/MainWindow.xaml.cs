@@ -33,7 +33,7 @@ namespace AnotherWpfThemeReceiverApp
 
             _themeService.SetTheme();
 
-            _themeService.ThemeChangedEvent += OnThemeChanged;
+            _themeService.ThemeChanged += OnThemeChanged;
         }
 
         private void OnThemeChanged()

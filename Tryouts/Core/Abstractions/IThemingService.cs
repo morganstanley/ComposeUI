@@ -18,7 +18,7 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.Abstractions
     {
         ThemeId Theme { get; }
 
-        event Action ThemeChangedEvent;
+        event Action ThemeChanged;
 
         void SetTheme();
     }
