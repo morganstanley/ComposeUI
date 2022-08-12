@@ -22,7 +22,7 @@ namespace MorganStanley.ComposeUI.Plugins.Services.ThemingService
     {
         private readonly ISubscriptionClient _subscriptionClient;
 
-        public event Action? ThemeChangedEvent;
+        public event Action? ThemeChanged;
 
         [CompositeConstructor]
         public ThemingService(ISubscriptionClient subscriptionClient)
@@ -68,7 +68,7 @@ namespace MorganStanley.ComposeUI.Plugins.Services.ThemingService
                 this._theme = value;
                 this.OnPropertyChanged(nameof(Theme));
 
-                ThemeChangedEvent?.Invoke();
+                ThemeChanged?.Invoke();
 
                 ChangeTheme();
             }
