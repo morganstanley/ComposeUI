@@ -9,18 +9,31 @@
 /// 
 /// ********************************************************************************************************
 
-using System.Diagnostics;
+namespace ModuleLoaderPrototype.Interfaces;
 
-namespace ModuleLoaderPrototype;
-
-internal static class ProcessLauncher
+public class ProcessInfo
 {
-    internal static Process LaunchProcess(string path)
+    internal ProcessInfo(string name, string uiType, string? uiHint)
     {
-        Process process = new Process();
-        process.StartInfo.FileName = path;
-        process.EnableRaisingEvents = true;
-        process.Start();
-        return process;
+        Name = name;
+        UiType = uiType;
+        UiHint = uiHint;
     }
+        
+    /// <summary>
+    /// The name of the module
+    /// </summary>
+    public string Name { get; }
+
+    /// <summary>
+    /// The UI type of the module
+    /// </summary>
+    public string UiType { get; }
+
+    /// <summary>
+    /// Hint to displying the UI of the module.
+    ///  - Web: URL to navigate
+    ///  - Window: ProcessID of the process owning the main window
+    /// </summary>
+    public string? UiHint { get; }
 }

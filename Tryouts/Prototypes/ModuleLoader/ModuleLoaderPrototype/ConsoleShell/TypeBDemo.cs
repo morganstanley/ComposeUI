@@ -10,6 +10,8 @@
 /// ********************************************************************************************************
 
 using ModuleLoaderPrototype;
+using ModuleLoaderPrototype.Interfaces;
+using ModuleLoaderPrototype.Modules;
 
 namespace ConsoleShell;
 
@@ -17,31 +19,44 @@ internal class TypeBDemo : IDemo
 {
     public async Task RunDemo()
     {
-        Console.WriteLine("Restart with module loader? (1 = yes)");
-        bool loaderRestart = Console.ReadLine().StartsWith('1');
         const string crashingApp = "crashingapp";
-        var loader = new MessageBasedModuleLoader(loaderRestart);
-        bool canExit = false;
-        int pid;
-        loader.LifecycleEvents.Subscribe(e =>
+
+        var catalogue = new ModuleCatalogue(new Dictionary<string, ModuleManifest>
         {
-            var unexpected = e.expected ? string.Empty : " unexpectedly";
-            Console.WriteLine($"LifecycleEvent detected: {e.pid} {e.eventType}{unexpected}");
-
-            canExit = e.expected && e.eventType == LifecycleEventType.Stopped;
-
-            if (e.eventType == LifecycleEventType.Stopped && !e.expected && !loaderRestart)
-            {
-                loader.RequestStartProcess(new LaunchRequest() { name = crashingApp, path = @"..\..\..\..\TestApp\bin\Debug\net6.0-windows\TestApp.exe" });
+            {"crashingapp", new ModuleManifest
+                {
+                    StartupType = StartupType.Executable,
+                    UIType = UIType.Window,
+                    Name= "crashingapp",
+                    Path = @"..\..\..\..\TestApp\bin\Debug\net6.0-windows\TestApp.exe"
+                }
             }
         });
-        loader.RequestStartProcess(new LaunchRequest() { name = crashingApp, path = @"..\..\..\..\TestApp\bin\Debug\net6.0-windows\TestApp.exe" });
+
+        var loader = new MessageBasedModuleLoader(catalogue, new ModuleHostFactory());
+        bool canExit = false;
+        var instanceId = Guid.NewGuid();
+        int pid;
+        loader.LifecycleEvents.Subscribe(e =>
+            {
+                var unexpected = e.IsExpected ? string.Empty : " unexpectedly";
+                Console.WriteLine($"LifecycleEvent detected: {e.ProcessInfo.UiHint} {e.EventType}{unexpected}");
+
+                canExit = e.IsExpected && e.EventType == LifecycleEventType.Stopped;
+
+                if (e.EventType == LifecycleEventType.Stopped && !e.IsExpected)
+                {
+                    loader.RequestStartProcess(new LaunchRequest() { name = crashingApp, instanceId = instanceId });
+                }
+            });
+
+        loader.RequestStartProcess(new LaunchRequest() { name = crashingApp, instanceId = instanceId });
 
         Console.ReadLine();
 
         Console.WriteLine("Exiting subprocesses");
 
-        loader.RequestStopProcess(crashingApp);
+        loader.RequestStopProcess(new StopRequest { instanceId = instanceId });
 
 
         while (!canExit)

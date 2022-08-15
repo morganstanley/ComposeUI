@@ -1,0 +1,19 @@
+﻿[
+  {
+    "name": "MessageRouter",
+    "UIType": "None",
+    "StartupType": "Executable"
+  },
+  {
+    "name": "WindowedApp",
+    "UIType": "Window",
+    "StartupType":  "Executable",
+    "Path": ""
+  },
+  {
+    "name": "WebApp",
+    "UIType": "Web",
+    "StartupType": "none",
+    "url": "https://morganstanley.com"
+  },
+]
