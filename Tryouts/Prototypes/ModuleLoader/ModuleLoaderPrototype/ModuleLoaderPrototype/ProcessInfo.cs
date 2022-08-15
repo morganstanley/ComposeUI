@@ -9,6 +9,7 @@
 /// 
 /// ********************************************************************************************************
 
+using ModuleLoaderPrototype.Interfaces;
 using System.Diagnostics;
 
 namespace ModuleLoaderPrototype;
@@ -19,9 +20,11 @@ internal class ProcessInfo
     {
         Name = name;
         Process = process;
+        State = ProcessState.New;
     }
 
     public string Name { get; }
     public Process Process { get; }
+    public ProcessState State { get; set; }
     public int ProcessId => Process.Id;
 }

@@ -15,7 +15,7 @@ using System.Reactive.Subjects;
 
 namespace ModuleLoaderPrototype;
 
-public class MessageBasedModuleLoader : ITypeBModuleLoader
+public class MessageBasedModuleLoader : IModuleLoader
 {
 
     private Subject<LifecycleEvent> _lifecycleEvents = new Subject<LifecycleEvent>();
@@ -35,11 +35,24 @@ public class MessageBasedModuleLoader : ITypeBModuleLoader
 
     private int StartProcess(LaunchRequest request)
     {
-        var process = ProcessLauncher.LaunchProcess(request.path);
+        var process = new Process();
+        process.StartInfo.FileName = request.path;
         process.EnableRaisingEvents = true;
         process.Exited += HandleProcessExitedUnexpectedly;
-        _processes.Add(new ProcessInfo(request.name, process));
-        _lifecycleEvents.OnNext(LifecycleEvent.Started(request.name, process.Id));
+        var processInfo = new ProcessInfo(request.name, process);        
+        _processes.Add(processInfo);
+        try
+        {
+            process.Start();
+            processInfo.State = ProcessState.Running;
+            _lifecycleEvents.OnNext(LifecycleEvent.Started(request.name, process.Id));
+        }
+        catch
+        {
+            processInfo.State = ProcessState.FailedToStart;
+            _lifecycleEvents.OnNext(LifecycleEvent.FailedToStart(request.name));
+        }
+        
         return process.Id;
     }
 
@@ -86,9 +99,5 @@ public class MessageBasedModuleLoader : ITypeBModuleLoader
         _lifecycleEvents.OnNext(LifecycleEvent.Stopped(processInfo?.Name ?? String.Empty, p.Id, false));
         var filename = p.StartInfo.FileName;
         _processes.Remove(processInfo);
-        if (_autoRestart)
-        {
-            var pid = StartProcess(new LaunchRequest { path = filename, name = processInfo.Name });
-        }
     }
 }
