@@ -8,11 +8,9 @@
 /// See the License for the specific language governing permissions and limitations under the License.
 /// 
 /// ********************************************************************************************************
+namespace ModuleLoaderPrototype.Interfaces;
 
-namespace ModuleLoaderPrototype;
-
-public struct ProcessRestarted
+public struct StopRequest
 {
-    public int oldPid;
-    public int newPid;
+    public Guid instanceId;
 }

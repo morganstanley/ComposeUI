@@ -8,12 +8,11 @@
 /// See the License for the specific language governing permissions and limitations under the License.
 /// 
 /// ********************************************************************************************************
-
 namespace ModuleLoaderPrototype.Interfaces;
 
-internal interface ITypeBModuleLoader
+public interface IModuleLoader
 {
     void RequestStartProcess(LaunchRequest request);
-    void RequestStopProcess(string name);
+    void RequestStopProcess(StopRequest name);
     IObservable<LifecycleEvent> LifecycleEvents { get; }
 }

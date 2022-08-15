@@ -8,12 +8,10 @@
 /// See the License for the specific language governing permissions and limitations under the License.
 /// 
 /// ********************************************************************************************************
-
 namespace ModuleLoaderPrototype.Interfaces;
 
-internal interface ITypeAModuleLoader
+public struct LaunchRequest
 {
-    int StartProcess(LaunchRequest request);
-    Task<bool> StopProcess(int processId, CancellationToken cancellationToken = default(CancellationToken));
-    IObservable<ProcessRestarted> ProcessRestarted { get; }
+    public Guid instanceId;
+    public string name;    
 }

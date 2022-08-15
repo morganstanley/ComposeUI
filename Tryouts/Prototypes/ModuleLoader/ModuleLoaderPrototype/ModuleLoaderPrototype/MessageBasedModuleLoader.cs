@@ -10,22 +10,25 @@
 /// ********************************************************************************************************
 
 using ModuleLoaderPrototype.Interfaces;
-using System.Diagnostics;
+using ModuleLoaderPrototype.Modules;
 using System.Reactive.Subjects;
 
 namespace ModuleLoaderPrototype;
 
-public class MessageBasedModuleLoader : ITypeBModuleLoader
+public class MessageBasedModuleLoader : IModuleLoader
 {
 
     private Subject<LifecycleEvent> _lifecycleEvents = new Subject<LifecycleEvent>();
     public IObservable<LifecycleEvent> LifecycleEvents => _lifecycleEvents;
-    private List<ProcessInfo> _processes = new List<ProcessInfo>();
+    private Dictionary<Guid, IModule> _processes = new Dictionary<Guid, IModule>();
+    private readonly IModuleHostFactory _moduleHostFactory;
+    private readonly IModuleCatalogue _moduleCatalogue;
 
-    private readonly bool _autoRestart;
-    public MessageBasedModuleLoader(bool autoRestart)
+    public MessageBasedModuleLoader(IModuleCatalogue moduleCatalogue, IModuleHostFactory moduleHostFactory)
     {
-        _autoRestart = autoRestart;
+        _moduleCatalogue = moduleCatalogue;
+        _moduleHostFactory = moduleHostFactory;
+
     }
 
     public void RequestStartProcess(LaunchRequest request)
@@ -33,62 +36,33 @@ public class MessageBasedModuleLoader : ITypeBModuleLoader
         Task.Run(() => StartProcess(request));
     }
 
-    private int StartProcess(LaunchRequest request)
+    private async void StartProcess(LaunchRequest request)
     {
-        var process = ProcessLauncher.LaunchProcess(request.path);
-        process.EnableRaisingEvents = true;
-        process.Exited += HandleProcessExitedUnexpectedly;
-        _processes.Add(new ProcessInfo(request.name, process));
-        _lifecycleEvents.OnNext(LifecycleEvent.Started(request.name, process.Id));
-        return process.Id;
+        var manifest = _moduleCatalogue.GetManifest(request.name);
+        IModule host;
+        if (!_processes.TryGetValue(request.instanceId, out host))
+        {
+            host = _moduleHostFactory.CreateModuleHost(manifest);
+            _processes.Add(request.instanceId, host);
+            await host.Initialize();
+            host.LifecycleEvents.Subscribe(ForwardLifecycleEvents);
+        }
+
+        await host.Launch();
     }
 
-    public async void RequestStopProcess(string name)
+    public async void RequestStopProcess(StopRequest request)
     {
-        var p = _processes.FirstOrDefault(x => x.Name == name);
-        if (p == null)
+        IModule? module;
+        if (!_processes.TryGetValue(request.instanceId, out module))
         {
             throw new Exception("Unknown process name");
         }
-        if (await StopProcess(p.Process))
-        {
-            _processes.Remove(p);
-            _lifecycleEvents.OnNext(LifecycleEvent.Stopped(p.Name, p.ProcessId));
-        }
-        else
-        {
-            _lifecycleEvents.OnNext(LifecycleEvent.StoppingCanceled(p.Name, p.ProcessId, false));
-        }
+        await module.Teardown();
     }
 
-    private async Task<bool> StopProcess(Process p)
+    private void ForwardLifecycleEvents(LifecycleEvent lifecycleEvent)
     {
-        p.Exited -= HandleProcessExitedUnexpectedly;
-        await Task.WhenAny(Task.Run(() => p.CloseMainWindow()), Task.Delay(TimeSpan.FromSeconds(1)));
-        if (p.HasExited)
-        {
-            return true;
-        }
-
-        p.Kill();
-        if (p.HasExited)
-        {
-            return true;
-        }
-        return false;
-    }
-
-    private void HandleProcessExitedUnexpectedly(object sender, EventArgs e)
-    {
-        Process p = (Process)sender;
-        var processInfo = _processes.FirstOrDefault(x => x.ProcessId == p.Id);
-        p.Exited -= HandleProcessExitedUnexpectedly;
-        _lifecycleEvents.OnNext(LifecycleEvent.Stopped(processInfo?.Name ?? String.Empty, p.Id, false));
-        var filename = p.StartInfo.FileName;
-        _processes.Remove(processInfo);
-        if (_autoRestart)
-        {
-            var pid = StartProcess(new LaunchRequest { path = filename, name = processInfo.Name });
-        }
+        _lifecycleEvents.OnNext(lifecycleEvent);
     }
 }
