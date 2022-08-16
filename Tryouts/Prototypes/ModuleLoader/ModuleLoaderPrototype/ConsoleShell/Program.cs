@@ -15,4 +15,3 @@ Console.WriteLine("Hello, ComposeUI!");
 
 var demo = new TypeBDemo();
 await demo.RunDemo();
-
