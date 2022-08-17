@@ -9,17 +9,15 @@
 /// 
 /// ********************************************************************************************************
 
-using System.Diagnostics;
-
 namespace ModuleLoaderPrototype.Interfaces;
 
 public class ProcessInfo
 {
-    internal ProcessInfo(string name, string uiType, string? UiHint)
+    internal ProcessInfo(string name, string uiType, string? uiHint)
     {
         Name = name;
         UiType = uiType;
-        UiHint = UiHint;
+        UiHint = uiHint;
     }
 
     /// <summary>
@@ -37,5 +35,5 @@ public class ProcessInfo
     ///  - Web: URL to navigate
     ///  - Window: ProcessID of the process owning the main window
     /// </summary>
-    public string UiHint { get; }
+    public string? UiHint { get; }
 }

@@ -11,6 +11,7 @@
 
 using ModuleLoaderPrototype;
 using ModuleLoaderPrototype.Interfaces;
+using ModuleLoaderPrototype.Modules;
 
 namespace ConsoleShell;
 
@@ -21,28 +22,28 @@ internal class TypeBDemo : IDemo
         Console.WriteLine("Restart with module loader? (1 = yes)");
         bool loaderRestart = Console.ReadLine().StartsWith('1');
         const string crashingApp = "crashingapp";
-        var loader = new MessageBasedModuleLoader(loaderRestart);
+        var loader = new MessageBasedModuleLoader(new ModuleHostFactory());
         bool canExit = false;
         int pid;
         loader.LifecycleEvents.Subscribe(e =>
         {
             var unexpected = e.IsExpected ? string.Empty : " unexpectedly";
-            Console.WriteLine($"LifecycleEvent detected: {e.pid} {e.EventType}{unexpected}");
+            Console.WriteLine($"LifecycleEvent detected: {e.ProcessInfo.UiHint} {e.EventType}{unexpected}");
 
             canExit = e.IsExpected && e.EventType == LifecycleEventType.Stopped;
 
             if (e.EventType == LifecycleEventType.Stopped && !e.IsExpected && !loaderRestart)
             {
-                loader.RequestStartProcess(new LaunchRequest() { name = crashingApp, path = @"..\..\..\..\TestApp\bin\Debug\net6.0-windows\TestApp.exe" });
+                loader.RequestStartProcess(new LaunchRequest() { name = crashingApp });
             }
         });
-        loader.RequestStartProcess(new LaunchRequest() { name = crashingApp, path = @"..\..\..\..\TestApp\bin\Debug\net6.0-windows\TestApp.exe" });
+        loader.RequestStartProcess(new LaunchRequest() { name = crashingApp });
 
         Console.ReadLine();
 
         Console.WriteLine("Exiting subprocesses");
 
-        loader.RequestStopProcess(crashingApp);
+        loader.RequestStopProcess(new StopRequest { name = crashingApp });
 
 
         while (!canExit)

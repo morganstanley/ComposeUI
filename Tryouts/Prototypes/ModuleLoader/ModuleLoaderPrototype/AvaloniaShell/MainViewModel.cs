@@ -11,6 +11,7 @@
 
 using ModuleLoaderPrototype;
 using ModuleLoaderPrototype.Interfaces;
+using ModuleLoaderPrototype.Modules;
 using ReactiveUI;
 using System;
 using System.Threading.Tasks;
@@ -25,7 +26,7 @@ internal class MainViewModel : ReactiveObject
 
     public MainViewModel()
     {
-        _moduleLoader = new MessageBasedModuleLoader(false);
+        _moduleLoader = new MessageBasedModuleLoader(new ModuleHostFactory());
         _moduleLoader.LifecycleEvents.Subscribe(HandleAppLifecycleEvent);
     }
 
@@ -59,20 +60,20 @@ internal class MainViewModel : ReactiveObject
 
     public void StartApp1()
     {
-        _moduleLoader.RequestStartProcess(new LaunchRequest() { name = "app1", path = _app1Path });
+        _moduleLoader.RequestStartProcess(new LaunchRequest() { name = "app1" });
     }
     public void StopApp1()
     {
-        _moduleLoader.RequestStopProcess("app1");
+        _moduleLoader.RequestStopProcess(new StopRequest { name = "app1" });
     }
 
     public void StartApp2()
     {
-        _moduleLoader.RequestStartProcess(new LaunchRequest() { name = "app2", path = _app2Path });
+        _moduleLoader.RequestStartProcess(new LaunchRequest() { name = "app2" });
     }
     public void StopApp2()
     {
-        _moduleLoader.RequestStopProcess("app2");
+        _moduleLoader.RequestStopProcess(new StopRequest { name = "app2" });
     }
 
     private async void HandleAppLifecycleEvent(LifecycleEvent lifecycleEvent)
@@ -81,10 +82,10 @@ internal class MainViewModel : ReactiveObject
         switch (lifecycleEvent.EventType)
         {
             case LifecycleEventType.Started:
-                await SetPid(lifecycleEvent.name, lifecycleEvent.pid);
+                await SetPid(lifecycleEvent.ProcessInfo.Name, Int32.Parse(lifecycleEvent.ProcessInfo.UiHint));
                 break;
             case LifecycleEventType.Stopped:
-                await SetPid(lifecycleEvent.name, null);
+                await SetPid(lifecycleEvent.ProcessInfo.Name, null);
                 break;
         }
     }

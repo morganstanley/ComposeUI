@@ -10,7 +10,7 @@
 /// ********************************************************************************************************
 namespace ModuleLoaderPrototype.Interfaces;
 
-internal interface IModuleLoader
+public interface IModuleLoader
 {
     void RequestStartProcess(LaunchRequest request);
     void RequestStopProcess(StopRequest name);

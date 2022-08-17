@@ -22,79 +22,40 @@ public class MessageBasedModuleLoader : IModuleLoader
 
     private Subject<LifecycleEvent> _lifecycleEvents = new Subject<LifecycleEvent>();
     public IObservable<LifecycleEvent> LifecycleEvents => _lifecycleEvents;
-    private List<ProcessInfo> _processes = new List<ProcessInfo>();
+    private Dictionary<string, IModule> _processes = new Dictionary<string, IModule>();
+    private readonly IModuleHostFactory _moduleHostFactory;
 
-    public MessageBasedModuleLoader() { }
+    public MessageBasedModuleLoader(IModuleHostFactory moduleHostFactory)
+    {
+        _moduleHostFactory = moduleHostFactory;
+    }
 
     public void RequestStartProcess(LaunchRequest request)
     {
         Task.Run(() => StartProcess(request));
     }
 
-    private int StartProcess(LaunchRequest request)
+    private async void StartProcess(LaunchRequest request)
     {
-        var module = new ExecutableModule(request.name, request.path);
-        module.Launch();
-        
-        var processInfo = new ProcessInfo(request.name, module);
-        _processes.Add(processInfo);
-        try
-        {
-            module.Launch();
-            processInfo.State = ProcessState.Running;
-            _lifecycleEvents.OnNext(LifecycleEvent.Started(request.name, process.Id));
-        }
-        catch
-        {
-            processInfo.State = ProcessState.FailedToStart;
-            _lifecycleEvents.OnNext(LifecycleEvent.FailedToStart(request.name));
-        }
-
-        return process.Id;
+        var host = _moduleHostFactory.CreateModuleHost(null);//TODO
+        await host.Initialize();
+        host.LifecycleEvents.Subscribe(ForwardLifecycleEvents);
+        await host.Launch();
+        _processes.Add(host.Name, host);
     }
 
-    public async void RequestStopProcess(string name)
+    public async void RequestStopProcess(StopRequest request)
     {
-        var p = _processes.FirstOrDefault(x => x.Name == name);
-        if (p == null)
+        IModule? module;
+        if (!_processes.TryGetValue(request.name, out module))
         {
             throw new Exception("Unknown process name");
         }
-        if (await StopProcess(p.Module))
-        {
-            _processes.Remove(p);
-            _lifecycleEvents.OnNext(LifecycleEvent.Stopped(p.Name, p.ProcessId));
-        }
-        else
-        {
-            _lifecycleEvents.OnNext(LifecycleEvent.StoppingCanceled(p.Name, p.ProcessId, false));
-        }
+        await module.Teardown();
     }
 
-    private async Task<bool> StopProcess(Process p)
+    private void ForwardLifecycleEvents(LifecycleEvent lifecycleEvent)
     {
-        p.Exited -= HandleProcessExitedUnexpectedly;
-        await Task.WhenAny(Task.Run(() => p.CloseMainWindow()), Task.Delay(TimeSpan.FromSeconds(1)));
-        if (p.HasExited)
-        {
-            return true;
-        }
-
-        p.Kill();
-        if (p.HasExited)
-        {
-            return true;
-        }
-        return false;
-    }
-
-    private void HandleProcessExitedUnexpectedly(object sender, EventArgs e)
-    {
-        Process p = (Process)sender;
-        var processInfo = _processes.FirstOrDefault(x => x.ProcessId == p.Id);
-        p.Exited -= HandleProcessExitedUnexpectedly;
-        _lifecycleEvents.OnNext(LifecycleEvent.Stopped(processInfo?.Name ?? String.Empty, p.Id, false));
-        var filename = p.StartInfo.FileName;
-        _processes.Remove(processInfo);
+        _lifecycleEvents.OnNext(lifecycleEvent);
     }
 }

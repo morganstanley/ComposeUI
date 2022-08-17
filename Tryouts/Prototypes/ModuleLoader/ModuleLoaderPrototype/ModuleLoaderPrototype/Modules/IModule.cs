@@ -2,10 +2,11 @@
 
 namespace ModuleLoaderPrototype.Modules;
 
-internal interface IModule
+public interface IModule
 {
+    string Name { get; }
     IObservable<LifecycleEvent> LifecycleEvents { get; }
-    void Initialize();
-    void Launch();
-    void Teardown();
+    Task Initialize();
+    Task Launch();
+    Task Teardown();
 }
