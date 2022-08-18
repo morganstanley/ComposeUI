@@ -1,4 +1,4 @@
-﻿namespace ModuleLoaderPrototype.Interfaces;
+﻿namespace ModuleLoaderPrototype.Modules;
 
 public enum ProcessState
 {

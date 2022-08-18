@@ -8,23 +8,9 @@
 /// See the License for the specific language governing permissions and limitations under the License.
 /// 
 /// ********************************************************************************************************
+namespace ModuleLoaderPrototype.Interfaces;
 
-using ModuleLoaderPrototype.Interfaces;
-using System.Diagnostics;
-
-namespace ModuleLoaderPrototype;
-
-internal class ProcessInfo
+public struct LaunchRequest
 {
-    public ProcessInfo(string name, Process process)
-    {
-        Name = name;
-        Process = process;
-        State = ProcessState.New;
-    }
-
-    public string Name { get; }
-    public Process Process { get; }
-    public ProcessState State { get; set; }
-    public int ProcessId => Process.Id;
+    public string name;
 }

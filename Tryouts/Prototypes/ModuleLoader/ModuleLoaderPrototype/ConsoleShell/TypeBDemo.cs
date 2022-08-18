@@ -10,6 +10,7 @@
 /// ********************************************************************************************************
 
 using ModuleLoaderPrototype;
+using ModuleLoaderPrototype.Interfaces;
 
 namespace ConsoleShell;
 
@@ -25,12 +26,12 @@ internal class TypeBDemo : IDemo
         int pid;
         loader.LifecycleEvents.Subscribe(e =>
         {
-            var unexpected = e.expected ? string.Empty : " unexpectedly";
-            Console.WriteLine($"LifecycleEvent detected: {e.pid} {e.eventType}{unexpected}");
+            var unexpected = e.IsExpected ? string.Empty : " unexpectedly";
+            Console.WriteLine($"LifecycleEvent detected: {e.pid} {e.EventType}{unexpected}");
 
-            canExit = e.expected && e.eventType == LifecycleEventType.Stopped;
+            canExit = e.IsExpected && e.EventType == LifecycleEventType.Stopped;
 
-            if (e.eventType == LifecycleEventType.Stopped && !e.expected && !loaderRestart)
+            if (e.EventType == LifecycleEventType.Stopped && !e.IsExpected && !loaderRestart)
             {
                 loader.RequestStartProcess(new LaunchRequest() { name = crashingApp, path = @"..\..\..\..\TestApp\bin\Debug\net6.0-windows\TestApp.exe" });
             }

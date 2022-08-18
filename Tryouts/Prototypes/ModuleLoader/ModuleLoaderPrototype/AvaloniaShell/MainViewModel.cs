@@ -10,6 +10,7 @@
 /// ********************************************************************************************************
 
 using ModuleLoaderPrototype;
+using ModuleLoaderPrototype.Interfaces;
 using ReactiveUI;
 using System;
 using System.Threading.Tasks;
@@ -77,7 +78,7 @@ internal class MainViewModel : ReactiveObject
     private async void HandleAppLifecycleEvent(LifecycleEvent lifecycleEvent)
     {
         await Task.Delay(TimeSpan.FromSeconds(2));
-        switch (lifecycleEvent.eventType)
+        switch (lifecycleEvent.EventType)
         {
             case LifecycleEventType.Started:
                 await SetPid(lifecycleEvent.name, lifecycleEvent.pid);

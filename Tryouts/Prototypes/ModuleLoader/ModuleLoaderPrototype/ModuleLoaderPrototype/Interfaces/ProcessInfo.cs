@@ -8,11 +8,34 @@
 /// See the License for the specific language governing permissions and limitations under the License.
 /// 
 /// ********************************************************************************************************
+
+using System.Diagnostics;
+
 namespace ModuleLoaderPrototype.Interfaces;
 
-internal interface IModuleLoader
+public class ProcessInfo
 {
-    void RequestStartProcess(LaunchRequest request);
-    void RequestStopProcess(StopRequest name);
-    IObservable<LifecycleEvent> LifecycleEvents { get; }
+    internal ProcessInfo(string name, string uiType, string? UiHint)
+    {
+        Name = name;
+        UiType = uiType;
+        UiHint = UiHint;
+    }
+
+    /// <summary>
+    /// The name of the module
+    /// </summary>
+    public string Name { get; }
+
+    /// <summary>
+    /// The UI type of the module
+    /// </summary>
+    public string UiType { get; }
+
+    /// <summary>
+    /// Hint to displying the UI of the module.
+    ///  - Web: URL to navigate
+    ///  - Window: ProcessID of the process owning the main window
+    /// </summary>
+    public string UiHint { get; }
 }

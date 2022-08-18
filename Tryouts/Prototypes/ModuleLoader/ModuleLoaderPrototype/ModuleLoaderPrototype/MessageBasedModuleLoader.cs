@@ -10,7 +10,9 @@
 /// ********************************************************************************************************
 
 using ModuleLoaderPrototype.Interfaces;
+using ModuleLoaderPrototype.Modules;
 using System.Diagnostics;
+using System.Reactive;
 using System.Reactive.Subjects;
 
 namespace ModuleLoaderPrototype;
@@ -22,11 +24,7 @@ public class MessageBasedModuleLoader : IModuleLoader
     public IObservable<LifecycleEvent> LifecycleEvents => _lifecycleEvents;
     private List<ProcessInfo> _processes = new List<ProcessInfo>();
 
-    private readonly bool _autoRestart;
-    public MessageBasedModuleLoader(bool autoRestart)
-    {
-        _autoRestart = autoRestart;
-    }
+    public MessageBasedModuleLoader() { }
 
     public void RequestStartProcess(LaunchRequest request)
     {
@@ -35,15 +33,14 @@ public class MessageBasedModuleLoader : IModuleLoader
 
     private int StartProcess(LaunchRequest request)
     {
-        var process = new Process();
-        process.StartInfo.FileName = request.path;
-        process.EnableRaisingEvents = true;
-        process.Exited += HandleProcessExitedUnexpectedly;
-        var processInfo = new ProcessInfo(request.name, process);        
+        var module = new ExecutableModule(request.name, request.path);
+        module.Launch();
+        
+        var processInfo = new ProcessInfo(request.name, module);
         _processes.Add(processInfo);
         try
         {
-            process.Start();
+            module.Launch();
             processInfo.State = ProcessState.Running;
             _lifecycleEvents.OnNext(LifecycleEvent.Started(request.name, process.Id));
         }
@@ -52,7 +49,7 @@ public class MessageBasedModuleLoader : IModuleLoader
             processInfo.State = ProcessState.FailedToStart;
             _lifecycleEvents.OnNext(LifecycleEvent.FailedToStart(request.name));
         }
-        
+
         return process.Id;
     }
 
@@ -63,7 +60,7 @@ public class MessageBasedModuleLoader : IModuleLoader
         {
             throw new Exception("Unknown process name");
         }
-        if (await StopProcess(p.Process))
+        if (await StopProcess(p.Module))
         {
             _processes.Remove(p);
             _lifecycleEvents.OnNext(LifecycleEvent.Stopped(p.Name, p.ProcessId));
