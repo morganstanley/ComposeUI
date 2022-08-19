@@ -14,6 +14,22 @@ jobs:
   build:
 
     runs-on: windows-latest
+    strategy:
+      matrix:
+        dotnet-version: [ '6.0.x' ]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
+    - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: ${{ matrix.dotnet-version }}
+    - name: Install dependencies
+      run: dotnet restore
+      working-directory: src
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+      working-directory: src
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal
+      working-directory: src
