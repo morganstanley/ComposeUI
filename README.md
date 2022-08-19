@@ -3,6 +3,8 @@
 ComposeUI
 =========
 
+![Lifecycle Incubating](https://badgen.net/badge/Lifecycle/Incubating/yellow)
+
 Feature gaps with respect to UI components, layout management, and subpar native hosting in other industry container solutions pointed us to investing in the creation of this standard container as an open desktop platform. It will provide a hybrid solution that meets the needs of a diverse application catalog as well as a compelling opensource alternative.
 
 Usage

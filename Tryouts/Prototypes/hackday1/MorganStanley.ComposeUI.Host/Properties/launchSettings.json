@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "MorganStanley.ComposeUI.Host": {
+      "commandName": "Project"
+    }
+  }
+}

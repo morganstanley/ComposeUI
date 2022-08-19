@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <EnableDefaultPageItems>false</EnableDefaultPageItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1264.42" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ComposeUI.Messaging.Server\ComposeUI.Messaging.Server.csproj" />
+    <ProjectReference Include="..\MorganStanley.ComposeUI.Interfaces\MorganStanley.ComposeUI.Interfaces.csproj" />
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="powershell -ExecutionPolicy RemoteSigned -file &quot;$(SolutionDir)\scripts\npm-builds.ps1&quot;" />
+	  <Exec Command="powershell -ExecutionPolicy RemoteSigned -file &quot;$(SolutionDir)\scripts\copy-folder.ps1&quot; &quot;$(SolutionDir)\messaging-web-client&quot; &quot;$(SolutionDir)\ComposeUi.Messaging.Server\bin\messaging-web-client&quot;" />
+  </Target>
+
+</Project>
