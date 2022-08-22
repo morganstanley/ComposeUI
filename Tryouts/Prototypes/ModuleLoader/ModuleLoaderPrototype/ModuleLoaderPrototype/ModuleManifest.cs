@@ -8,8 +8,8 @@ namespace ModuleLoaderPrototype
 {
     public class ModuleManifest
     {
-        public string Name { get; }
-        public ModuleType ModuleType { get; }
-        public string Path { get; }
+        public string Name { get; set; }
+        public ModuleType ModuleType { get; set; }
+        public string Path { get; set; }
     }
 }

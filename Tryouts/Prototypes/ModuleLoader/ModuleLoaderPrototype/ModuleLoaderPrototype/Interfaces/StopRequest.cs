@@ -12,5 +12,5 @@ namespace ModuleLoaderPrototype.Interfaces;
 
 public struct StopRequest
 {
-    public string name;
+    public Guid instanceId;
 }

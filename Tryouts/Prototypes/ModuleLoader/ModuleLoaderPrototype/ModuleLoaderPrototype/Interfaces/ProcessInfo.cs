@@ -19,7 +19,7 @@ public class ProcessInfo
         UiType = uiType;
         UiHint = uiHint;
     }
-
+        
     /// <summary>
     /// The name of the module
     /// </summary>

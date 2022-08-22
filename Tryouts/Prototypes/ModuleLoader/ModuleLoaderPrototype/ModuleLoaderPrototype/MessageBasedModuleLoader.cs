@@ -11,8 +11,6 @@
 
 using ModuleLoaderPrototype.Interfaces;
 using ModuleLoaderPrototype.Modules;
-using System.Diagnostics;
-using System.Reactive;
 using System.Reactive.Subjects;
 
 namespace ModuleLoaderPrototype;
@@ -22,12 +20,15 @@ public class MessageBasedModuleLoader : IModuleLoader
 
     private Subject<LifecycleEvent> _lifecycleEvents = new Subject<LifecycleEvent>();
     public IObservable<LifecycleEvent> LifecycleEvents => _lifecycleEvents;
-    private Dictionary<string, IModule> _processes = new Dictionary<string, IModule>();
+    private Dictionary<Guid, IModule> _processes = new Dictionary<Guid, IModule>();
     private readonly IModuleHostFactory _moduleHostFactory;
+    private readonly IModuleCatalogue _moduleCatalogue;
 
-    public MessageBasedModuleLoader(IModuleHostFactory moduleHostFactory)
+    public MessageBasedModuleLoader(IModuleCatalogue moduleCatalogue, IModuleHostFactory moduleHostFactory)
     {
+        _moduleCatalogue = moduleCatalogue;
         _moduleHostFactory = moduleHostFactory;
+
     }
 
     public void RequestStartProcess(LaunchRequest request)
@@ -37,17 +38,23 @@ public class MessageBasedModuleLoader : IModuleLoader
 
     private async void StartProcess(LaunchRequest request)
     {
-        var host = _moduleHostFactory.CreateModuleHost(null);//TODO
-        await host.Initialize();
-        host.LifecycleEvents.Subscribe(ForwardLifecycleEvents);
+        var manifest = _moduleCatalogue.GetManifest(request.name);
+        IModule host;
+        if (!_processes.TryGetValue(request.instanceId, out host))
+        {
+            host = _moduleHostFactory.CreateModuleHost(manifest);
+            _processes.Add(request.instanceId, host);
+            await host.Initialize();
+            host.LifecycleEvents.Subscribe(ForwardLifecycleEvents);
+        }
+
         await host.Launch();
-        _processes.Add(host.Name, host);
     }
 
     public async void RequestStopProcess(StopRequest request)
     {
         IModule? module;
-        if (!_processes.TryGetValue(request.name, out module))
+        if (!_processes.TryGetValue(request.instanceId, out module))
         {
             throw new Exception("Unknown process name");
         }

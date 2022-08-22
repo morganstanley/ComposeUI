@@ -12,5 +12,6 @@ namespace ModuleLoaderPrototype.Interfaces;
 
 public struct LaunchRequest
 {
-    public string name;
+    public Guid instanceId;
+    public string name;    
 }

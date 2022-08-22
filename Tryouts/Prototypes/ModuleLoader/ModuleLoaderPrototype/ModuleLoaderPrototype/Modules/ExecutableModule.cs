@@ -1,95 +1,87 @@
 ﻿using ModuleLoaderPrototype.Interfaces;
 using System.Diagnostics;
-using System.Reactive.Subjects;
 
-namespace ModuleLoaderPrototype.Modules
+namespace ModuleLoaderPrototype.Modules;
+
+internal class ExecutableModule : ModuleBase
 {
-    internal class ExecutableModule : IModule
+    private string _launchPath;
+    private Process? _mainProcess;
+    private bool exitRequested = false;
+
+    public ProcessInfo ProcessInfo => new ProcessInfo
+    (
+        name: Name,
+        uiType: UIType.Window,
+        uiHint: _mainProcess?.Id.ToString()
+    );
+
+    public ExecutableModule(string name, string launchPath) : base(name)
     {
-        private string _launchPath;
-        private Process? _mainProcess;
-        private bool exitRequested = false;
+        _launchPath = launchPath;
+    }
 
-        private Subject<LifecycleEvent> _lifecycleEvents = new Subject<LifecycleEvent>();
-        public IObservable<LifecycleEvent> LifecycleEvents => _lifecycleEvents;
+    public override Task Initialize()
+    {
+        var mainProcess = new Process();
+        mainProcess.StartInfo.FileName = _launchPath;
+        mainProcess.EnableRaisingEvents = true;
+        mainProcess.Exited += ProcessExited;
+        _mainProcess = mainProcess;
+        return Task.CompletedTask;
+    }
 
-        public string Name { get; private set; }
+    public override Task Launch()
+    {
+        _mainProcess?.Start();
+        _lifecycleEvents.OnNext(LifecycleEvent.Started(ProcessInfo));
+        return Task.CompletedTask;
+    }
 
-        public ProcessInfo ProcessInfo => new ProcessInfo
-        (
-            name: Name,
-            uiType: UIType.Window,
-            uiHint: _mainProcess?.Id.ToString()
-        );
+    private void ProcessExited(object? sender, EventArgs e)
+    {
+        _lifecycleEvents.OnNext(LifecycleEvent.Stopped(ProcessInfo, exitRequested));
+    }
 
-        public ExecutableModule(string name, string launchPath)
+    public async override Task Teardown()
+    {
+        if (_mainProcess == null)
         {
-            Name = name;
-            _launchPath = launchPath;
+            _lifecycleEvents.OnNext(LifecycleEvent.Stopped(ProcessInfo, true));
+            return;
         }
-
-        public Task Initialize()
+        try
         {
-            var mainProcess = new Process();
-            mainProcess.StartInfo.FileName = _launchPath;
-            mainProcess.EnableRaisingEvents = true;
-            mainProcess.Exited += ProcessExited;
-            _mainProcess = mainProcess;
-            return Task.CompletedTask;
-        }
+            exitRequested = true;
+            var killNecessary = true;
 
-        public Task Launch()
-        {
-            _mainProcess?.Start();
-            _lifecycleEvents.OnNext(LifecycleEvent.Started(ProcessInfo));
-            return Task.CompletedTask;
-        }
-
-        private void ProcessExited(object? sender, EventArgs e)
-        {
-            _lifecycleEvents.OnNext(LifecycleEvent.Stopped(ProcessInfo, exitRequested));
-        }
-
-        public async Task Teardown()
-        {
-            if (_mainProcess == null)
+            if (_mainProcess.CloseMainWindow())
             {
-                _lifecycleEvents.OnNext(LifecycleEvent.Stopped(ProcessInfo, true));
-                return;
-            }
-            try
-            {
-                exitRequested = true;
-                var killNecessary = true;
-
-                if (_mainProcess.CloseMainWindow())
-                {
-                    await Task.Delay(TimeSpan.FromMilliseconds(500));
-                    if (_mainProcess.HasExited)
-                    {
-                        killNecessary = false;
-                    }
-                }
-
-                if (killNecessary)
-                {
-                    _mainProcess.Kill();
-                    await Task.Delay(TimeSpan.FromMilliseconds(500));
-                }
-
+                await Task.Delay(TimeSpan.FromMilliseconds(500));
                 if (_mainProcess.HasExited)
                 {
-                    _lifecycleEvents.OnNext(LifecycleEvent.Stopped(ProcessInfo, true));
-                }
-                else
-                {
-                    _lifecycleEvents.OnNext(LifecycleEvent.StoppingCanceled(ProcessInfo, false));
+                    killNecessary = false;
                 }
             }
-            finally
+
+            if (killNecessary)
             {
-                exitRequested = false;
+                _mainProcess.Kill();
+                await Task.Delay(TimeSpan.FromMilliseconds(500));
             }
+
+            if (_mainProcess.HasExited)
+            {
+                _lifecycleEvents.OnNext(LifecycleEvent.Stopped(ProcessInfo, true));
+            }
+            else
+            {
+                _lifecycleEvents.OnNext(LifecycleEvent.StoppingCanceled(ProcessInfo, false));
+            }
+        }
+        finally
+        {
+            exitRequested = false;
         }
     }
 }

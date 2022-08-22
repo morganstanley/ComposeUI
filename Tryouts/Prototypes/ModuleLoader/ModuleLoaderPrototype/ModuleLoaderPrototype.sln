@@ -9,9 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleShell", "ConsoleShel
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Playground.VisualUtils", "MorganStanley.ComposeUI.Playground.VisualUtils\MorganStanley.ComposeUI.Playground.VisualUtils.csproj", "{5F4BBB8C-48F8-48AA-98DA-25DA5D3EAFD1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvaloniaShell", "AvaloniaShell\AvaloniaShell.csproj", "{02CD28BD-7C70-4B4B-ACAF-E32CD1B2FA41}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "TestApp\TestApp.csproj", "{2386EAB0-3ADA-4DB1-8BA0-DB7C9D781A34}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestApp", "TestApp\TestApp.csproj", "{2386EAB0-3ADA-4DB1-8BA0-DB7C9D781A34}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,10 +29,6 @@ Global
 		{5F4BBB8C-48F8-48AA-98DA-25DA5D3EAFD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5F4BBB8C-48F8-48AA-98DA-25DA5D3EAFD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5F4BBB8C-48F8-48AA-98DA-25DA5D3EAFD1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{02CD28BD-7C70-4B4B-ACAF-E32CD1B2FA41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{02CD28BD-7C70-4B4B-ACAF-E32CD1B2FA41}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{02CD28BD-7C70-4B4B-ACAF-E32CD1B2FA41}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{02CD28BD-7C70-4B4B-ACAF-E32CD1B2FA41}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2386EAB0-3ADA-4DB1-8BA0-DB7C9D781A34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2386EAB0-3ADA-4DB1-8BA0-DB7C9D781A34}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2386EAB0-3ADA-4DB1-8BA0-DB7C9D781A34}.Release|Any CPU.ActiveCfg = Release|Any CPU
