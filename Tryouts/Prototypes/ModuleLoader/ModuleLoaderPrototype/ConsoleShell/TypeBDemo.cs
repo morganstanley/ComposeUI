@@ -24,11 +24,12 @@ internal class TypeBDemo : IDemo
         var catalogue = new ModuleCatalogue(new Dictionary<string, ModuleManifest>
         {
             {"crashingapp", new ModuleManifest
-            {
-                ModuleType = ModuleType.Executable,
-                Name= "crashingapp",
-                Path = @"..\..\..\..\TestApp\bin\Debug\net6.0-windows\TestApp.exe"
-            }
+                {
+                    StartupType = StartupType.Executable,
+                    UIType = UIType.Window,
+                    Name= "crashingapp",
+                    Path = @"..\..\..\..\TestApp\bin\Debug\net6.0-windows\TestApp.exe"
+                }
             }
         });
 
