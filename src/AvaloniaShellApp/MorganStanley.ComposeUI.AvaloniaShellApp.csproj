@@ -30,9 +30,9 @@ See the License for the specific language governing permissions and limitations 
     <TrimmableAssembly Include="Avalonia.Themes.Default" />
   </ItemGroup>
   <ItemGroup>
-    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-    <PackageReference Include="NP.Avalonia.Gidon" Version="0.99.5" />
-    <PackageReference Include="XamlNameReferenceGenerator" Version="1.3.4" />
+    <PackageReference Include="Avalonia" Version="0.10.18" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.10.18" />
+	  <PackageReference Include="XamlNameReferenceGenerator" Version="1.3.4" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\BasicModels\MorganStanley.ComposeUI.Core.BasicModels.csproj" />
