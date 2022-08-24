@@ -14,7 +14,7 @@ using System.Reactive.Subjects;
 
 namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService;
 
-public abstract class ModuleBase : IModule
+internal abstract class ModuleBase : IModule
 {
     public ModuleBase(string name)
     {

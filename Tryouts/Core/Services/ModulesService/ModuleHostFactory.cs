@@ -13,7 +13,7 @@ using MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules;
 
 namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService;
 
-public class ModuleHostFactory : IModuleHostFactory
+internal class ModuleHostFactory : IModuleHostFactory
 {
     public IModule CreateModuleHost(ModuleManifest manifest)
     {

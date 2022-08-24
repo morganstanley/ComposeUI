@@ -14,6 +14,6 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules
 {
     public interface IModuleLoaderFactory
     {
-        IModuleLoader Create(ModuleCatalogue catalogue, IModuleHostFactory moduleHostFactory);
+        IModuleLoader Create(ModuleCatalogue catalogue);
     }
 }
