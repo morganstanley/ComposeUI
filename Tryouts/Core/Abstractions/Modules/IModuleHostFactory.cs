@@ -12,8 +12,8 @@
 
 namespace MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules
 {
-    public interface IModuleHostFactory
+    internal interface IModuleHostFactory
     {
-        IModule CreateModuleHost(ModuleManifest manifest);
+        internal IModule CreateModuleHost(ModuleManifest manifest);
     }
 }

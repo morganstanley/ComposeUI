@@ -34,14 +34,14 @@ namespace MorganStanley.ComposeUI.Prototypes.ModulesPrototype
                         {
                             StartupType = StartupType.Executable,
                             UIType = UIType.Window,
-                            Name= "crashingapp",
+                            Name= crashingApp,
                             Path = @"Plugins\ApplicationPlugins\ModuleTestSimpleWpfApp\ModuleTestSimpleWpfApp.exe"
                         }
                     }
                 });
 
-            var moduleHostFactory = new ModuleHostFactory();
-            var loader = new ModuleLoader(catalogue, moduleHostFactory);
+            var factory = new ModuleLoaderFactory();
+            var loader = factory.Create(catalogue);
             bool canExit = false;
             var instanceId = Guid.NewGuid();
 

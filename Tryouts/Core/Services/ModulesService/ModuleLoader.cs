@@ -14,7 +14,7 @@ using System.Reactive.Subjects;
 
 namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService;
 
-public class ModuleLoader : IModuleLoader
+internal class ModuleLoader : IModuleLoader
 {
 
     private Subject<LifecycleEvent> _lifecycleEvents = new Subject<LifecycleEvent>();

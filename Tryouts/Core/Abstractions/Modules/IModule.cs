@@ -12,7 +12,7 @@
 
 namespace MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules;
 
-public interface IModule
+internal interface IModule
 {
     string Name { get; }
     IObservable<LifecycleEvent> LifecycleEvents { get; }
