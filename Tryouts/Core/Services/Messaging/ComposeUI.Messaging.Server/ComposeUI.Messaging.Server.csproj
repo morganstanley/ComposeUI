@@ -16,11 +16,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="../ComposeUI.Messaging.Core/ComposeUI.Messaging.Core.csproj" />
+	  <Folder Include="Transport\Abstractions\" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Transport\Abstractions\" />
+	  <ProjectReference Include="..\ComposeUI.Messaging.Core\ComposeUI.Messaging.Core.csproj" />
 	</ItemGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+	  <Exec Command="powershell -ExecutionPolicy RemoteSigned -file &quot;$(ProjectDir)\scripts\build-web-client.ps1&quot;&#xD;&#xA;xcopy &quot;$(ProjectDir)\..\messaging-web-client\output&quot; &quot;$(OutDir)\..\messaging-web-client\output\&quot; /S /R /Y /I" />
+	</Target>
 
 </Project>

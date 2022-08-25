@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
@@ -13,13 +13,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ComposeUI.Messaging.Server\ComposeUI.Messaging.Server.csproj" />
+    <ProjectReference Include="..\..\..\Core\Services\Messaging\ComposeUI.Messaging.Client\ComposeUI.Messaging.Client.csproj" />
+    <ProjectReference Include="..\..\..\Core\Services\Messaging\ComposeUI.Messaging.Core\ComposeUI.Messaging.Core.csproj" />
     <ProjectReference Include="..\MorganStanley.ComposeUI.Interfaces\MorganStanley.ComposeUI.Interfaces.csproj" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="powershell -ExecutionPolicy RemoteSigned -file &quot;$(SolutionDir)\scripts\npm-builds.ps1&quot;" />
-	  <Exec Command="powershell -ExecutionPolicy RemoteSigned -file &quot;$(SolutionDir)\scripts\copy-folder.ps1&quot; &quot;$(SolutionDir)\messaging-web-client&quot; &quot;$(SolutionDir)\ComposeUi.Messaging.Server\bin\messaging-web-client&quot;" />
+    <Exec Command="powershell -ExecutionPolicy RemoteSigned -file &quot;$(SolutionDir)\scripts\npm-builds.ps1&quot;" />	  
   </Target>
 
 </Project>

@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ComposeUI.Messaging.Client\ComposeUI.Messaging.Client.csproj" />
+    <ProjectReference Include="..\..\..\Core\Services\Messaging\ComposeUI.Messaging.Client\ComposeUI.Messaging.Client.csproj" />
   </ItemGroup>
 
 </Project>

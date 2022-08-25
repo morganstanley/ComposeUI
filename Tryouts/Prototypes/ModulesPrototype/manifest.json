@@ -1,0 +1,15 @@
+﻿{
+  "crashingapp": {
+    "StartupType": "executable",
+    "UIType": "window",
+    "Name": "crashingapp",
+    "Path": "Plugins\\ApplicationPlugins\\ModuleTestSimpleWpfApp\\ModuleTestSimpleWpfApp.exe"
+  },
+  "messageRouter": {
+    "StartupType": "dotnetcore",
+    "UIType": "none",
+    "Name": "messageRouter",
+    "Path": "..\\..\\..\\..\\..\\Core\\Services\\Messaging\\ComposeUI.Messaging.Server\\bin\\Debug\\net6.0\\ComposeUI.Messaging.Server.dll"
+  }
+
+}

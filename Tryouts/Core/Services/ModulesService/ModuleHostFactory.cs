@@ -22,7 +22,11 @@ internal class ModuleHostFactory : IModuleHostFactory
             case (StartupType.Executable, UIType.Window):
                 return new ExecutableModule(manifest.Name, instanceId, manifest.Path);
             case (StartupType.None, UIType.Web):
-                return new WebpageModule(manifest.Name, instanceId, manifest.Url);            
+                return new WebpageModule(manifest.Name, instanceId, manifest.Url);
+            case (StartupType.Executable, UIType.None):
+                return new BackgroundExecutableModule(manifest.Name, instanceId, manifest.Path);
+            case (StartupType.DotNetCore, UIType.None):
+                return new DotNetCoreBackgroundModule(manifest.Name, instanceId, manifest.Path);
             default:
                 throw new NotSupportedException("Unsupported module type");
         }
