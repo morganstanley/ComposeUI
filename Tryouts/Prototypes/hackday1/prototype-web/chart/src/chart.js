@@ -1,7 +1,7 @@
 ﻿import Chart from 'highcharts/es-modules/Core/Chart/Chart.js';
 import ColumnSeries from 'highcharts/es-modules/Series/Column/ColumnSeries.js';
 
-import { ComposeMessagingClient } from '../../../messaging-web-client/output/index.js';
+import {ComposeMessagingClient} from '../../../../../Core/Services/Messaging/messaging-web-client/output/index.js';
 
 let chart;
 

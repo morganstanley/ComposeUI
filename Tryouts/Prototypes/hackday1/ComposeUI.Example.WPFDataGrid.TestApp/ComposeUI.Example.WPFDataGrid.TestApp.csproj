@@ -16,8 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\Services\Messaging\ComposeUI.Messaging.Client\ComposeUI.Messaging.Client.csproj" />
     <ProjectReference Include="..\ComposeUI.Example.WPFDataGrid\ComposeUI.Example.WPFDataGrid.csproj" />
-    <ProjectReference Include="..\ComposeUI.Messaging.Client\ComposeUI.Messaging.Client.csproj" />
   </ItemGroup>
 
 </Project>

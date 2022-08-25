@@ -3,15 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32616.157
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComposeUI.Messaging.Server", "ComposeUI.Messaging.Server\ComposeUI.Messaging.Server.csproj", "{62EEC21F-1DB9-426C-8D08-2ECF6D303F56}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComposeUI.Messaging.Server", "..\..\Core\Services\Messaging\ComposeUI.Messaging.Server\ComposeUI.Messaging.Server.csproj", "{62EEC21F-1DB9-426C-8D08-2ECF6D303F56}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComposeUI.Messaging.Server.Tests", "ComposeUI.Messaging.server.Tests\ComposeUI.Messaging.Server.Tests.csproj", "{00D054F4-D600-4909-8D18-DD581A416C05}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComposeUI.Messaging.Server.Tests", "..\..\Core\Services\Messaging\ComposeUI.Messaging.server.Tests\ComposeUI.Messaging.Server.Tests.csproj", "{00D054F4-D600-4909-8D18-DD581A416C05}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComposeUI.Messaging.Core", "ComposeUI.Messaging.Core\ComposeUI.Messaging.Core.csproj", "{EA24BA3D-255A-46CF-98D4-E08E63ECE26E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComposeUI.Messaging.Core", "..\..\Core\Services\Messaging\ComposeUI.Messaging.Core\ComposeUI.Messaging.Core.csproj", "{EA24BA3D-255A-46CF-98D4-E08E63ECE26E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComposeUI.Messaging.Client", "ComposeUI.Messaging.Client\ComposeUI.Messaging.Client.csproj", "{7E420786-BF7E-45BE-954F-8DE8382983C7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComposeUI.Messaging.Client", "..\..\Core\Services\Messaging\ComposeUI.Messaging.Client\ComposeUI.Messaging.Client.csproj", "{7E420786-BF7E-45BE-954F-8DE8382983C7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComposeUI.Messaging.IntegrationTests", "ComposeUI.Messaging.IntegrationTests\ComposeUI.Messaging.IntegrationTests.csproj", "{DA2930E7-B927-4360-9FA0-3D9DB6BE9856}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComposeUI.Messaging.IntegrationTests", "..\..\Core\Services\Messaging\ComposeUI.Messaging.IntegrationTests\ComposeUI.Messaging.IntegrationTests.csproj", "{DA2930E7-B927-4360-9FA0-3D9DB6BE9856}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{0CEA7D2A-7842-465C-83B8-662761167852}"
 EndProject

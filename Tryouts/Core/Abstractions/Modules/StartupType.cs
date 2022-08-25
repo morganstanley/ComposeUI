@@ -15,18 +15,23 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules;
 /// <summary>
 /// Represents the type of action necessary to start hosting a module
 /// </summary>
-public enum StartupType
+public static class StartupType
 {
     /// <summary>
     /// No action is required. Use this value for e.g. webapps hosted on a remote server
     /// </summary>    
-    None,
+    public const string None = "none";
     /// <summary>
     /// The module is started via a windows executable (.exe) file
     /// </summary>
-    Executable,
+    public const string Executable = "executable";
     /// <summary>
     /// The module is a web app that can be hosted via node development server
     /// </summary>
-    SelfHostedWebApp
+    public const string SelfHostedWebApp = "selfhostedwebapp";
+
+    /// <summary>
+    /// The module has to be started using dotnet cli
+    /// </summary>
+    public const string DotNetCore = "dotnetcore";
 }

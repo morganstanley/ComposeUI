@@ -14,6 +14,8 @@ using MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules;
 using MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MorganStanley.ComposeUI.Prototypes.ModulesPrototype
@@ -23,51 +25,48 @@ namespace MorganStanley.ComposeUI.Prototypes.ModulesPrototype
         public static async Task Main(string[] args)
         {
             const string crashingApp = "crashingapp";
+            const string messageRouter = "messageRouter";
 
-            var catalogue = new ModuleCatalogue
-            (
-                new Dictionary<string, ModuleManifest>
-                {
-                    {
-                        crashingApp,
-                        new ModuleManifest
-                        {
-                            StartupType = StartupType.Executable,
-                            UIType = UIType.Window,
-                            Name= crashingApp,
-                            Path = @"Plugins\ApplicationPlugins\ModuleTestSimpleWpfApp\ModuleTestSimpleWpfApp.exe"
-                        }
-                    }
-                });
+            var manifestString = File.ReadAllText("manifest.json");
+            var manifest = JsonSerializer.Deserialize<Dictionary<string, ModuleManifest>>(manifestString);
+
+
+            var catalogue = new ModuleCatalogue(manifest);
 
             var factory = new ModuleLoaderFactory();
             var loader = factory.Create(catalogue);
-            bool canExit = false;
-            var instanceId = Guid.NewGuid();
+            int canExit = 0;
+            var messagingInstanceId = Guid.NewGuid();
+            var appinstanceId = Guid.NewGuid();
 
             loader.LifecycleEvents.Subscribe(e =>
             {
                 var unexpected = e.IsExpected ? string.Empty : " unexpectedly";
                 Console.WriteLine($"LifecycleEvent detected: {e.ProcessInfo.uiHint} {e.EventType}{unexpected}");
 
-                canExit = e.IsExpected && e.EventType == LifecycleEventType.Stopped;
 
-                if (e.EventType == LifecycleEventType.Stopped && !e.IsExpected)
+                if (e.EventType == LifecycleEventType.Stopped)
                 {
-                    loader.RequestStartProcess(new LaunchRequest() { name = e.ProcessInfo.name, instanceId = e.ProcessInfo.instanceId });
+                    if (!e.IsExpected)
+                    {
+                        loader.RequestStartProcess(new LaunchRequest() { name = e.ProcessInfo.Name, instanceId = e.ProcessInfo.InstanceID });
+                    }
+                    else { canExit++; }
                 }
             });
 
-            loader.RequestStartProcess(new LaunchRequest() { name = crashingApp, instanceId = instanceId });
+            loader.RequestStartProcess(new LaunchRequest { name = messageRouter, instanceId = messagingInstanceId });
+            loader.RequestStartProcess(new LaunchRequest { name = crashingApp, instanceId = appinstanceId });
 
             Console.ReadLine();
 
             Console.WriteLine("Exiting subprocesses");
 
-            loader.RequestStopProcess(new StopRequest { instanceId = instanceId });
+            loader.RequestStopProcess(new StopRequest { instanceId = appinstanceId });
+            loader.RequestStopProcess(new StopRequest { instanceId = messagingInstanceId });
 
 
-            while (!canExit)
+            while (canExit < 2)
             {
                 await Task.Delay(TimeSpan.FromMilliseconds(200));
             }

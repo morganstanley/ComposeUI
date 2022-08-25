@@ -20,15 +20,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="../ComposeUI.Messaging.Core/ComposeUI.Messaging.Core.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
 	  <Folder Include="Transport\Abstractions\" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<InternalsVisibleTo Include="ComposeUI.Messaging.IntegrationTests" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\ComposeUI.Messaging.Core\ComposeUI.Messaging.Core.csproj" />
 	</ItemGroup>
 
 </Project>
