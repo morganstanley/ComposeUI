@@ -25,7 +25,7 @@ internal class ExecutableModule : ModuleBase
         name: Name,
         instanceId: InstanceId,
         uiType: UIType.Window,
-        uiHint: _mainProcess?.Id.ToString()
+        uiHint: _mainProcess?.MainWindowHandle.ToString()
     );
 
     public ExecutableModule(string name, Guid instanceId, string launchPath) : base(name, instanceId)
@@ -43,11 +43,15 @@ internal class ExecutableModule : ModuleBase
         return Task.CompletedTask;
     }
 
-    public override Task Launch()
+    public override async Task Launch()
     {
         _mainProcess?.Start();
+        while (_mainProcess?.MainWindowHandle.ToInt64() == 0)
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
+        }
+
         _lifecycleEvents.OnNext(LifecycleEvent.Started(ProcessInfo));
-        return Task.CompletedTask;
     }
 
     private void ProcessExited(object? sender, EventArgs e)
@@ -80,11 +84,6 @@ internal class ExecutableModule : ModuleBase
             {
                 _mainProcess.Kill();
                 await Task.Delay(TimeSpan.FromMilliseconds(500));
-            }
-
-            if (_mainProcess.HasExited)
-            {
-                _lifecycleEvents.OnNext(LifecycleEvent.Stopped(ProcessInfo, true));
             }
             else
             {

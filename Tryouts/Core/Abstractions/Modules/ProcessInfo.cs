@@ -10,35 +10,35 @@
 /// ********************************************************************************************************
 namespace MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules;
 
-public class ProcessInfo
+public struct ProcessInfo
 {
     public ProcessInfo(string name, Guid instanceId, string uiType, string? uiHint)
     {
-        Name = name;
-        InstanceID = instanceId;
-        UiType = uiType;
-        UiHint = uiHint;
+        this.name = name;
+        this.instanceId = instanceId;
+        this.uiType = uiType;
+        this.uiHint = uiHint;
     }
 
     /// <summary>
     /// The name of the module
     /// </summary>
-    public string Name { get; }
+    public string name;
 
     /// <summary>
     /// The ID referencing the process instance
     /// </summary>
-    public Guid InstanceID { get; }
+    public Guid instanceId;
 
     /// <summary>
     /// The UI type of the module
     /// </summary>
-    public string UiType { get; }
+    public string uiType;
 
     /// <summary>
     /// Hint to displying the UI of the module.
     ///  - Web: URL to navigate
     ///  - Window: ProcessID of the process owning the main window
     /// </summary>
-    public string? UiHint { get; }
+    public string? uiHint;
 }
