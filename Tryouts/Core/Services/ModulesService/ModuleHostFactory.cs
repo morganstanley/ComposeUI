@@ -15,14 +15,14 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService;
 
 internal class ModuleHostFactory : IModuleHostFactory
 {
-    public IModule CreateModuleHost(ModuleManifest manifest)
+    public IModule CreateModuleHost(ModuleManifest manifest, Guid instanceId)
     {
         switch (manifest.StartupType, manifest.UIType)
         {
             case (StartupType.Executable, UIType.Window):
-                return new ExecutableModule(manifest.Name, manifest.Path);
+                return new ExecutableModule(manifest.Name, instanceId, manifest.Path);
             case (StartupType.None, UIType.Web):
-                return new WebpageModule(manifest.Name, manifest.Url);
+                return new WebpageModule(manifest.Name, instanceId, manifest.Url);            
             default:
                 throw new NotSupportedException("Unsupported module type");
         }

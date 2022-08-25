@@ -15,6 +15,8 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules;
 internal interface IModule
 {
     string Name { get; }
+    Guid InstanceId { get; }
+    ProcessInfo ProcessInfo { get; }
     IObservable<LifecycleEvent> LifecycleEvents { get; }
     Task Initialize();
     Task Launch();

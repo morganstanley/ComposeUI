@@ -18,16 +18,17 @@ internal class ExecutableModule : ModuleBase
 {
     private string _launchPath;
     private Process? _mainProcess;
-    private bool exitRequested = false;
+    private bool _exitRequested = false;
 
-    public ProcessInfo ProcessInfo => new ProcessInfo
+    public override ProcessInfo ProcessInfo => new ProcessInfo
     (
         name: Name,
+        instanceId: InstanceId,
         uiType: UIType.Window,
         uiHint: _mainProcess?.Id.ToString()
     );
 
-    public ExecutableModule(string name, string launchPath) : base(name)
+    public ExecutableModule(string name, Guid instanceId, string launchPath) : base(name, instanceId)
     {
         _launchPath = launchPath;
     }
@@ -51,7 +52,7 @@ internal class ExecutableModule : ModuleBase
 
     private void ProcessExited(object? sender, EventArgs e)
     {
-        _lifecycleEvents.OnNext(LifecycleEvent.Stopped(ProcessInfo, exitRequested));
+        _lifecycleEvents.OnNext(LifecycleEvent.Stopped(ProcessInfo, _exitRequested));
     }
 
     public async override Task Teardown()
@@ -63,7 +64,7 @@ internal class ExecutableModule : ModuleBase
         }
         try
         {
-            exitRequested = true;
+            _exitRequested = true;
             var killNecessary = true;
 
             if (_mainProcess.CloseMainWindow())
@@ -92,7 +93,7 @@ internal class ExecutableModule : ModuleBase
         }
         finally
         {
-            exitRequested = false;
+            _exitRequested = false;
         }
     }
 }
