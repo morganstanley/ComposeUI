@@ -12,9 +12,10 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules;
 
 public class ProcessInfo
 {
-    public ProcessInfo(string name, string uiType, string? uiHint)
+    public ProcessInfo(string name, Guid instanceId, string uiType, string? uiHint)
     {
         Name = name;
+        InstanceID = instanceId;
         UiType = uiType;
         UiHint = uiHint;
     }
@@ -23,6 +24,11 @@ public class ProcessInfo
     /// The name of the module
     /// </summary>
     public string Name { get; }
+
+    /// <summary>
+    /// The ID referencing the process instance
+    /// </summary>
+    public Guid InstanceID { get; }
 
     /// <summary>
     /// The UI type of the module

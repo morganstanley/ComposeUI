@@ -10,6 +10,7 @@
 /// ********************************************************************************************************
 
 using MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules;
+using System.Collections.Concurrent;
 using System.Reactive.Subjects;
 
 namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService;
@@ -19,7 +20,7 @@ internal class ModuleLoader : IModuleLoader
 
     private Subject<LifecycleEvent> _lifecycleEvents = new Subject<LifecycleEvent>();
     public IObservable<LifecycleEvent> LifecycleEvents => _lifecycleEvents;
-    private Dictionary<Guid, IModule> _processes = new Dictionary<Guid, IModule>();
+    private ConcurrentDictionary<Guid, IModule> _processes = new ConcurrentDictionary<Guid, IModule>();
     private readonly IModuleHostFactory _moduleHostFactory;
     private readonly IModuleCatalogue _moduleCatalogue;
 
@@ -38,14 +39,10 @@ internal class ModuleLoader : IModuleLoader
     private async void StartProcess(LaunchRequest request)
     {
         var manifest = _moduleCatalogue.GetManifest(request.name);
-        IModule host;
-        if (!_processes.TryGetValue(request.instanceId, out host))
-        {
-            host = _moduleHostFactory.CreateModuleHost(manifest);
-            _processes.Add(request.instanceId, host);
-            await host.Initialize();
-            host.LifecycleEvents.Subscribe(ForwardLifecycleEvents);
-        }
+        IModule host = _processes.GetOrAdd(request.instanceId, id => _moduleHostFactory.CreateModuleHost(manifest, request.instanceId));
+        await host.Initialize();
+        host.LifecycleEvents.Subscribe(ForwardLifecycleEvents);
+
 
         await host.Launch();
     }

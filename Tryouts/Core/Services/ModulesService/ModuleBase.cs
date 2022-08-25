@@ -16,12 +16,17 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService;
 
 internal abstract class ModuleBase : IModule
 {
-    public ModuleBase(string name)
+    public ModuleBase(string name, Guid instanceId)
     {
         Name = name;
+        InstanceId = instanceId;
     }
 
     public string Name { get; }
+
+    public Guid InstanceId { get; }
+
+    public abstract ProcessInfo ProcessInfo { get; }
 
     protected readonly Subject<LifecycleEvent> _lifecycleEvents = new Subject<LifecycleEvent>();
     public IObservable<LifecycleEvent> LifecycleEvents => _lifecycleEvents;
