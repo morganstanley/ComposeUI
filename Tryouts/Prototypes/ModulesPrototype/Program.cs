@@ -48,13 +48,13 @@ namespace MorganStanley.ComposeUI.Prototypes.ModulesPrototype
             loader.LifecycleEvents.Subscribe(e =>
             {
                 var unexpected = e.IsExpected ? string.Empty : " unexpectedly";
-                Console.WriteLine($"LifecycleEvent detected: {e.ProcessInfo.UiHint} {e.EventType}{unexpected}");
+                Console.WriteLine($"LifecycleEvent detected: {e.ProcessInfo.uiHint} {e.EventType}{unexpected}");
 
                 canExit = e.IsExpected && e.EventType == LifecycleEventType.Stopped;
 
                 if (e.EventType == LifecycleEventType.Stopped && !e.IsExpected)
                 {
-                    loader.RequestStartProcess(new LaunchRequest() { name = crashingApp, instanceId = instanceId });
+                    loader.RequestStartProcess(new LaunchRequest() { name = e.ProcessInfo.name, instanceId = e.ProcessInfo.instanceId });
                 }
             });
 

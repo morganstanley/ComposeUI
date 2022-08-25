@@ -17,12 +17,12 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService;
 
 internal class ModuleLoader : IModuleLoader
 {
-
     private Subject<LifecycleEvent> _lifecycleEvents = new Subject<LifecycleEvent>();
     public IObservable<LifecycleEvent> LifecycleEvents => _lifecycleEvents;
     private ConcurrentDictionary<Guid, IModule> _processes = new ConcurrentDictionary<Guid, IModule>();
     private readonly IModuleHostFactory _moduleHostFactory;
     private readonly IModuleCatalogue _moduleCatalogue;
+
 
     public ModuleLoader(IModuleCatalogue moduleCatalogue, IModuleHostFactory moduleHostFactory)
     {
@@ -38,13 +38,20 @@ internal class ModuleLoader : IModuleLoader
 
     private async void StartProcess(LaunchRequest request)
     {
-        var manifest = _moduleCatalogue.GetManifest(request.name);
-        IModule host = _processes.GetOrAdd(request.instanceId, id => _moduleHostFactory.CreateModuleHost(manifest, request.instanceId));
+
+        IModule host = _processes.GetOrAdd(request.instanceId, _ => CreateModuleHost(request));
+
         await host.Initialize();
-        host.LifecycleEvents.Subscribe(ForwardLifecycleEvents);
-
-
         await host.Launch();
+
+    }
+
+    private IModule CreateModuleHost(LaunchRequest request)
+    {
+        var manifest = _moduleCatalogue.GetManifest(request.name);
+        var h = _moduleHostFactory.CreateModuleHost(manifest, request.instanceId);
+        h.LifecycleEvents.Subscribe(ForwardLifecycleEvents);
+        return h;
     }
 
     public async void RequestStopProcess(StopRequest request)
