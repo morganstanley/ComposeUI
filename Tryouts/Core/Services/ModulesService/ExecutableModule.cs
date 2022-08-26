@@ -18,6 +18,7 @@ internal class ExecutableModule : ModuleBase
 {
     private string _launchPath;
     private Process? _mainProcess;
+    private string[] _arguments;
     private bool _exitRequested = false;
 
     public override ProcessInfo ProcessInfo => new ProcessInfo
@@ -28,9 +29,10 @@ internal class ExecutableModule : ModuleBase
         uiHint: _mainProcess?.MainWindowHandle.ToString()
     );
 
-    public ExecutableModule(string name, Guid instanceId, string launchPath) : base(name, instanceId)
+    public ExecutableModule(string name, Guid instanceId, string launchPath, string[] arguments) : base(name, instanceId)
     {
         _launchPath = launchPath;
+        _arguments = arguments;
     }
 
     public override Task Initialize()
@@ -39,6 +41,12 @@ internal class ExecutableModule : ModuleBase
         mainProcess.StartInfo.FileName = _launchPath;
         mainProcess.EnableRaisingEvents = true;
         mainProcess.Exited += ProcessExited;
+
+        foreach (var argument in _arguments)
+        {
+            mainProcess.StartInfo.ArgumentList.Add(argument);
+        }
+
         _mainProcess = mainProcess;
         return Task.CompletedTask;
     }

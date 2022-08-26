@@ -8,6 +8,7 @@ internal class BackgroundExecutableModule : ModuleBase
     private readonly string _launchPath;
     private Process? _mainProcess;
     private bool _exitRequested = false;
+    private string[] _arguments;
 
     public override ProcessInfo ProcessInfo => new ProcessInfo
     (
@@ -17,9 +18,10 @@ internal class BackgroundExecutableModule : ModuleBase
         uiHint: null
     );
 
-    public BackgroundExecutableModule(string name, Guid instanceId, string launchPath) : base(name, instanceId)
+    public BackgroundExecutableModule(string name, Guid instanceId, string launchPath, string[] arguments) : base(name, instanceId)
     {
         _launchPath = launchPath;
+        _arguments = arguments;
     }
 
     public override Task Initialize()
@@ -28,6 +30,12 @@ internal class BackgroundExecutableModule : ModuleBase
         mainProcess.StartInfo.FileName = _launchPath;
         mainProcess.EnableRaisingEvents = true;
         mainProcess.Exited += ProcessExited;
+
+        foreach (var argument in _arguments)
+        {
+            mainProcess.StartInfo.ArgumentList.Add(argument);
+        }
+
         _mainProcess = mainProcess;
         return Task.CompletedTask;
     }

@@ -20,11 +20,11 @@ internal class ModuleHostFactory : IModuleHostFactory
         switch (manifest.StartupType, manifest.UIType)
         {
             case (StartupType.Executable, UIType.Window):
-                return new ExecutableModule(manifest.Name, instanceId, manifest.Path);
+                return new ExecutableModule(manifest.Name, instanceId, manifest.Path, manifest.Arguments ?? Array.Empty<string>());
             case (StartupType.None, UIType.Web):
                 return new WebpageModule(manifest.Name, instanceId, manifest.Url);
             case (StartupType.Executable, UIType.None):
-                return new BackgroundExecutableModule(manifest.Name, instanceId, manifest.Path);
+                return new BackgroundExecutableModule(manifest.Name, instanceId, manifest.Path, manifest.Arguments ?? Array.Empty<string>());
             case (StartupType.DotNetCore, UIType.None):
                 return new DotNetCoreBackgroundModule(manifest.Name, instanceId, manifest.Path);
             default:
