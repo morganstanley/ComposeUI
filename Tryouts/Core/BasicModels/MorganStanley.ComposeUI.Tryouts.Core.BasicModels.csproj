@@ -19,8 +19,15 @@ See the License for the specific language governing permissions and limitations 
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="NP.Avalonia.UniDockService" Version="0.99.9" />
+    <PackageReference Include="NP.Concepts.Behaviors" Version="1.0.10" />
+    <PackageReference Include="System.Reactive" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\src\Core\BasicModels\MorganStanley.ComposeUI.Core.BasicModels.csproj" />
     <ProjectReference Include="..\Abstractions\MorganStanley.ComposeUI.Tryouts.Core.Abstractions.csproj" />
+    <ProjectReference Include="..\Utilities\MorganStanley.ComposeUI.Tryouts.Core.Utilities.csproj" />
   </ItemGroup>
 
 </Project>
