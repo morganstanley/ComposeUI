@@ -27,6 +27,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComposeUI.Example.WPFDataGr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComposeUI.Example.WPFDataGrid.TestApp", "ComposeUI.Example.WPFDataGrid.TestApp\ComposeUI.Example.WPFDataGrid.TestApp.csproj", "{15EA74B4-C63D-4F7E-9692-62A688392BBA}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComposeUI.Example.DataService", "ComposeUI.Example.DataService\ComposeUI.Example.DataService.csproj", "{012297D5-619F-4F64-8270-E20C325A6C68}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,10 @@ Global
 		{15EA74B4-C63D-4F7E-9692-62A688392BBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{15EA74B4-C63D-4F7E-9692-62A688392BBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{15EA74B4-C63D-4F7E-9692-62A688392BBA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{012297D5-619F-4F64-8270-E20C325A6C68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{012297D5-619F-4F64-8270-E20C325A6C68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{012297D5-619F-4F64-8270-E20C325A6C68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{012297D5-619F-4F64-8270-E20C325A6C68}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -83,6 +89,7 @@ Global
 		{56F651D8-C4A1-4313-BA4D-82B9E5054C48} = {F118AD37-3D46-4D0C-A94D-03E269084D3E}
 		{6B649C2A-2867-4E85-9D1D-477D36B632BD} = {44CF33EB-C2D0-4A47-A044-DA16007A3260}
 		{15EA74B4-C63D-4F7E-9692-62A688392BBA} = {44CF33EB-C2D0-4A47-A044-DA16007A3260}
+		{012297D5-619F-4F64-8270-E20C325A6C68} = {44CF33EB-C2D0-4A47-A044-DA16007A3260}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {08EDF812-166D-441E-9676-62548452714F}
