@@ -26,12 +26,8 @@ namespace ComposeUI.Example.DataService
     internal sealed class MonthlySalesDataModel
     {
         public string Symbol { get; set; } = string.Empty;
-        
         public int[]? Buy { get; set; }
-        
         public int[]? Sell { get; set; }
-
-
 
         public static JsonSerializerOptions JsonSerializerOptions = new()
         {
@@ -40,7 +36,6 @@ namespace ComposeUI.Example.DataService
                 new JsonStringEnumConverter()
             },
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            
         };
     }
 }
