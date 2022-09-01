@@ -24,7 +24,6 @@ using Microsoft.Extensions.Logging;
 
 namespace ComposeUI.Example.DataService
 {
-
     internal class SubscriptionsMonitor : IObserver<RouterMessage>
     {
         public SubscriptionsMonitor(IMessageRouter messageRouter)
@@ -58,6 +57,7 @@ namespace ComposeUI.Example.DataService
                 if (Selected != null)
                 {
                     var toPublish = MonthlySalesData.MyList[Selected.Symbol];
+
                     try
                     {
                         await _messageRouter.PublishAsync("proto_select_monthlySales", JsonSerializer.Serialize(toPublish, MonthlySalesDataModel.JsonSerializerOptions));
@@ -66,7 +66,6 @@ namespace ComposeUI.Example.DataService
                     {
                         _logger?.LogError(exception.ToString());
                     }
-                    
                 } 
             }
         }
