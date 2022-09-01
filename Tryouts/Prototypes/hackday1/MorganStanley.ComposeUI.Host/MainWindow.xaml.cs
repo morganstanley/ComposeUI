@@ -36,6 +36,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         _apps.Add(new DotNetCoreApplication("../../../ComposeUI.Example.WPFDataGrid.TestApp/bin/Debug/ComposeUI.Example.WPFDataGrid.TestApp.dll"));
         _apps.Add(new ComposeHostedWebApplication("../../../prototype-web/chart/src"));
+        _apps.Add(new DotNetCoreApplication("../../../ComposeUI.Example.DataService/bin/Debug/ComposeUI.Example.DataService.dll"));
         _moduleLoader = new ModuleLoader(_apps, _communicationModule);
     }
 
