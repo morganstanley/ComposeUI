@@ -1,21 +1,23 @@
 ﻿{
-  "crashingapp": {
+  "datagrid": {
     "StartupType": "executable",
     "UIType": "window",
-    "Name": "crashingapp",
-    "Path": "Plugins\\ApplicationPlugins\\ModuleTestSimpleWpfApp\\ModuleTestSimpleWpfApp.exe",
-    "Arguments": []
+    "Name": "datagrid",
+    "Path": "C:\\Source\\ComposeUI\\Tryouts\\Prototypes\\hackday1\\ComposeUI.Example.WPFDataGrid.TestApp\\bin\\Debug\\ComposeUI.Example.WPFDataGrid.TestApp.exe",
+    "Arguments": [ "ws://localhost:5000/ws" ]
   },
   "messageRouter": {
     "StartupType": "dotnetcore",
     "UIType": "none",
     "Name": "messageRouter",
-    "Path": "..\\..\\..\\..\\..\\Core\\Services\\Messaging\\ComposeUI.Messaging.Server\\bin\\Debug\\net6.0\\ComposeUI.Messaging.Server.dll"
+    "Path": "C:\\Source\\ComposeUI\\Tryouts\\Core\\Services\\Messaging\\ComposeUI.Messaging.Server\\bin\\Debug\\net6.0\\ComposeUI.Messaging.Server.dll"
   },
-  "webApp": {
-    "StartupType": "none",
+  "chart": {
+    "StartupType": "selfhostedwebapp",
     "UIType": "web",
-    "Name": "webApp",
-    "Url":  "https://morganstanley.com"
+    "Name": "chart",
+    "Path": "C:\\Source\\ComposeUI\\Tryouts\\Prototypes\\hackday1\\prototype-web\\chart\\src",
+    "Port": 8080,
+    "Url": "http://localhost:8080"
   }
 }

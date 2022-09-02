@@ -9,15 +9,10 @@
 /// 
 /// ********************************************************************************************************
 
-using MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules;
-
-namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService
+namespace MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules
 {
-    public class ModuleLoaderFactory : IModuleLoaderFactory
+    public interface IWindowedModuleRunner : IModuleRunner
     {
-        public IModuleLoader Create(ModuleCatalogue catalogue)
-        {
-            return new ModuleLoader(catalogue, new ModuleHostFactory());
-        }
+        IntPtr MainWindowHandle { get; }
     }
 }

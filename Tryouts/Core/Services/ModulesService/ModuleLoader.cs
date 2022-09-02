@@ -19,7 +19,7 @@ internal class ModuleLoader : IModuleLoader
 {
     private Subject<LifecycleEvent> _lifecycleEvents = new Subject<LifecycleEvent>();
     public IObservable<LifecycleEvent> LifecycleEvents => _lifecycleEvents;
-    private ConcurrentDictionary<Guid, IModule> _processes = new ConcurrentDictionary<Guid, IModule>();
+    private ConcurrentDictionary<Guid, IModuleHost> _processes = new ConcurrentDictionary<Guid, IModuleHost>();
     private readonly IModuleHostFactory _moduleHostFactory;
     private readonly IModuleCatalogue _moduleCatalogue;
 
@@ -38,15 +38,12 @@ internal class ModuleLoader : IModuleLoader
 
     private async void StartProcess(LaunchRequest request)
     {
+        IModuleHost host = _processes.GetOrAdd(request.instanceId, _ => CreateModuleHost(request));
 
-        IModule host = _processes.GetOrAdd(request.instanceId, _ => CreateModuleHost(request));
-
-        await host.Initialize();
         await host.Launch();
-
     }
 
-    private IModule CreateModuleHost(LaunchRequest request)
+    private IModuleHost CreateModuleHost(LaunchRequest request)
     {
         var manifest = _moduleCatalogue.GetManifest(request.name);
         var h = _moduleHostFactory.CreateModuleHost(manifest, request.instanceId);
@@ -56,7 +53,7 @@ internal class ModuleLoader : IModuleLoader
 
     public async void RequestStopProcess(StopRequest request)
     {
-        IModule? module;
+        IModuleHost? module;
         if (!_processes.TryGetValue(request.instanceId, out module))
         {
             throw new Exception("Unknown process name");

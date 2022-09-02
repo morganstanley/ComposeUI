@@ -12,11 +12,11 @@
 using MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules;
 using System.Reactive.Subjects;
 
-namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService;
+namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService.Hosts;
 
-internal abstract class ModuleBase : IModule
+internal abstract class ModuleHostBase : IModuleHost
 {
-    public ModuleBase(string name, Guid instanceId)
+    public ModuleHostBase(string name, Guid instanceId)
     {
         Name = name;
         InstanceId = instanceId;
@@ -30,8 +30,6 @@ internal abstract class ModuleBase : IModule
 
     protected readonly Subject<LifecycleEvent> _lifecycleEvents = new Subject<LifecycleEvent>();
     public IObservable<LifecycleEvent> LifecycleEvents => _lifecycleEvents;
-
-    public abstract Task Initialize();
 
     public abstract Task Launch();
 

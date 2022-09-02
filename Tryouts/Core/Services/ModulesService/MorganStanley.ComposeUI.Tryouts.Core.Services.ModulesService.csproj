@@ -21,6 +21,20 @@ See the License for the specific language governing permissions and limitations 
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Runners\dotnetcore.cmd" />
+    <None Remove="Runners\webserver.cmd" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Runners\dotnetcore.cmd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Runners\webserver.cmd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="System.Reactive" Version="5.0.0" />
   </ItemGroup>
 
