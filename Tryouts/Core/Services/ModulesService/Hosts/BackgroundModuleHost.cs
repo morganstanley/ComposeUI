@@ -11,13 +11,34 @@
 
 using MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules;
 
-namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService
+namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService.Hosts
 {
-    public class ModuleLoaderFactory : IModuleLoaderFactory
+    internal class BackgroundModuleHost : ModuleHostBase
     {
-        public IModuleLoader Create(ModuleCatalogue catalogue)
+        private readonly IModuleRunner _runner;
+
+        public BackgroundModuleHost(string name, Guid instanceId, IModuleRunner runner) : base(name, instanceId)
         {
-            return new ModuleLoader(catalogue, new ModuleHostFactory());
+            _runner = runner;
+        }
+
+        public override ProcessInfo ProcessInfo => new ProcessInfo(
+            name: Name,
+            instanceId: InstanceId,
+            uiType: UIType.None,
+            uiHint: null
+            );
+
+        public async override Task Launch()
+        {
+            await _runner.Launch();
+            _lifecycleEvents.OnNext(LifecycleEvent.Started(ProcessInfo));
+        }
+
+        public async override Task Teardown()
+        {
+            await _runner.Stop();
+            _lifecycleEvents.OnNext(LifecycleEvent.Stopped(ProcessInfo, true));
         }
     }
 }

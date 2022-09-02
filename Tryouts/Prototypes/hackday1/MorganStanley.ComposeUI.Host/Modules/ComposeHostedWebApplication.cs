@@ -57,7 +57,8 @@ internal class ComposeHostedWebApplication : IApplication
 
     public async Task Teardown()
     {
-        _process.CloseMainWindow();
-        await _process.WaitForExitAsync();
+        const string ctrlC = "\x3";
+        _process.StandardInput.WriteLine(ctrlC);
+        //await _process.WaitForExitAsync();
     }
 }

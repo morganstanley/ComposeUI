@@ -25,7 +25,7 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.BasicModels.Modules
         public ModuleViewModel
         (
             string name, 
-            StartupType startupType, 
+            string startupType, 
             string uiType, 
             string pathOrUrl) 
             : 

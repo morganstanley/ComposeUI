@@ -11,16 +11,20 @@
 
 using MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules;
 
-namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService;
+namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService.Hosts;
 
-internal class WebpageModule : ModuleBase
+internal class WebpageModuleHost : ModuleHostBase
 {
-    public WebpageModule(string name, Guid instanceId, string url) : base(name, instanceId)
+    private readonly string _url;
+    private readonly IModuleRunner? _runner;
+
+    public WebpageModuleHost(string name, Guid instanceId, string url, IModuleRunner? runner) : base(name, instanceId)
     {
         _url = url;
+        _runner = runner;
     }
 
-    private string _url;
+
 
     public override ProcessInfo ProcessInfo => new ProcessInfo(
         name: Name,
@@ -28,21 +32,23 @@ internal class WebpageModule : ModuleBase
         uiType: UIType.Web,
         uiHint: _url
         );
-
-    public override Task Initialize()
+    
+    public async override Task Launch()
     {
-        return Task.CompletedTask;
-    }
+        if (_runner != null)
+        {
+            await _runner.Launch();
+        }
 
-    public override Task Launch()
-    {
         _lifecycleEvents.OnNext(LifecycleEvent.Started(new ProcessInfo(Name, InstanceId, UIType.Web, _url)));
-        return Task.CompletedTask;
     }
 
-    public override Task Teardown()
+    public async override Task Teardown()
     {
+        if (_runner != null)
+        {
+            await _runner.Stop();
+        }
         _lifecycleEvents.OnNext(LifecycleEvent.Stopped(new ProcessInfo(Name, InstanceId, UIType.Web, _url)));
-        return Task.CompletedTask;
     }
 }

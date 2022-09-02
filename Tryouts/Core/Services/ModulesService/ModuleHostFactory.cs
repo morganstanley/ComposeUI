@@ -10,23 +10,43 @@
 /// ********************************************************************************************************
 
 using MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules;
+using MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService.Hosts;
+using MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService.Runners;
 
 namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService;
 
 internal class ModuleHostFactory : IModuleHostFactory
 {
-    public IModule CreateModuleHost(ModuleManifest manifest, Guid instanceId)
+    public IModuleHost CreateModuleHost(ModuleManifest manifest, Guid instanceId)
     {
-        switch (manifest.StartupType, manifest.UIType)
+        IModuleRunner runner;
+        switch (manifest.StartupType)
         {
-            case (StartupType.Executable, UIType.Window):
-                return new ExecutableModule(manifest.Name, instanceId, manifest.Path, manifest.Arguments ?? Array.Empty<string>());
-            case (StartupType.None, UIType.Web):
-                return new WebpageModule(manifest.Name, instanceId, manifest.Url);
-            case (StartupType.Executable, UIType.None):
-                return new BackgroundExecutableModule(manifest.Name, instanceId, manifest.Path, manifest.Arguments ?? Array.Empty<string>());
-            case (StartupType.DotNetCore, UIType.None):
-                return new DotNetCoreBackgroundModule(manifest.Name, instanceId, manifest.Path);
+            case (StartupType.Executable):
+                runner = new ExecutableRunner(manifest.Path, manifest.Arguments);
+                break;
+            case (StartupType.DotNetCore):
+                runner = new DotNetCoreRunner(manifest.Path, manifest.Arguments);
+                break;
+            case (StartupType.SelfHostedWebApp):
+                runner = new ComposeHostedWebApp(manifest.Path, manifest.Port.Value);
+                break;
+            case (StartupType.None):
+                runner = null;
+                break;
+            default:
+                throw new NotSupportedException("Unsupported startup type");
+
+        }
+
+        switch (manifest.UIType)
+        {
+            case (UIType.Window):
+                return new WindowedModuleHost(manifest.Name, instanceId, runner as IWindowedModuleRunner);
+            case (UIType.Web):
+                return new WebpageModuleHost(manifest.Name, instanceId, manifest.Url, runner);
+            case (UIType.None):
+                return new BackgroundModuleHost(manifest.Name, instanceId, runner);
             default:
                 throw new NotSupportedException("Unsupported module type");
         }

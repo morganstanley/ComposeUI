@@ -6,7 +6,6 @@
 /// Unless required by applicable law or agreed to in writing, software distributed under the License
 /// is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 /// See the License for the specific language governing permissions and limitations under the License.
-/// Microsoft Visual Studio Solution File, Format Version 12.00
 /// 
 /// ********************************************************************************************************
 
@@ -25,7 +24,8 @@ internal static class Program
 {
     public static async Task Main(string[] args)
     {
-        const string crashingApp = "crashingapp";
+        const string datagrid = "datagrid";
+        const string chart = "chart";
         const string messageRouter = "messageRouter";
 
         var manifestString = File.ReadAllText("manifest.json");
@@ -38,12 +38,13 @@ internal static class Program
         var loader = factory.Create(catalogue);
         int canExit = 0;
         var messagingInstanceId = Guid.NewGuid();
-        var appinstanceId = Guid.NewGuid();
+        var datagridInstanceId = Guid.NewGuid();
+        var chartInstanceId = Guid.NewGuid();        
 
         loader.LifecycleEvents.Subscribe(e =>
         {
             var unexpected = e.IsExpected ? string.Empty : " unexpectedly";
-            Console.WriteLine($"LifecycleEvent detected: {e.ProcessInfo.uiHint} {e.EventType}{unexpected}");
+            Console.WriteLine($"LifecycleEvent detected: {e.ProcessInfo.uiHint ?? "non-visual module"} {e.EventType}{unexpected}");
 
             if (e.EventType == LifecycleEventType.Started && e.ProcessInfo.uiType == UIType.Web)
             {
@@ -61,18 +62,19 @@ internal static class Program
         });
 
         loader.RequestStartProcess(new LaunchRequest { name = messageRouter, instanceId = messagingInstanceId });
-        loader.RequestStartProcess(new LaunchRequest { name = crashingApp, instanceId = appinstanceId });
-        loader.RequestStartProcess(new LaunchRequest { name = "webApp", instanceId = Guid.NewGuid() });
+        loader.RequestStartProcess(new LaunchRequest { name = datagrid, instanceId = datagridInstanceId });
+        loader.RequestStartProcess(new LaunchRequest { name = chart, instanceId = chartInstanceId });
 
         Console.ReadLine();
 
         Console.WriteLine("Exiting subprocesses");
 
-        loader.RequestStopProcess(new StopRequest { instanceId = appinstanceId });
+        loader.RequestStopProcess(new StopRequest { instanceId = chartInstanceId });
+        loader.RequestStopProcess(new StopRequest { instanceId = datagridInstanceId });
         loader.RequestStopProcess(new StopRequest { instanceId = messagingInstanceId });
 
 
-        while (canExit < 2)
+        while (canExit < 3)
         {
             await Task.Delay(TimeSpan.FromMilliseconds(200));
         }

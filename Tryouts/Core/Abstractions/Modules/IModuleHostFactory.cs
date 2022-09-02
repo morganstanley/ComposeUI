@@ -14,6 +14,6 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules
 {
     internal interface IModuleHostFactory
     {
-        internal IModule CreateModuleHost(ModuleManifest manifest, Guid instanceId);
+        internal IModuleHost CreateModuleHost(ModuleManifest manifest, Guid instanceId);
     }
 }
