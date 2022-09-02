@@ -14,24 +14,25 @@ using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using NP.Concepts.Behaviors;
 using NP.Utilities;
+using MorganStanley.ComposeUI.Tryouts.Core.BasicModels.Modules;
 
-namespace MorganStanley.ComposeUI.Tryouts.Core.BasicModels.Modules
+namespace MorganStanley.ComposeUI.Plugins.ViewModelPlugins.ModulesVisualService
 {
-    public class ProcessesViewModel
+    public class ProcessesViewModel : IProcessesViewModel
     {
         public ModuleViewModel[] Modules { get; }
 
         IModuleLoader _moduleLoader;
 
 
-        private ObservableCollection<SingleProcessViewModel> _processes = 
-            new ObservableCollection<SingleProcessViewModel>();
-        public IEnumerable<SingleProcessViewModel> Processes => _processes;
+        private ObservableCollection<ISingleProcessViewModel> _processes = 
+            new ObservableCollection<ISingleProcessViewModel>();
+        public IEnumerable<ISingleProcessViewModel> Processes => _processes;
 
 
-       private ObservableCollection<SingleProcessViewModel> _processesWithWindows = 
-            new ObservableCollection<SingleProcessViewModel>();
-        public IEnumerable<SingleProcessViewModel> ProcessesWithWindows => _processesWithWindows;
+       private ObservableCollection<ISingleProcessViewModel> _processesWithWindows = 
+            new ObservableCollection<ISingleProcessViewModel>();
+        public IEnumerable<ISingleProcessViewModel> ProcessesWithWindows => _processesWithWindows;
 
         private IDisposable _modulesBehavior;
         private IDisposable _processesBehavior;
@@ -47,7 +48,7 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.BasicModels.Modules
 
             _modulesBehavior = Modules.AddBehavior(OnModuleAdded, OnModuleRemoved);
 
-            _processesBehavior = Processes.AddBehavior(OnProcessesAdded, OnProcessesRemoved);
+            _processesBehavior = _processes.AddBehavior(OnProcessesAdded, OnProcessesRemoved);
 
             ModuleCatalogue moduleCatalogue =
                 new ModuleCatalogue(Modules.ToDictionary(m => m.Manifest.Name, m => m.Manifest));
@@ -68,7 +69,7 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.BasicModels.Modules
 
             var process = Processes.FirstOrDefault(p => p.InstanceId == instanceId);
 
-            process?.ReactToMessage(lifecycleEvent);
+            ((SingleProcessViewModel) process!)?.ReactToMessage(lifecycleEvent);
         }
 
         private void OnModuleAdded(ModuleViewModel module)
@@ -81,24 +82,24 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.BasicModels.Modules
             module.LaunchEvent -= OnLaunchModule;
         }
 
-        private void OnProcessesAdded(SingleProcessViewModel process)
+        private void OnProcessesAdded(ISingleProcessViewModel process)
         {
             process.StopEvent += OnStopProcess;
             process.StartedEvent += Process_StartedEvent;
             process.StoppedEvent += Process_StoppedEvent;
         }
 
-        private void Process_StoppedEvent(SingleProcessViewModel process)
+        private void Process_StoppedEvent(ISingleProcessViewModel process)
         {
             _processesWithWindows.Remove(process);
         }
 
-        private void Process_StartedEvent(SingleProcessViewModel process)
+        private void Process_StartedEvent(ISingleProcessViewModel process)
         {
-            ((IList<SingleProcessViewModel>)ProcessesWithWindows).Add(process);
+            _processesWithWindows.Add(process);
         }
 
-        private void OnProcessesRemoved(SingleProcessViewModel process)
+        private void OnProcessesRemoved(ISingleProcessViewModel process)
         {
             process.StoppedEvent -= Process_StoppedEvent;
             process.StartedEvent -= Process_StartedEvent;
@@ -118,7 +119,7 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.BasicModels.Modules
         }
 
 
-        public SingleProcessViewModel? FindRunningProcess(Guid instanceId)
+        public ISingleProcessViewModel? FindRunningProcess(Guid instanceId)
         {
             return ProcessesWithWindows.FirstOrDefault(p => p.InstanceId == instanceId);
         }
@@ -131,7 +132,7 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.BasicModels.Modules
         /// <returns></returns>
         public bool LaunchProcess(ModuleManifest moduleInfo, Guid instanceId)
         {
-            SingleProcessViewModel? processViewModel = FindRunningProcess(instanceId);
+            ISingleProcessViewModel? processViewModel = FindRunningProcess(instanceId);
 
             bool hasProcessRunning = processViewModel != null;
 
@@ -141,9 +142,9 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.BasicModels.Modules
                     new SingleProcessViewModel(instanceId, moduleInfo.Name, moduleInfo.UIType);
             }
 
-            if (!Processes.Any(p => p.InstanceId == instanceId))
+            if (!_processes.Any(p => p.InstanceId == instanceId))
             {
-                ((IList<SingleProcessViewModel>)Processes).Add(processViewModel);
+                _processes.Add(processViewModel);
             }
 
             if (hasProcessRunning)
@@ -180,7 +181,7 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.BasicModels.Modules
             return LaunchProcess(moduleManifest, instanceId);
         }
 
-        private void OnStopProcess(SingleProcessViewModel process)
+        private void OnStopProcess(ISingleProcessViewModel process)
         {
             StopRequest stopRequest = new StopRequest();
             stopRequest.instanceId = process.InstanceId;
@@ -189,7 +190,7 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.BasicModels.Modules
 
         public void StopProcess(Guid instanceId)
         {
-            SingleProcessViewModel? singleProcessViewModel = 
+            ISingleProcessViewModel? singleProcessViewModel = 
                 Processes.FirstOrDefault(p => p.InstanceId == instanceId);
 
             OnStopProcess(singleProcessViewModel);
@@ -197,7 +198,7 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.BasicModels.Modules
 
         public void ClearProcessesThatDoNotMatchIds(IEnumerable<Guid> instanceIds)
         {
-            foreach(SingleProcessViewModel process in this.Processes.ToList())
+            foreach(ISingleProcessViewModel process in this.Processes.ToList())
             {
                 if (!instanceIds.Any(id => id == process.InstanceId))
                 {

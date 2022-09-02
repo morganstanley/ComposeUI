@@ -17,14 +17,18 @@ using MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules;
 using MorganStanley.ComposeUI.Tryouts.Core.BasicModels.Modules;
 using MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService;
 using NP.Avalonia.Gidon;
+using NP.Avalonia.UniDock;
+using NP.Avalonia.UniDockService;
 using NP.IoCy;
 using Subscriptions;
 
 namespace MorganStanley.ComposeUI.Prototypes.ModulesDockingPrototype
 {
+    using static Constants;
+
     public class App : Application
     {
-        private ICommunicationService _server;
+        private ICommunicationService? _server;
 
         /// defined the Gidon plugin manager
         /// use the following paths (relative to the PluginsPrototype.exe executable)
@@ -42,16 +46,6 @@ namespace MorganStanley.ComposeUI.Prototypes.ModulesDockingPrototype
         // the IoC container
         private static IoCContainer _container = _pluginManager.TheContainer;
 
-        public App()
-        {
-            // inject all dynamically loaded assemblies
-            _pluginManager.CompleteConfiguration();
-
-            _server = _container.Resolve<ICommunicationService>();
-
-            _server.AddTopics((Topic.Test, typeof(TestTopicMessage)));
-        }
-
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
@@ -59,12 +53,26 @@ namespace MorganStanley.ComposeUI.Prototypes.ModulesDockingPrototype
 
         public override void OnFrameworkInitializationCompleted()
         {
+            DockManager dockManager = (DockManager)this.Resources["TheDockManager"]!;
+            _container.MapSingleton<IUniDockService>(dockManager);
+
+
+            // inject all dynamically loaded assemblies
+            _pluginManager.CompleteConfiguration();
+
+            _server = _container.Resolve<ICommunicationService>();
+
+            _server.AddTopics((Topic.Test, typeof(TestTopicMessage)));
+
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 IModuleLoaderFactory loaderFactory = new ModuleLoaderFactory();
 
-                ProcessesViewModel viewModel = new ProcessesViewModel
-                (
+                IProcessesViewModelFactory viewModelFactory 
+                    = _container.Resolve<IProcessesViewModelFactory>();
+
+                IProcessesViewModel viewModel =
+                viewModelFactory.Create(
                     loaderFactory,
                     new[]
                     {
@@ -83,7 +91,20 @@ namespace MorganStanley.ComposeUI.Prototypes.ModulesDockingPrototype
                     }
                 );
 
-                desktop.MainWindow = new MainWindow(viewModel);
+                IProcessDockLayoutBehaviorFactory behaviorFactory = 
+                    _container.Resolve<IProcessDockLayoutBehaviorFactory>();
+
+                IProcessDockLayoutBehavior dockLayoutBehavior = behaviorFactory.Create
+                (
+                    viewModel,
+                    DockSerializationFileName,
+                    VMSerializationFileName,
+                    "MainProcessesTab",
+                    "EmbeddedWindowTemplate",
+                    "EmbeddedWindowHeaderTemplate"
+                );
+
+                desktop.MainWindow = new MainWindow(viewModel, dockLayoutBehavior);
 
                 desktop.MainWindow.Closed += OnMainWindowClosed;
 

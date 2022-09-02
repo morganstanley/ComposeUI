@@ -1,4 +1,4 @@
-﻿# Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.32112.339
@@ -65,6 +65,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Try
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{A4D06FC3-5739-4E6A-86D9-AC69338CF235}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Plugins.ViewModelPlugins.ModulesVisualService", "..\..\Plugins\ViewViewModelPlugins\ModulesVisualService\MorganStanley.ComposeUI.Plugins.ViewModelPlugins.ModulesVisualService.csproj", "{026C6F01-9A3B-4972-8D90-0E3D1AB01724}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -127,6 +129,10 @@ Global
 		{0DFF724A-9D9F-4EB4-BDDD-C60D911D0F77}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0DFF724A-9D9F-4EB4-BDDD-C60D911D0F77}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0DFF724A-9D9F-4EB4-BDDD-C60D911D0F77}.Release|Any CPU.Build.0 = Release|Any CPU
+		{026C6F01-9A3B-4972-8D90-0E3D1AB01724}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{026C6F01-9A3B-4972-8D90-0E3D1AB01724}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{026C6F01-9A3B-4972-8D90-0E3D1AB01724}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{026C6F01-9A3B-4972-8D90-0E3D1AB01724}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -160,6 +166,7 @@ Global
 		{4BD5C5D2-6DB3-41F7-A33F-2FE79B885DFB} = {D1DC0BB5-C429-4192-BF01-EF58D6B0F9AB}
 		{0DFF724A-9D9F-4EB4-BDDD-C60D911D0F77} = {A4D06FC3-5739-4E6A-86D9-AC69338CF235}
 		{A4D06FC3-5739-4E6A-86D9-AC69338CF235} = {E678CCB6-90FB-4C52-8AE0-911D313783F8}
+		{026C6F01-9A3B-4972-8D90-0E3D1AB01724} = {E83B541E-8621-47EA-8227-A36A196A66E0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {98497725-4038-46B9-910E-2BADC6FDC7E4}

@@ -12,6 +12,7 @@ See the License for the specific language governing permissions and limitations 
 -->
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:np="https://np.com/visuals"
              x:Class="MorganStanley.ComposeUI.Prototypes.ModulesDockingPrototype.App">
 	<Application.Styles>
 		<StyleInclude Source="avares://Avalonia.Themes.Default/Accents/BaseLight.xaml"/>
@@ -24,5 +25,7 @@ See the License for the specific language governing permissions and limitations 
 	<Application.Resources>
 		<SolidColorBrush x:Key="MostProminentBrush"
 						 Color="Black"/>
+
+		<np:DockManager x:Key="TheDockManager"/>
 	</Application.Resources>
 </Application>

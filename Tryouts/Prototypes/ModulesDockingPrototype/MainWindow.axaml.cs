@@ -10,56 +10,28 @@
 /// ********************************************************************************************************
 
 using Avalonia.Controls;
-using Avalonia.Threading;
 using MorganStanley.ComposeUI.Tryouts.Core.BasicModels.Modules;
-using NP.Avalonia.UniDock;
-using NP.Avalonia.UniDockService;
-using NP.Concepts.Behaviors;
 using System;
-using System.Collections.ObjectModel;
-using System.Linq;
 
 namespace MorganStanley.ComposeUI.Prototypes.ModulesDockingPrototype
 {
     public partial class MainWindow : Window
     {
-        ProcessesViewModel _viewModel;
+        IProcessesViewModel _viewModel;
 
-        IUniDockService _uniDockService;
-
-        int _newDockId = 0;
-
-        private const string DockSerializationFileName = "DockSerialization.xml";
-        private const string VMSerializationFileName = "DockVMSerialization.xml";
-
-        public ProcessDockLayoutBehavior ActionsBehavior { get; }
+        public IProcessDockLayoutBehavior ActionsBehavior { get; }
 
         public MainWindow()
         {
         }
 
-        public MainWindow(ProcessesViewModel viewModel)
+        public MainWindow(IProcessesViewModel viewModel, IProcessDockLayoutBehavior processDockBehavior)
         {
             InitializeComponent();
-            _uniDockService = (IUniDockService)
-                this.Resources["TheDockManager"]!;
-
-            _uniDockService.DockItemsViewModels =
-                new ObservableCollection<DockItemViewModelBase>();
 
             _viewModel = viewModel;
 
-            ActionsBehavior =
-                new ProcessDockLayoutBehavior
-                (
-                    _uniDockService,
-                    _viewModel,
-                    DockSerializationFileName,
-                    VMSerializationFileName,
-                    "MainProcessesTab",
-                    "EmbeddedWindowTemplate",
-                    "EmbeddedWindowHeaderTemplate"
-                );
+            ActionsBehavior = processDockBehavior;
 
             DataContext = _viewModel;
 

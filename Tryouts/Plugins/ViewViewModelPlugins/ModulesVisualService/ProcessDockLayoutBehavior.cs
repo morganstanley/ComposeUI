@@ -9,17 +9,18 @@
 /// 
 /// ********************************************************************************************************
 
+using MorganStanley.ComposeUI.Tryouts.Core.BasicModels.Modules;
 using NP.Avalonia.UniDockService;
 using NP.Concepts.Behaviors;
 using System;
 using System.Reactive.Linq;
 
-namespace MorganStanley.ComposeUI.Tryouts.Core.BasicModels.Modules
+namespace MorganStanley.ComposeUI.Plugins.ViewModelPlugins.ModulesVisualService
 {
-    public class ProcessDockLayoutBehavior
+    public class ProcessDockLayoutBehavior : IProcessDockLayoutBehavior
     {
         IUniDockService _uniDockService;
-        ProcessesViewModel _processesViewModel;
+        IProcessesViewModel _processesViewModel;
         string _dockSerializationFileName;
         string _vmSerializationFileName;
         string _mainGroupDockId;
@@ -36,7 +37,7 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.BasicModels.Modules
         public ProcessDockLayoutBehavior
         (
             IUniDockService uniDockService,
-            ProcessesViewModel processesViewModel,
+            IProcessesViewModel processesViewModel,
             string dockSerializationFileName,
             string vmSerializationFileName,
             string mainGroupDockId,
@@ -58,6 +59,8 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.BasicModels.Modules
 #pragma warning restore CS8974 // Converting method group to non-delegate type
 
             _synchronizationContext = SynchronizationContext.Current!;
+
+            _uniDockService.DockItemsViewModels = new System.Collections.ObjectModel.ObservableCollection<DockItemViewModelBase>();
 
             ResetBehavior();
         }
@@ -128,7 +131,9 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.BasicModels.Modules
 
 
                 _processesWithWindowsBehavior =
-                    _processesViewModel.ProcessesWithWindows.AddBehavior(OnProcessWithWindowAdded, OnProcessWithWindowRemoved);
+                    _processesViewModel
+                        .ProcessesWithWindows
+                            .AddBehavior(OnProcessWithWindowAdded, OnProcessWithWindowRemoved);
 
                 foreach (DockItemViewModel<ProcessData> vm in _uniDockService.DockItemsViewModels)
                 {
@@ -140,7 +145,7 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.BasicModels.Modules
 
                     if (!launchedProcess)
                     {
-                        SingleProcessViewModel? singleProcessViewModel = _processesViewModel?.FindRunningProcess(instanceId);
+                        ISingleProcessViewModel? singleProcessViewModel = _processesViewModel?.FindRunningProcess(instanceId);
 
                         if (singleProcessViewModel != null)
                         {
@@ -157,7 +162,7 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.BasicModels.Modules
         }
 
 
-        private void OnProcessWithWindowAdded(SingleProcessViewModel processViewModel)
+        private void OnProcessWithWindowAdded(ISingleProcessViewModel processViewModel)
         {
             _synchronizationContext.Send
             (
@@ -205,7 +210,7 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.BasicModels.Modules
 
         }
 
-        private void OnProcessWithWindowRemoved(SingleProcessViewModel processViewModel)
+        private void OnProcessWithWindowRemoved(ISingleProcessViewModel processViewModel)
         {
             if (_isLoading)
             {

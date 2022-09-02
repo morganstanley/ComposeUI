@@ -38,7 +38,6 @@ See the License for the specific language governing permissions and limitations 
 		</Style>
 	</Window.Styles>
 	<Window.Resources>
-		<np:DockManager x:Key="TheDockManager"/>
 
 		<DataTemplate x:Key="EmbeddedWindowTemplate">
 			<ms:EmbeddedWindowBasedNativeControl WindowHandle="{Binding Path=ProcessMainWindowHandle, Mode=OneTime}">

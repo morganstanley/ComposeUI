@@ -10,17 +10,18 @@
 /// ********************************************************************************************************
 
 using MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules;
+using MorganStanley.ComposeUI.Tryouts.Core.BasicModels.Modules;
 using MorganStanley.ComposeUI.Tryouts.Core.Utilities;
 
-namespace MorganStanley.ComposeUI.Tryouts.Core.BasicModels.Modules
+namespace MorganStanley.ComposeUI.Plugins.ViewModelPlugins.ModulesVisualService
 {
-    public class SingleProcessViewModel : ViewModelBase
+    public class SingleProcessViewModel : ViewModelBase, ISingleProcessViewModel
     {
-        public event Action<SingleProcessViewModel>? StopEvent;
+        public event Action<ISingleProcessViewModel>? StopEvent;
 
-        public event Action<SingleProcessViewModel>? StoppedEvent;
+        public event Action<ISingleProcessViewModel>? StoppedEvent;
 
-        public event Action<SingleProcessViewModel>? StartedEvent;
+        public event Action<ISingleProcessViewModel>? StartedEvent;
 
         public Guid InstanceId { get; }
 
