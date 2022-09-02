@@ -2,7 +2,7 @@
 
 # This workflow will do a clean install of node dependencies, build the source code and run tests
 
-name: CI
+name: Prototypes-CI
 
 on:
   push:
@@ -25,11 +25,11 @@ jobs:
       with:
         dotnet-version: ${{ matrix.dotnet-version }}
     - name: Install dependencies
-      run: dotnet restore
+      run: Get-ChildItem -Path Prototypes -Recurse -Include *.sln | ForEach-Object {dotnet restore $_} 
       working-directory: Tryouts
     - name: Build
-      run: dotnet build --configuration Release --no-restore
+      run: Get-ChildItem -Path Prototypes -Recurse -Include *.sln | ForEach-Object {dotnet build $_ --configuration Release --no-restore} 
       working-directory: Tryouts
     - name: Test
-      run: dotnet test --no-restore --verbosity normal
+      run: Get-ChildItem -Path Prototypes -Recurse -Include *.sln | ForEach-Object {dotnet test $_ --no-restore --verbosity normal}  
       working-directory: Tryouts
