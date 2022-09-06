@@ -28,10 +28,4 @@ See the License for the specific language governing permissions and limitations 
     <ProjectReference Include="..\..\..\Core\Abstractions\MorganStanley.ComposeUI.Tryouts.Core.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Core\Utilities\MorganStanley.ComposeUI.Tryouts.Core.Utilities.csproj" />
   </ItemGroup>
-
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-  	<Exec Command="xcopy &quot;$(OutDir)\$(AssemblyName).dll&quot; &quot;$(SolutionDir)\bin\$(Configuration)\net6.0\Plugins\Services\$(ProjectName)\&quot; /R /Y /I" />
-  	<Exec Command="xcopy &quot;$(OutDir)\$(AssemblyName).pdb&quot; &quot;$(SolutionDir)\bin\$(Configuration)\net6.0\Plugins\Services\$(ProjectName)\&quot; /R /Y /I" />
-  </Target>
-
 </Project>
