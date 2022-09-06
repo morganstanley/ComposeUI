@@ -26,28 +26,24 @@ namespace ComposeUI.Example.DataService
 {
     internal class Publisher
     {
-        public static Uri WebsocketURI { get; set; } = new("ws://localhost:5000/ws");
-
-        private readonly IMessageRouter _messageRouter = MessageRouter.Create(
-          mr => mr.UseWebSocket(
-              new MessageRouterWebSocketOptions
-              {
-                  Uri = WebsocketURI
-              }));
-
+        private readonly IMessageRouter _messageRouter;
         private readonly ILogger<Publisher>? _logger;
+        private readonly SubscriptionsMonitor _subscriptionsMonitor;
 
-        public SubscriptionsMonitor Observer;
+        public Publisher( IMessageRouter messageRouter, ILogger<Publisher>? logger = null) {
+            _messageRouter = messageRouter;
+            _logger = logger;
 
-        public Publisher() {
-            Observer = new SubscriptionsMonitor(_messageRouter);
+            _subscriptionsMonitor = new SubscriptionsMonitor(_messageRouter);
         }
         
         public async void Subscribe()
         {
+            _logger.LogInformation("Subscribe");
+
             try
             {
-                await _messageRouter.SubscribeAsync("proto_select_marketData", Observer);
+                await _messageRouter.SubscribeAsync("proto_select_marketData", _subscriptionsMonitor);
             }
             catch (Exception exception)
             {
