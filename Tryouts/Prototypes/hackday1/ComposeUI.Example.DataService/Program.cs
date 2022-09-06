@@ -12,13 +12,45 @@
 //  * and limitations under the License.
 //  */
 
+using ComposeUI.Messaging.Client;
+using ComposeUI.Messaging.Client.Transport.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+
 namespace ComposeUI.Example.DataService;
 
 internal class DataService {
+    private IServiceProvider? _serviceProvider;
+    public static Uri WebsocketURI { get; set; } = new("ws://localhost:5000/ws");
+
     public static void Main()
     {
         Console.WriteLine("Data Service");
-        var publisher = new Publisher();
+
+        IMessageRouter messageRouter = MessageRouter.Create(
+            mr => mr.UseWebSocket(
+                new MessageRouterWebSocketOptions
+                {
+                    Uri = WebsocketURI
+                }));
+
+        ServiceCollection serviceCollection = new();
+        serviceCollection.AddLogging(
+            builder => {
+                builder
+                    .AddFilter("Microsoft", LogLevel.Information)
+                    .AddFilter("System", LogLevel.Information)
+                    .AddFilter("LoggingConsoleApp.DataService", LogLevel.Information)
+                    .AddConsole()
+                    .SetMinimumLevel(LogLevel.Information);
+            });
+        
+        serviceCollection.AddSingleton<IMessageRouter>(messageRouter);
+
+        var serviceProvider = serviceCollection.BuildServiceProvider();
+        var logger = serviceProvider.GetService<ILogger<Publisher>>();
+        
+        var publisher = new Publisher(messageRouter, logger);
         publisher.Subscribe();
 
         Console.ReadLine();
