@@ -18,8 +18,8 @@
     <ProjectReference Include="..\MorganStanley.ComposeUI.Interfaces\MorganStanley.ComposeUI.Interfaces.csproj" />
   </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="powershell -ExecutionPolicy RemoteSigned -file &quot;$(SolutionDir)\scripts\npm-builds.ps1&quot;" />	  
-  </Target>
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Exec Command="powershell -ExecutionPolicy RemoteSigned -file &quot;$(ProjectDir)\scripts\npm-builds.ps1&quot;" />
+	</Target>
 
 </Project>

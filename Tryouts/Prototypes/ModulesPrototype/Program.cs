@@ -24,22 +24,14 @@ internal static class Program
 {
     public static async Task Main(string[] args)
     {
-        const string datagrid = "datagrid";
-        const string chart = "chart";
-        const string messageRouter = "messageRouter";
-
         var manifestString = File.ReadAllText("manifest.json");
         var manifest = JsonSerializer.Deserialize<Dictionary<string, ModuleManifest>>(manifestString);
-
 
         var catalogue = new ModuleCatalogue(manifest);
 
         var factory = new ModuleLoaderFactory();
         var loader = factory.Create(catalogue);
         int canExit = 0;
-        var messagingInstanceId = Guid.NewGuid();
-        var datagridInstanceId = Guid.NewGuid();
-        var chartInstanceId = Guid.NewGuid();        
 
         loader.LifecycleEvents.Subscribe(e =>
         {
@@ -61,7 +53,18 @@ internal static class Program
             }
         });
 
+        const string messageRouter = "messageRouter";
+        const string dataService = "dataservice";
+        const string datagrid = "datagrid";
+        const string chart = "chart";
+
+        var messagingInstanceId = Guid.NewGuid();
+        var dataServiceInstanceId = Guid.NewGuid();
+        var datagridInstanceId = Guid.NewGuid();
+        var chartInstanceId = Guid.NewGuid();
+
         loader.RequestStartProcess(new LaunchRequest { name = messageRouter, instanceId = messagingInstanceId });
+        loader.RequestStartProcess(new LaunchRequest { name = dataService, instanceId = dataServiceInstanceId });
         loader.RequestStartProcess(new LaunchRequest { name = datagrid, instanceId = datagridInstanceId });
         loader.RequestStartProcess(new LaunchRequest { name = chart, instanceId = chartInstanceId });
 
@@ -71,10 +74,11 @@ internal static class Program
 
         loader.RequestStopProcess(new StopRequest { instanceId = chartInstanceId });
         loader.RequestStopProcess(new StopRequest { instanceId = datagridInstanceId });
+        loader.RequestStopProcess(new StopRequest { instanceId = dataServiceInstanceId });
         loader.RequestStopProcess(new StopRequest { instanceId = messagingInstanceId });
 
 
-        while (canExit < 3)
+        while (canExit < 4)
         {
             await Task.Delay(TimeSpan.FromMilliseconds(200));
         }
