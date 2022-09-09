@@ -32,7 +32,7 @@ internal class CommunicationModule : IModule, IDisposable
         _process.StartInfo.UseShellExecute = false;
         //_process.StartInfo.CreateNoWindow = true;
 
-        var location = Path.GetFullPath("..\\..\\..\\ComposeUI.Messaging.Server\\bin\\Debug\\ComposeUI.Messaging.Server.exe");
+        var location = Path.GetFullPath(@"..\..\..\..\..\Core\Services\Messaging\ComposeUI.Messaging.Server\bin\Debug\net6.0\ComposeUI.Messaging.Server.exe");
         _process.StartInfo.FileName = location;
         _process.StartInfo.WorkingDirectory = Path.GetDirectoryName(location);
         _process.Start();

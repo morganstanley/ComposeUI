@@ -17,6 +17,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
     <!--Avalonia doesen't support TrimMode=link currently,but we are working on that https://github.com/AvaloniaUI/Avalonia/issues/6892 -->
     <TrimMode>copyused</TrimMode>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <RunPostBuildEvent>Always</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
     <None Remove=".gitignore" />
@@ -40,4 +41,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
     <ProjectReference Include="..\..\Core\Utilities\MorganStanley.ComposeUI.Tryouts.Core.Utilities.csproj" />
     <ProjectReference Include="..\..\Visuals\Avalonia\VisualUtils\MorganStanley.ComposeUI.Tryouts.Visuals.Avalonia.VisualUtils.csproj" />
   </ItemGroup>
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="powershell -ExecutionPolicy RemoteSigned -file &quot;$(ProjectDir)\scripts\npm-builds.ps1&quot;" />
+  </Target>
 </Project>
