@@ -12,10 +12,10 @@
 //  * and limitations under the License.
 //  */
 
-using ComposeUI.Messaging.Client;
-using ComposeUI.Messaging.Client.Transport.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using MorganStanley.ComposeUI.Tryouts.Messaging.Client;
+using MorganStanley.ComposeUI.Tryouts.Messaging.Client.Transport.WebSocket;
 
 namespace ComposeUI.Example.DataService;
 

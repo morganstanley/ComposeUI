@@ -13,8 +13,8 @@
 //  */
 
 using ComposeUI.Example.WPFDataGrid.Models;
-using ComposeUI.Messaging.Client;
 using Microsoft.Extensions.Logging;
+using MorganStanley.ComposeUI.Tryouts.Messaging.Client;
 using System;
 using System.Collections.ObjectModel;
 using System.Data;
