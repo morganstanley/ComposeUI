@@ -38,7 +38,7 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService.Runners
             _process.StartInfo.WorkingDirectory = Path.GetFullPath(_path);
             _process.Start();
 
-            return Task.Delay(TimeSpan.FromMilliseconds(100));
+            return Task.Delay(TimeSpan.FromMilliseconds(500));
         }
 
         public async Task Stop()
