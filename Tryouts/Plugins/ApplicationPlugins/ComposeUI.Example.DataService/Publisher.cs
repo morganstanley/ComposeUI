@@ -12,15 +12,8 @@
 //  * and limitations under the License.
 //  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using ComposeUI.Messaging.Client;
-using ComposeUI.Messaging.Client.Transport.WebSocket;
 using Microsoft.Extensions.Logging;
+using MorganStanley.ComposeUI.Tryouts.Messaging.Client;
 
 namespace ComposeUI.Example.DataService
 {
@@ -30,13 +23,14 @@ namespace ComposeUI.Example.DataService
         private readonly ILogger<Publisher>? _logger;
         private readonly SubscriptionsMonitor _subscriptionsMonitor;
 
-        public Publisher( IMessageRouter messageRouter, ILogger<Publisher>? logger = null) {
+        public Publisher(IMessageRouter messageRouter, ILogger<Publisher>? logger = null)
+        {
             _messageRouter = messageRouter;
             _logger = logger;
 
             _subscriptionsMonitor = new SubscriptionsMonitor(_messageRouter);
         }
-        
+
         public async void Subscribe()
         {
             _logger.LogInformation("Subscribe");

@@ -18,9 +18,9 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using ComposeUI.Messaging.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using MorganStanley.ComposeUI.Tryouts.Messaging.Client;
 
 namespace ComposeUI.Example.DataService
 {

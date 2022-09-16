@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="Messaging.Prototypes.Tests" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+	  <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.1" />
+	  <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
+	  <PackageReference Include="Nito.AsyncEx" Version="5.1.2" />
+	  <PackageReference Include="System.IO.Pipelines" Version="6.0.3" />
+	  <PackageReference Include="System.Reactive" Version="5.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Transport\Abstractions\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="ComposeUI.Messaging.IntegrationTests" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Core\MorganStanley.ComposeUI.Tryouts.Messaging.Core.csproj" />
+	</ItemGroup>
+
+</Project>
