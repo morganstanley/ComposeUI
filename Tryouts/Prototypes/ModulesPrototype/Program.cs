@@ -49,36 +49,31 @@ internal static class Program
                 {
                     loader.RequestStartProcess(new LaunchRequest() { name = e.ProcessInfo.name, instanceId = e.ProcessInfo.instanceId });
                 }
-                else { canExit++; }
+                else { canExit--; }
             }
         });
 
-        const string messageRouter = "messageRouter";
-        const string dataService = "dataservice";
-        const string datagrid = "datagrid";
-        const string chart = "chart";
+        var instanceIds = new List<Guid>();
 
-        var messagingInstanceId = Guid.NewGuid();
-        var dataServiceInstanceId = Guid.NewGuid();
-        var datagridInstanceId = Guid.NewGuid();
-        var chartInstanceId = Guid.NewGuid();
-
-        loader.RequestStartProcess(new LaunchRequest { name = messageRouter, instanceId = messagingInstanceId });
-        loader.RequestStartProcess(new LaunchRequest { name = dataService, instanceId = dataServiceInstanceId });
-        loader.RequestStartProcess(new LaunchRequest { name = datagrid, instanceId = datagridInstanceId });
-        loader.RequestStartProcess(new LaunchRequest { name = chart, instanceId = chartInstanceId });
+        foreach (var moduleName in manifest.Keys)
+        {
+            var instanceId = Guid.NewGuid();
+            loader.RequestStartProcess(new LaunchRequest { name = moduleName, instanceId = instanceId });
+            instanceIds.Add(instanceId);
+            canExit++;
+        }
 
         Console.ReadLine();
 
         Console.WriteLine("Exiting subprocesses");
 
-        loader.RequestStopProcess(new StopRequest { instanceId = chartInstanceId });
-        loader.RequestStopProcess(new StopRequest { instanceId = datagridInstanceId });
-        loader.RequestStopProcess(new StopRequest { instanceId = dataServiceInstanceId });
-        loader.RequestStopProcess(new StopRequest { instanceId = messagingInstanceId });
+        instanceIds.Reverse();
+        foreach (var item in instanceIds)
+        {
+            loader.RequestStopProcess(new StopRequest { instanceId = item });
+        }
 
-
-        while (canExit < 4)
+        while (canExit > 0)
         {
             await Task.Delay(TimeSpan.FromMilliseconds(200));
         }
