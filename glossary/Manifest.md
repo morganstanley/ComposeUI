@@ -1,0 +1,2 @@
+# Manifest
+A data structure (described e.g. in a JSON file) listing the modules available for Compose to launch. Entries contain information both for the user to see and launch or access information for Compose.
