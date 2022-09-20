@@ -13,6 +13,7 @@ using MorganStanley.ComposeUI.Tryouts.Core.Abstractions;
 using MorganStanley.ComposeUI.Tryouts.Core.Utilities;
 using NP.Utilities.Attributes;
 using Subscriptions;
+using System.Text.Json;
 using System.Windows;
 
 namespace MorganStanley.ComposeUI.Plugins.Services.ThemingService
@@ -37,16 +38,16 @@ namespace MorganStanley.ComposeUI.Plugins.Services.ThemingService
         {
             await _subscriptionClient.Connect(CommunicationsConstants.MachineName, CommunicationsConstants.Port);
 
-            IObservable<ThemeMessage> observable =
-                _subscriptionClient.Subscribe<ThemeMessage>(Topic.Theme)
-                .ToObservable();
+            IObservable<CommunicationsMessage> observable =
+                _subscriptionClient.ConsumeTopic("Theme");
 
             _subscription = observable.Subscribe(OnThemeMessageArrived);
         }
 
-        private void OnThemeMessageArrived(ThemeMessage themeMessage)
+        private void OnThemeMessageArrived(CommunicationsMessage themeMessage)
         {
-            Theme = themeMessage.Theme;
+            var themeId = Enum.Parse<ThemeId>(themeMessage.Info);
+            Theme = themeId;
         }
 
         #region Theme Property

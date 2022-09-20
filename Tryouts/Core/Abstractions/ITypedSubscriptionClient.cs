@@ -9,30 +9,19 @@
 /// 
 /// ********************************************************************************************************
 
-syntax = "proto3";
+using Google.Protobuf;
 
-import "google/protobuf/empty.proto";
-import "google/protobuf/timestamp.proto";
-import "google/protobuf/any.proto";
-
-package subscriptions;
-
-enum Status
+namespace MorganStanley.ComposeUI.Tryouts.Core.Abstractions
 {
-	OK = 0;
-	Error = 1;
-}
+    public interface ITypedSubscriptionClient
+    {
+        Task Connect(string host, int port);
 
-enum Topic
-{
-	None = 0;
-	Test = 1;
-	Theme = 2;
-}
+        Task Publish(string topic, IMessage msg);
 
+        IObservable<IMessage> ConsumeTopic(string topic, Type messageType);
 
-enum ThemeId
-{
-	Dark = 0;
-	Light = 1;
+        IObservable<TMessage> ConsumeTopic<TMessage>(string topic)
+            where TMessage : IMessage, new();
+    }
 }

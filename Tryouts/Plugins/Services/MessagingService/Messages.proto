@@ -14,13 +14,18 @@ syntax = "proto3";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/any.proto";
-import "Core/Abstractions/Topic.proto";
+import "Core/Abstractions/Basic.proto";
 
 package subscriptions;
 
 message TestTopicMessage
 {
-	string str = 1;
+	string Str = 1;
+}
+
+message StringContainingMessage
+{
+	string Str = 2;
 }
 
 message ThemeMessage

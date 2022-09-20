@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net6.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<UseWindowsForms>true</UseWindowsForms>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+		<OutputPath>bin\Debug\net6.0</OutputPath>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="System.Linq.Async" Version="6.0.1" />
+		<PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1343.22" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\Plugins\Services\MessagingService\MorganStanley.ComposeUI.Plugins.Services.MessagingService.csproj" />
+		<ProjectReference Include="..\..\Avalonia\VisualUtils\MorganStanley.ComposeUI.Tryouts.Visuals.Avalonia.VisualUtils.csproj" />
+	</ItemGroup>
+
+</Project>

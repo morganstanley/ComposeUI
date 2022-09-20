@@ -15,12 +15,13 @@ using Grpc.Core;
 using MorganStanley.ComposeUI.Tryouts.Core.Abstractions;
 using NP.Utilities.Attributes;
 using Subscriptions;
+using System.Reactive.Linq;
 using static Subscriptions.SubscriptionsService;
 
 namespace MorganStanley.ComposeUI.Services.CommunicationsServices.GrpcCommunicationsService
 {
-    [Implements(typeof(ISubscriptionClient), isSingleton:true)]
-    public class SubscriptionClientImpl : ISubscriptionClient
+    [Implements(typeof(ITypedSubscriptionClient), isSingleton:true)]
+    public class SubscriptionClientImpl : ITypedSubscriptionClient
     {
         private SubscriptionsServiceClient _client;
         CancellationTokenSource _cts = new CancellationTokenSource();
@@ -33,8 +34,7 @@ namespace MorganStanley.ComposeUI.Services.CommunicationsServices.GrpcCommunicat
             _client = new SubscriptionsServiceClient(channel);
         }
 
-        public async Task Publish<TMessage>(Topic topic, TMessage msg)
-            where TMessage : IMessage
+        public async Task Publish(string topic, IMessage msg)
         {
             PublishRequest publishRequest = new PublishRequest { Topic = topic };
 
@@ -43,20 +43,50 @@ namespace MorganStanley.ComposeUI.Services.CommunicationsServices.GrpcCommunicat
             await _client.PublishAsync(publishRequest);
         }
 
-        public async IAsyncEnumerable<TMessage> Subscribe<TMessage>(Topic topic)
-            where TMessage : IMessage, new()
+        private async IAsyncEnumerable<IMessage> ConsumeTopicImpl
+        (
+            AsyncServerStreamingCall<ReturnedSubscriptionItem> replies, 
+            System.Type messageType)
         {
-            using var replies =
-                _client.Subscribe(new SubscriptionRequest { Topic = topic }, cancellationToken: _cts.Token);
-
-            while(await replies.ResponseStream.MoveNext())
+            while (await replies.ResponseStream.MoveNext())
             {
                 var msg = replies.ResponseStream.Current;
 
-                TMessage message = msg.Message.Unpack<TMessage>();
+                IMessage message = (IMessage)Activator.CreateInstance(messageType)!;
+
+                message.MergeFrom(msg.Message.Value);
 
                 yield return message;
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="topic"></param>
+        /// <param name="messageType">Should have a default constructor and should derive from IMessage!!!</param>
+        /// <returns></returns>
+        public IObservable<IMessage> 
+        ConsumeTopic
+        (
+            string topic, 
+            System.Type messageType)
+        {
+            var replies =
+                 _client.Subscribe(new SubscriptionRequest { Topic = topic }, cancellationToken: _cts.Token);
+
+            IObservable<IMessage> messageStream = ConsumeTopicImpl(replies, messageType).ToObservable();
+
+            return new ObservableWithRefCount<IMessage>(messageStream, replies);
+        }
+
+
+        public IObservable<TMessage>  ConsumeTopic<TMessage>(string topic)
+            where TMessage : IMessage, new()
+        {
+            IObservable<IMessage> messageStream = ConsumeTopic(topic, typeof(TMessage));
+
+            return messageStream.Cast<TMessage>();
         }
     }
 }

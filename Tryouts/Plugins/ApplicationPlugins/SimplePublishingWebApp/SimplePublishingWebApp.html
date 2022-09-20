@@ -1,0 +1,44 @@
+<!-- Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. -->
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Simple Publishing Web App</title>
+</head>
+<body>
+    <h1 id="TheText">Simple Publishing Web App</h1>
+    <div id="theform">
+        <input type="text" id="text" name="text">
+        <button id="SubmitButton">Submit</button>
+    </div>
+    <!--
+    <script src="node_modules/jquery/dist/jquery.slim.min.js" type="text/javascript"></script>
+        -->
+    <script src="scripts/jquery.slim.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        $(document).ready(
+            // "ready" function ensures that
+            // the functionality within executes after the DOM creation
+            function () {
+                $("#SubmitButton").click(
+                    function () {
+                        var txt = $("#text").val();
+
+                        var testTopicMessage = {
+                            Str: txt
+                        };
+
+                        var json = JSON.stringify(testTopicMessage);
+                        var jsCommunicationsClient = window.chrome.webview.hostObjects.JavaScriptCommunicationsClient;
+
+                        (async () => {
+                            await jsCommunicationsClient.Publish('Test', json);
+                        })();
+                    });
+            }
+        );
+    </script>
+
+</body>
+</html>

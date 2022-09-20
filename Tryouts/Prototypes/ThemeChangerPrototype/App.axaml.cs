@@ -46,7 +46,7 @@ namespace MorganStanley.ComposeUI.Prototypes.ThemeChangerPrototype
 
             _server = _container.Resolve<ICommunicationService>();
 
-            _server.AddTopics((Topic.Theme, typeof(ThemeMessage)));
+            _server.AddTopics(("Theme", typeof(ThemeMessage)));
         }
 
         public override void Initialize()

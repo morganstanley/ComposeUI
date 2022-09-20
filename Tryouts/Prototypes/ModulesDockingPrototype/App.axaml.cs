@@ -62,7 +62,7 @@ namespace MorganStanley.ComposeUI.Prototypes.ModulesDockingPrototype
 
             _server = _container.Resolve<ICommunicationService>();
 
-            _server.AddTopics((Topic.Test, typeof(TestTopicMessage)));
+            _server.AddTopics(("Test", typeof(TestTopicMessage)));
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {

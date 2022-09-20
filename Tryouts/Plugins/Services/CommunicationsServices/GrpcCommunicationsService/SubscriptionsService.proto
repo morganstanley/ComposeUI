@@ -14,7 +14,7 @@ syntax = "proto3";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/any.proto";
-import "Core/Abstractions/Topic.proto";
+import "Core/Abstractions/Basic.proto";
 
 package subscriptions;
 
@@ -27,21 +27,21 @@ service SubscriptionsService
 message SubscriptionRequest
 {
 	google.protobuf.Timestamp dateTimeStamp = 1;
-	Topic topic = 2;
+	string topic = 2;
 	string plugin_id = 3;
 }
 
 message ReturnedSubscriptionItem
 {
 	google.protobuf.Timestamp dateTimeStamp = 1;
-	Topic topic = 2;
+	string topic = 2;
     google.protobuf.Any message = 3;
 }
 
 message PublishRequest
 {
 	google.protobuf.Timestamp dateTimeStamp = 1;
-	Topic topic = 2;
+	string topic = 2;
 
 	google.protobuf.Any message = 3;
 }
@@ -49,5 +49,5 @@ message PublishRequest
 message PublishReply
 {
 	google.protobuf.Timestamp dateTimeStamp = 1;
-	Topic topic = 2;
+	string topic = 2;
 }

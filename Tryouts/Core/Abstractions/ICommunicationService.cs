@@ -16,7 +16,7 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.Abstractions
     
     public interface ICommunicationService
     {
-        void AddTopics(params (Topic topic, Type messageType) [] messageTypes);
+        void AddTopics(params (string topic, Type messageType) [] messageTypes);
      
         void SetHostAndPort(string host, int port);  
 

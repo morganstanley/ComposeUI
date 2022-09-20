@@ -23,7 +23,7 @@ See the License for the specific language governing permissions and limitations 
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Topic.proto" />
+    <None Remove="Basic.proto" />
   </ItemGroup>
 
   <ItemGroup>
@@ -39,7 +39,7 @@ See the License for the specific language governing permissions and limitations 
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Topic.proto" />
+    <Protobuf Include="Basic.proto" />
   </ItemGroup>
 
 </Project>

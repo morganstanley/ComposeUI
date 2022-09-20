@@ -19,16 +19,16 @@ namespace MorganStanley.ComposeUI.Services.CommunicationsServices.GrpcCommunicat
 {
     public class SubscriptionsServiceImpl : SubscriptionsService.SubscriptionsServiceBase
     {
-        private ConcurrentDictionary<Topic, SubscriptionData> _topicsDictionary =
-            new ConcurrentDictionary<Topic, SubscriptionData>();
+        private ConcurrentDictionary<string, SubscriptionData> _topicsDictionary =
+            new ConcurrentDictionary<string, SubscriptionData>();
 
 
-        public SubscriptionsServiceImpl(params (Topic Topic, System.Type Type)[] topicToTypeMaps)
+        public SubscriptionsServiceImpl(params (string Topic, System.Type Type)[] topicToTypeMaps)
         {
             AddTopics(topicToTypeMaps);
         }
 
-        public void AddTopics(params (Topic Topic, System.Type Type)[] topicToTypeMaps)
+        public void AddTopics(params (string Topic, System.Type Type)[] topicToTypeMaps)
         {
             foreach (var topicAndType in topicToTypeMaps)
             {
@@ -37,7 +37,7 @@ namespace MorganStanley.ComposeUI.Services.CommunicationsServices.GrpcCommunicat
             }
         }
 
-        private List<SingleSubscription> /*, SingleSubscription*/ FindSubscription(Topic topic, string pluginId)
+        private List<SingleSubscription> /*, SingleSubscription*/ FindSubscription(string topic, string pluginId)
         {
 
             SubscriptionData topicSubscriptions;
@@ -58,44 +58,48 @@ namespace MorganStanley.ComposeUI.Services.CommunicationsServices.GrpcCommunicat
             IServerStreamWriter<ReturnedSubscriptionItem> responseStream,
             ServerCallContext context)
         {
-            Topic topic = request.Topic;
+            string topic = request.Topic;
             string pluginId = request.PluginId;
 
-            List<SingleSubscription> topicSubscriptions/*, SingleSubscription existingSubscription)*/ =
+            List<SingleSubscription> topicSubscriptions =
                 FindSubscription(topic, pluginId);
-
-            //if (existingSubscription != null)
-            //{
-            //    // exception or error - there should be only one subscription per plugin
-            //}
 
             SingleSubscription singleSubscription =
                 new SingleSubscription(topic, pluginId, context.CancellationToken);
 
             topicSubscriptions.Add(singleSubscription);
 
-            while (!context.CancellationToken.IsCancellationRequested)
+            try
             {
-                Any message =
-                    singleSubscription.GetMessage();
-
-                ReturnedSubscriptionItem returningSubscriptionItem = new ReturnedSubscriptionItem
+                while (!context.CancellationToken.IsCancellationRequested)
                 {
-                    DateTimeStamp = Timestamp.FromDateTime(DateTime.UtcNow),
-                    Topic = topic,
-                    Message = message
-                };
+                    Any message =
+                        singleSubscription.GetMessage();
 
-                await responseStream.WriteAsync(returningSubscriptionItem);
+                    ReturnedSubscriptionItem returningSubscriptionItem = new ReturnedSubscriptionItem
+                    {
+                        DateTimeStamp = Timestamp.FromDateTime(DateTime.UtcNow),
+                        Topic = topic,
+                        Message = message
+                    };
+
+                    await responseStream.WriteAsync(returningSubscriptionItem);
+                }
             }
+            catch (Exception ex)
+            {
 
-            // cleanup after cancellation
-            topicSubscriptions.Remove(singleSubscription);
+            }
+            finally
+            {
+                // cleanup after cancellation
+                topicSubscriptions?.Remove(singleSubscription);
+            }
         }
 
         public override async Task<PublishReply> Publish(PublishRequest request, ServerCallContext context)
         {
-            Topic topic = request.Topic;
+            string topic = request.Topic;
 
             SubscriptionData? topicSubscriptionData;
 
@@ -114,12 +118,12 @@ namespace MorganStanley.ComposeUI.Services.CommunicationsServices.GrpcCommunicat
 
         private class SubscriptionData
         {
-            public Topic Topic { get; }
+            public string Topic { get; }
             public System.Type ReturnedItemType { get; }
 
             internal List<SingleSubscription> TopicsSubscriptions { get; } = new List<SingleSubscription>();
 
-            public SubscriptionData(Topic topic, System.Type returnedItemType)
+            public SubscriptionData(string topic, System.Type returnedItemType)
             {
                 Topic = topic;
                 ReturnedItemType = returnedItemType;
@@ -133,13 +137,13 @@ namespace MorganStanley.ComposeUI.Services.CommunicationsServices.GrpcCommunicat
         {
             BlockingCollection<Any> _subscriptionMessageQueue = new BlockingCollection<Any>();
 
-            public Topic Topic { get; }
+            public string Topic { get; }
 
             public string PluginId { get; }
 
             public CancellationToken CancellationToken { get; }
 
-            public SingleSubscription(Topic topic, string pluginId, CancellationToken cancellationToken)
+            public SingleSubscription(string topic, string pluginId, CancellationToken cancellationToken)
             {
                 Topic = topic;
                 PluginId = pluginId;

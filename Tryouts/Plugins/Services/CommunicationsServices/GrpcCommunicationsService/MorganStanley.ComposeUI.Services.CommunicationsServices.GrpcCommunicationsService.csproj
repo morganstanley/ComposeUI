@@ -26,16 +26,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="NP.Utilities" Version="1.0.13" />
+    <PackageReference Include="System.Linq.Async" Version="6.0.1" />
   </ItemGroup>
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
 		<Exec Command="xcopy &quot;$(OutDir)&quot; &quot;$(SolutionDir)\bin\$(Configuration)\net6.0\Plugins\Services\GrpcCommunicationsService\&quot; /S /R /Y /I" />
-<!--
-	    <Exec Command="xcopy &quot;$(OutDir)\$(AssemblyName).dll&quot; &quot;$(SolutionDir)\bin\$(Configuration)\net6.0\Plugins\Services\$(ProjectName)\&quot; /R /Y /I" />
-		<Exec Command="xcopy &quot;$(OutDir)\$(AssemblyName).pdb&quot; &quot;$(SolutionDir)\bin\$(Configuration)\net6.0\Plugins\Services\$(ProjectName)\&quot; /R /Y /I" />
-		-->
 	</Target>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\Core\BasicModels\MorganStanley.ComposeUI.Tryouts.Core.BasicModels.csproj" />
+    <ProjectReference Include="..\..\MessagingService\MorganStanley.ComposeUI.Plugins.Services.MessagingService.csproj" />
   </ItemGroup>
 
 	<ItemGroup>

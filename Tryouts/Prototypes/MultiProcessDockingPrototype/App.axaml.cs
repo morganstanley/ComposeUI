@@ -46,7 +46,7 @@ namespace MorganStanley.ComposeUI.Prototypes.MultiProcessDockingPrototype
 
             _server = _container.Resolve<ICommunicationService>();
 
-            _server.AddTopics((Topic.Test, typeof(TestTopicMessage)));
+            _server.AddTopics(("Test", typeof(TestTopicMessage)));
         }
 
         public override void Initialize()

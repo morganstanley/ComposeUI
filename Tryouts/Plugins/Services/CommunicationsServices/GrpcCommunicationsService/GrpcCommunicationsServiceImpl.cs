@@ -34,7 +34,7 @@ namespace MorganStanley.ComposeUI.Services.CommunicationsServices.GrpcCommunicat
             };
         }
 
-        public void AddTopics(params (Topic topic, Type messageType)[] topics)
+        public void AddTopics(params (string topic, Type messageType)[] topics)
         {
             _subscriptionsService.AddTopics(topics);
         }

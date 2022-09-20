@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 ********************************************************************************************************
 
 Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License").
@@ -12,17 +12,18 @@ See the License for the specific language governing permissions and limitations 
 -->
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<TargetFramework>net6.0</TargetFramework>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="NP.Avalonia.UniDock" Version="1.0.35" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="NP.Avalonia.UniDock" Version="1.0.44" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\src\Visuals\Avalonia\VisualUtils\MorganStanley.ComposeUI.Visuals.Avalonia.VisualUtils.csproj" />
-    <ProjectReference Include="..\..\..\Core\Utilities\MorganStanley.ComposeUI.Tryouts.Core.Utilities.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\..\src\Visuals\Avalonia\VisualUtils\MorganStanley.ComposeUI.Visuals.Avalonia.VisualUtils.csproj" />
+		<ProjectReference Include="..\..\..\Core\Utilities\MorganStanley.ComposeUI.Tryouts.Core.Utilities.csproj" />
+	</ItemGroup>
 
 </Project>

@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "MorganStanley.ComposeUI.Prototypes.WV2Prototype": {
+      "commandName": "Project",
+      "jsWebView2Debugging": false,
+      "nativeDebugging": false
+    }
+  }
+}

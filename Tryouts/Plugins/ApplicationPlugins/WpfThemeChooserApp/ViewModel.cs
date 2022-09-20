@@ -86,7 +86,7 @@ namespace WpfThemeChooserApp
         {
             StatusText = $"Calling SendTheme() method";
 
-            await _subscriptionClient.Publish(Topic.Theme, new ThemeMessage { Theme = SelectedTheme});
+            await _subscriptionClient.Publish("Theme", SelectedTheme.ToString());
 
             StatusText = $"Sent theme: {SelectedTheme}";
         }

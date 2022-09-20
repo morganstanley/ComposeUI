@@ -9,19 +9,14 @@
 /// 
 /// ********************************************************************************************************
 
-using Google.Protobuf;
-using Subscriptions;
-
 namespace MorganStanley.ComposeUI.Tryouts.Core.Abstractions
 {
     public interface ISubscriptionClient
     {
         Task Connect(string host, int port);
 
-        Task Publish<TMessage>(Topic topic, TMessage msg)
-             where TMessage : IMessage;
+        Task Publish(string topic, string msg);
 
-        IAsyncEnumerable<TMessage> Subscribe<TMessage>(Topic topic)
-            where TMessage : IMessage, new();
+        IObservable<CommunicationsMessage> ConsumeTopic(string topic);
     }
 }
