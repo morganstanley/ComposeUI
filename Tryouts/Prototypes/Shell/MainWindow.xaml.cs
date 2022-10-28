@@ -27,9 +27,12 @@ namespace Shell
         {
             InitializeComponent();
 
-            this.Content = "Hello Compose!";
-            this.Title = "Compose";
-            this.Show();
+            this.Show(); //todo
+        }
+
+        private void ShowChild_Click(object sender, RoutedEventArgs e)
+        { 
+            web.ShowWindow();
         }
     }
 }

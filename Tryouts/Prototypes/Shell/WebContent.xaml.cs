@@ -25,7 +25,7 @@ namespace Shell
     {
         private static string _uriString = "https://www.morganstanley.com";
         
-        public void SetUpAndShowWindow()
+        public void ShowWindow()
         {
             this.Show();
         }
@@ -35,8 +35,6 @@ namespace Shell
             InitializeComponent();
 
             webView2.Source = new Uri(_uriString);
-
-            SetUpAndShowWindow();
         }
 
         private void ButtonGo_Click(object sender, RoutedEventArgs e)
