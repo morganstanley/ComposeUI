@@ -22,16 +22,14 @@ namespace Shell
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Window _mainWindow = new Window();
         private WebContent web = new WebContent();
         public MainWindow()
         {
             InitializeComponent();
 
-
-            _mainWindow.Content = "Hello Compose!";
-            _mainWindow.Title = "Compose";
-            _mainWindow.Show();
+            this.Content = "Hello Compose!";
+            this.Title = "Compose";
+            this.Show();
         }
     }
 }

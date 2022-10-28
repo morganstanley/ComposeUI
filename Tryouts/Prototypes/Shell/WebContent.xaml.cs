@@ -22,8 +22,6 @@ namespace Shell
     /// </summary>
     public partial class WebContent : Window
     {
-        private Window _window = new Window();
-
         private static string _uriString = "https://www.morganstanley.com";
         private WebView2 _webView2 = new WebView2 { Name = "WebView2", Source = new Uri(_uriString) };
 
@@ -44,9 +42,9 @@ namespace Shell
             _webViewDockPanel.Children.Add(_navBarDockPanel);
             _webViewDockPanel.Children.Add(_webView2);
 
-            _window.Content = _webViewDockPanel;
-            _window.Title = "Compose Webmodule";
-            _window.Show();
+            this.Content = _webViewDockPanel;
+            this.Title = "Compose Webmodule";
+            this.Show();
         }
 
         public WebContent()
