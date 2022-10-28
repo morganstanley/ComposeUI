@@ -5,8 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Shell"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Compose" Height="450" Width="800">
     <Grid>
-
+        <DockPanel DockPanel.Dock="Top">
+            <Label DockPanel.Dock="Top" >Hello Compose</Label>
+            <DockPanel DockPanel.Dock="Bottom" >
+                <Button x:Name="ButtonOpenChild" Width="200" Height="50" DockPanel.Dock="Left" Click="ShowChild_Click" Content="Open Child Window"/>
+            </DockPanel>
+            
+        </DockPanel>
     </Grid>
 </Window> 
