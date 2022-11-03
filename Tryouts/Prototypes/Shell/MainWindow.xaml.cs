@@ -26,8 +26,6 @@ namespace Shell
         public MainWindow()
         {
             InitializeComponent();
-
-            this.Show(); //todo
         }
 
         private void ShowChild_Click(object sender, RoutedEventArgs e)
