@@ -22,7 +22,7 @@ namespace Shell
     /// </summary>
     public partial class MainWindow : Window
     {
-        private WebContent web = new WebContent();
+        private WebContent webContent = new WebContent();
         public MainWindow()
         {
             InitializeComponent();
@@ -30,7 +30,7 @@ namespace Shell
 
         private void ShowChild_Click(object sender, RoutedEventArgs e)
         { 
-            web.ShowWindow();
+            webContent.Show();
         }
     }
 }

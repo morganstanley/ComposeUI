@@ -32,11 +32,6 @@ namespace Shell
             webView2.Source = new Uri(_uriString);
         }
 
-        public void ShowWindow()
-        {
-            this.Show();
-        }
-
         private void ButtonGo_Click(object sender, RoutedEventArgs e)
         {
             if (webView2 != null && webView2.CoreWebView2 != null)
