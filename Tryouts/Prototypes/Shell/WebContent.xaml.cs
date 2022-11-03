@@ -24,17 +24,17 @@ namespace Shell
     public partial class WebContent : Window
     {
         private static string _uriString = "https://www.morganstanley.com";
-        
-        public void ShowWindow()
-        {
-            this.Show();
-        }
 
         public WebContent()
         {
             InitializeComponent();
 
             webView2.Source = new Uri(_uriString);
+        }
+
+        public void ShowWindow()
+        {
+            this.Show();
         }
 
         private void ButtonGo_Click(object sender, RoutedEventArgs e)
