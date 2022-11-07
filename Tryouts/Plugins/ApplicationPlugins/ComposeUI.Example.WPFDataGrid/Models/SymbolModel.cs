@@ -16,7 +16,7 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace ComposeUI.Example.WPFDataGrid.Models;
+namespace WPFDataGrid.Models;
 
 /// <summary>
 /// Model for symbol. We can show the short and long market of the product. (The amount of the symbolRating's trading, the avarage profit of the stock's position)

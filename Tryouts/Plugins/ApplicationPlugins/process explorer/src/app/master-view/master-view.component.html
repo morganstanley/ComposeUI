@@ -1,0 +1,42 @@
+<!-- Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. -->
+<igx-navbar class="navigation-bar">
+  <button igxButton="icon" type="icon" [disabled]="false" igxNavbarAction [igxToggleAction]="navigationDrawer">
+    <igx-icon>menu</igx-icon>
+  </button>
+  <div igxNavbarTitle>Process Explorer</div>
+</igx-navbar>
+<div class="row-layout row">
+  <igx-nav-drawer width="220px" [pin]="true" [pinThreshold]="1024" position="left" [isOpen]="true" #navigationDrawer class="navigation-drawer">
+    <ng-template igxDrawer>
+      <span [isHeader]="true" igxDrawerItem>
+        <span class="navigation-drawer_1">Views in this app</span>
+      </span>
+      <span [isHeader]="false" igxDrawerItem routerLink="/master-view/processes">
+        <igx-icon font="material" [active]="true">home</igx-icon>
+        <span class="navigation-drawer_1">Processes</span>
+      </span>
+      <span [isHeader]="false" igxDrawerItem routerLink="/master-view/connections">
+        <igx-icon font="material" [active]="true">dns</igx-icon>
+        <span class="navigation-drawer_1">Connections</span>
+      </span>
+      <span [isHeader]="false" igxDrawerItem routerLink="/master-view/subsystems">
+        <igx-icon font="material" [active]="true">dns</igx-icon>
+        <span class="navigation-drawer_1">Subsystems</span>
+      </span>
+    </ng-template>
+  </igx-nav-drawer>
+  <div class="views-container">
+    <router-outlet></router-outlet>
+  </div>
+</div>
+<igx-list class="list">
+  <igx-list-item [isHeader]="true" class="list-item"></igx-list-item>
+  <igx-list-item class="list-item">
+    <p igxListLineSubTitle>Check-boxes for selecting processes</p>
+    <igx-icon font="material" [active]="false" igxListAction class="icon">star</igx-icon>
+  </igx-list-item>
+  <igx-list-item class="list-item">
+    <p igxListLineSubTitle>env, container reg, conf are per proocess</p>
+    <igx-icon font="material" [active]="true" igxListAction class="icon">star</igx-icon>
+  </igx-list-item>
+</igx-list>

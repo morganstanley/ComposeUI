@@ -30,17 +30,19 @@ internal class WebpageModuleHost : ModuleHostBase
         name: Name,
         instanceId: InstanceId,
         uiType: UIType.Web,
-        uiHint: _url
+        uiHint: _url,
+        pid: 0 //doesn't exist yet
         );
     
     public async override Task Launch()
     {
+        int pid = 0;
         if (_runner != null)
         {
-            await _runner.Launch();
+            pid = await _runner.Launch();
         }
 
-        _lifecycleEvents.OnNext(LifecycleEvent.Started(new ProcessInfo(Name, InstanceId, UIType.Web, _url)));
+        _lifecycleEvents.OnNext(LifecycleEvent.Started(new ProcessInfo(Name, InstanceId, UIType.Web, _url, pid)));
     }
 
     public async override Task Teardown()
@@ -49,6 +51,6 @@ internal class WebpageModuleHost : ModuleHostBase
         {
             await _runner.Stop();
         }
-        _lifecycleEvents.OnNext(LifecycleEvent.Stopped(new ProcessInfo(Name, InstanceId, UIType.Web, _url)));
+        _lifecycleEvents.OnNext(LifecycleEvent.Stopped(new ProcessInfo(Name, InstanceId, UIType.Web, _url, 0))); //stopped --> doesn't exists
     }
 }

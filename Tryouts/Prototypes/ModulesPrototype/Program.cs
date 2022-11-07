@@ -25,8 +25,15 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 using Nito.AsyncEx;
+using ModulesPrototype.Infrastructure;
+using System.Linq;
+using ModuleProcessMonitor.Subsystems;
+using ModuleProcessMonitor.Processes;
+using System.Collections.ObjectModel;
+using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
+using ModuleProcessMonitor;
 
-namespace MorganStanley.ComposeUI.Prototypes.ModulesPrototype;
+namespace ModulesPrototype;
 
 internal class Program
 {
@@ -63,8 +70,17 @@ internal class Program
         var loader = factory.Create(catalogue);
         var moduleCounter = new AsyncCountdownEvent(0);
 
+        var loggerFactory = GetServiceProvider()
+            .GetRequiredService<ILoggerFactory>();
+        var infoCollector = GetServiceProvider()
+            .GetRequiredService<IProcessInfoHandler>();
+        infoCollector.SetSubsystemHandler(loader, loggerFactory);
+
+
+        var processInfo = new ObservableCollection<ProcessInformation>();
+
         loader.LifecycleEvents.Subscribe(
-            e =>
+            async (e) =>
             {
                 var unexpected = e.IsExpected ? string.Empty : " unexpectedly";
 
@@ -73,44 +89,85 @@ internal class Program
 
                 if (e.EventType == LifecycleEventType.Started && e.ProcessInfo.uiType == UIType.Web)
                 {
-                    StartBrowser(e.ProcessInfo.uiHint);
+                    var webId = StartBrowser(e.ProcessInfo.uiHint!);
                 }
 
                 if (e.EventType == LifecycleEventType.Stopped)
                 {
+                    await infoCollector.SendModifiedSubsystemStateAsync(e.ProcessInfo.instanceId, SubsystemState.Stopped);
+
                     if (!e.IsExpected)
                     {
                         loader.RequestStartProcess(
                             new LaunchRequest() { name = e.ProcessInfo.name, instanceId = e.ProcessInfo.instanceId });
+
+                        await infoCollector.SendModifiedSubsystemStateAsync(e.ProcessInfo.instanceId, SubsystemState.Started);
                     }
                     else
                     {
                         moduleCounter.Signal();
                     }
                 }
+
+                if (e.EventType == LifecycleEventType.Started)
+                {
+                    await infoCollector.SendModifiedSubsystemStateAsync(e.ProcessInfo.instanceId, SubsystemState.Started);
+                }
+
+                var proc = new ProcessInformation(e.ProcessInfo.name,
+                    e.ProcessInfo.instanceId,
+                    e.ProcessInfo.uiType,
+                    e.ProcessInfo.uiHint!,
+                    (int)e.ProcessInfo.pid!);
+
+                processInfo.Add(proc);
             });
 
-        var instanceIds = new List<Guid>();
-
-        foreach (var moduleName in manifest.Keys)
+        var instances = new Dictionary<Guid, Module>();
+        foreach (var module in manifest)
         {
             var instanceId = Guid.NewGuid();
-            loader.RequestStartProcess(new LaunchRequest { name = moduleName, instanceId = instanceId });
-            instanceIds.Add(instanceId);
+            instances.Add(instanceId, (Module)module.Value);
             moduleCounter.AddCount();
         }
 
+        foreach (var module in instances)
+        {
+            //for the demo's sake we are starting just the Process Explorer.
+            //the other applications, that are declared in the manifest can be started via the Process Explorer frontend
+            if (module.Value.Name != "processExplorerService") continue;
+            module.Value.State = ModuleState.Started;
+            loader.RequestStartProcess(new LaunchRequest { name = module.Value.Name, instanceId = module.Key });
+            Thread.Sleep(5000);
+        }
+
+        if (!instances
+            .Where(module =>
+                module.Value.Name == "processExplorerService"
+                && (module.Value.State == SubsystemState.Started || module.Value.State == SubsystemState.Running))
+            .Any())
+            goto endState;
+
+        await infoCollector.InitializeSubsystemControllerRouteAsync();
+        var consoleShellPrototype = new ProcessInformation(Process.GetCurrentProcess());
+        processInfo.Add(consoleShellPrototype);
+        var serializedInstances = JsonSerializer.Serialize(instances);
+        if (serializedInstances != string.Empty) await infoCollector.SendRegisteredSubsystemsAsync(serializedInstances);
+        if (processInfo.Count != 0) await infoCollector.SendInitProcessInfoAsync(processInfo);
+        await infoCollector.EnableProcessMonitorAsync();
+
+    endState:
         logger.LogInformation("ComposeUI application running, press Ctrl+C to exit");
 
         await stopTaskSource.Task;
 
         logger.LogInformation("Exiting subprocesses");
 
-        instanceIds.Reverse();
+        instances.Reverse();
 
-        foreach (var item in instanceIds)
+        foreach (var item in instances)
         {
-            loader.RequestStopProcess(new StopRequest { instanceId = item });
+            loader.RequestStopProcess(new StopRequest { instanceId = item.Key });
         }
 
         await moduleCounter.WaitAsync();
@@ -118,8 +175,39 @@ internal class Program
         logger.LogInformation("Bye, ComposeUI!");
     }
 
-    private static void StartBrowser(string url)
+    private static IServiceProvider GetServiceProvider()
     {
-        Process.Start(@"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe", url);
+        var loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder.AddDebug();
+        });
+
+        var serviceProvider = new ServiceCollection()
+                    .AddLogging(builder =>
+                    {
+                        builder.AddDebug();
+                    })
+                    .AddSingleton<ILoggerFactory>(loggerFactory)
+                    .AddMessageRouter(
+                        mr => mr.UseWebSocket(new MessageRouterWebSocketOptions { Uri = new("ws://localhost:5000/ws") }))
+                    .AddSingleton<IProcessInfoHandler, ProcessInfoHandler>()
+                    .BuildServiceProvider();
+
+        return serviceProvider;
+    }
+
+    private static int StartBrowser(string url)
+    {
+        var prs2 = new ProcessStartInfo
+        {
+            FileName = @"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+        };
+        var pr2 = new Process
+        {
+            StartInfo = prs2,
+        };
+        pr2.StartInfo.Arguments = url;
+        pr2.Start();
+        return pr2.Id;
     }
 }

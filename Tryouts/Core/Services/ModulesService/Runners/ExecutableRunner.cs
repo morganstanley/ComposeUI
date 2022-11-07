@@ -30,11 +30,12 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService.Runners
             _arguments = arguments ?? Array.Empty<string>();
         }
 
-        public Task Launch()
+        public Task<int> Launch()
         {
             var mainProcess = new Process();
             mainProcess.StartInfo.FileName = _launchPath;
             mainProcess.EnableRaisingEvents = true;
+            mainProcess.StartInfo.UseShellExecute = true;
             mainProcess.Exited -= ProcessExitedUnexpectedly;
             mainProcess.Exited += ProcessExitedUnexpectedly;
 
@@ -46,7 +47,8 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService.Runners
             _mainProcess = mainProcess;
 
             _mainProcess?.Start();
-            return Task.CompletedTask;
+
+            return Task.FromResult(mainProcess.Id);
         }
 
         public async Task Stop()

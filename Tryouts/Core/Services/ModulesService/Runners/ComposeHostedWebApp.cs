@@ -27,7 +27,7 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService.Runners
             _port = port;
         }
 
-        public Task Launch()
+        public Task<int> Launch()
         {
             var webserverPath = Path.GetFullPath("Runners\\webserver.cmd");
 
@@ -38,7 +38,11 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService.Runners
             _process.StartInfo.WorkingDirectory = Path.GetFullPath(_path);
             _process.Start();
 
-            return Task.Delay(TimeSpan.FromMilliseconds(500));
+            return Task.Factory.StartNew( () =>
+            {
+                Task.Delay(TimeSpan.FromMilliseconds(500));
+                return _process.Id;
+            });
         }
 
         public async Task Stop()

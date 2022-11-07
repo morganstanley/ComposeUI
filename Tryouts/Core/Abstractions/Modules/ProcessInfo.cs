@@ -12,12 +12,13 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules;
 
 public struct ProcessInfo
 {
-    public ProcessInfo(string name, Guid instanceId, string uiType, string? uiHint)
+    public ProcessInfo(string name, Guid instanceId, string uiType, string? uiHint, int? pid)
     {
         this.name = name;
         this.instanceId = instanceId;
         this.uiType = uiType;
         this.uiHint = uiHint;
+        this.pid = pid;
     }
 
     /// <summary>
@@ -41,4 +42,6 @@ public struct ProcessInfo
     ///  - Window: ProcessID of the process owning the main window
     /// </summary>
     public string? uiHint;
+
+    public int? pid;
 }

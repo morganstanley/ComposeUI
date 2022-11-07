@@ -11,17 +11,19 @@
 //  * or implied. See the License for the specific language governing permissions
 //  * and limitations under the License.
 //  */
-using System.Collections.Generic;
-using ComposeUI.Example.WPFDataGrid.Models;
 
-namespace ComposeUI.Example.WPFDataGrid;
+using System.Collections.Generic;
+using WPFDataGrid.Models;
+
+namespace WPFDataGrid;
 
 /// <summary>
 /// Initializes the data for the DataGrid.
 /// </summary>
 internal static class MarketDataAccess
 {
-    internal static IReadOnlyCollection<SymbolModel> MarketData { get; } = new List<SymbolModel>()
+    //TODO(Lilla): Get the messages from dataService
+    internal static IReadOnlyCollection<SymbolModel> MarketData { get; } = new List<SymbolModel>
     {
         new() { Fullname = "Google", Symbol = "GOOG", Amount = 2500, AverageProfit = 18643, SymbolRating = SymbolRating.Long },
         new() { Fullname = "Apple", Symbol = "AAPL", Amount = 549, AverageProfit = 54345, SymbolRating = SymbolRating.Short },

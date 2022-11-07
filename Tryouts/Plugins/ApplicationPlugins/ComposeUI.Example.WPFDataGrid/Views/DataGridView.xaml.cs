@@ -12,39 +12,51 @@
 //  * and limitations under the License.
 //  */
 
-using ComposeUI.Example.WPFDataGrid.Models;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.ObjectModel;
-using System.Data;
+using System.Diagnostics;
 using System.Linq;
-using System.Reactive.Linq;
+using System.Reflection;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using MorganStanley.ComposeUI.Messaging;
+using LocalCollector;
+using LocalCollector.Connections;
+using LocalCollector.Registrations;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Client;
+using WPFDataGrid.Infrastructure;
+using WPFDataGrid.Models;
 
-
-namespace ComposeUI.Example.WPFDataGrid.Views;
+namespace WPFDataGrid.Views;
 
 /// <summary>
 /// Interaction logic for ShellView.xaml
 /// </summary>
 public partial class DataGridView : Window
 {
-    private readonly ILogger<DataGridView>? _logger;
+    private readonly ILogger<DataGridView> _logger;
     private readonly IMessageRouter _messageRouter;
     private readonly ObservableCollection<SymbolModel> _symbols;
+
+    private readonly ILoggerFactory _loggerFactory;
 
     /// <summary>
     /// Constructor for the View.
     /// </summary>
     /// <param name="logger"></param>
     /// <param name="messageRouter"></param>
-    public DataGridView(ILogger<DataGridView> logger, IMessageRouter messageRouter)
+    public DataGridView(IMessageRouter messageRouter,
+        ILoggerFactory loggerFactory,
+        ILogger<DataGridView>? logger = null)
     {
-        _logger = logger;
+        _logger = logger ?? NullLogger<DataGridView>.Instance;
         _messageRouter = messageRouter;
+        _loggerFactory = loggerFactory;
         _symbols = new(MarketDataAccess.MarketData);
         InitializeComponent();
     }
@@ -52,6 +64,43 @@ public partial class DataGridView : Window
     private async void Window_Loaded(object sender, RoutedEventArgs e)
     {
         MyDataGridMarketData.ItemsSource = _symbols;
+
+        await SetProcessCollector();
+    }
+
+    private async ValueTask SetProcessCollector()
+    {
+        var connections = new ConnectionMonitor(new()
+        {
+            new()
+            {
+                Id = Guid.NewGuid(),
+                LocalEndpoint = new("ws://localhost:5098/ws"), //TODO(Lilla): set the endpoint from _messageRouter, and subscribe to their lifecycleevents
+                Status = ConnectionStatus.Running
+                                .ToStringCached(),
+            }
+        });
+
+        var registrations = new RegistrationMonitorInfo();
+
+        var communicator = new LocalProcessCommunicator(_messageRouter,
+            _loggerFactory.CreateLogger<LocalProcessCommunicator>());
+
+        var processInfo = new ProcessInfoCollector(connections, 
+            registrations, 
+            communicator, 
+            _loggerFactory.CreateLogger<ProcessInfoCollector>());
+
+        var assemblyId = Assembly.GetExecutingAssembly().GetName().Name;
+        if (assemblyId != null)
+        {
+            processInfo.SetAssemblyId(assemblyId);
+        }
+
+        processInfo.SetClientPid(Process.GetCurrentProcess().Id);
+
+        Thread.Sleep(1000);
+        await processInfo.SendRuntimeInfo();
     }
 
     private async void DataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -60,15 +109,15 @@ public partial class DataGridView : Window
         {
             var selectedObject = e.AddedItems.Cast<SymbolModel>().FirstOrDefault();
 
-            if (selectedObject is not null)
+            if (selectedObject != null)
             {
-                _logger?.LogInformation(string.Format("You have selected: {0}", selectedObject.Fullname));
+                _logger.LogInformation(string.Format("You have selected: {0}", selectedObject.Fullname));
                 await _messageRouter.PublishAsync("proto_select_marketData", JsonSerializer.Serialize(selectedObject, SymbolModel.JsonSerializerOptions));
             }
         }
         catch (Exception exception)
         {
-            _logger?.LogError(exception.ToString());
+            _logger.LogError(exception.ToString());
         }
     }
 }

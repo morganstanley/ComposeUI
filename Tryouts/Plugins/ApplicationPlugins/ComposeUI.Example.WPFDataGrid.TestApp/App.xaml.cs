@@ -10,7 +10,7 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using ComposeUI.Example.WPFDataGrid.Views;
+using WPFDataGrid.Views;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -20,7 +20,7 @@ using System.Linq;
 using System.Windows;
 using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
 
-namespace ComposeUI.Example.WPFDataGrid.TestApp;
+namespace WPFDataGrid.TestApp;
 
 /// <summary>
 /// Interaction logic for App.xaml
@@ -32,7 +32,7 @@ public partial class App : Application
     /// <summary>
     /// Url to connect
     /// </summary>
-    public static Uri WebsocketURI { get; set; } = new("ws://localhost:5098/ws");
+    public static Uri WebsocketURI { get; set; } = new("ws://localhost:5000/ws");
 
     /// <summary>
     /// Overriding Statup so we can do DI.
@@ -44,14 +44,12 @@ public partial class App : Application
 
         base.OnStartup(e);
 
-        Uri? uri;
-
-        if (e.Args.Any() && Uri.TryCreate(e.Args[0], UriKind.Absolute, out uri))
+        if (e.Args.Any() && Uri.TryCreate(e.Args[0], UriKind.Absolute, out Uri? uri))
         {
             WebsocketURI = uri;
         }
 
-        ILoggerFactory loggerFactory = new LoggerFactory();
+        var loggerFactory = new LoggerFactory();
 
         var serilogger = new LoggerConfiguration()
             .WriteTo.File(string.Format("{0}/log.log", Directory.GetCurrentDirectory()))
@@ -68,7 +66,10 @@ public partial class App : Application
                     mr.UseWebSocket(new MessageRouterWebSocketOptions { Uri = WebsocketURI }));
 
         serviceCollection.AddSingleton(typeof(DataGridView));
+
+
         _serviceProvider = serviceCollection.BuildServiceProvider();
+
         var dataGridView = _serviceProvider?.GetRequiredService<DataGridView>();
 
         dataGridView?.Show();
