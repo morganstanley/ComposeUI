@@ -1,0 +1,36 @@
+@startuml Process Explorer
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+!define DEVICONS https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/devicons
+!include DEVICONS/angular.puml
+
+Container(c1, "Some Process"){
+    Component(process, "InfoCollector", "Environment Variables, Loaded modules, Registrations, Connections", "Collects the Data and sends to the Process Explorer backend")
+}
+
+Container(c12, "Some Process 2"){
+    Component(process2, "InfoCollector", "Environment Variables, Loaded modules, Registrations, Connections", "Collects the Data and sends to the Process Explorer backend")
+}
+
+Container(c13, "Some Process 3"){
+    Component(process3, "InfoCollector", "Environment Variables, Loaded modules, Registrations, Connections", "Collects the Data and sends to the Process Explorer backend")
+}
+
+Container(dotdotdot, "... another processes"){
+    Component(dotdotdotprocess, "InfoCollector", "Environment Variables, Loaded modules, Registrations, Connections", "Collects the Data and sends to the Process Explorer backend")
+}
+
+Container(c2, "Main Process"){
+    Component(mainProcess, "InfoAggregator", "Environment Variables, Loaded modules, Registrations, Connections, User, Machine information and Related processes to the Compose", "Collects the information from InfoAggregator and creates an instance of ProcessMonitor to collect continuously the related processes and sends it to the frontend")
+}
+
+Container(frontend, "Process Explorer UI", $sprite="angular")
+
+
+Rel(process, mainProcess, "Sends information/changes", "MessageRouter")
+Rel(process2, mainProcess, "Sends information/changes", "MessageRouter")
+Rel(process3, mainProcess, "Sends information/changes", "MessageRouter")
+Rel(dotdotdotprocess, mainProcess, "Sends information/changes", "MessageRouter")
+Rel_D(mainProcess, frontend, "Sends information/changes", "MessageRouter")
+Rel_U(frontend, mainProcess, "Sends commands", "MessageRouter")
+@enduml

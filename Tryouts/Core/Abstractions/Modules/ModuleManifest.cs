@@ -22,3 +22,5 @@ public class ModuleManifest
     public string[]? Arguments { get; set; }
     public int? Port { get; set; }
 }
+
+

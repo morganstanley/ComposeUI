@@ -68,13 +68,25 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Mes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComposeUI.Example.DataService", "..\..\Plugins\ApplicationPlugins\ComposeUI.Example.DataService\ComposeUI.Example.DataService.csproj", "{C20FA602-71E5-4383-8F8F-B966873EFA69}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComposeUI.Example.WPFDataGrid", "..\..\Plugins\ApplicationPlugins\ComposeUI.Example.WPFDataGrid\ComposeUI.Example.WPFDataGrid.csproj", "{EFF70E7E-C320-4F47-8A13-C1FE5C8F2982}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WPFDataGrid", "..\..\Plugins\ApplicationPlugins\ComposeUI.Example.WPFDataGrid\WPFDataGrid.csproj", "{EFF70E7E-C320-4F47-8A13-C1FE5C8F2982}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComposeUI.Example.WPFDataGrid.TestApp", "..\..\Plugins\ApplicationPlugins\ComposeUI.Example.WPFDataGrid.TestApp\ComposeUI.Example.WPFDataGrid.TestApp.csproj", "{21BA0993-6F19-4549-8884-CB4C7FAE34A8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WPFDataGrid.TestApp", "..\..\Plugins\ApplicationPlugins\ComposeUI.Example.WPFDataGrid.TestApp\WPFDataGrid.TestApp.csproj", "{21BA0993-6F19-4549-8884-CB4C7FAE34A8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Messaging", "Messaging", "{D5DBE548-028B-4A37-8969-E2E02261000C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Core.Tests", "..\..\Messaging\MorganStanley.ComposeUI.Messaging.Core.Tests\MorganStanley.ComposeUI.Messaging.Core.Tests.csproj", "{EE97CB5B-90B2-46E5-82FE-5C07CEF9118A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Process Explorer", "Process Explorer", "{BF3D9176-E2B0-4C87-9691-8288C257BFAF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LocalCollector", "..\..\Plugins\ApplicationPlugins\process explorer\backend\LocalCollector\LocalCollector.csproj", "{FDD9C089-5DC8-4194-AA82-51E915D249AF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModuleProcessMonitor", "..\..\Plugins\ApplicationPlugins\process explorer\backend\ModuleProcessMonitor\ModuleProcessMonitor.csproj", "{B41C1EEC-7EB1-43BB-995D-5E0E2809B16B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProcessExplorer", "..\..\Plugins\ApplicationPlugins\process explorer\backend\ProcessExplorer\ProcessExplorer.csproj", "{89A8A63B-BC4E-4443-AC40-4F2D79BAED5D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SuperRPC-POC", "..\..\Plugins\ApplicationPlugins\process explorer\backend\SuperRPC-POC\SuperRPC-POC.csproj", "{9AF6AF79-0261-4C1B-A904-00DA29A04F12}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessExplorerMessageRouterTopics", "..\ProcessExplorerMessageRouterTopics\ProcessExplorerMessageRouterTopics.csproj", "{B00789CA-40D7-462D-8A1D-11C672B30512}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -162,6 +174,26 @@ Global
 		{EE97CB5B-90B2-46E5-82FE-5C07CEF9118A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EE97CB5B-90B2-46E5-82FE-5C07CEF9118A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EE97CB5B-90B2-46E5-82FE-5C07CEF9118A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FDD9C089-5DC8-4194-AA82-51E915D249AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDD9C089-5DC8-4194-AA82-51E915D249AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDD9C089-5DC8-4194-AA82-51E915D249AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDD9C089-5DC8-4194-AA82-51E915D249AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B41C1EEC-7EB1-43BB-995D-5E0E2809B16B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B41C1EEC-7EB1-43BB-995D-5E0E2809B16B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B41C1EEC-7EB1-43BB-995D-5E0E2809B16B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B41C1EEC-7EB1-43BB-995D-5E0E2809B16B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89A8A63B-BC4E-4443-AC40-4F2D79BAED5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89A8A63B-BC4E-4443-AC40-4F2D79BAED5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89A8A63B-BC4E-4443-AC40-4F2D79BAED5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89A8A63B-BC4E-4443-AC40-4F2D79BAED5D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9AF6AF79-0261-4C1B-A904-00DA29A04F12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9AF6AF79-0261-4C1B-A904-00DA29A04F12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9AF6AF79-0261-4C1B-A904-00DA29A04F12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9AF6AF79-0261-4C1B-A904-00DA29A04F12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B00789CA-40D7-462D-8A1D-11C672B30512}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B00789CA-40D7-462D-8A1D-11C672B30512}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B00789CA-40D7-462D-8A1D-11C672B30512}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B00789CA-40D7-462D-8A1D-11C672B30512}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -201,6 +233,12 @@ Global
 		{21BA0993-6F19-4549-8884-CB4C7FAE34A8} = {791349F6-58F6-4425-AAB1-DBD3C3B99D6B}
 		{D5DBE548-028B-4A37-8969-E2E02261000C} = {2D94959E-539E-43A8-B50D-435D969059FF}
 		{EE97CB5B-90B2-46E5-82FE-5C07CEF9118A} = {D5DBE548-028B-4A37-8969-E2E02261000C}
+		{BF3D9176-E2B0-4C87-9691-8288C257BFAF} = {791349F6-58F6-4425-AAB1-DBD3C3B99D6B}
+		{FDD9C089-5DC8-4194-AA82-51E915D249AF} = {BF3D9176-E2B0-4C87-9691-8288C257BFAF}
+		{B41C1EEC-7EB1-43BB-995D-5E0E2809B16B} = {BF3D9176-E2B0-4C87-9691-8288C257BFAF}
+		{89A8A63B-BC4E-4443-AC40-4F2D79BAED5D} = {BF3D9176-E2B0-4C87-9691-8288C257BFAF}
+		{9AF6AF79-0261-4C1B-A904-00DA29A04F12} = {BF3D9176-E2B0-4C87-9691-8288C257BFAF}
+		{B00789CA-40D7-462D-8A1D-11C672B30512} = {BF3D9176-E2B0-4C87-9691-8288C257BFAF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {98497725-4038-46B9-910E-2BADC6FDC7E4}

@@ -20,18 +20,17 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService.Hosts
         public BackgroundModuleHost(string name, Guid instanceId, IModuleRunner runner) : base(name, instanceId)
         {
             _runner = runner;
+            _processInfo = new ProcessInfo(base.Name, base.InstanceId, UIType.None, null, 0);
         }
 
-        public override ProcessInfo ProcessInfo => new ProcessInfo(
-            name: Name,
-            instanceId: InstanceId,
-            uiType: UIType.None,
-            uiHint: null
-            );
+        public override ProcessInfo ProcessInfo => _processInfo;
+
+        private ProcessInfo _processInfo;
 
         public async override Task Launch()
         {
-            await _runner.Launch();
+            var pid = await _runner.Launch();
+            _processInfo.pid = pid;
             _lifecycleEvents.OnNext(LifecycleEvent.Started(ProcessInfo));
         }
 

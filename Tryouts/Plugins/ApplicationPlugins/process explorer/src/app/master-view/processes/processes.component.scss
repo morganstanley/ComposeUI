@@ -1,0 +1,73 @@
+:host {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.column-layout {
+  align-items: flex-end;
+  width: 1714px;
+  height: 775px;
+  background-color: var(--igx-secondary-300);
+  min-width: 50px;
+  position: relative;
+  min-height: 50px;
+}
+.checkboxes {
+  align-items: center;
+  width: 20px;
+  height: 663px;
+  min-width: 20px;
+  background-color: transparent;
+  justify-content: space-around;
+  margin: 50px 0 0;
+  position: relative;
+  min-height: 50px;
+}
+.column-layout_1 {
+  width: 2605px;
+  height: 781px;
+  align-items: stretch;
+  min-width: 50px;
+  position: relative;
+  min-height: 50px;
+}
+.row-layout {
+  background-color: var(--igx-surface-500);
+  align-items: stretch;
+  min-width: 50px;
+  position: relative;
+  min-height: 50px;
+}
+.image {
+  width: 634px;
+  height: 449px;
+  min-width: 0;
+  min-height: 0;
+  flex-shrink: 0;
+  border-radius: 0;
+  object-fit: cover;
+}
+.button-group {
+  width: 511px;
+  height: auto;
+  min-width: min-content;
+}
+.checkbox {
+  width: max-content;
+  height: max-content;
+}
+.grid {
+  width: 941px;
+  height: 731px;
+  min-width: 50px;
+  min-height: 50px;
+  flex-shrink: 0;
+}
+.row {
+  display: flex;
+}
+.column {
+  display: flex;
+  flex-direction: column;
+}

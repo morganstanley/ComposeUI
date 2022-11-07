@@ -16,29 +16,26 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService.Hosts
     internal class WindowedModuleHost : ModuleHostBase
     {
         private IWindowedModuleRunner _moduleRunner;
+        private ProcessInfo _processInfo;
 
         public WindowedModuleHost(string name, Guid instanceId, IWindowedModuleRunner moduleRunner) : base(name, instanceId)
         {
             _moduleRunner = moduleRunner;
             _moduleRunner.StoppedUnexpectedly += HandleUnexpectedStop;
+            _processInfo = new ProcessInfo(name: Name, instanceId: InstanceId,uiType: UIType.Window,uiHint: _moduleRunner.MainWindowHandle.ToString(),pid: 0);
         }
 
-        public override ProcessInfo ProcessInfo => new ProcessInfo
-        (
-            name: Name,
-            instanceId: InstanceId,
-            uiType: UIType.Window,
-            uiHint: _moduleRunner.MainWindowHandle.ToString()
-        );
+        public override ProcessInfo ProcessInfo => _processInfo;
 
         public override async Task Launch()
         {
-            await _moduleRunner.Launch();
+            var pid = await _moduleRunner.Launch();
             while (_moduleRunner.MainWindowHandle.ToInt64() == 0)
             {
                 await Task.Delay(TimeSpan.FromMilliseconds(100));
             }
 
+            _processInfo.pid = pid;
             _lifecycleEvents.OnNext(LifecycleEvent.Started(ProcessInfo));
         }
 

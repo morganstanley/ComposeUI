@@ -30,7 +30,7 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService.Runners
 
         public event EventHandler? StoppedUnexpectedly;
 
-        public Task Launch()
+        public Task<int> Launch()
         {
             var startScriptPath = Path.GetFullPath("Runners\\dotnetcore.cmd");
             var location = Path.GetFullPath(_path);
@@ -52,7 +52,8 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService.Runners
             mainProcess.Start();
 
             _mainProcess = mainProcess;
-            return Task.CompletedTask;
+
+            return Task.FromResult(mainProcess.Id);
         }
 
         public async Task Stop()

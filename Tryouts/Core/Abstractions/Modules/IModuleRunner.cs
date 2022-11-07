@@ -13,7 +13,7 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules
 {
     public interface IModuleRunner
     {
-        Task Launch();
+        Task<int> Launch();
         Task Stop();
 
         event EventHandler StoppedUnexpectedly;
