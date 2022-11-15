@@ -23,21 +23,14 @@ namespace Shell
     /// </summary>
     public partial class WebContent : Window
     {
-        private static string _uriString = "https://www.morganstanley.com";
+        private static string? _uriString;
 
-        public WebContent()
+        public WebContent(string str)
         {
             InitializeComponent();
+            _uriString = str;
 
             webView2.Source = new Uri(_uriString);
-        }
-
-        private void ButtonGo_Click(object sender, RoutedEventArgs e)
-        {
-            if (webView2 != null && webView2.CoreWebView2 != null)
-            {
-                webView2.CoreWebView2.Navigate(addressBar.Text);
-            }
         }
     }
 }
