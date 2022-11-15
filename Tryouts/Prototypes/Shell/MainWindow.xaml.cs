@@ -22,14 +22,17 @@ namespace Shell
     /// </summary>
     public partial class MainWindow : Window
     {
-        private WebContent webContent = new WebContent();
+        private WebContent webContent;
         public MainWindow()
         {
             InitializeComponent();
+            addressBar.Text = "http://";
         }
 
         private void ShowChild_Click(object sender, RoutedEventArgs e)
-        { 
+        {
+            webContent = new WebContent(addressBar.Text);
+            webContent.Owner = this;
             webContent.Show();
         }
     }
