@@ -12,8 +12,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Microsoft.Web.WebView2.Wpf;
-using Microsoft.Web.WebView2.Core;
 
 namespace Shell
 {
@@ -22,7 +20,8 @@ namespace Shell
     /// </summary>
     public partial class MainWindow : Window
     {
-        private WebContent webContent;
+        private List<WebContent> webContentList = new List<WebContent>();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -31,9 +30,19 @@ namespace Shell
 
         private void ShowChild_Click(object sender, RoutedEventArgs e)
         {
-            webContent = new WebContent(addressBar.Text);
+            var webContent = new WebContent(addressBar.Text);
             webContent.Owner = this;
+            webContentList.Add(webContent);
+            
             webContent.Show();
+        }
+
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            webContentList.ForEach(window => window.Close());
+            webContentList.Clear();
+
+            base.OnClosing(e);
         }
     }
 }
