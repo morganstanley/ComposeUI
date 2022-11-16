@@ -43,7 +43,5 @@ namespace Shell
 
             webView2.Source = new Uri(_uriString);
         }
-
-       
     }
 }
