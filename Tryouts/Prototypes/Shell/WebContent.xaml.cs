@@ -12,9 +12,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Microsoft.Web.WebView2.Wpf;
-using Microsoft.Web.WebView2.Core;
-using Microsoft.Web.WebView2.WinForms;
 
 namespace Shell
 {
@@ -32,5 +29,7 @@ namespace Shell
 
             webView2.Source = new Uri(_uriString);
         }
+
+       
     }
 }
