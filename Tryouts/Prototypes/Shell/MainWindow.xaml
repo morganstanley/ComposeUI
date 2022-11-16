@@ -7,20 +7,12 @@
         mc:Ignorable="d"
         Title="Compose" Height="450" Width="800">
     <Grid>
-        <DockPanel DockPanel.Dock="Top">
-            <Label DockPanel.Dock="Top" >Hello Compose</Label>
+        <StackPanel Orientation="Vertical">
+            <Label DockPanel.Dock="Top">Hello Compose!</Label>
             <DockPanel DockPanel.Dock="Top">
                 <Button x:Name="ButtonGo" DockPanel.Dock="Right" Click="ShowChild_Click" Content="Open Child Window"/>
                 <TextBox Name = "addressBar"/>
             </DockPanel>
-            
-            <DockPanel DockPanel.Dock="Bottom" >
-                <!--
-                <Button x:Name="ButtonOpenChild" Width="200" Height="50" DockPanel.Dock="Left" Click="ShowChild_Click" Content="Open Child Window"/>
-            -->
-                </DockPanel>
-           
-            
-        </DockPanel>
+        </StackPanel>
     </Grid>
 </Window> 
