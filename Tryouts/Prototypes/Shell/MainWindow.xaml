@@ -22,7 +22,6 @@ See the License for the specific language governing permissions and limitations 
             <Label DockPanel.Dock="Top">Hello Compose!</Label>
             <DockPanel DockPanel.Dock="Top">
                 <Button x:Name="ButtonGo" DockPanel.Dock="Right" Click="ShowChild_Click" Content="Open Child Window"/>
-                <TextBox Name = "addressBar"/>
             </DockPanel>
         </StackPanel>
     </Grid>

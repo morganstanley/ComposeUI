@@ -22,6 +22,12 @@
     <Page Include="WebContent.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Manifest\exampleManifest.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup> 
 
 </Project>

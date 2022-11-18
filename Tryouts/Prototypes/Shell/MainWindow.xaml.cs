@@ -35,16 +35,19 @@ namespace Shell
     public partial class MainWindow : Window
     {
         private List<WebContent> webContentList = new List<WebContent>();
+        private ManifestModel config;
 
         public MainWindow()
         {
             InitializeComponent();
-            addressBar.Text = "http://";
+
+            config = new ManifestParser().manifest;
         }
 
         private void ShowChild_Click(object sender, RoutedEventArgs e)
         {
-            var webContent = new WebContent(addressBar.Text);
+            var webContent = new WebContent(config.Url);
+            webContent.Title = config.AppName;
             webContent.Owner = this;
             webContentList.Add(webContent);
             
