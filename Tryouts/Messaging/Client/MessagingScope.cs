@@ -12,8 +12,8 @@
 
 namespace MorganStanley.ComposeUI.Tryouts.Messaging.Client;
 
-// TODO: Binary payload
-/// <summary>
-///     The delegate type that gets called when a registered service is invoked.
-/// </summary>
-public delegate ValueTask<string?> ServiceInvokeHandler(string serviceName, string? payload);
+// TODO: MessagingScope
+public class MessagingScope
+{
+    
+}

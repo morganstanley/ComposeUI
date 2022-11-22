@@ -15,15 +15,15 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipelines;
 using System.Net.WebSockets;
 using System.Threading.Channels;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Tryouts.Messaging.Core.Messages;
 using MorganStanley.ComposeUI.Tryouts.Messaging.Core.Serialization;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Server;
 using MorganStanley.ComposeUI.Tryouts.Messaging.Server.Transport.Abstractions;
 
 namespace MorganStanley.ComposeUI.Tryouts.Messaging.Server.Transport.WebSocket;
 
-internal class WebSocketConnection : IClientConnection
+internal class WebSocketConnection : ISubscriber
 {
     public WebSocketConnection(
         IMessageRouterServer messageRouter,

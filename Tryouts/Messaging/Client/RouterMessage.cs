@@ -28,6 +28,7 @@ public sealed class RouterMessage
     /// </summary>
     public string Topic { get; }
 
+    // TODO: Binary payload
     /// <summary>
     ///     The payload of the message. The format of the message is arbitrary and should
     ///     be defined and documented with the message definition.

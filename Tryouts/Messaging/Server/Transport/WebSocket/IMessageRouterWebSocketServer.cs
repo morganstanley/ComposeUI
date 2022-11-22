@@ -10,10 +10,10 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Client;
+namespace MorganStanley.ComposeUI.Tryouts.Messaging.Server.Transport.WebSocket;
 
-// TODO: Binary payload
-/// <summary>
-///     The delegate type that gets called when a registered service is invoked.
-/// </summary>
-public delegate ValueTask<string?> ServiceInvokeHandler(string serviceName, string? payload);
+public interface IMessageRouterWebSocketServer
+{
+    public string RootPath { get; }
+    public int Port { get; }
+}

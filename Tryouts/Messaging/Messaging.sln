@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Tryouts.Messaging.Core", "Core\MorganStanley.ComposeUI.Tryouts.Messaging.Core.csproj", "{FC647551-B014-49A8-817E-F5FE6FEBF452}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Tryouts.Messaging.Client", "Client\MorganStanley.ComposeUI.Tryouts.Messaging.Client.csproj", "{A3156691-0B46-4C3D-B042-E71D9BAF02EC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Tryouts.Messaging.Server", "Server\MorganStanley.ComposeUI.Tryouts.Messaging.Server.csproj", "{4AEFD2AA-CF42-401D-A058-E2B4C8E12283}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Tryouts.Messaging.Server.Tests", "Server.Tests\MorganStanley.ComposeUI.Tryouts.Messaging.Server.Tests.csproj", "{C95F8B4A-7E42-43A6-A57E-C3ACB6255EA3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Tryouts.Messaging.IntegrationTests", "IntegrationTests\MorganStanley.ComposeUI.Tryouts.Messaging.IntegrationTests.csproj", "{684367EE-406C-4727-993D-EF4B6FF5C37C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfHost", "WpfHost\WpfHost.csproj", "{7BDA5B06-82A4-4BD7-BA70-82382CEABDF5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FC647551-B014-49A8-817E-F5FE6FEBF452}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC647551-B014-49A8-817E-F5FE6FEBF452}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC647551-B014-49A8-817E-F5FE6FEBF452}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC647551-B014-49A8-817E-F5FE6FEBF452}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3156691-0B46-4C3D-B042-E71D9BAF02EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3156691-0B46-4C3D-B042-E71D9BAF02EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3156691-0B46-4C3D-B042-E71D9BAF02EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3156691-0B46-4C3D-B042-E71D9BAF02EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4AEFD2AA-CF42-401D-A058-E2B4C8E12283}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4AEFD2AA-CF42-401D-A058-E2B4C8E12283}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4AEFD2AA-CF42-401D-A058-E2B4C8E12283}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4AEFD2AA-CF42-401D-A058-E2B4C8E12283}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C95F8B4A-7E42-43A6-A57E-C3ACB6255EA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C95F8B4A-7E42-43A6-A57E-C3ACB6255EA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C95F8B4A-7E42-43A6-A57E-C3ACB6255EA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C95F8B4A-7E42-43A6-A57E-C3ACB6255EA3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{684367EE-406C-4727-993D-EF4B6FF5C37C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{684367EE-406C-4727-993D-EF4B6FF5C37C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{684367EE-406C-4727-993D-EF4B6FF5C37C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{684367EE-406C-4727-993D-EF4B6FF5C37C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7BDA5B06-82A4-4BD7-BA70-82382CEABDF5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BDA5B06-82A4-4BD7-BA70-82382CEABDF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7BDA5B06-82A4-4BD7-BA70-82382CEABDF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7BDA5B06-82A4-4BD7-BA70-82382CEABDF5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {38CFF5DF-459A-49E1-8189-2DB429A99B3A}
+	EndGlobalSection
+EndGlobal

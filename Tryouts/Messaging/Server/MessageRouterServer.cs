@@ -12,6 +12,7 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Tryouts.Messaging.Core.Exceptions;
 using MorganStanley.ComposeUI.Tryouts.Messaging.Core.Messages;
@@ -19,6 +20,7 @@ using MorganStanley.ComposeUI.Tryouts.Messaging.Server.Transport.Abstractions;
 
 namespace MorganStanley.ComposeUI.Tryouts.Messaging.Server;
 
+// TODO: Also implement IMessageRouter to speed up in-process messaging
 internal class MessageRouterServer : IMessageRouterServer
 {
     public MessageRouterServer(ILogger<MessageRouterServer>? logger)
@@ -36,7 +38,7 @@ internal class MessageRouterServer : IMessageRouterServer
         }
     }
 
-    public ValueTask ClientConnected(IClientConnection connection)
+    public ValueTask ClientConnected(ISubscriber connection)
     {
         var client = new Client(connection);
         _connectionToClient[connection] = client;
@@ -45,7 +47,7 @@ internal class MessageRouterServer : IMessageRouterServer
         return default;
     }
 
-    public ValueTask ClientDisconnected(IClientConnection connection)
+    public ValueTask ClientDisconnected(ISubscriber connection)
     {
         if (!_connectionToClient.TryRemove(connection, out var client))
             return default;
@@ -61,7 +63,7 @@ internal class MessageRouterServer : IMessageRouterServer
     private readonly ConcurrentDictionary<string, Guid> _serviceRegistrations = new();
     private readonly CancellationTokenSource _stopTokenSource = new();
     private readonly ConcurrentDictionary<string, Topic> _topics = new();
-    private readonly ConcurrentDictionary<IClientConnection, Client> _connectionToClient = new();
+    private readonly ConcurrentDictionary<ISubscriber, Client> _connectionToClient = new();
 
     private async Task HandleConnectRequest(
         Client client,
@@ -317,12 +319,12 @@ internal class MessageRouterServer : IMessageRouterServer
 
     private class Client
     {
-        public Client(IClientConnection connection)
+        public Client(ISubscriber connection)
         {
             Connection = connection;
         }
 
-        public IClientConnection Connection { get; }
+        public ISubscriber Connection { get; }
         public Guid Id { get; set; } = Guid.Empty;
     }
 
