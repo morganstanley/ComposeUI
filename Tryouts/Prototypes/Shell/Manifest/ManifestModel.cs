@@ -9,17 +9,11 @@ namespace Shell
     [Serializable]
     internal sealed class ManifestModel
     {
-        public string AppName { get; set; } = string.Empty; //set?
-        public string Url { get; set; }  = string.Empty; //set?
-
+        public ModuleModel[]? Modules { get; set; }
 
         public static JsonSerializerOptions JsonSerializerOptions = new()
         {
-            Converters =
-            {
-                new JsonStringEnumConverter()
-            },
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            PropertyNameCaseInsensitive = true
         };
     }
 }
