@@ -38,18 +38,18 @@ internal class MessageRouterServer : IMessageRouterServer
         }
     }
 
-    public ValueTask ClientConnected(ISubscriber connection)
+    public ValueTask ClientConnected(ISubscriber subscriber)
     {
-        var client = new Client(connection);
-        _connectionToClient[connection] = client;
+        var client = new Client(subscriber);
+        _connectionToClient[subscriber] = client;
         ProcessMessagesAsync(client, _stopTokenSource.Token);
 
         return default;
     }
 
-    public ValueTask ClientDisconnected(ISubscriber connection)
+    public ValueTask ClientDisconnected(ISubscriber subscriber)
     {
-        if (!_connectionToClient.TryRemove(connection, out var client))
+        if (!_connectionToClient.TryRemove(subscriber, out var client))
             return default;
 
         _clients.TryRemove(client.Id, out _);
