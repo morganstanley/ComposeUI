@@ -27,4 +27,6 @@ public sealed class PublishMessage : Message
     public override MessageType Type => MessageType.Publish;
     public string Topic { get; init; }
     public string? Payload { get; init; }
+
+    // TODO: Binary payload
 }

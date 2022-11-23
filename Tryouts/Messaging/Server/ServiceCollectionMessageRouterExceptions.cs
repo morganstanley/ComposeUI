@@ -10,7 +10,11 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Server;
+using MorganStanley.ComposeUI.Tryouts.Messaging.Server;
+
+namespace Microsoft.Extensions.DependencyInjection;
+
+// TODO: Get rid of the dependency on ASP.NET Core, host a standalone WS server 
 
 /// <summary>
 /// Contains extension methods for adding the Message Router server to a service collection.
@@ -21,10 +25,12 @@ public static class ServiceCollectionMessageRouterExceptions
     /// Adds <see cref="IMessageRouterServer"/> and related types to the service collection.
     /// </summary>
     /// <param name="serviceCollection"></param>
+    /// <param name="builderAction"></param>
     /// <returns></returns>
-    public static IServiceCollection AddMessageRouterServer(this IServiceCollection serviceCollection)
+    public static IServiceCollection AddMessageRouterServer(this IServiceCollection serviceCollection, Action<MessageRouterBuilder> builderAction)
     {
         serviceCollection.AddSingleton<IMessageRouterServer, MessageRouterServer>();
+        builderAction(new MessageRouterBuilder(serviceCollection));
 
         return serviceCollection;
     }

@@ -1,10 +1,4 @@
 ﻿{
-  "messageRouter": {
-    "StartupType": "dotnetcore",
-    "UIType": "none",
-    "Name": "messageRouter",
-    "Path": "..\\..\\..\\..\\..\\Messaging\\Server\\bin\\Debug\\net6.0\\MorganStanley.ComposeUI.Tryouts.Messaging.Server.dll"
-  },
   "dataservice": {
     "StartupType": "executable",
     "UIType": "none",

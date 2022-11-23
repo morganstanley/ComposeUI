@@ -14,10 +14,11 @@ using MorganStanley.ComposeUI.Tryouts.Messaging.Core.Messages;
 
 namespace MorganStanley.ComposeUI.Tryouts.Messaging.Server.Transport.Abstractions;
 
+// TODO: Rename to ISubscriberConnection
 /// <summary>
 /// Abstraction of a client connected to the Message Router server.
 /// </summary>
-public interface IClientConnection : IAsyncDisposable
+public interface ISubscriber : IAsyncDisposable
 {
     /// <summary>
     /// Sends a message to the client.

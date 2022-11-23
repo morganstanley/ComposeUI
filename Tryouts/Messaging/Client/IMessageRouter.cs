@@ -17,6 +17,7 @@ namespace MorganStanley.ComposeUI.Tryouts.Messaging.Client;
 /// </summary>
 public interface IMessageRouter : IAsyncDisposable
 {
+    // TODO: Remove this method
     /// <summary>
     ///     Asynchronously connects to the Message Router server endpoint.
     /// </summary>
@@ -28,6 +29,7 @@ public interface IMessageRouter : IAsyncDisposable
     /// </remarks>
     ValueTask ConnectAsync(CancellationToken cancellationToken = default);
 
+    // TODO: Declare and use IAsyncObserver or ISubscriber
     /// <summary>
     ///     Gets an observable that represents a topic.
     /// </summary>
@@ -40,6 +42,7 @@ public interface IMessageRouter : IAsyncDisposable
         IObserver<RouterMessage> observer,
         CancellationToken cancellationToken = default);
 
+    // TODO: Binary payload
     /// <summary>
     ///     Publishes a message to a topic.
     /// </summary>
@@ -49,6 +52,7 @@ public interface IMessageRouter : IAsyncDisposable
     /// <returns></returns>
     ValueTask PublishAsync(string topicName, string? payload = null, CancellationToken cancellationToken = default);
 
+    // TODO: Binary payload
     /// <summary>
     ///     Invokes a named service.
     /// </summary>

@@ -10,10 +10,13 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Client;
+namespace Microsoft.Extensions.DependencyInjection;
 
-// TODO: Binary payload
-/// <summary>
-///     The delegate type that gets called when a registered service is invoked.
-/// </summary>
-public delegate ValueTask<string?> ServiceInvokeHandler(string serviceName, string? payload);
+public sealed class MessageRouterBuilder
+{
+    public MessageRouterBuilder(IServiceCollection serviceCollection)
+    {
+        ServiceCollection = serviceCollection;
+    }
+    internal IServiceCollection ServiceCollection { get; }
+}

@@ -13,8 +13,8 @@
 // ReSharper disable once CheckNamespace
 
 using Microsoft.Extensions.DependencyInjection;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client;
 
+// TODO: Move to MSFT DI namespace
 namespace MorganStanley.ComposeUI.Tryouts.Messaging.Client.Startup;
 
 /// <summary>
@@ -22,6 +22,7 @@ namespace MorganStanley.ComposeUI.Tryouts.Messaging.Client.Startup;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
+    // TODO: Make the callback optional, add auto-configuration from environment variables (the module loader should inject them)
     /// <summary>
     ///     Adds the <see cref="IMessageRouter" /> and related types to the service collection,
     ///     using the provided configuration callback.

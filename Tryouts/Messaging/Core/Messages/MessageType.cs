@@ -29,16 +29,23 @@ public enum MessageType : int
     /// </summary>
     Subscribe,
 
+    // TODO: SubscribeResponse
+
     /// <summary>
     ///     Client unsubscribes from a topic
     /// </summary>
     Unsubscribe,
+
+    // TODO: UnsubscribeResponse
 
     /// <summary>
     ///     Client publishes a message to a topic
     /// </summary>
     Publish,
 
+    // TODO: PublishResponse
+
+    // TODO: Rename to Topic?
     /// <summary>
     ///     Server notifies client of a message from a subscribed topic
     /// </summary>
@@ -68,5 +75,7 @@ public enum MessageType : int
     /// <summary>
     ///     Client unregisters itself from a previously registered service name.
     /// </summary>
-    UnregisterService
+    UnregisterService,
+
+    // TODO: UnregisterServiceResponse
 }
