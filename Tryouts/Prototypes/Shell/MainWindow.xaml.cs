@@ -37,19 +37,19 @@ namespace Shell
     {
         private List<WebContent> webContentList = new List<WebContent>();
         private ManifestModel config;
-        private ModuleModel[]? arr;
+        private ModuleModel[]? modules;
 
         public MainWindow()
         {
             InitializeComponent();
 
             config = new ManifestParser().manifest;
-            arr = config.Modules;
+            modules = config.Modules;
         }
 
         private void ShowChild_Click(object sender, RoutedEventArgs e)
         {
-            arr.ToList().ForEach(item => {
+            Array.ForEach(modules, item => {
                 var webContent = new WebContent(item.Url);
                 webContent.Title = item.AppName;
             
