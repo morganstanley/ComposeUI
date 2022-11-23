@@ -12,6 +12,7 @@
 //  * and limitations under the License.
 //  */
 
+using Manifest;
 using System;
 using System.Collections.Generic;
 using System.Linq;

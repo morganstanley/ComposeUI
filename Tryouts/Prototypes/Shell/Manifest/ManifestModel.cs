@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Text.Json;
 
-namespace Shell
+namespace Manifest
 {
     [Serializable]
     internal sealed class ManifestModel

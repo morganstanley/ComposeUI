@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Windows.Automation;
 using System.Windows.Controls.Primitives;
 
-namespace Shell //todo check nmespace
+namespace Manifest
 {
     internal class ManifestParser
     {

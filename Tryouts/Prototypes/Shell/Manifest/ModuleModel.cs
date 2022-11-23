@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Shell
+namespace Manifest
 {
     [Serializable]
     internal sealed class ModuleModel
