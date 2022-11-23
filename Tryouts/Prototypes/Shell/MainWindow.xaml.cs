@@ -36,22 +36,27 @@ namespace Shell
     {
         private List<WebContent> webContentList = new List<WebContent>();
         private ManifestModel config;
+        private ModuleModel[]? arr;
 
         public MainWindow()
         {
             InitializeComponent();
 
             config = new ManifestParser().manifest;
+            arr = config.Modules;
         }
 
         private void ShowChild_Click(object sender, RoutedEventArgs e)
         {
-            var webContent = new WebContent(config.Url);
-            webContent.Title = config.AppName;
-            webContent.Owner = this;
-            webContentList.Add(webContent);
+            arr.ToList().ForEach(item => {
+                var webContent = new WebContent(item.Url);
+                webContent.Title = item.AppName;
             
-            webContent.Show();
+                webContent.Owner = this;
+                webContentList.Add(webContent);
+            
+                webContent.Show();
+            });
         }
 
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)

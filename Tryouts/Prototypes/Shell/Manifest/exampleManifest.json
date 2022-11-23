@@ -1,4 +1,16 @@
 {
-  "AppName": "TestApp",
-  "Url": "http://www.morganstanley.com"
+  "modules":[
+    {
+      "appName": "TestApp",
+      "url": "http://www.morganstanley.com"
+    },
+    {
+      "appName": "TestApp2",
+      "url": "http://www.microsoft.com"
+    },
+    {
+      "appName": "TestApp3",
+      "url": "http://www.google.com"
+    }
+  ]
 }

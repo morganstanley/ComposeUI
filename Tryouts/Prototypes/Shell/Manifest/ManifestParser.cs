@@ -22,9 +22,17 @@ namespace Shell //todo check nmespace
         {
             using (StreamReader r = new StreamReader("./Manifest/exampleManifest.json"))
             {
-                string fileContent = r.ReadToEnd();
-                manifest = JsonSerializer.Deserialize<ManifestModel>(fileContent);
+                try
+                {
+                    string fileContent = r.ReadToEnd();
+                    manifest = JsonSerializer.Deserialize<ManifestModel>(fileContent, ManifestModel.JsonSerializerOptions);
+                }
+                catch (Exception e)
+                {
 
+                    throw;
+                }
+                
                 r.Close();
             }
         }
