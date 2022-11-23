@@ -15,12 +15,12 @@ namespace Manifest
 
         public ManifestParser()
         {
-            OpenManifestFile();
+            OpenManifestFile("./Manifest/exampleManifest.json");
         }
 
-        public void OpenManifestFile()
+        public void OpenManifestFile(string manifestFile)
         {
-            using (StreamReader r = new StreamReader("./Manifest/exampleManifest.json"))
+            using (StreamReader r = new StreamReader(manifestFile))
             {
                 try
                 {
