@@ -10,7 +10,7 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Server.Internal;
+namespace MorganStanley.ComposeUI.Messaging.Server.Internal;
 
 internal class MessageRouterServerDependencies
 {

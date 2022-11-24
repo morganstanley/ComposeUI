@@ -14,9 +14,10 @@ using System.Net.WebSockets;
 using FluentAssertions.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Server.Tests.TestUtils;
+using MorganStanley.ComposeUI.Messaging.Server.Tests.TestUtils;
+using MorganStanley.ComposeUI.Messaging.Server.Transport.WebSocket;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Server.Tests;
+namespace MorganStanley.ComposeUI.Messaging.Server.Tests;
 
 public class MessageRouterServerWebSocketTests : IAsyncLifetime
 {
@@ -116,7 +117,8 @@ public class MessageRouterServerWebSocketTests : IAsyncLifetime
 
         builder.ConfigureServices(
             services => services.AddMessageRouterServer(
-                mr => mr.UseWebSockets(
+                mr => MessageRouterBuilderWebSocketExtensions.UseWebSockets(
+                    mr,
                     opt =>
                     {
                         opt.RootPath = _webSocketUri.AbsolutePath;

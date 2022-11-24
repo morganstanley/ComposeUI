@@ -12,14 +12,13 @@
 
 using System.Collections.Concurrent;
 using System.Reactive.Subjects;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client.Internal;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client.Transport.Abstractions;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Core;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Core.Exceptions;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Core.Messages;
+using MorganStanley.ComposeUI.Messaging.Client.Internal;
+using MorganStanley.ComposeUI.Messaging.Client.Transport.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Core.Exceptions;
+using MorganStanley.ComposeUI.Messaging.Core.Messages;
 using Nito.AsyncEx;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Client;
+namespace MorganStanley.ComposeUI.Messaging.Client;
 
 internal sealed class MessageRouterClient : IMessageRouter
 {
@@ -83,7 +82,7 @@ internal sealed class MessageRouterClient : IMessageRouter
         string? payload = null,
         CancellationToken cancellationToken = default)
     {
-        var requestId = new string(Guid.NewGuid().ToString());
+        var requestId = Guid.NewGuid().ToString();
         var tcs = new TaskCompletionSource<Message>();
         _pendingRequests.TryAdd(requestId, tcs);
         await ConnectAsync(cancellationToken);

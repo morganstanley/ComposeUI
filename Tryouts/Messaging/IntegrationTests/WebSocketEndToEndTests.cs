@@ -12,10 +12,11 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client.Transport.WebSocket;
+using MorganStanley.ComposeUI.Messaging.Client;
+using MorganStanley.ComposeUI.Messaging.Client.Transport.WebSocket;
+using MessageRouterBuilderWebSocketExtensions = MorganStanley.ComposeUI.Messaging.Server.Transport.WebSocket.MessageRouterBuilderWebSocketExtensions;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.IntegrationTests;
+namespace MorganStanley.ComposeUI.Messaging.IntegrationTests;
 
 // To run these tests, first start the server (ComposeUI.Messaging.Server) without debugging.
 // The tests will not leave the server in a clean state.
@@ -82,8 +83,8 @@ public class WebSocketEndToEndTests : IAsyncLifetime
 
         builder.ConfigureServices(
             services => services.AddMessageRouterServer(
-                mr => mr
-                    .UseWebSockets(
+                mr => MessageRouterBuilderWebSocketExtensions.UseWebSockets(
+                        mr,
                         opt =>
                         {
                             opt.RootPath = _webSocketUri.AbsolutePath;

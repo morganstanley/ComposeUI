@@ -15,7 +15,7 @@ using System.Net.WebSockets;
 using System.Text;
 using Newtonsoft.Json.Linq;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Server.Tests.TestUtils;
+namespace MorganStanley.ComposeUI.Messaging.Server.Tests.TestUtils;
 
 internal static class WebSocketExtensions
 {

@@ -14,12 +14,12 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Core.Exceptions;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Core.Messages;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Server.Internal;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Server.Transport.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Core.Exceptions;
+using MorganStanley.ComposeUI.Messaging.Core.Messages;
+using MorganStanley.ComposeUI.Messaging.Server.Internal;
+using MorganStanley.ComposeUI.Messaging.Server.Transport.Abstractions;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Server;
+namespace MorganStanley.ComposeUI.Messaging.Server;
 
 // TODO: Also implement IMessageRouter to speed up in-process messaging
 internal class MessageRouterServer : IMessageRouterServer

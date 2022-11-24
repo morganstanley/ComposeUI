@@ -22,6 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Messaging\Client\MorganStanley.ComposeUI.Tryouts.Messaging.Client.csproj" />
+    <ProjectReference Include="..\..\..\Messaging\Client\MorganStanley.ComposeUI.Messaging.Client.csproj" />
   </ItemGroup>
 </Project>

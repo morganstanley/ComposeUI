@@ -10,10 +10,10 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using MorganStanley.ComposeUI.Tryouts.Messaging.Server;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Server.Internal;
+using Microsoft.Extensions.DependencyInjection;
+using MorganStanley.ComposeUI.Messaging.Server.Internal;
 
-namespace Microsoft.Extensions.DependencyInjection;
+namespace MorganStanley.ComposeUI.Messaging.Server;
 
 public sealed class MessageRouterBuilder
 {

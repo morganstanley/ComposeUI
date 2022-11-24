@@ -12,7 +12,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Core.Messages;
+namespace MorganStanley.ComposeUI.Messaging.Core.Messages;
 
 public abstract class Message
 {

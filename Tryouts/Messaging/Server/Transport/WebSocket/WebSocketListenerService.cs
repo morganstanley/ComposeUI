@@ -17,7 +17,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Server.Transport.WebSocket;
+namespace MorganStanley.ComposeUI.Messaging.Server.Transport.WebSocket;
 
 internal sealed class WebSocketListenerService : IHostedService, IMessageRouterWebSocketServer
 {

@@ -16,12 +16,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<InternalsVisibleTo Include="ComposeUI.Messaging.IntegrationTests" />
-		<InternalsVisibleTo Include="ComposeUI.Messaging.Server.Tests" />
+		<InternalsVisibleTo Include="$(AssemblyName).Tests" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Core\MorganStanley.ComposeUI.Tryouts.Messaging.Core.csproj" />
+	  <ProjectReference Include="../Core/MorganStanley.ComposeUI.Messaging.Core.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

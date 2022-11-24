@@ -12,7 +12,7 @@
 
 using Microsoft.Extensions.Options;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Client.Transport.WebSocket;
+namespace MorganStanley.ComposeUI.Messaging.Client.Transport.WebSocket;
 
 /// <summary>
 ///     Options object for WebSocket connections to the Message Router server.

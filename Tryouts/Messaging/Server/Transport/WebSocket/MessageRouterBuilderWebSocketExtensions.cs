@@ -10,10 +10,10 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Server.Transport.WebSocket;
 
-namespace Microsoft.Extensions.DependencyInjection;
+namespace MorganStanley.ComposeUI.Messaging.Server.Transport.WebSocket;
 
 public static class MessageRouterBuilderWebSocketExtensions
 {

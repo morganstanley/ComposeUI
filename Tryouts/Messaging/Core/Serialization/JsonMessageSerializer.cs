@@ -14,9 +14,9 @@ using System.Buffers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Core.Messages;
+using MorganStanley.ComposeUI.Messaging.Core.Messages;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Core.Serialization;
+namespace MorganStanley.ComposeUI.Messaging.Core.Serialization;
 
 /// <summary>
 ///     Serializes/deserializes messages to/from JSON

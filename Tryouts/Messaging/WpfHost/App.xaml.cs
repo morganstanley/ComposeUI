@@ -18,9 +18,9 @@ using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client.Transport.WebSocket;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Server.Transport.WebSocket;
+using MorganStanley.ComposeUI.Messaging.Client;
+using MorganStanley.ComposeUI.Messaging.Client.Transport.WebSocket;
+using MorganStanley.ComposeUI.Messaging.Server.Transport.WebSocket;
 
 namespace WpfHost;
 

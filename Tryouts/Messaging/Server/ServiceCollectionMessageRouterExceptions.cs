@@ -10,8 +10,8 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using MorganStanley.ComposeUI.Tryouts.Messaging.Server;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Server.Internal;
+using MorganStanley.ComposeUI.Messaging.Server;
+using MorganStanley.ComposeUI.Messaging.Server.Internal;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
