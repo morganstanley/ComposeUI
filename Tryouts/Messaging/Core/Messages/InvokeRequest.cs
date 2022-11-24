@@ -26,7 +26,7 @@ public sealed class InvokeRequest : Message
     }
 
     public override MessageType Type => MessageType.Invoke;
-    public string RequestId { get; init; }
-    public string ServiceName { get; init; }
+    public string RequestId { get; init; } = null!;
+    public string ServiceName { get; init; } = null!;
     public string? Payload { get; init; }
 }

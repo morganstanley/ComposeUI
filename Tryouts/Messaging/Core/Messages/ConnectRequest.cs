@@ -20,5 +20,5 @@ public sealed class ConnectRequest : Message
 
     public override MessageType Type => MessageType.Connect;
 
-    // TODO: Add SecurityToken property
+    public string? AccessToken { get; init; }
 }

@@ -10,27 +10,18 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client.Internal;
+namespace MorganStanley.ComposeUI.Tryouts.Messaging.Server;
 
-// ReSharper disable once CheckNamespace
-namespace Microsoft.Extensions.DependencyInjection;
-
-public sealed class MessageRouterBuilder
+/// <summary>
+/// Validates access tokens provided by client connections.
+/// </summary>
+public interface IAccessTokenValidator
 {
-    public MessageRouterBuilder UseAccessToken(string accessToken)
-    {
-        AccessToken = accessToken;
-
-        return this;
-    }
-
-    internal MessageRouterBuilder(IServiceCollection serviceCollection)
-    {
-        ServiceCollection = serviceCollection;
-    }
-
-    internal IServiceCollection ServiceCollection { get; }
-
-    internal string? AccessToken { get; set; }
+    /// <summary>
+    /// Validates an access token. The method should throw an exception if the token is invalid or missing.
+    /// </summary>
+    /// <param name="clientId">The identifier of the client connection.</param>
+    /// <param name="accessToken">The access token provided by the client.</param>
+    /// <returns></returns>
+    ValueTask Validate(string clientId, string? accessToken);
 }

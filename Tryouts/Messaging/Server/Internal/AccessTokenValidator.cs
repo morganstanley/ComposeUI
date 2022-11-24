@@ -10,27 +10,18 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client.Internal;
+namespace MorganStanley.ComposeUI.Tryouts.Messaging.Server.Internal;
 
-// ReSharper disable once CheckNamespace
-namespace Microsoft.Extensions.DependencyInjection;
-
-public sealed class MessageRouterBuilder
+internal sealed class AccessTokenValidator : IAccessTokenValidator
 {
-    public MessageRouterBuilder UseAccessToken(string accessToken)
+    private readonly Func<string, string?, ValueTask> _callback;
+
+    public AccessTokenValidator(Func<string, string?, ValueTask> callback)
     {
-        AccessToken = accessToken;
-
-        return this;
+        _callback = callback;
     }
-
-    internal MessageRouterBuilder(IServiceCollection serviceCollection)
+    public ValueTask Validate(string clientId, string? accessToken)
     {
-        ServiceCollection = serviceCollection;
+        return _callback(clientId, accessToken);
     }
-
-    internal IServiceCollection ServiceCollection { get; }
-
-    internal string? AccessToken { get; set; }
 }

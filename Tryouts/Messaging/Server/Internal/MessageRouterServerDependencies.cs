@@ -10,27 +10,15 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client.Internal;
+namespace MorganStanley.ComposeUI.Tryouts.Messaging.Server.Internal;
 
-// ReSharper disable once CheckNamespace
-namespace Microsoft.Extensions.DependencyInjection;
-
-public sealed class MessageRouterBuilder
+internal class MessageRouterServerDependencies
 {
-    public MessageRouterBuilder UseAccessToken(string accessToken)
+    public MessageRouterServerDependencies(
+        IAccessTokenValidator? accessTokenValidator = null)
     {
-        AccessToken = accessToken;
-
-        return this;
+        AccessTokenValidator = accessTokenValidator;
     }
 
-    internal MessageRouterBuilder(IServiceCollection serviceCollection)
-    {
-        ServiceCollection = serviceCollection;
-    }
-
-    internal IServiceCollection ServiceCollection { get; }
-
-    internal string? AccessToken { get; set; }
+    public IAccessTokenValidator? AccessTokenValidator { get; }
 }

@@ -20,10 +20,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Transport\Abstractions\" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<InternalsVisibleTo Include="ComposeUI.Messaging.IntegrationTests" />
 	</ItemGroup>
 

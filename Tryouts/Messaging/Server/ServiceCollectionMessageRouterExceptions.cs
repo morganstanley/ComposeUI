@@ -11,10 +11,10 @@
 // and limitations under the License.
 
 using MorganStanley.ComposeUI.Tryouts.Messaging.Server;
+using MorganStanley.ComposeUI.Tryouts.Messaging.Server.Internal;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
-
-// TODO: Get rid of the dependency on ASP.NET Core, host a standalone WS server 
 
 /// <summary>
 /// Contains extension methods for adding the Message Router server to a service collection.
@@ -27,10 +27,15 @@ public static class ServiceCollectionMessageRouterExceptions
     /// <param name="serviceCollection"></param>
     /// <param name="builderAction"></param>
     /// <returns></returns>
-    public static IServiceCollection AddMessageRouterServer(this IServiceCollection serviceCollection, Action<MessageRouterBuilder> builderAction)
+    public static IServiceCollection AddMessageRouterServer(
+        this IServiceCollection serviceCollection,
+        Action<MessageRouterBuilder> builderAction)
     {
         serviceCollection.AddSingleton<IMessageRouterServer, MessageRouterServer>();
-        builderAction(new MessageRouterBuilder(serviceCollection));
+        serviceCollection.AddSingleton<MessageRouterServerDependencies>();
+
+        var builder = new MessageRouterBuilder(serviceCollection);
+        builderAction(builder);
 
         return serviceCollection;
     }

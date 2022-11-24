@@ -82,12 +82,20 @@ public class WebSocketEndToEndTests : IAsyncLifetime
 
         builder.ConfigureServices(
             services => services.AddMessageRouterServer(
-                mr => mr.UseWebSockets(
-                    opt =>
-                    {
-                        opt.RootPath = _webSocketUri.AbsolutePath;
-                        opt.Port = _webSocketUri.Port;
-                    })));
+                mr => mr
+                    .UseWebSockets(
+                        opt =>
+                        {
+                            opt.RootPath = _webSocketUri.AbsolutePath;
+                            opt.Port = _webSocketUri.Port;
+                        })
+                    .UseAccessTokenValidator(
+                        new Action<string, string?>(
+                            (clientId, token) =>
+                            {
+                                if (token != AccessToken)
+                                    throw new InvalidOperationException("Invalid access token");
+                            }))));
 
         _host = builder.Build();
         await _host.StartAsync();
@@ -100,14 +108,14 @@ public class WebSocketEndToEndTests : IAsyncLifetime
 
     private IHost _host = null!;
     private readonly Uri _webSocketUri = new("ws://localhost:7098/ws");
+    private const string AccessToken = "token";
 
     private IMessageRouter CreateClient()
     {
         return MessageRouter.Create(
-            mr => mr.UseWebSocket(
-                new MessageRouterWebSocketOptions { Uri = _webSocketUri }));
+            mr => mr
+                .UseWebSocket(
+                    new MessageRouterWebSocketOptions { Uri = _webSocketUri })
+                .UseAccessToken(AccessToken));
     }
-
-    
 }
-
