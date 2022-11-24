@@ -70,17 +70,7 @@ internal class MessageRouterServer : IMessageRouterServer
         ConnectRequest message,
         CancellationToken cancellationToken)
     {
-        if (client.Id != Guid.Empty)
-        {
-            if (client.Id != message.ClientId)
-            {
-                // TODO: Kick out client for sending an invalid connect message?
-            }
-
-            return;
-        }
-
-        client.Id = message.ClientId ?? Guid.NewGuid();
+        client.Id = Guid.NewGuid();
 
         if (!_clients.TryAdd(client.Id, client))
             return;

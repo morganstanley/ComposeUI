@@ -18,15 +18,7 @@ public sealed class ConnectRequest : Message
     {
     }
 
-    public ConnectRequest(Guid clientId)
-    {
-        ClientId = clientId;
-    }
-
     public override MessageType Type => MessageType.Connect;
-
-    // TODO: Remove this property, the client should not be able to reconnect.
-    public Guid? ClientId { get; init; }
 
     // TODO: Add SecurityToken property
 }
