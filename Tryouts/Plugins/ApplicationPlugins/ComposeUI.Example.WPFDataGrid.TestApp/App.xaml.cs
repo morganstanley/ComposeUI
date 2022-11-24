@@ -13,12 +13,12 @@
 using ComposeUI.Example.WPFDataGrid.Views;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client.Transport.WebSocket;
 using Serilog;
 using System;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using MorganStanley.ComposeUI.Messaging.Client.Transport.WebSocket;
 
 namespace ComposeUI.Example.WPFDataGrid.TestApp;
 

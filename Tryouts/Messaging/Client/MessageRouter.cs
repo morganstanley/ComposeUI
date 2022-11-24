@@ -12,7 +12,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Client;
+namespace MorganStanley.ComposeUI.Messaging.Client;
 
 /// <summary>
 ///     Static utility for creating <see cref="IMessageRouter" /> without a service collection.

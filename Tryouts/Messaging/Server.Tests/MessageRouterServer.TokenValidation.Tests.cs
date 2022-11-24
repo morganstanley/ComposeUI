@@ -10,14 +10,11 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using System.Threading.Channels;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Core.Messages;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Server.Tests.TestUtils;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Server.Transport.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Core.Messages;
+using MorganStanley.ComposeUI.Messaging.Server.Tests.TestUtils;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Server.Tests;
+namespace MorganStanley.ComposeUI.Messaging.Server.Tests;
 
 public class MessageRouterServerTokenValidationTests
 {

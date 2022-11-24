@@ -12,7 +12,7 @@
 
 using System.Reactive;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Client;
+namespace MorganStanley.ComposeUI.Messaging.Client;
 
 /// <summary>
 ///     Static extension methods for <see cref="IMessageRouter" />

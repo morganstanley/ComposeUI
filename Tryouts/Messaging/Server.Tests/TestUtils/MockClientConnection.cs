@@ -10,11 +10,11 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using MorganStanley.ComposeUI.Tryouts.Messaging.Server.Transport.Abstractions;
 using System.Threading.Channels;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Core.Messages;
+using MorganStanley.ComposeUI.Messaging.Core.Messages;
+using MorganStanley.ComposeUI.Messaging.Server.Transport.Abstractions;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Server.Tests.TestUtils;
+namespace MorganStanley.ComposeUI.Messaging.Server.Tests.TestUtils;
 
 public class MockClientConnection : Mock<IClientConnection>
 {

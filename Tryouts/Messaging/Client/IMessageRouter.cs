@@ -10,9 +10,7 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using MorganStanley.ComposeUI.Tryouts.Messaging.Core;
-
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Client;
+namespace MorganStanley.ComposeUI.Messaging.Client;
 
 /// <summary>
 ///     Message Router client interface.

@@ -14,7 +14,7 @@ using System.Buffers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Core.Serialization;
+namespace MorganStanley.ComposeUI.Messaging.Core.Serialization;
 
 public class Utf8ByteArrayConverter : JsonConverter<byte[]>
 {

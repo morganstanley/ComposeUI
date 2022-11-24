@@ -18,11 +18,11 @@ using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client.Transport.Abstractions;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Core.Messages;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Core.Serialization;
+using MorganStanley.ComposeUI.Messaging.Client.Transport.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Core.Messages;
+using MorganStanley.ComposeUI.Messaging.Core.Serialization;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Client.Transport.WebSocket;
+namespace MorganStanley.ComposeUI.Messaging.Client.Transport.WebSocket;
 
 internal class WebSocketConnection : IConnection
 {

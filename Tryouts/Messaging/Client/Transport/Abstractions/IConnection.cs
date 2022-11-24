@@ -10,9 +10,9 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using MorganStanley.ComposeUI.Tryouts.Messaging.Core.Messages;
+using MorganStanley.ComposeUI.Messaging.Core.Messages;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Client.Transport.Abstractions;
+namespace MorganStanley.ComposeUI.Messaging.Client.Transport.Abstractions;
 
 /// <summary>
 /// Represents a connection that can communicate with the server.

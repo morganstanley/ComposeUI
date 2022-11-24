@@ -28,7 +28,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Server\MorganStanley.ComposeUI.Tryouts.Messaging.Server.csproj" />
+	  <ProjectReference Include="../Server/MorganStanley.ComposeUI.Messaging.Server.csproj" />
 	</ItemGroup>
 
 </Project>

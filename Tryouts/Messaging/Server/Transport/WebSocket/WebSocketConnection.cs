@@ -17,11 +17,11 @@ using System.Net.WebSockets;
 using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Core.Messages;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Core.Serialization;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Server.Transport.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Core.Messages;
+using MorganStanley.ComposeUI.Messaging.Core.Serialization;
+using MorganStanley.ComposeUI.Messaging.Server.Transport.Abstractions;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Server.Transport.WebSocket;
+namespace MorganStanley.ComposeUI.Messaging.Server.Transport.WebSocket;
 
 internal class WebSocketConnection : IClientConnection
 {
