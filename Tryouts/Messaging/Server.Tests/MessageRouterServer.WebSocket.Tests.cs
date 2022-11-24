@@ -28,21 +28,6 @@ public class MessageRouterServerWebSocketTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Client_can_reconnect_with_existing_id()
-    {
-        var client1 = CreateWebSocket();
-        await client1.ConnectAsync(_webSocketUri, CancellationToken.None);
-        var clientId = await ConnectAndWaitForResponse(client1);
-        client1.Dispose();
-        await Task.Delay(100);
-        var client2 = CreateWebSocket();
-        await client2.ConnectAsync(_webSocketUri, CancellationToken.None);
-        await client2.SendUtf8BytesAsync($@" {{ ""type"": ""Connect"", ""clientId"": ""{clientId}"" }}");
-        var response = await client2.ReceiveJsonAsync();
-        response.Should().ContainSubtree($@" {{ ""type"": ""ConnectResponse"", ""clientId"": ""{clientId}"" }} ");
-    }
-
-    [Fact]
     public async Task Client_can_subscribe_and_receive_messages()
     {
         var publisher = await ConnectAsync();
