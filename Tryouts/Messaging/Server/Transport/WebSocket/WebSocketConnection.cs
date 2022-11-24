@@ -23,7 +23,7 @@ using MorganStanley.ComposeUI.Tryouts.Messaging.Server.Transport.Abstractions;
 
 namespace MorganStanley.ComposeUI.Tryouts.Messaging.Server.Transport.WebSocket;
 
-internal class WebSocketConnection : ISubscriber
+internal class WebSocketConnection : IClientConnection
 {
     public WebSocketConnection(
         IMessageRouterServer messageRouter,
@@ -45,9 +45,9 @@ internal class WebSocketConnection : ISubscriber
         return _outputChannel.Writer.WriteAsync(message, cancellationToken);
     }
 
-    public IAsyncEnumerable<Message> ReceiveAsync(CancellationToken cancellationToken = default)
+    public ValueTask<Message> ReceiveAsync(CancellationToken cancellationToken = default)
     {
-        return _inputChannel.Reader.ReadAllAsync(cancellationToken);
+        return _inputChannel.Reader.ReadAsync(cancellationToken);
     }
 
     public ValueTask DisposeAsync()

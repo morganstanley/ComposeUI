@@ -14,15 +14,7 @@ namespace MorganStanley.ComposeUI.Tryouts.Messaging.Core.Messages;
 
 public sealed class ConnectResponse : Message
 {
-    public ConnectResponse()
-    {
-    }
-
-    public ConnectResponse(Guid clientId)
-    {
-        ClientId = clientId;
-    }
-
     public override MessageType Type => MessageType.ConnectResponse;
-    public Guid ClientId { get; init; }
+    public string? ClientId { get; init; }
+    public string? Error { get; init; }
 }

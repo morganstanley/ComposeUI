@@ -24,4 +24,8 @@
 	  <ProjectReference Include="..\Core\MorganStanley.ComposeUI.Tryouts.Messaging.Core.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Internal\" />
+	</ItemGroup>
+
 </Project>

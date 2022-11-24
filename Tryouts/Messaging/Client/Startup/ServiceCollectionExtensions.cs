@@ -10,12 +10,11 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using MorganStanley.ComposeUI.Tryouts.Messaging.Client;
+using MorganStanley.ComposeUI.Tryouts.Messaging.Client.Internal;
+
 // ReSharper disable once CheckNamespace
-
-using Microsoft.Extensions.DependencyInjection;
-
-// TODO: Move to MSFT DI namespace
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Client.Startup;
+namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
 ///     Static extensions to add the Message Router client to a service collection.
@@ -34,9 +33,13 @@ public static class ServiceCollectionExtensions
         this IServiceCollection serviceCollection,
         Action<MessageRouterBuilder> builderAction)
     {
-        serviceCollection.AddTransient<IMessageRouter, MessageRouterClient>();
         var builder = new MessageRouterBuilder(serviceCollection);
         builderAction(builder);
+        serviceCollection.AddSingleton<IMessageRouter, MessageRouterClient>();
+
+        serviceCollection.AddSingleton<MessageRouterOptions>(
+            new MessageRouterOptions { AccessToken = builder.AccessToken });
+
         return serviceCollection;
     }
 }

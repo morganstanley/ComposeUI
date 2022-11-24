@@ -12,7 +12,6 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client.Startup;
 using MorganStanley.ComposeUI.Tryouts.Messaging.Client.Transport.Abstractions;
 
 namespace MorganStanley.ComposeUI.Tryouts.Messaging.Client.Transport.WebSocket;
@@ -31,7 +30,7 @@ public static class MessageRouterBuilderWebSocketExtensions
         MessageRouterWebSocketOptions options)
     {
         builder.ServiceCollection.AddSingleton<IOptions<MessageRouterWebSocketOptions>>(options);
-        builder.ServiceCollection.AddTransient<IClientConnection, WebSocketClientConnection>();
+        builder.ServiceCollection.AddTransient<IConnection, WebSocketConnection>();
         return builder;
     }
 }

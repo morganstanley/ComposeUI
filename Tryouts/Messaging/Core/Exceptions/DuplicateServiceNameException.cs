@@ -14,6 +14,10 @@ namespace MorganStanley.ComposeUI.Tryouts.Messaging.Core.Exceptions;
 
 public sealed class DuplicateServiceNameException : MessageRouterException
 {
+    public DuplicateServiceNameException(string serviceName) : base("Duplicate service name: " + serviceName)
+    {
+    }
+
     public DuplicateServiceNameException() : base("Duplicate service name")
     {
     }

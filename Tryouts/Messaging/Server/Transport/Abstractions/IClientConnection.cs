@@ -10,30 +10,27 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Client;
+using MorganStanley.ComposeUI.Tryouts.Messaging.Core.Messages;
 
-// TODO: Rename to TopicMessage?
+namespace MorganStanley.ComposeUI.Tryouts.Messaging.Server.Transport.Abstractions;
+
 /// <summary>
-///     Represents a message received from the Message Router server.
+/// Abstraction of a client connected to the Message Router server.
 /// </summary>
-///
-public sealed class RouterMessage
+public interface IClientConnection : IAsyncDisposable
 {
-    internal RouterMessage(string topic, string? payload)
-    {
-        Topic = topic;
-        Payload = payload;
-    }
+    /// <summary>
+    /// Sends a message to the client.
+    /// </summary>
+    /// <param name="message"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    ValueTask SendAsync(Message message, CancellationToken cancellationToken = default);
 
     /// <summary>
-    ///     The topic name of the message.
+    /// Returns the next message received from the client.
     /// </summary>
-    public string Topic { get; }
-
-    // TODO: Binary payload
-    /// <summary>
-    ///     The payload of the message. The format of the message is arbitrary and should
-    ///     be defined and documented with the message definition.
-    /// </summary>
-    public string? Payload { get; }
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    ValueTask<Message> ReceiveAsync(CancellationToken cancellationToken = default);
 }

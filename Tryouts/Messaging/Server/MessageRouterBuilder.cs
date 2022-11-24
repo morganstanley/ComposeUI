@@ -10,6 +10,9 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using MorganStanley.ComposeUI.Tryouts.Messaging.Server;
+using MorganStanley.ComposeUI.Tryouts.Messaging.Server.Internal;
+
 namespace Microsoft.Extensions.DependencyInjection;
 
 public sealed class MessageRouterBuilder
@@ -18,5 +21,51 @@ public sealed class MessageRouterBuilder
     {
         ServiceCollection = serviceCollection;
     }
+
+    public MessageRouterBuilder UseAccessTokenValidator(IAccessTokenValidator validator)
+    {
+        ServiceCollection.AddSingleton(validator);
+
+        return this;
+    }
+
+    public MessageRouterBuilder UseAccessTokenValidator(Func<IServiceProvider, IAccessTokenValidator> factory)
+    {
+        ServiceCollection.AddSingleton<IAccessTokenValidator>(factory);
+
+        return this;
+    }
+
+    public MessageRouterBuilder UseAccessTokenValidator(Action<string, string?> validatorCallback)
+    {
+        ServiceCollection.AddSingleton<IAccessTokenValidator>(
+            new AccessTokenValidator(
+                (id, token) =>
+                {
+                    validatorCallback(id, token);
+
+                    return default(ValueTask);
+                }));
+
+        return this;
+    }
+
+    public MessageRouterBuilder UseAccessTokenValidator(Func<string, string?, ValueTask> validatorCallback)
+    {
+        ServiceCollection.AddSingleton<IAccessTokenValidator>(new AccessTokenValidator(validatorCallback));
+
+        return this;
+    }
+
+    public MessageRouterBuilder UseAccessTokenValidator(Func<string, string?, Task> validatorCallback)
+    {
+        ServiceCollection.AddSingleton<IAccessTokenValidator>(
+            new AccessTokenValidator(
+                (id, token) => new ValueTask(validatorCallback(id, token))));
+
+        return this;
+    }
+
+
     internal IServiceCollection ServiceCollection { get; }
 }

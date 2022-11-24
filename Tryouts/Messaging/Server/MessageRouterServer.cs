@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Tryouts.Messaging.Core.Exceptions;
 using MorganStanley.ComposeUI.Tryouts.Messaging.Core.Messages;
+using MorganStanley.ComposeUI.Tryouts.Messaging.Server.Internal;
 using MorganStanley.ComposeUI.Tryouts.Messaging.Server.Transport.Abstractions;
 
 namespace MorganStanley.ComposeUI.Tryouts.Messaging.Server;
@@ -23,8 +24,11 @@ namespace MorganStanley.ComposeUI.Tryouts.Messaging.Server;
 // TODO: Also implement IMessageRouter to speed up in-process messaging
 internal class MessageRouterServer : IMessageRouterServer
 {
-    public MessageRouterServer(ILogger<MessageRouterServer>? logger)
+    public MessageRouterServer(
+        MessageRouterServerDependencies dependencies,
+        ILogger<MessageRouterServer>? logger = null)
     {
+        _accessTokenValidator = dependencies.AccessTokenValidator;
         _logger = logger ?? NullLogger<MessageRouterServer>.Instance;
     }
 
@@ -38,44 +42,59 @@ internal class MessageRouterServer : IMessageRouterServer
         }
     }
 
-    public ValueTask ClientConnected(ISubscriber subscriber)
+    public ValueTask ClientConnected(IClientConnection connection)
     {
-        var client = new Client(subscriber);
-        _connectionToClient[subscriber] = client;
+        var client = new Client(connection);
+        _connectionToClient[connection] = client;
         ProcessMessagesAsync(client, _stopTokenSource.Token);
 
         return default;
     }
 
-    public ValueTask ClientDisconnected(ISubscriber subscriber)
+    public ValueTask ClientDisconnected(IClientConnection connection)
     {
-        if (!_connectionToClient.TryRemove(subscriber, out var client))
+        if (!_connectionToClient.TryRemove(connection, out var client)
+            || !_clients.TryRemove(client.ClientId, out _))
+        {
             return default;
+        }
 
-        _clients.TryRemove(client.Id, out _);
-
-        return default;
+        client.StopTokenSource.Cancel();
+        // TODO: Clean up leftover junk like topic subscriptions
+        return new ValueTask(client.StopTaskSource.Task);
     }
 
-    private readonly ConcurrentDictionary<Guid, Client> _clients = new();
+    private readonly ConcurrentDictionary<string, Client> _clients = new();
     private readonly ILogger<MessageRouterServer> _logger;
     private readonly ConcurrentDictionary<string, ServiceInvocation> _serviceInvocations = new();
-    private readonly ConcurrentDictionary<string, Guid> _serviceRegistrations = new();
+    private readonly ConcurrentDictionary<string, string> _serviceRegistrations = new();
     private readonly CancellationTokenSource _stopTokenSource = new();
     private readonly ConcurrentDictionary<string, Topic> _topics = new();
-    private readonly ConcurrentDictionary<ISubscriber, Client> _connectionToClient = new();
+    private readonly ConcurrentDictionary<IClientConnection, Client> _connectionToClient = new();
+    private readonly IAccessTokenValidator? _accessTokenValidator;
 
     private async Task HandleConnectRequest(
         Client client,
         ConnectRequest message,
         CancellationToken cancellationToken)
     {
-        client.Id = Guid.NewGuid();
+        try
+        {
+            if (_accessTokenValidator != null)
+            {
+                await _accessTokenValidator.Validate(client.ClientId, message.AccessToken);
+            }
 
-        if (!_clients.TryAdd(client.Id, client))
-            return;
+            await client.Connection.SendAsync(
+                new ConnectResponse { ClientId = client.ClientId },
+                CancellationToken.None);
 
-        await client.Connection.SendAsync(new ConnectResponse(client.Id), cancellationToken);
+            _clients.TryAdd(client.ClientId, client);
+        }
+        catch (Exception e)
+        {
+            await client.Connection.SendAsync(new ConnectResponse { Error = e.Message }, CancellationToken.None);
+        }
     }
 
     private async Task HandleInvokeRequest(
@@ -85,13 +104,17 @@ internal class MessageRouterServer : IMessageRouterServer
     {
         try
         {
-            if (!_serviceRegistrations.TryGetValue(message.ServiceName, out var serviceId))
-                throw new UnknownServiceException();
+            if (!_serviceRegistrations.TryGetValue(message.ServiceName, out var serviceClientId)
+                || !_clients.TryGetValue(serviceClientId, out var serviceClient))
+            {
+                throw new UnknownServiceException(message.ServiceName);
+            }
 
-            if (!_clients.TryGetValue(serviceId, out var serviceClient))
-                throw new ServiceUnavailableException();
-
-            var request = new ServiceInvocation(message.RequestId, Guid.NewGuid().ToString(), client.Id, serviceId);
+            var request = new ServiceInvocation(
+                message.RequestId,
+                Guid.NewGuid().ToString(),
+                client.ClientId,
+                serviceClientId);
 
             if (!_serviceInvocations.TryAdd(request.ServiceRequestId, request))
                 throw new DuplicateRequestIdException();
@@ -104,7 +127,6 @@ internal class MessageRouterServer : IMessageRouterServer
         {
             _logger.LogError(
                 e,
-                message:
                 "An exception of type {ExceptionClassName} was thrown while processing an invocation for service '{ServiceName}'.",
                 e.GetType().FullName,
                 message.ServiceName);
@@ -112,7 +134,7 @@ internal class MessageRouterServer : IMessageRouterServer
             await client.Connection.SendAsync(
                 new InvokeResponse(
                     message.RequestId,
-                    payload: null,
+                    null,
                     e.Message),
                 CancellationToken.None);
         }
@@ -142,10 +164,9 @@ internal class MessageRouterServer : IMessageRouterServer
         if (string.IsNullOrWhiteSpace(message.Topic))
             return;
 
-        var topic = _topics.GetOrAdd(message.Topic, topicName => new Topic(topicName, ImmutableHashSet<Guid>.Empty));
+        var topic = _topics.GetOrAdd(message.Topic, topicName => new Topic(topicName, ImmutableHashSet<string>.Empty));
         var outgoingMessage = new UpdateMessage(message.Topic, message.Payload);
 
-        //var outgoingMessage = new UpdateMessage(message.Topic, Encoding.UTF8.GetBytes(message.Payload));
         await Task.WhenAll(
             topic.Subscribers.Select(
                 async subscriberId =>
@@ -165,74 +186,88 @@ internal class MessageRouterServer : IMessageRouterServer
 
         try
         {
-            if (!_serviceRegistrations.TryAdd(message.ServiceName, client.Id))
-                throw new DuplicateServiceNameException();
+            if (!_serviceRegistrations.TryAdd(message.ServiceName, client.ClientId))
+                throw new DuplicateServiceNameException(message.ServiceName);
 
-            await client.Connection.SendAsync(new RegisterServiceResponse(message.ServiceName));
+            await client.Connection.SendAsync(new RegisterServiceResponse(message.ServiceName), CancellationToken.None);
         }
         catch (Exception e)
         {
-            await client.Connection.SendAsync(new RegisterServiceResponse(message.ServiceName, e.Message));
+            await client.Connection.SendAsync(
+                new RegisterServiceResponse(message.ServiceName, e.Message),
+                CancellationToken.None);
         }
     }
 
-    private async Task HandleSubscribeMessage(
+    private Task HandleSubscribeMessage(
         Client client,
         SubscribeMessage message,
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(message.Topic))
-            return;
+            return Task.CompletedTask;
 
         var topic = _topics.AddOrUpdate(
             message.Topic,
-            (topicName, client) => new Topic(topicName, ImmutableHashSet<Guid>.Empty.Add(client.Id)),
-            (topicName, topic, client) =>
+            // ReSharper disable once VariableHidesOuterVariable
+            static (topicName, client) => new Topic(topicName, ImmutableHashSet<string>.Empty.Add(client.ClientId)),
+            // ReSharper disable once VariableHidesOuterVariable
+            static (topicName, topic, client) =>
             {
-                topic.Subscribers = topic.Subscribers.Add(client.Id);
+                topic.Subscribers = topic.Subscribers.Add(client.ClientId);
 
                 return topic;
             },
             client);
+
+        return Task.CompletedTask;
     }
 
-    private async Task HandleUnregisterServiceMessage(
+    private Task HandleUnregisterServiceMessage(
         Client client,
         UnregisterServiceMessage message,
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(message.ServiceName))
-            return;
+            return Task.CompletedTask;
 
-        _serviceRegistrations.TryRemove(new KeyValuePair<string, Guid>(message.ServiceName, client.Id));
+        _serviceRegistrations.TryRemove(new KeyValuePair<string, string>(message.ServiceName, client.ClientId));
+
+        return Task.CompletedTask;
     }
 
-    private async Task HandleUnsubscribeMessage(
+    private Task HandleUnsubscribeMessage(
         Client client,
         UnsubscribeMessage message,
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(message.Topic))
-            return;
+            return Task.CompletedTask;
 
         var topic = _topics.AddOrUpdate(
             message.Topic,
-            (topicName, client) => new Topic(topicName, ImmutableHashSet<Guid>.Empty.Add(client.Id)),
-            (topicName, topic, client) =>
+            // ReSharper disable once VariableHidesOuterVariable
+            static (topicName, client) => new Topic(topicName, ImmutableHashSet<string>.Empty),
+            // ReSharper disable once VariableHidesOuterVariable
+            static (topicName, topic, client) =>
             {
-                topic.Subscribers = topic.Subscribers.Remove(client.Id);
+                topic.Subscribers = topic.Subscribers.Remove(client.ClientId);
 
                 return topic;
             },
             client);
+
+        return Task.CompletedTask;
     }
 
     private async void ProcessMessagesAsync(Client client, CancellationToken cancellationToken)
     {
         try
         {
-            await foreach (var message in client.Connection.ReceiveAsync(cancellationToken))
+            while (!client.StopTokenSource.IsCancellationRequested)
             {
+                var message = await client.Connection.ReceiveAsync(cancellationToken);
+
                 try
                 {
                     switch (message.Type)
@@ -292,7 +327,7 @@ internal class MessageRouterServer : IMessageRouterServer
                     _logger.LogError(
                         e,
                         "Exception thrown while processing a message from client '{ClientId}': {ExceptionMessage}",
-                        client.Id,
+                        client.ClientId,
                         e.Message);
                 }
             }
@@ -302,25 +337,31 @@ internal class MessageRouterServer : IMessageRouterServer
             _logger.LogError(
                 e,
                 "Unhandled exception while processing messages from client '{ClientId}': {ExceptionMessage}",
-                client.Id,
+                client.ClientId,
                 e.Message);
+
+            client.StopTokenSource.Cancel();
         }
+
+        client.StopTaskSource.TrySetResult();
     }
 
     private class Client
     {
-        public Client(ISubscriber connection)
+        public Client(IClientConnection connection)
         {
             Connection = connection;
         }
 
-        public ISubscriber Connection { get; }
-        public Guid Id { get; set; } = Guid.Empty;
+        public IClientConnection Connection { get; }
+        public CancellationTokenSource StopTokenSource { get; } = new();
+        public TaskCompletionSource StopTaskSource { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public string ClientId { get; } = Guid.NewGuid().ToString("N");
     }
 
     private class Topic
     {
-        public Topic(string name, ImmutableHashSet<Guid> subscribers)
+        public Topic(string name, ImmutableHashSet<string> subscribers)
         {
             Name = name;
             Subscribers = subscribers;
@@ -328,7 +369,7 @@ internal class MessageRouterServer : IMessageRouterServer
 
         public string Name { get; }
 
-        public ImmutableHashSet<Guid> Subscribers { get; set; } = ImmutableHashSet<Guid>.Empty;
+        public ImmutableHashSet<string> Subscribers { get; set; } = ImmutableHashSet<string>.Empty;
     }
 
     private class ServiceInvocation
@@ -336,8 +377,8 @@ internal class MessageRouterServer : IMessageRouterServer
         public ServiceInvocation(
             string callerRequestId,
             string serviceRequestId,
-            Guid callerClientId,
-            Guid serviceClientId)
+            string callerClientId,
+            string serviceClientId)
         {
             CallerRequestId = callerRequestId;
             CallerClientId = callerClientId;
@@ -347,7 +388,8 @@ internal class MessageRouterServer : IMessageRouterServer
 
         public string CallerRequestId { get; }
         public string ServiceRequestId { get; }
-        public Guid CallerClientId { get; }
-        public Guid ServiceClientId { get; }
+        public string CallerClientId { get; }
+        public string ServiceClientId { get; }
     }
 }
+

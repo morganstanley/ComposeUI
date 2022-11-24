@@ -14,6 +14,10 @@ namespace MorganStanley.ComposeUI.Tryouts.Messaging.Core.Exceptions;
 
 public sealed class UnknownServiceException : MessageRouterException
 {
+    public UnknownServiceException(string serviceName) : base("Unknown service: " + serviceName)
+    {
+    }
+
     public UnknownServiceException() : base("Unknown service")
     {
     }

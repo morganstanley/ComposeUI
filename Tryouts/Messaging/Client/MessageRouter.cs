@@ -11,7 +11,6 @@
 // and limitations under the License.
 
 using Microsoft.Extensions.DependencyInjection;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client.Startup;
 
 namespace MorganStanley.ComposeUI.Tryouts.Messaging.Client;
 

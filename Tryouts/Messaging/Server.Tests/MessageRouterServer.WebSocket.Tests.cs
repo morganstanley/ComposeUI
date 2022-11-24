@@ -144,14 +144,9 @@ public class MessageRouterServerWebSocketTests : IAsyncLifetime
         return response.Value<string>("clientId")!;
     }
 
-    private ClientWebSocket CreateWebSocket()
-    {
-        return new ClientWebSocket();
-    }
-
     private async Task<WebSocket> ConnectAsync()
     {
-        var webSocket = CreateWebSocket();
+        var webSocket = new ClientWebSocket();
         await webSocket.ConnectAsync(_webSocketUri, CancellationToken.None);
         await ConnectAndWaitForResponse(webSocket);
 
