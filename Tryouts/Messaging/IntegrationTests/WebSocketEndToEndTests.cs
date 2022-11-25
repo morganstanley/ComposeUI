@@ -10,17 +10,16 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MorganStanley.ComposeUI.Messaging.Client;
 using MorganStanley.ComposeUI.Messaging.Client.Transport.WebSocket;
+using MorganStanley.ComposeUI.Messaging.Core;
 using MessageRouterBuilderWebSocketExtensions = MorganStanley.ComposeUI.Messaging.Server.Transport.WebSocket.MessageRouterBuilderWebSocketExtensions;
 
 namespace MorganStanley.ComposeUI.Messaging.IntegrationTests;
-
-// To run these tests, first start the server (ComposeUI.Messaging.Server) without debugging.
-// The tests will not leave the server in a clean state.
-// Some tests might fail if not run after a clean start.
 
 public class WebSocketEndToEndTests : IAsyncLifetime
 {
@@ -37,13 +36,18 @@ public class WebSocketEndToEndTests : IAsyncLifetime
         await using var publisher = CreateClient();
         await using var subscriber = CreateClient();
         var observerMock = new Mock<IObserver<RouterMessage>>();
+        var receivedMessages = new List<RouterMessage>();
+        observerMock.Setup(x => x.OnNext(Capture.In(receivedMessages)));
 
         await subscriber.SubscribeAsync("test-topic", observerMock.Object);
         await Task.Delay(100);
-        await publisher.PublishAsync("test-topic", "test-payload");
+        var publishedPayload = new TestPayload { IntProperty = 0x10203040, StringProperty = "Compose UI 🔥" };
+        await publisher.PublishAsync("test-topic", Utf8Buffer.Create(JsonSerializer.SerializeToUtf8Bytes(publishedPayload)));
         await Task.Delay(100);
 
-        observerMock.Verify(x => x.OnNext(It.Is<RouterMessage>(msg => msg.Payload!.SequenceEqual("test-payload"))));
+        var receivedPayload = JsonSerializer.Deserialize<TestPayload>(receivedMessages.Single().Payload!.GetSpan());
+
+        receivedPayload.Should().BeEquivalentTo(publishedPayload);
     }
 
     [Fact]
@@ -62,8 +66,8 @@ public class WebSocketEndToEndTests : IAsyncLifetime
         var handlerMock = new Mock<ServiceInvokeHandler>();
 
         handlerMock
-            .Setup(_ => _.Invoke("test-service", It.IsAny<string>()))
-            .Returns(new ValueTask<string?>("test-response"));
+            .Setup(_ => _.Invoke("test-service", It.IsAny<Utf8Buffer?>()))
+            .Returns(new ValueTask<Utf8Buffer?>(Utf8Buffer.Create("test-response")));
 
         await service.RegisterServiceAsync("test-service", handlerMock.Object);
 
@@ -72,7 +76,7 @@ public class WebSocketEndToEndTests : IAsyncLifetime
         var response = await client.InvokeAsync("test-service", "test-request");
 
         response.Should().BeEquivalentTo("test-response");
-        handlerMock.Verify(_ => _.Invoke("test-service", "test-request"));
+        handlerMock.Verify(_ => _.Invoke("test-service", It.Is<Utf8Buffer>(buf => buf.GetString() == "test-request")));
 
         await service.UnregisterServiceAsync("test-service");
     }
@@ -118,5 +122,11 @@ public class WebSocketEndToEndTests : IAsyncLifetime
                 .UseWebSocket(
                     new MessageRouterWebSocketOptions { Uri = _webSocketUri })
                 .UseAccessToken(AccessToken));
+    }
+
+    private class TestPayload
+    {
+        public int IntProperty { get; set; }
+        public string StringProperty { get; set; }
     }
 }

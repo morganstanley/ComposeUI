@@ -10,10 +10,16 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using MorganStanley.ComposeUI.Messaging.Core;
+
 namespace MorganStanley.ComposeUI.Messaging.Client;
 
-// TODO: Binary payload
 /// <summary>
 ///     The delegate type that gets called when a registered service is invoked.
 /// </summary>
-public delegate ValueTask<string?> ServiceInvokeHandler(string serviceName, string? payload);
+public delegate ValueTask<Utf8Buffer?> ServiceInvokeHandler(string serviceName, Utf8Buffer? payload);
+
+/// <summary>
+///     The delegate type that gets called when a registered service is invoked (plain text version).
+/// </summary>
+public delegate ValueTask<string?> PlainTextServiceInvokeHandler(string serviceName, string? payload);

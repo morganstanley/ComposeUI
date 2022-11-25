@@ -24,5 +24,5 @@ public sealed class UnsubscribeMessage : Message
     }
 
     public override MessageType Type => MessageType.Unsubscribe;
-    public string Topic { get; init; }
+    public string Topic { get; init; } = null!;
 }

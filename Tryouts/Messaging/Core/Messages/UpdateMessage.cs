@@ -18,13 +18,13 @@ public sealed class UpdateMessage : Message
     {
     }
 
-    public UpdateMessage(string topic, string? payload)
+    public UpdateMessage(string topic, Utf8Buffer? payload)
     {
         Topic = topic;
         Payload = payload;
     }
 
     public override MessageType Type => MessageType.Update;
-    public string Topic { get; init; }
-    public string? Payload { get; init; }
+    public string Topic { get; init; } = null!;
+    public Utf8Buffer? Payload { get; init; }
 }

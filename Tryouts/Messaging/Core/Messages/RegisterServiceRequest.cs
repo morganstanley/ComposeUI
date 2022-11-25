@@ -24,5 +24,5 @@ public sealed class RegisterServiceRequest : Message
     }
 
     public override MessageType Type => MessageType.RegisterService;
-    public string ServiceName { get; init; }
+    public string ServiceName { get; init; } = null!;
 }

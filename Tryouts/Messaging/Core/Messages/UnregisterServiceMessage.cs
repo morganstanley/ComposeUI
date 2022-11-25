@@ -25,5 +25,5 @@ public class UnregisterServiceMessage : Message
 
     public override MessageType Type => MessageType.UnregisterService;
 
-    public string ServiceName { get; init; }
+    public string ServiceName { get; init; } = null!;
 }

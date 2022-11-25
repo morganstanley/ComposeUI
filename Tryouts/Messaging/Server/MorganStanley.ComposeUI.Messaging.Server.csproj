@@ -12,7 +12,7 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.3" />
 		<PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
 		<PackageReference Include="System.IO.Pipelines" Version="6.0.3" />
-		<PackageReference Include="System.Text.Json" Version="6.0.5" />
+		<PackageReference Include="System.Text.Json" Version="6.0.7" />
 	</ItemGroup>
 
 	<ItemGroup>

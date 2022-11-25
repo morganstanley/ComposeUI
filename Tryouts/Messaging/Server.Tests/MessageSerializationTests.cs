@@ -14,6 +14,7 @@ using System.Buffers;
 using System.Text;
 using MorganStanley.ComposeUI.Messaging.Core.Messages;
 using MorganStanley.ComposeUI.Messaging.Core.Serialization;
+using MorganStanley.ComposeUI.Messaging.Core.Serialization.Json;
 
 namespace MorganStanley.ComposeUI.Messaging.Server.Tests;
 

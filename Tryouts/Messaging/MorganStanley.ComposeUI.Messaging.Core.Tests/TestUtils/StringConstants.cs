@@ -10,21 +10,10 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Messaging.Core.Messages;
+namespace MorganStanley.ComposeUI.Messaging.Core.TestUtils;
 
-public sealed class RegisterServiceResponse : Message
+internal static class StringConstants
 {
-    public RegisterServiceResponse()
-    {
-    }
-
-    public RegisterServiceResponse(string serviceName, string? error = null)
-    {
-        ServiceName = serviceName;
-        Error = error;
-    }
-
-    public override MessageType Type => MessageType.RegisterServiceResponse;
-    public string ServiceName { get; init; } = null!;
-    public string? Error { get; init; }
+    public const string LoremIpsum = "Lorem ipsum dolor sit amet";
+    public const string Emojis = "❤️❤️❤️ ComposeUI 🔥🔥🔥";
 }

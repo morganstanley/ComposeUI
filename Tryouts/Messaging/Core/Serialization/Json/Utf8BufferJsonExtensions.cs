@@ -12,29 +12,26 @@
 
 using MorganStanley.ComposeUI.Messaging.Core;
 
-namespace MorganStanley.ComposeUI.Messaging.Client;
+// These extension methods only make sense if System.Text.Json is already in scope.
+// ReSharper disable once CheckNamespace
+namespace System.Text.Json;
 
-// TODO: Rename to TopicMessage?
 /// <summary>
-///     Represents a message received from the Message Router server.
+/// Extensions methods for handling JSON data in <see cref="Utf8Buffer"/> objects.
 /// </summary>
-///
-public sealed class RouterMessage
+public static class Utf8BufferJsonExtensions
 {
-    internal RouterMessage(string topic, Utf8Buffer? payload)
+    /// <summary>
+    /// Deserializes the JSON content of the buffer.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="buffer"></param>
+    /// <param name="options"></param>
+    /// <returns></returns>
+    public static T? ReadJson<T>(this Utf8Buffer buffer, JsonSerializerOptions? options = null)
     {
-        Topic = topic;
-        Payload = payload;
+        var reader = new Utf8JsonReader(buffer.GetSpan());
+
+        return JsonSerializer.Deserialize<T>(ref reader, options);
     }
-
-    /// <summary>
-    ///     The topic name of the message.
-    /// </summary>
-    public string Topic { get; }
-
-    /// <summary>
-    ///     The payload of the message. The format of the message is arbitrary and should
-    ///     be defined and documented with the message definition.
-    /// </summary>
-    public Utf8Buffer? Payload { get; }
 }

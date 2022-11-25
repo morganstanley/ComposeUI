@@ -34,7 +34,7 @@ public abstract class Message
             MessageType.InvokeResponse => typeof(InvokeResponse),
             MessageType.RegisterServiceResponse => typeof(RegisterServiceResponse),
             MessageType.UnregisterService => typeof(UnregisterServiceMessage),
-            _ => throw new ArgumentOutOfRangeException()
+            _ => throw new ArgumentOutOfRangeException(nameof(messageType))
         };
     }
 }
