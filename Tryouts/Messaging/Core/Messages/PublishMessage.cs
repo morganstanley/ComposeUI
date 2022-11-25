@@ -18,15 +18,13 @@ public sealed class PublishMessage : Message
     {
     }
 
-    public PublishMessage(string topic, string? payload)
+    public PublishMessage(string topic, Utf8Buffer? payload)
     {
         Topic = topic;
         Payload = payload;
     }
 
     public override MessageType Type => MessageType.Publish;
-    public string Topic { get; init; }
-    public string? Payload { get; init; }
-
-    // TODO: Binary payload
+    public string Topic { get; init; } = null!;
+    public Utf8Buffer? Payload { get; init; }
 }

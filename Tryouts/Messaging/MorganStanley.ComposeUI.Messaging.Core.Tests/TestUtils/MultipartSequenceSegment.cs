@@ -10,21 +10,23 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Messaging.Core.Messages;
+using System.Buffers;
 
-public sealed class RegisterServiceResponse : Message
+namespace MorganStanley.ComposeUI.Messaging.Core.TestUtils;
+
+internal class MultipartSequenceSegment<T> : ReadOnlySequenceSegment<T>
 {
-    public RegisterServiceResponse()
+    public MultipartSequenceSegment(T[] array)
     {
+        Memory = new ReadOnlyMemory<T>(array);
+        RunningIndex = 0;
     }
 
-    public RegisterServiceResponse(string serviceName, string? error = null)
+    public MultipartSequenceSegment<T> Append(T[] array)
     {
-        ServiceName = serviceName;
-        Error = error;
-    }
+        var next = new MultipartSequenceSegment<T>(array) { RunningIndex = RunningIndex + Memory.Length };
+        Next = next;
 
-    public override MessageType Type => MessageType.RegisterServiceResponse;
-    public string ServiceName { get; init; } = null!;
-    public string? Error { get; init; }
+        return next;
+    }
 }

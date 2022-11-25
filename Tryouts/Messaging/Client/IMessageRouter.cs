@@ -10,6 +10,8 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using MorganStanley.ComposeUI.Messaging.Core;
+
 namespace MorganStanley.ComposeUI.Messaging.Client;
 
 /// <summary>
@@ -49,7 +51,6 @@ public interface IMessageRouter : IAsyncDisposable
         IObserver<RouterMessage> observer,
         CancellationToken cancellationToken = default);
 
-    // TODO: Binary payload
     /// <summary>
     ///     Publishes a message to a topic.
     /// </summary>
@@ -57,9 +58,8 @@ public interface IMessageRouter : IAsyncDisposable
     /// <param name="payload"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    ValueTask PublishAsync(string topicName, string? payload = null, CancellationToken cancellationToken = default);
+    ValueTask PublishAsync(string topicName, Utf8Buffer? payload = null, CancellationToken cancellationToken = default);
 
-    // TODO: Binary payload
     /// <summary>
     ///     Invokes a named service.
     /// </summary>
@@ -67,9 +67,9 @@ public interface IMessageRouter : IAsyncDisposable
     /// <param name="payload"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    ValueTask<string?> InvokeAsync(
+    ValueTask<Utf8Buffer?> InvokeAsync(
         string serviceName,
-        string? payload = null,
+        Utf8Buffer? payload = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>

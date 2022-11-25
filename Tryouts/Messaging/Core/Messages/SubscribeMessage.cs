@@ -24,5 +24,5 @@ public sealed class SubscribeMessage : Message
     }
 
     public override MessageType Type => MessageType.Subscribe;
-    public string Topic { get; init; }
+    public string Topic { get; init; } = null!;
 }

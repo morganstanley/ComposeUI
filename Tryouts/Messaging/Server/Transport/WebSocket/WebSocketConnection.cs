@@ -19,6 +19,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Messaging.Core.Messages;
 using MorganStanley.ComposeUI.Messaging.Core.Serialization;
+using MorganStanley.ComposeUI.Messaging.Core.Serialization.Json;
 using MorganStanley.ComposeUI.Messaging.Server.Transport.Abstractions;
 
 namespace MorganStanley.ComposeUI.Messaging.Server.Transport.WebSocket;

@@ -10,21 +10,15 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Messaging.Core.Messages;
+namespace MorganStanley.ComposeUI.Messaging.Core.Serialization.Json;
 
-public sealed class RegisterServiceResponse : Message
+internal static class ThrowHelper
 {
-    public RegisterServiceResponse()
-    {
-    }
+    public static InvalidOperationException StringExpected() => new InvalidOperationException("String expected");
 
-    public RegisterServiceResponse(string serviceName, string? error = null)
-    {
-        ServiceName = serviceName;
-        Error = error;
-    }
+    public static ArgumentException DestinationTooShort(string paramName) =>
+        new ArgumentException("The destination buffer is too short", paramName);
 
-    public override MessageType Type => MessageType.RegisterServiceResponse;
-    public string ServiceName { get; init; } = null!;
-    public string? Error { get; init; }
+    public static InvalidOperationException InvalidUnicodeSequence() =>
+        new InvalidOperationException("Invalid Unicode sequence");
 }

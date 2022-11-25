@@ -11,12 +11,13 @@
 // and limitations under the License.
 
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using MorganStanley.ComposeUI.Messaging.Core.Messages;
 
-namespace MorganStanley.ComposeUI.Messaging.Core.Serialization;
+namespace MorganStanley.ComposeUI.Messaging.Core.Serialization.Json;
 
 /// <summary>
 ///     Serializes/deserializes messages to/from JSON
@@ -27,7 +28,7 @@ public static class JsonMessageSerializer
         new()
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            Converters = { new MessageConverter(), new Utf8ByteArrayConverter(), new JsonStringEnumConverter() },
+            Converters = { new MessageConverter(), new Utf8BufferConverter(), new JsonStringEnumConverter() },
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
@@ -51,45 +52,57 @@ public static class JsonMessageSerializer
         var reader = new Utf8JsonReader(buffer);
         var message = JsonSerializer.Deserialize<Message>(ref reader, Options);
         buffer = buffer.Slice(reader.Position);
-        return message;
+
+        return message ?? throw new JsonException($"Expected a {nameof(Message)} object, but found null");
     }
 
-    private class MessageConverter : JsonConverter<Message>
+    private sealed class MessageConverter : JsonConverter<Message>
     {
         public override Message? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
+            if (!TryReadMessage(ref reader, options, out var message))
+            {
+                throw new JsonException();
+            }
+
+            return message;
+        }
+
+        private static bool TryReadMessage(
+            ref Utf8JsonReader reader,
+            JsonSerializerOptions options,
+            [MaybeNullWhen(false)] out Message message)
+        {
             var innerReader = reader;
-            if (innerReader.TokenType != JsonTokenType.StartObject) goto InvalidJson;
+            message = null!;
+
+            if (innerReader.TokenType != JsonTokenType.StartObject)
+                return false;
+
             while (innerReader.Read())
+            {
                 switch (innerReader.TokenType)
                 {
                     case JsonTokenType.PropertyName:
                         if (innerReader.ValueTextEquals(TypePropertyNameBytes))
                         {
-                            if (!innerReader.Read()) goto InvalidJson;
-                            MessageType messageType;
-                            switch (innerReader.TokenType)
-                            {
-                                case JsonTokenType.String:
-                                    messageType = Enum.Parse<MessageType>(innerReader.GetString()!, ignoreCase: true);
-                                    break;
-                                case JsonTokenType.Number:
-                                    messageType = (MessageType)innerReader.GetInt32();
-                                    break;
-                                default:
-                                    goto InvalidJson;
-                            }
+                            if (!innerReader.Read())
+                                return false;
 
+                            var messageType = JsonSerializer.Deserialize<MessageType>(ref innerReader, options);
                             var type = Message.ResolveMessageType(messageType);
-                            return (Message)JsonSerializer.Deserialize(ref reader, type, options)!;
+                            message = (Message)JsonSerializer.Deserialize(ref reader, type, options)!;
+
+                            return true;
                         }
 
                         innerReader.Skip();
+
                         break;
                 }
+            }
 
-            InvalidJson:
-            throw new JsonException();
+            return false;
         }
 
         public override bool CanConvert(Type typeToConvert)
@@ -103,21 +116,5 @@ public static class JsonMessageSerializer
         }
 
         private static readonly byte[] TypePropertyNameBytes = Encoding.UTF8.GetBytes("type");
-    }
-
-    // TODO: Allow raw byte payloads
-    private class Base64ByteArrayConverter : JsonConverter<byte[]>
-    {
-        public override byte[]? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-        {
-            return reader.TokenType == JsonTokenType.String
-                ? reader.GetBytesFromBase64()
-                : null;
-        }
-
-        public override void Write(Utf8JsonWriter writer, byte[] value, JsonSerializerOptions options)
-        {
-            writer.WriteBase64StringValue(value);
-        }
     }
 }

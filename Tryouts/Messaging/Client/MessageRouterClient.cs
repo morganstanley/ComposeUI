@@ -14,6 +14,7 @@ using System.Collections.Concurrent;
 using System.Reactive.Subjects;
 using MorganStanley.ComposeUI.Messaging.Client.Internal;
 using MorganStanley.ComposeUI.Messaging.Client.Transport.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Core;
 using MorganStanley.ComposeUI.Messaging.Core.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Core.Messages;
 using Nito.AsyncEx;
@@ -70,16 +71,19 @@ internal sealed class MessageRouterClient : IMessageRouter
 
     public async ValueTask PublishAsync(
         string topicName,
-        string? payload = null,
+        Utf8Buffer? payload = null,
         CancellationToken cancellationToken = default)
     {
         await ConnectAsync(cancellationToken);
-        await _connection.SendAsync(new PublishMessage(topicName, payload), cancellationToken);
+
+        await _connection.SendAsync(
+            new PublishMessage(topicName, payload),
+            cancellationToken);
     }
 
-    public async ValueTask<string?> InvokeAsync(
+    public async ValueTask<Utf8Buffer?> InvokeAsync(
         string serviceName,
-        string? payload = null,
+        Utf8Buffer? payload = null,
         CancellationToken cancellationToken = default)
     {
         var requestId = Guid.NewGuid().ToString();
@@ -89,7 +93,9 @@ internal sealed class MessageRouterClient : IMessageRouter
 
         try
         {
-            await _connection.SendAsync(new InvokeRequest(requestId, serviceName, payload), cancellationToken);
+            await _connection.SendAsync(
+                new InvokeRequest(requestId, serviceName, payload),
+                cancellationToken);
         }
         catch (Exception e)
         {

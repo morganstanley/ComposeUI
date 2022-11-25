@@ -18,7 +18,7 @@ public sealed class InvokeResponse : Message
     {
     }
 
-    public InvokeResponse(string requestId, string? payload, string? error = null)
+    public InvokeResponse(string requestId, Utf8Buffer? payload, string? error = null)
     {
         RequestId = requestId;
         Payload = payload;
@@ -27,6 +27,6 @@ public sealed class InvokeResponse : Message
 
     public override MessageType Type => MessageType.InvokeResponse;
     public string RequestId { get; init; } = null!;
-    public string? Payload { get; init; }
+    public Utf8Buffer? Payload { get; init; }
     public string? Error { get; init; }
 }

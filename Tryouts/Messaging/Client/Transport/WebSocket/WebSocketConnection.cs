@@ -21,6 +21,7 @@ using Microsoft.Extensions.Options;
 using MorganStanley.ComposeUI.Messaging.Client.Transport.Abstractions;
 using MorganStanley.ComposeUI.Messaging.Core.Messages;
 using MorganStanley.ComposeUI.Messaging.Core.Serialization;
+using MorganStanley.ComposeUI.Messaging.Core.Serialization.Json;
 
 namespace MorganStanley.ComposeUI.Messaging.Client.Transport.WebSocket;
 
@@ -166,7 +167,7 @@ internal class WebSocketConnection : IConnection
         }
     }
 
-    private bool TryReadMessage(ref ReadOnlySequence<byte> buffer, [NotNullWhen(true)] out Message? message)
+    private static bool TryReadMessage(ref ReadOnlySequence<byte> buffer, [NotNullWhen(true)] out Message? message)
     {
         var innerBuffer = buffer;
 

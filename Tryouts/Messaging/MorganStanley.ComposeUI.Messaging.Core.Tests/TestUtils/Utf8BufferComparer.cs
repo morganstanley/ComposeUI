@@ -10,21 +10,17 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Messaging.Core.Messages;
+using FluentAssertions.Equivalency;
 
-public sealed class RegisterServiceResponse : Message
+namespace MorganStanley.ComposeUI.Messaging.Core.TestUtils;
+
+public class Utf8BufferComparer : IEquivalencyStep
 {
-    public RegisterServiceResponse()
+    public EquivalencyResult Handle(
+        Comparands comparands,
+        IEquivalencyValidationContext context,
+        IEquivalencyValidator nestedValidator)
     {
+        throw new NotImplementedException();
     }
-
-    public RegisterServiceResponse(string serviceName, string? error = null)
-    {
-        ServiceName = serviceName;
-        Error = error;
-    }
-
-    public override MessageType Type => MessageType.RegisterServiceResponse;
-    public string ServiceName { get; init; } = null!;
-    public string? Error { get; init; }
 }

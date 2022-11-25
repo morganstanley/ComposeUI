@@ -13,7 +13,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Mes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.IntegrationTests", "IntegrationTests\MorganStanley.ComposeUI.Messaging.IntegrationTests.csproj", "{684367EE-406C-4727-993D-EF4B6FF5C37C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfHost", "WpfHost\WpfHost.csproj", "{7BDA5B06-82A4-4BD7-BA70-82382CEABDF5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WpfHost", "WpfHost\WpfHost.csproj", "{7BDA5B06-82A4-4BD7-BA70-82382CEABDF5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MorganStanley.ComposeUI.Messaging.Core.Tests", "MorganStanley.ComposeUI.Messaging.Core.Tests\MorganStanley.ComposeUI.Messaging.Core.Tests.csproj", "{CDC30566-1801-40CD-9EBD-2913418FC2F9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{7BDA5B06-82A4-4BD7-BA70-82382CEABDF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7BDA5B06-82A4-4BD7-BA70-82382CEABDF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7BDA5B06-82A4-4BD7-BA70-82382CEABDF5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CDC30566-1801-40CD-9EBD-2913418FC2F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CDC30566-1801-40CD-9EBD-2913418FC2F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CDC30566-1801-40CD-9EBD-2913418FC2F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CDC30566-1801-40CD-9EBD-2913418FC2F9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

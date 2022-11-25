@@ -18,7 +18,7 @@ public sealed class InvokeRequest : Message
     {
     }
 
-    public InvokeRequest(string requestId, string serviceName, string? payload)
+    public InvokeRequest(string requestId, string serviceName, Utf8Buffer? payload)
     {
         RequestId = requestId;
         ServiceName = serviceName;
@@ -28,5 +28,5 @@ public sealed class InvokeRequest : Message
     public override MessageType Type => MessageType.Invoke;
     public string RequestId { get; init; } = null!;
     public string ServiceName { get; init; } = null!;
-    public string? Payload { get; init; }
+    public Utf8Buffer? Payload { get; init; }
 }
