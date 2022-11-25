@@ -1,0 +1,3 @@
+# Compose Application
+A Compose Application is an executable that hosts the ComposeUI infrastructure and modules. The responsibilities of a Compose Application are creating and starting the core ComposeUI components such as the MessageRouter and the ModuleLoader, presenting a Shell to the user and providing a module manifest to these components listing the modules available to load.
+While the core ComposeUI components are hosted within the main Compose Application process, modules are loaded into separate processes.
