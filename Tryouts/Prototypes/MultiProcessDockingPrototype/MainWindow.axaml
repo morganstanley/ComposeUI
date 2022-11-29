@@ -1,0 +1,48 @@
+<!--
+********************************************************************************************************
+
+Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License").
+You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
+See the NOTICE file distributed with this work for additional information regarding copyright ownership.
+Unless required by applicable law or agreed to in writing, software distributed under the License
+is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and limitations under the License.
+
+********************************************************************************************************
+-->
+<Window x:Class="MorganStanley.ComposeUI.Prototypes.MultiProcessDockingPrototype.MainWindow"
+		xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:utils="clr-namespace:NP.Utilities.PluginUtils;assembly=NP.Utilities"
+		xmlns:basicServices="clr-namespace:NP.Utilities.BasicServices;assembly=NP.Utilities"
+		xmlns:np="https://np.com/visuals"
+		xmlns:ms="https://ms.com/visuals"
+		Background="White"
+		Foreground="Black"
+        Title="Plugins Test"
+	    Width="1500"
+	    Height="1000">
+	<Window.Resources>
+		<np:DockManager x:Key="TheDockManager"/>
+	</Window.Resources>
+	<Grid x:Name="RootPanel"
+		  RowDefinitions="*, Auto"
+		  Margin="10">
+
+		<np:RootDockGroup np:DockAttachedProperties.TheDockManager="{StaticResource TheDockManager}">
+			<np:StackDockGroup TheOrientation="Vertical">
+				<np:StackDockGroup TheOrientation="Horizontal">
+					<np:DockItem  Header="Simple App">
+						<ms:EmbeddedNativeControl ProcessExePath="Plugins/ApplicationPlugins/SimpleWpfApp/SimpleWpfApp.exe"/>
+					</np:DockItem>
+					<np:DockItem Header="Another Simple App">
+						<ms:EmbeddedNativeControl ProcessExePath="Plugins/ApplicationPlugins/AnotherWpfApp/AnotherWpfApp.exe"/>
+					</np:DockItem>
+				</np:StackDockGroup>
+				<np:DockItem Header="Notepad++">
+					<ms:EmbeddedNativeControl ProcessExePath="C:\Program Files\Notepad++\notepad++.exe"/>
+				</np:DockItem>
+			</np:StackDockGroup>
+		</np:RootDockGroup>
+	</Grid>
+</Window>
