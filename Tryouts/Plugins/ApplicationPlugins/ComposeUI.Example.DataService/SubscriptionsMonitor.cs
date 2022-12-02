@@ -20,7 +20,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client;
+using MorganStanley.ComposeUI.Messaging.Client;
 
 namespace ComposeUI.Example.DataService
 {
@@ -68,7 +68,7 @@ namespace ComposeUI.Example.DataService
 
             if (payload != null)
             {
-                Selected = JsonSerializer.Deserialize<MonthlySalesDataModel>(payload, MonthlySalesDataModel.JsonSerializerOptions);
+                Selected = JsonSerializer.Deserialize<MonthlySalesDataModel>(payload.GetSpan(), MonthlySalesDataModel.JsonSerializerOptions);
 
                 if (Selected != null)
                 {
