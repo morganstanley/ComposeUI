@@ -14,8 +14,8 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client.Transport.WebSocket;
+using MorganStanley.ComposeUI.Messaging.Client;
+using MorganStanley.ComposeUI.Messaging.Client.Transport.WebSocket;
 
 namespace ComposeUI.Example.DataService;
 
