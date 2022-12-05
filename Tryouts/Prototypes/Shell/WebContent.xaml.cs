@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -42,6 +43,13 @@ namespace Shell
             _uriString = str;
 
             webView2.Source = new Uri(_uriString);
+        }
+        
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            MainWindow.webContentList.Remove(this);
+            
+            base.OnClosing(e);
         }
     }
 }

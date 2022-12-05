@@ -17,12 +17,12 @@ See the License for the specific language governing permissions and limitations 
         xmlns:local="clr-namespace:Shell"
         mc:Ignorable="d"
         Title="Compose" Height="450" Width="800">
-    <Grid>
-        <StackPanel Orientation="Vertical">
-            <Label DockPanel.Dock="Top">Hello Compose!</Label>
-            <DockPanel DockPanel.Dock="Top">
-                <Button x:Name="ButtonGo" DockPanel.Dock="Right" Click="ShowChild_Click" Content="Open Child Window"/>
-            </DockPanel>
+    <DockPanel Background="#002B51">
+        <Label DockPanel.Dock="Top" Foreground="White" FontSize="20">Hello Compose!</Label>
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button x:Name="ButtonGo" HorizontalAlignment="Center" DockPanel.Dock="Right" Click="ShowChild_Click" Content="Open morganstanley.com" Background="#FFF2F2F2" Padding="5" Margin="20" Height="40"/>
+            <Button x:Name="ButtonGo2" HorizontalAlignment="Center" DockPanel.Dock="Right" Click="ShowChild_Click2" Content="Open microsoft.com" Background="#FFF2F2F2" Padding="5" Margin="20" Height="40"/>
+            <Button x:Name="ButtonGo3" HorizontalAlignment="Center" DockPanel.Dock="Right" Click="ShowChild_Click3" Content="Open google.com" Background="#FFF2F2F2" Padding="5" Margin="20" Height="40"/>
         </StackPanel>
-    </Grid>
+    </DockPanel>
 </Window> 
