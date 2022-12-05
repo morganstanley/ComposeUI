@@ -35,7 +35,7 @@ namespace Shell
     /// </summary>
     public partial class MainWindow : Window
     {
-        private List<WebContent> webContentList = new List<WebContent>();
+        public static List<WebContent> webContentList = new List<WebContent>();
         private ManifestModel config;
         private ModuleModel[]? modules;
 
@@ -46,25 +46,38 @@ namespace Shell
             config = new ManifestParser().manifest;
             modules = config.Modules;
         }
+        
+        private void UpdateViews(ModuleModel item) {
+           
+            var webContent = new WebContent(item.Url);
+            webContent.Title = item.AppName;
+
+            webContent.Owner = this;
+            
+            webContentList.Add(webContent);
+            webContent.Show();
+        }
 
         private void ShowChild_Click(object sender, RoutedEventArgs e)
         {
-            Array.ForEach(modules, item => {
-                var webContent = new WebContent(item.Url);
-                webContent.Title = item.AppName;
-            
-                webContent.Owner = this;
-                webContentList.Add(webContent);
-            
-                webContent.Show();
-            });
+            this.UpdateViews(modules[0]);
         }
 
+        private void ShowChild_Click2(object sender, RoutedEventArgs e)
+        {
+            this.UpdateViews(modules[1]);
+        }
+
+        private void ShowChild_Click3(object sender, RoutedEventArgs e)
+        {
+            this.UpdateViews(modules[2]);
+        }
+        
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
-            webContentList.ForEach(window => window.Close());
+            webContentList.ToList().ForEach(window => window?.Close());
             webContentList.Clear();
-
+            
             base.OnClosing(e);
         }
     }
