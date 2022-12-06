@@ -35,7 +35,7 @@ namespace Shell
     /// </summary>
     public partial class MainWindow : Window
     {
-        public static List<WebContent> webContentList = new List<WebContent>();
+        internal static List<WebContent> webContentList { get; set; } = new List<WebContent>();
         private ManifestModel config;
         private ModuleModel[]? modules;
 
