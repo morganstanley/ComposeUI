@@ -10,10 +10,11 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using MorganStanley.ComposeUI.Messaging.Core;
+
 namespace MorganStanley.ComposeUI.Messaging.Client;
 
-// TODO: MessagingScope
-public class MessagingScope
+public struct PublishOptions
 {
-    
+    public MessagingScope Scope { get; set; }
 }

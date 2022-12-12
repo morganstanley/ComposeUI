@@ -14,6 +14,7 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Core;
 using MorganStanley.ComposeUI.Messaging.Core.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Core.Messages;
 using MorganStanley.ComposeUI.Messaging.Server.Internal;
@@ -165,7 +166,7 @@ internal class MessageRouterServer : IMessageRouterServer
             return;
 
         var topic = _topics.GetOrAdd(message.Topic, topicName => new Topic(topicName, ImmutableHashSet<string>.Empty));
-        var outgoingMessage = new UpdateMessage(message.Topic, message.Payload);
+        var outgoingMessage = new UpdateMessage(message.Topic, message.Payload, message.Scope);
 
         await Task.WhenAll(
             topic.Subscribers.Select(

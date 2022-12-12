@@ -14,11 +14,10 @@ using MorganStanley.ComposeUI.Messaging.Core;
 
 namespace MorganStanley.ComposeUI.Messaging.Client;
 
-// TODO: Rename to TopicMessage?
 /// <summary>
-///     Represents a message received from the Message Router server.
+///     Represents a message received from the Message Router.
+///     This type encapsulates the payload and any additional information available about the message.
 /// </summary>
-///
 public sealed class RouterMessage
 {
     internal RouterMessage(string topic, Utf8Buffer? payload)

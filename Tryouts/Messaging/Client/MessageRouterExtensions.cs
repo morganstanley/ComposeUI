@@ -27,11 +27,13 @@ public static class MessageRouterExtensions
         this IMessageRouter messageRouter,
         string topicName,
         string payload,
+        PublishOptions options = default,
         CancellationToken cancellationToken = default)
     {
         return messageRouter.PublishAsync(
             topicName,
             Utf8Buffer.Create(payload),
+            options,
             cancellationToken);
     }
 

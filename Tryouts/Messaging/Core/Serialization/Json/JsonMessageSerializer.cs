@@ -28,7 +28,7 @@ public static class JsonMessageSerializer
         new()
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            Converters = { new MessageConverter(), new Utf8BufferConverter(), new JsonStringEnumConverter() },
+            Converters = { new MessageConverter(), new Utf8BufferConverter(), new MessagingScopeConverter(), new JsonStringEnumConverter() },
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
