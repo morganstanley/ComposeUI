@@ -72,12 +72,13 @@ internal sealed class MessageRouterClient : IMessageRouter
     public async ValueTask PublishAsync(
         string topicName,
         Utf8Buffer? payload = null,
+        PublishOptions options = default,
         CancellationToken cancellationToken = default)
     {
         await ConnectAsync(cancellationToken);
 
         await _connection.SendAsync(
-            new PublishMessage(topicName, payload),
+            new PublishMessage(topicName, payload, options.Scope),
             cancellationToken);
     }
 

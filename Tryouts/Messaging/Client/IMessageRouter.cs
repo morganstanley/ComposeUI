@@ -56,9 +56,10 @@ public interface IMessageRouter : IAsyncDisposable
     /// </summary>
     /// <param name="topicName"></param>
     /// <param name="payload"></param>
+    /// <param name="options"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    ValueTask PublishAsync(string topicName, Utf8Buffer? payload = null, CancellationToken cancellationToken = default);
+    ValueTask PublishAsync(string topicName, Utf8Buffer? payload = null, PublishOptions options = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     ///     Invokes a named service.
