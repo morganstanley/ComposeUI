@@ -20,7 +20,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using MorganStanley.ComposeUI.Messaging.Client;
+using MorganStanley.ComposeUI.Messaging;
 
 namespace ComposeUI.Example.DataService
 {

@@ -10,13 +10,13 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using System.Buffers;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
-using MorganStanley.ComposeUI.Messaging.Core.TestUtils;
+using MorganStanley.ComposeUI.Messaging.Protocol.Json;
+using MorganStanley.ComposeUI.Messaging.TestUtils;
 
-namespace MorganStanley.ComposeUI.Messaging.Core.Serialization.Json;
+namespace MorganStanley.ComposeUI.Messaging.Serialization.Json;
 
 public class Utf8JsonReaderExtensionsTests
 {
