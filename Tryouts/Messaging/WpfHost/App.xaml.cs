@@ -12,15 +12,14 @@
 
 using System;
 using System.ComponentModel;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using MorganStanley.ComposeUI.Messaging.Client;
-using MorganStanley.ComposeUI.Messaging.Client.Transport.WebSocket;
-using MorganStanley.ComposeUI.Messaging.Server.Transport.WebSocket;
+using MorganStanley.ComposeUI.Messaging;
+using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
+using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 
 namespace WpfHost;
 
@@ -37,11 +36,12 @@ public partial class App : Application
             .ConfigureServices(
                 (context, services) =>
                 {
-                    services.AddSingleton<MainWindow>();
-                    services.AddMessageRouterServer(mr => mr.UseWebSockets(ws => ws.RootPath = "/ws"));
+                    services
+                        .AddSingleton<MainWindow>()
+                        .AddMessageRouterServer(mr => mr.UseWebSockets(ws => ws.RootPath = "/ws"));
                 })
             .ConfigureLogging(l => l.SetMinimumLevel(LogLevel.Debug).AddProvider(new MainWindowLoggerProvider(this)));
-            
+
 
         Host = hostBuilder.Build();
         Logger = Host.Services.GetRequiredService<ILogger<App>>();
@@ -74,7 +74,7 @@ public partial class App : Application
         await OnShutdown();
         _shutdownCompleted = true;
         Logger.LogDebug("Application shutdown complete, closing main window");
-        //this.MainWindow?.Close();
+        this.MainWindow?.Close();
     }
 
     private bool _isClosing;
@@ -90,8 +90,15 @@ public partial class App : Application
         var server = Host.Services.GetRequiredService<IMessageRouterWebSocketServer>();
         Logger.LogInformation("Server listening on port {port}", server.Port);
 
-        var messageRouter = MessageRouter.Create(
-            mr => mr.UseWebSocket(new MessageRouterWebSocketOptions { Uri = new Uri($"ws://localhost:{server.Port}{server.RootPath}") }));
+        var messageRouter = new ServiceCollection()
+            .AddMessageRouter(
+                mr => mr.UseWebSocket(
+                    new MessageRouterWebSocketOptions
+                    {
+                        Uri = new Uri($"ws://localhost:{server.Port}{server.RootPath}")
+                    }))
+            .BuildServiceProvider()
+            .GetRequiredService<IMessageRouter>();
 
         await messageRouter.ConnectAsync().ConfigureAwait(false);
         Logger.LogInformation("Message Router client connected");
@@ -103,19 +110,4 @@ public partial class App : Application
     {
         await Host.StopAsync();
     }
-
-    //internal class WebHostStartup
-    //{
-    //    public void ConfigureServices(IServiceCollection services)
-    //    {
-    //        services.AddMessageRouterServer();
-    //    }
-
-    //    public void Configure(IApplicationBuilder app)
-    //    {
-    //        app.UseWebSockets();
-    //        app.MapMessageRouterWebSocketEndpoint("/ws");
-    //    }
-    //}
 }
-

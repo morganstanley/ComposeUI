@@ -11,10 +11,10 @@
 // and limitations under the License.
 
 using System.Threading.Channels;
-using MorganStanley.ComposeUI.Messaging.Core.Messages;
-using MorganStanley.ComposeUI.Messaging.Server.Transport.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
+using MorganStanley.ComposeUI.Messaging.Server.Abstractions;
 
-namespace MorganStanley.ComposeUI.Messaging.Server.Tests.TestUtils;
+namespace MorganStanley.ComposeUI.Messaging.TestUtils;
 
 public class MockClientConnection : Mock<IClientConnection>
 {

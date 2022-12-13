@@ -12,7 +12,7 @@
 
 using System.Buffers;
 
-namespace MorganStanley.ComposeUI.Messaging.Core.TestUtils;
+namespace MorganStanley.ComposeUI.Messaging.TestUtils;
 
 internal static class MemoryHelper
 {

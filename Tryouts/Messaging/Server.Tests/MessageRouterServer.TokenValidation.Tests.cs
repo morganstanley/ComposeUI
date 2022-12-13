@@ -11,10 +11,11 @@
 // and limitations under the License.
 
 using Microsoft.Extensions.DependencyInjection;
-using MorganStanley.ComposeUI.Messaging.Core.Messages;
-using MorganStanley.ComposeUI.Messaging.Server.Tests.TestUtils;
+using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
+using MorganStanley.ComposeUI.Messaging.Server;
+using MorganStanley.ComposeUI.Messaging.TestUtils;
 
-namespace MorganStanley.ComposeUI.Messaging.Server.Tests;
+namespace MorganStanley.ComposeUI.Messaging;
 
 public class MessageRouterServerTokenValidationTests
 {

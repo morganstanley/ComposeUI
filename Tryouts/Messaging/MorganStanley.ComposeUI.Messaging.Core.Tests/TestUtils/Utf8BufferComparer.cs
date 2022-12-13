@@ -12,7 +12,7 @@
 
 using FluentAssertions.Equivalency;
 
-namespace MorganStanley.ComposeUI.Messaging.Core.TestUtils;
+namespace MorganStanley.ComposeUI.Messaging.TestUtils;
 
 public class Utf8BufferComparer : IEquivalencyStep
 {

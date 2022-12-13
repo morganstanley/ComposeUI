@@ -14,11 +14,10 @@ using System.Net.WebSockets;
 using FluentAssertions.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using MorganStanley.ComposeUI.Messaging.Core.Messages;
-using MorganStanley.ComposeUI.Messaging.Server.Tests.TestUtils;
-using MorganStanley.ComposeUI.Messaging.Server.Transport.WebSocket;
+using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
+using MorganStanley.ComposeUI.Messaging.TestUtils;
 
-namespace MorganStanley.ComposeUI.Messaging.Server.Tests;
+namespace MorganStanley.ComposeUI.Messaging;
 
 public class MessageRouterServerWebSocketTests : IAsyncLifetime
 {

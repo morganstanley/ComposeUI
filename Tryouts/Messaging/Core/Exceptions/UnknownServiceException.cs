@@ -10,7 +10,7 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Messaging.Core.Exceptions;
+namespace MorganStanley.ComposeUI.Messaging.Exceptions;
 
 public sealed class UnknownServiceException : MessageRouterException
 {

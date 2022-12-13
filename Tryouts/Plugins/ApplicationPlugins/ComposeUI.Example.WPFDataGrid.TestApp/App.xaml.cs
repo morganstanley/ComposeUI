@@ -18,7 +18,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Windows;
-using MorganStanley.ComposeUI.Messaging.Client.Transport.WebSocket;
+using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
 
 namespace ComposeUI.Example.WPFDataGrid.TestApp;
 

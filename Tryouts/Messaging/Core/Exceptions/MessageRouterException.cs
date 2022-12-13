@@ -12,7 +12,7 @@
 
 using System.Runtime.Serialization;
 
-namespace MorganStanley.ComposeUI.Messaging.Core.Exceptions;
+namespace MorganStanley.ComposeUI.Messaging.Exceptions;
 
 public class MessageRouterException : Exception
 {

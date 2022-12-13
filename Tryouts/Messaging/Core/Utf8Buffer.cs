@@ -16,7 +16,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
-namespace MorganStanley.ComposeUI.Messaging.Core;
+namespace MorganStanley.ComposeUI.Messaging;
 
 /// <summary>
 ///     Represents an UTF8-encoded string buffer that uses pooled memory.
