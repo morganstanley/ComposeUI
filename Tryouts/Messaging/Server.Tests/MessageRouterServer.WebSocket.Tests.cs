@@ -40,7 +40,7 @@ public class MessageRouterServerWebSocketTests : IAsyncLifetime
         var updateMessage = await subscriber.ReceiveJsonAsync();
 
         updateMessage.Should()
-            .ContainSubtree(@" { ""type"": ""Update"", ""topic"": ""a/b/c"", ""payload"": ""xyz"" } ");
+            .ContainSubtree(@" { ""type"": ""Topic"", ""topic"": ""a/b/c"", ""payload"": ""xyz"" } ");
     }
 
     [Fact]
@@ -49,12 +49,12 @@ public class MessageRouterServerWebSocketTests : IAsyncLifetime
         var client = await ConnectAsync();
 
         await client.SendUtf8BytesAsync(
-            @" { ""type"": ""RegisterService"", ""serviceName"": ""test-service"" } ");
+            @" { ""type"": ""RegisterService"", ""endpoint"": ""test-service"" } ");
 
         var response = await client.ReceiveJsonAsync();
 
         response.Should()
-            .ContainSubtree(@" { ""type"": ""RegisterServiceResponse"", ""serviceName"": ""test-service"" } ");
+            .ContainSubtree(@" { ""type"": ""RegisterServiceResponse"", ""endpoint"": ""test-service"" } ");
 
         response.Should().NotHaveElement("error");
     }
@@ -66,13 +66,13 @@ public class MessageRouterServerWebSocketTests : IAsyncLifetime
         var client2 = await ConnectAsync();
 
         await client1.SendUtf8BytesAsync(
-            @" { ""type"": ""RegisterService"", ""serviceName"": ""test-service"" } ");
+            @" { ""type"": ""RegisterService"", ""endpoint"": ""test-service"" } ");
 
         var response1 = await client1.ReceiveJsonAsync();
         await Task.Delay(100);
 
         await client2.SendUtf8BytesAsync(
-            @" { ""type"": ""RegisterService"", ""serviceName"": ""test-service"" } ");
+            @" { ""type"": ""RegisterService"", ""endpoint"": ""test-service"" } ");
 
         var response2 = await client2.ReceiveJsonAsync();
         response2.Should().HaveElement("error");
@@ -84,19 +84,19 @@ public class MessageRouterServerWebSocketTests : IAsyncLifetime
         var service = await ConnectAsync();
         var client = await ConnectAsync();
 
-        await service.SendUtf8BytesAsync(@" { ""type"": ""RegisterService"", ""serviceName"": ""testService"" }");
+        await service.SendUtf8BytesAsync(@" { ""type"": ""RegisterService"", ""endpoint"": ""testService"" }");
         _ = await service.ReceiveJsonAsync(); // RegisterServiceResponse
         await Task.Delay(100);
 
         await client.SendUtf8BytesAsync(
-            @" { ""type"": ""Invoke"", ""serviceName"": ""testService"", ""payload"": ""xyz"", ""requestId"": ""1"" } ");
+            @" { ""type"": ""Invoke"", ""endpoint"": ""testService"", ""payload"": ""xyz"", ""requestId"": ""1"" } ");
 
         await Task.Delay(100);
         var request = await service.ReceiveJsonAsync();
 
         request.Should()
             .ContainSubtree(
-                @" { ""type"": ""Invoke"", ""serviceName"": ""testService"", ""payload"": ""xyz"" } ");
+                @" { ""type"": ""Invoke"", ""endpoint"": ""testService"", ""payload"": ""xyz"" } ");
 
         var requestId = request.Value<string>("requestId");
 

@@ -15,32 +15,33 @@ using System.Text.Json.Serialization;
 
 namespace MorganStanley.ComposeUI.Messaging.Protocol.Json;
 
-internal class MessagingScopeConverter : JsonConverter<MessageScope>
+/// <summary>
+/// A JSON converter that reads and writes <see cref="MessageBuffer"/> objects.
+/// </summary>
+internal class MessageBufferConverter : JsonConverter<MessageBuffer>
 {
-    public override bool HandleNull => true;
-
-    public override MessageScope Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override MessageBuffer? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         switch (reader.TokenType)
         {
-            case JsonTokenType.String:
-                return MessageScope.Parse(reader.GetString()!);
             case JsonTokenType.Null:
-                return MessageScope.Default;
+                return null;
+
+            case JsonTokenType.String:
+                {
+                    var length = reader.HasValueSequence ? checked((int)reader.ValueSequence.Length) : reader.ValueSpan.Length;
+                    var buffer = MessageBuffer.GetBuffer(length);
+                    length = reader.CopyString(buffer);
+
+                    return new MessageBuffer(buffer, length);
+                }
         }
 
         throw new JsonException();
     }
 
-    public override void Write(Utf8JsonWriter writer, MessageScope value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, MessageBuffer value, JsonSerializerOptions options)
     {
-        if (value == default)
-        {
-            writer.WriteNullValue();
-        }
-        else
-        {
-            writer.WriteStringValue(value.AsString());
-        }
+        writer.WriteStringValue(value.GetSpan());
     }
 }

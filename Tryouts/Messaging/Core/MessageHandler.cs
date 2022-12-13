@@ -10,12 +10,14 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
+namespace MorganStanley.ComposeUI.Messaging;
 
-public sealed class InvokeResponse : Message
-{
-    public override MessageType Type => MessageType.InvokeResponse;
-    public string RequestId { get; init; } = null!;
-    public MessageBuffer? Payload { get; init; }
-    public Error? Error { get; init; }
-}
+/// <summary>
+///     The delegate type that gets called when an endpoint is invoked.
+/// </summary>
+public delegate ValueTask<MessageBuffer?> MessageHandler(string endpoint, MessageBuffer? payload, MessageContext context);
+
+/// <summary>
+///     The delegate type that gets called when an endpoint is invoked (plain text version).
+/// </summary>
+public delegate ValueTask<string?> PlainTextMessageHandler(string endpoint, string? payload, MessageContext context);

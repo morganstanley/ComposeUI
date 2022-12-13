@@ -14,19 +14,11 @@ namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
 public sealed class InvokeRequest : Message
 {
-    public InvokeRequest()
-    {
-    }
-
-    public InvokeRequest(string requestId, string serviceName, Utf8Buffer? payload)
-    {
-        RequestId = requestId;
-        ServiceName = serviceName;
-        Payload = payload;
-    }
-
     public override MessageType Type => MessageType.Invoke;
     public string RequestId { get; init; } = null!;
-    public string ServiceName { get; init; } = null!;
-    public Utf8Buffer? Payload { get; init; }
+    public string Endpoint { get; init; } = null!;
+    public MessageScope Scope { get; init; }
+    public MessageBuffer? Payload { get; init; }
+    public string? SourceId { get; init; }
+    public string? CorrelationId { get; init; }
 }

@@ -10,12 +10,17 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
+using FluentAssertions.Equivalency;
 
-public sealed class InvokeResponse : Message
+namespace MorganStanley.ComposeUI.Messaging.TestUtils;
+
+public class MessageBufferComparer : IEquivalencyStep
 {
-    public override MessageType Type => MessageType.InvokeResponse;
-    public string RequestId { get; init; } = null!;
-    public MessageBuffer? Payload { get; init; }
-    public Error? Error { get; init; }
+    public EquivalencyResult Handle(
+        Comparands comparands,
+        IEquivalencyValidationContext context,
+        IEquivalencyValidator nestedValidator)
+    {
+        throw new NotImplementedException();
+    }
 }

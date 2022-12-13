@@ -45,11 +45,10 @@ public enum MessageType : int
 
     // TODO: PublishResponse
 
-    // TODO: Rename to Topic?
     /// <summary>
     ///     Server notifies client of a message from a subscribed topic
     /// </summary>
-    Update,
+    Topic,
 
     /// <summary>
     ///     Client registers an invokable service

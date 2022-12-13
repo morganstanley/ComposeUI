@@ -14,19 +14,9 @@ namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
 public sealed class PublishMessage : Message
 {
-    public PublishMessage()
-    {
-    }
-
-    public PublishMessage(string topic, Utf8Buffer? payload, MessageScope scope)
-    {
-        Topic = topic;
-        Payload = payload;
-        Scope = scope;
-    }
-
     public override MessageType Type => MessageType.Publish;
     public string Topic { get; init; } = null!;
-    public Utf8Buffer? Payload { get; init; }
+    public MessageBuffer? Payload { get; init; }
     public MessageScope Scope { get; init; }
+    public string? CorrelationId { get; init; }
 }

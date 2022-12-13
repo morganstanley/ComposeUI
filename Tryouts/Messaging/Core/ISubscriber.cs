@@ -10,23 +10,15 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
+namespace MorganStanley.ComposeUI.Messaging;
 
-public sealed class UpdateMessage : Message
+/// <summary>
+/// Represents a subscriber that receives messages from a topic.
+/// </summary>
+// TODO: This should be an IAsyncObserver once it is standardized and available in Rx.NET
+public interface ISubscriber<in T>
 {
-    public UpdateMessage()
-    {
-    }
-
-    public UpdateMessage(string topic, Utf8Buffer? payload, MessageScope scope)
-    {
-        Topic = topic;
-        Payload = payload;
-        Scope = scope;
-    }
-
-    public override MessageType Type => MessageType.Update;
-    public string Topic { get; init; } = null!;
-    public Utf8Buffer? Payload { get; init; }
-    public MessageScope Scope { get; init; }
+    ValueTask OnNextAsync(T value);
+    ValueTask OnErrorAsync(Exception error);
+    ValueTask OnCompletedAsync();
 }

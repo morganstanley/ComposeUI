@@ -10,12 +10,10 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
+namespace MorganStanley.ComposeUI.Messaging;
 
-public sealed class InvokeResponse : Message
+public readonly record struct InvokeOptions
 {
-    public override MessageType Type => MessageType.InvokeResponse;
-    public string RequestId { get; init; } = null!;
-    public MessageBuffer? Payload { get; init; }
-    public Error? Error { get; init; }
+    public MessageScope Scope { get; init; }
+    public string? CorrelationId { get; init; }
 }

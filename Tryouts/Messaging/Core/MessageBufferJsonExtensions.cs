@@ -10,16 +10,15 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using MorganStanley.ComposeUI.Messaging;
+using System.Text.Json;
+using Microsoft.IO;
 
-// These extension methods only make sense if System.Text.Json is already in scope.
-// ReSharper disable once CheckNamespace
-namespace System.Text.Json;
+namespace MorganStanley.ComposeUI.Messaging;
 
 /// <summary>
-/// Extensions methods for handling JSON data in <see cref="Utf8Buffer"/> objects.
+/// Extensions methods for handling JSON data in <see cref="MessageBuffer"/> objects.
 /// </summary>
-public static class Utf8BufferJsonExtensions
+public static class MessageBufferJsonExtensions
 {
     /// <summary>
     /// Deserializes the JSON content of the buffer.
@@ -28,10 +27,26 @@ public static class Utf8BufferJsonExtensions
     /// <param name="buffer"></param>
     /// <param name="options"></param>
     /// <returns></returns>
-    public static T? ReadJson<T>(this Utf8Buffer buffer, JsonSerializerOptions? options = null)
+    public static T? ReadJson<T>(this MessageBuffer buffer, JsonSerializerOptions? options = null)
     {
         var reader = new Utf8JsonReader(buffer.GetSpan());
 
         return JsonSerializer.Deserialize<T>(ref reader, options);
     }
+
+    /// <summary>
+    /// Creates a <see cref="MessageBuffer"/> from the provided value serialized to JSON.
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="options"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public static MessageBuffer CreateJson<T>(T value, JsonSerializerOptions? options = null)
+    {
+        using var stream = new RecyclableMemoryStream(RecyclableMemoryStreamManager);
+        JsonSerializer.Serialize(stream, value, options);
+        return MessageBuffer.Create(stream.GetReadOnlySequence());
+    }
+
+    private static readonly RecyclableMemoryStreamManager RecyclableMemoryStreamManager = new();
 }

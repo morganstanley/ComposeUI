@@ -14,16 +14,7 @@ namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
 public class UnregisterServiceMessage : Message
 {
-    public UnregisterServiceMessage()
-    {
-    }
-
-    public UnregisterServiceMessage(string serviceName)
-    {
-        ServiceName = serviceName;
-    }
-
     public override MessageType Type => MessageType.UnregisterService;
 
-    public string ServiceName { get; init; } = null!;
+    public string Endpoint { get; init; } = null!;
 }

@@ -14,15 +14,6 @@ namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
 public sealed class RegisterServiceRequest : Message
 {
-    public RegisterServiceRequest()
-    {
-    }
-
-    public RegisterServiceRequest(string serviceName)
-    {
-        ServiceName = serviceName;
-    }
-
     public override MessageType Type => MessageType.RegisterService;
-    public string ServiceName { get; init; } = null!;
+    public string Endpoint { get; init; } = null!;
 }

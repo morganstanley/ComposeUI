@@ -11,9 +11,11 @@
 // and limitations under the License.
 
 using System.Collections.Concurrent;
-using System.Reactive.Subjects;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Messaging.Client.Abstractions;
 using MorganStanley.ComposeUI.Messaging.Exceptions;
+using MorganStanley.ComposeUI.Messaging.Protocol;
 using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 using Nito.AsyncEx;
 
@@ -21,10 +23,14 @@ namespace MorganStanley.ComposeUI.Messaging.Client;
 
 internal sealed class MessageRouterClient : IMessageRouter
 {
-    public MessageRouterClient(IConnection connection, MessageRouterOptions options)
+    public MessageRouterClient(
+        IConnection connection,
+        MessageRouterOptions options,
+        ILogger<MessageRouterClient>? logger = null)
     {
         _connection = connection;
         _options = options;
+        _logger = logger ?? NullLogger<MessageRouterClient>.Instance;
     }
 
     public string? ClientId => _clientId;
@@ -48,52 +54,66 @@ internal sealed class MessageRouterClient : IMessageRouter
 
     public ValueTask<IDisposable> SubscribeAsync(
         string topicName,
-        IObserver<RouterMessage> observer,
+        ISubscriber<TopicMessage> subscriber,
         CancellationToken cancellationToken = default)
     {
         var needsSubscription = false;
 
-        var topic = _subscriptions.GetOrAdd(
+        var topic = _topics.GetOrAdd(
             topicName,
             _ =>
             {
                 needsSubscription = true;
 
-                return new Subject<RouterMessage>();
+                return new Topic<TopicMessage>();
             });
 
         return needsSubscription
-            ? SubscribeCore(topicName, topic, observer, cancellationToken)
-            : new ValueTask<IDisposable>(topic.Subscribe(observer));
+            ? SubscribeCore(topicName, topic, subscriber, cancellationToken)
+            : new ValueTask<IDisposable>(topic.Subscribe(subscriber));
     }
 
     public async ValueTask PublishAsync(
-        string topicName,
-        Utf8Buffer? payload = null,
+        string topic,
+        MessageBuffer? payload = null,
         PublishOptions options = default,
         CancellationToken cancellationToken = default)
     {
         await ConnectAsync(cancellationToken);
 
         await _connection.SendAsync(
-            new PublishMessage(topicName, payload, options.Scope),
+            new PublishMessage
+            {
+                Topic = topic,
+                Payload = payload,
+                Scope = options.Scope,
+                CorrelationId = options.CorrelationId
+            },
             cancellationToken);
     }
 
-    public async ValueTask<Utf8Buffer?> InvokeAsync(
-        string serviceName,
-        Utf8Buffer? payload = null,
+    public async ValueTask<MessageBuffer?> InvokeAsync(
+        string endpoint,
+        MessageBuffer? payload = null,
+        InvokeOptions options = default,
         CancellationToken cancellationToken = default)
     {
         var requestId = Guid.NewGuid().ToString();
-        var tcs = new TaskCompletionSource<Message>();
+        var tcs = new TaskCompletionSource<Message>(TaskCreationOptions.RunContinuationsAsynchronously);
         _pendingRequests.TryAdd(requestId, tcs);
         await ConnectAsync(cancellationToken);
 
         try
         {
             await _connection.SendAsync(
-                new InvokeRequest(requestId, serviceName, payload),
+                new InvokeRequest
+                {
+                    RequestId = requestId,
+                    Endpoint = endpoint,
+                    Payload = payload,
+                    Scope = options.Scope,
+                    CorrelationId = options.CorrelationId
+                },
                 cancellationToken);
         }
         catch (Exception e)
@@ -108,22 +128,22 @@ internal sealed class MessageRouterClient : IMessageRouter
     }
 
     public ValueTask RegisterServiceAsync(
-        string serviceName,
-        ServiceInvokeHandler handler,
+        string endpoint,
+        MessageHandler handler,
         CancellationToken cancellationToken = default)
     {
-        if (!_serviceInvokeHandlers.TryAdd(serviceName, handler))
+        if (!_serviceInvokeHandlers.TryAdd(endpoint, handler))
             throw new DuplicateServiceNameException();
 
-        return RegisterServiceCore(serviceName);
+        return RegisterServiceCore(endpoint);
     }
 
-    public ValueTask UnregisterServiceAsync(string serviceName, CancellationToken cancellationToken = default)
+    public ValueTask UnregisterServiceAsync(string endpoint, CancellationToken cancellationToken = default)
     {
-        if (!_serviceInvokeHandlers.TryRemove(serviceName, out _))
+        if (!_serviceInvokeHandlers.TryRemove(endpoint, out _))
             return default;
 
-        return UnregisterServiceCore(serviceName, cancellationToken);
+        return UnregisterServiceCore(endpoint, cancellationToken);
     }
 
     public async ValueTask DisposeAsync()
@@ -141,12 +161,13 @@ internal sealed class MessageRouterClient : IMessageRouter
     private string? _clientId;
     private readonly IConnection _connection;
     private ConnectionState _connectionState;
-    private readonly TaskCompletionSource _connectTaskSource = new();
+    private readonly TaskCompletionSource _connectTaskSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private AsyncLock _mutex = new();
     private readonly ConcurrentDictionary<string, TaskCompletionSource<Message>> _pendingRequests = new();
-    private readonly ConcurrentDictionary<string, ServiceInvokeHandler> _serviceInvokeHandlers = new();
-    private readonly ConcurrentDictionary<string, Subject<RouterMessage>> _subscriptions = new();
+    private readonly ConcurrentDictionary<string, MessageHandler> _serviceInvokeHandlers = new();
+    private readonly ConcurrentDictionary<string, Topic<TopicMessage>> _topics = new();
     private readonly MessageRouterOptions _options;
+    private readonly ILogger<MessageRouterClient> _logger;
 
     private async ValueTask ConnectAsyncCore()
     {
@@ -161,7 +182,12 @@ internal sealed class MessageRouterClient : IMessageRouter
             {
                 await _connection.ConnectAsync();
                 _ = Task.Run(ReadMessagesAsync);
-                await _connection.SendAsync(new ConnectRequest { AccessToken = _options.AccessToken });
+
+                await _connection.SendAsync(
+                    new ConnectRequest
+                    {
+                        AccessToken = _options.AccessToken
+                    });
             }
             catch (Exception e)
             {
@@ -193,17 +219,38 @@ internal sealed class MessageRouterClient : IMessageRouter
     {
         try
         {
-            if (!_serviceInvokeHandlers.TryGetValue(message.ServiceName, out var handler))
+            if (!_serviceInvokeHandlers.TryGetValue(message.Endpoint, out var handler))
                 throw new UnknownServiceException();
 
-            var response = await handler(message.ServiceName, message.Payload);
+            var response = await handler(
+                message.Endpoint,
+                message.Payload,
+                new MessageContext
+                {
+                    SourceId = message.SourceId!,
+                    Scope = message.Scope,
+                    CorrelationId = message.CorrelationId,
+                });
+
             await ConnectAsync();
-            await _connection.SendAsync(new InvokeResponse(message.RequestId, response));
+
+            await _connection.SendAsync(
+                new InvokeResponse
+                {
+                    RequestId = message.RequestId,
+                    Payload = response,
+                });
         }
         catch (Exception e)
         {
             await ConnectAsync();
-            await _connection.SendAsync(new InvokeResponse(message.RequestId, payload: null, e.Message));
+
+            await _connection.SendAsync(
+                new InvokeResponse
+                {
+                    RequestId = message.RequestId,
+                    Error = new Error(e),
+                });
         }
     }
 
@@ -227,8 +274,8 @@ internal sealed class MessageRouterClient : IMessageRouter
             case MessageType.ConnectResponse:
                 return HandleConnectResponse((ConnectResponse)message);
 
-            case MessageType.Update:
-                return HandleUpdateMessage((UpdateMessage)message);
+            case MessageType.Topic:
+                return HandleTopicMessage((Protocol.Messages.TopicMessage)message);
 
             case MessageType.RegisterServiceResponse:
                 return HandleRegisterServiceResponse((RegisterServiceResponse)message);
@@ -246,12 +293,12 @@ internal sealed class MessageRouterClient : IMessageRouter
 
     private Task HandleRegisterServiceResponse(RegisterServiceResponse message)
     {
-        if (!_pendingRequests.TryRemove(message.ServiceName, out var tcs))
+        if (!_pendingRequests.TryRemove(message.Endpoint, out var tcs))
             return Task.CompletedTask;
 
         if (message.Error != null)
         {
-            _serviceInvokeHandlers.TryRemove(message.ServiceName, out _);
+            _serviceInvokeHandlers.TryRemove(message.Endpoint, out _);
             tcs.SetException(new MessageRouterException(message.Error));
         }
         else
@@ -262,54 +309,91 @@ internal sealed class MessageRouterClient : IMessageRouter
         return Task.CompletedTask;
     }
 
-    private Task HandleUpdateMessage(UpdateMessage message)
+    private async Task HandleTopicMessage(Protocol.Messages.TopicMessage message)
     {
-        if (!_subscriptions.TryGetValue(message.Topic, out var subject))
-            return Task.CompletedTask;
+        if (!_topics.TryGetValue(message.Topic, out var topic))
+            return;
 
-        var routerMessage = new RouterMessage(message.Topic, message.Payload, message.Scope);
-        subject.OnNext(routerMessage);
+        var topicMessage = new TopicMessage(
+            message.Topic,
+            message.Payload,
+            new MessageContext
+            {
+                SourceId = message.SourceId,
+                Scope = message.Scope,
+                CorrelationId = message.CorrelationId
+            });
 
-        return Task.CompletedTask;
+        await topic.OnNextAsync(topicMessage);
     }
 
-    private async Task ReadMessagesAsync()
+    private async void ReadMessagesAsync()
     {
-        while (_connectionState != ConnectionState.Closed)
+        try
         {
-            var message = await _connection.ReceiveAsync();
+            while (_connectionState != ConnectionState.Closed)
+            {
+                var message = await _connection.ReceiveAsync();
 
-            if (_connectionState == ConnectionState.Closed)
-                break;
+                if (_connectionState == ConnectionState.Closed)
+                    break;
 
-            await HandleMessage(message);
+                await HandleMessage(message);
+            }
+
+            _logger.LogInformation("Connection closed, exiting read loop");
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Exception thrown while reading messages from the connection: {ExceptionMessage}", e.Message);
         }
     }
 
     private async ValueTask RegisterServiceCore(string serviceName)
     {
         await ConnectAsync();
-        var tcs = _pendingRequests.GetOrAdd(serviceName, _ => new TaskCompletionSource<Message>());
-        await _connection.SendAsync(new RegisterServiceRequest(serviceName));
+
+        var tcs = _pendingRequests.GetOrAdd(
+            serviceName,
+            _ => new TaskCompletionSource<Message>(TaskCreationOptions.RunContinuationsAsynchronously));
+
+        await _connection.SendAsync(
+            new RegisterServiceRequest
+            {
+                Endpoint = serviceName,
+            });
+
         await tcs.Task;
     }
 
     private async ValueTask<IDisposable> SubscribeCore(
         string topicName,
-        Subject<RouterMessage> topic,
-        IObserver<RouterMessage> observer,
+        Topic<TopicMessage> topic,
+        ISubscriber<TopicMessage> subscriber,
         CancellationToken cancellationToken)
     {
         await ConnectAsync(cancellationToken);
-        await _connection.SendAsync(new SubscribeMessage(topicName), cancellationToken);
 
-        return topic.Subscribe(observer);
+        await _connection.SendAsync(
+            new SubscribeMessage
+            {
+                Topic = topicName,
+            },
+            cancellationToken);
+
+        return topic.Subscribe(subscriber);
     }
 
     private async ValueTask UnregisterServiceCore(string serviceName, CancellationToken cancellationToken)
     {
         await ConnectAsync(cancellationToken);
-        await _connection.SendAsync(new UnregisterServiceMessage(serviceName), cancellationToken);
+
+        await _connection.SendAsync(
+            new UnregisterServiceMessage
+            {
+                Endpoint = serviceName,
+            },
+            cancellationToken);
     }
 
     private enum ConnectionState
@@ -318,6 +402,99 @@ internal sealed class MessageRouterClient : IMessageRouter
         Connecting,
         Connected,
         Closed
+    }
+
+    // TODO: This should be an AsyncSubject once that is standardized and available in Rx.NET
+    private class Topic<T>
+    {
+        public bool HasSubscribers => _subscriberCount > 0;
+
+        public IDisposable Subscribe(ISubscriber<T> subscriber)
+        {
+            var subscription = new Subscription(this, subscriber);
+
+            lock (_subscriptions)
+            {
+                _subscriptions.Add(subscription);
+            }
+
+            Interlocked.Increment(ref _subscriberCount);
+
+            return subscription;
+        }
+
+        private void Unsubscribe(Subscription subscription)
+        {
+            lock (_subscriptions)
+            {
+                _subscriptions.Remove(subscription);
+            }
+
+            Interlocked.Decrement(ref _subscriberCount);
+        }
+
+        public async ValueTask OnNextAsync(T value)
+        {
+            var subscriptions = GetSubscriptions();
+
+            foreach (var subscription in subscriptions)
+            {
+                // TODO: Decide how exceptions should be handled
+                await subscription.Subscriber.OnNextAsync(value);
+            }
+        }
+
+        public async ValueTask OnErrorAsync(Exception exception)
+        {
+            var subscriptions = GetSubscriptions();
+
+            foreach (var subscription in subscriptions)
+            {
+                // TODO: Decide how exceptions should be handled
+                await subscription.Subscriber.OnErrorAsync(exception);
+            }
+        }
+
+        public async ValueTask CompleteAsync()
+        {
+            var subscriptions = GetSubscriptions();
+
+            foreach (var subscription in subscriptions)
+            {
+                // TODO: Decide how exceptions should be handled
+                await subscription.Subscriber.OnCompletedAsync();
+            }
+        }
+
+        private readonly List<Subscription> _subscriptions = new();
+
+        private int _subscriberCount;
+
+        private Subscription[] GetSubscriptions()
+        {
+            lock (_subscriptions)
+            {
+                return _subscriptions.ToArray();
+            }
+        }
+
+        private class Subscription : IDisposable
+        {
+            public Subscription(Topic<T> topic, ISubscriber<T> subscriber)
+            {
+                Subscriber = subscriber;
+                _topic = topic;
+            }
+
+            public ISubscriber<T> Subscriber { get; }
+
+            public void Dispose()
+            {
+                _topic.Unsubscribe(this);
+            }
+
+            private readonly Topic<T> _topic;
+        }
     }
 
     private static class ThrowHelper

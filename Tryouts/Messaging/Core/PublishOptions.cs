@@ -15,4 +15,5 @@ namespace MorganStanley.ComposeUI.Messaging;
 public readonly record struct PublishOptions
 {
     public MessageScope Scope { get; init; }
+    public string? CorrelationId { get; init; }
 }

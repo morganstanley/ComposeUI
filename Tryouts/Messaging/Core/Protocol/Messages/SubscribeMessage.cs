@@ -14,15 +14,6 @@ namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
 public sealed class SubscribeMessage : Message
 {
-    public SubscribeMessage()
-    {
-    }
-
-    public SubscribeMessage(string topic)
-    {
-        Topic = topic;
-    }
-
     public override MessageType Type => MessageType.Subscribe;
     public string Topic { get; init; } = null!;
 }

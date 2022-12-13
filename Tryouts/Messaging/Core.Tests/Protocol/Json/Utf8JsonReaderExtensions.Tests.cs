@@ -13,10 +13,9 @@
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
-using MorganStanley.ComposeUI.Messaging.Protocol.Json;
 using MorganStanley.ComposeUI.Messaging.TestUtils;
 
-namespace MorganStanley.ComposeUI.Messaging.Serialization.Json;
+namespace MorganStanley.ComposeUI.Messaging.Protocol.Json;
 
 public class Utf8JsonReaderExtensionsTests
 {

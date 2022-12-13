@@ -28,7 +28,7 @@ public abstract class Message
             MessageType.Subscribe => typeof(SubscribeMessage),
             MessageType.Unsubscribe => typeof(UnsubscribeMessage),
             MessageType.Publish => typeof(PublishMessage),
-            MessageType.Update => typeof(UpdateMessage),
+            MessageType.Topic => typeof(TopicMessage),
             MessageType.Invoke => typeof(InvokeRequest),
             MessageType.RegisterService => typeof(RegisterServiceRequest),
             MessageType.InvokeResponse => typeof(InvokeResponse),

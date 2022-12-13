@@ -28,7 +28,7 @@ public static class JsonMessageSerializer
         new()
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            Converters = { new MessageConverter(), new Utf8BufferConverter(), new MessagingScopeConverter(), new JsonStringEnumConverter() },
+            Converters = { new MessageConverter(), new MessageBufferConverter(), new MessageScopeConverter(), new JsonStringEnumConverter() },
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
@@ -40,6 +40,18 @@ public static class JsonMessageSerializer
     public static byte[] SerializeMessage(Message message)
     {
         return JsonSerializer.SerializeToUtf8Bytes(message, Options);
+    }
+
+    /// <summary>
+    ///     Serializes a message to UTF8-encoded JSON.
+    /// </summary>
+    /// <param name="message"></param>
+    /// <param name="bufferWriter"></param>
+    /// <returns></returns>
+    public static void SerializeMessage(Message message, IBufferWriter<byte> bufferWriter)
+    {
+        using var jsonWriter = new Utf8JsonWriter(bufferWriter);
+        JsonSerializer.Serialize(jsonWriter, message, Options);
     }
 
     /// <summary>

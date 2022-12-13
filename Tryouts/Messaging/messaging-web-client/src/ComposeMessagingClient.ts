@@ -60,19 +60,19 @@ export class ComposeMessagingClient {
         this.sendMsg({ type: 'Publish', topic, payload: JSON.stringify(payload) });
     }
 
-    public invoke(serviceName: string, payload: any) {
+    public invoke(endpoint: string, payload: any) {
         return new Promise((resolve, reject) => {
             const requestId = '' + (++this.lastRequestId);
             this.asyncCallbacks.add('request-' + requestId, resolve, reject, true);
-            this.sendMsg({ type: 'Invoke', serviceName, payload: JSON.stringify(payload), requestId });
+            this.sendMsg({ type: 'Invoke', endpoint, payload: JSON.stringify(payload), requestId });
         });
     }
 
-    public registerService(serviceName: string, handler: (payload: any) => any) {
+    public registerService(endpoint: string, handler: (payload: any) => any) {
         return new Promise((resolve, reject) => {
-            this.asyncCallbacks.add('invoke-' + serviceName, handler);
-            this.asyncCallbacks.add('register-' + serviceName, resolve, reject, true);
-            this.sendMsg({ type: 'RegisterService', serviceName });
+            this.asyncCallbacks.add('invoke-' + endpoint, handler);
+            this.asyncCallbacks.add('register-' + endpoint, resolve, reject, true);
+            this.sendMsg({ type: 'RegisterService', endpoint });
         });
     }
 
@@ -101,7 +101,7 @@ export class ComposeMessagingClient {
                 this.asyncCallbacks.invoke('connect', 'success');
                 break;
             }
-            case 'Update': {
+            case 'Topic': {
                 this.asyncCallbacks.invoke('topic-' + message.topic, 'success', JSON.parse(message.payload));
                 break;
             }
@@ -111,11 +111,11 @@ export class ComposeMessagingClient {
                 break;
             }
             case 'RegisterServiceResponse': {
-                this.asyncCallbacks.invoke('register-' + message.serviceName, message.error ? 'fail' : 'success', message.error);
+                this.asyncCallbacks.invoke('register-' + message.endpoint, message.error ? 'fail' : 'success', message.error);
                 break;
             }
             case 'Invoke': {
-                this.asyncCallbacks.invoke('invoke-' + message.serviceName, 'success', JSON.parse(message.payload),
+                this.asyncCallbacks.invoke('invoke-' + message.endpoint, 'success', JSON.parse(message.payload),
                     (response) => this.sendMsg({ type: 'InvokeResponse', requestId: message.requestId, payload: JSON.stringify(response) }),
                     (error) => this.sendMsg({ type: 'InvokeResponse', requestId: message.requestId, error: error?.toString() })
                 );

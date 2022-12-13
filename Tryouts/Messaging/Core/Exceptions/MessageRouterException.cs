@@ -11,24 +11,20 @@
 // and limitations under the License.
 
 using System.Runtime.Serialization;
+using MorganStanley.ComposeUI.Messaging.Protocol;
 
 namespace MorganStanley.ComposeUI.Messaging.Exceptions;
 
 public class MessageRouterException : Exception
 {
-    public MessageRouterException()
-    {
-    }
+    public MessageRouterException() { }
 
-    protected MessageRouterException(SerializationInfo info, StreamingContext context) : base(info, context)
-    {
-    }
+    protected MessageRouterException(SerializationInfo info, StreamingContext context) : base(info, context) { }
 
-    public MessageRouterException(string? message) : base(message)
-    {
-    }
+    public MessageRouterException(string? message) : base(message) { }
 
-    public MessageRouterException(string? message, Exception? innerException) : base(message, innerException)
-    {
-    }
+    public MessageRouterException(string? message, Exception? innerException) : base(message, innerException) { }
+
+    public MessageRouterException(Error error) : base(
+        $"An exception of type '{error.Type}' was thrown by a remote client: {error.Message}") { }
 }

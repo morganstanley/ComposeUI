@@ -15,6 +15,7 @@ using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Messaging.Exceptions;
+using MorganStanley.ComposeUI.Messaging.Protocol;
 using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 using MorganStanley.ComposeUI.Messaging.Server.Abstractions;
 
@@ -59,6 +60,7 @@ internal class MessageRouterServer : IMessageRouterServer
         }
 
         client.StopTokenSource.Cancel();
+
         // TODO: Clean up leftover junk like topic subscriptions
         return new ValueTask(client.StopTaskSource.Task);
     }
@@ -85,14 +87,22 @@ internal class MessageRouterServer : IMessageRouterServer
             }
 
             await client.Connection.SendAsync(
-                new ConnectResponse { ClientId = client.ClientId },
+                new ConnectResponse
+                {
+                    ClientId = client.ClientId
+                },
                 CancellationToken.None);
 
             _clients.TryAdd(client.ClientId, client);
         }
         catch (Exception e)
         {
-            await client.Connection.SendAsync(new ConnectResponse { Error = e.Message }, CancellationToken.None);
+            await client.Connection.SendAsync(
+                new ConnectResponse
+                {
+                    Error = new Error(e),
+                },
+                CancellationToken.None);
         }
     }
 
@@ -103,10 +113,10 @@ internal class MessageRouterServer : IMessageRouterServer
     {
         try
         {
-            if (!_serviceRegistrations.TryGetValue(message.ServiceName, out var serviceClientId)
+            if (!_serviceRegistrations.TryGetValue(message.Endpoint, out var serviceClientId)
                 || !_clients.TryGetValue(serviceClientId, out var serviceClient))
             {
-                throw new UnknownServiceException(message.ServiceName);
+                throw new UnknownServiceException(message.Endpoint);
             }
 
             var request = new ServiceInvocation(
@@ -119,22 +129,29 @@ internal class MessageRouterServer : IMessageRouterServer
                 throw new DuplicateRequestIdException();
 
             await serviceClient.Connection.SendAsync(
-                new InvokeRequest(request.ServiceRequestId, message.ServiceName, message.Payload),
+                new InvokeRequest
+                {
+                    RequestId = request.ServiceRequestId,
+                    Endpoint = message.Endpoint,
+                    Payload = message.Payload,
+                    CorrelationId = message.CorrelationId,
+                },
                 cancellationToken);
         }
         catch (Exception e)
         {
             _logger.LogError(
                 e,
-                "An exception of type {ExceptionClassName} was thrown while processing an invocation for service '{ServiceName}'.",
+                "An exception of type {ExceptionClassName} was thrown while processing an invocation for service '{Endpoint}'.",
                 e.GetType().FullName,
-                message.ServiceName);
+                message.Endpoint);
 
             await client.Connection.SendAsync(
-                new InvokeResponse(
-                    message.RequestId,
-                    null,
-                    e.Message),
+                new InvokeResponse
+                {
+                    RequestId = message.RequestId,
+                    Error = new Error(e),
+                },
                 CancellationToken.None);
         }
     }
@@ -144,15 +161,20 @@ internal class MessageRouterServer : IMessageRouterServer
         InvokeResponse message,
         CancellationToken cancellationToken)
     {
-        if (!_serviceInvocations.TryGetValue(message.RequestId, out var request))
-            return;
+        if (!_serviceInvocations.TryRemove(message.RequestId, out var request))
+            return; // TODO: Log warning
 
         if (!_clients.TryGetValue(request.CallerClientId, out var caller))
-            return;
+            return; // TODO: Log warning
 
-        var response = new InvokeResponse(request.CallerRequestId, message.Payload, message.Error);
+        var response = new InvokeResponse
+        {
+            RequestId = request.CallerRequestId,
+            Payload = message.Payload,
+            Error = message.Error,
+        };
+
         await caller.Connection.SendAsync(response, CancellationToken.None);
-        _serviceInvocations.TryRemove(request.ServiceRequestId, out _);
     }
 
     private async Task HandlePublishMessage(
@@ -164,7 +186,15 @@ internal class MessageRouterServer : IMessageRouterServer
             return;
 
         var topic = _topics.GetOrAdd(message.Topic, topicName => new Topic(topicName, ImmutableHashSet<string>.Empty));
-        var outgoingMessage = new UpdateMessage(message.Topic, message.Payload, message.Scope);
+
+        var outgoingMessage = new Protocol.Messages.TopicMessage
+        {
+            Topic = message.Topic,
+            Payload = message.Payload,
+            Scope = message.Scope,
+            SourceId = client.ClientId,
+            CorrelationId = message.CorrelationId,
+        };
 
         await Task.WhenAll(
             topic.Subscribers.Select(
@@ -180,20 +210,29 @@ internal class MessageRouterServer : IMessageRouterServer
         RegisterServiceRequest message,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(message.ServiceName))
+        if (string.IsNullOrWhiteSpace(message.Endpoint))
             return;
 
         try
         {
-            if (!_serviceRegistrations.TryAdd(message.ServiceName, client.ClientId))
-                throw new DuplicateServiceNameException(message.ServiceName);
+            if (!_serviceRegistrations.TryAdd(message.Endpoint, client.ClientId))
+                throw new DuplicateServiceNameException(message.Endpoint);
 
-            await client.Connection.SendAsync(new RegisterServiceResponse(message.ServiceName), CancellationToken.None);
+            await client.Connection.SendAsync(
+                new RegisterServiceResponse
+                {
+                    Endpoint = message.Endpoint
+                },
+                CancellationToken.None);
         }
         catch (Exception e)
         {
             await client.Connection.SendAsync(
-                new RegisterServiceResponse(message.ServiceName, e.Message),
+                new RegisterServiceResponse
+                {
+                    Endpoint = message.Endpoint,
+                    Error = new Error(e),
+                },
                 CancellationToken.None);
         }
     }
@@ -227,10 +266,10 @@ internal class MessageRouterServer : IMessageRouterServer
         UnregisterServiceMessage message,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(message.ServiceName))
+        if (string.IsNullOrWhiteSpace(message.Endpoint))
             return Task.CompletedTask;
 
-        _serviceRegistrations.TryRemove(new KeyValuePair<string, string>(message.ServiceName, client.ClientId));
+        _serviceRegistrations.TryRemove(new KeyValuePair<string, string>(message.Endpoint, client.ClientId));
 
         return Task.CompletedTask;
     }
@@ -391,4 +430,3 @@ internal class MessageRouterServer : IMessageRouterServer
         public string ServiceClientId { get; }
     }
 }
-

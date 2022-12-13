@@ -13,31 +13,22 @@
 namespace MorganStanley.ComposeUI.Messaging;
 
 /// <summary>
-///     Represents a message received from a topic.
-///     This type encapsulates the payload and any additional information available about the message.
+/// Provides contextual information for a message received from the Message Router.
 /// </summary>
-public sealed class RouterMessage
+public sealed class MessageContext
 {
-    public RouterMessage(string topic, Utf8Buffer? payload, MessageScope scope)
-    {
-        Topic = topic;
-        Payload = payload;
-        Scope = scope;
-    }
+    /// <summary>
+    /// Gets the client ID of the sender.
+    /// </summary>
+    public string SourceId { get; init; } = "";
 
     /// <summary>
-    ///     The topic name of the message.
+    /// Gets the scope of the message.
     /// </summary>
-    public string Topic { get; }
+    public MessageScope Scope { get; init; }
 
     /// <summary>
-    ///     The payload of the message. The format of the message is arbitrary and should
-    ///     be defined and documented with the message definition.
+    /// Gets the correlation ID of the message, if there's one.
     /// </summary>
-    public Utf8Buffer? Payload { get; }
-
-    /// <summary>
-    ///     Gets the scope of the message.
-    /// </summary>
-    public MessageScope Scope { get; }
+    public string? CorrelationId { get; init; }
 }

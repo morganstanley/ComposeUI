@@ -18,6 +18,7 @@ using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Microsoft.IO;
 using MorganStanley.ComposeUI.Messaging.Client.Abstractions;
 using MorganStanley.ComposeUI.Messaging.Protocol.Json;
 using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
@@ -146,11 +147,12 @@ internal class WebSocketConnection : IConnection
         {
             await foreach (var message in _outputChannel.Reader.ReadAllAsync(_stopTokenSource.Token))
             {
-                // TODO: use pooled buffer
-                var messageBytes = JsonMessageSerializer.SerializeMessage(message);
+                // TODO: Instead of a pooled buffer, we could have an IBufferWriter that writes directly to the websocket
+                await using var stream = new RecyclableMemoryStream(MemoryStreamManager);
+                JsonMessageSerializer.SerializeMessage(message, stream);
 
                 await _webSocket.SendAsync(
-                    messageBytes,
+                    new ArraySegment<byte>(stream.GetBuffer(), 0, (int)stream.Length),
                     WebSocketMessageType.Text,
                     WebSocketMessageFlags.EndOfMessage,
                     _stopTokenSource.Token);
@@ -184,4 +186,6 @@ internal class WebSocketConnection : IConnection
             return false;
         }
     }
+
+    private static readonly RecyclableMemoryStreamManager MemoryStreamManager = new();
 }

@@ -14,10 +14,6 @@ namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
 public sealed class ConnectRequest : Message
 {
-    public ConnectRequest()
-    {
-    }
-
     public override MessageType Type => MessageType.Connect;
 
     public string? AccessToken { get; init; }

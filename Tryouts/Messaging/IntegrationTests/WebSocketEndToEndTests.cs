@@ -14,7 +14,6 @@ using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
-using MorganStanley.ComposeUI.Messaging.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 
 namespace MorganStanley.ComposeUI.Messaging;
@@ -33,8 +32,8 @@ public class WebSocketEndToEndTests : IAsyncLifetime
     {
         await using var publisher = CreateClient();
         await using var subscriber = CreateClient();
-        var observerMock = new Mock<IObserver<RouterMessage>>();
-        var receivedMessages = new List<RouterMessage>();
+        var observerMock = new Mock<IObserver<TopicMessage>>();
+        var receivedMessages = new List<TopicMessage>();
         observerMock.Setup(x => x.OnNext(Capture.In(receivedMessages)));
 
         await subscriber.SubscribeAsync("test-topic", observerMock.Object);
@@ -43,7 +42,7 @@ public class WebSocketEndToEndTests : IAsyncLifetime
 
         await publisher.PublishAsync(
             "test-topic",
-            Utf8Buffer.Create(JsonSerializer.SerializeToUtf8Bytes(publishedPayload)));
+            MessageBuffer.Create(JsonSerializer.SerializeToUtf8Bytes(publishedPayload)));
 
         await Task.Delay(100);
 
@@ -56,7 +55,7 @@ public class WebSocketEndToEndTests : IAsyncLifetime
     public async Task Client_can_register_itself_as_a_service()
     {
         await using var client = CreateClient();
-        await client.RegisterServiceAsync("test-service", (name, payload) => default);
+        await client.RegisterServiceAsync("test-service", (name, payload, context) => default);
         await client.UnregisterServiceAsync("test-service");
     }
 
@@ -65,11 +64,11 @@ public class WebSocketEndToEndTests : IAsyncLifetime
     {
         await using var service = CreateClient();
 
-        var handlerMock = new Mock<ServiceInvokeHandler>();
+        var handlerMock = new Mock<MessageHandler>();
 
         handlerMock
-            .Setup(_ => _.Invoke("test-service", It.IsAny<Utf8Buffer?>()))
-            .Returns(new ValueTask<Utf8Buffer?>(Utf8Buffer.Create("test-response")));
+            .Setup(_ => _.Invoke("test-service", It.IsAny<MessageBuffer?>(), It.IsAny<MessageContext>()))
+            .Returns(new ValueTask<MessageBuffer?>(MessageBuffer.Create("test-response")));
 
         await service.RegisterServiceAsync("test-service", handlerMock.Object);
 
@@ -78,7 +77,7 @@ public class WebSocketEndToEndTests : IAsyncLifetime
         var response = await client.InvokeAsync("test-service", "test-request");
 
         response.Should().BeEquivalentTo("test-response");
-        handlerMock.Verify(_ => _.Invoke("test-service", It.Is<Utf8Buffer>(buf => buf.GetString() == "test-request")));
+        handlerMock.Verify(_ => _.Invoke("test-service", It.Is<MessageBuffer>(buf => buf.GetString() == "test-request"), It.IsAny<MessageContext>()));
 
         await service.UnregisterServiceAsync("test-service");
     }
