@@ -72,13 +72,5 @@ namespace Shell
         {
             this.UpdateViews(modules[2]);
         }
-        
-        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
-        {
-            webContentList.ToList().ForEach(window => window?.Close());
-            webContentList.Clear();
-            
-            base.OnClosing(e);
-        }
     }
 }
