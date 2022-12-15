@@ -35,21 +35,11 @@ namespace Shell
     /// </summary>
     public partial class WebContent : Window
     {
-        private static string? _uriString;
-
         public WebContent(string str)
         {
             InitializeComponent();
-            _uriString = str;
 
-            webView2.Source = new Uri(_uriString);
-        }
-        
-        protected override void OnClosing(CancelEventArgs e)
-        {
-            MainWindow.webContentList.Remove(this);
-            
-            base.OnClosing(e);
+            webView2.Source = new Uri(str);
         }
     }
 }

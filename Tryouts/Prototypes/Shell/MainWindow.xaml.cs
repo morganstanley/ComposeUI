@@ -35,7 +35,7 @@ namespace Shell
     /// </summary>
     public partial class MainWindow : Window
     {
-        internal static List<WebContent> webContentList { get; set; } = new List<WebContent>();
+        internal List<WebContent> webContentList { get; set; } = new List<WebContent>();
         private ManifestModel config;
         private ModuleModel[]? modules;
 
@@ -46,31 +46,38 @@ namespace Shell
             config = new ManifestParser().manifest;
             modules = config.Modules;
         }
-        
-        private void UpdateViews(ModuleModel item) {
+
+        private void CreateViews(ModuleModel item) {
            
             var webContent = new WebContent(item.Url);
             webContent.Title = item.AppName;
 
             webContent.Owner = this;
+
+            webContent.Closed += WebContent_Closed;
             
             webContentList.Add(webContent);
             webContent.Show();
         }
 
+        private void WebContent_Closed(object? sender, EventArgs e)
+        {
+            webContentList.Remove((WebContent)sender);
+        }
+        
         private void ShowChild_Click(object sender, RoutedEventArgs e)
         {
-            this.UpdateViews(modules[0]);
+            this.CreateViews(modules[0]);
         }
 
         private void ShowChild_Click2(object sender, RoutedEventArgs e)
         {
-            this.UpdateViews(modules[1]);
+            this.CreateViews(modules[1]);
         }
 
         private void ShowChild_Click3(object sender, RoutedEventArgs e)
         {
-            this.UpdateViews(modules[2]);
+            this.CreateViews(modules[2]);
         }
     }
 }
