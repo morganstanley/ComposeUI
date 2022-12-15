@@ -20,7 +20,7 @@ See the License for the specific language governing permissions and limitations 
         Title="Compose Webmodule" Height="450" Width="800">
     <Grid>
         <DockPanel>
-            <wv2:WebView2 Name = "webView2"
+            <wv2:WebView2 Name = "webView"
                           Source = ""
             />
         </DockPanel>

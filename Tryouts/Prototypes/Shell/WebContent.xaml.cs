@@ -39,7 +39,7 @@ namespace Shell
         {
             InitializeComponent();
 
-            webView2.Source = new Uri(str);
+            webView.Source = new Uri(str);
         }
     }
 }
