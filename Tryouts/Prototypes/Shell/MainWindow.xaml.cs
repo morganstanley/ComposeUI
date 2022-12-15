@@ -43,7 +43,7 @@ namespace Shell
         {
             InitializeComponent();
 
-            config = new ManifestParser().manifest;
+            config = new ManifestParser().Manifest;
             modules = config.Modules;
         }
 

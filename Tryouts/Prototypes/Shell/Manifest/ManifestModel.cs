@@ -20,7 +20,6 @@ using System.Text.Json;
 
 namespace Manifest
 {
-    [Serializable]
     internal sealed class ManifestModel
     {
         public ModuleModel[]? Modules { get; set; }

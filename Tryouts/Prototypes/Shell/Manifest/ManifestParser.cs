@@ -25,30 +25,21 @@ namespace Manifest
 {
     internal class ManifestParser
     {
-        internal ManifestModel manifest { get; set; }
+        internal ManifestModel Manifest { get; set; }
 
         public ManifestParser()
         {
             OpenManifestFile("./Manifest/exampleManifest.json");
         }
 
-        public void OpenManifestFile(string manifestFile)
+        public async void OpenManifestFile(string manifestFile)
         {
-            using (StreamReader r = new StreamReader(manifestFile))
-            {
-                try
-                {
-                    string fileContent = r.ReadToEnd();
-                    manifest = JsonSerializer.Deserialize<ManifestModel>(fileContent, ManifestModel.JsonSerializerOptions);
-                }
-                catch (Exception e)
-                {
+             using (FileStream stream = File.Open(manifestFile, FileMode.Open))
+             {
+                 Manifest = JsonSerializer.Deserialize<ManifestModel>(stream, ManifestModel.JsonSerializerOptions);
 
-                    throw;
-                }
-                
-                r.Close();
-            }
+                 stream.Close();
+             }
         }
     }
 }
