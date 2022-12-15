@@ -10,13 +10,23 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Client;
+using MorganStanley.ComposeUI.Messaging.Core;
+
+namespace MorganStanley.ComposeUI.Messaging.Client;
 
 /// <summary>
 ///     Message Router client interface.
 /// </summary>
 public interface IMessageRouter : IAsyncDisposable
 {
+    /// <summary>
+    /// Gets the client ID of the current connection.
+    /// </summary>
+    /// <remarks>
+    /// The returned value will be <value>null</value> if the client is not connected.
+    /// </remarks>
+    string? ClientId { get; }
+
     /// <summary>
     ///     Asynchronously connects to the Message Router server endpoint.
     /// </summary>
@@ -28,6 +38,7 @@ public interface IMessageRouter : IAsyncDisposable
     /// </remarks>
     ValueTask ConnectAsync(CancellationToken cancellationToken = default);
 
+    // TODO: Declare and use IAsyncObserver or ISubscriber
     /// <summary>
     ///     Gets an observable that represents a topic.
     /// </summary>
@@ -47,7 +58,7 @@ public interface IMessageRouter : IAsyncDisposable
     /// <param name="payload"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    ValueTask PublishAsync(string topicName, string? payload = null, CancellationToken cancellationToken = default);
+    ValueTask PublishAsync(string topicName, Utf8Buffer? payload = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     ///     Invokes a named service.
@@ -56,9 +67,9 @@ public interface IMessageRouter : IAsyncDisposable
     /// <param name="payload"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    ValueTask<string?> InvokeAsync(
+    ValueTask<Utf8Buffer?> InvokeAsync(
         string serviceName,
-        string? payload = null,
+        Utf8Buffer? payload = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>

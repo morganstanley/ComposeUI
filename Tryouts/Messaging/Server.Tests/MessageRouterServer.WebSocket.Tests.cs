@@ -12,40 +12,21 @@
 
 using System.Net.WebSockets;
 using FluentAssertions.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Server.Tests.TestUtils;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using MorganStanley.ComposeUI.Messaging.Core.Messages;
+using MorganStanley.ComposeUI.Messaging.Server.Tests.TestUtils;
+using MorganStanley.ComposeUI.Messaging.Server.Transport.WebSocket;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Server.Tests;
+namespace MorganStanley.ComposeUI.Messaging.Server.Tests;
 
-public class MessageRouterServerWebSocketTests
+public class MessageRouterServerWebSocketTests : IAsyncLifetime
 {
-    public MessageRouterServerWebSocketTests()
-    {
-        App = new WebApplicationFactory<Program>();
-        WebSocketUri = new Uri(App.Server.BaseAddress, relativeUri: "ws");
-    }
-
-    protected readonly WebApplicationFactory<Program> App;
-    protected readonly Uri WebSocketUri;
-
     [Fact]
     public async Task Client_can_connect_and_receives_ConnectResponse()
     {
         var client = await ConnectAsync();
         client.State.Should().Be(WebSocketState.Open);
-    }
-
-    [Fact]
-    public async Task Client_can_reconnect_with_existing_id()
-    {
-        var client1 = await App.Server.CreateWebSocketClient().ConnectAsync(WebSocketUri, CancellationToken.None);
-        var clientId = await ConnectAndWaitForResponse(client1);
-        client1.Dispose();
-        await Task.Delay(100);
-        var client2 = await App.Server.CreateWebSocketClient().ConnectAsync(WebSocketUri, CancellationToken.None);
-        await client2.SendUtf8BytesAsync($@" {{ ""type"": ""Connect"", ""clientId"": ""{clientId}"" }}");
-        var response = await client2.ReceiveJsonAsync();
-        response.Should().ContainSubtree($@" {{ ""type"": ""ConnectResponse"", ""clientId"": ""{clientId}"" }} ");
     }
 
     [Fact]
@@ -70,10 +51,12 @@ public class MessageRouterServerWebSocketTests
 
         await client.SendUtf8BytesAsync(
             @" { ""type"": ""RegisterService"", ""serviceName"": ""test-service"" } ");
+
         var response = await client.ReceiveJsonAsync();
 
         response.Should()
             .ContainSubtree(@" { ""type"": ""RegisterServiceResponse"", ""serviceName"": ""test-service"" } ");
+
         response.Should().NotHaveElement("error");
     }
 
@@ -85,11 +68,13 @@ public class MessageRouterServerWebSocketTests
 
         await client1.SendUtf8BytesAsync(
             @" { ""type"": ""RegisterService"", ""serviceName"": ""test-service"" } ");
+
         var response1 = await client1.ReceiveJsonAsync();
         await Task.Delay(100);
 
         await client2.SendUtf8BytesAsync(
             @" { ""type"": ""RegisterService"", ""serviceName"": ""test-service"" } ");
+
         var response2 = await client2.ReceiveJsonAsync();
         response2.Should().HaveElement("error");
     }
@@ -103,8 +88,10 @@ public class MessageRouterServerWebSocketTests
         await service.SendUtf8BytesAsync(@" { ""type"": ""RegisterService"", ""serviceName"": ""testService"" }");
         _ = await service.ReceiveJsonAsync(); // RegisterServiceResponse
         await Task.Delay(100);
+
         await client.SendUtf8BytesAsync(
             @" { ""type"": ""Invoke"", ""serviceName"": ""testService"", ""payload"": ""xyz"", ""requestId"": ""1"" } ");
+
         await Task.Delay(100);
         var request = await service.ReceiveJsonAsync();
 
@@ -113,8 +100,10 @@ public class MessageRouterServerWebSocketTests
                 @" { ""type"": ""Invoke"", ""serviceName"": ""testService"", ""payload"": ""xyz"" } ");
 
         var requestId = request.Value<string>("requestId");
+
         await service.SendUtf8BytesAsync(
             $@" {{ ""type"": ""InvokeResponse"", ""requestId"": ""{requestId}"", ""payload"": ""abc"" }} ");
+
         await Task.Delay(100);
         var response = await client.ReceiveJsonAsync();
 
@@ -123,18 +112,48 @@ public class MessageRouterServerWebSocketTests
                 @" { ""type"": ""InvokeResponse"", ""requestId"": ""1"", ""payload"": ""abc"" } ");
     }
 
-    private async Task<string> ConnectAndWaitForResponse(WebSocket webSocket)
+    public async Task InitializeAsync()
+    {
+        IHostBuilder builder = new HostBuilder();
+
+        builder.ConfigureServices(
+            services => services.AddMessageRouterServer(
+                mr => MessageRouterBuilderWebSocketExtensions.UseWebSockets(
+                    mr,
+                    opt =>
+                    {
+                        opt.RootPath = _webSocketUri.AbsolutePath;
+                        opt.Port = _webSocketUri.Port;
+                    })));
+
+        _host = builder.Build();
+        await _host.StartAsync();
+    }
+
+    public async Task DisposeAsync()
+    {
+        await _host.StopAsync();
+    }
+
+    private IHost _host = null!;
+    private readonly Uri _webSocketUri = new("ws://localhost:7099/ws");
+
+    private async Task<string> ConnectAndWaitForResponse(ClientWebSocket webSocket)
     {
         await webSocket.SendUtf8BytesAsync(@" { ""type"": ""Connect"" }");
         var response = await webSocket.ReceiveJsonAsync();
         response.Should().ContainSubtree(@" { ""type"": ""ConnectResponse"" } ");
+
         return response.Value<string>("clientId")!;
     }
 
     private async Task<WebSocket> ConnectAsync()
     {
-        var webSocket = await App.Server.CreateWebSocketClient().ConnectAsync(WebSocketUri, CancellationToken.None);
+        var webSocket = new ClientWebSocket();
+        await webSocket.ConnectAsync(_webSocketUri, CancellationToken.None);
         await ConnectAndWaitForResponse(webSocket);
+
         return webSocket;
     }
 }
+

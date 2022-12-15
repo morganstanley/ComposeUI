@@ -10,14 +10,18 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Client;
+using MorganStanley.ComposeUI.Messaging.Core;
 
+namespace MorganStanley.ComposeUI.Messaging.Client;
+
+// TODO: Rename to TopicMessage?
 /// <summary>
 ///     Represents a message received from the Message Router server.
 /// </summary>
+///
 public sealed class RouterMessage
 {
-    internal RouterMessage(string topic, string? payload)
+    internal RouterMessage(string topic, Utf8Buffer? payload)
     {
         Topic = topic;
         Payload = payload;
@@ -32,5 +36,5 @@ public sealed class RouterMessage
     ///     The payload of the message. The format of the message is arbitrary and should
     ///     be defined and documented with the message definition.
     /// </summary>
-    public string? Payload { get; }
+    public Utf8Buffer? Payload { get; }
 }

@@ -10,16 +10,26 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using Microsoft.Extensions.DependencyInjection;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Client.Startup;
+
+// ReSharper disable once CheckNamespace
+namespace Microsoft.Extensions.DependencyInjection;
 
 public sealed class MessageRouterBuilder
 {
+    public MessageRouterBuilder UseAccessToken(string accessToken)
+    {
+        AccessToken = accessToken;
+
+        return this;
+    }
+
     internal MessageRouterBuilder(IServiceCollection serviceCollection)
     {
         ServiceCollection = serviceCollection;
     }
 
     internal IServiceCollection ServiceCollection { get; }
+
+    internal string? AccessToken { get; set; }
 }

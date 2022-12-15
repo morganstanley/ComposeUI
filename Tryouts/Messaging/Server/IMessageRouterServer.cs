@@ -10,9 +10,9 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using MorganStanley.ComposeUI.Tryouts.Messaging.Server.Transport.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Server.Transport.Abstractions;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Server;
+namespace MorganStanley.ComposeUI.Messaging.Server;
 
 /// <summary>
 /// Provides management and hosting features of the Message Router server.

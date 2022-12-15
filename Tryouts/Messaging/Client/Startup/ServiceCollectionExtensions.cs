@@ -10,18 +10,18 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using MorganStanley.ComposeUI.Messaging.Client;
+using MorganStanley.ComposeUI.Messaging.Client.Internal;
+
 // ReSharper disable once CheckNamespace
-
-using Microsoft.Extensions.DependencyInjection;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client;
-
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Client.Startup;
+namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
 ///     Static extensions to add the Message Router client to a service collection.
 /// </summary>
 public static class ServiceCollectionExtensions
 {
+    // TODO: Make the callback optional, add auto-configuration from environment variables (the module loader should inject them)
     /// <summary>
     ///     Adds the <see cref="IMessageRouter" /> and related types to the service collection,
     ///     using the provided configuration callback.
@@ -33,9 +33,13 @@ public static class ServiceCollectionExtensions
         this IServiceCollection serviceCollection,
         Action<MessageRouterBuilder> builderAction)
     {
-        serviceCollection.AddTransient<IMessageRouter, MessageRouterClient>();
         var builder = new MessageRouterBuilder(serviceCollection);
         builderAction(builder);
+        serviceCollection.AddSingleton<IMessageRouter, MessageRouterClient>();
+
+        serviceCollection.AddSingleton<MessageRouterOptions>(
+            new MessageRouterOptions { AccessToken = builder.AccessToken });
+
         return serviceCollection;
     }
 }

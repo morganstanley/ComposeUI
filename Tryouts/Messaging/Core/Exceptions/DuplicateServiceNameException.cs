@@ -10,10 +10,14 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Core.Exceptions;
+namespace MorganStanley.ComposeUI.Messaging.Core.Exceptions;
 
 public sealed class DuplicateServiceNameException : MessageRouterException
 {
+    public DuplicateServiceNameException(string serviceName) : base("Duplicate service name: " + serviceName)
+    {
+    }
+
     public DuplicateServiceNameException() : base("Duplicate service name")
     {
     }

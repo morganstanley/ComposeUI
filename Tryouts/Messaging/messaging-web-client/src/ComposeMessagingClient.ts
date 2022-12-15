@@ -17,7 +17,7 @@ export class ComposeMessagingClient {
 
     private state = ClientState.Created;
 
-    constructor(private websocketUrl: string) {
+    constructor(private websocketUrl: string, private accessToken?: string) {
     }
 
     public connect() {
@@ -29,7 +29,11 @@ export class ComposeMessagingClient {
             this.websocket.addEventListener('error', this.handleError.bind(this));
             this.websocket.addEventListener('open', () => {
                 this.state = ClientState.ClientConnecting;
-                this.sendMsg({ type: 'Connect' });
+                const msg: any = { type: 'Connect' };
+                if (this.accessToken) {
+                    msg.accessToken = this.accessToken;
+                }
+                this.sendMsg(msg);
             });
             this.websocket.addEventListener('close', () => {
                 this.state = ClientState.Closed;
@@ -84,6 +88,14 @@ export class ComposeMessagingClient {
         const message = JSON.parse(event.data);
         switch (message.type) {
             case 'ConnectResponse': {
+                const isError = !!message.error;
+                
+                if (isError) {
+                    this.state = ClientState.Closed;
+                    this.asyncCallbacks.invoke('connect', 'fail');
+                    break;
+                }
+                
                 this.clientId = message.clientId;
                 this.state = ClientState.Connected;
                 this.asyncCallbacks.invoke('connect', 'success');

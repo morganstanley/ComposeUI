@@ -10,7 +10,7 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Core.Messages;
+namespace MorganStanley.ComposeUI.Messaging.Core.Messages;
 
 public sealed class ConnectRequest : Message
 {
@@ -18,11 +18,7 @@ public sealed class ConnectRequest : Message
     {
     }
 
-    public ConnectRequest(Guid clientId)
-    {
-        ClientId = clientId;
-    }
-
     public override MessageType Type => MessageType.Connect;
-    public Guid? ClientId { get; init; }
+
+    public string? AccessToken { get; init; }
 }

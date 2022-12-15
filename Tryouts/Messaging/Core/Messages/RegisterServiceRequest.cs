@@ -10,7 +10,7 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Core.Messages;
+namespace MorganStanley.ComposeUI.Messaging.Core.Messages;
 
 public sealed class RegisterServiceRequest : Message
 {
@@ -24,5 +24,5 @@ public sealed class RegisterServiceRequest : Message
     }
 
     public override MessageType Type => MessageType.RegisterService;
-    public string ServiceName { get; init; }
+    public string ServiceName { get; init; } = null!;
 }

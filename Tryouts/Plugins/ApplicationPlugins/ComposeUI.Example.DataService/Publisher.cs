@@ -13,7 +13,7 @@
 //  */
 
 using Microsoft.Extensions.Logging;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client;
+using MorganStanley.ComposeUI.Messaging.Client;
 
 namespace ComposeUI.Example.DataService
 {

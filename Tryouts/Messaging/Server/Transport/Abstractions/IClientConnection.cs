@@ -10,9 +10,9 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using MorganStanley.ComposeUI.Tryouts.Messaging.Core.Messages;
+using MorganStanley.ComposeUI.Messaging.Core.Messages;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Server.Transport.Abstractions;
+namespace MorganStanley.ComposeUI.Messaging.Server.Transport.Abstractions;
 
 /// <summary>
 /// Abstraction of a client connected to the Message Router server.
@@ -28,9 +28,9 @@ public interface IClientConnection : IAsyncDisposable
     ValueTask SendAsync(Message message, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Returns the async stream of messages received from the client.
+    /// Returns the next message received from the client.
     /// </summary>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    IAsyncEnumerable<Message> ReceiveAsync(CancellationToken cancellationToken = default);
+    ValueTask<Message> ReceiveAsync(CancellationToken cancellationToken = default);
 }

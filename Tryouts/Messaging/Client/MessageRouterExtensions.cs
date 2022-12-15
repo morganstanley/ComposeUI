@@ -11,16 +11,66 @@
 // and limitations under the License.
 
 using System.Reactive;
+using System.Text;
+using MorganStanley.ComposeUI.Messaging.Core;
+using MorganStanley.ComposeUI.Messaging.Core.Serialization;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Client;
+namespace MorganStanley.ComposeUI.Messaging.Client;
 
 /// <summary>
 ///     Static extension methods for <see cref="IMessageRouter" />
 /// </summary>
 public static class MessageRouterExtensions
 {
+    /// <inheritdoc cref="IMessageRouter.PublishAsync"/>
+    public static ValueTask PublishAsync(
+        this IMessageRouter messageRouter,
+        string topicName,
+        string payload,
+        CancellationToken cancellationToken = default)
+    {
+        return messageRouter.PublishAsync(
+            topicName,
+            Utf8Buffer.Create(payload),
+            cancellationToken);
+    }
+
+    /// <inheritdoc cref="IMessageRouter.InvokeAsync"/>
+    public static async ValueTask<string?> InvokeAsync(
+        this IMessageRouter messageRouter,
+        string serviceName,
+        string? payload,
+        CancellationToken cancellationToken = default)
+    {
+        var response = await messageRouter.InvokeAsync(
+            serviceName,
+            payload == null ? null : Utf8Buffer.Create(payload),
+            cancellationToken);
+
+        return response?.GetString();
+    }
+
+    /// <inheritdoc cref="IMessageRouter.RegisterServiceAsync"/>
+    public static ValueTask RegisterServiceAsync(
+        this IMessageRouter messageRouter,
+        string serviceName,
+        PlainTextServiceInvokeHandler handler,
+        CancellationToken cancellationToken = default)
+    {
+        return messageRouter.RegisterServiceAsync(
+            serviceName,
+            // ReSharper disable once VariableHidesOuterVariable
+            async (serviceName, payload) =>
+            {
+                var response = await handler(serviceName, payload?.GetString());
+
+                return response == null ? null : Utf8Buffer.Create(response);
+            },
+            cancellationToken);
+    }
+
     /// <summary>
-    ///     Subscribes to a topic with an observer that receives the raw string payload instead of a
+    ///     Subscribes to a topic with an observer that receives the string payload instead of a
     ///     <see cref="RouterMessage" />
     /// </summary>
     /// <param name="messageRouter"></param>
@@ -35,7 +85,7 @@ public static class MessageRouterExtensions
         CancellationToken cancellationToken = default)
     {
         var innerObserver = Observer.Create<RouterMessage>(
-            message => observer.OnNext(message.Payload),
+            message => observer.OnNext(message.Payload?.GetString()),
             observer.OnError,
             observer.OnCompleted);
 

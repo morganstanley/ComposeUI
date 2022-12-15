@@ -10,7 +10,11 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Server;
+using MorganStanley.ComposeUI.Messaging.Server;
+using MorganStanley.ComposeUI.Messaging.Server.Internal;
+
+// ReSharper disable once CheckNamespace
+namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
 /// Contains extension methods for adding the Message Router server to a service collection.
@@ -21,10 +25,17 @@ public static class ServiceCollectionMessageRouterExceptions
     /// Adds <see cref="IMessageRouterServer"/> and related types to the service collection.
     /// </summary>
     /// <param name="serviceCollection"></param>
+    /// <param name="builderAction"></param>
     /// <returns></returns>
-    public static IServiceCollection AddMessageRouterServer(this IServiceCollection serviceCollection)
+    public static IServiceCollection AddMessageRouterServer(
+        this IServiceCollection serviceCollection,
+        Action<MessageRouterBuilder> builderAction)
     {
         serviceCollection.AddSingleton<IMessageRouterServer, MessageRouterServer>();
+        serviceCollection.AddSingleton<MessageRouterServerDependencies>();
+
+        var builder = new MessageRouterBuilder(serviceCollection);
+        builderAction(builder);
 
         return serviceCollection;
     }

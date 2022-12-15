@@ -10,19 +10,11 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Core.Messages;
+namespace MorganStanley.ComposeUI.Messaging.Core.Messages;
 
 public sealed class ConnectResponse : Message
 {
-    public ConnectResponse()
-    {
-    }
-
-    public ConnectResponse(Guid clientId)
-    {
-        ClientId = clientId;
-    }
-
     public override MessageType Type => MessageType.ConnectResponse;
-    public Guid ClientId { get; init; }
+    public string? ClientId { get; init; }
+    public string? Error { get; init; }
 }

@@ -15,13 +15,14 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipelines;
 using System.Net.WebSockets;
 using System.Threading.Channels;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Core.Messages;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Core.Serialization;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Server;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Server.Transport.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Core.Messages;
+using MorganStanley.ComposeUI.Messaging.Core.Serialization;
+using MorganStanley.ComposeUI.Messaging.Core.Serialization.Json;
+using MorganStanley.ComposeUI.Messaging.Server.Transport.Abstractions;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Server.Transport.WebSocket;
+namespace MorganStanley.ComposeUI.Messaging.Server.Transport.WebSocket;
 
 internal class WebSocketConnection : IClientConnection
 {
@@ -45,9 +46,9 @@ internal class WebSocketConnection : IClientConnection
         return _outputChannel.Writer.WriteAsync(message, cancellationToken);
     }
 
-    public IAsyncEnumerable<Message> ReceiveAsync(CancellationToken cancellationToken = default)
+    public ValueTask<Message> ReceiveAsync(CancellationToken cancellationToken = default)
     {
-        return _inputChannel.Reader.ReadAllAsync(cancellationToken);
+        return _inputChannel.Reader.ReadAsync(cancellationToken);
     }
 
     public ValueTask DisposeAsync()

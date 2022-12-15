@@ -21,17 +21,23 @@ Microsoft Visual Studio Solution File, Format Version 12.00
   </PropertyGroup>
   <ItemGroup>
     <None Remove=".gitignore" />
+    <None Remove="appsettings.json" />
     <None Remove="BuildAndRunReadme.md" />
     <None Remove="manifest.json" />
     <None Remove="README.md" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="manifest.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
+    <PackageReference Include="Nito.AsyncEx" Version="5.1.2" />
     <PackageReference Include="XamlNameReferenceGenerator" Version="1.3.4" />
   </ItemGroup>
   <ItemGroup>
@@ -39,6 +45,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
     <ProjectReference Include="..\..\Core\BasicModels\MorganStanley.ComposeUI.Tryouts.Core.BasicModels.csproj" />
     <ProjectReference Include="..\..\Core\Services\ModulesService\MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService.csproj" />
     <ProjectReference Include="..\..\Core\Utilities\MorganStanley.ComposeUI.Tryouts.Core.Utilities.csproj" />
+    <ProjectReference Include="..\..\Messaging\Server\MorganStanley.ComposeUI.Messaging.Server.csproj" />
     <ProjectReference Include="..\..\Visuals\Avalonia\VisualUtils\MorganStanley.ComposeUI.Tryouts.Visuals.Avalonia.VisualUtils.csproj" />
   </ItemGroup>
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">

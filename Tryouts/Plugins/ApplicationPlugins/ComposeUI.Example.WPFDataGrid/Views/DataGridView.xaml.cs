@@ -14,7 +14,6 @@
 
 using ComposeUI.Example.WPFDataGrid.Models;
 using Microsoft.Extensions.Logging;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client;
 using System;
 using System.Collections.ObjectModel;
 using System.Data;
@@ -23,6 +22,8 @@ using System.Reactive.Linq;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using MorganStanley.ComposeUI.Messaging.Client;
+using MorganStanley.ComposeUI.Messaging.Core;
 
 
 namespace ComposeUI.Example.WPFDataGrid.Views;

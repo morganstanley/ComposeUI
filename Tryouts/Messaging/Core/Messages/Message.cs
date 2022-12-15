@@ -12,7 +12,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Core.Messages;
+namespace MorganStanley.ComposeUI.Messaging.Core.Messages;
 
 public abstract class Message
 {
@@ -34,7 +34,7 @@ public abstract class Message
             MessageType.InvokeResponse => typeof(InvokeResponse),
             MessageType.RegisterServiceResponse => typeof(RegisterServiceResponse),
             MessageType.UnregisterService => typeof(UnregisterServiceMessage),
-            _ => throw new ArgumentOutOfRangeException()
+            _ => throw new ArgumentOutOfRangeException(nameof(messageType))
         };
     }
 }

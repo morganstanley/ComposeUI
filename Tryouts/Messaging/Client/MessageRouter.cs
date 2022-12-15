@@ -11,9 +11,8 @@
 // and limitations under the License.
 
 using Microsoft.Extensions.DependencyInjection;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client.Startup;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Client;
+namespace MorganStanley.ComposeUI.Messaging.Client;
 
 /// <summary>
 ///     Static utility for creating <see cref="IMessageRouter" /> without a service collection.

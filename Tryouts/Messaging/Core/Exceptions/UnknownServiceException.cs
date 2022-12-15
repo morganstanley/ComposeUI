@@ -10,10 +10,14 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Core.Exceptions;
+namespace MorganStanley.ComposeUI.Messaging.Core.Exceptions;
 
 public sealed class UnknownServiceException : MessageRouterException
 {
+    public UnknownServiceException(string serviceName) : base("Unknown service: " + serviceName)
+    {
+    }
+
     public UnknownServiceException() : base("Unknown service")
     {
     }

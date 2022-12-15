@@ -10,27 +10,19 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using Microsoft.AspNetCore.Mvc.Testing;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client.Transport.WebSocket;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Server;
+using System.Text;
+using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using MorganStanley.ComposeUI.Messaging.Client;
+using MorganStanley.ComposeUI.Messaging.Client.Transport.WebSocket;
+using MorganStanley.ComposeUI.Messaging.Core;
+using MessageRouterBuilderWebSocketExtensions = MorganStanley.ComposeUI.Messaging.Server.Transport.WebSocket.MessageRouterBuilderWebSocketExtensions;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.IntegrationTests;
+namespace MorganStanley.ComposeUI.Messaging.IntegrationTests;
 
-// To run these tests, first start the server (ComposeUI.Messaging.Server) without debugging.
-// The tests will not leave the server in a clean state.
-// Some tests might fail if not run after a clean start.
-
-public class WebSocketEndToEndTests
+public class WebSocketEndToEndTests : IAsyncLifetime
 {
-    public WebSocketEndToEndTests()
-    {
-        WebSocketUri = new Uri("wss://localhost:7098/ws");
-    }
-
-    protected readonly WebApplicationFactory<Program> App;
-    protected readonly Uri WebSocketUri;
-
     [Fact]
     public async Task Client_can_connect()
     {
@@ -44,20 +36,25 @@ public class WebSocketEndToEndTests
         await using var publisher = CreateClient();
         await using var subscriber = CreateClient();
         var observerMock = new Mock<IObserver<RouterMessage>>();
+        var receivedMessages = new List<RouterMessage>();
+        observerMock.Setup(x => x.OnNext(Capture.In(receivedMessages)));
 
-        await subscriber.SubscribeAsync(topicName: "test-topic", observerMock.Object);
+        await subscriber.SubscribeAsync("test-topic", observerMock.Object);
         await Task.Delay(100);
-        await publisher.PublishAsync(topicName: "test-topic", payload: "test-payload");
+        var publishedPayload = new TestPayload { IntProperty = 0x10203040, StringProperty = "Compose UI 🔥" };
+        await publisher.PublishAsync("test-topic", Utf8Buffer.Create(JsonSerializer.SerializeToUtf8Bytes(publishedPayload)));
         await Task.Delay(100);
 
-        observerMock.Verify(x => x.OnNext(It.Is<RouterMessage>(msg => msg.Payload!.SequenceEqual("test-payload"))));
+        var receivedPayload = JsonSerializer.Deserialize<TestPayload>(receivedMessages.Single().Payload!.GetSpan());
+
+        receivedPayload.Should().BeEquivalentTo(publishedPayload);
     }
 
     [Fact]
     public async Task Client_can_register_itself_as_a_service()
     {
         await using var client = CreateClient();
-        await client.RegisterServiceAsync(serviceName: "test-service", (name, payload) => default);
+        await client.RegisterServiceAsync("test-service", (name, payload) => default);
         await client.UnregisterServiceAsync("test-service");
     }
 
@@ -67,28 +64,69 @@ public class WebSocketEndToEndTests
         await using var service = CreateClient();
 
         var handlerMock = new Mock<ServiceInvokeHandler>();
+
         handlerMock
-            .Setup(_ => _.Invoke("test-service", It.IsAny<string>()))
-            .Returns(new ValueTask<string?>("test-response"));
-        await service.RegisterServiceAsync(serviceName: "test-service", handlerMock.Object);
+            .Setup(_ => _.Invoke("test-service", It.IsAny<Utf8Buffer?>()))
+            .Returns(new ValueTask<Utf8Buffer?>(Utf8Buffer.Create("test-response")));
+
+        await service.RegisterServiceAsync("test-service", handlerMock.Object);
 
         await using var client = CreateClient();
 
-        var response = await client.InvokeAsync(serviceName: "test-service", payload: "test-request");
+        var response = await client.InvokeAsync("test-service", "test-request");
 
         response.Should().BeEquivalentTo("test-response");
-        handlerMock.Verify(_ => _.Invoke("test-service", "test-request"));
+        handlerMock.Verify(_ => _.Invoke("test-service", It.Is<Utf8Buffer>(buf => buf.GetString() == "test-request")));
 
         await service.UnregisterServiceAsync("test-service");
     }
 
+    public async Task InitializeAsync()
+    {
+        IHostBuilder builder = new HostBuilder();
+
+        builder.ConfigureServices(
+            services => services.AddMessageRouterServer(
+                mr => MessageRouterBuilderWebSocketExtensions.UseWebSockets(
+                        mr,
+                        opt =>
+                        {
+                            opt.RootPath = _webSocketUri.AbsolutePath;
+                            opt.Port = _webSocketUri.Port;
+                        })
+                    .UseAccessTokenValidator(
+                        new Action<string, string?>(
+                            (clientId, token) =>
+                            {
+                                if (token != AccessToken)
+                                    throw new InvalidOperationException("Invalid access token");
+                            }))));
+
+        _host = builder.Build();
+        await _host.StartAsync();
+    }
+
+    public async Task DisposeAsync()
+    {
+        await _host.StopAsync();
+    }
+
+    private IHost _host = null!;
+    private readonly Uri _webSocketUri = new("ws://localhost:7098/ws");
+    private const string AccessToken = "token";
+
     private IMessageRouter CreateClient()
     {
         return MessageRouter.Create(
-            mr => mr.UseWebSocket(
-                new MessageRouterWebSocketOptions
-                {
-                    Uri = WebSocketUri
-                }));
+            mr => mr
+                .UseWebSocket(
+                    new MessageRouterWebSocketOptions { Uri = _webSocketUri })
+                .UseAccessToken(AccessToken));
+    }
+
+    private class TestPayload
+    {
+        public int IntProperty { get; set; }
+        public string StringProperty { get; set; }
     }
 }

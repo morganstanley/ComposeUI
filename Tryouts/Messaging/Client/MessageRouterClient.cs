@@ -12,27 +12,37 @@
 
 using System.Collections.Concurrent;
 using System.Reactive.Subjects;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Client.Transport.Abstractions;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Core.Exceptions;
-using MorganStanley.ComposeUI.Tryouts.Messaging.Core.Messages;
+using MorganStanley.ComposeUI.Messaging.Client.Internal;
+using MorganStanley.ComposeUI.Messaging.Client.Transport.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Core;
+using MorganStanley.ComposeUI.Messaging.Core.Exceptions;
+using MorganStanley.ComposeUI.Messaging.Core.Messages;
 using Nito.AsyncEx;
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Client;
+namespace MorganStanley.ComposeUI.Messaging.Client;
 
-internal class MessageRouterClient : IMessageRouter
+internal sealed class MessageRouterClient : IMessageRouter
 {
-    public MessageRouterClient(IClientConnection connection)
+    public MessageRouterClient(IConnection connection, MessageRouterOptions options)
     {
         _connection = connection;
+        _options = options;
     }
+
+    public string? ClientId => _clientId;
 
     public ValueTask ConnectAsync(CancellationToken cancellationToken = default)
     {
         switch (_connectionState)
         {
-            case ConnectionState.Closed: throw ThrowHelper.ConnectionClosed();
-            case ConnectionState.Connected: return default;
-            case ConnectionState.Connecting: return new ValueTask(_connectTaskSource.Task);
+            case ConnectionState.Closed:
+                throw ThrowHelper.ConnectionClosed();
+
+            case ConnectionState.Connected:
+                return default;
+
+            case ConnectionState.Connecting:
+                return new ValueTask(_connectTaskSource.Task);
         }
 
         return ConnectAsyncCore();
@@ -44,13 +54,16 @@ internal class MessageRouterClient : IMessageRouter
         CancellationToken cancellationToken = default)
     {
         var needsSubscription = false;
+
         var topic = _subscriptions.GetOrAdd(
             topicName,
             _ =>
             {
                 needsSubscription = true;
+
                 return new Subject<RouterMessage>();
             });
+
         return needsSubscription
             ? SubscribeCore(topicName, topic, observer, cancellationToken)
             : new ValueTask<IDisposable>(topic.Subscribe(observer));
@@ -58,25 +71,31 @@ internal class MessageRouterClient : IMessageRouter
 
     public async ValueTask PublishAsync(
         string topicName,
-        string? payload = null,
+        Utf8Buffer? payload = null,
         CancellationToken cancellationToken = default)
     {
         await ConnectAsync(cancellationToken);
-        await _connection.SendAsync(new PublishMessage(topicName, payload), cancellationToken);
+
+        await _connection.SendAsync(
+            new PublishMessage(topicName, payload),
+            cancellationToken);
     }
 
-    public async ValueTask<string?> InvokeAsync(
+    public async ValueTask<Utf8Buffer?> InvokeAsync(
         string serviceName,
-        string? payload = null,
+        Utf8Buffer? payload = null,
         CancellationToken cancellationToken = default)
     {
         var requestId = Guid.NewGuid().ToString();
         var tcs = new TaskCompletionSource<Message>();
         _pendingRequests.TryAdd(requestId, tcs);
         await ConnectAsync(cancellationToken);
+
         try
         {
-            await _connection.SendAsync(new InvokeRequest(requestId, serviceName, payload), cancellationToken);
+            await _connection.SendAsync(
+                new InvokeRequest(requestId, serviceName, payload),
+                cancellationToken);
         }
         catch (Exception e)
         {
@@ -94,13 +113,17 @@ internal class MessageRouterClient : IMessageRouter
         ServiceInvokeHandler handler,
         CancellationToken cancellationToken = default)
     {
-        if (!_serviceInvokeHandlers.TryAdd(serviceName, handler)) throw new DuplicateServiceNameException();
+        if (!_serviceInvokeHandlers.TryAdd(serviceName, handler))
+            throw new DuplicateServiceNameException();
+
         return RegisterServiceCore(serviceName);
     }
 
     public ValueTask UnregisterServiceAsync(string serviceName, CancellationToken cancellationToken = default)
     {
-        if (!_serviceInvokeHandlers.TryRemove(serviceName, out _)) return default;
+        if (!_serviceInvokeHandlers.TryRemove(serviceName, out _))
+            return default;
+
         return UnregisterServiceCore(serviceName, cancellationToken);
     }
 
@@ -108,32 +131,38 @@ internal class MessageRouterClient : IMessageRouter
     {
         using (await _mutex.LockAsync())
         {
-            if (_connectionState != ConnectionState.Connected) return;
+            if (_connectionState != ConnectionState.Connected)
+                return;
+
             _connectionState = ConnectionState.Closed;
             await _connection.DisposeAsync();
         }
     }
 
-    private Guid _clientId;
-    private readonly IClientConnection _connection;
+    private string? _clientId;
+    private readonly IConnection _connection;
     private ConnectionState _connectionState;
     private readonly TaskCompletionSource _connectTaskSource = new();
     private AsyncLock _mutex = new();
     private readonly ConcurrentDictionary<string, TaskCompletionSource<Message>> _pendingRequests = new();
     private readonly ConcurrentDictionary<string, ServiceInvokeHandler> _serviceInvokeHandlers = new();
     private readonly ConcurrentDictionary<string, Subject<RouterMessage>> _subscriptions = new();
+    private readonly MessageRouterOptions _options;
 
     private async ValueTask ConnectAsyncCore()
     {
         using (await _mutex.LockAsync())
         {
-            if (_connectionState == ConnectionState.Closed) throw ThrowHelper.ConnectionClosed();
+            if (_connectionState == ConnectionState.Closed)
+                throw ThrowHelper.ConnectionClosed();
+
             _connectionState = ConnectionState.Connecting;
+
             try
             {
                 await _connection.ConnectAsync();
                 _ = Task.Run(ReadMessagesAsync);
-                await _connection.SendAsync(new ConnectRequest());
+                await _connection.SendAsync(new ConnectRequest { AccessToken = _options.AccessToken });
             }
             catch (Exception e)
             {
@@ -148,8 +177,16 @@ internal class MessageRouterClient : IMessageRouter
 
     private Task HandleConnectResponse(ConnectResponse message)
     {
-        _clientId = message.ClientId;
-        _connectTaskSource.SetResult();
+        if (message.Error != null)
+        {
+            _connectTaskSource.SetException(new MessageRouterException(message.Error));
+        }
+        else
+        {
+            _clientId = message.ClientId;
+            _connectTaskSource.SetResult();
+        }
+
         return Task.CompletedTask;
     }
 
@@ -159,6 +196,7 @@ internal class MessageRouterClient : IMessageRouter
         {
             if (!_serviceInvokeHandlers.TryGetValue(message.ServiceName, out var handler))
                 throw new UnknownServiceException();
+
             var response = await handler(message.ServiceName, message.Payload);
             await ConnectAsync();
             await _connection.SendAsync(new InvokeResponse(message.RequestId, response));
@@ -172,9 +210,14 @@ internal class MessageRouterClient : IMessageRouter
 
     private Task HandleInvokeResponse(InvokeResponse message)
     {
-        if (!_pendingRequests.TryRemove(message.RequestId, out var tcs)) return Task.CompletedTask;
-        if (message.Error != null) tcs.SetException(new MessageRouterException(message.Error));
-        else tcs.SetResult(message);
+        if (!_pendingRequests.TryRemove(message.RequestId, out var tcs))
+            return Task.CompletedTask;
+
+        if (message.Error != null)
+            tcs.SetException(new MessageRouterException(message.Error));
+        else
+            tcs.SetResult(message);
+
         return Task.CompletedTask;
     }
 
@@ -184,22 +227,29 @@ internal class MessageRouterClient : IMessageRouter
         {
             case MessageType.ConnectResponse:
                 return HandleConnectResponse((ConnectResponse)message);
+
             case MessageType.Update:
                 return HandleUpdateMessage((UpdateMessage)message);
+
             case MessageType.RegisterServiceResponse:
                 return HandleRegisterServiceResponse((RegisterServiceResponse)message);
+
             case MessageType.InvokeResponse:
                 return HandleInvokeResponse((InvokeResponse)message);
+
             case MessageType.Invoke:
                 return HandleInvokeRequest((InvokeRequest)message);
         }
 
+        // TODO: log unhandled message
         return Task.CompletedTask;
     }
 
     private Task HandleRegisterServiceResponse(RegisterServiceResponse message)
     {
-        if (!_pendingRequests.TryRemove(message.ServiceName, out var tcs)) return Task.CompletedTask;
+        if (!_pendingRequests.TryRemove(message.ServiceName, out var tcs))
+            return Task.CompletedTask;
+
         if (message.Error != null)
         {
             _serviceInvokeHandlers.TryRemove(message.ServiceName, out _);
@@ -213,18 +263,26 @@ internal class MessageRouterClient : IMessageRouter
         return Task.CompletedTask;
     }
 
-    private async Task HandleUpdateMessage(UpdateMessage message)
+    private Task HandleUpdateMessage(UpdateMessage message)
     {
-        if (!_subscriptions.TryGetValue(message.Topic, out var subject)) return;
+        if (!_subscriptions.TryGetValue(message.Topic, out var subject))
+            return Task.CompletedTask;
+
         var routerMessage = new RouterMessage(message.Topic, message.Payload);
         subject.OnNext(routerMessage);
+
+        return Task.CompletedTask;
     }
 
     private async Task ReadMessagesAsync()
     {
-        await foreach (var message in _connection.ReceiveAsync())
+        while (_connectionState != ConnectionState.Closed)
         {
-            if (_connectionState == ConnectionState.Closed) break;
+            var message = await _connection.ReceiveAsync();
+
+            if (_connectionState == ConnectionState.Closed)
+                break;
+
             await HandleMessage(message);
         }
     }
@@ -245,6 +303,7 @@ internal class MessageRouterClient : IMessageRouter
     {
         await ConnectAsync(cancellationToken);
         await _connection.SendAsync(new SubscribeMessage(topicName), cancellationToken);
+
         return topic.Subscribe(observer);
     }
 

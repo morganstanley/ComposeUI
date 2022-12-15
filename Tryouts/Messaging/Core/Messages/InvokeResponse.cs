@@ -10,7 +10,7 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Tryouts.Messaging.Core.Messages;
+namespace MorganStanley.ComposeUI.Messaging.Core.Messages;
 
 public sealed class InvokeResponse : Message
 {
@@ -18,7 +18,7 @@ public sealed class InvokeResponse : Message
     {
     }
 
-    public InvokeResponse(string requestId, string? payload, string? error = null)
+    public InvokeResponse(string requestId, Utf8Buffer? payload, string? error = null)
     {
         RequestId = requestId;
         Payload = payload;
@@ -26,7 +26,7 @@ public sealed class InvokeResponse : Message
     }
 
     public override MessageType Type => MessageType.InvokeResponse;
-    public string RequestId { get; init; }
-    public string? Payload { get; init; }
+    public string RequestId { get; init; } = null!;
+    public Utf8Buffer? Payload { get; init; }
     public string? Error { get; init; }
 }
