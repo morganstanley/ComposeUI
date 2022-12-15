@@ -12,7 +12,7 @@
 
 namespace MorganStanley.ComposeUI.Messaging;
 
-public struct PublishOptions
+public readonly record struct PublishOptions
 {
-    public MessageScope Scope { get; set; }
+    public MessageScope Scope { get; init; }
 }
