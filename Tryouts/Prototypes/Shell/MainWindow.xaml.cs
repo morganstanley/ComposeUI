@@ -15,6 +15,7 @@
 using Manifest;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -45,12 +46,12 @@ namespace Shell
 
             config = new ManifestParser().Manifest;
             modules = config.Modules;
+            DataContext = modules;
         }
 
-        private void CreateViews(ModuleModel item) {
-           
-            var webContent = new WebContent(item.Url);
-            webContent.Title = item.AppName;
+        private void CreateViews(object item) 
+        {
+            var webContent = new WebContent((item as string));
 
             webContent.Owner = this;
 
@@ -67,17 +68,7 @@ namespace Shell
         
         private void ShowChild_Click(object sender, RoutedEventArgs e)
         {
-            this.CreateViews(modules[0]);
-        }
-
-        private void ShowChild_Click2(object sender, RoutedEventArgs e)
-        {
-            this.CreateViews(modules[1]);
-        }
-
-        private void ShowChild_Click3(object sender, RoutedEventArgs e)
-        {
-            this.CreateViews(modules[2]);
+            this.CreateViews((sender as Button).Content);
         }
     }
 }
