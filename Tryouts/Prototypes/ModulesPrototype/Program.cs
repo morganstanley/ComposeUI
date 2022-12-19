@@ -23,7 +23,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using MorganStanley.ComposeUI.Messaging.Server.Transport.WebSocket;
+using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 using Nito.AsyncEx;
 
 namespace MorganStanley.ComposeUI.Prototypes.ModulesPrototype;

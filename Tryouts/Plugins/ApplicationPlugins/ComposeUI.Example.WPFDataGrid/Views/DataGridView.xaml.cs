@@ -22,8 +22,7 @@ using System.Reactive.Linq;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
-using MorganStanley.ComposeUI.Messaging.Client;
-using MorganStanley.ComposeUI.Messaging.Core;
+using MorganStanley.ComposeUI.Messaging;
 
 
 namespace ComposeUI.Example.WPFDataGrid.Views;

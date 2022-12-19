@@ -5,7 +5,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<IsPackable>false</IsPackable>
-		<RootNamespace>MorganStanley.ComposeUI.Messaging.Core</RootNamespace>
+		<RootNamespace>MorganStanley.ComposeUI.Messaging</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>

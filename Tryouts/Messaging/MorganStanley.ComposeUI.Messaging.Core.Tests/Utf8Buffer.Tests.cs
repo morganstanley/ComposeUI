@@ -12,9 +12,9 @@
 
 using System.Buffers;
 using System.Text;
-using MorganStanley.ComposeUI.Messaging.Core.TestUtils;
+using MorganStanley.ComposeUI.Messaging.TestUtils;
 
-namespace MorganStanley.ComposeUI.Messaging.Core;
+namespace MorganStanley.ComposeUI.Messaging;
 
 public class Utf8BufferTests
 {

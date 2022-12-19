@@ -12,11 +12,10 @@
 
 using System.Buffers;
 using System.Text;
-using MorganStanley.ComposeUI.Messaging.Core.Messages;
-using MorganStanley.ComposeUI.Messaging.Core.Serialization;
-using MorganStanley.ComposeUI.Messaging.Core.Serialization.Json;
+using MorganStanley.ComposeUI.Messaging.Protocol.Json;
+using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
-namespace MorganStanley.ComposeUI.Messaging.Server.Tests;
+namespace MorganStanley.ComposeUI.Messaging;
 
 public class MessageSerializationTests
 {
