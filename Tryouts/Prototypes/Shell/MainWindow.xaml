@@ -25,7 +25,7 @@ See the License for the specific language governing permissions and limitations 
                     <Button 
                             HorizontalAlignment="Center" 
                             DockPanel.Dock="Right" Click="ShowChild_Click"
-                            Content="{Binding Url}"
+                            Content="{Binding AppName}"
                             Background="#FFF2F2F2" 
                             Padding="5" 
                             Margin="20" 

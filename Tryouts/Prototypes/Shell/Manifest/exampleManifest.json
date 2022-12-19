@@ -1,15 +1,15 @@
 {
   "modules":[
     {
-      "appName": "TestApp",
+      "appName": "Morgan Stanley",
       "url": "http://www.morganstanley.com"
     },
     {
-      "appName": "TestApp2",
+      "appName": "Microsoft",
       "url": "http://www.microsoft.com"
     },
     {
-      "appName": "TestApp3",
+      "appName": "Google",
       "url": "http://www.google.com"
     }
   ]

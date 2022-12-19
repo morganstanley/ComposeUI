@@ -49,9 +49,10 @@ namespace Shell
             DataContext = modules;
         }
 
-        private void CreateViews(object item) 
+        private void CreateViews(ModuleModel item) 
         {
-            var webContent = new WebContent((item as string));
+            var webContent = new WebContent(item.Url);
+            webContent.Title = item.AppName;
 
             webContent.Owner = this;
 
@@ -63,12 +64,14 @@ namespace Shell
 
         private void WebContent_Closed(object? sender, EventArgs e)
         {
-            webContentList.Remove((WebContent)sender);
+            webContentList.Remove(sender as WebContent);
         }
         
         private void ShowChild_Click(object sender, RoutedEventArgs e)
         {
-            this.CreateViews((sender as Button).Content);
+            var context = (sender as Button).DataContext;
+            
+            this.CreateViews((context as ModuleModel));
         }
     }
 }
