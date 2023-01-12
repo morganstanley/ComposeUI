@@ -10,9 +10,26 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
+using MorganStanley.ComposeUI.Messaging.Exceptions;
 
-public sealed class RegisterServiceResponse : AbstractResponse
+namespace MorganStanley.ComposeUI.Messaging.Protocol;
+
+/// <summary>
+/// Contains logic around topics.
+/// </summary>
+public static class Topic
 {
-    public override MessageType Type => MessageType.RegisterServiceResponse;
+    /// <summary>
+    /// Checks if the provided string is a valid topic name.
+    /// </summary>
+    /// <param name="topic"></param>
+    /// <returns></returns>
+    public static bool IsValidTopicName(string topic) => !string.IsNullOrWhiteSpace(topic);
+
+    public static void Validate(string topic)
+    {
+        if (!IsValidTopicName(topic))
+            throw new InvalidTopicException(topic);
+    }
+
 }

@@ -62,7 +62,7 @@ export class ComposeMessagingClient {
 
     public invoke(endpoint: string, payload: any) {
         return new Promise((resolve, reject) => {
-            const requestId = '' + (++this.lastRequestId);
+            const requestId = this.getRequestId();
             this.asyncCallbacks.add('request-' + requestId, resolve, reject, true);
             this.sendMsg({ type: 'Invoke', endpoint, payload: JSON.stringify(payload), requestId });
         });
@@ -70,10 +70,15 @@ export class ComposeMessagingClient {
 
     public registerService(endpoint: string, handler: (payload: any) => any) {
         return new Promise((resolve, reject) => {
+            const requestId = this.getRequestId();
             this.asyncCallbacks.add('invoke-' + endpoint, handler);
-            this.asyncCallbacks.add('register-' + endpoint, resolve, reject, true);
-            this.sendMsg({ type: 'RegisterService', endpoint });
+            this.asyncCallbacks.add('register-' + requestId, resolve, reject, true);
+            this.sendMsg({ type: 'RegisterService', requestId, endpoint });
         });
+    }
+
+    private getRequestId() {
+        return '' + (++this.lastRequestId);
     }
 
     private sendMsg(message: any) {
@@ -111,7 +116,7 @@ export class ComposeMessagingClient {
                 break;
             }
             case 'RegisterServiceResponse': {
-                this.asyncCallbacks.invoke('register-' + message.endpoint, message.error ? 'fail' : 'success', message.error);
+                this.asyncCallbacks.invoke('register-' + message.requestId, message.error ? 'fail' : 'success', message.error);
                 break;
             }
             case 'Invoke': {

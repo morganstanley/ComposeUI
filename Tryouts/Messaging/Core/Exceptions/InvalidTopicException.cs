@@ -10,15 +10,21 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using MorganStanley.ComposeUI.Messaging.Protocol;
+
 namespace MorganStanley.ComposeUI.Messaging.Exceptions;
 
-public sealed class DuplicateServiceNameException : MessageRouterException
+public class InvalidTopicException : MessageRouterException
 {
-    public DuplicateServiceNameException(string serviceName) : base("Duplicate service name: " + serviceName)
+    public InvalidTopicException(string topic) : base($"Invalid topic: '{topic}'")
     {
     }
 
-    public DuplicateServiceNameException() : base("Duplicate service name")
+    public InvalidTopicException() : base("Invalid topic")
+    {
+    }
+
+    public InvalidTopicException(Error error) : base(error.Message)
     {
     }
 }

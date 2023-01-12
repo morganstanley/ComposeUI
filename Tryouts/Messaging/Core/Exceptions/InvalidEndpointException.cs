@@ -10,15 +10,21 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using MorganStanley.ComposeUI.Messaging.Protocol;
+
 namespace MorganStanley.ComposeUI.Messaging.Exceptions;
 
-public sealed class UnknownServiceException : MessageRouterException
+public class InvalidEndpointException : MessageRouterException
 {
-    public UnknownServiceException(string serviceName) : base("Unknown service: " + serviceName)
+    public InvalidEndpointException(string endpoint) : base($"Invalid endpoint: '{endpoint}'")
     {
     }
 
-    public UnknownServiceException() : base("Unknown service")
+    public InvalidEndpointException() : base("Invalid endpoint")
+    {
+    }
+
+    public InvalidEndpointException(Error error) : base(error.Message)
     {
     }
 }

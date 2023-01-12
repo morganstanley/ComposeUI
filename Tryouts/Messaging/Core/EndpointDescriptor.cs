@@ -10,9 +10,15 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
+namespace MorganStanley.ComposeUI.Messaging;
 
-public sealed class RegisterServiceResponse : AbstractResponse
+/// <summary>
+/// Provides discovery information for a registered endpoint or service.
+/// </summary>
+public class EndpointDescriptor
 {
-    public override MessageType Type => MessageType.RegisterServiceResponse;
+    /// <summary>
+    /// Gets or sets the human-readable description of the endpoint or service.
+    /// </summary>
+    public string? Description { get; init; }
 }

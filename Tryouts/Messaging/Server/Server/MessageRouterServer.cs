@@ -113,17 +113,27 @@ internal class MessageRouterServer : IMessageRouterServer
     {
         try
         {
-            if (!_serviceRegistrations.TryGetValue(message.Endpoint, out var serviceClientId)
-                || !_clients.TryGetValue(serviceClientId, out var serviceClient))
+            Client? serviceClient = null;
+
+            if (message.Scope.IsClientId)
             {
-                throw new UnknownServiceException(message.Endpoint);
+                _clients.TryGetValue(message.Scope.GetClientId()!, out serviceClient);
+            }
+            else if (_serviceRegistrations.TryGetValue(message.Endpoint, out var serviceClientId))
+            {
+                _clients.TryGetValue(serviceClientId, out serviceClient);
+            }
+
+            if (serviceClient == null)
+            {
+                throw new UnknownEndpointException(message.Endpoint);
             }
 
             var request = new ServiceInvocation(
                 message.RequestId,
                 Guid.NewGuid().ToString(),
                 client.ClientId,
-                serviceClientId);
+                serviceClient.ClientId);
 
             if (!_serviceInvocations.TryAdd(request.ServiceRequestId, request))
                 throw new DuplicateRequestIdException();
@@ -210,18 +220,17 @@ internal class MessageRouterServer : IMessageRouterServer
         RegisterServiceRequest message,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(message.Endpoint))
-            return;
-
         try
         {
+            Endpoint.Validate(message.Endpoint);
+
             if (!_serviceRegistrations.TryAdd(message.Endpoint, client.ClientId))
-                throw new DuplicateServiceNameException(message.Endpoint);
+                throw new DuplicateEndpointException(message.Endpoint);
 
             await client.Connection.SendAsync(
                 new RegisterServiceResponse
                 {
-                    Endpoint = message.Endpoint
+                    RequestId = message.RequestId,
                 },
                 CancellationToken.None);
         }
@@ -230,7 +239,7 @@ internal class MessageRouterServer : IMessageRouterServer
             await client.Connection.SendAsync(
                 new RegisterServiceResponse
                 {
-                    Endpoint = message.Endpoint,
+                    RequestId = message.RequestId,
                     Error = new Error(e),
                 },
                 CancellationToken.None);
@@ -242,7 +251,7 @@ internal class MessageRouterServer : IMessageRouterServer
         SubscribeMessage message,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(message.Topic))
+        if (!Protocol.Topic.IsValidTopicName(message.Topic))
             return Task.CompletedTask;
 
         var topic = _topics.AddOrUpdate(
@@ -261,17 +270,19 @@ internal class MessageRouterServer : IMessageRouterServer
         return Task.CompletedTask;
     }
 
-    private Task HandleUnregisterServiceMessage(
+    private async Task HandleUnregisterServiceMessage(
         Client client,
-        UnregisterServiceMessage message,
+        UnregisterServiceRequest request,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(message.Endpoint))
-            return Task.CompletedTask;
+        _serviceRegistrations.TryRemove(new KeyValuePair<string, string>(request.Endpoint, client.ClientId));
 
-        _serviceRegistrations.TryRemove(new KeyValuePair<string, string>(message.Endpoint, client.ClientId));
-
-        return Task.CompletedTask;
+        await client.Connection.SendAsync(
+            new UnregisterServiceResponse
+            {
+                RequestId = request.RequestId,
+            },
+            CancellationToken.None);
     }
 
     private Task HandleUnsubscribeMessage(
@@ -304,6 +315,8 @@ internal class MessageRouterServer : IMessageRouterServer
         {
             while (!client.StopTokenSource.IsCancellationRequested)
             {
+                // TODO: Handle unexpected disconnections, throw and catch OperationCanceledException 
+
                 var message = await client.Connection.ReceiveAsync(cancellationToken);
 
                 try
@@ -351,7 +364,7 @@ internal class MessageRouterServer : IMessageRouterServer
                         case MessageType.UnregisterService:
                             await HandleUnregisterServiceMessage(
                                 client,
-                                (UnregisterServiceMessage)message,
+                                (UnregisterServiceRequest)message,
                                 cancellationToken);
 
                             break;

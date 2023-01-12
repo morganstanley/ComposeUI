@@ -17,7 +17,7 @@ using ProcessExplorerMessageRouterTopics;
 
 namespace SuperRPC_POC.Infrastructure.Messages;
 
-public class ProcessMonitorCheckerRouterMessage : IObserver<RouterMessage>
+public class ProcessMonitorCheckerRouterMessage : IObserver<TopicMessage>
 {
     private readonly ILogger<ProcessMonitorCheckerRouterMessage> _logger;
     private readonly IProcessInfoAggregator? _processInfoAggregator;
@@ -39,7 +39,7 @@ public class ProcessMonitorCheckerRouterMessage : IObserver<RouterMessage>
         _logger.LogError($"Some error(s) occurred while receiving the process monitor checker from module loader... : {exception}");
     }
 
-    public void OnNext(RouterMessage value)
+    public void OnNext(TopicMessage value)
     {
         var topic = value.Topic;
 

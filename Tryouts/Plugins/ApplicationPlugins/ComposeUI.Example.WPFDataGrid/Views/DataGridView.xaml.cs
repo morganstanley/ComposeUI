@@ -12,17 +12,16 @@
 //  * and limitations under the License.
 //  */
 
-using ComposeUI.Example.WPFDataGrid.Models;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.Extensions.Logging;
 using MorganStanley.ComposeUI.Messaging;
+using WPFDataGrid.Models;
 
-
-namespace ComposeUI.Example.WPFDataGrid.Views;
+namespace WPFDataGrid.Views;
 
 /// <summary>
 /// Interaction logic for ShellView.xaml

@@ -12,10 +12,9 @@
 
 namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
-public sealed class InvokeRequest : Message
+public sealed class InvokeRequest : AbstractRequest<InvokeResponse>
 {
     public override MessageType Type => MessageType.Invoke;
-    public string RequestId { get; init; } = null!;
     public string Endpoint { get; init; } = null!;
     public MessageScope Scope { get; init; }
     public MessageBuffer? Payload { get; init; }

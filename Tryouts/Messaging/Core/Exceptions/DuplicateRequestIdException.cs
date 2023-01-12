@@ -10,6 +10,8 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using MorganStanley.ComposeUI.Messaging.Protocol;
+
 namespace MorganStanley.ComposeUI.Messaging.Exceptions;
 
 public sealed class DuplicateRequestIdException : MessageRouterException
@@ -17,4 +19,6 @@ public sealed class DuplicateRequestIdException : MessageRouterException
     public DuplicateRequestIdException() : base("Duplicate request ID")
     {
     }
+
+    public DuplicateRequestIdException(Error error) : base(error.Message) { }
 }

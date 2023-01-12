@@ -12,7 +12,10 @@
 
 namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
-public sealed class RegisterServiceResponse : AbstractResponse
+/// <summary>
+/// Abstract base type for requests with a defined response type.
+/// </summary>
+public abstract class AbstractRequest<TResponse> : Message
 {
-    public override MessageType Type => MessageType.RegisterServiceResponse;
+    public string RequestId { get; init; } = null!;
 }

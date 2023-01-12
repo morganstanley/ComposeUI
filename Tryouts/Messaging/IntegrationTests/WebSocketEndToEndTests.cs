@@ -14,6 +14,7 @@ using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
+using MorganStanley.ComposeUI.Messaging.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 
 namespace MorganStanley.ComposeUI.Messaging;
@@ -38,7 +39,12 @@ public class WebSocketEndToEndTests : IAsyncLifetime
 
         await subscriber.SubscribeAsync("test-topic", observerMock.Object);
         await Task.Delay(100);
-        var publishedPayload = new TestPayload { IntProperty = 0x10203040, StringProperty = "Compose UI 🔥" };
+
+        var publishedPayload = new TestPayload
+        {
+            IntProperty = 0x10203040,
+            StringProperty = "Compose UI 🔥"
+        };
 
         await publisher.PublishAsync(
             "test-topic",
@@ -77,9 +83,57 @@ public class WebSocketEndToEndTests : IAsyncLifetime
         var response = await client.InvokeAsync("test-service", "test-request");
 
         response.Should().BeEquivalentTo("test-response");
-        handlerMock.Verify(_ => _.Invoke("test-service", It.Is<MessageBuffer>(buf => buf.GetString() == "test-request"), It.IsAny<MessageContext>()));
+
+        handlerMock.Verify(
+            _ => _.Invoke(
+                "test-service",
+                It.Is<MessageBuffer>(buf => buf.GetString() == "test-request"),
+                It.IsAny<MessageContext>()));
 
         await service.UnregisterServiceAsync("test-service");
+    }
+
+    [Fact]
+    public async Task Client_can_invoke_another_client_by_id_as_long_as_it_is_registered()
+    {
+        await using var callee = CreateClient();
+        await using var caller = CreateClient();
+
+        var handlerMock = new Mock<MessageHandler>();
+
+        handlerMock.Setup(_ => _.Invoke(It.IsAny<string>(), It.IsAny<MessageBuffer?>(), It.IsAny<MessageContext>()))
+            .ReturnsAsync(
+                (string endpoint, MessageBuffer? payload, MessageContext context) =>
+                    MessageBuffer.Create("test-response"));
+
+        await callee.RegisterEndpointAsync("test-endpoint", handlerMock.Object);
+
+        var response = await caller.InvokeAsync(
+            "test-endpoint",
+            "test-request",
+            new InvokeOptions
+            {
+                Scope = MessageScope.FromClientId(callee.ClientId!)
+            });
+
+        response.Should().BeEquivalentTo("test-response");
+
+        handlerMock.Verify(
+            _ => _.Invoke(
+                "test-endpoint",
+                It.Is<MessageBuffer>(buf => buf.GetString() == "test-request"),
+                It.IsAny<MessageContext>()));
+
+        await callee.UnregisterEndpointAsync("test-endpoint");
+
+        await Assert.ThrowsAsync<UnknownEndpointException>(
+            async () => await caller.InvokeAsync(
+                "test-endpoint",
+                "test-request",
+                new InvokeOptions
+                {
+                    Scope = MessageScope.FromClientId(callee.ClientId!)
+                }));
     }
 
     public async Task InitializeAsync()
@@ -120,7 +174,11 @@ public class WebSocketEndToEndTests : IAsyncLifetime
         return new ServiceCollection()
             .AddMessageRouter(
                 mr => mr
-                    .UseWebSocket(new MessageRouterWebSocketOptions { Uri = _webSocketUri })
+                    .UseWebSocket(
+                        new MessageRouterWebSocketOptions
+                        {
+                            Uri = _webSocketUri
+                        })
                     .UseAccessToken(AccessToken))
             .BuildServiceProvider()
             .GetRequiredService<IMessageRouter>();

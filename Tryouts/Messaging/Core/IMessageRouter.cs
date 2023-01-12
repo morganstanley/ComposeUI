@@ -77,11 +77,13 @@ public interface IMessageRouter : IAsyncDisposable
     /// </summary>
     /// <param name="endpoint"></param>
     /// <param name="handler"></param>
+    /// <param name="descriptor"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     ValueTask RegisterServiceAsync(
         string endpoint,
         MessageHandler handler,
+        EndpointDescriptor? descriptor = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -91,4 +93,26 @@ public interface IMessageRouter : IAsyncDisposable
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     ValueTask UnregisterServiceAsync(string endpoint, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    ///     Registers an endpoint by providing a name, handler and optional descriptor.
+    /// </summary>
+    /// <param name="endpoint"></param>
+    /// <param name="handler"></param>
+    /// <param name="descriptor"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    ValueTask RegisterEndpointAsync(
+        string endpoint,
+        MessageHandler handler,
+        EndpointDescriptor? descriptor = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    ///     Removes an endpoint registration.
+    /// </summary>
+    /// <param name="endpoint"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    ValueTask UnregisterEndpointAsync(string endpoint, CancellationToken cancellationToken = default);
 }

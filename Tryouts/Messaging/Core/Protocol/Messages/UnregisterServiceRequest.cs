@@ -12,7 +12,9 @@
 
 namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
-public sealed class RegisterServiceResponse : AbstractResponse
+public class UnregisterServiceRequest : AbstractRequest<UnregisterServiceResponse>
 {
-    public override MessageType Type => MessageType.RegisterServiceResponse;
+    public override MessageType Type => MessageType.UnregisterService;
+
+    public string Endpoint { get; init; } = null!;
 }

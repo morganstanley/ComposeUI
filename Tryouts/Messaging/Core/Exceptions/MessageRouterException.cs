@@ -10,6 +10,7 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using System.Reflection;
 using System.Runtime.Serialization;
 using MorganStanley.ComposeUI.Messaging.Protocol;
 
@@ -17,6 +18,19 @@ namespace MorganStanley.ComposeUI.Messaging.Exceptions;
 
 public class MessageRouterException : Exception
 {
+    public static MessageRouterException FromProtocolError(Error error)
+    {
+        var exceptionType = Assembly.GetExecutingAssembly().GetType(error.Type);
+
+        if (exceptionType is { IsAbstract: false }
+            && typeof(MessageRouterException).IsAssignableFrom(exceptionType))
+        {
+            return (MessageRouterException)Activator.CreateInstance(exceptionType, error)!;
+        }
+
+        return new MessageRouterException(error);
+    }
+
     public MessageRouterException() { }
 
     protected MessageRouterException(SerializationInfo info, StreamingContext context) : base(info, context) { }

@@ -20,11 +20,6 @@
     "Path": "..\\..\\..\\..\\..\\Plugins\\ApplicationPlugins\\chart\\src",
     "Port": 8080,
     "Url": "http://localhost:8080"
-  },
-  "processExplorerService": {
-    "StartupType": "executable",
-    "UIType": "none",
-    "Name": "processExplorerService",
-    "Path": "..\\..\\..\\..\\..\\Plugins\\ApplicationPlugins\\process explorer\\backend\\SuperRPC-POC\\bin\\Debug\\net6.0\\SuperRPC-POC.exe"
   }
+  
 }

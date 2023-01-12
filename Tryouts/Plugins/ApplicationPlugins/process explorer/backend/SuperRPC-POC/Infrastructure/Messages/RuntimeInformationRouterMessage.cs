@@ -23,7 +23,7 @@ using ConnectionInfo = LocalCollector.Connections.ConnectionInfo;
 
 namespace SuperRPC_POC.Infrastructure.Messages;
 
-public class RuntimeInformationRouterMessage : IObserver<RouterMessage>
+public class RuntimeInformationRouterMessage : IObserver<TopicMessage>
 {
     private readonly IProcessInfoAggregator _processInfoAggregator;
     private readonly ILogger<RuntimeInformationRouterMessage> _logger;
@@ -45,7 +45,7 @@ public class RuntimeInformationRouterMessage : IObserver<RouterMessage>
         _logger.LogError($"Some error(s) occurred while receiving the process monitor checker from module loader... : {exception}");
     }
 
-    public async void OnNext(RouterMessage value)
+    public async void OnNext(TopicMessage value)
     {
         var topic = value.Topic;
         var payload = value.Payload;

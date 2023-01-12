@@ -20,7 +20,7 @@ public class JsonMessageSerializerTests
 {
     [Theory]
     [ClassData(typeof(SerializeDeserializeTheoryData))]
-    public void Serialize_Deserialize_roundtrip_test(Messages.Message message)
+    public void Serialize_Deserialize_roundtrip_test(Message message)
     {
         var messageBytes = JsonMessageSerializer.SerializeMessage(message);
         var sequence = new ReadOnlySequence<byte>(messageBytes);
@@ -45,7 +45,7 @@ public class JsonMessageSerializerTests
         ((SubscribeMessage)message).Topic.Should().Be("a/b/c");
     }
 
-    private class SerializeDeserializeTheoryData : TheoryData<Messages.Message>
+    private class SerializeDeserializeTheoryData : TheoryData<Message>
     {
         public SerializeDeserializeTheoryData()
         {
@@ -149,13 +149,13 @@ public class JsonMessageSerializerTests
             Add(
                 new RegisterServiceResponse
                 {
-                    Endpoint = "testEndpoint",
+                    RequestId = "testRequestId",
                 });
 
             Add(
                 new RegisterServiceResponse
                 {
-                    Endpoint = "testEndpoint",
+                    RequestId = "testRequestId",
                     Error = new Error("errorType", "errorMessage"),
                 });
 
@@ -166,7 +166,7 @@ public class JsonMessageSerializerTests
                 });
 
             Add(
-                new UnregisterServiceMessage
+                new UnregisterServiceRequest
                 {
                     Endpoint = "testEndpoint",
                 });

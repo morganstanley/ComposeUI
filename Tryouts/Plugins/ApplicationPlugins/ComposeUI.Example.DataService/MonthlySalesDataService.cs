@@ -89,5 +89,10 @@ namespace ComposeUI.Example.DataService
                 subscription.Dispose();
             }
         }
+
+        private class SymbolSelectedModel
+        {
+            public string Symbol { get; set; } = null!;
+        }
     }
 }

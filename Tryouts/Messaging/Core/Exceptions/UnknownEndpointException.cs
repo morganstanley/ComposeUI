@@ -10,9 +10,15 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
+using MorganStanley.ComposeUI.Messaging.Protocol;
 
-public sealed class RegisterServiceResponse : AbstractResponse
+namespace MorganStanley.ComposeUI.Messaging.Exceptions;
+
+public sealed class UnknownEndpointException : MessageRouterException
 {
-    public override MessageType Type => MessageType.RegisterServiceResponse;
+    public UnknownEndpointException(string endpoint) : base("Unknown endpoint: " + endpoint) { }
+
+    public UnknownEndpointException() : base("Unknown endpoint") { }
+
+    public UnknownEndpointException(Error error) : base(error.Message) { }
 }

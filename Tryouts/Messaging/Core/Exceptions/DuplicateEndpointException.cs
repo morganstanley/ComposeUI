@@ -10,9 +10,15 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
+using MorganStanley.ComposeUI.Messaging.Protocol;
 
-public sealed class RegisterServiceResponse : AbstractResponse
+namespace MorganStanley.ComposeUI.Messaging.Exceptions;
+
+public sealed class DuplicateEndpointException : MessageRouterException
 {
-    public override MessageType Type => MessageType.RegisterServiceResponse;
+    public DuplicateEndpointException(string endpoint) : base($"Duplicate endpoint registration: '{endpoint}'") { }
+
+    public DuplicateEndpointException() : base("Duplicate endpoint registration") { }
+
+    public DuplicateEndpointException(Error error) : base(error.Message) { }
 }

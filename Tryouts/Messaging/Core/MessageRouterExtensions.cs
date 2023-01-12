@@ -55,12 +55,13 @@ public static class MessageRouterExtensions
     /// <inheritdoc cref="IMessageRouter.RegisterServiceAsync"/>
     public static ValueTask RegisterServiceAsync(
         this IMessageRouter messageRouter,
-        string endpoint,
+        string serviceName,
         PlainTextMessageHandler handler,
+        EndpointDescriptor? descriptor = null,
         CancellationToken cancellationToken = default)
     {
         return messageRouter.RegisterServiceAsync(
-            endpoint,
+            serviceName,
             // ReSharper disable once VariableHidesOuterVariable
             async (endpoint, payload, context) =>
             {
@@ -68,6 +69,7 @@ public static class MessageRouterExtensions
 
                 return response == null ? null : MessageBuffer.Create(response);
             },
+            descriptor,
             cancellationToken);
     }
 

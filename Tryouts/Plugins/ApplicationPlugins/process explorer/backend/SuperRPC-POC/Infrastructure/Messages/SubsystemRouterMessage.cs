@@ -19,7 +19,7 @@ using ProcessExplorerMessageRouterTopics;
 
 namespace SuperRPC_POC.Infrastructure.Messages;
 
-public class SubsystemRouterMessage : IObserver<RouterMessage>
+public class SubsystemRouterMessage : IObserver<TopicMessage>
 {
     private readonly ILogger<SubsystemRouterMessage> _logger;
     private ISubsystemController? _subsystemController;
@@ -41,10 +41,11 @@ public class SubsystemRouterMessage : IObserver<RouterMessage>
 
     public void OnError(Exception exception)
     {
-        _logger.LogError($"Some error(s) occurred while receiving the process information from module loader... : {exception}");
+        _logger.LogError(
+            $"Some error(s) occurred while receiving the process information from module loader... : {exception}");
     }
 
-    public void OnNext(RouterMessage value)
+    public void OnNext(TopicMessage value)
     {
         var topic = value.Topic;
         var payload = value.Payload;
@@ -107,4 +108,3 @@ public class SubsystemRouterMessage : IObserver<RouterMessage>
         }
     }
 }
-
