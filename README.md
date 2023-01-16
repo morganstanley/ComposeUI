@@ -5,16 +5,9 @@ ComposeUI
 
 ![Lifecycle Incubating](https://badgen.net/badge/Lifecycle/Incubating/yellow)
 
-Feature gaps with respect to UI components, layout management, and subpar native hosting in other industry container solutions pointed us to investing in the creation of this standard container as an open desktop platform. It will provide a hybrid solution that meets the needs of a diverse application catalog as well as a compelling opensource alternative.
 
-Usage
------
+ComposeUI is a A .NET Core based general UI Container and Unified UI and App host which enables the hosting of Web and desktop content.
 
-Building
---------
+Our goal is to fill the feature gaps with respect to UI components, layout management, and subpar native hosting in other industry container solutions by providing a standard container as an open desktop platform. It is a hybrid solution that meets the needs of a diverse application catalog as well as a compelling opensource alternative.
 
-Development
------------
-
-Examples
---------
+It supports desktop and web applications in order to provide an evergreen alternative to Electron, OpenFin and similar by the use of WebView2.
