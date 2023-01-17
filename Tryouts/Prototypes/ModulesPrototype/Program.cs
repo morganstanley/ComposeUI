@@ -42,12 +42,13 @@ internal class Program
         var host = new HostBuilder()
             .ConfigureAppConfiguration(
                 config => config.AddJsonFile("appsettings.json"))
-            .ConfigureLogging(l => l.AddConsole())
+            .ConfigureLogging(l => l.AddConsole().SetMinimumLevel(LogLevel.Debug))
             .ConfigureServices(
                 (context, services) => services
                     .AddMessageRouterServer(mr => mr.UseWebSockets())
                     .Configure<MessageRouterWebSocketServerOptions>(
-                        context.Configuration.GetSection("MessageRouter:WebSocket")))
+                        context.Configuration.GetSection("MessageRouter:WebSocket"))
+                    .Configure<LoggerFactoryOptions>(context.Configuration.GetSection("Logging")))
             .Build();
 
         var cts = new CancellationTokenSource();

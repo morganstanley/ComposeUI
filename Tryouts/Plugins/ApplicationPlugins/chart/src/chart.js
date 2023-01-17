@@ -1,9 +1,11 @@
 ﻿import Chart from 'highcharts/es-modules/Core/Chart/Chart.js';
 import ColumnSeries from 'highcharts/es-modules/Series/Column/ColumnSeries.js';
 
-import {ComposeMessagingClient} from '../../../../Messaging/messaging-web-client/output/index.js';
+import { MessageRouterClient } from '../../../../Messaging-JS/dist/esm/client';
+import { WebSocketConnection } from '../../../../Messaging-JS/dist/esm/client/websocket';
 
 let chart;
+let client;
 
 window.addEventListener('load', function () {
   chart = new Chart({
@@ -48,21 +50,32 @@ window.addEventListener('load', function () {
     }
     ]
   });
+
+  window.document.getElementById("close-button").onclick =
+    async ev => {
+      if (!client) return;
+      const tmpClient = client;
+      client = undefined;
+      tmpClient.close();
+    };
+
 });
 
 async function requestData() {
-  let client;
+
   (async () => {
-    client = new ComposeMessagingClient("ws://localhost:5000/ws");
+    client = new MessageRouterClient(new WebSocketConnection({ url: "ws://localhost:5000/ws" }));
 
     window.client = client;
 
     await client.connect();
 
     client.subscribe('proto_select_monthlySales', (message) => {
-      let symbol = message.symbol;
-      let buyData = message.buy;
-      let sellData = message.sell;
+
+      const payload = JSON.parse(message.payload);
+      const symbol = payload.symbol;
+      const buyData = payload.buy;
+      const sellData = payload.sell;
 
       chart.setTitle({ text: "Monthly sales for " + symbol });
       chart.series[0].setData([]);

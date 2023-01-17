@@ -1,8 +1,7 @@
 # Building the MessageRouter-web-client, because without it the chart couldn't be started.
-cd ..\..\Messaging\messaging-web-client\src
-npm ci
-npm run build
+cd $PSScriptRoot\..\..\..\Messaging-JS
+yarn build
 
-cd ..\..\..\Plugins\ApplicationPlugins\chart\src
+cd $PSScriptRoot\..\..\..\Plugins\ApplicationPlugins\chart\src
 npm ci
 npm run build

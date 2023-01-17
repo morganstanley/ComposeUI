@@ -170,6 +170,7 @@ internal sealed class MessageRouterClient : IMessageRouter
 
     public async ValueTask DisposeAsync()
     {
+        // TODO: Fail pending requests and complete subscribers
         using (await _mutex.LockAsync())
         {
             if (_connectionState != ConnectionState.Connected)
@@ -379,11 +380,15 @@ internal sealed class MessageRouterClient : IMessageRouter
         }
         catch (Exception e)
         {
+            // TODO: Call OnError on the subscribers
+
             _logger.LogError(
                 e,
                 "Exception thrown while reading messages from the connection: {ExceptionMessage}",
                 e.Message);
         }
+
+        // TODO: Call OnCompleted on the subscribers
     }
 
     private async ValueTask RegisterServiceCore(

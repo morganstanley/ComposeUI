@@ -16,6 +16,10 @@ using MorganStanley.ComposeUI.Messaging.Protocol;
 
 namespace MorganStanley.ComposeUI.Messaging.Exceptions;
 
+// TODO: Get rid of derived types and declare an enumeration for
+// well known errors instead. This is easier to implement in other languages.
+// Also add client-side error codes and throw respectively on disconnect, etc.
+
 public class MessageRouterException : Exception
 {
     public static MessageRouterException FromProtocolError(Error error)

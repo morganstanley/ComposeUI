@@ -135,7 +135,7 @@ internal class WebSocketConnection : IClientConnection
                             _logger.LogDebug("Close message received from WebSocket client");
                         }
 
-                        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
+                        await webSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
 
                         break;
                     }
@@ -167,6 +167,8 @@ internal class WebSocketConnection : IClientConnection
                     break;
                 }
             }
+
+            _inputChannel.Writer.TryComplete();
         }
         catch (Exception e)
         {
