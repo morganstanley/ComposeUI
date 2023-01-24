@@ -38,7 +38,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
     <PackageReference Include="Nito.AsyncEx" Version="5.1.2" />
-    <PackageReference Include="XamlNameReferenceGenerator" Version="1.3.4" />
   </ItemGroup>
   <ItemGroup>
 	  <ProjectReference Include="..\..\Core\Abstractions\MorganStanley.ComposeUI.Tryouts.Core.Abstractions.csproj" />
@@ -48,7 +47,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 	  <ProjectReference Include="..\..\Messaging\Client\MorganStanley.ComposeUI.Messaging.Client.csproj" />
 	  <ProjectReference Include="..\..\Messaging\Server\MorganStanley.ComposeUI.Messaging.Server.csproj" />
 	  <ProjectReference Include="..\..\Plugins\ApplicationPlugins\process explorer\backend\ModuleProcessMonitor\ModuleProcessMonitor.csproj" />
-	  <ProjectReference Include="..\..\Visuals\Avalonia\VisualUtils\MorganStanley.ComposeUI.Tryouts.Visuals.Avalonia.VisualUtils.csproj" />
 	  <ProjectReference Include="..\ProcessExplorerMessageRouterTopics\ProcessExplorerMessageRouterTopics.csproj" />
   </ItemGroup>
 	
