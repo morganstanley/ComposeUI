@@ -10,25 +10,35 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using System.Reflection;
 using System.Runtime.Serialization;
+using MorganStanley.ComposeUI.Messaging.Protocol;
 
 namespace MorganStanley.ComposeUI.Messaging.Exceptions;
 
 public class MessageRouterException : Exception
 {
-    public MessageRouterException()
+    public static MessageRouterException FromProtocolError(Error error)
     {
+        var exceptionType = Assembly.GetExecutingAssembly().GetType(error.Type);
+
+        if (exceptionType is { IsAbstract: false }
+            && typeof(MessageRouterException).IsAssignableFrom(exceptionType))
+        {
+            return (MessageRouterException)Activator.CreateInstance(exceptionType, error)!;
+        }
+
+        return new MessageRouterException(error);
     }
 
-    protected MessageRouterException(SerializationInfo info, StreamingContext context) : base(info, context)
-    {
-    }
+    public MessageRouterException() { }
 
-    public MessageRouterException(string? message) : base(message)
-    {
-    }
+    protected MessageRouterException(SerializationInfo info, StreamingContext context) : base(info, context) { }
 
-    public MessageRouterException(string? message, Exception? innerException) : base(message, innerException)
-    {
-    }
+    public MessageRouterException(string? message) : base(message) { }
+
+    public MessageRouterException(string? message, Exception? innerException) : base(message, innerException) { }
+
+    public MessageRouterException(Error error) : base(
+        $"An exception of type '{error.Type}' was thrown by a remote client: {error.Message}") { }
 }

@@ -16,7 +16,7 @@ using MorganStanley.ComposeUI.Messaging.TestUtils;
 
 namespace MorganStanley.ComposeUI.Messaging;
 
-public class Utf8BufferTests
+public class MessageBufferTests
 {
     [Theory]
     [InlineData("")]
@@ -24,7 +24,7 @@ public class Utf8BufferTests
     [InlineData(StringConstants.Emojis)]
     public void GetString_returns_the_original_string(string input)
     {
-        var buffer = Utf8Buffer.Create(input);
+        var buffer = MessageBuffer.Create(input);
 
         buffer.GetString().Should().Be(input);
     }
@@ -35,7 +35,7 @@ public class Utf8BufferTests
     [InlineData(StringConstants.Emojis)]
     public void GetSpan_returns_the_original_string_encoded_as_UTF8(string input)
     {
-        var buffer = Utf8Buffer.Create(input);
+        var buffer = MessageBuffer.Create(input);
         var span = buffer.GetSpan();
 
         span.ToArray().Should().Equal(Encoding.UTF8.GetBytes(input));
@@ -47,7 +47,7 @@ public class Utf8BufferTests
     [InlineData(StringConstants.Emojis)]
     public void GetString_returns_the_original_string_when_created_from_bytes(string input)
     {
-        var buffer = Utf8Buffer.Create(Encoding.UTF8.GetBytes(input));
+        var buffer = MessageBuffer.Create(Encoding.UTF8.GetBytes(input));
 
         buffer.GetString().Should().Be(input);
     }
@@ -59,7 +59,7 @@ public class Utf8BufferTests
     public void GetSpan_returns_the_original_UTF8_bytes(string input)
     {
         var bytes = Encoding.UTF8.GetBytes(input);
-        var buffer = Utf8Buffer.Create(bytes);
+        var buffer = MessageBuffer.Create(bytes);
         var span = buffer.GetSpan();
 
         span.ToArray().Should().Equal(bytes);
@@ -73,9 +73,9 @@ public class Utf8BufferTests
         new Action(
                 () =>
                 {
-                    _ = Utf8Buffer.Create(invalidData);
-                    _ = Utf8Buffer.Create(invalidData.AsSpan());
-                    _ = Utf8Buffer.Create(new ReadOnlySequence<byte>(invalidData));
+                    _ = MessageBuffer.Create(invalidData);
+                    _ = MessageBuffer.Create(invalidData.AsSpan());
+                    _ = MessageBuffer.Create(new ReadOnlySequence<byte>(invalidData));
                 })
             .Should()
             .Throw<InvalidOperationException>();
@@ -86,7 +86,7 @@ public class Utf8BufferTests
     {
         var bytes = GetRandomBytes(100);
 
-        var buffer = Utf8Buffer.CreateBase64(bytes);
+        var buffer = MessageBuffer.CreateBase64(bytes);
 
         buffer.GetString().Should().Be(Convert.ToBase64String(bytes));
     }
@@ -96,7 +96,7 @@ public class Utf8BufferTests
     {
         var bytes = GetRandomBytes(100);
 
-        var buffer = Utf8Buffer.CreateBase64(new ReadOnlySpan<byte>(bytes));
+        var buffer = MessageBuffer.CreateBase64(new ReadOnlySpan<byte>(bytes));
 
         buffer.GetString().Should().Be(Convert.ToBase64String(bytes));
     }
@@ -106,7 +106,7 @@ public class Utf8BufferTests
     {
         var bytes = GetRandomBytes(100);
 
-        var buffer = Utf8Buffer.CreateBase64(MemoryHelper.CreateMultipartSequence(bytes.Chunk(10).ToArray()));
+        var buffer = MessageBuffer.CreateBase64(MemoryHelper.CreateMultipartSequence(bytes.Chunk(10).ToArray()));
 
         buffer.GetString().Should().Be(Convert.ToBase64String(bytes));
     }

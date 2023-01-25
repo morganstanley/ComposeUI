@@ -74,7 +74,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WPFDataGrid.TestApp", "..\.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Messaging", "Messaging", "{D5DBE548-028B-4A37-8969-E2E02261000C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Core.Tests", "..\..\Messaging\MorganStanley.ComposeUI.Messaging.Core.Tests\MorganStanley.ComposeUI.Messaging.Core.Tests.csproj", "{EE97CB5B-90B2-46E5-82FE-5C07CEF9118A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Core.Tests", "..\..\Messaging\Core.Tests\MorganStanley.ComposeUI.Messaging.Core.Tests.csproj", "{EE97CB5B-90B2-46E5-82FE-5C07CEF9118A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Process Explorer", "Process Explorer", "{BF3D9176-E2B0-4C87-9691-8288C257BFAF}"
 EndProject

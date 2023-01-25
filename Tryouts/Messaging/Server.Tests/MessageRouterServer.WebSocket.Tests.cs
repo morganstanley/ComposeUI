@@ -14,6 +14,7 @@ using System.Net.WebSockets;
 using FluentAssertions.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MorganStanley.ComposeUI.Messaging.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 using MorganStanley.ComposeUI.Messaging.TestUtils;
 
@@ -40,23 +41,33 @@ public class MessageRouterServerWebSocketTests : IAsyncLifetime
         var updateMessage = await subscriber.ReceiveJsonAsync();
 
         updateMessage.Should()
-            .ContainSubtree(@" { ""type"": ""Update"", ""topic"": ""a/b/c"", ""payload"": ""xyz"" } ");
+            .ContainSubtree(@" { ""type"": ""Topic"", ""topic"": ""a/b/c"", ""payload"": ""xyz"" } ");
     }
 
     [Fact]
-    public async Task Client_can_register_itself_as_a_service()
+    public async Task Client_can_register_and_unregister_itself_as_a_service()
     {
         var client = await ConnectAsync();
 
         await client.SendUtf8BytesAsync(
-            @" { ""type"": ""RegisterService"", ""serviceName"": ""test-service"" } ");
+            @" { ""type"": ""RegisterService"", ""endpoint"": ""test-service"", ""requestId"": ""1"" } ");
 
-        var response = await client.ReceiveJsonAsync();
+        var registerResponse = await client.ReceiveJsonAsync();
 
-        response.Should()
-            .ContainSubtree(@" { ""type"": ""RegisterServiceResponse"", ""serviceName"": ""test-service"" } ");
+        registerResponse.Should()
+            .ContainSubtree(@" { ""type"": ""RegisterServiceResponse"", ""requestId"": ""1"" } ");
 
-        response.Should().NotHaveElement("error");
+        registerResponse.Should().NotHaveElement("error");
+
+        await client.SendUtf8BytesAsync(
+            @" { ""type"": ""UnregisterService"", ""endpoint"": ""test-service"", ""requestId"": ""2"" } ");
+
+        var unregisterResponse = await client.ReceiveJsonAsync();
+
+        unregisterResponse.Should()
+            .ContainSubtree(@" { ""type"": ""UnregisterServiceResponse"", ""requestId"": ""2"" } ");
+
+        unregisterResponse.Should().NotHaveElement("error");
     }
 
     [Fact]
@@ -66,16 +77,16 @@ public class MessageRouterServerWebSocketTests : IAsyncLifetime
         var client2 = await ConnectAsync();
 
         await client1.SendUtf8BytesAsync(
-            @" { ""type"": ""RegisterService"", ""serviceName"": ""test-service"" } ");
+            @" { ""type"": ""RegisterService"", ""endpoint"": ""test-service"", ""requestId"": ""1"" } ");
 
         var response1 = await client1.ReceiveJsonAsync();
         await Task.Delay(100);
 
         await client2.SendUtf8BytesAsync(
-            @" { ""type"": ""RegisterService"", ""serviceName"": ""test-service"" } ");
+            @" { ""type"": ""RegisterService"", ""endpoint"": ""test-service"", ""requestId"": ""2"" } ");
 
         var response2 = await client2.ReceiveJsonAsync();
-        response2.Should().HaveElement("error");
+        response2.Should().ContainSubtree($@" {{ ""error"": {{ ""type"": ""{typeof(DuplicateEndpointException).FullName}"" }} }} ");
     }
 
     [Fact]
@@ -84,19 +95,19 @@ public class MessageRouterServerWebSocketTests : IAsyncLifetime
         var service = await ConnectAsync();
         var client = await ConnectAsync();
 
-        await service.SendUtf8BytesAsync(@" { ""type"": ""RegisterService"", ""serviceName"": ""testService"" }");
+        await service.SendUtf8BytesAsync(@" { ""type"": ""RegisterService"", ""endpoint"": ""testService"", ""requestId"": ""1"" }");
         _ = await service.ReceiveJsonAsync(); // RegisterServiceResponse
         await Task.Delay(100);
 
         await client.SendUtf8BytesAsync(
-            @" { ""type"": ""Invoke"", ""serviceName"": ""testService"", ""payload"": ""xyz"", ""requestId"": ""1"" } ");
+            @" { ""type"": ""Invoke"", ""endpoint"": ""testService"", ""payload"": ""xyz"", ""requestId"": ""1"" } ");
 
         await Task.Delay(100);
         var request = await service.ReceiveJsonAsync();
 
         request.Should()
             .ContainSubtree(
-                @" { ""type"": ""Invoke"", ""serviceName"": ""testService"", ""payload"": ""xyz"" } ");
+                @" { ""type"": ""Invoke"", ""endpoint"": ""testService"", ""payload"": ""xyz"" } ");
 
         var requestId = request.Value<string>("requestId");
 

@@ -10,7 +10,6 @@
 /// ********************************************************************************************************
 
 using Subscriptions;
-using System.ComponentModel;
 
 namespace MorganStanley.ComposeUI.Tryouts.Core.Abstractions
 {

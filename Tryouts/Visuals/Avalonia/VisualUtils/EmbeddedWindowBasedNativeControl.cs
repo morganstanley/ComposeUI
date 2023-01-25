@@ -11,8 +11,6 @@
 
 using Avalonia;
 using Avalonia.Controls.Presenters;
-using Avalonia.Markup.Xaml.Templates;
-using Avalonia.Media;
 using System;
 
 namespace MorganStanley.ComposeUI.Tryouts.Visuals.Avalonia.VisualUtils

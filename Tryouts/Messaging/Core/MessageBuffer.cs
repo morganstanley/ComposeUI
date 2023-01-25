@@ -20,8 +20,9 @@ namespace MorganStanley.ComposeUI.Messaging;
 
 /// <summary>
 ///     Represents an UTF8-encoded string buffer that uses pooled memory.
+///     Instances of this type typically represent message payloads.
 /// </summary>
-public sealed class Utf8Buffer : IDisposable
+public sealed class MessageBuffer : IDisposable
 {
     /// <summary>
     ///     Gets the string value of the buffer.
@@ -123,50 +124,50 @@ public sealed class Utf8Buffer : IDisposable
     }
 
     /// <summary>
-    ///     Creates a new <see cref="Utf8Buffer" /> from a string.
+    ///     Creates a new <see cref="MessageBuffer" /> from a string.
     /// </summary>
     /// <param name="value"></param>
     /// <returns></returns>
-    public static Utf8Buffer Create(string value)
+    public static MessageBuffer Create(string value)
     {
         var buffer = GetBuffer(Encoding.GetByteCount(value));
 
-        return new Utf8Buffer(buffer, Encoding.GetBytes(value, buffer));
+        return new MessageBuffer(buffer, Encoding.GetBytes(value, buffer));
     }
 
     /// <summary>
-    ///     Creates a new <see cref="Utf8Buffer" /> from a byte array containing the raw UTF8 bytes.
+    ///     Creates a new <see cref="MessageBuffer" /> from a byte array containing the raw UTF8 bytes.
     /// </summary>
     /// <param name="utf8Bytes"></param>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException">The content of the buffer is not a valid UTF8 byte sequence.</exception>
-    public static Utf8Buffer Create(byte[] utf8Bytes)
+    public static MessageBuffer Create(byte[] utf8Bytes)
     {
         return Create(utf8Bytes.AsSpan());
     }
 
     /// <summary>
-    ///     Creates a new <see cref="Utf8Buffer" /> from a memory block containing the raw UTF8 bytes.
+    ///     Creates a new <see cref="MessageBuffer" /> from a memory block containing the raw UTF8 bytes.
     /// </summary>
     /// <param name="utf8Bytes"></param>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException">The content of the buffer is not a valid UTF8 byte sequence.</exception>
-    public static Utf8Buffer Create(ReadOnlySpan<byte> utf8Bytes)
+    public static MessageBuffer Create(ReadOnlySpan<byte> utf8Bytes)
     {
         ValidateUtf8Bytes(utf8Bytes);
         var buffer = GetBuffer(utf8Bytes.Length);
         utf8Bytes.CopyTo(buffer);
 
-        return new Utf8Buffer(buffer, utf8Bytes.Length);
+        return new MessageBuffer(buffer, utf8Bytes.Length);
     }
 
     /// <summary>
-    ///     Creates a new <see cref="Utf8Buffer" /> from a sequence containing the raw UTF8 bytes.
+    ///     Creates a new <see cref="MessageBuffer" /> from a sequence containing the raw UTF8 bytes.
     /// </summary>
     /// <param name="utf8Bytes"></param>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException">The content of the buffer is not a valid UTF8 byte sequence.</exception>
-    public static Utf8Buffer Create(ReadOnlySequence<byte> utf8Bytes)
+    public static MessageBuffer Create(ReadOnlySequence<byte> utf8Bytes)
     {
         var length = checked((int)utf8Bytes.Length);
         var buffer = GetBuffer(length);
@@ -183,25 +184,25 @@ public sealed class Utf8Buffer : IDisposable
             throw;
         }
 
-        return new Utf8Buffer(buffer, length);
+        return new MessageBuffer(buffer, length);
     }
 
     /// <summary>
-    ///     Creates a new <see cref="Utf8Buffer" /> from the provided byte array, encoding it as a Base64 string.
+    ///     Creates a new <see cref="MessageBuffer" /> from the provided byte array, encoding it as a Base64 string.
     /// </summary>
     /// <param name="bytes"></param>
     /// <returns></returns>
-    public static Utf8Buffer CreateBase64(byte[] bytes)
+    public static MessageBuffer CreateBase64(byte[] bytes)
     {
         return CreateBase64(bytes.AsSpan());
     }
 
     /// <summary>
-    ///     Creates a new <see cref="Utf8Buffer" /> from the provided buffer, encoding it as a Base64 string.
+    ///     Creates a new <see cref="MessageBuffer" /> from the provided buffer, encoding it as a Base64 string.
     /// </summary>
     /// <param name="bytes"></param>
     /// <returns></returns>
-    public static Utf8Buffer CreateBase64(ReadOnlySpan<byte> bytes)
+    public static MessageBuffer CreateBase64(ReadOnlySpan<byte> bytes)
     {
         var buffer = GetBuffer(Base64.GetMaxEncodedToUtf8Length(bytes.Length));
 
@@ -210,7 +211,7 @@ public sealed class Utf8Buffer : IDisposable
             var status = Base64.EncodeToUtf8(bytes, buffer, out _, out var bytesWritten);
             Debug.Assert(status == OperationStatus.Done);
 
-            return new Utf8Buffer(buffer, bytesWritten);
+            return new MessageBuffer(buffer, bytesWritten);
         }
         catch
         {
@@ -221,11 +222,11 @@ public sealed class Utf8Buffer : IDisposable
     }
 
     /// <summary>
-    ///     Creates a new <see cref="Utf8Buffer" /> from the provided buffer, encoding it as a Base64 string.
+    ///     Creates a new <see cref="MessageBuffer" /> from the provided buffer, encoding it as a Base64 string.
     /// </summary>
     /// <param name="bytes"></param>
     /// <returns></returns>
-    public static Utf8Buffer CreateBase64(ReadOnlySequence<byte> bytes)
+    public static MessageBuffer CreateBase64(ReadOnlySequence<byte> bytes)
     {
         var length = checked((int)bytes.Length);
         var buffer = GetBuffer(Base64.GetMaxEncodedToUtf8Length(length));
@@ -236,7 +237,7 @@ public sealed class Utf8Buffer : IDisposable
             var status = Base64.EncodeToUtf8InPlace(buffer, length, out var bytesWritten);
             Debug.Assert(status == OperationStatus.Done);
 
-            return new Utf8Buffer(buffer, bytesWritten);
+            return new MessageBuffer(buffer, bytesWritten);
         }
         catch
         {
@@ -247,8 +248,8 @@ public sealed class Utf8Buffer : IDisposable
     }
 
     /// <summary>
-    ///     Creates a new <see cref="Utf8Buffer" /> using the provided buffer.
-    ///     The buffer must have been allocated by calling <see cref="Utf8Buffer.GetBuffer" />
+    ///     Creates a new <see cref="MessageBuffer" /> using the provided buffer.
+    ///     The buffer must have been allocated by calling <see cref="MessageBuffer.GetBuffer" />
     /// </summary>
     /// <param name="bytes"></param>
     /// <param name="length"></param>
@@ -256,7 +257,7 @@ public sealed class Utf8Buffer : IDisposable
     ///     There's no validation of the buffer. If it wasn't created using <see cref="GetBuffer" />, the behavior is
     ///     unspecified.
     /// </remarks>
-    internal Utf8Buffer(byte[] bytes, int length)
+    internal MessageBuffer(byte[] bytes, int length)
     {
         Debug.Assert(bytes.Length >= length);
 
@@ -288,7 +289,7 @@ public sealed class Utf8Buffer : IDisposable
     private void ThrowIfDisposed()
     {
         if (_disposed)
-            throw new ObjectDisposedException(nameof(Utf8Buffer));
+            throw new ObjectDisposedException(nameof(MessageBuffer));
     }
 
     private static void ValidateUtf8Bytes(ReadOnlySpan<byte> bytes)
@@ -303,7 +304,7 @@ public sealed class Utf8Buffer : IDisposable
         }
     }
 
-    ~Utf8Buffer()
+    ~MessageBuffer()
     {
         DisposeCore();
     }

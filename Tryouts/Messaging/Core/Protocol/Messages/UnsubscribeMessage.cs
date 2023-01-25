@@ -14,15 +14,6 @@ namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
 public sealed class UnsubscribeMessage : Message
 {
-    public UnsubscribeMessage()
-    {
-    }
-
-    public UnsubscribeMessage(string topic)
-    {
-        Topic = topic;
-    }
-
     public override MessageType Type => MessageType.Unsubscribe;
     public string Topic { get; init; } = null!;
 }

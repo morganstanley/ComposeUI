@@ -14,6 +14,8 @@ using System.Text.Json.Serialization;
 
 namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
+// TODO: Triage - should we include a correlation ID and other telemetry baggage in ALL messages? Should we add headers after all?
+
 public abstract class Message
 {
     [JsonPropertyOrder(0)]
@@ -28,12 +30,13 @@ public abstract class Message
             MessageType.Subscribe => typeof(SubscribeMessage),
             MessageType.Unsubscribe => typeof(UnsubscribeMessage),
             MessageType.Publish => typeof(PublishMessage),
-            MessageType.Update => typeof(UpdateMessage),
+            MessageType.Topic => typeof(TopicMessage),
             MessageType.Invoke => typeof(InvokeRequest),
             MessageType.RegisterService => typeof(RegisterServiceRequest),
             MessageType.InvokeResponse => typeof(InvokeResponse),
             MessageType.RegisterServiceResponse => typeof(RegisterServiceResponse),
-            MessageType.UnregisterService => typeof(UnregisterServiceMessage),
+            MessageType.UnregisterService => typeof(UnregisterServiceRequest),
+            MessageType.UnregisterServiceResponse => typeof(UnregisterServiceResponse),
             _ => throw new ArgumentOutOfRangeException(nameof(messageType))
         };
     }

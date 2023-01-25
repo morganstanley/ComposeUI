@@ -18,7 +18,7 @@ using ProcessExplorer;
 
 namespace SuperRPC_POC.Infrastructure.Messages;
 
-public class ProcessInfoRouterMessage : IObserver<RouterMessage>
+public class ProcessInfoRouterMessage : IObserver<TopicMessage>
 {
     private readonly ILogger<ProcessInfoRouterMessage> _logger;
     private readonly IProcessInfoAggregator? _processInfoAggregator;
@@ -40,7 +40,7 @@ public class ProcessInfoRouterMessage : IObserver<RouterMessage>
         _logger.LogError($"Some error(s) occurred while receiving the process information from module loader... : {exception}");
     }
 
-    public void OnNext(RouterMessage value)
+    public void OnNext(TopicMessage value)
     {
         var payload = value.Payload;
         if (payload is null)

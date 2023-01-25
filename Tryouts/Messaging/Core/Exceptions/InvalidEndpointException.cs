@@ -10,23 +10,21 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
+using MorganStanley.ComposeUI.Messaging.Protocol;
 
-public sealed class UpdateMessage : Message
+namespace MorganStanley.ComposeUI.Messaging.Exceptions;
+
+public class InvalidEndpointException : MessageRouterException
 {
-    public UpdateMessage()
+    public InvalidEndpointException(string endpoint) : base($"Invalid endpoint: '{endpoint}'")
     {
     }
 
-    public UpdateMessage(string topic, Utf8Buffer? payload, MessageScope scope)
+    public InvalidEndpointException() : base("Invalid endpoint")
     {
-        Topic = topic;
-        Payload = payload;
-        Scope = scope;
     }
 
-    public override MessageType Type => MessageType.Update;
-    public string Topic { get; init; } = null!;
-    public Utf8Buffer? Payload { get; init; }
-    public MessageScope Scope { get; init; }
+    public InvalidEndpointException(Error error) : base(error.Message)
+    {
+    }
 }

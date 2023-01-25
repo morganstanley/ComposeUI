@@ -13,10 +13,10 @@
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
-using MorganStanley.ComposeUI.Messaging.Protocol.Json;
+using Microsoft.CodeAnalysis.CSharp;
 using MorganStanley.ComposeUI.Messaging.TestUtils;
 
-namespace MorganStanley.ComposeUI.Messaging.Serialization.Json;
+namespace MorganStanley.ComposeUI.Messaging.Protocol.Json;
 
 public class Utf8JsonReaderExtensionsTests
 {
@@ -65,7 +65,7 @@ public class Utf8JsonReaderExtensionsTests
 
         public override string ToString()
         {
-            return Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(
+            return SymbolDisplay.FormatLiteral(
                 Encoding.UTF8.GetString(ExpectedBytes),
                 quote: false);
         }

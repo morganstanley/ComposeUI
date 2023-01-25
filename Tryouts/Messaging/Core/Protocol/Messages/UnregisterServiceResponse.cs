@@ -10,17 +10,9 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using FluentAssertions.Equivalency;
+namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
-namespace MorganStanley.ComposeUI.Messaging.TestUtils;
-
-public class Utf8BufferComparer : IEquivalencyStep
+public class UnregisterServiceResponse : AbstractResponse
 {
-    public EquivalencyResult Handle(
-        Comparands comparands,
-        IEquivalencyValidationContext context,
-        IEquivalencyValidator nestedValidator)
-    {
-        throw new NotImplementedException();
-    }
+    public override MessageType Type => MessageType.UnregisterServiceResponse;
 }

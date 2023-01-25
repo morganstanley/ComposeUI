@@ -16,5 +16,5 @@ public sealed class ConnectResponse : Message
 {
     public override MessageType Type => MessageType.ConnectResponse;
     public string? ClientId { get; init; }
-    public string? Error { get; init; }
+    public Error? Error { get; init; }
 }

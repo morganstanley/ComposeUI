@@ -10,15 +10,15 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Messaging.Exceptions;
+namespace MorganStanley.ComposeUI.Messaging;
 
-public sealed class DuplicateServiceNameException : MessageRouterException
+/// <summary>
+/// Represents a subscriber that receives messages from a topic.
+/// </summary>
+// TODO: This should be an IAsyncObserver once it is standardized and available in Rx.NET
+public interface ISubscriber<in T>
 {
-    public DuplicateServiceNameException(string serviceName) : base("Duplicate service name: " + serviceName)
-    {
-    }
-
-    public DuplicateServiceNameException() : base("Duplicate service name")
-    {
-    }
+    ValueTask OnNextAsync(T value);
+    ValueTask OnErrorAsync(Exception error);
+    ValueTask OnCompletedAsync();
 }

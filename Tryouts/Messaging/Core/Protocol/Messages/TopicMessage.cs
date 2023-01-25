@@ -10,14 +10,14 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Messaging;
+namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
-/// <summary>
-///     The delegate type that gets called when a registered service is invoked.
-/// </summary>
-public delegate ValueTask<Utf8Buffer?> ServiceInvokeHandler(string serviceName, Utf8Buffer? payload);
-
-/// <summary>
-///     The delegate type that gets called when a registered service is invoked (plain text version).
-/// </summary>
-public delegate ValueTask<string?> PlainTextServiceInvokeHandler(string serviceName, string? payload);
+public sealed class TopicMessage : Message
+{
+    public override MessageType Type => MessageType.Topic;
+    public string Topic { get; init; } = null!;
+    public MessageBuffer? Payload { get; init; }
+    public MessageScope Scope { get; init; }
+    public string SourceId { get; init; } = null!;
+    public string? CorrelationId { get; init; }
+}

@@ -10,7 +10,6 @@
 /// ********************************************************************************************************
 
 using MorganStanley.ComposeUI.Tryouts.Core.Utilities;
-using System;
 using System.Xml.Serialization;
 
 namespace MorganStanley.ComposeUI.Tryouts.Core.BasicModels.Modules
