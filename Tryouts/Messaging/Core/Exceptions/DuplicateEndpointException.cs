@@ -14,6 +14,8 @@ using MorganStanley.ComposeUI.Messaging.Protocol;
 
 namespace MorganStanley.ComposeUI.Messaging.Exceptions;
 
+// TODO: Add back DuplicateServiceNameException
+
 public sealed class DuplicateEndpointException : MessageRouterException
 {
     public DuplicateEndpointException(string endpoint) : base($"Duplicate endpoint registration: '{endpoint}'") { }

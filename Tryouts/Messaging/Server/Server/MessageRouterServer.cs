@@ -315,9 +315,12 @@ internal class MessageRouterServer : IMessageRouterServer
         {
             while (!client.StopTokenSource.IsCancellationRequested)
             {
-                // TODO: Handle unexpected disconnections, throw and catch OperationCanceledException 
-
                 var message = await client.Connection.ReceiveAsync(cancellationToken);
+
+                if (_logger.IsEnabled(LogLevel.Debug))
+                {
+                    _logger.LogDebug("Message '{MessageType}' received from client '{ClientId}'", message.Type, client.ClientId);
+                }
 
                 try
                 {

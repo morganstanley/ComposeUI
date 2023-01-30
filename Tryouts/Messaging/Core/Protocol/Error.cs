@@ -12,7 +12,8 @@
 
 namespace MorganStanley.ComposeUI.Messaging.Protocol;
 
-// TODO: Well known errors related to the protocol should have language-agnostic type names.
+// TODO: Define well-known, language-agnostic error codes and use them consistently
+// in the Error object and in MessageRouterException
 
 /// <summary>
 ///     Represents an error that can be marshaled between Message Router clients.
