@@ -11,6 +11,8 @@
 // and limitations under the License.
 
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
+using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Messaging.Client.Abstractions;
@@ -67,7 +69,7 @@ internal sealed class MessageRouterClient : IMessageRouter
             {
                 needsSubscription = true;
 
-                return new Topic<TopicMessage>();
+                return new Topic<TopicMessage>(topicName, _logger);
             });
 
         return needsSubscription
@@ -223,29 +225,53 @@ internal sealed class MessageRouterClient : IMessageRouter
         _connectionState = ConnectionState.Connected;
     }
 
-    private Task HandleMessage(Message message)
+    private void HandleMessage(Message message)
     {
+        /*
+            Design notes
+            
+            While the public API supports async subscribers and other callbacks, 
+            we avoid (make impossible) to block message processing by an async handler.
+            In general, we process everything synchronously until the point where the
+            actual user code is called, and we do not await it. Subscribers have their own
+            async message queues so that they can't block each other. 
+            This can lead to memory issues if a badly written subscriber can't process its messages
+            fast enough, and its queue starts to grow infinitely. We might add some configuration
+            options to fine-tune this behavior later, eg. set a max queue size (in that case, we
+            must signal the subscriber in some way, possibly with a flag in MessageContext, or a
+            dedicated callback).
+            
+         */
+
         switch (message)
         {
             case AbstractResponse response:
-                return HandleResponse(response);
+                HandleResponse(response);
+
+                return;
 
             case { Type: MessageType.Topic }:
-                return HandleTopicMessage((Protocol.Messages.TopicMessage)message);
+                HandleTopicMessage((Protocol.Messages.TopicMessage)message);
+
+                return;
 
             case { Type: MessageType.Invoke }:
-                return HandleInvokeRequest((InvokeRequest)message);
+            {
+                HandleInvokeRequest((InvokeRequest)message);
+
+                return;
+            }
 
             case { Type: MessageType.ConnectResponse }:
-                return HandleConnectResponse((ConnectResponse)message);
+                HandleConnectResponse((ConnectResponse)message);
+
+                return;
         }
 
         _logger.LogWarning("Unhandled message with type '{MessageType}'", message.Type);
-
-        return Task.CompletedTask;
     }
 
-    private Task HandleConnectResponse(ConnectResponse message)
+    private void HandleConnectResponse(ConnectResponse message)
     {
         if (message.Error != null)
         {
@@ -256,52 +282,58 @@ internal sealed class MessageRouterClient : IMessageRouter
             _clientId = message.ClientId;
             _connectTaskSource.SetResult();
         }
-
-        return Task.CompletedTask;
     }
 
-    private async Task HandleInvokeRequest(InvokeRequest message)
+    private async void HandleInvokeRequest(InvokeRequest message)
     {
+        await Task.Yield(); // Unblock the non-awaiting caller
+
         try
         {
-            if (!_endpointHandlers.TryGetValue(message.Endpoint, out var handler))
-                throw new UnknownEndpointException(message.Endpoint);
+            try
+            {
+                if (!_endpointHandlers.TryGetValue(message.Endpoint, out var handler))
+                    throw new UnknownEndpointException(message.Endpoint);
 
-            var response = await handler(
-                message.Endpoint,
-                message.Payload,
-                new MessageContext
-                {
-                    SourceId = message.SourceId!,
-                    Scope = message.Scope,
-                    CorrelationId = message.CorrelationId,
-                });
+                var response = await handler(
+                    message.Endpoint,
+                    message.Payload,
+                    new MessageContext
+                    {
+                        SourceId = message.SourceId!,
+                        Scope = message.Scope,
+                        CorrelationId = message.CorrelationId,
+                    });
 
-            await SendMessageAsync(
-                new InvokeResponse
-                {
-                    RequestId = message.RequestId,
-                    Payload = response,
-                },
-                CancellationToken.None);
+                await SendMessageAsync(
+                    new InvokeResponse
+                    {
+                        RequestId = message.RequestId,
+                        Payload = response,
+                    },
+                    CancellationToken.None);
+            }
+            catch (Exception e)
+            {
+                await SendMessageAsync(
+                    new InvokeResponse
+                    {
+                        RequestId = message.RequestId,
+                        Error = new Error(e),
+                    },
+                    CancellationToken.None);
+            }
         }
         catch (Exception e)
         {
-            await ConnectAsync();
-
-            await _connection.SendAsync(
-                new InvokeResponse
-                {
-                    RequestId = message.RequestId,
-                    Error = new Error(e),
-                });
+            _logger.LogError(e, $"Unhandled exception while processing an {nameof(InvokeRequest)}: {{ExceptionMessage}}", e.Message);
         }
     }
 
-    private Task HandleResponse(AbstractResponse message)
+    private void HandleResponse(AbstractResponse message)
     {
         if (!_pendingRequests.TryRemove(message.RequestId, out var tcs))
-            return Task.CompletedTask;
+            return;
 
         if (message.Error != null)
         {
@@ -311,11 +343,9 @@ internal sealed class MessageRouterClient : IMessageRouter
         {
             tcs.SetResult(message);
         }
-
-        return Task.CompletedTask;
     }
 
-    private async Task HandleTopicMessage(Protocol.Messages.TopicMessage message)
+    private void HandleTopicMessage(Protocol.Messages.TopicMessage message)
     {
         if (!_topics.TryGetValue(message.Topic, out var topic))
             return;
@@ -330,7 +360,7 @@ internal sealed class MessageRouterClient : IMessageRouter
                 CorrelationId = message.CorrelationId
             });
 
-        await topic.OnNextAsync(topicMessage);
+        topic.OnNext(topicMessage);
     }
 
     private string GenerateRequestId() => Guid.NewGuid().ToString("N");
@@ -373,7 +403,7 @@ internal sealed class MessageRouterClient : IMessageRouter
                 if (_connectionState == ConnectionState.Closed)
                     break;
 
-                await HandleMessage(message);
+                HandleMessage(message);
             }
 
             _logger.LogInformation("Connection closed, exiting read loop");
@@ -452,96 +482,169 @@ internal sealed class MessageRouterClient : IMessageRouter
         Closed
     }
 
-    // TODO: This should be an AsyncSubject once that is standardized and available in Rx.NET
+    // TODO: This should be something like an AsyncSubject once that is standardized and available in Rx.NET
     private class Topic<T>
     {
-        public bool HasSubscribers => _subscriberCount > 0;
+        public string Name { get; }
+
+        public Topic(string name, ILogger logger)
+        {
+            Name = name;
+            _logger = logger;
+        }
 
         public IDisposable Subscribe(ISubscriber<T> subscriber)
         {
-            var subscription = new Subscription(this, subscriber);
-
-            lock (_subscriptions)
-            {
-                _subscriptions.Add(subscription);
-            }
-
-            Interlocked.Increment(ref _subscriberCount);
+            var subscription = new Subscription(this, subscriber, _logger);
+            _subscriptions = _subscriptions.Add(subscription);
 
             return subscription;
         }
 
         private void Unsubscribe(Subscription subscription)
         {
-            lock (_subscriptions)
-            {
-                _subscriptions.Remove(subscription);
-            }
-
-            Interlocked.Decrement(ref _subscriberCount);
+            _subscriptions = _subscriptions.Remove(subscription);
         }
 
-        public async ValueTask OnNextAsync(T value)
+        public void OnNext(T value)
         {
             var subscriptions = GetSubscriptions();
 
             foreach (var subscription in subscriptions)
             {
-                // TODO: Decide how exceptions should be handled
-                await subscription.Subscriber.OnNextAsync(value);
+                subscription.OnNext(value);
             }
         }
 
-        public async ValueTask OnErrorAsync(Exception exception)
+        public void OnError(Exception exception)
         {
             var subscriptions = GetSubscriptions();
 
             foreach (var subscription in subscriptions)
             {
-                // TODO: Decide how exceptions should be handled
-                await subscription.Subscriber.OnErrorAsync(exception);
+                subscription.OnError(exception);
             }
         }
 
-        public async ValueTask CompleteAsync()
+        public void Complete()
         {
             var subscriptions = GetSubscriptions();
 
             foreach (var subscription in subscriptions)
             {
-                // TODO: Decide how exceptions should be handled
-                await subscription.Subscriber.OnCompletedAsync();
+                subscription.Complete();
             }
         }
 
-        private readonly List<Subscription> _subscriptions = new();
+        private readonly ILogger _logger;
+        private ImmutableList<Subscription> _subscriptions = ImmutableList<Subscription>.Empty;
 
-        private int _subscriberCount;
-
-        private Subscription[] GetSubscriptions()
+        private ImmutableList<Subscription> GetSubscriptions()
         {
-            lock (_subscriptions)
-            {
-                return _subscriptions.ToArray();
-            }
+            return _subscriptions;
         }
 
         private class Subscription : IDisposable
         {
-            public Subscription(Topic<T> topic, ISubscriber<T> subscriber)
+            public Subscription(Topic<T> topic, ISubscriber<T> subscriber, ILogger logger)
             {
-                Subscriber = subscriber;
+                _subscriber = subscriber;
                 _topic = topic;
+                _logger = logger;
+                ProcessMessages();
             }
-
-            public ISubscriber<T> Subscriber { get; }
 
             public void Dispose()
             {
                 _topic.Unsubscribe(this);
             }
 
+            public void OnNext(T value)
+            {
+                _queue.Writer.TryWrite(value); // Since the queue is unbounded, this will always succeed
+            }
+
+            public void OnError(Exception exception)
+            {
+                _queue.Writer.TryComplete(exception);
+            }
+
+            public void Complete()
+            {
+                _queue.Writer.TryComplete();
+            }
+
+            private async void ProcessMessages()
+            {
+                try
+                {
+                    while (await _queue.Reader.WaitToReadAsync())
+                    {
+                        while (_queue.Reader.TryRead(out var value))
+                        {
+                            try
+                            {
+                                await _subscriber.OnNextAsync(value);
+                            }
+                            catch (Exception e)
+                            {
+                                _logger.LogError(
+                                    e,
+                                    $"Exception thrown while invoking {nameof(ISubscriber<T>.OnNextAsync)} on a subscriber of topic '{{TopicName}}': {{ExceptionMessage}}",
+                                    _topic.Name,
+                                    e.Message);
+                            }
+                        }
+                    }
+
+                    try
+                    {
+                        await _subscriber.OnCompletedAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogError(
+                            e,
+                            $"Exception thrown while invoking {nameof(ISubscriber<T>.OnCompletedAsync)} on a subscriber of topic '{{TopicName}}': {{ExceptionMessage}}",
+                            _topic.Name,
+                            e.Message);
+                    }
+                }
+                catch (Exception e)
+                {
+                    try
+                    {
+                        _logger.LogError(
+                            e,
+                            "Exception thrown while processing messages for a subscriber of topic '{Topic}': {ExceptionMessage}",
+                            _topic.Name,
+                            e.Message);
+
+                        await _subscriber.OnErrorAsync(e is ChannelClosedException ? e.InnerException ?? e : e);
+                    }
+                    catch (Exception e2)
+                    {
+                        _logger.LogError(
+                            e2,
+                            $"Exception thrown while invoking {nameof(ISubscriber<T>.OnErrorAsync)} on a subscriber of topic '{{TopicName}}': {{ExceptionMessage}}",
+                            _topic.Name,
+                            e.Message);
+                    }
+                }
+            }
+
+            private readonly ISubscriber<T> _subscriber;
+
+            private readonly Channel<T> _queue = Channel.CreateUnbounded<T>(
+                new UnboundedChannelOptions
+                {
+                    AllowSynchronousContinuations = false,
+                    SingleReader = true,
+                    SingleWriter = false
+                });
+
             private readonly Topic<T> _topic;
+            private readonly ILogger _logger;
         }
     }
 
