@@ -1,4 +1,4 @@
-import { MessageScope } from ".";
+import { MessageScope } from "./MessageScope";
 
 export interface InvokeOptions {
     scope?: MessageScope;

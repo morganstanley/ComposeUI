@@ -1,4 +1,6 @@
-import { AbstractRequest, Message, UnregisterServiceResponse } from ".";
+import { AbstractRequest } from "./AbstractRequest";
+import { Message } from "./Message";
+import { UnregisterServiceResponse } from "./UnregisterServiceResponse";
 
 export interface UnregisterServiceRequest extends AbstractRequest<UnregisterServiceResponse> {
     type: "UnregisterService";

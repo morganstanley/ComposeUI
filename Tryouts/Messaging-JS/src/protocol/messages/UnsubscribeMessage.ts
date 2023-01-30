@@ -1,4 +1,4 @@
-import { Message } from ".";
+import { Message } from "./Message";
 
 export interface UnsubscribeMessage extends Message {
     type: "Unsubscribe";

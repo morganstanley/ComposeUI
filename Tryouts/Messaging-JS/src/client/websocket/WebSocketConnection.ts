@@ -1,7 +1,7 @@
-import { Connection, OnCloseCallback, OnErrorCallback, OnMessageCallback } from "..";
 import * as messages from "../../protocol/messages";
-import { WebSocketOptions } from ".";
+import { WebSocketOptions } from "./WebSocketOptions";
 import { MessageScope } from "../../MessageScope";
+import { Connection, OnMessageCallback, OnErrorCallback, OnCloseCallback } from "../Connection";
 
 export class WebSocketConnection implements Connection {
 

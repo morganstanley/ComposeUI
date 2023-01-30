@@ -1,5 +1,6 @@
-import { ErrorTypes, MessageRouterError } from ".";
 import * as protocol from "../protocol";
+import { ErrorTypes } from "./ErrorTypes";
+import { MessageRouterError } from "./MessageRouterError";
 
 export class DuplicateEndpointError extends MessageRouterError {
     constructor(err: { endpoint: string; } | protocol.Error) {

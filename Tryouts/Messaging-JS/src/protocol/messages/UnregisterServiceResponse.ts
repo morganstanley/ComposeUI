@@ -1,4 +1,5 @@
-import { Message, AbstractResponse } from ".";
+import { AbstractResponse } from "./AbstractResponse";
+import { Message } from "./Message";
 
 export interface UnregisterServiceResponse extends AbstractResponse {
     type: "UnregisterServiceResponse";

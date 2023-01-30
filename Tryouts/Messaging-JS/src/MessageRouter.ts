@@ -1,5 +1,11 @@
 import { Unsubscribable } from "rxjs";
-import { EndpointDescriptor, InvokeOptions, MessageBuffer, MessageHandler, PublishOptions, TopicMessage, TopicSubscriber } from ".";
+import { PublishOptions } from "./PublishOptions";
+import { EndpointDescriptor } from "./EndpointDescriptor";
+import { InvokeOptions } from "./InvokeOptions";
+import { MessageBuffer } from "./MessageBuffer";
+import { MessageHandler } from "./MessageHandler";
+import { TopicMessage } from "./TopicMessage";
+import { TopicSubscriber } from "./TopicSubscriber";
 
 export interface MessageRouter {
     connect(): Promise<void>;

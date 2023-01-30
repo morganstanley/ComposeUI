@@ -1,5 +1,6 @@
-import { AbstractResponse, Message } from ".";
-import { MessageBuffer } from "../..";
+import { MessageBuffer } from "../../MessageBuffer";
+import { AbstractResponse } from "./AbstractResponse";
+import { Message } from "./Message";
 
 export interface InvokeResponse extends AbstractResponse {
     type: "InvokeResponse";

@@ -1,5 +1,6 @@
 import * as protocol from "../protocol";
-import { ErrorTypes, MessageRouterError } from ".";
+import { ErrorTypes } from "./ErrorTypes";
+import { MessageRouterError } from "./MessageRouterError";
 
 export class InvalidTopicError extends MessageRouterError {
     constructor(err: { topic: string; } | protocol.Error) {

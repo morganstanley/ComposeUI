@@ -1,5 +1,5 @@
-import { Message } from ".";
-import { Error } from "..";
+import { Message } from "./Message";
+import { Error } from "../Error";
 
 export interface AbstractResponse extends Message {
     requestId: string;

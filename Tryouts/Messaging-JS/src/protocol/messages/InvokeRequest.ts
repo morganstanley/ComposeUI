@@ -1,5 +1,8 @@
-import { Message, InvokeResponse, AbstractRequest } from ".";
-import { MessageBuffer, MessageScope } from "../..";
+import { MessageBuffer } from "../../MessageBuffer";
+import { MessageScope } from "../../MessageScope";
+import { AbstractRequest } from "./AbstractRequest";
+import { InvokeResponse } from "./InvokeResponse";
+import { Message } from "./Message";
 
 export interface InvokeRequest extends AbstractRequest<InvokeResponse> {
     type: "Invoke";

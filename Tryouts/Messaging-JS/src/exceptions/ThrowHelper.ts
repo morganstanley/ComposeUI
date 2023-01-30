@@ -1,4 +1,4 @@
-import { MessageRouterError } from ".";
+import { MessageRouterError } from "./MessageRouterError";
 
 export class ThrowHelper {
 

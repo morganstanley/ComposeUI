@@ -1,8 +1,18 @@
 import { Unsubscribable } from "rxjs";
-import { Connection, Deferred, MessageRouterOptions } from ".";
-import { EndpointDescriptor, InvokeOptions, MessageBuffer, MessageHandler, MessageRouter, MessageScope, PublishOptions, TopicMessage, TopicSubscriber } from "..";
+import { EndpointDescriptor } from "../EndpointDescriptor";
 import { createProtocolError, DuplicateEndpointError, MessageRouterError, ThrowHelper, UnknownEndpointError } from "../exceptions";
+import { InvokeOptions } from "../InvokeOptions";
+import { MessageBuffer } from "../MessageBuffer";
+import { MessageHandler } from "../MessageHandler";
+import { MessageRouter } from "../MessageRouter";
+import { MessageScope } from "../MessageScope";
 import * as messages from "../protocol/messages";
+import { PublishOptions } from "../PublishOptions";
+import { TopicMessage } from "../TopicMessage";
+import { TopicSubscriber } from "../TopicSubscriber";
+import { Connection } from "./Connection";
+import { Deferred } from "./Deferred";
+import { MessageRouterOptions } from "./MessageRouterOptions";
 
 export enum ClientState {
     Created,

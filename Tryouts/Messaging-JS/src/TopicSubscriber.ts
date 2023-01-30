@@ -1,4 +1,4 @@
 import { PartialObserver } from "rxjs";
-import { TopicMessage } from ".";
+import { TopicMessage } from "./TopicMessage";
 
 export type TopicSubscriber = PartialObserver<TopicMessage>;

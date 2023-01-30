@@ -1,5 +1,6 @@
-import { Message } from ".";
-import { MessageBuffer, MessageScope } from "../..";
+import { MessageBuffer } from "../../MessageBuffer";
+import { MessageScope } from "../../MessageScope";
+import { Message } from "./Message";
 
 export interface TopicMessage extends Message {
     type: "Topic";

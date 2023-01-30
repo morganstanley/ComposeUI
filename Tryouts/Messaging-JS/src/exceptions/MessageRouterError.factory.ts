@@ -1,5 +1,11 @@
-import { DuplicateEndpointError, DuplicateRequestIdError, ErrorTypes, InvalidEndpointError, InvalidTopicError, MessageRouterError, UnknownEndpointError } from ".";
 import * as protocol from "../protocol";
+import { DuplicateEndpointError } from "./DuplicateEndpointError";
+import { DuplicateRequestIdError } from "./DuplicateRequestIdError";
+import { ErrorTypes } from "./ErrorTypes";
+import { InvalidEndpointError } from "./InvalidEndpointError";
+import { InvalidTopicError } from "./InvalidTopicError";
+import { MessageRouterError } from "./MessageRouterError";
+import { UnknownEndpointError } from "./UnknownEndpointError";
 
 // Don't merge this into MessageRouterError.ts. That causes a circular reference and a runtime error saying MessageRouterError is not a constructor.
 

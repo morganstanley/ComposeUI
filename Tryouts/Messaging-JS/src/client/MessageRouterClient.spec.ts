@@ -1,9 +1,15 @@
-import { MessageRouterClient, ClientState, Connection, OnMessageCallback, OnErrorCallback, OnCloseCallback } from ".";
-import { MessageContext, MessageHandler, MessageScope, TopicMessage, TopicSubscriber } from "..";
+import { ClientState, MessageRouterClient } from "./MessageRouterClient";
 import * as messages from "../protocol/messages";
 import "jest-extended"
-import { DuplicateEndpointError, ErrorTypes, MessageRouterError } from "../exceptions";
+import { DuplicateEndpointError, MessageRouterError } from "../exceptions";
 import { Error } from "../protocol";
+import { MessageContext } from "../MessageContext";
+import { MessageHandler } from "../MessageHandler";
+import { MessageScope } from "../MessageScope";
+import { TopicMessage } from "../TopicMessage";
+import { TopicSubscriber } from "../TopicSubscriber";
+import { Connection, OnMessageCallback, OnErrorCallback, OnCloseCallback } from "./Connection";
+import { ErrorTypes } from "../exceptions/ErrorTypes";
 
 describe("MessageRouterClient", () => {
 
@@ -118,7 +124,7 @@ describe("MessageRouterClient", () => {
                 complete: jest.fn()
             };
             await client.subscribe("test-topic", subscriber);
-            
+
             await client.close();
 
             expect(subscriber.complete).toHaveBeenCalledOnce();
@@ -127,9 +133,9 @@ describe("MessageRouterClient", () => {
         it("completes pending requests with an error", async () => {
 
             const client = new MessageRouterClient(connection, {});
-            
+
             const invokePromise = client.invoke("test-endpoint");
-            
+
             await client.close();
 
             expect(invokePromise).rejects.toThrow(Error);
@@ -196,10 +202,10 @@ describe("MessageRouterClient", () => {
 
             await connection.sendToClient<messages.TopicMessage>({
                 type: "Topic",
-                topic: "test-topic", 
-                payload: "test-payload", 
-                scope: MessageScope.parse("test-scope"), 
-                sourceId: "test-source-id", 
+                topic: "test-topic",
+                payload: "test-payload",
+                scope: MessageScope.parse("test-scope"),
+                sourceId: "test-source-id",
                 correlationId: "test-correlation-id"
             });
 
@@ -207,11 +213,11 @@ describe("MessageRouterClient", () => {
 
             expect(observer.next).toHaveBeenCalledWith(
                 expect.objectContaining(<TopicMessage>{
-                    topic: "test-topic", 
-                    payload: "test-payload", 
+                    topic: "test-topic",
+                    payload: "test-payload",
                     context: {
-                        scope: MessageScope.parse("test-scope"), 
-                        sourceId: "test-source-id", 
+                        scope: MessageScope.parse("test-scope"),
+                        sourceId: "test-source-id",
                         correlationId: "test-correlation-id"
                     }
                 }));
@@ -228,10 +234,10 @@ describe("MessageRouterClient", () => {
 
             await connection.sendToClient<messages.TopicMessage>({
                 type: "Topic",
-                topic: "test-topic", 
-                payload: "test-payload", 
-                scope: MessageScope.parse("test-scope"), 
-                sourceId: "test-source-id", 
+                topic: "test-topic",
+                payload: "test-payload",
+                scope: MessageScope.parse("test-scope"),
+                sourceId: "test-source-id",
                 correlationId: "test-correlation-id"
             });
 
@@ -239,11 +245,11 @@ describe("MessageRouterClient", () => {
 
             expect(subscriber).toHaveBeenCalledWith(
                 expect.objectContaining(<TopicMessage>{
-                    topic: "test-topic", 
-                    payload: "test-payload", 
+                    topic: "test-topic",
+                    payload: "test-payload",
                     context: {
-                        scope: MessageScope.parse("test-scope"), 
-                        sourceId: "test-source-id", 
+                        scope: MessageScope.parse("test-scope"),
+                        sourceId: "test-source-id",
                         correlationId: "test-correlation-id"
                     }
                 }));
@@ -269,7 +275,7 @@ describe("MessageRouterClient", () => {
             const client = new MessageRouterClient(connection, {});
 
             let response = await client.invoke("test-endpoint", "test-request", { scope: MessageScope.fromClientId("other-client"), correlationId: "test-correlation-id" });
-            
+
             expect(response).toBe("Re: test-request");
 
             expect(connection.mock.send).toHaveBeenCalledWith(
@@ -427,7 +433,7 @@ describe("MessageRouterClient", () => {
                 endpoint: "test-service",
                 requestId: "1"
             });
-            
+
             await new Promise(process.nextTick);
 
             expect(connection.mock.send).toHaveBeenCalledWith(
@@ -469,7 +475,7 @@ describe("MessageRouterClient", () => {
     })
 
     describe("when the connection closes", () => {
-        
+
         it("calls error on active subscribers", async () => {
 
             const client = new MessageRouterClient(connection, {});
@@ -479,7 +485,7 @@ describe("MessageRouterClient", () => {
             await client.subscribe("test-topic", subscriber);
 
             connection.raiseClose();
-            await new Promise(process.nextTick);            
+            await new Promise(process.nextTick);
 
             expect(subscriber.error).toHaveBeenCalledOnceWith(expect.any(Error));
         });
@@ -487,11 +493,11 @@ describe("MessageRouterClient", () => {
         it("fails pending requests", async () => {
 
             const client = new MessageRouterClient(connection, {});
-            
+
             const invokePromise = client.invoke("test-service");
 
             connection.raiseClose();
-            await new Promise(process.nextTick);            
+            await new Promise(process.nextTick);
 
             expect(invokePromise).rejects.toThrow(Error);
         });
@@ -499,7 +505,7 @@ describe("MessageRouterClient", () => {
     })
 
     describe("when the connection raises an error", () => {
-        
+
         it("calls error on active subscribers", async () => {
 
             const client = new MessageRouterClient(connection, {});
@@ -510,7 +516,7 @@ describe("MessageRouterClient", () => {
 
             const err = {};
             connection.raiseError(err);
-            await new Promise(process.nextTick);            
+            await new Promise(process.nextTick);
 
             expect(subscriber.error).toHaveBeenCalledOnceWith(err);
         });

@@ -1,4 +1,5 @@
-import { MessageContext, MessageBuffer } from ".";
+import { MessageBuffer } from "./MessageBuffer";
+import { MessageContext } from "./MessageContext";
 
 export interface TopicMessage {
     topic: string;

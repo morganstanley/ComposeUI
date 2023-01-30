@@ -1,5 +1,5 @@
-import { Message } from ".";
-import { Error } from "..";
+import { Error } from "../Error";
+import { Message } from "./Message";
 
 export interface ConnectResponse extends Message {
     type: "ConnectResponse";
