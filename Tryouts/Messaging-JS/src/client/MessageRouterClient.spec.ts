@@ -117,17 +117,17 @@ describe("MessageRouterClient", () => {
             await client.close();
         });
 
-        it("calls complete on active subscribers", async () => {
+        it("calls error on active subscribers", async () => {
 
             const client = new MessageRouterClient(connection, {});
             const subscriber: TopicSubscriber = {
-                complete: jest.fn()
+                error: jest.fn()
             };
             await client.subscribe("test-topic", subscriber);
 
             await client.close();
 
-            expect(subscriber.complete).toHaveBeenCalledOnce();
+            expect(subscriber.error).toHaveBeenCalledOnce();
         });
 
         it("completes pending requests with an error", async () => {

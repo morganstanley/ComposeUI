@@ -205,8 +205,9 @@ export class MessageRouterClient implements MessageRouter {
     private async closeCore(): Promise<void> {
         this._state = ClientState.Closing;
         await this.connection.close();
-        this.failPendingRequests(ThrowHelper.connectionClosed());
-        this.completeSubscribers();
+        const err = ThrowHelper.connectionClosed();
+        this.failPendingRequests(err);
+        this.failSubscribers(err);
         this._state = ClientState.Closed;
         this.closed.resolve();
     }
@@ -225,13 +226,6 @@ export class MessageRouterClient implements MessageRouter {
         }
     }
 
-    private async completeSubscribers() {
-        for (let topicName in this.topics) {
-            const topic = this.topics[topicName];
-            topic.complete();
-        }
-    }
-
     private async sendMessage<TMessage extends messages.Message>(message: TMessage): Promise<void> {
         await this.connect();
         await this.connection.send(message);
@@ -247,7 +241,6 @@ export class MessageRouterClient implements MessageRouter {
     }
 
     private handleMessage(message: messages.Message): void {
-
         if (messages.isTopicMessage(message)) {
             this.handleTopicMessage(message);
             return;
