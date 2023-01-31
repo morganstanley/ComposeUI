@@ -28,6 +28,11 @@ namespace Shell
     /// </summary>
     public partial class App : Application
     {
-        
+        public string[] CustomerCode { get; set; }
+        protected override void OnStartup(StartupEventArgs e)
+        {   
+            this.CustomerCode = e.Args;
+            base.OnStartup(e);
+        }
     }
 }
