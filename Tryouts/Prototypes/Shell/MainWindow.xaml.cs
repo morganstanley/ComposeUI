@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -40,13 +41,59 @@ namespace Shell
         private ManifestModel config;
         private ModuleModel[]? modules;
 
+        private string commandLineURL;
+        private string[] hereIsMyCode = (Application.Current as App).CustomerCode;
+
         public MainWindow()
         {
             InitializeComponent();
 
-            config = new ManifestParser().Manifest;
-            modules = config.Modules;
-            DataContext = modules;
+            this.Loaded += MainWindow_Loaded;
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (this.hereIsMyCode.Length != 0)
+            {
+                this.LazyLoading();
+            }
+            else
+            {
+                config = new ManifestParser().Manifest;
+                modules = config.Modules;
+                DataContext = modules;
+            }
+        }
+
+        private void LazyLoading() {
+            Dictionary<string, string> commands = new Dictionary<string, string>();
+
+            this.hereIsMyCode.ToList<string>().ForEach(item => {
+                item = item.TrimStart('-');
+                string[] command = item.Split("=");
+
+                commands.Add(command[0], command[1]);
+            });
+
+            if (commands.ContainsKey("url"))
+            {
+                this.commandLineURL = commands["url"];
+            }
+            else 
+            {
+                this.commandLineURL = "about:blank";
+            }
+
+            var lazyWebContent = new WebContent(this.commandLineURL);
+            if (commands.ContainsKey("width"))
+            {
+                lazyWebContent.Width = int.Parse(commands["width"]);
+            }
+            if (commands.ContainsKey("height"))
+            {
+                lazyWebContent.Height = int.Parse(commands["height"]);
+            }
+            lazyWebContent.Show();
         }
 
         private void CreateViews(ModuleModel item) 
