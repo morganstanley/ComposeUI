@@ -20,6 +20,7 @@ using System.Text;
 using System.Text.Json;
 using System.Windows.Automation;
 using System.Windows.Controls.Primitives;
+using System.Windows.Documents;
 
 namespace Manifest
 {
@@ -29,7 +30,13 @@ namespace Manifest
 
         public ManifestParser()
         {
-            OpenManifestFile("./Manifest/exampleManifest.json");
+            string fileName = "exampleManifest.json";
+            string processPath = Environment.ProcessPath;
+            string folder= Path.GetDirectoryName(processPath);
+
+            string path = Path.Combine(folder, @"Manifest\", fileName);
+            
+            OpenManifestFile(path);
         }
 
         public async void OpenManifestFile(string manifestFile)
