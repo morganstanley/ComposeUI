@@ -1,8 +1,8 @@
 export interface Error {
-    type: string;
+    name: string;
     message?: string;
 }
 
 export function isProtocolError(err: any): err is Error {
-    return "type" in err;
+    return (typeof err === "object") && ("name" in err);
 }

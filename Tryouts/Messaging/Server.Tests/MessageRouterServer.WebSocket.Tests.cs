@@ -86,7 +86,7 @@ public class MessageRouterServerWebSocketTests : IAsyncLifetime
             @" { ""type"": ""RegisterService"", ""endpoint"": ""test-service"", ""requestId"": ""2"" } ");
 
         var response2 = await client2.ReceiveJsonAsync();
-        response2.Should().ContainSubtree($@" {{ ""error"": {{ ""type"": ""{typeof(DuplicateEndpointException).FullName}"" }} }} ");
+        response2.Should().ContainSubtree($@" {{ ""error"": {{ ""name"": ""{MessageRouterErrors.DuplicateEndpoint}"" }} }} ");
     }
 
     [Fact]
