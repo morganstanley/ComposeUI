@@ -1,4 +1,4 @@
-import { Unsubscribable } from "rxjs";
+import { PartialObserver, Unsubscribable } from "rxjs";
 import { EndpointDescriptor } from "../EndpointDescriptor";
 import { createProtocolError, DuplicateEndpointError, MessageRouterError, ThrowHelper, UnknownEndpointError } from "../exceptions";
 import { InvokeOptions } from "../InvokeOptions";
@@ -59,7 +59,7 @@ export class MessageRouterClient implements MessageRouter {
         return this.closeCore();
     }
 
-    async subscribe(topicName: string, subscriber: TopicSubscriber | ((message: TopicMessage) => void)): Promise<Unsubscribable> {
+    async subscribe(topicName: string, subscriber: TopicSubscriber): Promise<Unsubscribable> {
         this.checkState();
         let needsSubscription = false;
         let topic = this.topics[topicName];
@@ -387,13 +387,15 @@ export class MessageRouterClient implements MessageRouter {
     }
 }
 
+type TopicSubscriberInternal = PartialObserver<TopicMessage>;
+
 class Topic {
 
     constructor(onUnsubscribe: () => void) {
         this.onUnsubscribe = onUnsubscribe;
     }
 
-    subscribe(subscriber: TopicSubscriber): Unsubscribable {
+    subscribe(subscriber: TopicSubscriberInternal): Unsubscribable {
         this.subscribers.push(subscriber);
 
         return {
@@ -401,7 +403,7 @@ class Topic {
         };
     }
 
-    unsubscribe(subscriber: TopicSubscriber): void {
+    unsubscribe(subscriber: TopicSubscriberInternal): void {
         const idx = this.subscribers.lastIndexOf(subscriber);
 
         if (idx < 0)
@@ -446,5 +448,5 @@ class Topic {
     }
 
     private onUnsubscribe: () => void;
-    private subscribers: TopicSubscriber[] = [];
+    private subscribers: TopicSubscriberInternal[] = [];
 }

@@ -227,9 +227,7 @@ describe("MessageRouterClient", () => {
         it("invokes the subscribed callback", async () => {
 
             const client = new MessageRouterClient(connection, {});
-
             const subscriber = jest.fn();
-
             await client.subscribe("test-topic", subscriber);
 
             await connection.sendToClient<messages.TopicMessage>({
@@ -256,6 +254,92 @@ describe("MessageRouterClient", () => {
 
         });
 
+        it("keeps processing messages if the subscribed callback issues another invocation", async () => {
+
+            const client = new MessageRouterClient(connection, {});
+            const subscriber = <TopicSubscriber>jest.fn((msg: TopicMessage) => client.invoke("test-service", msg.payload));
+            await client.subscribe("test-topic", subscriber);
+
+            await connection.sendToClient<messages.TopicMessage>({
+                type: "Topic",
+                topic: "test-topic",
+                payload: "test-payload-1",
+                scope: MessageScope.parse("test-scope"),
+                sourceId: "test-source-id",
+                correlationId: "test-correlation-id"
+            });
+
+            await connection.sendToClient<messages.TopicMessage>({
+                type: "Topic",
+                topic: "test-topic",
+                payload: "test-payload-2",
+                scope: MessageScope.parse("test-scope"),
+                sourceId: "test-source-id",
+                correlationId: "test-correlation-id"
+            });
+
+            await new Promise(process.nextTick);
+
+            expect(connection.mock.send).toHaveBeenCalledWith(
+                expect.objectContaining(<messages.InvokeRequest>{
+                    type: "Invoke",
+                    endpoint: "test-service",
+                    payload: "test-payload-1"
+                }));
+
+            expect(connection.mock.send).toHaveBeenCalledWith(
+                expect.objectContaining(<messages.InvokeRequest>{
+                    type: "Invoke",
+                    endpoint: "test-service",
+                    payload: "test-payload-2"
+                }));
+
+        });
+
+        it("keeps processing messages if the subscribed Observer issues another invocation", async () => {
+
+            const client = new MessageRouterClient(connection, {});
+
+            const subscriber = <TopicSubscriber>{
+                next: jest.fn((msg: TopicMessage) => client.invoke("test-service", msg.payload))
+            };
+
+            await client.subscribe("test-topic", subscriber);
+
+            await connection.sendToClient<messages.TopicMessage>({
+                type: "Topic",
+                topic: "test-topic",
+                payload: "test-payload-1",
+                scope: MessageScope.parse("test-scope"),
+                sourceId: "test-source-id",
+                correlationId: "test-correlation-id"
+            });
+
+            await connection.sendToClient<messages.TopicMessage>({
+                type: "Topic",
+                topic: "test-topic",
+                payload: "test-payload-2",
+                scope: MessageScope.parse("test-scope"),
+                sourceId: "test-source-id",
+                correlationId: "test-correlation-id"
+            });
+
+            await new Promise(process.nextTick);
+
+            expect(connection.mock.send).toHaveBeenCalledWith(
+                expect.objectContaining(<messages.InvokeRequest>{
+                    type: "Invoke",
+                    endpoint: "test-service",
+                    payload: "test-payload-1"
+                }));
+
+            expect(connection.mock.send).toHaveBeenCalledWith(
+                expect.objectContaining(<messages.InvokeRequest>{
+                    type: "Invoke",
+                    endpoint: "test-service",
+                    payload: "test-payload-2"
+                }));
+        });
     });
 
     describe("invoke", () => {
@@ -471,6 +555,18 @@ describe("MessageRouterClient", () => {
                     })
                 })
             );
+        });
+
+        it("repeatedly calls the registered handler without waiting for it to complete asynchronously", async () => {
+
+            const client = new MessageRouterClient(connection, {});
+            const handler: MessageHandler = jest.fn((endpoint, payload, context) => new Promise<void>(() => { }));
+            await client.registerEndpoint("test-endpoint", handler);
+            await client.connect();
+            await connection.sendToClient<messages.InvokeRequest>({ type: "Invoke", requestId: "1", endpoint: "test-endpoint" });
+            await connection.sendToClient<messages.InvokeRequest>({ type: "Invoke", requestId: "2", endpoint: "test-endpoint" });
+
+            expect(handler).toHaveBeenCalledTimes(2);
         });
     })
 
