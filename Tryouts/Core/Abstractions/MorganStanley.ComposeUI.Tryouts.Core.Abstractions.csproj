@@ -23,10 +23,6 @@ See the License for the specific language governing permissions and limitations 
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Topic.proto" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.21.4" />
     <PackageReference Include="Grpc.Tools" Version="2.47.0">
       <PrivateAssets>all</PrivateAssets>
@@ -36,10 +32,6 @@ See the License for the specific language governing permissions and limitations 
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Core\Abstractions\MorganStanley.ComposeUI.Core.Abstractions.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Protobuf Include="Topic.proto" />
   </ItemGroup>
 
 </Project>
