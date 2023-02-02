@@ -25,11 +25,11 @@ jobs:
       with:
         dotnet-version: ${{ matrix.dotnet-version }}
     - name: Install dependencies
-      run: Get-ChildItem -Path Prototypes -Recurse -Include *.sln | ForEach-Object {dotnet restore $_} 
+      run: Get-ChildItem -Recurse -Include *.sln | ForEach-Object {dotnet restore $_} 
       working-directory: Tryouts
     - name: Build
-      run: Get-ChildItem -Path Prototypes -Recurse -Include *.sln | ForEach-Object {dotnet build $_ --configuration Release --no-restore} 
+      run: Get-ChildItem -Recurse -Include *.sln | ForEach-Object {dotnet build $_ --configuration Release --no-restore} 
       working-directory: Tryouts
     - name: Test
-      run: Get-ChildItem -Path Prototypes -Recurse -Include *.sln | ForEach-Object {dotnet test $_ --no-restore --verbosity normal}  
+      run: Get-ChildItem -Recurse -Include *.sln | ForEach-Object {dotnet test $_ --no-restore --verbosity normal}  
       working-directory: Tryouts
