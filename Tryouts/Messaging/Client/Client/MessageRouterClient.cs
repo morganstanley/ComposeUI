@@ -612,14 +612,14 @@ internal sealed class MessageRouterClient : IMessageRouter
                 }
                 catch (Exception e)
                 {
+                    _logger.LogError(
+                        e,
+                        "Exception thrown while processing messages for a subscriber of topic '{Topic}': {ExceptionMessage}",
+                        _topic.Name,
+                        e.Message);
+
                     try
                     {
-                        _logger.LogError(
-                            e,
-                            "Exception thrown while processing messages for a subscriber of topic '{Topic}': {ExceptionMessage}",
-                            _topic.Name,
-                            e.Message);
-
                         await _subscriber.OnErrorAsync(e is ChannelClosedException ? e.InnerException ?? e : e);
                     }
                     catch (Exception e2)
@@ -628,7 +628,7 @@ internal sealed class MessageRouterClient : IMessageRouter
                             e2,
                             $"Exception thrown while invoking {nameof(ISubscriber<T>.OnErrorAsync)} on a subscriber of topic '{{TopicName}}': {{ExceptionMessage}}",
                             _topic.Name,
-                            e.Message);
+                            e2.Message);
                     }
                 }
             }
