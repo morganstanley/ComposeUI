@@ -49,9 +49,4 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 	  <ProjectReference Include="..\..\Plugins\ApplicationPlugins\process explorer\backend\ModuleProcessMonitor\ModuleProcessMonitor.csproj" />
 	  <ProjectReference Include="..\ProcessExplorerMessageRouterTopics\ProcessExplorerMessageRouterTopics.csproj" />
   </ItemGroup>
-	
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-	  <Exec Command="powershell -ExecutionPolicy RemoteSigned -file &quot;$(ProjectDir)scripts\npm-builds.ps1&quot;" />
-  </Target>
-	
 </Project>
