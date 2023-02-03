@@ -28,7 +28,7 @@ jobs:
       run: Get-ChildItem -Recurse -Include *.sln | ForEach-Object {dotnet restore $_} 
       working-directory: Tryouts
     - name: Build
-      run: Get-ChildItem -Recurse -Include *.sln | ForEach-Object {dotnet build $_ --configuration Release --no-restore} 
+      run: Get-ChildItem -Recurse -Include *.sln | ForEach-Object {dotnet build $_ --configuration Release --no-restore; if ($LASTEXITCODE -ne 0 ) {throw "Build for $_ FAILED"; }} 
       working-directory: Tryouts
     - name: Test
       run: Get-ChildItem -Recurse -Include *.sln | ForEach-Object {dotnet test $_ --no-restore --verbosity normal}  
