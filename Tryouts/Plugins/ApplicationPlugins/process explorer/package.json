@@ -26,7 +26,7 @@
     "igniteui-angular": "~12.2.0",
     "igniteui-angular-charts": "^13.1.0",
     "igniteui-angular-core": "^13.1.0",
-    "jszip": "^3.5.0",
+    "jszip": "^3.8.0",
     "minireset.css": "~0.0.4",
     "rxjs": "~6.6.0",
     "super-rpc": "^1.0.1",
