@@ -17,7 +17,7 @@ using LocalCollector.Modules;
 using LocalCollector.Registrations;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Messaging;
-using ProcessExplorer;
+using ProcessExplorer.Abstraction;
 using ProcessExplorerMessageRouterTopics;
 using ConnectionInfo = LocalCollector.Connections.ConnectionInfo;
 

@@ -10,35 +10,38 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using ModuleProcessMonitor.Subsystems;
-using MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules;
+using ProcessExplorer.Abstraction.Subsystems;
 
-namespace ModuleProcessMonitor;
+namespace ProcessExplorer.Abstraction;
 
-public class Module
+public struct Module
 {
+    public Module(
+        string name,
+        string startupType,
+        string uIType,
+        string path,
+        string? url,
+        string[]? arguments,
+        int? port,
+        string state)
+    {
+        Name = name;
+        StartupType = startupType;
+        UIType = uIType;
+        Path = path;
+        Url = url;
+        Arguments = arguments;
+        Port = port;
+        State = state;
+    }
+
     public string Name { get; set; }
     public string StartupType { get; set; }
     public string UIType { get; set; }
-    public string? Path { get; set; }
+    public string Path { get; set; }
     public string? Url { get; set; }
     public string[]? Arguments { get; set; }
     public int? Port { get; set; }
-    public string? State { get; set; } = SubsystemState.Stopped;
-
-    public static explicit operator Module(ModuleManifest manifest)
-    {
-        var module = new Module
-        {
-            Name = manifest.Name,
-            StartupType = manifest.StartupType,
-            UIType = manifest.UIType,
-            Path = manifest.Path,
-            Url = manifest.Url,
-            Arguments = manifest.Arguments,
-            Port = manifest.Port
-        };
-
-        return module;
-    }
+    public string State { get; set; } = SubsystemState.Stopped;
 }

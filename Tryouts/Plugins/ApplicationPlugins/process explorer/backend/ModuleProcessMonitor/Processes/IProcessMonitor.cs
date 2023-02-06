@@ -10,35 +10,26 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace ModuleProcessMonitor.Processes;
+using ProcessExplorer.Abstraction.Handlers;
 
-public interface IProcessMonitor
+namespace ProcessExplorer.Abstraction.Processes;
+
+public interface IProcessMonitor : IDisposable
 {
-    /// <summary>
-    /// Event if a process has been terminated.
-    /// </summary>
-    event EventHandler<int> _processTerminated;
+    int ComposePid { get; }
 
-    /// <summary>
-    /// Event if a process has been created.
-    /// </summary>
-    event EventHandler<ProcessInfoData> _processCreated;
-
-    /// <summary>
-    /// Event if a process has been modified.
-    /// </summary>
-    event EventHandler<ProcessInfoData> _processModified;
-
-    /// <summary>
-    /// Event if a list of processes has been modified.
-    /// </summary>
-    event EventHandler<SynchronizedCollection<ProcessInfoData>> _processesModified;
+    void SetHandlers(
+        ProcessModifiedHandler processModifiedHandler,
+        ProcessCreatedHandler processCreatedHandler,
+        ProcessTerminatedHandler processTerminatedHandler,
+        ProcessesModifiedHandler processesModifiedHandler,
+        ProcessStatusChangedHandler processStatusChangedHandler);
 
     /// <summary>
     /// Returns the current list of the processes from the ProcessMonitor.
     /// </summary>
     /// <returns></returns>
-    SynchronizedCollection<ProcessInfoData>? GetProcesses();
+    ReadOnlySpan<int> GetProcessIds();
 
     /// <summary>
     /// Kills a process by ID.
@@ -70,19 +61,8 @@ public interface IProcessMonitor
     void SetWatcher();
 
     /// <summary>
-    /// Disables to watch processes through ProcessMonitor.
+    /// Initializes the processes.
     /// </summary>
-    void UnsetWatcher();
-
-    /// <summary>
-    /// Adds a compose process to keep track on it.
-    /// </summary>
-    /// <param name="processInfo"></param>
-    void AddProcessInfo(ProcessInfoData processInfo);
-
-    /// <summary>
-    /// Initializes the compose processes through the ModuleLoader.
-    /// </summary>
-    /// <param name="processInfoDatas"></param>
-    void InitProcesses(IEnumerable<ProcessInfoData> processInfoDatas);
+    /// <param name="pids"></param>
+    void InitProcesses(ReadOnlySpan<int> pids);
 }

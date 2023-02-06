@@ -14,9 +14,9 @@ using System.Diagnostics;
 using System.Reflection;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Messaging;
-using ProcessExplorer;
-using ProcessExplorer.Extensions;
-using ProcessExplorer.Subsystems;
+using ProcessExplorer.Abstraction;
+using ProcessExplorer.Abstraction.Subsystems;
+using ProcessExplorer.Core.Factories;
 using ProcessExplorerMessageRouterTopics;
 using SuperRPC_POC.Infrastructure.Messages;
 
@@ -74,7 +74,7 @@ public class ModuleLoaderInformationReceiver : IModuleLoaderInformationReceiver
         subsystemsRouterMessage.SetSubsystemController(_subsystemController);
 
         //if you do not want to start the frontend of the PE comment out this code.
-        StartFrontend();
+        //StartFrontend();
     }
 
     public async ValueTask SubscribeToProcessExplorerChangedElementTopicAsync()

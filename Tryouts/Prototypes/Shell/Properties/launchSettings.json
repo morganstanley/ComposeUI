@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Shell": {
+      "commandName": "Project",
+      "commandLineArgs": "--title Jane --width 1800 --height 800 --url http://localhost:4200 --icon /images/branding/googleg/1x/googleg_standard_color_128dp.png"
+    }
+  }
+}

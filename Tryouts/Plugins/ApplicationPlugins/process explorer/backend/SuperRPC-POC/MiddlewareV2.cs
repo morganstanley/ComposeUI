@@ -13,7 +13,7 @@
 using System.Net;
 using System.Net.WebSockets;
 using LocalCollector.Communicator;
-using ProcessExplorer.Factories;
+using ProcessExplorer.Core.Factories;
 using Super.RPC;
 using SuperRPC_POC.ClientBehavior;
 using SuperRPC_POC.Infrastructure;
@@ -154,7 +154,7 @@ public class SuperRpcWebSocketMiddlewareV2
                 if (_collector.ProcessInfoAggregator != null)
                 {
                     uiHandler.InitSuperRPCForSubsystemAsync(rpc)
-                        .ContinueWith(_ => _collector.SubsystemController.AddUIConnection(uiHandler));
+                        .ContinueWith(_ => _collector.ProcessInfoAggregator.AddUiConnection(uiHandler));
 
                     await rpcWebSocketHandler.StartReceivingAsync(_collector.ProcessInfoAggregator, uiHandler);
                 }

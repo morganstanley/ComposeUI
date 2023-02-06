@@ -10,12 +10,11 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using ModuleProcessMonitor;
-using ModuleProcessMonitor.Processes;
 using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
-using ProcessExplorer;
-using ProcessExplorer.Factories;
+using ProcessExplorer.Abstraction;
+using ProcessExplorer.Abstraction.Processes;
+using ProcessExplorer.Core.Factories;
 using SuperRPC_POC.Infrastructure;
 using SuperRPC_POC.Infrastructure.Messages;
 
@@ -37,11 +36,11 @@ public class Startup
         var processInfoManagerForWindows =
             ProcessMonitorFactory.CreateProcessInfoGeneratorWindows(loggerFactory.CreateLogger<ProcessInfoManager>());
 
-        var processMonitor =
-            ProcessMonitorFactory.CreateProcessMonitor(processInfoManagerForWindows, loggerFactory.CreateLogger<IProcessMonitor>());
+        //var processMonitor =
+        //    ProcessMonitorFactory.CreateProcessMonitor(processInfoManagerForWindows, loggerFactory.CreateLogger<IProcessMonitor>());
 
         var processInfoAggregator =
-            ProcessAggregatorFactory.CreateProcessInfoAggregator(loggerFactory.CreateLogger<IProcessInfoAggregator>(), processMonitor);
+            ProcessAggregatorFactory.CreateProcessInfoAggregator(loggerFactory.CreateLogger<IProcessInfoAggregator>(), processInfoManagerForWindows);
 
         services.AddMessageRouter(
             mr => mr.UseWebSocket(
@@ -68,7 +67,7 @@ public class Startup
         services.AddSingleton<IModuleLoaderInformationReceiver, ModuleLoaderInformationReceiver>();
         services.AddSingleton<IProcessInfoAggregator>(processInfoAggregator);
         services.AddSingleton<ProcessInfoManager>(processInfoManagerForWindows);
-        services.AddSingleton<IProcessMonitor>(processMonitor);
+        //services.AddSingleton<IProcessMonitor>(processMonitor);
 
         services.AddLogging(builder =>
         {

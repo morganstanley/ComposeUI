@@ -12,9 +12,8 @@
 
 using System.Text.Json;
 using Microsoft.Extensions.Logging.Abstractions;
-using ModuleProcessMonitor.Subsystems;
 using MorganStanley.ComposeUI.Messaging;
-using ProcessExplorer.Subsystems;
+using ProcessExplorer.Abstraction.Subsystems;
 using ProcessExplorerMessageRouterTopics;
 
 namespace SuperRPC_POC.Infrastructure.Messages;

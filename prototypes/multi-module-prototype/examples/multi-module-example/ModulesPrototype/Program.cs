@@ -28,7 +28,12 @@ using Nito.AsyncEx;
 using System.Linq;
 using ModuleProcessMonitor.Processes;
 using System.Collections.ObjectModel;
-using ModuleProcessMonitor;
+using ProcessExplorer.Server.DependencyInjection;
+using System.Reactive.Linq;
+using ModulesPrototype.Infrastructure;
+using ProcessExplorer.Abstraction.Subsystems;
+using ProcessExplorer.Abstraction;
+using ProcessExplorer.Server.Server.Abstractions;
 
 namespace ModulesPrototype;
 
@@ -60,6 +65,27 @@ internal class Program
 
         await host.StartAsync(cts.Token);
 
+        var processExplorer = new HostBuilder()
+            .ConfigureLogging(l => l.AddConsole().SetMinimumLevel(LogLevel.Debug))
+            .ConfigureServices(
+                (context, services) => services
+                    //.AddSingleton<IModuleLoader>(loader)
+                    .AddProcessExplorerWindowsServer(pe => pe.UseGrpc())
+                    .Configure<ProcessExplorerServerOptions>(op =>
+                    {
+                        op.Port = 5056;
+                        //op.Modules = instances;
+                        //op.Processes = processInfo;
+                        op.MainProcessID = Process.GetCurrentProcess().Id;
+                        op.EnableProcessExplorer = true;
+                        //op.SubsystemLauncher = new SubsystemLauncher(host.Services.GetRequiredService<ILogger<SubsystemLauncher>>(), loader);
+                    }))
+            .Build();
+
+        await processExplorer.StartAsync(cts.Token);
+
+        var infoAggregator = processExplorer.Services.GetRequiredService<IProcessInfoAggregator>();
+
         var logger = host.Services.GetRequiredService<ILogger<Program>>();
         var manifestString = File.ReadAllText("manifest.json");
         var manifest = JsonSerializer.Deserialize<Dictionary<string, ModuleManifest>>(manifestString);
@@ -70,6 +96,61 @@ internal class Program
 
 
         var processInfo = new ObservableCollection<ProcessInformation>();
+
+        //var asyncObservable = Observable.Create<LifecycleEvent>(async observer =>
+        //{
+        //    using var subscription = loader.LifecycleEvents.Subscribe(async data =>
+        //    {
+        //        var unexpected = data.IsExpected ? string.Empty : " unexpectedly";
+
+        //        logger.LogInformation(
+        //            $"LifecycleEvent detected: {data.ProcessInfo.uiHint ?? "non-visual module"} {data.EventType}{unexpected}");
+
+        //        if (data.EventType == LifecycleEventType.Started && data.ProcessInfo.uiType == UIType.Web)
+        //        {
+        //            var webId = StartBrowser(data.ProcessInfo.uiHint!);
+        //            await subsystemLauncher.ModifySubsystemState(data.ProcessInfo.instanceId, SubsystemState.Started);
+        //        }
+
+        //        if (data.EventType == LifecycleEventType.Stopped)
+        //        {
+        //            instances[data.ProcessInfo.instanceId].State = SubsystemState.Stopped;
+        //            await subsystemLauncher.ModifySubsystemState(data.ProcessInfo.instanceId, SubsystemState.Stopped);
+
+        //            if (!data.IsExpected)
+        //            {
+        //                loader.RequestStartProcess(
+        //                    new LaunchRequest() { name = data.ProcessInfo.name, instanceId = data.ProcessInfo.instanceId });
+
+        //                instances[data.ProcessInfo.instanceId].State = SubsystemState.Started;
+        //                await subsystemLauncher.ModifySubsystemState(data.ProcessInfo.instanceId, SubsystemState.Started);
+        //            }
+        //            else
+        //            {
+        //                moduleCounter.Signal();
+        //            }
+        //        }
+
+        //        if (data.EventType == LifecycleEventType.Started)
+        //        {
+        //            instances[data.ProcessInfo.instanceId].State = SubsystemState.Started;
+        //            await subsystemLauncher.ModifySubsystemState(data.ProcessInfo.instanceId, SubsystemState.Started);
+        //        }
+
+        //        var proc = new ProcessInformation(e.ProcessInfo.name,
+        //            data.ProcessInfo.instanceId,
+        //            data.ProcessInfo.uiType,
+        //            data.ProcessInfo.uiHint!,
+        //            (int)data.ProcessInfo.pid!);
+
+        //        processInfo.Add(proc);
+        //        observer.OnNext(data);
+        //    },
+        //    observer.OnError,
+        //    observer.OnCompleted);
+
+        //    await subscription;
+        //});
 
         loader.LifecycleEvents.Subscribe(
             e =>
@@ -95,30 +176,59 @@ internal class Program
                     {
                         moduleCounter.Signal();
                     }
+                    infoAggregator.ScheduleSubsystemStateChanged(e.ProcessInfo.instanceId, SubsystemState.Stopped.ToString());
                 }
 
-                var proc = new ProcessInformation(e.ProcessInfo.name,
-                    e.ProcessInfo.instanceId,
-                    e.ProcessInfo.uiType,
-                    e.ProcessInfo.uiHint!,
-                    (int)e.ProcessInfo.pid!);
+                infoAggregator.ScheduleSubsystemStateChanged(e.ProcessInfo.instanceId, SubsystemState.Started.ToString());
+                //var proc = new ProcessInformation(
+                //    e.ProcessInfo.name,
+                //    (int)e.ProcessInfo.pid!);
 
-                processInfo.Add(proc);
+                //processInfo.Add(proc);
             });
 
         var instances = new Dictionary<Guid, Module>();
         foreach (var module in manifest)
         {
             var instanceId = Guid.NewGuid();
-            instances.Add(instanceId, (Module)module.Value);
+           
+            instances.Add(instanceId, new()
+            {
+                Name = module.Value.Name,
+                StartupType = module.Value.StartupType,
+                UIType = module.Value.UIType,
+                Path = module.Value.Path ?? string.Empty,
+                Url = module.Value.Url,
+                Arguments = module.Value.Arguments,
+                Port = module.Value.Port,
+            });
+
             moduleCounter.AddCount();
         }
 
         foreach (var module in instances)
         {
-            module.Value.State = ModuleState.Started;
-            loader.RequestStartProcess(new LaunchRequest { name = module.Value.Name, instanceId = module.Key });
+            if(module.Value.Name == "dataservice")
+            {
+                instances.TryGetValue(module.Key, out var instance);
+                instance = new()
+                {
+                    StartupType = module.Value.StartupType,
+                    Arguments = module.Value.Arguments,
+                    State = SubsystemState.Started.ToString(),
+                    Name = module.Value.Name,
+                    Path = module.Value.Path,
+                    Port = module.Value.Port,
+                    UIType = module.Value.UIType,
+                    Url = module.Value.Url,
+                };
+
+                loader.RequestStartProcess(new LaunchRequest { name = module.Value.Name, instanceId = module.Key });
+            }
         }
+
+        //var consoleShellPrototype = new ProcessInformation(Process.GetCurrentProcess());
+        //processInfo.Add(consoleShellPrototype);
 
         logger.LogInformation("ComposeUI application running, press Ctrl+C to exit");
 

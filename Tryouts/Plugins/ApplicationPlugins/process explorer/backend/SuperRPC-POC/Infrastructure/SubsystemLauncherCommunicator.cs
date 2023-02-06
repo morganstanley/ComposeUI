@@ -13,7 +13,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Messaging;
-using ProcessExplorer.Subsystems;
+using ProcessExplorer.Abstraction.Subsystems;
 using ProcessExplorerMessageRouterTopics;
 using SuperRPC_POC.Infrastructure.Messages;
 
@@ -34,7 +34,7 @@ public class SubsystemLauncherCommunicator : ISubsystemLauncherCommunicator
         _subsystemsObserver = subsystemsObserver;
     }
 
-    public async ValueTask InitializeCommunicationRoute()
+    public async Task InitializeCommunicationRoute()
     {
         _logger.LogInformation($"Getting the collection of subsystems to Process Explorer to show on the UI.");
         try
@@ -53,7 +53,7 @@ public class SubsystemLauncherCommunicator : ISubsystemLauncherCommunicator
         }
     }
 
-    public async ValueTask SendLaunchSubsystemAfterTimeRequest(Guid subsystemId, int periodOfTime)
+    public async Task SendLaunchSubsystemAfterTimeRequest(Guid subsystemId, int periodOfTime)
     {
         _logger.LogInformation($"Publishing launch after time request to SubsystemControllerCommunicator to handle subsystems...");
 
@@ -71,7 +71,7 @@ public class SubsystemLauncherCommunicator : ISubsystemLauncherCommunicator
         }
     }
 
-    public async ValueTask SendLaunchSubsystemsRequest(IEnumerable<Guid> subsystems)
+    public async Task SendLaunchSubsystemsRequest(IEnumerable<Guid> subsystems)
     {
         _logger.LogInformation($"Publishing launch request to SubsystemControllerCommunicator to handle subsystems...");
 
@@ -88,7 +88,7 @@ public class SubsystemLauncherCommunicator : ISubsystemLauncherCommunicator
         }
     }
 
-    public async ValueTask SendRestartSubsystemsRequest(IEnumerable<Guid> subsystems)
+    public async Task SendRestartSubsystemsRequest(IEnumerable<Guid> subsystems)
     {
         _logger.LogInformation($"Publishing restart request to SubsystemControllerCommunicator to handle subsystems...");
 
@@ -105,7 +105,7 @@ public class SubsystemLauncherCommunicator : ISubsystemLauncherCommunicator
         }
     }
 
-    public async ValueTask SendShutdownSubsystemsRequest(IEnumerable<Guid> subsystems)
+    public async Task SendShutdownSubsystemsRequest(IEnumerable<Guid> subsystems)
     {
         _logger.LogInformation($"Publishing stop request to SubsystemControllerCommunicator to handle subsystems...");
 

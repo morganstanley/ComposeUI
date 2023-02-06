@@ -12,7 +12,7 @@
 
 using System.Runtime.InteropServices;
 
-namespace ProcessExplorer.Processes.User;
+namespace ProcessExplorer.Core.User;
 
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 public class MachineInfo
@@ -30,12 +30,12 @@ public class MachineInfo
         var Data = new MachineInfo();
 
         Data.MachineName = Environment.MachineName;
-        Data.IsUnix = (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux));
+        Data.IsUnix = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
         Data.OSVersion = Environment.OSVersion;
         Data.Is64BIOS = Environment.Is64BitOperatingSystem;
         Data.Is64BitProcess = Environment.Is64BitProcess;
-        Data.TotalRAM = MachineInfo.GetTotalRAM();
-        Data.AvailableRAM = MachineInfo.GetAvailableRAM();
+        Data.TotalRAM = GetTotalRAM();
+        Data.AvailableRAM = GetAvailableRAM();
         return Data;
     }
 
@@ -43,7 +43,7 @@ public class MachineInfo
     {
         long memKb;
         GetPhysicallyInstalledSystemMemory(out memKb);
-        return memKb / 1024 /1024;
+        return memKb / 1024 / 1024;
     }
 
     private static double? GetAvailableRAM()
@@ -51,7 +51,7 @@ public class MachineInfo
         var performance = new System.Diagnostics.PerformanceCounter("Memory", "Available MBytes");
         var memory = performance.NextValue();
 
-        return Convert.ToDouble(memory) / 1024 ;
+        return Convert.ToDouble(memory) / 1024;
     }
 
     [DllImport("kernel32.dll")]

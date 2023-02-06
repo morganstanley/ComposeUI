@@ -21,7 +21,6 @@ public class ModuleInfo
     public string? VersionRedirectedFrom { get; set; }
     public byte[]? PublicKeyToken { get; set; }
     public string? Location { get; set; }
-    public SynchronizedCollection<CustomAttributeData> Information { get; set; } = new();
 
     internal static ModuleInfo FromModule(Assembly assembly, Module module)
     {

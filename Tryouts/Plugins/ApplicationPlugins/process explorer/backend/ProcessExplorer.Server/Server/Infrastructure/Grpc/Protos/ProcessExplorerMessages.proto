@@ -1,0 +1,127 @@
+syntax = "proto3";
+
+option csharp_namespace = "ProcessExplorer.Server.Server.Infrastructure.Protos";
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+service ProcessExplorerMessageHandler{
+  rpc Send(Message) returns (google.protobuf.Empty);
+  rpc Subscribe(google.protobuf.Empty) returns (stream Message);
+}
+
+message Message{
+  ActionType action = 1;
+  optional string assemblyId = 2;
+  repeated Process processes = 3;
+  repeated Registration registrations = 4;
+  repeated Module modules = 5;
+  map<string, string> environmentVariables = 6;
+  optional int32 pid = 7;
+  map<string, Subsystem> subsystems = 8;
+  repeated ProcessInfoCollectorData runtimeInfo = 9;
+  repeated Connection connections = 10;
+  map<string, ProcessInfoCollectorData> multipleRuntimeInfo = 11;
+  int32 periodOfDelay = 12;
+  map<int32, string> processStatusChanges = 13;
+}
+
+enum ActionType{
+  AddProcessListAction = 0;
+  AddConnectionListAction = 1;
+  AddProcessAction = 2;
+  AddRuntimeInfoAction = 3;
+  AddSubsystemAction = 4;
+  AddSubsystemsAction = 5;
+  RemoveProcessByIdAction = 6;
+  UpdateConnectionAction = 7;
+  UpdateEnvironmentVariablesAction = 8;
+  UpdateModulesAction = 9;
+  UpdateProcessAction = 10;
+  UpdateProcessStatusAction = 11;
+  UpdateRegistrationsAction = 12;
+  UpdateSubsystemAction = 13;
+  InitSubsystemsAction = 14;
+  ModifySubsystemAction = 15;
+  RemoveSubsystemsAction = 16;
+  AddMultipleRuntimeInfoAction = 17;
+  RestartSubsystemsAction = 18;
+  TerminateSubsystemsAction = 19;
+  LaunchSubsystemsAction = 20;
+  LaunchSubsystemsWithDelayAction = 21;
+}
+
+message Process{
+  optional string instanceId = 1;
+  optional string uiType = 2;
+  optional string uiHint = 3;
+  optional string startTime = 4;
+  optional google.protobuf.Duration processorUsageTime = 5;
+  optional int64 physicalMemoryUsageBit = 6;
+  optional string processName = 7;
+  optional int32 pid = 8;
+  optional string processPriorityClass = 9;
+  repeated ProcessThreadInfo threads = 10;
+  optional int64 virtualMemorySize = 11;
+  optional int32 parentId = 12;
+  optional int64 privateMemoryUsage = 13;
+  optional string processStatus = 14;
+  optional float memoryUsage = 15;
+  optional float processorUsage = 16;
+}
+
+message ProcessThreadInfo{
+  optional string startTime = 1;
+  optional int32 priorityLevel = 2;
+  optional int32 id = 3;
+  optional string status = 4;
+  optional google.protobuf.Duration processorUsageTime = 5;
+  optional string waitReason = 6;
+}
+
+message ProcessInfoCollectorData{
+  int32 id = 1;
+  repeated Registration registrations = 2;
+  map<string, string> environmentVariables = 3;
+  repeated Connection connections = 4;
+  repeated Module modules = 5;
+}
+
+message Registration{
+  optional string implementationType = 1;
+  optional string lifeTime = 2;
+  optional string serviceType = 3;
+}
+
+message Connection{
+  optional string id = 1;
+  optional string name = 2;
+  optional string localEndpoint = 3;
+  optional string remoteEndpoint = 4;
+  optional string remoteApplication = 5;
+  optional string remoteHostname = 6;
+  map<string, string> connectionInformation = 7;
+  optional string status = 8;
+}
+
+message Module{
+  optional string name = 1;
+  optional string version = 2;
+  optional string versionRedirectedFrom = 3;
+  optional bytes publicKeyToken = 4;
+  optional string location = 5;
+}
+
+message Subsystem{
+  string name = 1;
+  string startupType = 2;
+  string uiType = 3;
+  string path = 4;
+  optional string url = 5;
+  repeated string arguments = 6;
+  optional int32 port = 7;
+  string state = 8;
+  optional string description = 9;
+  bool automatedStart = 10;
+}

@@ -12,7 +12,7 @@
 
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Messaging;
-using ProcessExplorer;
+using ProcessExplorer.Abstraction;
 using ProcessExplorerMessageRouterTopics;
 
 namespace SuperRPC_POC.Infrastructure.Messages;

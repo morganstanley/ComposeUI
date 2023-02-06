@@ -12,9 +12,11 @@
 
 using LocalCollector.Communicator;
 using Microsoft.Extensions.Logging;
-using ModuleProcessMonitor.Processes;
+using ProcessExplorer.Abstraction;
+using ProcessExplorer.Abstraction.Processes;
+using ProcessExplorer.Abstraction.Subsystems;
 
-namespace ProcessExplorer.Factories;
+namespace ProcessExplorer.Core.Factories;
 
 public static class ProcessAggregatorFactory
 {
@@ -23,13 +25,8 @@ public static class ProcessAggregatorFactory
         return new Infrastructure.Communicator(processAggregator);
     }
 
-    public static IProcessInfoAggregator CreateProcessInfoAggregator(ILogger<IProcessInfoAggregator> logger, IProcessMonitor? processMonitor)
+    public static IProcessInfoAggregator CreateProcessInfoAggregator(ILogger<IProcessInfoAggregator> logger, ProcessInfoManager processInfoManager, ISubsystemController? subsystemController = null)
     {
-        return new ProcessInfoAggregator(logger, processMonitor);
-    }
-
-    public static IProcessInfoAggregator CreateProcessInfoAggregator(ILogger<IProcessInfoAggregator> logger)
-    {
-        return CreateProcessInfoAggregator(logger, null);
+        return new ProcessInfoAggregator(logger, processInfoManager, subsystemController);
     }
 }

@@ -14,9 +14,9 @@ using LocalCollector;
 using LocalCollector.Modules;
 using LocalCollector.Registrations;
 using Microsoft.Extensions.Logging.Abstractions;
-using ModuleProcessMonitor.Processes;
-using ModuleProcessMonitor.Subsystems;
-using ProcessExplorer.Infrastructure;
+using ProcessExplorer.Abstraction.Infrastructure;
+using ProcessExplorer.Abstraction.Processes;
+using ProcessExplorer.Abstraction.Subsystems;
 using Super.RPC;
 using SuperRPC_POC.Protocol.ProxyObjects;
 using ConnectionInfo = LocalCollector.Connections.ConnectionInfo;
@@ -164,7 +164,7 @@ public class UIHandler : IUIHandler
         await processServiceProxy.AddRuntimeInfos(runtimeInfos);
     }
 
-    public async Task RemoveProcessByID(int pid)
+    public async Task TerminateProcess(int pid)
     {
         if (processServiceProxy == null)
         {
@@ -222,5 +222,10 @@ public class UIHandler : IUIHandler
         }
 
         await subsystemServiceObject.RemoveSubsystemAsync(subsystemId.ToString());
+    }
+
+    public Task UpdateProcessStatus(KeyValuePair<int, Status> process)
+    {
+        throw new NotImplementedException();
     }
 }

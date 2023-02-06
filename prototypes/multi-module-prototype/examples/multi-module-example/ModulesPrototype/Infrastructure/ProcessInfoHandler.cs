@@ -20,9 +20,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using ModuleProcessMonitor.Processes;
-using ModuleProcessMonitor.Subsystems;
 using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules;
+using ProcessExplorer.Abstraction.Processes;
+using ProcessExplorer.Abstraction.Subsystems;
 using ProcessExplorerMessageRouterTopics;
 
 namespace ModulesPrototype.Infrastructure;
@@ -53,7 +54,7 @@ public class ProcessInfoHandler : IProcessInfoHandler
             if (processInfo.Any())
             {
                 var listOfProcessInfoData = processInfo
-                  .Select(process => process?.ProcessInfo);
+                  .Select(process => process.ProcessInfo);
 
                 var serializedListOfProcessInfo = JsonSerializer.Serialize(listOfProcessInfoData);
 

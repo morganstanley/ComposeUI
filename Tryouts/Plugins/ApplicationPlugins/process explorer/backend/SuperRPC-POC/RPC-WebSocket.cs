@@ -20,8 +20,8 @@ using System.Text;
 using Nerdbank.Streams;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using ProcessExplorer;
-using ProcessExplorer.Infrastructure;
+using ProcessExplorer.Abstraction;
+using ProcessExplorer.Abstraction.Infrastructure;
 using Super.RPC;
 
 namespace SuperRPC_POC;

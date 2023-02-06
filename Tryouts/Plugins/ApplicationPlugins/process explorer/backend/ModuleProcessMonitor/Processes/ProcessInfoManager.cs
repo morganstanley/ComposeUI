@@ -10,39 +10,65 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Diagnostics;
+using ProcessExplorer.Abstraction.Handlers;
 
-namespace ModuleProcessMonitor.Processes;
+namespace ProcessExplorer.Abstraction.Processes;
 
-public abstract class ProcessInfoManager
+public abstract class ProcessInfoManager : IDisposable
 {
-    private event EventHandler<int>? _sendNewProcess;
-    private event EventHandler<int>? _sendTerminatedProcess;
-    private event EventHandler<int>? _sendModifiedProcess;
-    private SynchronizedCollection<int> _processIds = new();
-    private readonly object _locker = new();
+    private ProcessCreatedHandler? _processCreatedHandler;
+    private ProcessModifiedHandler? _processModifiedHandler;
+    private ProcessTerminatedHandler? _processTerminatedHandler;
 
-    /// <summary>
-    /// Sets the events to watch processes. Sets the actions to watch created, terminated and modified processes.
-    /// </summary>
-    /// <param name="sendModifiedProcessAction"></param>
-    /// <param name="sendNewProcessAction"></param>
-    /// <param name="sendTerminatedProcessAction"></param>
-    public void SetEvents(EventHandler<int> sendModifiedProcessAction,
-        EventHandler<int> sendNewProcessAction,
-        EventHandler<int> sendTerminatedProcessAction)
+    private readonly ObservableCollection<int> _processIds = new();
+    private readonly object _locker = new();
+    private int _composePid;
+
+    public ProcessInfoManager()
     {
-        _sendModifiedProcess += sendModifiedProcessAction;
-        _sendTerminatedProcess += sendTerminatedProcessAction;
-        _sendNewProcess += sendNewProcessAction;
+        _processIds.CollectionChanged += ProcessIdsChanged;
     }
 
-    public bool ContainsId(Process process)
+    private void ProcessIdsChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        lock (_locker)
+        switch (e.Action)
         {
-            return _processIds.Contains(process.Id);
+            case NotifyCollectionChangedAction.Add:
+                {
+                    if (e.NewItems != null)
+                        foreach (int pid in e.NewItems)
+                            _processCreatedHandler?.Invoke(pid);
+
+                    break;
+                }
+
+            case NotifyCollectionChangedAction.Remove:
+                {
+                    if (e.OldItems != null)
+                        foreach (int pid in e.OldItems)
+                            _processTerminatedHandler?.Invoke(pid);
+
+                    break;
+                }
         }
+    }
+
+    public void SetHandlers(
+        ProcessModifiedHandler processModifiedHandler,
+        ProcessTerminatedHandler processTerminatedHandler,
+        ProcessCreatedHandler processCreatedHandler)
+    {
+        _processCreatedHandler = processCreatedHandler;
+        _processModifiedHandler = processModifiedHandler;
+        _processTerminatedHandler = processTerminatedHandler;
+    }
+
+    public void SetComposePid(int pid)
+    {
+        _composePid = pid;
     }
 
     public bool ContainsId(int pid)
@@ -61,7 +87,7 @@ public abstract class ProcessInfoManager
         }
     }
 
-    public void RemoveProcess(int pid)
+    public void RemoveProcessId(int pid)
     {
         lock (_locker)
         {
@@ -69,7 +95,7 @@ public abstract class ProcessInfoManager
         }
     }
 
-    public void SetProcessIds(IEnumerable<int> ids)
+    public void SetProcessIds(ReadOnlySpan<int> ids)
     {
         lock (_locker)
         {
@@ -81,32 +107,42 @@ public abstract class ProcessInfoManager
         }
     }
 
+    public ReadOnlySpan<int> GetProcessIds()
+    {
+        lock (_locker)
+        {
+            return _processIds.ToArray();
+        }
+    }
+
+    public void ClearProcessIds()
+    {
+        lock (_locker)
+        {
+            _processIds.Clear();
+        }
+    }
+
     /// <summary>
     /// Returns the PPID of the given process.
     /// </summary>
-    /// <param name="process"></param>
+    /// <param name="processId"></param>
     /// <returns></returns>
-    public abstract int? GetParentId(Process? process);
+    public abstract int? GetParentId(int processId, string processName);
 
     /// <summary>
     /// Returns the memory usage (%) of the given process.
     /// </summary>
     /// <param name="process"></param>
     /// <returns></returns>
-    public abstract float GetMemoryUsage(Process process);
+    public abstract float GetMemoryUsage(int id, string processName);
 
     /// <summary>
     /// Returns the CPU usage (%) of the given process.
     /// </summary>
     /// <param name="process"></param>
     /// <returns></returns>
-    public abstract float GetCpuUsage(Process process);
-
-    /// <summary>
-    /// Sets the processes to watch.
-    /// </summary>
-    /// <param name="processes"></param>
-    public abstract void SetWatchableProcessList(IEnumerable<ProcessInfoData> processes);
+    public abstract float GetCpuUsage(int id, string processName);
 
     /// <summary>
     /// Continuously watching created processes.
@@ -116,46 +152,22 @@ public abstract class ProcessInfoManager
     /// <summary>
     /// Checks if the given process is related to the main process.
     /// </summary>
-    /// <param name="process"></param>
+    /// <param name="processId"></param>
     /// <returns></returns>
-    private bool IsComposeProcess(object process)
+    private bool IsComposeProcess(int processId)
     {
-        var proc = process as Process;
-        proc?.Refresh();
+        //snapshot if the process has already exited
+        if (!Process.GetProcesses().Any(p => p.Id == processId)) return false;
 
-        if (proc == null)
-        {
-            return false;
-        }
+        if (processId == _composePid || ContainsId(processId)) return true;
 
-        if (proc.Id == ProcessMonitor.ComposePid ||
-            ContainsId(proc.Id))
-        {
-            return true;
-        }
+        var ppid = GetParentId(processId, Process.GetProcessById(processId).ProcessName);
 
-        int? ppid;
-        try
-        {
-            ppid = GetParentId(proc);
+        if (ppid == null || ppid == 0) return false;
 
-            if (ppid == null || ppid == 0)
-            {
-                return false;
-            }
+        if (ContainsId((int)ppid)) return true;
 
-            if (ContainsId((int)ppid))
-            {
-                return true;
-            }
-
-            proc = Process.GetProcessById(Convert.ToInt32(ppid));
-            return IsComposeProcess(proc);
-        }
-        catch (Exception)
-        {
-            return false;
-        }
+        return IsComposeProcess(Convert.ToInt32(ppid));
     }
 
     /// <summary>
@@ -163,7 +175,7 @@ public abstract class ProcessInfoManager
     /// </summary>
     /// <param name="processInfo"></param>
     /// <returns></returns>
-    public abstract IEnumerable<ProcessInfoData> AddChildProcesses(ProcessInfoData processInfo);
+    public abstract ReadOnlySpan<int> AddChildProcesses(int pid, string? processName);
 
     /// <summary>
     /// Checks if a process belongs to the Compose.
@@ -171,12 +183,12 @@ public abstract class ProcessInfoManager
     /// <param name="pid"></param>
     public bool CheckIfIsComposeProcess(int pid)
     {
-        return IsComposeProcess(Process.GetProcessById(pid));
+        return IsComposeProcess(pid);
     }
 
     public void SendNewProcessUpdate(int pid)
     {
-        _sendNewProcess?.Invoke(this, pid);
+        _processCreatedHandler?.Invoke(pid);
     }
 
     /// <summary>
@@ -185,7 +197,7 @@ public abstract class ProcessInfoManager
     /// <param name="pid"></param>
     public void SendTerminatedProcessUpdate(int pid)
     {
-        _sendTerminatedProcess?.Invoke(this, pid);
+        _processTerminatedHandler?.Invoke(pid);
     }
 
     /// <summary>
@@ -194,7 +206,7 @@ public abstract class ProcessInfoManager
     /// <param name="pid"></param>
     public void SendProcessModifiedUpdate(int pid)
     {
-        _sendModifiedProcess?.Invoke(this, pid);
+        _processModifiedHandler?.Invoke(pid);
     }
 
     ~ProcessInfoManager()

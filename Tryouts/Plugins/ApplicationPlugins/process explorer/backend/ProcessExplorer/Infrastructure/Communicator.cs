@@ -15,8 +15,9 @@ using LocalCollector.Communicator;
 using LocalCollector.Connections;
 using LocalCollector.Modules;
 using LocalCollector.Registrations;
+using ProcessExplorer.Abstraction;
 
-namespace ProcessExplorer.Infrastructure;
+namespace ProcessExplorer.Core.Infrastructure;
 
 internal class Communicator : ICommunicator
 {
@@ -24,12 +25,12 @@ internal class Communicator : ICommunicator
 
     public Communicator(IProcessInfoAggregator processAggregator)
     {
-        this._aggregator = processAggregator;
+        _aggregator = processAggregator;
     }
 
     public void SetProcessInfoAggregator(IProcessInfoAggregator aggregator)
     {
-        this._aggregator = aggregator;
+        _aggregator = aggregator;
     }
 
     public async ValueTask AddRuntimeInfo(IEnumerable<KeyValuePair<AssemblyInformation, ProcessInfoCollectorData>> listOfRuntimeInfos)
@@ -47,11 +48,11 @@ internal class Communicator : ICommunicator
 
     public async ValueTask AddConnectionCollection(IEnumerable<KeyValuePair<AssemblyInformation, IEnumerable<ConnectionInfo>>> connections)
     {
-        if(connections == null) return;
+        if (connections == null) return;
 
-        foreach(var connection in connections)
+        foreach (var connection in connections)
         {
-            if(connection.Value == null || connection.Key.Name == string.Empty) continue;
+            if (connection.Value == null || connection.Key.Name == string.Empty) continue;
             await _aggregator.AddConnectionCollection(connection.Key.Name, connection.Value);
         }
     }

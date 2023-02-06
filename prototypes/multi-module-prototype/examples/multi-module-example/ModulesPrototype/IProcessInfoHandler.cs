@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ModuleProcessMonitor.Processes;
 using MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules;
+using ProcessExplorer.Abstraction.Processes;
 
 namespace ModulesPrototype;
 

@@ -10,7 +10,8 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace ModuleProcessMonitor.Subsystems;
+
+namespace ProcessExplorer.Abstraction.Subsystems;
 
 public class SubsystemInfo
 {
@@ -24,4 +25,16 @@ public class SubsystemInfo
     public string State { get; set; } = SubsystemState.Stopped;
     public string? Description { get; set; }
     public bool AutomatedStart { get; set; } = false;
+
+    public static SubsystemInfo FromModule(Module module) => new SubsystemInfo()
+    {
+        Name = module.Name,
+        StartupType = module.StartupType,
+        UIType = module.UIType,
+        Path = module.Path,
+        Url = module.Url,
+        Arguments = module.Arguments,
+        Port = module.Port,
+        State = module.State,
+    };
 }

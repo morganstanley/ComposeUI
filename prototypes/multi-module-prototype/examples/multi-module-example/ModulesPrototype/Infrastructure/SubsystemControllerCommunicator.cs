@@ -10,7 +10,6 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using ModuleProcessMonitor.Subsystems;
 using ModulesPrototype.Infrastructure.Messages;
 using System;
 using System.Threading.Tasks;
@@ -18,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using ProcessExplorerMessageRouterTopics;
 using MorganStanley.ComposeUI.Messaging;
+using ProcessExplorer.Abstraction.Subsystems;
 
 namespace ModulesPrototype.Infrastructure;
 

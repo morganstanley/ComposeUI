@@ -11,9 +11,9 @@
 
 
 using Microsoft.Extensions.DependencyInjection;
-using ModuleProcessMonitor.Subsystems;
 using ModulesPrototype.Infrastructure;
 using ModulesPrototype.Infrastructure.Messages;
+using ProcessExplorer.Abstraction.Subsystems;
 using System;
 
 namespace ModulesPrototype;

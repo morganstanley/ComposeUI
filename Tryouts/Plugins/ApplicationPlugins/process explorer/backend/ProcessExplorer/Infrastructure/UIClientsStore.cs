@@ -11,11 +11,13 @@
 // and limitations under the License.
 
 
-namespace ProcessExplorer.Infrastructure;
+using ProcessExplorer.Abstraction.Infrastructure;
+
+namespace ProcessExplorer.Core.Infrastructure;
 
 internal static class UiClientsStore
 {
-    internal static SynchronizedCollection<IUIHandler> _uiClients = new();
+    internal static readonly SynchronizedCollection<IUIHandler> _uiClients = new();
     internal static readonly object _uiClientLocker = new();
 
     public static void AddUiConnection(IUIHandler uiHandler)

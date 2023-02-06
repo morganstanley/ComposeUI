@@ -12,9 +12,9 @@
 
 using System.Text.Json;
 using Microsoft.Extensions.Logging.Abstractions;
-using ModuleProcessMonitor.Processes;
 using MorganStanley.ComposeUI.Messaging;
-using ProcessExplorer;
+using ProcessExplorer.Abstraction;
+using ProcessExplorer.Abstraction.Processes;
 
 namespace SuperRPC_POC.Infrastructure.Messages;
 
@@ -47,13 +47,13 @@ public class ProcessInfoListRouterMessage : IObserver<TopicMessage>
             return;
         }
 
-        var processInfo = JsonSerializer.Deserialize<List<ProcessInfoData>>(payload.GetString());
+        var processInfo = JsonSerializer.Deserialize<ProcessInfoData[]>(payload.GetString());
 
         if (processInfo == null)
         {
             return;
         }
 
-        _processInfoAggregator?.InitProcesses(processInfo);
+        _processInfoAggregator?.InitProcesses(processInfo.Select(p => p.PID).ToArray());
     }
 }

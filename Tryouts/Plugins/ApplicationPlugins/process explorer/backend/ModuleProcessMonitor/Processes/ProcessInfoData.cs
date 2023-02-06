@@ -10,21 +10,53 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace ModuleProcessMonitor.Processes;
+using System.Diagnostics;
+using ModuleProcessMonitor.Processes;
 
-public class ProcessInfoData
+namespace ProcessExplorer.Abstraction.Processes;
+
+public struct ProcessInfoData
 {
-    public Guid? InstanceId { get; set; }
-    public string? UiType { get; set; }
-    public string? UiHint { get; set; }
+    public ProcessInfoData(
+        string? startTime,
+        TimeSpan? processorUsageTime,
+        long? physicalMemoryUsageBit,
+        string? processName,
+        int pID,
+        int? priorityLevel,
+        string? processPriorityClass,
+        IEnumerable<ProcessThread> threads,
+        long? virtualMemorySize,
+        int? parentId,
+        long? privateMemoryUsage,
+        string? processStatus,
+        float? memoryUsage,
+        float? processorUsage)
+    {
+        StartTime = startTime;
+        ProcessorUsageTime = processorUsageTime;
+        PhysicalMemoryUsageBit = physicalMemoryUsageBit;
+        ProcessName = processName;
+        PID = pID;
+        PriorityLevel = priorityLevel;
+        ProcessPriorityClass = processPriorityClass;
+        Threads = threads;
+        VirtualMemorySize = virtualMemorySize;
+        ParentId = parentId;
+        PrivateMemoryUsage = privateMemoryUsage;
+        ProcessStatus = processStatus;
+        MemoryUsage = memoryUsage;
+        ProcessorUsage = processorUsage;
+    }
+
     public string? StartTime { get; set; }
-    public TimeSpan? ProcessorUsageTime { get;  set; }
+    public TimeSpan? ProcessorUsageTime { get; set; }
     public long? PhysicalMemoryUsageBit { get; set; }
     public string? ProcessName { get; set; }
-    public int? PID { get; set; }
+    public int PID { get; set; }
     public int? PriorityLevel { get; set; }
     public string? ProcessPriorityClass { get; set; }
-    public SynchronizedCollection<ProcessThreadInfo> Threads { get; set; } = new();
+    public IEnumerable<ProcessThread> Threads { get; set; } = Enumerable.Empty<ProcessThread>();
     public long? VirtualMemorySize { get; set; }
     public int? ParentId { get; set; }
     public long? PrivateMemoryUsage { get; set; }

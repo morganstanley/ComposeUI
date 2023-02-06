@@ -10,8 +10,8 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using ProcessExplorer;
-using ProcessExplorer.Subsystems;
+using ProcessExplorer.Abstraction;
+using ProcessExplorer.Abstraction.Subsystems;
 
 namespace SuperRPC_POC.Infrastructure;
 

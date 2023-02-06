@@ -10,7 +10,7 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace ProcessExplorer.Processes.User;
+namespace ProcessExplorer.Core.User;
 
 public class AppUserInfo
 {
