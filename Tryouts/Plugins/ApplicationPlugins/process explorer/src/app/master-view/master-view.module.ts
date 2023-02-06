@@ -11,16 +11,6 @@ import {
   IgxNavigationDrawerModule,  IgxTreeGridModule } from 'igniteui-angular';
 import { FormsModule } from '@angular/forms';
 import { ProcessesComponent } from './processes/processes.component';
-import { MemoryChartComponent } from './memory-chart/memory-chart.component';
-
-import { HighchartsChartModule } from 'highcharts-angular';
-
-import {
-	IgxDoughnutChartModule,
-	IgxRingSeriesModule,
-	IgxLegendModule,
-	IgxItemLegendModule
- } from "igniteui-angular-charts";
 
 import { SubsystemComponent } from './subsystems/subsystem.component';
 
@@ -29,11 +19,9 @@ import { SubsystemComponent } from './subsystems/subsystem.component';
     MasterViewComponent,
     ConnectionsComponent,
     ProcessesComponent,
-    SubsystemComponent,
-    MemoryChartComponent
+    SubsystemComponent
   ],
   imports: [
-    HighchartsChartModule,
     CommonModule,
     MasterViewRoutingModule,
     IgxListModule,
@@ -50,10 +38,6 @@ import { SubsystemComponent } from './subsystems/subsystem.component';
     IgxNavbarModule,
     IgxToggleModule,
     IgxNavigationDrawerModule,
-    IgxDoughnutChartModule,
-	IgxRingSeriesModule,
-	IgxLegendModule,
-	IgxItemLegendModule,
     IgxTreeGridModule
   ]
 })

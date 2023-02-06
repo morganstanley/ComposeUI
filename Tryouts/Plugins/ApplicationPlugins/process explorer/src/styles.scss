@@ -1,17 +1,20 @@
+/*TODO: Revisit the use of these styles. We might not need this stylesheet*/
 /* You can add global styles to this file, and also import other style files */
+
 // Standard CSS normalize, comment out if not required or using a different module
-@import "~minireset.css/minireset";
+/*@import "~minireset.css/minireset";*/
 
 
 html, body {
   height: 100%;
 }
 
-@import '~igniteui-angular/lib/core/styles/themes/index';
+/*@import '~igniteui-angular/lib/core/styles/themes/index';
 
 @include igx-core();
 @include igx-typography($font-family: "Roboto", $type-scale: $bootstrap-type-scale);
-
+*/
+/*
 $custom-palette: igx-palette(
   $primary: #007bff,
   $secondary: #6c757d,
@@ -38,3 +41,4 @@ body {
 .outer-wrapper > *:not(router-outlet) {
   width: 100%;
 }
+*/
