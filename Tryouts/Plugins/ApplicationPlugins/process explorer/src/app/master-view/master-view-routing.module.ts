@@ -4,7 +4,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { MasterViewComponent } from './master-view.component';
 import { ConnectionsComponent } from './connections/connections.component';
 import { ProcessesComponent } from './processes/processes.component';
-import { MemoryChartComponent } from './memory-chart/memory-chart.component';
+//import { MemoryChartComponent } from './memory-chart/memory-chart.component';
 import { SubsystemComponent } from './subsystems/subsystem.component';
 
 const routes: Routes = [
@@ -24,10 +24,6 @@ const routes: Routes = [
         path: 'processes', 
         component: ProcessesComponent, 
         data: { text: 'Processes'}
-      }, { 
-        path: 'memory-chart', 
-        component: MemoryChartComponent, 
-        data: { text: 'Memory chart'}
       },
       { 
         path: 'subsystems', 
