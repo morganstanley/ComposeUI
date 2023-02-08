@@ -17,19 +17,33 @@ jobs:
     strategy:
       matrix:
         dotnet-version: [ '6.0.x' ]
-
+        node-version: [ '18.x' ]
     steps:
     - uses: actions/checkout@v3
     - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: ${{ matrix.dotnet-version }}
-    - name: Install dependencies
+    - name: Install Nuget dependencies
       run: Get-ChildItem -Recurse -Include *.sln | ForEach-Object {dotnet restore $_} 
       working-directory: Tryouts
-    - name: Build
+    - name: Build .Net
       run: Get-ChildItem -Recurse -Include *.sln | ForEach-Object {dotnet build $_ --configuration Release --no-restore; if ($LASTEXITCODE -ne 0 ) {throw "Build for $_ FAILED"; }} 
       working-directory: Tryouts
-    - name: Test
+    - name: Test .Net
       run: Get-ChildItem -Recurse -Include *.sln | ForEach-Object {dotnet test $_ --no-restore --verbosity normal}  
+      working-directory: Tryouts
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Install NPM dependencies
+      run: npm ci
+      working-directory: Tryouts
+    - name: Build JavaScript
+      run: npx lerna run build
+      working-directory: Tryouts
+    - name: Test JavaScript
+      run: npx lerna run test
       working-directory: Tryouts
