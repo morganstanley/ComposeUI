@@ -1,0 +1,12 @@
+{
+  "name": "compose-web-modules",
+  "description": "Lerna monorepo of the web dependencies in Compose",
+  "private": true,
+  "workspaces": [
+    "Messaging-JS",
+    "Plugins/ApplicationPlugins/*"
+  ],
+  "devDependencies": {
+    "lerna": "^6.4.1"
+  }
+}

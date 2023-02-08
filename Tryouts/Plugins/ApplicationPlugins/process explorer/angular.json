@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "process-explorer": {
+    "process-explorer-frontend": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -20,43 +20,38 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/process-explorer",
+            "outputPath": "dist/process-explorer-frontend",
             "index": "src/index.html",
             "main": "src/main.ts",
-            "polyfills": "src/polyfills.ts",
+            "polyfills": [
+              "zone.js"
+            ],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
-              "src/favicon.ico"
+              "src/favicon.ico",
+              "src/assets"
             ],
             "styles": [
+              "../../../node_modules/igniteui-angular/styles/igniteui-angular-dark.css",
               "src/styles.scss"
             ],
             "scripts": [
-              "./node_modules/hammerjs/hammer.min.js"
+              "../../../node_modules/hammerjs/hammer.min.js"
             ]
           },
           "configurations": {
-            "es5": {
-              "tsConfig": "tsconfig-es5.app.json"
-            },
             "production": {
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "5mb",
-                  "maximumError": "10mb"
+                  "maximumWarning": "500kb",
+                  "maximumError": "1mb"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "6kb",
-                  "maximumError": "2mb"
-                }
-              ],
-              "fileReplacements": [
-                {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.prod.ts"
+                  "maximumWarning": "2kb",
+                  "maximumError": "4kb"
                 }
               ],
               "outputHashing": "all"
@@ -76,13 +71,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "process-explorer:build:production"
+              "browserTarget": "process-explorer-frontend:build:production"
             },
             "development": {
-              "browserTarget": "process-explorer:build:development"
-            },
-            "es5": {
-              "browserTarget": "process-explorer:build:es5"
+              "browserTarget": "process-explorer-frontend:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -90,42 +82,32 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "process-explorer:build"
+            "browserTarget": "process-explorer-frontend:build"
           }
         },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "main": "src/test.ts",
-            "polyfills": "src/polyfills.ts",
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ],
             "tsConfig": "tsconfig.spec.json",
-            "karmaConfig": "karma.conf.js",
             "inlineStyleLanguage": "scss",
+            "assets": [
+              "src/favicon.ico",
+              "src/assets"
+            ],
             "styles": [
+              "../../../node_modules/igniteui-angular/styles/igniteui-angular-dark.css",
               "src/styles.scss"
             ],
             "scripts": [
-              "./node_modules/hammerjs/hammer.min.js"
-            ],
-            "assets": [
-              "src/favicon.ico"
-            ]
-          }
-        },
-        "lint": {
-          "builder": "@angular-eslint/builder:lint",
-          "options": {
-            "lintFilePatterns": [
-              "src/**/*.ts",
-              "src/**/*.html"
+              "../../../node_modules/hammerjs/hammer.min.js"
             ]
           }
         }
       }
     }
-  },
-  "defaultProject": "process-explorer",
-  "cli": {
-    "defaultCollection": "@angular-eslint/schematics"
   }
 }
