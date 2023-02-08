@@ -1,0 +1,27 @@
+{
+  "name": "@morgan-stanley/compose-example-chart",
+  "version": "0.1.0",
+  "description": "Example Web Application",
+  "main": "chat.js",
+  "type": "module",
+  "scripts": {
+    "clean": "rimraf dist",
+    "bundle": "rollup -c",
+    "build": "npm run clean && npm run bundle",
+    "serve": "http-server"
+  },
+  "dependencies": {
+    "@morgan-stanley/compose-messaging-client": "*",
+    "bootstrap": "5.2.3",
+    "highcharts": "10.3.3",
+    "jquery": "3.6.3",
+    "tslib": "2.5.0"
+  },
+  "devDependencies": {
+    "http-server": "14.1.1",
+    "rimraf": "4.1.2",
+    "rollup": "^3.14.0",
+    "@rollup/plugin-commonjs": "24.0.1",
+    "@rollup/plugin-node-resolve": "15.0.1"
+  }
+}

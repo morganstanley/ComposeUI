@@ -1,8 +1,11 @@
 ﻿import Chart from 'highcharts/es-modules/Core/Chart/Chart.js';
 import ColumnSeries from 'highcharts/es-modules/Series/Column/ColumnSeries.js';
 
-import { MessageRouterClient } from '../../../../Messaging-JS/dist/esm/client';
-import { WebSocketConnection } from '../../../../Messaging-JS/dist/esm/client/websocket';
+//TODO: check the bundling
+//import { MessageRouterClient , WebSocketConnection} from "@morgan-stanley/compose-messaging-client";
+
+import { MessageRouterClient } from "@morgan-stanley/compose-messaging-client/dist/esm/client/MessageRouterClient.js";
+import {  WebSocketConnection } from "@morgan-stanley/compose-messaging-client/dist/esm/client/websocket/WebSocketConnection.js";
 
 let chart;
 let client;
