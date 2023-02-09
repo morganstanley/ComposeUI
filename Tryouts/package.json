@@ -4,7 +4,8 @@
   "private": true,
   "workspaces": [
     "Messaging-JS",
-    "Plugins/ApplicationPlugins/*"
+    "Plugins/ApplicationPlugins/*",
+    "Prototypes/Shell/Node-launcher/*"
   ],
   "devDependencies": {
     "lerna": "^6.4.1"
