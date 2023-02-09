@@ -1,25 +1,19 @@
+import { WindowConfig } from './WindowConfig.js';
+import { Launcher } from './Launcher.js';
+
 export class BrowserWindow {
-
-    /*
-         const win = new BrowserWindow({
-        width: 800,
-        height: 600
-    });
-
-    win.loadUrl('index.html');
-     
-     */
-
-    //private url: string;
-    constructor(private width?: number, private height?: number) {
-        console.debug("width", width, "height", height);
+    private launcher: Launcher;
+  
+    constructor(private _config: WindowConfig) {
+        this.launcher = new Launcher();
     }
 
-    /*
-    public loadUrl(_url: string){
-        this.url = _url;
+    public open() {
+        this.launcher.launch(this._config);
+    }
 
-        console.debug("URL", this.url);
-
-    }*/
+    public loadUrl(_url: string) {
+        this._config.url=_url
+        this.launcher.launch(this._config);
+    }
 }

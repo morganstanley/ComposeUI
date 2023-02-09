@@ -1,19 +1,26 @@
-import { Launcher } from '@compose/node-launcher';
+import { BrowserWindow } from '@morgan-stanley/compose-node-launcher';
 
-function createWindow() {
-    
-    const win = new Launcher(
+function windowOpenExample() {
+    const window = new BrowserWindow(
         {
             url: "https://github.com/morganstanley/composeui",
             width: 1600,
             height: 800
         });
 
-    win.launch();
-
-    //const win2 = new Launcher();
-    //win2.launch()
-    
+    window.open();
 }
 
-createWindow();
+windowOpenExample();
+
+function loadUrlExample() {
+    const window = new BrowserWindow(
+        {
+            width: 1600,
+            height: 800
+        });
+
+    window.loadUrl("https://github.com/morganstanley/fdc3-dotnet");
+}
+
+loadUrlExample();
