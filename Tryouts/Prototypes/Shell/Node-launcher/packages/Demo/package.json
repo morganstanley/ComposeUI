@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "",
   "main": "example.js",
+  "module": "example.js",
   "type": "module",
   "scripts": {
     "clean": "rimraf output",

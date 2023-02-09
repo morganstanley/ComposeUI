@@ -1,12 +1,14 @@
 ﻿{
   "compilerOptions": {
     "moduleResolution": "node",
-    "module": "ES2022",
-    "target": "ES2022",
+    "experimentalDecorators": true,
+    "module": "es2022",
+    "esModuleInterop": true,
+    "target": "es2022",
     "declaration": true,
     "outDir": "output",
-    "lib": [ "ES2022", "DOM" ],
+    "lib": [ "es2022", "DOM" ],
     "strict": true
   },
-    "files": ["src/index.ts"]
+  "files": [ "src/index.ts" ]
 }
