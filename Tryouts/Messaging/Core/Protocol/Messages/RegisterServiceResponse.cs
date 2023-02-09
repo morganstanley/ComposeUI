@@ -12,19 +12,7 @@
 
 namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
-public sealed class RegisterServiceResponse : Message
+public sealed class RegisterServiceResponse : AbstractResponse
 {
-    public RegisterServiceResponse()
-    {
-    }
-
-    public RegisterServiceResponse(string serviceName, string? error = null)
-    {
-        ServiceName = serviceName;
-        Error = error;
-    }
-
     public override MessageType Type => MessageType.RegisterServiceResponse;
-    public string ServiceName { get; init; } = null!;
-    public string? Error { get; init; }
 }

@@ -23,7 +23,7 @@ public class SubsystemLauncherCommunicator : ISubsystemLauncherCommunicator
 {
     private readonly ILogger<SubsystemLauncherCommunicator> _logger;
     private readonly IMessageRouter? _messageRouter;
-    private readonly IObserver<RouterMessage> _subsystemsObserver;
+    private readonly IObserver<TopicMessage> _subsystemsObserver;
 
     public SubsystemLauncherCommunicator(ILogger<SubsystemLauncherCommunicator>? logger,
         IMessageRouter? messageRouter,

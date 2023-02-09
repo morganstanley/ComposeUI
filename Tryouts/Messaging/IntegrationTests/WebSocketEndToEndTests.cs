@@ -10,12 +10,14 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using System.Reactive;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
 using MorganStanley.ComposeUI.Messaging.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
+using Nito.AsyncEx;
 
 namespace MorganStanley.ComposeUI.Messaging;
 
@@ -33,17 +35,22 @@ public class WebSocketEndToEndTests : IAsyncLifetime
     {
         await using var publisher = CreateClient();
         await using var subscriber = CreateClient();
-        var observerMock = new Mock<IObserver<RouterMessage>>();
-        var receivedMessages = new List<RouterMessage>();
+        var observerMock = new Mock<IObserver<TopicMessage>>();
+        var receivedMessages = new List<TopicMessage>();
         observerMock.Setup(x => x.OnNext(Capture.In(receivedMessages)));
 
         await subscriber.SubscribeAsync("test-topic", observerMock.Object);
         await Task.Delay(100);
-        var publishedPayload = new TestPayload { IntProperty = 0x10203040, StringProperty = "Compose UI 🔥" };
+
+        var publishedPayload = new TestPayload
+        {
+            IntProperty = 0x10203040,
+            StringProperty = "Compose UI 🔥"
+        };
 
         await publisher.PublishAsync(
             "test-topic",
-            Utf8Buffer.Create(JsonSerializer.SerializeToUtf8Bytes(publishedPayload)));
+            MessageBuffer.Create(JsonSerializer.SerializeToUtf8Bytes(publishedPayload)));
 
         await Task.Delay(100);
 
@@ -56,7 +63,7 @@ public class WebSocketEndToEndTests : IAsyncLifetime
     public async Task Client_can_register_itself_as_a_service()
     {
         await using var client = CreateClient();
-        await client.RegisterServiceAsync("test-service", (name, payload) => default);
+        await client.RegisterServiceAsync("test-service", (name, payload, context) => default);
         await client.UnregisterServiceAsync("test-service");
     }
 
@@ -65,11 +72,11 @@ public class WebSocketEndToEndTests : IAsyncLifetime
     {
         await using var service = CreateClient();
 
-        var handlerMock = new Mock<ServiceInvokeHandler>();
+        var handlerMock = new Mock<MessageHandler>();
 
         handlerMock
-            .Setup(_ => _.Invoke("test-service", It.IsAny<Utf8Buffer?>()))
-            .Returns(new ValueTask<Utf8Buffer?>(Utf8Buffer.Create("test-response")));
+            .Setup(_ => _.Invoke("test-service", It.IsAny<MessageBuffer?>(), It.IsAny<MessageContext>()))
+            .Returns(new ValueTask<MessageBuffer?>(MessageBuffer.Create("test-response")));
 
         await service.RegisterServiceAsync("test-service", handlerMock.Object);
 
@@ -78,9 +85,165 @@ public class WebSocketEndToEndTests : IAsyncLifetime
         var response = await client.InvokeAsync("test-service", "test-request");
 
         response.Should().BeEquivalentTo("test-response");
-        handlerMock.Verify(_ => _.Invoke("test-service", It.Is<Utf8Buffer>(buf => buf.GetString() == "test-request")));
+
+        handlerMock.Verify(
+            _ => _.Invoke(
+                "test-service",
+                It.Is<MessageBuffer>(buf => buf.GetString() == "test-request"),
+                It.IsAny<MessageContext>()));
 
         await service.UnregisterServiceAsync("test-service");
+    }
+
+    [Fact]
+    public async Task Client_can_invoke_another_client_by_id_as_long_as_it_is_registered()
+    {
+        await using var callee = CreateClient();
+        await using var caller = CreateClient();
+
+        var handlerMock = new Mock<MessageHandler>();
+
+        handlerMock.Setup(_ => _.Invoke(It.IsAny<string>(), It.IsAny<MessageBuffer?>(), It.IsAny<MessageContext>()))
+            .ReturnsAsync(
+                (string endpoint, MessageBuffer? payload, MessageContext context) =>
+                    MessageBuffer.Create("test-response"));
+
+        await callee.RegisterEndpointAsync("test-endpoint", handlerMock.Object);
+
+        var response = await caller.InvokeAsync(
+            "test-endpoint",
+            "test-request",
+            new InvokeOptions
+            {
+                Scope = MessageScope.FromClientId(callee.ClientId!)
+            });
+
+        response.Should().BeEquivalentTo("test-response");
+
+        handlerMock.Verify(
+            _ => _.Invoke(
+                "test-endpoint",
+                It.Is<MessageBuffer>(buf => buf.GetString() == "test-request"),
+                It.IsAny<MessageContext>()));
+
+        await callee.UnregisterEndpointAsync("test-endpoint");
+
+        await Assert.ThrowsAsync<UnknownEndpointException>(
+            async () => await caller.InvokeAsync(
+                "test-endpoint",
+                "test-request",
+                new InvokeOptions
+                {
+                    Scope = MessageScope.FromClientId(callee.ClientId!)
+                }));
+    }
+
+    [Fact]
+    public async Task Subscriber_can_invoke_a_service_without_deadlock()
+    {
+        await using var subscriber = CreateClient();
+        await using var service = CreateClient();
+        await using var publisher = CreateClient();
+        await service.RegisterServiceAsync("test-service", new Mock<MessageHandler>().Object);
+        var tcs = new TaskCompletionSource();
+       
+        await subscriber.SubscribeAsync("test-topic", Subscriber.Create(new Func<TopicMessage, ValueTask>(
+            async msg =>
+            {
+                await subscriber.InvokeAsync("test-service");
+                tcs.SetResult();
+            })));
+
+        await publisher.PublishAsync("test-topic");
+        await tcs.Task;
+    }
+
+    [Fact]
+    public async Task Subscriber_is_called_sequentially_without_concurrency()
+    {
+        await using var subscriber = CreateClient();
+        await using var publisher = CreateClient();
+        var semaphore = new AsyncSemaphore(1);
+
+        var tcs = new TaskCompletionSource();
+
+        await subscriber.SubscribeAsync("test-topic", Subscriber.Create<TopicMessage>(
+            async msg =>
+            {
+                using (await semaphore.LockAsync(new CancellationTokenSource(TimeSpan.Zero).Token))
+                {
+                    await Task.Delay(100);
+                }
+                if (msg.Payload?.GetString() == "done")
+                {
+                    tcs.SetResult();
+                }
+            }));
+
+        for (var i = 0; i < 10; i++)
+        {
+            await publisher.PublishAsync("test-topic");
+        }
+
+        await publisher.PublishAsync("test-topic", "done");
+        await tcs.Task;
+    }
+
+    [Fact]
+    public async Task Endpoint_handler_can_invoke_a_service_without_deadlock()
+    {
+        await using var listener = CreateClient();
+        await using var caller = CreateClient();
+        await using var service = CreateClient();
+        var tcs = new TaskCompletionSource();
+
+        await listener.RegisterEndpointAsync("test-endpoint", new MessageHandler(
+            async (endpoint, payload, context) =>
+            {
+                await listener.InvokeAsync("test-service");
+                tcs.SetResult();
+                return null;
+            }));
+
+        await service.RegisterServiceAsync("test-service", new Mock<MessageHandler>().Object);
+        await caller.InvokeAsync("test-endpoint",
+            options: new InvokeOptions { Scope = MessageScope.FromClientId(listener.ClientId!) });
+        await tcs.Task;
+    }
+
+    [Fact]
+    public async Task Endpoint_handler_can_be_invoked_recursively_without_deadlock()
+    {
+        await using var serviceA = CreateClient();
+        await using var serviceB = CreateClient();
+        var tcs = new TaskCompletionSource();
+
+        await serviceA.RegisterServiceAsync("test-service-a", new MessageHandler(
+            async (endpoint, payload, context) =>
+            {
+                if (payload?.GetString() == "done")
+                {
+                    tcs.SetResult();
+                }
+                else
+                {
+                    await serviceA.InvokeAsync("test-service-b", "hello");
+                }
+
+                return null;
+            }));
+
+        await serviceB.RegisterServiceAsync("test-service-b", new MessageHandler(
+            async (endpoint, payload, context) =>
+            {
+                await serviceB.InvokeAsync("test-service-a", "done");
+
+                return null;
+            }));
+
+        await serviceB.InvokeAsync("test-service-a");
+        
+        await tcs.Task;
     }
 
     public async Task InitializeAsync()
@@ -121,7 +284,11 @@ public class WebSocketEndToEndTests : IAsyncLifetime
         return new ServiceCollection()
             .AddMessageRouter(
                 mr => mr
-                    .UseWebSocket(new MessageRouterWebSocketOptions { Uri = _webSocketUri })
+                    .UseWebSocket(
+                        new MessageRouterWebSocketOptions
+                        {
+                            Uri = _webSocketUri
+                        })
                     .UseAccessToken(AccessToken))
             .BuildServiceProvider()
             .GetRequiredService<IMessageRouter>();

@@ -36,58 +36,83 @@ public interface IMessageRouter : IAsyncDisposable
     /// </remarks>
     ValueTask ConnectAsync(CancellationToken cancellationToken = default);
 
-    // TODO: Declare and use IAsyncObserver or ISubscriber
     /// <summary>
     ///     Gets an observable that represents a topic.
     /// </summary>
-    /// <param name="topicName"></param>
-    /// <param name="observer"></param>
+    /// <param name="topic"></param>
+    /// <param name="subscriber"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     ValueTask<IDisposable> SubscribeAsync(
-        string topicName,
-        IObserver<RouterMessage> observer,
+        string topic,
+        ISubscriber<TopicMessage> subscriber,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     ///     Publishes a message to a topic.
     /// </summary>
-    /// <param name="topicName"></param>
+    /// <param name="topic"></param>
     /// <param name="payload"></param>
     /// <param name="options"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    ValueTask PublishAsync(string topicName, Utf8Buffer? payload = null, PublishOptions options = default, CancellationToken cancellationToken = default);
+    ValueTask PublishAsync(string topic, MessageBuffer? payload = null, PublishOptions options = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     ///     Invokes a named service.
     /// </summary>
-    /// <param name="serviceName"></param>
+    /// <param name="endpoint"></param>
     /// <param name="payload"></param>
+    /// <param name="options"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    ValueTask<Utf8Buffer?> InvokeAsync(
-        string serviceName,
-        Utf8Buffer? payload = null,
+    ValueTask<MessageBuffer?> InvokeAsync(
+        string endpoint,
+        MessageBuffer? payload = null,
+        InvokeOptions options = default,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     ///     Registers a service by providing a name and handler.
     /// </summary>
-    /// <param name="serviceName"></param>
+    /// <param name="endpoint"></param>
     /// <param name="handler"></param>
+    /// <param name="descriptor"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     ValueTask RegisterServiceAsync(
-        string serviceName,
-        ServiceInvokeHandler handler,
+        string endpoint,
+        MessageHandler handler,
+        EndpointDescriptor? descriptor = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     ///     Removes a service registration.
     /// </summary>
-    /// <param name="serviceName"></param>
+    /// <param name="endpoint"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    ValueTask UnregisterServiceAsync(string serviceName, CancellationToken cancellationToken = default);
+    ValueTask UnregisterServiceAsync(string endpoint, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    ///     Registers an endpoint by providing a name, handler and optional descriptor.
+    /// </summary>
+    /// <param name="endpoint"></param>
+    /// <param name="handler"></param>
+    /// <param name="descriptor"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    ValueTask RegisterEndpointAsync(
+        string endpoint,
+        MessageHandler handler,
+        EndpointDescriptor? descriptor = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    ///     Removes an endpoint registration.
+    /// </summary>
+    /// <param name="endpoint"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    ValueTask UnregisterEndpointAsync(string endpoint, CancellationToken cancellationToken = default);
 }

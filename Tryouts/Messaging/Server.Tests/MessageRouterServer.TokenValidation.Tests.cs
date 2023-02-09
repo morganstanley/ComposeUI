@@ -74,7 +74,7 @@ public class MessageRouterServerTokenValidationTests
 
         var connectResponse = await connection.Received.Reader.ReadAsync();
         connectResponse.Should().BeOfType<ConnectResponse>();
-        ((ConnectResponse)connectResponse).Error.Should().Be("Invalid token");
+        ((ConnectResponse)connectResponse).Error!.Message.Should().Be("Invalid token");
     }
 
     private static IMessageRouterServer CreateServer(Action<MessageRouterBuilder> builderAction)

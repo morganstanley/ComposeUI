@@ -14,17 +14,15 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
 
 namespace ComposeUI.Example.DataService;
 
-internal class DataService
+class Program
 {
-    private IServiceProvider? _serviceProvider;
-    public static Uri WebsocketURI { get; set; } = new("ws://localhost:5000/ws");
+    public static Uri WebsocketUri = new("ws://localhost:5000/ws");
 
-    public static void Main()
+    public static async Task Main()
     {
         Console.WriteLine("Data Service");
 
@@ -33,24 +31,17 @@ internal class DataService
         serviceCollection
             .AddMessageRouter(
                 mr => mr.UseWebSocket(
-                    new MessageRouterWebSocketOptions { Uri = WebsocketURI }))
+                    new MessageRouterWebSocketOptions
+                    {
+                        Uri = WebsocketUri
+                    }))
             .AddLogging(
-                builder =>
-                {
-                    builder
-                        .AddFilter("Microsoft", LogLevel.Information)
-                        .AddFilter("System", LogLevel.Information)
-                        .AddFilter("LoggingConsoleApp.DataService", LogLevel.Information)
-                        .AddConsole()
-                        .SetMinimumLevel(LogLevel.Information);
-                });
+                builder => builder.AddConsole())
+            .AddSingleton<MonthlySalesDataService>();
 
         var serviceProvider = serviceCollection.BuildServiceProvider();
-        var logger = serviceProvider.GetService<ILogger<Publisher>>();
-        var messageRouter = serviceProvider.GetRequiredService<IMessageRouter>();
-
-        var publisher = new Publisher(messageRouter, logger);
-        publisher.Subscribe();
+        var monthlySalesDataService = serviceProvider.GetRequiredService<MonthlySalesDataService>();
+        await monthlySalesDataService.Start();
 
         Console.ReadLine();
     }

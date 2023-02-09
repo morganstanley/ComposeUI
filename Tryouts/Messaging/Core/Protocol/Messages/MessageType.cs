@@ -15,41 +15,40 @@ namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 public enum MessageType : int
 {
     /// <summary>
-    ///     Client wants to connect
+    ///     Client wants to connect.
     /// </summary>
     Connect,
 
     /// <summary>
-    ///     Server accepted the connection
+    ///     Server accepts the connection.
     /// </summary>
     ConnectResponse,
 
     /// <summary>
-    ///     Client subscribes to a topic
+    ///     Client subscribes to a topic.
     /// </summary>
     Subscribe,
 
     // TODO: SubscribeResponse
 
     /// <summary>
-    ///     Client unsubscribes from a topic
+    ///     Client unsubscribes from a topic.
     /// </summary>
     Unsubscribe,
 
     // TODO: UnsubscribeResponse
 
     /// <summary>
-    ///     Client publishes a message to a topic
+    ///     Client publishes a message to a topic.
     /// </summary>
     Publish,
 
     // TODO: PublishResponse
 
-    // TODO: Rename to Topic?
     /// <summary>
-    ///     Server notifies client of a message from a subscribed topic
+    ///     Server notifies client of a message from a subscribed topic.
     /// </summary>
-    Update,
+    Topic,
 
     /// <summary>
     ///     Client registers an invokable service
@@ -57,7 +56,7 @@ public enum MessageType : int
     RegisterService,
 
     /// <summary>
-    ///     Server responds to a RegisterServiceRequest message
+    ///     Server confirms that the service is registered (or responds with error).
     /// </summary>
     RegisterServiceResponse,
 
@@ -77,5 +76,8 @@ public enum MessageType : int
     /// </summary>
     UnregisterService,
 
-    // TODO: UnregisterServiceResponse
+    /// <summary>
+    ///     Server acknowledges that the service is unregistered.
+    /// </summary>
+    UnregisterServiceResponse,
 }

@@ -26,10 +26,10 @@ public class ModuleLoaderInformationReceiver : IModuleLoaderInformationReceiver
 {
     private readonly ILogger<ModuleLoaderInformationReceiver> _logger;
     private readonly IMessageRouter _messageRouter;
-    private readonly IObserver<RouterMessage> _processInfoListMessage;
-    private readonly IObserver<RouterMessage> _processInfoMessage;
-    private readonly IObserver<RouterMessage> _processMonitorWatcherChecker;
-    private readonly IObserver<RouterMessage> _runtimeObserver;
+    private readonly IObserver<TopicMessage> _processInfoListMessage;
+    private readonly IObserver<TopicMessage> _processInfoMessage;
+    private readonly IObserver<TopicMessage> _processMonitorWatcherChecker;
+    private readonly IObserver<TopicMessage> _runtimeObserver;
     public IProcessInfoAggregator? ProcessInfoAggregator { get; }
     private readonly ISubsystemController _subsystemController;
     private ISubsystemLauncherCommunicator _subsystemLauncherCommunicator;

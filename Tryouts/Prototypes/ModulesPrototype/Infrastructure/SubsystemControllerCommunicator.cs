@@ -24,7 +24,7 @@ namespace ModulesPrototype.Infrastructure;
 internal class SubsystemControllerCommunicator : ISubsystemControllerCommunicator
 {
     private readonly IMessageRouter _messageRouter;
-    private readonly IObserver<RouterMessage> _subsystemHandlerObserver;
+    private readonly IObserver<TopicMessage> _subsystemHandlerObserver;
     private readonly ILogger<SubsystemControllerCommunicator> _logger;
 
     public SubsystemControllerCommunicator(ILogger<SubsystemControllerCommunicator>? logger,

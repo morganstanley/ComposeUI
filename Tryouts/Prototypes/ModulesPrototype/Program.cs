@@ -42,12 +42,13 @@ internal class Program
         var host = new HostBuilder()
             .ConfigureAppConfiguration(
                 config => config.AddJsonFile("appsettings.json"))
-            .ConfigureLogging(l => l.AddConsole())
+            .ConfigureLogging(l => l.AddConsole().SetMinimumLevel(LogLevel.Debug))
             .ConfigureServices(
                 (context, services) => services
                     .AddMessageRouterServer(mr => mr.UseWebSockets())
                     .Configure<MessageRouterWebSocketServerOptions>(
-                        context.Configuration.GetSection("MessageRouter:WebSocket")))
+                        context.Configuration.GetSection("MessageRouter:WebSocket"))
+                    .Configure<LoggerFactoryOptions>(context.Configuration.GetSection("Logging")))
             .Build();
 
         var cts = new CancellationTokenSource();
@@ -76,11 +77,10 @@ internal class Program
             .GetRequiredService<IProcessInfoHandler>();
         infoCollector.SetSubsystemHandler(loader, loggerFactory);
 
-
         var processInfo = new ObservableCollection<ProcessInformation>();
 
         loader.LifecycleEvents.Subscribe(
-            async (e) =>
+            e =>
             {
                 var unexpected = e.IsExpected ? string.Empty : " unexpectedly";
 
@@ -94,14 +94,14 @@ internal class Program
 
                 if (e.EventType == LifecycleEventType.Stopped)
                 {
-                    await infoCollector.SendModifiedSubsystemStateAsync(e.ProcessInfo.instanceId, SubsystemState.Stopped);
+                    //await infoCollector.SendModifiedSubsystemStateAsync(e.ProcessInfo.instanceId, SubsystemState.Stopped);
 
                     if (!e.IsExpected)
                     {
                         loader.RequestStartProcess(
                             new LaunchRequest() { name = e.ProcessInfo.name, instanceId = e.ProcessInfo.instanceId });
 
-                        await infoCollector.SendModifiedSubsystemStateAsync(e.ProcessInfo.instanceId, SubsystemState.Started);
+                        //await infoCollector.SendModifiedSubsystemStateAsync(e.ProcessInfo.instanceId, SubsystemState.Started);
                     }
                     else
                     {
@@ -109,10 +109,10 @@ internal class Program
                     }
                 }
 
-                if (e.EventType == LifecycleEventType.Started)
-                {
-                    await infoCollector.SendModifiedSubsystemStateAsync(e.ProcessInfo.instanceId, SubsystemState.Started);
-                }
+                //if (e.EventType == LifecycleEventType.Started)
+                //{
+                //    await infoCollector.SendModifiedSubsystemStateAsync(e.ProcessInfo.instanceId, SubsystemState.Started);
+                //}
 
                 var proc = new ProcessInformation(e.ProcessInfo.name,
                     e.ProcessInfo.instanceId,
@@ -135,28 +135,27 @@ internal class Program
         {
             //for the demo's sake we are starting just the Process Explorer.
             //the other applications, that are declared in the manifest can be started via the Process Explorer frontend
-            if (module.Value.Name != "processExplorerService") continue;
+            //if (module.Value.Name != "processExplorerService") continue;
             module.Value.State = ModuleState.Started;
             loader.RequestStartProcess(new LaunchRequest { name = module.Value.Name, instanceId = module.Key });
-            Thread.Sleep(5000);
         }
 
-        if (!instances
-            .Where(module =>
-                module.Value.Name == "processExplorerService"
-                && (module.Value.State == SubsystemState.Started || module.Value.State == SubsystemState.Running))
-            .Any())
-            goto endState;
+        //if (!instances
+        //    .Where(module =>
+        //        module.Value.Name == "processExplorerService"
+        //        && (module.Value.State == SubsystemState.Started || module.Value.State == SubsystemState.Running))
+        //    .Any())
+        //    goto endState;
 
-        await infoCollector.InitializeSubsystemControllerRouteAsync();
-        var consoleShellPrototype = new ProcessInformation(Process.GetCurrentProcess());
-        processInfo.Add(consoleShellPrototype);
-        var serializedInstances = JsonSerializer.Serialize(instances);
-        if (serializedInstances != string.Empty) await infoCollector.SendRegisteredSubsystemsAsync(serializedInstances);
-        if (processInfo.Count != 0) await infoCollector.SendInitProcessInfoAsync(processInfo);
-        await infoCollector.EnableProcessMonitorAsync();
+        //    await infoCollector.InitializeSubsystemControllerRouteAsync();
+        //    var consoleShellPrototype = new ProcessInformation(Process.GetCurrentProcess());
+        //    processInfo.Add(consoleShellPrototype);
+        //    var serializedInstances = JsonSerializer.Serialize(instances);
+        //    if (serializedInstances != string.Empty) await infoCollector.SendRegisteredSubsystemsAsync(serializedInstances);
+        //    if (processInfo.Count != 0) await infoCollector.SendInitProcessInfoAsync(processInfo);
+        //    await infoCollector.EnableProcessMonitorAsync();
 
-    endState:
+        //endState:
         logger.LogInformation("ComposeUI application running, press Ctrl+C to exit");
 
         await stopTaskSource.Task;

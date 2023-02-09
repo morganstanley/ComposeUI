@@ -49,6 +49,17 @@ public readonly record struct MessageScope : IEquatable<MessageScope>, IComparab
     }
 
     /// <summary>
+    /// Gets a bool indicating if the scope is a specific client ID.
+    /// </summary>
+    public bool IsClientId => _name != null && _name.StartsWith('@');
+
+    /// <summary>
+    /// Gets the client ID from the scope, or <value>null</value> if it is not a client ID.
+    /// </summary>
+    /// <returns></returns>
+    public string? GetClientId() => IsClientId ? _name![1..] : null;
+
+    /// <summary>
     ///     Identifies the default, application-level scope. This is equivalent of using <code>default(MessageScope)</code>
     /// </summary>
     public static readonly MessageScope Default = default;
@@ -57,6 +68,16 @@ public readonly record struct MessageScope : IEquatable<MessageScope>, IComparab
     ///     Alias for <see cref="Default" />.
     /// </summary>
     public static readonly MessageScope Application = Default;
+
+    /// <summary>
+    /// Creates a scope from a specific client ID.
+    /// </summary>
+    /// <param name="clientId"></param>
+    /// <returns></returns>
+    public static MessageScope FromClientId(string clientId)
+    {
+        return new MessageScope("@" + clientId);
+    }
 
     /// <summary>
     ///     Parses a messaging scope serialized to string.

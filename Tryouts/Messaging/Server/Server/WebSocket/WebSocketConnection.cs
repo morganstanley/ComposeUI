@@ -17,6 +17,7 @@ using System.Net.WebSockets;
 using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.IO;
 using MorganStanley.ComposeUI.Messaging.Protocol.Json;
 using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 using MorganStanley.ComposeUI.Messaging.Server.Abstractions;
@@ -134,7 +135,7 @@ internal class WebSocketConnection : IClientConnection
                             _logger.LogDebug("Close message received from WebSocket client");
                         }
 
-                        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
+                        await webSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
 
                         break;
                     }
@@ -166,6 +167,8 @@ internal class WebSocketConnection : IClientConnection
                     break;
                 }
             }
+
+            _inputChannel.Writer.TryComplete();
         }
         catch (Exception e)
         {
@@ -188,10 +191,12 @@ internal class WebSocketConnection : IClientConnection
                 if (webSocket.State != WebSocketState.Open || cancellationToken.IsCancellationRequested)
                     break;
 
-                var buffer = JsonMessageSerializer.SerializeMessage(message);
+                // TODO: Instead of a pooled buffer, we could have an IBufferWriter that writes directly to the websocket
+                await using var stream = new RecyclableMemoryStream(MemoryStreamManager);
+                JsonMessageSerializer.SerializeMessage(message, stream);
 
                 await webSocket.SendAsync(
-                    buffer,
+                    new ArraySegment<byte>(stream.GetBuffer(), 0, (int)stream.Length),
                     WebSocketMessageType.Text,
                     WebSocketMessageFlags.EndOfMessage,
                     cancellationToken);
@@ -221,4 +226,6 @@ internal class WebSocketConnection : IClientConnection
             return false;
         }
     }
+
+    private static readonly RecyclableMemoryStreamManager MemoryStreamManager = new();
 }

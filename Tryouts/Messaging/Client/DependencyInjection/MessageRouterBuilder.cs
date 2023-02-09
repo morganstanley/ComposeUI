@@ -10,8 +10,6 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-
-
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 

@@ -10,11 +10,13 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using MorganStanley.ComposeUI.Messaging.Protocol;
+
 namespace MorganStanley.ComposeUI.Messaging.Exceptions;
 
 public sealed class ServiceUnavailableException : MessageRouterException
 {
-    public ServiceUnavailableException() : base("Service unavailable")
-    {
-    }
+    public ServiceUnavailableException() : base("Service unavailable") { }
+
+    public ServiceUnavailableException(Error error) : base(error.Message) { }
 }

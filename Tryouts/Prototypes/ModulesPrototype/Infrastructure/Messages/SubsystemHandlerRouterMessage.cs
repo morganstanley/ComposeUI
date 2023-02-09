@@ -21,7 +21,7 @@ using ProcessExplorerMessageRouterTopics;
 
 namespace ModulesPrototype.Infrastructure.Messages;
 
-internal class SubsystemHandlerRouterMessage : IObserver<RouterMessage>
+internal class SubsystemHandlerRouterMessage : IObserver<TopicMessage>
 {
     private readonly ILogger<SubsystemHandlerRouterMessage> _logger;
     private readonly ISubsystemLauncher _subsystemLauncher;
@@ -43,7 +43,7 @@ internal class SubsystemHandlerRouterMessage : IObserver<RouterMessage>
         _logger.LogError($"Some error(s) occurred while receiving the process information from module loader... : {exception}");
     }
 
-    public void OnNext(RouterMessage value)
+    public void OnNext(TopicMessage value)
     {
         var payload = value.Payload;
         if (payload is null)

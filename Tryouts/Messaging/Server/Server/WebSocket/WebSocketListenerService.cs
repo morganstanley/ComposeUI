@@ -24,9 +24,9 @@ internal sealed class WebSocketListenerService : IHostedService, IMessageRouterW
     private readonly IServiceProvider _serviceProvider;
     private readonly MessageRouterWebSocketServerOptions _options;
     private readonly CancellationTokenSource _stopTokenSource = new();
-    private readonly TaskCompletionSource _stopTaskSource = new();
+    private readonly TaskCompletionSource _stopTaskSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly ConcurrentBag<Task> _connectionTasks = new();
-    private readonly TaskCompletionSource _startTaskSource = new();
+    private readonly TaskCompletionSource _startTaskSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     public WebSocketListenerService(
         IOptions<MessageRouterWebSocketServerOptions> options,

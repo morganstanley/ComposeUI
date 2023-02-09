@@ -12,21 +12,8 @@
 
 namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
-public sealed class InvokeResponse : Message
+public sealed class InvokeResponse : AbstractResponse
 {
-    public InvokeResponse()
-    {
-    }
-
-    public InvokeResponse(string requestId, Utf8Buffer? payload, string? error = null)
-    {
-        RequestId = requestId;
-        Payload = payload;
-        Error = error;
-    }
-
     public override MessageType Type => MessageType.InvokeResponse;
-    public string RequestId { get; init; } = null!;
-    public Utf8Buffer? Payload { get; init; }
-    public string? Error { get; init; }
+    public MessageBuffer? Payload { get; init; }
 }
