@@ -3,8 +3,8 @@
 export default {
     input: 'example.js',
     output: {
-        file: 'output/bundle.umd.js',
-        format: 'umd',
+        file: 'output/bundle.js',
+        format: 'es',
         name: "demo"
     },
     plugins: [

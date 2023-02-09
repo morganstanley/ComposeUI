@@ -1,9 +1,13 @@
-﻿export default {
-    input: 'output/index.js',
-    module: "es6",
+﻿import { nodeResolve } from '@rollup/plugin-node-resolve';
+import typescript from '@rollup/plugin-typescript';
+
+export default {
+    input: 'src/index.ts',
     output: {
-        file: 'output/bundle.umd.js',
-        format: 'umd',
+      
+        file: 'output/bundle.mjs',
+        format: 'es',
         name: "@compose/node-launcher"
-    }
+    },
+    plugins: [typescript(), nodeResolve()]
 };
