@@ -6,8 +6,7 @@ export default {
     output: {
       
         file: 'output/bundle.mjs',
-        format: 'es',
-        name: "@compose/node-launcher"
+        format: 'es'
     },
     plugins: [typescript(), nodeResolve()]
 };

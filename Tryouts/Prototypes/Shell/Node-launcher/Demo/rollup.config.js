@@ -4,8 +4,7 @@ export default {
     input: 'example.js',
     output: {
         file: 'output/bundle.js',
-        format: 'es',
-        name: "demo"
+        format: 'es'
     },
     plugins: [
         nodeResolve()
