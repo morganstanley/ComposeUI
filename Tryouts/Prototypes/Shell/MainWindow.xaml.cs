@@ -42,7 +42,7 @@ namespace Shell
         private ModuleModel[]? modules;
 
         private string commandLineURL;
-        private string[] hereIsMyCode = (Application.Current as App).CustomerCode;
+        private string[] commandLineArguments = (Application.Current as App).CommandLineArguments;
 
         public MainWindow()
         {
@@ -53,7 +53,7 @@ namespace Shell
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            if (this.hereIsMyCode.Length != 0)
+            if (this.commandLineArguments.Length != 0)
             {
                 this.LazyLoading();
             }
@@ -65,10 +65,11 @@ namespace Shell
             }
         }
 
+        //potencial util stuff
         private void LazyLoading() {
             Dictionary<string, string> commands = new Dictionary<string, string>();
 
-            this.hereIsMyCode.ToList<string>().ForEach(item => {
+            this.commandLineArguments.ToList<string>().ForEach(item => {
                 item = item.TrimStart('-');
                 string[] command = item.Split("=");
 
@@ -96,12 +97,13 @@ namespace Shell
             lazyWebContent.Show();
         }
 
+        //It needs to be called by the Main window (what ever way it was chosen) in case the case when the user wants child windows
         private void CreateViews(ModuleModel item) 
         {
             var webContent = new WebContent(item.Url);
             webContent.Title = item.AppName;
 
-            webContent.Owner = this;
+            webContent.Owner = this; //Main window
 
             webContent.Closed += WebContent_Closed;
             
