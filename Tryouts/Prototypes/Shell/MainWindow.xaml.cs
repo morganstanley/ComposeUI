@@ -41,69 +41,21 @@ namespace Shell
         private ManifestModel config;
         private ModuleModel[]? modules;
 
-        private string commandLineURL;
-        private string[] commandLineArguments = (Application.Current as App).CommandLineArguments;
-
         public MainWindow()
         {
             InitializeComponent();
 
-            this.Loaded += MainWindow_Loaded;
+            config = new ManifestParser().Manifest;
+            modules = config.Modules;
+            DataContext = modules;
         }
 
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
-        {
-            if (this.commandLineArguments.Length != 0)
-            {
-                this.LazyLoading();
-            }
-            else
-            {
-                config = new ManifestParser().Manifest;
-                modules = config.Modules;
-                DataContext = modules;
-            }
-        }
-
-        //potencial util stuff
-        private void LazyLoading() {
-            Dictionary<string, string> commands = new Dictionary<string, string>();
-
-            this.commandLineArguments.ToList<string>().ForEach(item => {
-                item = item.TrimStart('-');
-                string[] command = item.Split("=");
-
-                commands.Add(command[0], command[1]);
-            });
-
-            if (commands.ContainsKey("url"))
-            {
-                this.commandLineURL = commands["url"];
-            }
-            else 
-            {
-                this.commandLineURL = "about:blank";
-            }
-
-            var lazyWebContent = new WebContent(this.commandLineURL);
-            if (commands.ContainsKey("width"))
-            {
-                lazyWebContent.Width = int.Parse(commands["width"]);
-            }
-            if (commands.ContainsKey("height"))
-            {
-                lazyWebContent.Height = int.Parse(commands["height"]);
-            }
-            lazyWebContent.Show();
-        }
-
-        //It needs to be called by the Main window (what ever way it was chosen) in case the case when the user wants child windows
         private void CreateViews(ModuleModel item) 
         {
             var webContent = new WebContent(item.Url);
             webContent.Title = item.AppName;
 
-            webContent.Owner = this; //Main window
+            webContent.Owner = this;
 
             webContent.Closed += WebContent_Closed;
             
@@ -120,7 +72,7 @@ namespace Shell
         {
             var context = (sender as Button).DataContext;
             
-            this.CreateViews((context as ModuleModel));
+            this.CreateViews(context as ModuleModel);
         }
     }
 }

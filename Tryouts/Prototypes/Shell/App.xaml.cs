@@ -29,10 +29,21 @@ namespace Shell
     public partial class App : Application
     {
         public string[] CommandLineArguments { get; set; }
-        protected override void OnStartup(StartupEventArgs e)
-        {   
-            this.CommandLineArguments = e.Args;
-            base.OnStartup(e);
+
+        private void Application_Startup(object sender, StartupEventArgs e)
+        {
+            CommandLineArguments = e.Args;
+
+            if (CommandLineArguments.Length != 0)
+            {
+                Application.Current.MainWindow = new MainWebWindow();
+                Application.Current.MainWindow.Show();
+            }
+            else
+            {
+                Application.Current.MainWindow = new MainWindow();
+                Application.Current.MainWindow.Show();
+            }
         }
     }
 }

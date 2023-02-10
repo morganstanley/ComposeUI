@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="MainWebWindow.xaml" />
     <None Remove="MainWindow.xaml" />
     <None Remove="WebContent.xaml" />
   </ItemGroup>
@@ -18,6 +19,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Page Include="MainWebWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml" />
     <Page Include="WebContent.xaml">
       <Generator>MSBuild:Compile</Generator>
