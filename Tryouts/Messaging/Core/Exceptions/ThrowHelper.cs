@@ -10,8 +10,6 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
-
 #pragma warning disable CS1591
 namespace MorganStanley.ComposeUI.Messaging.Exceptions;
 
@@ -42,6 +40,12 @@ public static class ThrowHelper
     public static MessageRouterException ConnectionFailed() =>
         new(MessageRouterErrors.ConnectionFailed, "Connection failed");
 
+    public static MessageRouterException ConnectionFailed(Exception innerException) =>
+        new(MessageRouterErrors.ConnectionFailed, "Connection failed.\n\r{innerException.Message}'", innerException);
+
     public static MessageRouterException ConnectionAborted() =>
         new(MessageRouterErrors.ConnectionAborted, "The connection dropped unexpectedly");
+
+    public static MessageRouterException ConnectionAborted(Exception innerException) =>
+        new(MessageRouterErrors.ConnectionAborted, $"The connection dropped unexpectedly.\n\r{innerException.Message}", innerException);
 }

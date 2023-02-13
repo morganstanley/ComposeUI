@@ -20,6 +20,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.IO;
 using MorganStanley.ComposeUI.Messaging.Client.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Protocol.Json;
 using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
@@ -50,23 +51,65 @@ internal class WebSocketConnection : IConnection
 
     public async ValueTask ConnectAsync(CancellationToken cancellationToken = default)
     {
-        _webSocket = new ClientWebSocket();
-        await _webSocket.ConnectAsync(_options.Value.Uri, cancellationToken);
-        StartReceivingMessages();
-        StartSendingMessages();
+        try
+        {
+            _webSocket = new ClientWebSocket();
+            await _webSocket.ConnectAsync(_options.Value.Uri, cancellationToken);
+            _ = Task.Run(ReceiveMessages);
+        }
+        catch
+        {
+            _webSocket.Dispose();
+
+            throw;
+        }
     }
 
-    public ValueTask SendAsync(Message message, CancellationToken cancellationToken = default)
+    public async ValueTask SendAsync(Message message, CancellationToken cancellationToken = default)
     {
-        return _outputChannel.Writer.WriteAsync(message, cancellationToken);
+        try
+        {
+            // TODO: Instead of a pooled buffer, we could have an IBufferWriter that writes directly to the websocket
+            await using var stream = new RecyclableMemoryStream(MemoryStreamManager);
+            JsonMessageSerializer.SerializeMessage(message, stream);
+
+            await _webSocket.SendAsync(
+                new ArraySegment<byte>(stream.GetBuffer(), 0, (int)stream.Length),
+                WebSocketMessageType.Text,
+                WebSocketMessageFlags.EndOfMessage,
+                _stopTokenSource.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Exception thrown while trying to send a message over the WebSocket: {ExceptionMessage}", e.Message);
+        }
     }
 
-    public ValueTask<Message> ReceiveAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<Message> ReceiveAsync(CancellationToken cancellationToken = default)
     {
-        return _inputChannel.Reader.ReadAsync(cancellationToken);
+        try
+        {
+            return await _receiveChannel.Reader.ReadAsync(cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (ChannelClosedException)
+        {
+            throw ThrowHelper.ConnectionClosed();
+        }
+        catch (Exception e)
+        {
+            throw ThrowHelper.ConnectionAborted(e);
+        }
     }
 
-    private readonly Channel<Message> _inputChannel = Channel.CreateUnbounded<Message>(
+    private readonly Channel<Message> _receiveChannel = Channel.CreateUnbounded<Message>(
         new UnboundedChannelOptions
         {
             AllowSynchronousContinuations = false,
@@ -75,22 +118,11 @@ internal class WebSocketConnection : IConnection
         });
 
     private readonly ILogger<WebSocketConnection> _logger;
-
     private readonly IOptions<MessageRouterWebSocketOptions> _options;
-
-    private readonly Channel<Message> _outputChannel = Channel.CreateUnbounded<Message>(
-        new UnboundedChannelOptions
-        {
-            AllowSynchronousContinuations = false,
-            SingleReader = true,
-            SingleWriter = true
-        });
-
     private readonly CancellationTokenSource _stopTokenSource = new();
-
     private ClientWebSocket _webSocket = new();
 
-    private async void StartReceivingMessages()
+    private async Task ReceiveMessages()
     {
         var pipe = new Pipe();
 
@@ -99,72 +131,44 @@ internal class WebSocketConnection : IConnection
             while (!_webSocket.CloseStatus.HasValue && !_stopTokenSource.IsCancellationRequested)
             {
                 var buffer = pipe.Writer.GetMemory(1024 * 4);
-                try
+
+                // The cancellation token is None intentionally, see https://github.com/dotnet/runtime/issues/31566
+                var receiveResult = await _webSocket.ReceiveAsync(buffer, CancellationToken.None);
+
+                if (receiveResult.MessageType == WebSocketMessageType.Close)
                 {
-                    // The cancellation token is None intentionally, see https://github.com/dotnet/runtime/issues/31566
-                    var receiveResult = await _webSocket.ReceiveAsync(buffer, CancellationToken.None);
+                    await _webSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
+                    _receiveChannel.Writer.TryComplete();
 
-                    if (receiveResult.MessageType == WebSocketMessageType.Close)
-                    {
-                        await _webSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
-                        break;
-                    }
-
-                    pipe.Writer.Advance(receiveResult.Count);
-
-                    if (receiveResult.EndOfMessage)
-                    {
-                        await pipe.Writer.FlushAsync(CancellationToken.None);
-                        var readResult = await pipe.Reader.ReadAsync(CancellationToken.None);
-                        var readBuffer = readResult.Buffer;
-
-                        while (!readBuffer.IsEmpty && TryReadMessage(ref readBuffer, out var message))
-                            await _inputChannel.Writer.WriteAsync(message, _stopTokenSource.Token);
-
-                        pipe.Reader.AdvanceTo(readBuffer.Start, readBuffer.End);
-                    }
+                    return;
                 }
-                catch (OperationCanceledException)
+
+                pipe.Writer.Advance(receiveResult.Count);
+
+                if (receiveResult.EndOfMessage)
                 {
-                    break;
+                    await pipe.Writer.FlushAsync(CancellationToken.None);
+                    var readResult = await pipe.Reader.ReadAsync(CancellationToken.None);
+                    var readBuffer = readResult.Buffer;
+
+                    while (!readBuffer.IsEmpty && TryReadMessage(ref readBuffer, out var message))
+                    {
+                        if (!_receiveChannel.Writer.TryWrite(message))
+                        {
+                            break;
+                        }
+                    }
+
+                    pipe.Reader.AdvanceTo(readBuffer.Start, readBuffer.End);
                 }
             }
+
+            _receiveChannel.Writer.TryComplete();
         }
         catch (Exception e)
         {
-            _inputChannel.Writer.TryComplete(e);
-        }
-        finally
-        {
-            _inputChannel.Writer.TryComplete();
-            _outputChannel.Writer.TryComplete();
-        }
-    }
-
-    private async void StartSendingMessages()
-    {
-        try
-        {
-            await foreach (var message in _outputChannel.Reader.ReadAllAsync(_stopTokenSource.Token))
-            {
-                // TODO: Instead of a pooled buffer, we could have an IBufferWriter that writes directly to the websocket
-                await using var stream = new RecyclableMemoryStream(MemoryStreamManager);
-                JsonMessageSerializer.SerializeMessage(message, stream);
-
-                await _webSocket.SendAsync(
-                    new ArraySegment<byte>(stream.GetBuffer(), 0, (int)stream.Length),
-                    WebSocketMessageType.Text,
-                    WebSocketMessageFlags.EndOfMessage,
-                    _stopTokenSource.Token);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // Normal closure on our end
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Unhandled exception while sending the message: {ExceptionMessage}", e.Message);
+            _logger.LogError(e, "Exception thrown while trying to read a message from the WebSocket: {ExceptionMessage}", e.Message);
+            _receiveChannel.Writer.TryComplete();
         }
     }
 
