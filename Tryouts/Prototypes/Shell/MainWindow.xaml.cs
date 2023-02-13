@@ -45,7 +45,7 @@ namespace Shell
         {
             InitializeComponent();
 
-            config = new ManifestParser().Manifest;
+            config = ManifestParser.OpenManifestFile("exampleManifest.json");
             modules = config.Modules;
             DataContext = modules;
         }

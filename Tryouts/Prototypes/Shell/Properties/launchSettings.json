@@ -1,8 +1,7 @@
 {
   "profiles": {
     "Shell": {
-      "commandName": "Project",
-      "commandLineArgs": "--width=600 --height=900 --url=\"http://google.com\""
+      "commandName": "Project"
     }
   }
 }
