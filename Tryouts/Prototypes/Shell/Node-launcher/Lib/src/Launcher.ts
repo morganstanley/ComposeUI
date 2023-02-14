@@ -4,10 +4,6 @@ import { WindowConfig } from './WindowConfig';
 export class Launcher {
     private argsArray: string[] = [];
 
-    constructor(_config?: WindowConfig ) { 
-
-    }
-
     private processArgs(_config?: WindowConfig) {
         if (_config) {
             if (_config?.url !== undefined) {
@@ -33,7 +29,6 @@ export class Launcher {
             if (error) {
                 throw error;
             }
-            console.log(stdout);
         });
     }
 }

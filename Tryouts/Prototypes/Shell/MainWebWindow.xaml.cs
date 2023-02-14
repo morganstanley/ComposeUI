@@ -26,8 +26,8 @@ namespace Shell
         {
             InitializeComponent();
 
-            this.ParsingCommandLineArguments();
-            this.ConfigureWindow();
+            ParsingCommandLineArguments();
+            ConfigureWindow();
         }
 
         private void ParsingCommandLineArguments()
@@ -56,12 +56,12 @@ namespace Shell
 
             if (commands.ContainsKey("width"))
             {
-                this.Width = int.Parse(commands["width"]);
+                Width = int.Parse(commands["width"]);
             }
 
             if (commands.ContainsKey("height"))
             {
-                this.Height = int.Parse(commands["height"]);
+                Height = int.Parse(commands["height"]);
             }
         }
     }
