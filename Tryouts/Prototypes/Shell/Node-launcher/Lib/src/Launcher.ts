@@ -6,18 +6,18 @@ export class Launcher {
 
     private processArgs(_config?: WindowConfig) {
         if (_config) {
-            if (_config?.url !== undefined) {
+            if (_config?.url) {
                 this.argsArray.push(`--url=${_config?.url}`);
             }
        
-            if (_config?.width !== undefined) {
+            if (_config?.width) {
                 this.argsArray.push(`--width=${_config?.width}`);
             }
 
-            if (_config?.height !== undefined) {
+            if (_config?.height) {
                 this.argsArray.push(`--height=${_config?.height}`);
             }
-            if (_config?.title !== undefined) {
+            if (_config?.title) {
                 this.argsArray.push(`--title=${_config?.title}`);
             }
         }

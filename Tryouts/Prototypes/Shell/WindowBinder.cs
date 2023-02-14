@@ -31,7 +31,7 @@ namespace Shell
         protected override MainWebWindow GetBoundValue(BindingContext bindingContext) =>
             new MainWebWindow(bindingContext.ParseResult.GetValueForOption(_urlOption))
             {
-                Title = bindingContext.ParseResult.GetValueForOption(_titleOption),
+                Title = bindingContext.ParseResult.GetValueForOption(_titleOption) ?? "Compose Web Container",
                 Width = bindingContext.ParseResult.GetValueForOption(_widthOption),
                 Height = bindingContext.ParseResult.GetValueForOption(_heightOption)
             };
