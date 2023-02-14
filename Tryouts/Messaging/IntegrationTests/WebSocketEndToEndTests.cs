@@ -128,7 +128,7 @@ public class WebSocketEndToEndTests : IAsyncLifetime
 
         await callee.UnregisterEndpointAsync("test-endpoint");
 
-        await Assert.ThrowsAsync<UnknownEndpointException>(
+        await Assert.ThrowsAsync<MessageRouterException>(
             async () => await caller.InvokeAsync(
                 "test-endpoint",
                 "test-request",

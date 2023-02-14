@@ -129,7 +129,7 @@ internal sealed class MessageRouterClient : IMessageRouter
         try
         {
             if (!_endpointHandlers.TryAdd(endpoint, handler))
-                throw new DuplicateEndpointException();
+                throw ThrowHelper.DuplicateEndpoint(endpoint);
 
             return RegisterServiceCore(endpoint, descriptor, cancellationToken);
         }
@@ -158,7 +158,7 @@ internal sealed class MessageRouterClient : IMessageRouter
         Endpoint.Validate(endpoint);
 
         if (!_endpointHandlers.TryAdd(endpoint, handler))
-            throw new DuplicateEndpointException();
+            throw ThrowHelper.DuplicateEndpoint(endpoint);
 
         return ConnectAsync(cancellationToken);
     }
@@ -275,7 +275,7 @@ internal sealed class MessageRouterClient : IMessageRouter
     {
         if (message.Error != null)
         {
-            _connectTaskSource.SetException(MessageRouterException.FromProtocolError(message.Error));
+            _connectTaskSource.SetException(new MessageRouterException(message.Error));
         }
         else
         {
@@ -293,7 +293,7 @@ internal sealed class MessageRouterClient : IMessageRouter
             try
             {
                 if (!_endpointHandlers.TryGetValue(message.Endpoint, out var handler))
-                    throw new UnknownEndpointException(message.Endpoint);
+                    throw ThrowHelper.UnknownEndpoint(message.Endpoint);
 
                 var response = await handler(
                     message.Endpoint,
@@ -337,7 +337,7 @@ internal sealed class MessageRouterClient : IMessageRouter
 
         if (message.Error != null)
         {
-            tcs.SetException(MessageRouterException.FromProtocolError(message.Error));
+            tcs.SetException(new MessageRouterException(message.Error));
         }
         else
         {
@@ -645,14 +645,6 @@ internal sealed class MessageRouterClient : IMessageRouter
 
             private readonly Topic<T> _topic;
             private readonly ILogger _logger;
-        }
-    }
-
-    private static class ThrowHelper
-    {
-        public static InvalidOperationException ConnectionClosed()
-        {
-            return new InvalidOperationException("The connection has been closed");
         }
     }
 }

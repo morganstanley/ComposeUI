@@ -12,9 +12,6 @@
 
 namespace MorganStanley.ComposeUI.Messaging.Protocol;
 
-// TODO: Define well-known, language-agnostic error codes and use them consistently
-// in the Error object and in MessageRouterException
-
 /// <summary>
 ///     Represents an error that can be marshaled between Message Router clients.
 /// </summary>
@@ -30,15 +27,15 @@ public record Error
     /// <summary>
     ///     Creates a new <see cref="Error"/> object.
     /// </summary>
-    /// <param name="type">
-    ///     The type of the error. This can be any value that uniquely identifies an error type.
+    /// <param name="name">
+    ///     The name of the error. This can be any value that uniquely identifies an error.
     /// </param>
     /// <param name="message">
     ///     The error message, if any.
     /// </param>
-    public Error(string type, string? message)
+    public Error(string name, string? message)
     {
-        Type = type;
+        Name = name;
         Message = message;
     }
 
@@ -46,12 +43,15 @@ public record Error
     ///     Creates a new instance from an <see cref="Exception" /> object.
     /// </summary>
     /// <param name="exception"></param>
-    public Error(Exception exception) : this(exception.GetType().FullName ?? nameof(Exception), exception.Message) { }
+    public Error(Exception exception) : this(exception is MessageRouterException mre ? mre.Name : exception.GetType().FullName!, exception.Message) { }
 
     /// <summary>
-    ///     The type of the error. This can be any value that uniquely identifies an error type.
+    ///     The machine-friendly name of the error. This can be any value that uniquely identifies an error.
     /// </summary>
-    public string Type { get; init; } = null!;
+    /// <remarks>
+    ///     Predefined error names are kept in the <see cref="MessageRouterErrors" /> class.
+    /// </remarks>
+    public string Name { get; init; } = null!;
 
     /// <summary>
     ///     The error message, if any.
@@ -59,13 +59,13 @@ public record Error
     public string? Message { get; init; }
 
     /// <summary>
-    /// Deconstructs the object into type and message.
+    /// Deconstructs the object into name and message.
     /// </summary>
-    /// <param name="type"></param>
+    /// <param name="name"></param>
     /// <param name="message"></param>
-    public void Deconstruct(out string type, out string? message)
+    public void Deconstruct(out string name, out string? message)
     {
-        type = Type;
+        name = Name;
         message = Message;
     }
 }

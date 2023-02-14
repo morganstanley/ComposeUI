@@ -1,10 +1,12 @@
 import { PartialObserver, Unsubscribable } from "rxjs";
 import { EndpointDescriptor } from "../EndpointDescriptor";
-import { createProtocolError, DuplicateEndpointError, MessageRouterError, ThrowHelper, UnknownEndpointError } from "../exceptions";
+import { ErrorNames } from "../ErrorNames";
+import { ThrowHelper } from "../exceptions";
 import { InvokeOptions } from "../InvokeOptions";
 import { MessageBuffer } from "../MessageBuffer";
 import { MessageHandler } from "../MessageHandler";
 import { MessageRouter } from "../MessageRouter";
+import { createProtocolError, MessageRouterError } from "../MessageRouterError";
 import { MessageScope } from "../MessageScope";
 import * as messages from "../protocol/messages";
 import { PublishOptions } from "../PublishOptions";
@@ -40,7 +42,7 @@ export class MessageRouterClient implements MessageRouter {
                 return this.connected.promise;
         }
 
-        throw ThrowHelper.connectionClosed();
+        return Promise.reject(ThrowHelper.connectionClosed());
     }
 
     close(): Promise<void> {
@@ -61,6 +63,7 @@ export class MessageRouterClient implements MessageRouter {
 
     async subscribe(topicName: string, subscriber: TopicSubscriber): Promise<Unsubscribable> {
         this.checkState();
+
         let needsSubscription = false;
         let topic = this.topics[topicName];
 
@@ -86,10 +89,10 @@ export class MessageRouterClient implements MessageRouter {
         return subscription;
     }
 
-    publish(topic: string, payload?: MessageBuffer, options?: PublishOptions): Promise<void> {
-        this.checkState();
+    async publish(topic: string, payload?: MessageBuffer, options?: PublishOptions): Promise<void> {
+        await this.checkState();
 
-        return this.sendMessage<messages.PublishMessage>(
+        return await this.sendMessage<messages.PublishMessage>(
             {
                 type: "Publish",
                 topic,
@@ -119,7 +122,7 @@ export class MessageRouterClient implements MessageRouter {
         this.checkState();
 
         if (this.endpointHandlers[endpoint])
-            throw new DuplicateEndpointError({ endpoint });
+            throw ThrowHelper.duplicateEndpoint(endpoint);
 
         this.endpointHandlers[endpoint] = handler;
 
@@ -159,7 +162,7 @@ export class MessageRouterClient implements MessageRouter {
         this.checkState();
 
         if (this.endpointHandlers[endpoint])
-            throw new DuplicateEndpointError({ endpoint });
+            throw ThrowHelper.duplicateEndpoint(endpoint);
 
         this.endpointHandlers[endpoint] = handler;
 
@@ -188,18 +191,24 @@ export class MessageRouterClient implements MessageRouter {
 
     private async connectCore(): Promise<void> {
         this._state = ClientState.Connecting;
-        this.connection.onMessage((msg) => this.handleMessage(msg));
-        this.connection.onError(err => this.handleError(err));
-        this.connection.onClose(() => this.handleClose());
-        await this.connection.connect();
-
-        const req: messages.ConnectRequest = {
-            type: "Connect",
-            accessToken: this.options.accessToken
-        };
-
-        await this.connection.send(req);
-        await this.connected.promise;
+        
+        try {
+            this.connection.onMessage((msg) => this.handleMessage(msg));
+            this.connection.onError(err => this.handleError(err));
+            this.connection.onClose(() => this.handleClose());
+            await this.connection.connect();
+    
+            const req: messages.ConnectRequest = {
+                type: "Connect",
+                accessToken: this.options.accessToken
+            };
+    
+            await this.connection.send(req);
+            await this.connected.promise;
+        } catch (e: any) {
+            this._state = ClientState.Closed;
+            throw new MessageRouterError(ErrorNames.connectionFailed, e.message, e.stack);
+        }
     }
 
     private async closeCore(): Promise<void> {
@@ -286,7 +295,7 @@ export class MessageRouterClient implements MessageRouter {
             return;
 
         if (message.error) {
-            request.reject(MessageRouterError.fromProtocolError(message.error));
+            request.reject(new MessageRouterError(message.error));
         }
         else {
             request.resolve(message);
@@ -300,7 +309,7 @@ export class MessageRouterClient implements MessageRouter {
             const handler = this.endpointHandlers[message.endpoint];
 
             if (!handler)
-                throw new UnknownEndpointError({ endpoint: message.endpoint });
+                throw ThrowHelper.unknownEndpoint(message.endpoint);
 
             const result = await handler(
                 message.endpoint,
@@ -365,7 +374,7 @@ export class MessageRouterClient implements MessageRouter {
                 return Promise.resolve();
         }
 
-        return this.handleError(ThrowHelper.connectionClosed());
+        return this.handleError(ThrowHelper.connectionAborted());
     }
 
     private async unsubscribe(topicName: string): Promise<void> {

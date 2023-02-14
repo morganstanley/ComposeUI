@@ -126,7 +126,7 @@ internal class MessageRouterServer : IMessageRouterServer
 
             if (serviceClient == null)
             {
-                throw new UnknownEndpointException(message.Endpoint);
+                throw ThrowHelper.UnknownEndpoint(message.Endpoint);
             }
 
             var request = new ServiceInvocation(
@@ -136,7 +136,7 @@ internal class MessageRouterServer : IMessageRouterServer
                 serviceClient.ClientId);
 
             if (!_serviceInvocations.TryAdd(request.ServiceRequestId, request))
-                throw new DuplicateRequestIdException();
+                throw ThrowHelper.DuplicateRequestId();
 
             await serviceClient.Connection.SendAsync(
                 new InvokeRequest
@@ -225,7 +225,7 @@ internal class MessageRouterServer : IMessageRouterServer
             Endpoint.Validate(message.Endpoint);
 
             if (!_serviceRegistrations.TryAdd(message.Endpoint, client.ClientId))
-                throw new DuplicateEndpointException(message.Endpoint);
+                throw ThrowHelper.DuplicateEndpoint(message.Endpoint);
 
             await client.Connection.SendAsync(
                 new RegisterServiceResponse
