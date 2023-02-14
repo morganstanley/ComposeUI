@@ -63,6 +63,11 @@ namespace Shell
             {
                 Height = int.Parse(commands["height"]);
             }
+
+            if (commands.ContainsKey("title"))
+            {
+                Title = commands["title"];
+            }
         }
     }
 }

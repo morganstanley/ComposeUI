@@ -17,6 +17,9 @@ export class Launcher {
             if (_config?.height !== undefined) {
                 this.argsArray.push(`--height=${_config?.height}`);
             }
+            if (_config?.title !== undefined) {
+                this.argsArray.push(`--title=${_config?.title}`);
+            }
         }
     }
 

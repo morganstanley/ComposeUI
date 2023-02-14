@@ -4,6 +4,7 @@ function windowOpenExample() {
     const window = new BrowserWindow(
         {
             url: "https://github.com/morganstanley/composeui",
+            title: "My Web App",
             width: 1600,
             height: 800
         });

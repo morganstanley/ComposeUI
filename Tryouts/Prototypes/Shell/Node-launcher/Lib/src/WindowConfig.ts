@@ -1,5 +1,6 @@
 export interface WindowConfig {
-    url: string;
-    width: number;
-    height: number;
+    title?: string;
+    url?: string;
+    width?: number;
+    height?: number;
 }
