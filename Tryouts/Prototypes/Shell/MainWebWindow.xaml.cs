@@ -23,12 +23,14 @@ namespace Shell
     /// </summary>
     public partial class MainWebWindow : Window
     {
-        public string Url;
-        public MainWebWindow(string _url)
+        public MainWebWindow(MainWebWindowOptions webWindowOptions)
         {
             InitializeComponent();
-            Url = _url;
-            webView.Source = new Uri(Url ?? "about:blank");
+
+            Title = webWindowOptions.Title;
+            Width = webWindowOptions.Width;
+            Height = webWindowOptions.Height;
+            webView.Source = new Uri(webWindowOptions.Url);
         }
     }
 }
