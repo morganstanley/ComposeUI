@@ -11,6 +11,10 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.CommandLine;
+using System.IO;
+using System.CommandLine.Binding;
+using System.Security.Policy;
 
 namespace Shell
 {
@@ -19,55 +23,12 @@ namespace Shell
     /// </summary>
     public partial class MainWebWindow : Window
     {
-        private string[] commandLineArguments = (Application.Current as App).CommandLineArguments;
-        private Dictionary<string, string> commands = new Dictionary<string, string>();
-
-        public MainWebWindow()
+        public string Url;
+        public MainWebWindow(string _url)
         {
             InitializeComponent();
-
-            ParsingCommandLineArguments();
-            ConfigureWindow();
-        }
-
-        private void ParsingCommandLineArguments()
-        {
-            Array.ForEach(this.commandLineArguments, item => {
-                item = item.TrimStart('-');
-                string[] command = item.Split("=");
-
-                commands.Add(command[0], command[1]);
-            });
-        }
-
-        private void ConfigureWindow()
-        {
-            string commandLineURL;
-
-            if (commands.ContainsKey("url"))
-            {
-                commandLineURL = commands["url"];
-            }
-            else
-            {
-                commandLineURL = "about:blank";
-            }
-            webView.Source = new Uri(commandLineURL);
-
-            if (commands.ContainsKey("width"))
-            {
-                Width = int.Parse(commands["width"]);
-            }
-
-            if (commands.ContainsKey("height"))
-            {
-                Height = int.Parse(commands["height"]);
-            }
-
-            if (commands.ContainsKey("title"))
-            {
-                Title = commands["title"];
-            }
+            Url = _url;
+            webView.Source = new Uri(Url ?? "about:blank");
         }
     }
 }

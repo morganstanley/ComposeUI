@@ -36,7 +36,8 @@ namespace Shell
 
             if (CommandLineArguments.Length != 0)
             {
-                Application.Current.MainWindow = new MainWebWindow();
+                CommandLineArgumentsParser commandLineArgumentsParser = new CommandLineArgumentsParser(CommandLineArguments);
+                commandLineArgumentsParser.CreateDynamicWindowWithOptions();
                 Application.Current.MainWindow.Show();
             }
             else
