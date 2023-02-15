@@ -11,22 +11,21 @@ using System.Windows.Media.Media3D;
 
 namespace Shell
 {
-    internal class MainWebWindowOptionsParser
+    internal static class MainWebWindowOptionsParser
     {
-        private Option<string> titleOption = new Option<string>("--title", description: "Set title for window");
-        private Option<string> urlOption = new Option<string>("--url", description: "Set url for webview. default: about:blank");
-        private Option<int> widthOption = new Option<int>("--width", description: "Set width for window");
-        private Option<int> heightOption = new Option<int>("--height", description: "Set height for window");
-        private RootCommand rootCommand = new RootCommand();
+        private static Option<string?> titleOption = new Option<string?>("--title", description: "Set title for window");
+        private static Option<string?> urlOption = new Option<string?>("--url", description: "Set url for webview. default: about:blank");
+        private static Option<double?> widthOption = new Option<double?>("--width", description: "Set width for window");
+        private static Option<double?> heightOption = new Option<double?>("--height", description: "Set height for window");
+        private static RootCommand rootCommand = new RootCommand
+        {
+            titleOption,
+            urlOption,
+            widthOption,
+            heightOption
+        };
 
-        public MainWebWindowOptionsParser() {
-            rootCommand.Add(titleOption);
-            rootCommand.Add(urlOption);
-            rootCommand.Add(widthOption);
-            rootCommand.Add(heightOption);
-        }
-
-        public MainWebWindowOptions Parse(string[] args)
+        public static MainWebWindowOptions Parse(string[] args)
         {
             Parser parser = new Parser(rootCommand);
             ParseResult parseResult = parser.Parse(args);
@@ -35,8 +34,8 @@ namespace Shell
             {
                 Title = parseResult.GetValueForOption(titleOption) ?? "Compose Web Container",
                 Url = parseResult.GetValueForOption(urlOption) ?? "about:blank",
-                Width = parseResult.GetValueForOption(widthOption),
-                Height = parseResult.GetValueForOption(heightOption)
+                Width = parseResult.GetValueForOption(widthOption) ?? 800d,
+                Height = parseResult.GetValueForOption(heightOption) ?? 450d
             };
 
             return options;

@@ -8,9 +8,9 @@ namespace Shell
 {
     public sealed class MainWebWindowOptions
     {
-        public string Title { get; set; }
-        public string Url { get; set; }
-        public int Width { get; set; }
-        public int Height { get; set; }
+        public string? Title { get; set; }
+        public string? Url { get; set; }
+        public double Width { get; set; }
+        public double Height { get; set; }
     }
 }

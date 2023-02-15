@@ -36,8 +36,7 @@ namespace Shell
 
             if (CommandLineArguments.Length != 0)
             {
-                var parser = new MainWebWindowOptionsParser();
-                MainWebWindowOptions webWindowOptions = parser.Parse(CommandLineArguments);
+                MainWebWindowOptions webWindowOptions = MainWebWindowOptionsParser.Parse(CommandLineArguments);
                 Application.Current.MainWindow = new MainWebWindow(webWindowOptions);
                 Application.Current.MainWindow.Show();
             }
