@@ -28,15 +28,11 @@ namespace Shell
     /// </summary>
     public partial class App : Application
     {
-        public string[] CommandLineArguments { get; set; }
-
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            CommandLineArguments = e.Args;
-
-            if (CommandLineArguments.Length != 0)
+            if (e.Args.Length != 0)
             {
-                MainWebWindowOptions webWindowOptions = MainWebWindowOptionsParser.Parse(CommandLineArguments);
+                MainWebWindowOptions webWindowOptions = MainWebWindowOptionsParser.Parse(e.Args);
                 Application.Current.MainWindow = new MainWebWindow(webWindowOptions);
                 Application.Current.MainWindow.Show();
             }

@@ -2,30 +2,30 @@ import { execFile } from 'child_process';
 import { WindowConfig } from './WindowConfig';
 
 export class Launcher {
-    private processArgs(_config?: WindowConfig) {
+    private processArgs(config?: WindowConfig) {
         let argsArray = [];
-        if (_config) {
-            if (_config?.url) {
-                argsArray.push(`--url=${_config?.url}`);
+        if (config) {
+            if (config?.url) {
+                argsArray.push(`--url=${config?.url}`);
             }
        
-            if (_config?.width) {
-                argsArray.push(`--width=${_config?.width}`);
+            if (config?.width) {
+                argsArray.push(`--width=${config?.width}`);
             }
 
-            if (_config?.height) {
-                argsArray.push(`--height=${_config?.height}`);
+            if (config?.height) {
+                argsArray.push(`--height=${config?.height}`);
             }
-            if (_config?.title) {
-                argsArray.push(`--title=${_config?.title}`);
+            if (config?.title) {
+                argsArray.push(`--title=${config?.title}`);
             }
         }
 
         return argsArray;
     }
 
-    public launch(_config?: WindowConfig) {
-        let argsArray = this.processArgs(_config);
+    public launch(config?: WindowConfig) {
+        let argsArray = this.processArgs(config);
         //TODO replace after application is properly packaged and added to PATH
         var path = process.cwd() + "\\Tryouts\\Prototypes\\Shell\\bin\\Debug\\net6.0-windows\\";
         const child = execFile(path + "Shell.exe", argsArray, (error, stdout, stderr) => {
