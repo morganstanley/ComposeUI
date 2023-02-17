@@ -1,7 +1,6 @@
+import "jest-extended";
 import { ClientState, MessageRouterClient } from "./MessageRouterClient";
 import * as messages from "../protocol/messages";
-import "jest-extended"
-import { DuplicateEndpointError, MessageRouterError } from "../exceptions";
 import { Error } from "../protocol";
 import { MessageContext } from "../MessageContext";
 import { MessageHandler } from "../MessageHandler";
@@ -9,7 +8,8 @@ import { MessageScope } from "../MessageScope";
 import { TopicMessage } from "../TopicMessage";
 import { TopicSubscriber } from "../TopicSubscriber";
 import { Connection, OnMessageCallback, OnErrorCallback, OnCloseCallback } from "./Connection";
-import { ErrorTypes } from "../exceptions/ErrorTypes";
+import { ErrorNames } from "../ErrorNames";
+import { MessageRouterError } from "../MessageRouterError";
 
 describe("MessageRouterClient", () => {
 
@@ -31,9 +31,9 @@ describe("MessageRouterClient", () => {
 
             const client = new MessageRouterClient(connection, {});
 
-            await client.close()
+            await client.close();
 
-            await expect(async () => await action(client)).rejects.toThrow(Error);
+            await expect(action(client)).rejects.toThrowWithName(MessageRouterError, ErrorNames.connectionClosed);
         });
     }
 
@@ -70,14 +70,14 @@ describe("MessageRouterClient", () => {
                 req => connection.sendToClient<messages.ConnectResponse>({
                     type: "ConnectResponse",
                     error: {
-                        type: "Error",
+                        name: "Error",
                         message: "Connect failed"
                     }
                 }))
 
             const client = new MessageRouterClient(connection, {});
 
-            await expect(() => client.connect()).rejects.toThrow(MessageRouterError);
+            await expect(client.connect()).rejects.toThrowWithName(MessageRouterError, ErrorNames.connectionFailed);
             expect(client.state).toBe(ClientState.Closed);
 
         });
@@ -138,7 +138,7 @@ describe("MessageRouterClient", () => {
 
             await client.close();
 
-            expect(invokePromise).rejects.toThrow(Error);
+            await expect(invokePromise).rejects.toThrowWithName(MessageRouterError, ErrorNames.connectionClosed);
         });
 
 
@@ -344,10 +344,9 @@ describe("MessageRouterClient", () => {
 
     describe("invoke", () => {
 
-        it_throws_if_previously_closed(
-            async client => {
-                await client.invoke("test-endpoint");
-            });
+        it_throws_if_previously_closed(async client => {
+            await client.invoke("test-endpoint");
+        });
 
         it("sends an InvokeRequest with the provided arguments and waits for the response", async () => {
 
@@ -398,7 +397,7 @@ describe("MessageRouterClient", () => {
                 }));
         });
 
-        it("throws DuplicateEndpointError if the endpoint is already registered", async () => {
+        it("throws DuplicateEndpoint if the endpoint is already registered", async () => {
 
             const client = new MessageRouterClient(connection, {});
 
@@ -408,17 +407,17 @@ describe("MessageRouterClient", () => {
 
             await client.registerService("test-service", () => { });
 
-            await expect(() => client.registerService("test-service", () => { })).rejects.toThrow(DuplicateEndpointError);
+            await expect(client.registerService("test-service", () => { })).rejects.toThrowWithName(MessageRouterError, ErrorNames.duplicateEndpoint);
         });
 
-        it("throws DuplicateEndpointError from the error response", async () => {
+        it("throws DuplicateEndpoint from the error response", async () => {
 
             const client = new MessageRouterClient(connection, {});
             connection.handle<messages.RegisterServiceRequest>(
                 "RegisterService",
-                msg => connection.sendToClient<messages.RegisterServiceResponse>({ type: "RegisterServiceResponse", requestId: msg.requestId, error: { type: ErrorTypes.duplicateEndpoint }, }));
+                msg => connection.sendToClient<messages.RegisterServiceResponse>({ type: "RegisterServiceResponse", requestId: msg.requestId, error: { name: ErrorNames.duplicateEndpoint }, }));
 
-            await expect(() => client.registerService("test-service", () => { })).rejects.toThrow(DuplicateEndpointError);
+            await expect(client.registerService("test-service", () => { })).rejects.toThrowWithName(MessageRouterError, ErrorNames.duplicateEndpoint);
         });
     });
 
@@ -525,7 +524,7 @@ describe("MessageRouterClient", () => {
                     type: "InvokeResponse",
                     requestId: "1",
                     error: expect.objectContaining(<Error>{
-                        type: "Error",
+                        name: "Error",
                         message: "Epic fail"
                     })
                 })
@@ -551,7 +550,7 @@ describe("MessageRouterClient", () => {
                     type: "InvokeResponse",
                     requestId: "1",
                     error: expect.objectContaining(<Error>{
-                        type: ErrorTypes.unknownEndpoint,
+                        name: ErrorNames.unknownEndpoint,
                     })
                 })
             );
@@ -579,7 +578,7 @@ describe("MessageRouterClient", () => {
                 error: jest.fn()
             };
             await client.subscribe("test-topic", subscriber);
-
+            await new Promise(process.nextTick);
             connection.raiseClose();
             await new Promise(process.nextTick);
 
@@ -589,13 +588,12 @@ describe("MessageRouterClient", () => {
         it("fails pending requests", async () => {
 
             const client = new MessageRouterClient(connection, {});
-
             const invokePromise = client.invoke("test-service");
-
+            await new Promise(process.nextTick);
             connection.raiseClose();
             await new Promise(process.nextTick);
 
-            expect(invokePromise).rejects.toThrow(Error);
+            expect(invokePromise).rejects.toThrowWithName(MessageRouterError, ErrorNames.connectionAborted);
         });
 
     })
