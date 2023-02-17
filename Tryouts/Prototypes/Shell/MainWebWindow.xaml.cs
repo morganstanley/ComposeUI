@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.CommandLine;
 using System.IO;
+using System.CommandLine.Binding;
 using System.Security.Policy;
 
 namespace Shell
@@ -26,10 +27,10 @@ namespace Shell
         {
             InitializeComponent();
 
-            Title = webWindowOptions.Title ?? webWindowOptions.DefaultTitle;
-            Width = webWindowOptions.Width ?? webWindowOptions.DefaultWidth;
-            Height = webWindowOptions.Height ?? webWindowOptions.DefaultHeight;
-            webView.Source = new Uri(webWindowOptions.Url ?? webWindowOptions.DefaultUrl);
+            Title = webWindowOptions.Title ?? MainWebWindowOptions.DefaultTitle;
+            Width = webWindowOptions.Width ?? MainWebWindowOptions.DefaultWidth;
+            Height = webWindowOptions.Height ?? MainWebWindowOptions.DefaultHeight;
+            webView.Source = new Uri(webWindowOptions.Url ?? MainWebWindowOptions.DefaultUrl);
         }
     }
 }

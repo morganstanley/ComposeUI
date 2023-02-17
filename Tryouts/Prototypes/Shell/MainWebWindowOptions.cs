@@ -13,9 +13,9 @@ namespace Shell
         public string? Url { get; set; }
         public double? Width { get; set; }
 
-        public double DefaultHeight { get; set; } = 450d;
-        public string? DefaultTitle { get; set; } = "Compose Web Container";
-        public string? DefaultUrl { get; set; } = "about:blank";
-        public double DefaultWidth { get; set; } = 800d;
+        public const double DefaultHeight = 450d;
+        public const string? DefaultTitle = "Compose Web Container";
+        public const string? DefaultUrl = "about:blank";
+        public const double DefaultWidth = 800d;
     }
 }
