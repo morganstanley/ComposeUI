@@ -28,6 +28,19 @@ namespace Shell
     /// </summary>
     public partial class App : Application
     {
-        
+        private void Application_Startup(object sender, StartupEventArgs e)
+        {
+            if (e.Args.Length != 0)
+            {
+                MainWebWindowOptions webWindowOptions = MainWebWindowOptionsParser.Parse(e.Args);
+                Application.Current.MainWindow = new MainWebWindow(webWindowOptions);
+                Application.Current.MainWindow.Show();
+            }
+            else
+            {
+                Application.Current.MainWindow = new MainWindow();
+                Application.Current.MainWindow.Show();
+            }
+        }
     }
 }

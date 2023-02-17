@@ -9,15 +9,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="MainWebWindow.xaml" />
     <None Remove="MainWindow.xaml" />
     <None Remove="WebContent.xaml" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1462.37" />
+	<PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
   </ItemGroup>
 
   <ItemGroup>
+    <Page Include="MainWebWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml" />
     <Page Include="WebContent.xaml">
       <Generator>MSBuild:Compile</Generator>

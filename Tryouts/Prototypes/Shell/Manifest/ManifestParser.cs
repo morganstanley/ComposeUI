@@ -20,26 +20,28 @@ using System.Text;
 using System.Text.Json;
 using System.Windows.Automation;
 using System.Windows.Controls.Primitives;
+using System.Windows.Documents;
 
 namespace Manifest
 {
-    internal class ManifestParser
+    internal static class  ManifestParser
     {
-        internal ManifestModel Manifest { get; set; }
+        internal static ManifestModel Manifest { get; set; }
 
-        public ManifestParser()
+        public static  ManifestModel OpenManifestFile(string fileName)
         {
-            OpenManifestFile("./Manifest/exampleManifest.json");
-        }
+            string processPath = Environment.ProcessPath;
+            string folder = Path.GetDirectoryName(processPath);
+            string path = Path.Combine(folder, @"Manifest\", fileName);
 
-        public async void OpenManifestFile(string manifestFile)
-        {
-             using (FileStream stream = File.Open(manifestFile, FileMode.Open))
-             {
+            using (FileStream stream = File.Open(path, FileMode.Open))
+            {
                  Manifest = JsonSerializer.Deserialize<ManifestModel>(stream, ManifestModel.JsonSerializerOptions);
 
                  stream.Close();
-             }
+            }
+
+            return Manifest;
         }
     }
 }

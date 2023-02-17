@@ -1,0 +1,22 @@
+{
+  "name": "@morgan-stanley/compose-node-launcher-example",
+  "version": "0.1.0",
+  "description": "",
+  "main": "example.js",
+  "module": "example.js",
+  "type": "module",
+  "scripts": {
+    "clean": "rimraf output",
+    "build": "npm run clean && rollup -c"
+  },
+  "dependencies": {
+    "@morgan-stanley/compose-node-launcher": "*"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.0.1",
+    "rimraf": "4.1.2",
+    "rollup": "^2.76.0",
+    "tslib": "^2.4.0",
+    "typescript": "^4.7.4"
+  }
+}

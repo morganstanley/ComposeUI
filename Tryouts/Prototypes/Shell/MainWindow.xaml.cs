@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -44,7 +45,7 @@ namespace Shell
         {
             InitializeComponent();
 
-            config = new ManifestParser().Manifest;
+            config = ManifestParser.OpenManifestFile("exampleManifest.json");
             modules = config.Modules;
             DataContext = modules;
         }
@@ -64,14 +65,14 @@ namespace Shell
 
         private void WebContent_Closed(object? sender, EventArgs e)
         {
-            webContentList.Remove(sender as WebContent);
+            webContentList.Remove((WebContent)sender);
         }
         
         private void ShowChild_Click(object sender, RoutedEventArgs e)
         {
-            var context = (sender as Button).DataContext;
+            var context = ((Button)sender).DataContext;
             
-            this.CreateViews((context as ModuleModel));
+            CreateViews((ModuleModel)context);
         }
     }
 }
