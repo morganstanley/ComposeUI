@@ -26,13 +26,16 @@ export class Launcher {
 
     public launch(config?: WindowConfig) {
         let argsArray = this.processArgs(config);
-        //TODO replace after application is properly packaged and added to PATH
-        var path = process.cwd() + "\\Tryouts\\Prototypes\\Shell\\bin\\Debug\\net6.0-windows\\";
-        const child = execFile(path + "Shell.exe", argsArray, (error, stdout, stderr) => {
-            console.log(stdout);
-            if (error) {
-                throw error;
-            }
-        });
+
+        if (argsArray.length === 0) {
+            throw new Error("Specify at least one argument.");
+        } else {
+            const child = execFile("Shell.exe", argsArray, (error, stdout, stderr) => {
+                console.log(stdout);
+                if (error) {
+                    throw error;
+                }
+            });
+        }
     }
 }
