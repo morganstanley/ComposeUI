@@ -30,10 +30,10 @@ public static class Endpoint
     /// Throws an exception if the provided string is not a valid endpoint name.
     /// </summary>
     /// <param name="endpoint"></param>
-    /// <exception cref="InvalidEndpointException"></exception>
+    /// <exception cref="MessageRouterException">The specified endpoint name is invalid</exception>
     public static void Validate(string endpoint)
     {
         if (!IsValidEndpoint(endpoint))
-            throw new InvalidEndpointException(endpoint);
+            throw ThrowHelper.InvalidEndpoint(endpoint);
     }
 }

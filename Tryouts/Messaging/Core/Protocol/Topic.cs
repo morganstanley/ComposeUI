@@ -24,12 +24,18 @@ public static class Topic
     /// </summary>
     /// <param name="topic"></param>
     /// <returns></returns>
+    /// <exception cref="MessageRouterException">The specified topic name is invalid</exception>
     public static bool IsValidTopicName(string topic) => !string.IsNullOrWhiteSpace(topic);
 
+    /// <summary>
+    /// Throws an exception if the provided string is not a valid topic name.
+    /// </summary>
+    /// <param name="topic"></param>
+    /// <exception cref="MessageRouterException"></exception>
     public static void Validate(string topic)
     {
         if (!IsValidTopicName(topic))
-            throw new InvalidTopicException(topic);
+            throw ThrowHelper.InvalidTopic(topic);
     }
 
 }

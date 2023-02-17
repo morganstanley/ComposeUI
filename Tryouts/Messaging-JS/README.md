@@ -17,5 +17,3 @@ If using VS Code, install the [Yarn VS Code SDK](https://yarnpkg.com/getting-sta
 ```
 yarn dlx @yarnpkg/sdks vscode
 ```
-
-
