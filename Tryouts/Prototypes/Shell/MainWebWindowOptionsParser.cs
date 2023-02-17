@@ -32,10 +32,10 @@ namespace Shell
 
             MainWebWindowOptions options = new MainWebWindowOptions
             {
-                Title = parseResult.GetValueForOption(titleOption) ?? "Compose Web Container",
-                Url = parseResult.GetValueForOption(urlOption) ?? "about:blank",
-                Width = parseResult.GetValueForOption(widthOption) ?? 800d,
-                Height = parseResult.GetValueForOption(heightOption) ?? 450d
+                Title = parseResult.GetValueForOption(titleOption),
+                Url = parseResult.GetValueForOption(urlOption),
+                Width = parseResult.GetValueForOption(widthOption),
+                Height = parseResult.GetValueForOption(heightOption)
             };
 
             return options;

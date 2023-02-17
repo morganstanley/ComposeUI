@@ -15,6 +15,9 @@ using System.CommandLine;
 using System.IO;
 using System.CommandLine.Binding;
 using System.Security.Policy;
+using Microsoft.VisualBasic.FileIO;
+using System.CommandLine.Parsing;
+using System.Windows.Media.Media3D;
 
 namespace Shell
 {
@@ -27,10 +30,10 @@ namespace Shell
         {
             InitializeComponent();
 
-            Title = webWindowOptions.Title;
-            Width = webWindowOptions.Width;
-            Height = webWindowOptions.Height;
-            webView.Source = new Uri(webWindowOptions.Url);
+            Title = webWindowOptions.Title ?? webWindowOptions.DefaultTitle;
+            Width = webWindowOptions.Width ?? webWindowOptions.DefaultWidth;
+            Height = webWindowOptions.Height ?? webWindowOptions.DefaultHeight;
+            webView.Source = new Uri(webWindowOptions.Url ?? webWindowOptions.DefaultUrl);
         }
     }
 }
