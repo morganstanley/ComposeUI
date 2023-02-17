@@ -13,11 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.CommandLine;
 using System.IO;
-using System.CommandLine.Binding;
 using System.Security.Policy;
-using Microsoft.VisualBasic.FileIO;
-using System.CommandLine.Parsing;
-using System.Windows.Media.Media3D;
 
 namespace Shell
 {

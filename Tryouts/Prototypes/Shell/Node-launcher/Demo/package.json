@@ -7,8 +7,7 @@
   "type": "module",
   "scripts": {
     "clean": "rimraf output",
-    "build": "npm run clean && rollup -c",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npm run clean && rollup -c"
   },
   "dependencies": {
     "@morgan-stanley/compose-node-launcher": "*"
