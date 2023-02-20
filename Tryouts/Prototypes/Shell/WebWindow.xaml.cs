@@ -5,18 +5,18 @@ using Microsoft.Web.WebView2.Core;
 namespace Shell
 {
     /// <summary>
-    /// Interaction logic for MainWebWindow.xaml
+    /// Interaction logic for WebWindow.xaml
     /// </summary>
-    public partial class MainWebWindow : Window
+    public partial class WebWindow : Window
     {
-        public MainWebWindow(MainWebWindowOptions webWindowOptions)
+        public WebWindow(WebWindowOptions webWindowOptions)
         {
             InitializeComponent();
 
-            Title = webWindowOptions.Title ?? MainWebWindowOptions.DefaultTitle;
-            Width = webWindowOptions.Width ?? MainWebWindowOptions.DefaultWidth;
-            Height = webWindowOptions.Height ?? MainWebWindowOptions.DefaultHeight;
-            webView.Source = new Uri(webWindowOptions.Url ?? MainWebWindowOptions.DefaultUrl);
+            Title = webWindowOptions.Title ?? WebWindowOptions.DefaultTitle;
+            Width = webWindowOptions.Width ?? WebWindowOptions.DefaultWidth;
+            Height = webWindowOptions.Height ?? WebWindowOptions.DefaultHeight;
+            webView.Source = new Uri(webWindowOptions.Url ?? WebWindowOptions.DefaultUrl);
 
             webView.CoreWebView2InitializationCompleted += (sender, args) =>
             {
@@ -31,7 +31,7 @@ namespace Shell
         {
             e.Handled = true;
             var deferral = e.GetDeferral();
-            var windowOptions = new MainWebWindowOptions { Url = e.Uri };
+            var windowOptions = new WebWindowOptions { Url = e.Uri };
             
             if (e.WindowFeatures.HasSize)
             {
@@ -39,7 +39,7 @@ namespace Shell
                 windowOptions.Height = e.WindowFeatures.Height;
             }
 
-            var window = new MainWebWindow(windowOptions);
+            var window = new WebWindow(windowOptions);
             window.Show();
             await window.webView.EnsureCoreWebView2Async();
             e.NewWindow = window.webView.CoreWebView2;
