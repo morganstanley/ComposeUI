@@ -13,6 +13,7 @@
 //  */
 
 using Manifest;
+using Shell.ImageSource;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -37,41 +38,46 @@ namespace Shell
     /// </summary>
     public partial class MainWindow : Window
     {
-        internal List<WebContent> webContentList { get; set; } = new List<WebContent>();
-        private ManifestModel config;
-        private ModuleModel[]? modules;
+        internal List<WebContent> WebContentList { get; set; } = new List<WebContent>();
+        private ManifestModel _config;
+        private ModuleModel[]? _modules;
+        private ImageSourceProvider _iconProvider = new ImageSourceProvider(new EnvironmentImageSourcePolicy());
 
         public MainWindow()
         {
             InitializeComponent();
 
-            config = ManifestParser.OpenManifestFile("exampleManifest.json");
-            modules = config.Modules;
-            DataContext = modules;
+            _config = ManifestParser.OpenManifestFile("exampleManifest.json");
+            _modules = _config.Modules;
+            DataContext = _modules;
         }
 
-        private void CreateViews(ModuleModel item) 
+        private void CreateViews(ModuleModel item)
         {
-            var webContent = new WebContent(item.Url);
-            webContent.Title = item.AppName;
+            var opt = new WebContentOptions()
+            {
+                Title = item.AppName,
+                Uri = new Uri(item.Url),
+                IconUri = string.IsNullOrEmpty(item.IconUrl) ? null : new Uri(item.IconUrl)
+            };
 
+            var webContent = new WebContent(opt, _iconProvider);            
             webContent.Owner = this;
-
             webContent.Closed += WebContent_Closed;
-            
-            webContentList.Add(webContent);
+
+            WebContentList.Add(webContent);
             webContent.Show();
         }
 
         private void WebContent_Closed(object? sender, EventArgs e)
         {
-            webContentList.Remove((WebContent)sender);
+            WebContentList.Remove((WebContent)sender);
         }
-        
+
         private void ShowChild_Click(object sender, RoutedEventArgs e)
         {
             var context = ((Button)sender).DataContext;
-            
+
             CreateViews((ModuleModel)context);
         }
     }
