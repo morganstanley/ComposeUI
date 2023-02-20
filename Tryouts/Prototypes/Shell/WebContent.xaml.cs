@@ -12,21 +12,9 @@
 //  * and limitations under the License.
 //  */
 
+using Shell.ImageSource;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Shell
 {
@@ -35,11 +23,17 @@ namespace Shell
     /// </summary>
     public partial class WebContent : Window
     {
-        public WebContent(string str)
+        public WebContent(WebContentOptions options, ImageSourceProvider iconProvider)
         {
             InitializeComponent();
 
-            webView.Source = new Uri(str);
+            webView.Source = options.Uri;
+            this.Title = options.Title;
+            if (options.IconUri != null)
+            {
+                this.Icon = iconProvider.GetImageSource(options.IconUri, options.Uri);
+            }
+
         }
     }
 }

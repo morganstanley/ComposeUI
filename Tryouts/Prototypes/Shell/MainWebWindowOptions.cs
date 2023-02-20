@@ -11,6 +11,7 @@ namespace Shell
         public double? Height { get; set; }
         public string? Title { get; set; }
         public string? Url { get; set; }
+        public string? IconUrl { get; set; }
         public double? Width { get; set; }
 
         public const double DefaultHeight = 450d;
