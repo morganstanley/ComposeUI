@@ -29,6 +29,10 @@
     <None Update="Manifest\exampleManifest.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Utilities\" />
   </ItemGroup> 
 
 </Project>

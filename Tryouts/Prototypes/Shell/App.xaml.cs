@@ -13,6 +13,7 @@
 //  */
 
 using System.Windows;
+using Shell.Utilities;
 
 namespace Shell
 {
@@ -23,18 +24,22 @@ namespace Shell
     {
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            if (e.Args.Length != 0)
+            if (e.Args.Length != 0 && CommandLineParser.TryParse<WebWindowOptions>(e.Args, out var webWindowOptions))
             {
-                var webWindowOptions = WebWindowOptionsParser.Parse(e.Args);
-                var webWindow = new WebWindow(webWindowOptions);
-                Application.Current.ShutdownMode = ShutdownMode.OnLastWindowClose;
-                webWindow.Show();
+                StartWithWebWindowOptions(webWindowOptions);
+
+                return;
             }
-            else
-            {
-                Application.Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
-                new MainWindow().Show();
-            }
+
+            Application.Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
+            new MainWindow().Show();
+        }
+
+        private void StartWithWebWindowOptions(WebWindowOptions options)
+        {
+            var webWindow = new WebWindow(options);
+            Application.Current.ShutdownMode = ShutdownMode.OnLastWindowClose;
+            webWindow.Show();
         }
     }
 }

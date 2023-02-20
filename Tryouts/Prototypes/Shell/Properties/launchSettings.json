@@ -1,7 +1,8 @@
 {
   "profiles": {
     "Shell": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "--url \"https://google.com\" --width 1600 --height 900 --title \"Compose Demo\""
     }
   }
 }
