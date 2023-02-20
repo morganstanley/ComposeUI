@@ -12,13 +12,6 @@
 //  * and limitations under the License.
 //  */
 
-using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace Shell
@@ -32,14 +25,15 @@ namespace Shell
         {
             if (e.Args.Length != 0)
             {
-                MainWebWindowOptions webWindowOptions = MainWebWindowOptionsParser.Parse(e.Args);
-                Application.Current.MainWindow = new MainWebWindow(webWindowOptions);
-                Application.Current.MainWindow.Show();
+                var webWindowOptions = WebWindowOptionsParser.Parse(e.Args);
+                var webWindow = new WebWindow(webWindowOptions);
+                Application.Current.ShutdownMode = ShutdownMode.OnLastWindowClose;
+                webWindow.Show();
             }
             else
             {
-                Application.Current.MainWindow = new MainWindow();
-                Application.Current.MainWindow.Show();
+                Application.Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
+                new MainWindow().Show();
             }
         }
     }
