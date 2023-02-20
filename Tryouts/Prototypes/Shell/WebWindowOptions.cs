@@ -13,7 +13,7 @@ namespace Shell
         [Display(Description = $"Set the url for the web view. Default: {DefaultUrl}")]
         public string? Url { get; set; }
 
-        [Display(Description = $"Set the icon url for the window.")]
+        [Display(Name = "icon", Description = $"Set the icon url for the window.")]
         public string? IconUrl { get; set; }
 
         [Display(Description = $"Set the width of the window. Default: 800")]

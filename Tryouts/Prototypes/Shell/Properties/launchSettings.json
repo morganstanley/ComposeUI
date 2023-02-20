@@ -2,7 +2,7 @@
   "profiles": {
     "Shell": {
       "commandName": "Project",
-      "commandLineArgs": "--url \"https://google.com\" --width 1600 --height 900 --title \"Compose Demo\""
+      "commandLineArgs": "--title Jane --width 1800 --height 800 --url http://www.google.com --icon /images/branding/googleg/1x/googleg_standard_color_128dp.png"
     }
   }
 }

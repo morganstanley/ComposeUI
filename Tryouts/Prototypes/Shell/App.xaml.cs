@@ -24,7 +24,9 @@ namespace Shell
     {
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            if (e.Args.Length != 0 && CommandLineParser.TryParse<WebWindowOptions>(e.Args, out var webWindowOptions))
+            if (e.Args.Length != 0
+                && CommandLineParser.TryParse<WebWindowOptions>(e.Args, out var webWindowOptions)
+                && webWindowOptions.Url != null)
             {
                 StartWithWebWindowOptions(webWindowOptions);
 

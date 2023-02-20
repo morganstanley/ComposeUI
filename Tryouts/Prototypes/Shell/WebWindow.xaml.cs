@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows;
 using Microsoft.Web.WebView2.Core;
+using Shell.ImageSource;
 
 namespace Shell
 {
@@ -17,6 +18,7 @@ namespace Shell
             Width = webWindowOptions.Width ?? WebWindowOptions.DefaultWidth;
             Height = webWindowOptions.Height ?? WebWindowOptions.DefaultHeight;
             webView.Source = new Uri(webWindowOptions.Url ?? WebWindowOptions.DefaultUrl);
+            TrySetIconUrl(webWindowOptions);
 
             webView.CoreWebView2InitializationCompleted += (sender, args) =>
             {
@@ -25,6 +27,23 @@ namespace Shell
                     webView.CoreWebView2.NewWindowRequested += (sender, args) => OnNewWindowRequested(args);
                 }
             };
+        }
+
+        private readonly ImageSourceProvider _iconProvider = new ImageSourceProvider(new EnvironmentImageSourcePolicy());
+
+        private void TrySetIconUrl(WebWindowOptions webWindowOptions)
+        {
+            if (webWindowOptions.IconUrl == null)
+                return;
+
+            // TODO: What's the default URL if the app is running from a manifest? We should probably not allow relative urls in that case.
+            var appUrl = new Uri(webWindowOptions.Url ?? WebWindowOptions.DefaultUrl);
+            var iconUrl = webWindowOptions.IconUrl != null ? new Uri(webWindowOptions.IconUrl, UriKind.RelativeOrAbsolute) : null;
+
+            if (iconUrl != null)
+            {
+                Icon = _iconProvider.GetImageSource(iconUrl, appUrl);
+            }
         }
 
         private async void OnNewWindowRequested(CoreWebView2NewWindowRequestedEventArgs e)
