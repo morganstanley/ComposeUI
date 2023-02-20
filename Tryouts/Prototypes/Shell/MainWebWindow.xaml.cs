@@ -1,20 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using System.CommandLine;
-using System.IO;
-using System.CommandLine.Binding;
-using System.Security.Policy;
+using Microsoft.Web.WebView2.Core;
 
 namespace Shell
 {
@@ -31,6 +17,33 @@ namespace Shell
             Width = webWindowOptions.Width ?? MainWebWindowOptions.DefaultWidth;
             Height = webWindowOptions.Height ?? MainWebWindowOptions.DefaultHeight;
             webView.Source = new Uri(webWindowOptions.Url ?? MainWebWindowOptions.DefaultUrl);
+
+            webView.CoreWebView2InitializationCompleted += (sender, args) =>
+            {
+                if (args.IsSuccess)
+                {
+                    webView.CoreWebView2.NewWindowRequested += (sender, args) => OnNewWindowRequested(args);
+                }
+            };
+        }
+
+        private async void OnNewWindowRequested(CoreWebView2NewWindowRequestedEventArgs e)
+        {
+            e.Handled = true;
+            var deferral = e.GetDeferral();
+            var windowOptions = new MainWebWindowOptions { Url = e.Uri };
+            
+            if (e.WindowFeatures.HasSize)
+            {
+                windowOptions.Width = e.WindowFeatures.Width;
+                windowOptions.Height = e.WindowFeatures.Height;
+            }
+
+            var window = new MainWebWindow(windowOptions);
+            window.Show();
+            await window.webView.EnsureCoreWebView2Async();
+            e.NewWindow = window.webView.CoreWebView2;
+            deferral.Complete();
         }
     }
 }
