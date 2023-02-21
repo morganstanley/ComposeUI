@@ -31,6 +31,17 @@ public class MessageRouterException : Exception
     }
 
     /// <summary>
+    /// Creates a new instance of <see cref="MessageRouterException"/> with the provided error name, message and inner exception.
+    /// </summary>
+    /// <param name="name"></param>
+    /// <param name="message"></param>
+    /// <param name="innerException"></param>
+    public MessageRouterException(string name, string message, Exception innerException) : base(message, innerException)
+    {
+        Name = name;
+    }
+
+    /// <summary>
     /// Creates a new instance of <see cref="MessageRouterException"/> from the provided <see cref="Error"/> object.
     /// </summary>
     /// <param name="error"></param>

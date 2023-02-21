@@ -13,14 +13,8 @@
 //  */
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Security.Policy;
-using System.Text;
 using System.Text.Json;
-using System.Windows.Automation;
-using System.Windows.Controls.Primitives;
-using System.Windows.Documents;
 
 namespace Manifest
 {

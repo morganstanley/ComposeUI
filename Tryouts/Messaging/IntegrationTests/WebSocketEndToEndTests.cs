@@ -10,12 +10,10 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using System.Reactive;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
-using MorganStanley.ComposeUI.Messaging.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 using Nito.AsyncEx;
 

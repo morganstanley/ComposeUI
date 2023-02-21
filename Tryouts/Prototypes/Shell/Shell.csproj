@@ -9,10 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="MainWebWindow.xaml" />
     <None Remove="MainWindow.xaml" />
     <None Remove="Node-launcher\Lib\bin\cli.js" />
-    <None Remove="WebContent.xaml" />
+    <None Remove="WebWindow.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,19 +24,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Page Include="MainWebWindow.xaml">
+    <Page Include="WebWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="MainWindow.xaml" />
-    <Page Include="WebContent.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
 
   <ItemGroup>
     <None Update="Manifest\exampleManifest.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Utilities\" />
   </ItemGroup> 
 
 </Project>
