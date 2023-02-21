@@ -10,12 +10,7 @@
 
   <ItemGroup>
     <None Remove="MainWindow.xaml" />
-    <None Remove="Node-launcher\Lib\bin\cli.js" />
     <None Remove="WebWindow.xaml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="Node-launcher\Lib\cli\cli.js" />
   </ItemGroup>
 
   <ItemGroup>
