@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Navigation demo</title>
+</head>
+
+<body>
+    <script>
+
+        let popup;
+
+        function getPopupUrl(content) {
+            return "popup.html?" + encodeURIComponent(content);
+        }
+
+        function showPopup() {
+            const content = document.getElementById("popupContent").value;
+            console.log(`Opening new window with content '${content}'`);
+            
+            if (popup && !popup.closed) {
+                popup.location = getPopupUrl(content);
+            }
+            else {
+                popup = window.open(getPopupUrl(content));
+            }
+        }
+    </script>
+    <div>
+        <form onsubmit="showPopup(); return false;">
+            <input type="text" id="popupContent"></input>
+            <button>Open</button>
+        </form>
+    </div>
+</body>
+
+</html>
