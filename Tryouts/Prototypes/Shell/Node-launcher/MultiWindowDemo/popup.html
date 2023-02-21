@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>title</title>
+</head>
+<body>
+    <script>
+
+        window.onload = ev => {
+            const content = window.location.search.substring(1);
+            console.log(`Setting content to ${content}`);
+            document.getElementById("content").textContent = content;
+        }
+        
+    </script>
+    <div>
+        <span id="content"></span>
+    </div>
+    <div>
+        <button onclick="window.close()">Close window</button>
+    </div>
+</body>
+</html>
