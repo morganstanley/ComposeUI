@@ -12,24 +12,11 @@
 //  * and limitations under the License.
 //  */
 
-using Manifest;
-using Shell.ImageSource;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using Manifest;
 
 namespace Shell
 {
@@ -38,47 +25,45 @@ namespace Shell
     /// </summary>
     public partial class MainWindow : Window
     {
-        internal List<WebContent> WebContentList { get; set; } = new List<WebContent>();
-        private ManifestModel _config;
-        private ModuleModel[]? _modules;
-        private ImageSourceProvider _iconProvider = new ImageSourceProvider(new EnvironmentImageSourcePolicy());
+        internal List<WebWindow> webWindows { get; set; } = new List<WebWindow>();
+        private ManifestModel config;
+        private ModuleModel[]? modules;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            _config = ManifestParser.OpenManifestFile("exampleManifest.json");
-            _modules = _config.Modules;
-            DataContext = _modules;
+            config = ManifestParser.OpenManifestFile("exampleManifest.json");
+            modules = config.Modules;
+            DataContext = modules;
         }
 
-        private void CreateViews(ModuleModel item)
+        private void CreateWebWindow(ModuleModel item)
         {
-            var opt = new WebContentOptions()
+            var options = new WebWindowOptions
             {
                 Title = item.AppName,
-                Uri = new Uri(item.Url),
-                IconUri = string.IsNullOrEmpty(item.IconUrl) ? null : new Uri(item.IconUrl)
+                Url = item.Url,
+                IconUrl = item.IconUrl
             };
 
-            var webContent = new WebContent(opt, _iconProvider);            
-            webContent.Owner = this;
-            webContent.Closed += WebContent_Closed;
-
-            WebContentList.Add(webContent);
-            webContent.Show();
+            var webWindow = new WebWindow(options);
+            webWindow.Owner = this;
+            webWindow.Closed += WebWindowClosed;
+            webWindows.Add(webWindow);
+            webWindow.Show();
         }
 
-        private void WebContent_Closed(object? sender, EventArgs e)
+        private void WebWindowClosed(object? sender, EventArgs e)
         {
-            WebContentList.Remove((WebContent)sender);
+            webWindows.Remove((WebWindow)sender!);
         }
-
+        
         private void ShowChild_Click(object sender, RoutedEventArgs e)
         {
             var context = ((Button)sender).DataContext;
-
-            CreateViews((ModuleModel)context);
+            
+            CreateWebWindow((ModuleModel)context);
         }
     }
 }
