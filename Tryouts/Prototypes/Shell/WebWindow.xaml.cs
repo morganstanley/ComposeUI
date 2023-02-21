@@ -25,8 +25,16 @@ namespace Shell
                 if (args.IsSuccess)
                 {
                     webView.CoreWebView2.NewWindowRequested += (sender, args) => OnNewWindowRequested(args);
+                    webView.CoreWebView2.WindowCloseRequested += (sender, args) => OnWindowCloseRequested(args);
                 }
             };
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+            this.RemoveLogicalChild(webView);
+            webView.Dispose();
         }
 
         private readonly ImageSourceProvider _iconProvider = new ImageSourceProvider(new EnvironmentImageSourcePolicy());
@@ -63,6 +71,11 @@ namespace Shell
             await window.webView.EnsureCoreWebView2Async();
             e.NewWindow = window.webView.CoreWebView2;
             deferral.Complete();
+        }
+
+        private void OnWindowCloseRequested(object args)
+        {
+            this.Close();
         }
     }
 }
