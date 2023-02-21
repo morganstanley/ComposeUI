@@ -41,7 +41,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
   </ItemGroup>
   <ItemGroup>
 	  <ProjectReference Include="..\..\Core\Abstractions\MorganStanley.ComposeUI.Tryouts.Core.Abstractions.csproj" />
-	  <ProjectReference Include="..\..\Core\BasicModels\MorganStanley.ComposeUI.Tryouts.Core.BasicModels.csproj" />
 	  <ProjectReference Include="..\..\Core\Services\ModulesService\MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService.csproj" />
 	  <ProjectReference Include="..\..\Core\Utilities\MorganStanley.ComposeUI.Tryouts.Core.Utilities.csproj" />
 	  <ProjectReference Include="..\..\Messaging\Client\MorganStanley.ComposeUI.Messaging.Client.csproj" />
