@@ -14,7 +14,6 @@ using System.Net.WebSockets;
 using FluentAssertions.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using MorganStanley.ComposeUI.Messaging.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 using MorganStanley.ComposeUI.Messaging.TestUtils;
 
