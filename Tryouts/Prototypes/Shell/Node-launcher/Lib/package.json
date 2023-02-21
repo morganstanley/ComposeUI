@@ -9,6 +9,9 @@
     "clean": "rimraf output",
     "build": "npm run clean && tsc && rollup -c"
   },
+  "bin": {
+    "composeui-cli": "./cli/cli.js"
+  },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@rollup/plugin-typescript": "11.0.0",
