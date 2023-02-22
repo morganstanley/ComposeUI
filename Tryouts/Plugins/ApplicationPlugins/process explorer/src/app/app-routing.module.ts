@@ -7,9 +7,9 @@ import { UncaughtErrorComponent } from './error-routing/error/uncaught-error.com
 import { ErrorRoutingModule } from './error-routing/error-routing.module';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'master-view/processes', pathMatch: 'full' },
+  { path: '', redirectTo: 'main-view/processes', pathMatch: 'full' },
   { path: 'error', component: UncaughtErrorComponent },
-  { path: 'master-view', loadChildren: () => import('./master-view/master-view.module').then(m => m.MasterViewModule) },
+  { path: 'main-view', loadChildren: () => import('./main-view/main-view.module').then(m => m.MainViewModule) },
   { path: '**', component: PageNotFoundComponent } // must always be last
 ];
 

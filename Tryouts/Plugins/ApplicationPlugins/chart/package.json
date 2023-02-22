@@ -1,5 +1,5 @@
 {
-  "name": "@morgan-stanley/compose-example-chart",
+  "name": "@morgan-stanley/composeui-example-chart",
   "version": "0.1.0",
   "description": "Example Web Application",
   "main": "chat.js",
@@ -8,7 +8,7 @@
     "clean": "rimraf dist",
     "bundle": "rollup -c",
     "build": "npm run clean && npm run bundle",
-    "serve": "http-server"
+    "start": "http-server"
   },
   "dependencies": {
     "@morgan-stanley/compose-messaging-client": "*",

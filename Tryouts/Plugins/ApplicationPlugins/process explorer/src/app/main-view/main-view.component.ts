@@ -2,9 +2,9 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'app-master-view',
-  templateUrl: './master-view.component.html',
-  styleUrls: ['./master-view.component.scss']
+  selector: 'app-main-view',
+  templateUrl: './main-view.component.html',
+  styleUrls: ['./main-view.component.scss']
 })
-export class MasterViewComponent {
+export class MainViewComponent {
 }

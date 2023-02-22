@@ -2,8 +2,8 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { MasterViewRoutingModule } from './master-view-routing.module';
-import { MasterViewComponent } from './master-view.component';
+import { MainViewRoutingModule } from './main-view-routing.module';
+import { MainViewComponent } from './main-view.component';
 import { ConnectionsComponent } from './connections/connections.component';
 import {
   IgxListModule, IgxAvatarModule, IgxIconModule, IgxGridModule, IgxActionStripModule, IgxButtonModule,
@@ -16,14 +16,14 @@ import { SubsystemComponent } from './subsystems/subsystem.component';
 
 @NgModule({
   declarations: [
-    MasterViewComponent,
+    MainViewComponent,
     ConnectionsComponent,
     ProcessesComponent,
     SubsystemComponent
   ],
   imports: [
     CommonModule,
-    MasterViewRoutingModule,
+    MainViewRoutingModule,
     IgxListModule,
     IgxAvatarModule,
     IgxIconModule,
@@ -41,5 +41,5 @@ import { SubsystemComponent } from './subsystems/subsystem.component';
     IgxTreeGridModule
   ]
 })
-export class MasterViewModule {
+export class MainViewModule {
 }

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { SuperRPC } from 'super-rpc';
 import { ISubsystemController } from '../DTOs/ISubsystemController';
 import { SubsystemInfo } from '../DTOs/SubsystemInfo';
-import { SubsystemServiceObject } from '../master-view/subsystems/ServiceSubsystemObject';
+import { SubsystemServiceObject } from '../main-view/subsystems/ServiceSubsystemObject';
 
 @Injectable({
   providedIn: 'root'
