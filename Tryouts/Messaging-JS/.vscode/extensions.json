@@ -1,6 +1,7 @@
 {
   "recommendations": [
     "arcanis.vscode-zipfs",
-    "Orta.vscode-jest"
+    "orta.vscode-jest",
+    "angelo-breuer.license-header-manager"
   ]
 }
