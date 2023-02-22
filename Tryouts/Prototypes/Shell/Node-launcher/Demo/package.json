@@ -1,7 +1,7 @@
 {
-  "name": "@morgan-stanley/compose-node-launcher-example",
+  "name": "@morgan-stanley/composeui-node-launcher-example",
   "version": "0.1.0",
-  "description": "",
+  "description": "Example usage of @morgan-stanley/composeui-node-launcher-example",
   "main": "example.js",
   "module": "example.js",
   "type": "module",
@@ -10,7 +10,7 @@
     "build": "npm run clean && rollup -c"
   },
   "dependencies": {
-    "@morgan-stanley/compose-node-launcher": "*"
+    "@morgan-stanley/composeui-node-launcher": "*"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.0.1",

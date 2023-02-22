@@ -1,4 +1,4 @@
-import { BrowserWindow } from '@morgan-stanley/compose-node-launcher';
+import { BrowserWindow } from '@morgan-stanley/composeui-node-launcher';
 
 function windowOpenExample() {
     const window = new BrowserWindow(
@@ -12,8 +12,6 @@ function windowOpenExample() {
     window.open();
 }
 
-windowOpenExample();
-
 function loadUrlExample() {
     const window = new BrowserWindow(
         {
@@ -24,4 +22,5 @@ function loadUrlExample() {
     window.loadUrl("https://github.com/morganstanley/fdc3-dotnet");
 }
 
+windowOpenExample();
 loadUrlExample();
