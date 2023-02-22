@@ -3,33 +3,24 @@
 import { Injectable } from '@angular/core';
 import { interval, Subject } from 'rxjs';
 import { Market } from './mock-data';
-import { MessageRouterClient } from "@morgan-stanley/compose-messaging-client/dist/esm/client/MessageRouterClient";
-import { WebSocketConnection } from "@morgan-stanley/compose-messaging-client/dist/esm/client/websocket/WebSocketConnection";
-import { MessageRouterOptions } from "@morgan-stanley/compose-messaging-client/dist/esm/client/MessageRouterOptions";
-import { TopicMessage } from "@morgan-stanley/compose-messaging-client/dist/esm/TopicMessage";
-
-// import { MessageRouterClient } from "@morgan-stanley/composeui-messaging-client/dist/esm/client/MessageRouterClient";
-// import { WebSocketConnection } from "@morgan-stanley/composeui-messaging-client/dist/esm/client/websocket/WebSocketConnection";
-// import { MessageRouterOptions } from "@morgan-stanley/composeui-messaging-client/dist/esm/client/MessageRouterOptions";
-// import { TopicMessage } from "@morgan-stanley/composeui-messaging-client/dist/esm/TopicMessage";
+import { MessageRouter, TopicMessage, createMessageRouter } from "@morgan-stanley/composeui-messaging-client";
 
 @Injectable({
   providedIn: 'root'
 })
 
 export class MockDataService{
-  private webSocketConnection: WebSocketConnection = new WebSocketConnection({url: "ws://localhost:5000/ws"});
-  private options: MessageRouterOptions;
   public subject: Subject<any> = new Subject<any>();
   public marketData: any;
   private market: Market;
-  private client: MessageRouterClient;
+  private client: MessageRouter;
   private connected: Boolean;
   private connecting: Promise<void>;
 
   constructor(){
     this.market = new Market();
-    this.client = new MessageRouterClient(this.webSocketConnection, this.options);
+    // TODO: Inject the MessageRouter
+    this.client = createMessageRouter();
 
     interval(1000).subscribe(() => {
       this.marketData = this.market.generateNewMarketNumbers();
@@ -66,7 +57,7 @@ export class MockDataService{
     await this.connecting;
 
     await this.client.subscribe(topic, (message: TopicMessage) => {
-      
+
       const payload = JSON.parse(message.payload!);
 
       //TODO: Get live data from DataService example.

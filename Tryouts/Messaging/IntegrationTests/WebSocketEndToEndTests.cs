@@ -257,12 +257,11 @@ public class WebSocketEndToEndTests : IAsyncLifetime
                             opt.Port = _webSocketUri.Port;
                         })
                     .UseAccessTokenValidator(
-                        new Action<string, string?>(
                             (clientId, token) =>
                             {
                                 if (token != AccessToken)
                                     throw new InvalidOperationException("Invalid access token");
-                            }))));
+                            })));
 
         _host = builder.Build();
         await _host.StartAsync();

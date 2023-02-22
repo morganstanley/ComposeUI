@@ -8,7 +8,7 @@
     <script>
 
         window.onload = ev => {
-            const content = window.location.search.substring(1);
+            const content = decodeURIComponent(window.location.search.substring(1));
             console.log(`Setting content to ${content}`);
             document.getElementById("content").textContent = content;
         }

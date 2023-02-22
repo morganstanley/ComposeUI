@@ -12,11 +12,14 @@
 
 namespace MorganStanley.ComposeUI.Messaging.Server;
 
+public delegate ValueTask AsyncAccessTokenValidatorCallback(string clientId, string? accessToken);
+public delegate void AccessTokenValidatorCallback(string clientId, string? accessToken);
+
 internal sealed class AccessTokenValidator : IAccessTokenValidator
 {
-    private readonly Func<string, string?, ValueTask> _callback;
+    private readonly AsyncAccessTokenValidatorCallback _callback;
 
-    public AccessTokenValidator(Func<string, string?, ValueTask> callback)
+    public AccessTokenValidator(AsyncAccessTokenValidatorCallback callback)
     {
         _callback = callback;
     }

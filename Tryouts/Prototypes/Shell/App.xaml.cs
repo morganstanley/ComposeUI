@@ -12,6 +12,10 @@
 //  * and limitations under the License.
 //  */
 
+using System;
+using System.Runtime.InteropServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -19,70 +23,149 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using MorganStanley.ComposeUI.Messaging;
+using MorganStanley.ComposeUI.Messaging.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 using Shell.Utilities;
 
-namespace Shell
+namespace Shell;
+
+/// <summary>
+///     Interaction logic for App.xaml
+/// </summary>
+public partial class App : Application
 {
+    public new static App Current => (App)Application.Current;
+
+    public IHost Host =>
+        _host
+        ?? throw new InvalidOperationException(
+            "Attempted to access the Host object before async startup has completed");
+
     /// <summary>
-    /// Interaction logic for App.xaml
+    /// Creates a new window of the specified type. Constructor arguments that are not registered in DI can be provided.
     /// </summary>
-    public partial class App : Application
+    /// <typeparam name="TWindow">The type of the window</typeparam>
+    /// <param name="parameters">Any constructor arguments that are not registered in DI</param>
+    /// <returns>A new instance of the window.</returns>
+    /// <exception cref="InvalidOperationException">The method was not called from the UI thread.</exception>
+    public TWindow CreateWindow<TWindow>(params object[] parameters) where TWindow : Window
     {
-        private TaskCompletionSource _stopTaskSource = new();
-        private CancellationTokenSource _cancellationTokenSource = new();
-        private IHost? _host;
+        Dispatcher.VerifyAccess();
 
-        private void StartWithWebWindowOptions(WebWindowOptions options)
-        {
-            var webWindow = new WebWindow(options);
-            Application.Current.ShutdownMode = ShutdownMode.OnLastWindowClose;
-            webWindow.Show();
-        }
+        return ActivatorUtilities.CreateInstance<TWindow>(Host.Services, parameters);
+    }
 
-        protected override async void OnStartup(StartupEventArgs e)
-        {
-            base.OnStartup(e);
+    protected override void OnStartup(StartupEventArgs e)
+    {
+        base.OnStartup(e);
+        Task.Run(() => StartAsync(e));
+    }
 
-            _host = new HostBuilder()
+    protected override void OnExit(ExitEventArgs e)
+    {
+        base.OnExit(e);
+        var stopCompletedEvent = new ManualResetEventSlim();
+        _ = Task.Run(() => StopAsync(stopCompletedEvent));
+        _logger.LogDebug("Waiting for async shutdown");
+        stopCompletedEvent.Wait();
+        _logger.LogDebug("Async shutdown completed, application will now exit");
+    }
+
+    private IHost? _host;
+    private ILogger _logger = NullLogger<App>.Instance;
+    private string _messageRouterAccessToken = Guid.NewGuid().ToString("N");
+
+    private async Task StartAsync(StartupEventArgs e)
+    {
+        var host = new HostBuilder()
             .ConfigureAppConfiguration(
-                config => config.AddJsonFile("appsettings.json"))
+                config => config.AddJsonFile("appsettings.json", optional: true))
             .ConfigureLogging(l => l.AddDebug().SetMinimumLevel(LogLevel.Debug))
-            .ConfigureServices(
-                (context, services) => services
-                    .AddMessageRouterServer(mr => mr.UseWebSockets())
-                    .Configure<MessageRouterWebSocketServerOptions>(
-                        context.Configuration.GetSection("MessageRouter:WebSocket"))
-                    .Configure<LoggerFactoryOptions>(context.Configuration.GetSection("Logging")))
-            .Build();
+            .ConfigureServices(ConfigureServices)
+        .Build();
 
-            await _host.StartAsync(_cancellationTokenSource.Token);
+        await host.StartAsync();
+        _host = host;
+        _logger = _host.Services.GetRequiredService<ILogger<App>>();
+        await OnHostInitializedAsync();
+        
+        Dispatcher.Invoke(() => OnAsyncStartupCompleted(e));
+    }
 
-            if (e.Args.Length != 0
-                && CommandLineParser.TryParse<WebWindowOptions>(e.Args, out var webWindowOptions)
-                && webWindowOptions.Url != null)
-            {
-                StartWithWebWindowOptions(webWindowOptions);
+    private void ConfigureServices(HostBuilderContext context, IServiceCollection services)
+    {
+        // TODO: Extensibility: plugins should be able to configure the service collection.
+        services.AddMessageRouterServer(
+            mr => mr
+                .UseWebSockets()
+                .UseAccessTokenValidator(
+                    (clientId, token) =>
+                    {
+                        if (_messageRouterAccessToken != token)
+                            throw new InvalidOperationException("The provided access token is invalid");
+                    } ));
+        services.Configure<LoggerFactoryOptions>(context.Configuration.GetSection("Logging"));
+    }
 
-                return;
-            }
+    // TODO: Extensibility: Plugins should be notified here.
+    // Add any feature-specific async init code that depends on a running Host to this method 
+    private async Task OnHostInitializedAsync()
+    {
+        InjectMessageRouterConfig();
+    }
 
-            Application.Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
-            new MainWindow().Show();
-        }
-
-        protected override async void OnExit(ExitEventArgs e)
+    private void OnAsyncStartupCompleted(StartupEventArgs e)
+    {
+        if (e.Args.Length != 0
+            && CommandLineParser.TryParse<WebWindowOptions>(e.Args, out var webWindowOptions)
+            && webWindowOptions.Url != null)
         {
-            if (_host != null)
-            {
-                await _host.StopAsync(_cancellationTokenSource.Token);
-                _host.Dispose();
-            }
-            _cancellationTokenSource.Cancel();
-            _stopTaskSource.TrySetResult();
-            await _stopTaskSource.Task;
-            
-            base.OnExit(e);
+            StartWithWebWindowOptions(webWindowOptions);
+
+            return;
         }
+
+        ShutdownMode = ShutdownMode.OnMainWindowClose;
+        CreateWindow<MainWindow>().Show();
+    }
+
+    private async Task StopAsync(ManualResetEventSlim stopCompletedEvent)
+    {
+        if (_host != null)
+        {
+            await _host.StopAsync();
+            _host.Dispose();
+        }
+
+        stopCompletedEvent.Set();
+    }
+
+    private void StartWithWebWindowOptions(WebWindowOptions options)
+    {
+        ShutdownMode = ShutdownMode.OnLastWindowClose;
+        CreateWindow<WebWindow>(options).Show();
+    }
+
+    private void InjectMessageRouterConfig()
+    {
+        var server = Host.Services.GetRequiredService<IMessageRouterWebSocketServer>();
+        _logger.LogInformation($"Message Router server listening at {server.WebSocketUrl}");
+
+        WebWindow.AddPreloadScript(
+            $$"""
+                window.composeui = {
+                    ...window.composeui,
+                    messageRouterConfig: {
+                        accessToken: "{{JsonEncodedText.Encode(_messageRouterAccessToken)}}",
+                        webSocket: {
+                            url: "{{server.WebSocketUrl}}"
+                        }
+                    }
+                };
+                    
+                """);
     }
 }
+ 
