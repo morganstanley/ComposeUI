@@ -12,7 +12,14 @@
 //  * and limitations under the License.
 //  */
 
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 using Shell.Utilities;
 
 namespace Shell
@@ -22,8 +29,35 @@ namespace Shell
     /// </summary>
     public partial class App : Application
     {
-        private void Application_Startup(object sender, StartupEventArgs e)
+        private TaskCompletionSource _stopTaskSource = new();
+        private CancellationTokenSource _cancellationTokenSource = new();
+        private IHost? _host;
+
+        private void StartWithWebWindowOptions(WebWindowOptions options)
         {
+            var webWindow = new WebWindow(options);
+            Application.Current.ShutdownMode = ShutdownMode.OnLastWindowClose;
+            webWindow.Show();
+        }
+
+        protected override async void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
+
+            _host = new HostBuilder()
+            .ConfigureAppConfiguration(
+                config => config.AddJsonFile("appsettings.json"))
+            .ConfigureLogging(l => l.AddDebug().SetMinimumLevel(LogLevel.Debug))
+            .ConfigureServices(
+                (context, services) => services
+                    .AddMessageRouterServer(mr => mr.UseWebSockets())
+                    .Configure<MessageRouterWebSocketServerOptions>(
+                        context.Configuration.GetSection("MessageRouter:WebSocket"))
+                    .Configure<LoggerFactoryOptions>(context.Configuration.GetSection("Logging")))
+            .Build();
+
+            await _host.StartAsync(_cancellationTokenSource.Token);
+
             if (e.Args.Length != 0
                 && CommandLineParser.TryParse<WebWindowOptions>(e.Args, out var webWindowOptions)
                 && webWindowOptions.Url != null)
@@ -37,11 +71,18 @@ namespace Shell
             new MainWindow().Show();
         }
 
-        private void StartWithWebWindowOptions(WebWindowOptions options)
+        protected override async void OnExit(ExitEventArgs e)
         {
-            var webWindow = new WebWindow(options);
-            Application.Current.ShutdownMode = ShutdownMode.OnLastWindowClose;
-            webWindow.Show();
+            if (_host != null)
+            {
+                await _host.StopAsync(_cancellationTokenSource.Token);
+                _host.Dispose();
+            }
+            _cancellationTokenSource.Cancel();
+            _stopTaskSource.TrySetResult();
+            await _stopTaskSource.Task;
+            
+            base.OnExit(e);
         }
     }
 }
