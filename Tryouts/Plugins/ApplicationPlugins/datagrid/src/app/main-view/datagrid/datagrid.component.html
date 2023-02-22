@@ -1,0 +1,70 @@
+<!-- Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. -->
+<div class="container">
+    <div class="header">
+        <p></p>
+        <div class="button-placing">
+            <p></p>
+            <button mat-raised-button (click)="onButtonClick()">Open Chart in new window</button>
+        </div>
+        <p></p>
+    </div>
+    <div class="body">
+        <div class="mat-elevation-z8">
+    
+            <mat-table [dataSource]="marketData" class="mat-elevation-z8">
+                <ng-container matColumnDef="symbol">
+                    <mat-header-cell *matHeaderCellDef>Symbol</mat-header-cell>
+                    <mat-cell *matCellDef="let symbol"> {{symbol.symbol}} </mat-cell>
+                </ng-container>
+        
+                <ng-container matColumnDef="fullname">
+                    <mat-header-cell *matHeaderCellDef>Fullname</mat-header-cell>
+                    <mat-cell *matCellDef="let symbol"> {{symbol.fullname}} </mat-cell>
+                </ng-container>
+    
+                <ng-container matColumnDef="avarageProfit">
+                    <mat-header-cell *matHeaderCellDef>Avarage Profit</mat-header-cell>
+                    <mat-cell *matCellDef="let symbol"> {{symbol.avarageProfit}} </mat-cell>
+                </ng-container>
+    
+                <ng-container matColumnDef="amount">
+                    <mat-header-cell *matHeaderCellDef>Amount</mat-header-cell>
+                    <mat-cell *matCellDef="let symbol"> {{symbol.amount}} </mat-cell>
+                </ng-container>
+    
+                <ng-container matColumnDef="symbolRating">
+                    <mat-header-cell *matHeaderCellDef>Rating</mat-header-cell>
+                    <mat-cell *matCellDef="let symbol"> {{symbol.symbolRating}} </mat-cell>
+                </ng-container>
+        
+                <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+                <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="onRowClicked(row)"></mat-row>
+    
+    
+                <ng-container matColumnDef="select">
+                    
+                    <mat-header-cell *matHeaderCellDef>
+                      <mat-checkbox (change)="$event ? toggleRow() : null"
+                                    [checked]="selection.hasValue()"
+                                    [indeterminate]="selection.hasValue()">
+                      </mat-checkbox>
+                    </mat-header-cell>
+    
+                    <mat-cell *matCellDef="let row">
+                      <mat-checkbox (click)="$event.stopPropagation()"
+                                    (change)="$event ? selection.toggle(row) : null">
+                      </mat-checkbox>
+                    </mat-cell>
+    
+                </ng-container>
+            </mat-table>
+            <mat-paginator #paginator
+                           [length]="marketData.data.length"
+                           [pageSize]="5"
+                           [pageSizeOptions]="[5, 10, 20]"
+                           (page)="getPaginatorData($event)">
+            </mat-paginator>
+    
+        </div>
+    </div>
+</div>
