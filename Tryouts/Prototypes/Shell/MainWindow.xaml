@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and limitations 
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Shell" xmlns:primitives="clr-namespace:System.Windows.Controls.Ribbon.Primitives;assembly=System.Windows.Controls.Ribbon"
+        xmlns:local="clr-namespace:Shell"
         mc:Ignorable="d"
         Title="Compose" Height="450" Width="600">
     <Grid>
