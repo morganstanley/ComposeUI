@@ -20,7 +20,7 @@ See the License for the specific language governing permissions and limitations 
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Ribbon x:Name="RibbonWin"  SelectedIndex="0" Height="Auto" >
+        <Ribbon x:Name="Ribbon" SelectedIndex="0" Height="Auto" >
             <!-- Hide the Application Menu -->
             <Ribbon.ApplicationMenu>
                 <RibbonApplicationMenu Visibility="Collapsed">
