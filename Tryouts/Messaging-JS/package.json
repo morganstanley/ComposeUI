@@ -10,7 +10,7 @@
     "module": "dist/esm/index.js",
     "types": "dist/esm/index.d.ts",
     "scripts": {
-        "build": "yarn run build:clean && yarn run build:rollup",
+        "build": "npm run build:clean && npm run build:rollup",
         "build:clean": "rimraf dist",
         "build:rollup": "rollup -c",
         "test": "jest"

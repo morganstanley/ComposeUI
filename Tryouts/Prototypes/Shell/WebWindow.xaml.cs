@@ -3,10 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Automation;
-using Accessibility;
 using Microsoft.Web.WebView2.Core;
-using Microsoft.Web.WebView2.Core.Raw;
 using Shell.ImageSource;
 
 namespace Shell;
