@@ -19,17 +19,16 @@ See the License for the specific language governing permissions and limitations 
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition/>
         </Grid.RowDefinitions>
-        <Ribbon x:Name="RibbonWin"  SelectedIndex="0" Height="auto" >
+        <Ribbon x:Name="RibbonWin"  SelectedIndex="0" Height="Auto" >
             <!-- Hide the Application Menu -->
             <Ribbon.ApplicationMenu>
                 <RibbonApplicationMenu Visibility="Collapsed">
                 </RibbonApplicationMenu>
             </Ribbon.ApplicationMenu>
             <!-- Ribbon Tab #1: Modules -->
-            <RibbonTab Header="Modules" HorizontalAlignment="Left" Height="auto" VerticalAlignment="Top">
-                <RibbonGroup x:Name="Modules" Header="Modules" Height="auto" ItemsSource="{Binding}">
+            <RibbonTab Header="Modules" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Top">
+                <RibbonGroup x:Name="Modules" Header="Modules" Height="Auto" ItemsSource="{Binding}">
                     <RibbonGroup.ItemTemplate>
                         <DataTemplate>
                             <RibbonButton 
