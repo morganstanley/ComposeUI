@@ -25,12 +25,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 using Nito.AsyncEx;
-using ModulesPrototype.Infrastructure;
 using System.Linq;
-using ModuleProcessMonitor.Subsystems;
 using ModuleProcessMonitor.Processes;
 using System.Collections.ObjectModel;
-using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
 using ModuleProcessMonitor;
 
 namespace ModulesPrototype;
@@ -71,11 +68,6 @@ internal class Program
         var loader = factory.Create(catalogue);
         var moduleCounter = new AsyncCountdownEvent(0);
 
-        var loggerFactory = GetServiceProvider()
-            .GetRequiredService<ILoggerFactory>();
-        var infoCollector = GetServiceProvider()
-            .GetRequiredService<IProcessInfoHandler>();
-        infoCollector.SetSubsystemHandler(loader, loggerFactory);
 
         var processInfo = new ObservableCollection<ProcessInformation>();
 
@@ -94,25 +86,16 @@ internal class Program
 
                 if (e.EventType == LifecycleEventType.Stopped)
                 {
-                    //await infoCollector.SendModifiedSubsystemStateAsync(e.ProcessInfo.instanceId, SubsystemState.Stopped);
-
                     if (!e.IsExpected)
                     {
                         loader.RequestStartProcess(
                             new LaunchRequest() { name = e.ProcessInfo.name, instanceId = e.ProcessInfo.instanceId });
-
-                        //await infoCollector.SendModifiedSubsystemStateAsync(e.ProcessInfo.instanceId, SubsystemState.Started);
                     }
                     else
                     {
                         moduleCounter.Signal();
                     }
                 }
-
-                //if (e.EventType == LifecycleEventType.Started)
-                //{
-                //    await infoCollector.SendModifiedSubsystemStateAsync(e.ProcessInfo.instanceId, SubsystemState.Started);
-                //}
 
                 var proc = new ProcessInformation(e.ProcessInfo.name,
                     e.ProcessInfo.instanceId,
@@ -133,29 +116,10 @@ internal class Program
 
         foreach (var module in instances)
         {
-            //for the demo's sake we are starting just the Process Explorer.
-            //the other applications, that are declared in the manifest can be started via the Process Explorer frontend
-            //if (module.Value.Name != "processExplorerService") continue;
             module.Value.State = ModuleState.Started;
             loader.RequestStartProcess(new LaunchRequest { name = module.Value.Name, instanceId = module.Key });
         }
 
-        //if (!instances
-        //    .Where(module =>
-        //        module.Value.Name == "processExplorerService"
-        //        && (module.Value.State == SubsystemState.Started || module.Value.State == SubsystemState.Running))
-        //    .Any())
-        //    goto endState;
-
-        //    await infoCollector.InitializeSubsystemControllerRouteAsync();
-        //    var consoleShellPrototype = new ProcessInformation(Process.GetCurrentProcess());
-        //    processInfo.Add(consoleShellPrototype);
-        //    var serializedInstances = JsonSerializer.Serialize(instances);
-        //    if (serializedInstances != string.Empty) await infoCollector.SendRegisteredSubsystemsAsync(serializedInstances);
-        //    if (processInfo.Count != 0) await infoCollector.SendInitProcessInfoAsync(processInfo);
-        //    await infoCollector.EnableProcessMonitorAsync();
-
-        //endState:
         logger.LogInformation("ComposeUI application running, press Ctrl+C to exit");
 
         await stopTaskSource.Task;
@@ -172,27 +136,6 @@ internal class Program
         await moduleCounter.WaitAsync();
 
         logger.LogInformation("Bye, ComposeUI!");
-    }
-
-    private static IServiceProvider GetServiceProvider()
-    {
-        var loggerFactory = LoggerFactory.Create(builder =>
-        {
-            builder.AddDebug();
-        });
-
-        var serviceProvider = new ServiceCollection()
-                    .AddLogging(builder =>
-                    {
-                        builder.AddDebug();
-                    })
-                    .AddSingleton<ILoggerFactory>(loggerFactory)
-                    .AddMessageRouter(
-                        mr => mr.UseWebSocket(new MessageRouterWebSocketOptions { Uri = new("ws://localhost:5000/ws") }))
-                    .AddSingleton<IProcessInfoHandler, ProcessInfoHandler>()
-                    .BuildServiceProvider();
-
-        return serviceProvider;
     }
 
     private static int StartBrowser(string url)

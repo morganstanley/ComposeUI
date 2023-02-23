@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Shell": {
-      "commandName": "Project",
-      "commandLineArgs": "--title=Jane --width=1800 --height=800 --url=http://google.com"
-    }
-  }
-}

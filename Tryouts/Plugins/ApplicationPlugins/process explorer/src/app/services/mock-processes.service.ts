@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { SuperRPC } from 'super-rpc';
 import { IProcessInfoAggregator } from '../DTOs/IProcessInfoAggregator';
 import { ProcessInfo } from '../DTOs/ProcessInfo';
-import { ServiceProcessObject } from '../master-view/processes/ServiceProcessObject';
+import { ServiceProcessObject } from '../main-view/processes/ServiceProcessObject';
 
 @Injectable({
   providedIn: 'root'

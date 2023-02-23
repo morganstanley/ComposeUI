@@ -13,8 +13,6 @@
 //  */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Manifest
 {
@@ -23,5 +21,6 @@ namespace Manifest
     {
         public string AppName { get; set; } = string.Empty;
         public string Url { get; set; } = string.Empty;
+        public string IconUrl { get; set; } = string.Empty;
     }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "@morgan-stanley/compose-node-launcher",
+  "name": "@morgan-stanley/composeui-node-launcher",
   "version": "0.1.0",
   "description": "Package to launch Compose from Node.js",
   "main": "output/index.js",
@@ -8,6 +8,9 @@
   "scripts": {
     "clean": "rimraf output",
     "build": "npm run clean && tsc && rollup -c"
+  },
+  "bin": {
+    "composeui": "./cli/cli.js"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.0.1",

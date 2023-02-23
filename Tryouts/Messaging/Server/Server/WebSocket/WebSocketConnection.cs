@@ -18,6 +18,7 @@ using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.IO;
+using MorganStanley.ComposeUI.Messaging.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Protocol.Json;
 using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 using MorganStanley.ComposeUI.Messaging.Server.Abstractions;
@@ -36,19 +37,49 @@ internal class WebSocketConnection : IClientConnection
         _stopTokenSource.Token.Register(
             () =>
             {
-                _inputChannel.Writer.TryComplete();
-                _outputChannel.Writer.TryComplete();
+                _receiveChannel.Writer.TryComplete();
+                _sendChannel.Writer.TryComplete();
             });
     }
 
     public ValueTask SendAsync(Message message, CancellationToken cancellationToken = default)
     {
-        return _outputChannel.Writer.WriteAsync(message, cancellationToken);
+        try
+        {
+            return _sendChannel.Writer.WriteAsync(message, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (ChannelClosedException)
+        {
+            throw ThrowHelper.ConnectionClosed();
+        }
+        catch (Exception e)
+        {
+            throw ThrowHelper.ConnectionAborted(e);
+        }
     }
 
-    public ValueTask<Message> ReceiveAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<Message> ReceiveAsync(CancellationToken cancellationToken = default)
     {
-        return _inputChannel.Reader.ReadAsync(cancellationToken);
+        try
+        {
+            return await _receiveChannel.Reader.ReadAsync(cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (ChannelClosedException)
+        {
+            throw ThrowHelper.ConnectionClosed();
+        }
+        catch (Exception e)
+        {
+            throw ThrowHelper.ConnectionAborted(e);
+        }
     }
 
     public ValueTask DisposeAsync()
@@ -91,7 +122,7 @@ internal class WebSocketConnection : IClientConnection
         }
     }
 
-    private readonly Channel<Message> _inputChannel = Channel.CreateUnbounded<Message>(
+    private readonly Channel<Message> _receiveChannel = Channel.CreateUnbounded<Message>(
         new UnboundedChannelOptions
         {
             SingleReader = true,
@@ -102,7 +133,7 @@ internal class WebSocketConnection : IClientConnection
     private readonly ILogger<WebSocketConnection> _logger;
     private readonly IMessageRouterServer _messageRouter;
 
-    private readonly Channel<Message> _outputChannel = Channel.CreateUnbounded<Message>(
+    private readonly Channel<Message> _sendChannel = Channel.CreateUnbounded<Message>(
         new UnboundedChannelOptions
         {
             SingleReader = true,
@@ -150,7 +181,7 @@ internal class WebSocketConnection : IClientConnection
 
                         while (!readBuffer.IsEmpty && TryReadMessage(ref readBuffer, out var message))
                         {
-                            await _inputChannel.Writer.WriteAsync(message, cancellationToken);
+                            await _receiveChannel.Writer.WriteAsync(message, cancellationToken);
                         }
 
                         pipe.Reader.AdvanceTo(readBuffer.Start, readBuffer.End);
@@ -168,16 +199,14 @@ internal class WebSocketConnection : IClientConnection
                 }
             }
 
-            _inputChannel.Writer.TryComplete();
+            _receiveChannel.Writer.TryComplete(ThrowHelper.ConnectionClosed());
         }
         catch (Exception e)
         {
-            _inputChannel.Writer.TryComplete(e);
+            _receiveChannel.Writer.TryComplete(ThrowHelper.ConnectionAborted(e));
         }
-        finally
-        {
-            _stopTokenSource.Cancel();
-        }
+
+        _stopTokenSource.Cancel();
     }
 
     private async Task SendMessagesAsync(
@@ -186,7 +215,7 @@ internal class WebSocketConnection : IClientConnection
     {
         try
         {
-            await foreach (var message in _outputChannel.Reader.ReadAllAsync(cancellationToken))
+            await foreach (var message in _sendChannel.Reader.ReadAllAsync(cancellationToken))
             {
                 if (webSocket.State != WebSocketState.Open || cancellationToken.IsCancellationRequested)
                     break;
@@ -202,10 +231,14 @@ internal class WebSocketConnection : IClientConnection
                     cancellationToken);
             }
         }
+        catch (OperationCanceledException e) { }
+        catch (WebSocketException e) when (e is { WebSocketErrorCode: WebSocketError.ConnectionClosedPrematurely }) { }
         catch (Exception e)
         {
-            _outputChannel.Writer.TryComplete(e);
+            _logger.LogError(e, "Unhandled exception while sending messages using the WebSocket: {ExceptionMessage}", e.Message);
         }
+        
+        _stopTokenSource.Cancel();
     }
 
     private bool TryReadMessage(ref ReadOnlySequence<byte> buffer, [NotNullWhen(true)] out Message? message)

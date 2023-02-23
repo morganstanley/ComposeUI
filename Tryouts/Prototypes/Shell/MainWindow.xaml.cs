@@ -39,7 +39,7 @@ namespace Shell
     /// </summary>
     public partial class MainWindow : RibbonWindow
     {
-        internal List<WebContent> webContentList { get; set; } = new List<WebContent>();
+        internal List<WebWindow> webWindows { get; set; } = new List<WebWindow>();
         private ManifestModel config;
         private ModuleModel[]? modules;
 
@@ -52,29 +52,32 @@ namespace Shell
             DataContext = modules;
         }
 
-        private void CreateViews(ModuleModel item) 
+        private void CreateWebWindow(ModuleModel item)
         {
-            var webContent = new WebContent(item.Url);
-            webContent.Title = item.AppName;
+            var options = new WebWindowOptions
+            {
+                Title = item.AppName,
+                Url = item.Url,
+                IconUrl = item.IconUrl
+            };
 
-            webContent.Owner = this;
-
-            webContent.Closed += WebContent_Closed;
-            
-            webContentList.Add(webContent);
-            webContent.Show();
+            var webWindow = new WebWindow(options);
+            webWindow.Owner = this;
+            webWindow.Closed += WebWindowClosed;
+            webWindows.Add(webWindow);
+            webWindow.Show();
         }
 
-        private void WebContent_Closed(object? sender, EventArgs e)
+        private void WebWindowClosed(object? sender, EventArgs e)
         {
-            webContentList.Remove((WebContent)sender);
+            webWindows.Remove((WebWindow)sender!);
         }
         
         private void ShowChild_Click(object sender, RoutedEventArgs e)
         {
             var context = ((Button)sender).DataContext;
             
-            CreateViews((ModuleModel)context);
+            CreateWebWindow((ModuleModel)context);
         }
     }
 }

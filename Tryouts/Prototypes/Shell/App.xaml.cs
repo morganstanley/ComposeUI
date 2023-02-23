@@ -12,14 +12,15 @@
 //  * and limitations under the License.
 //  */
 
-using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
+using Shell.Utilities;
 
 namespace Shell
 {
@@ -28,19 +29,60 @@ namespace Shell
     /// </summary>
     public partial class App : Application
     {
-        private void Application_Startup(object sender, StartupEventArgs e)
+        private TaskCompletionSource _stopTaskSource = new();
+        private CancellationTokenSource _cancellationTokenSource = new();
+        private IHost? _host;
+
+        private void StartWithWebWindowOptions(WebWindowOptions options)
         {
-            if (e.Args.Length != 0)
+            var webWindow = new WebWindow(options);
+            Application.Current.ShutdownMode = ShutdownMode.OnLastWindowClose;
+            webWindow.Show();
+        }
+
+        protected override async void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
+
+            _host = new HostBuilder()
+            .ConfigureAppConfiguration(
+                config => config.AddJsonFile("appsettings.json"))
+            .ConfigureLogging(l => l.AddDebug().SetMinimumLevel(LogLevel.Debug))
+            .ConfigureServices(
+                (context, services) => services
+                    .AddMessageRouterServer(mr => mr.UseWebSockets())
+                    .Configure<MessageRouterWebSocketServerOptions>(
+                        context.Configuration.GetSection("MessageRouter:WebSocket"))
+                    .Configure<LoggerFactoryOptions>(context.Configuration.GetSection("Logging")))
+            .Build();
+
+            await _host.StartAsync(_cancellationTokenSource.Token);
+
+            if (e.Args.Length != 0
+                && CommandLineParser.TryParse<WebWindowOptions>(e.Args, out var webWindowOptions)
+                && webWindowOptions.Url != null)
             {
-                MainWebWindowOptions webWindowOptions = MainWebWindowOptionsParser.Parse(e.Args);
-                Application.Current.MainWindow = new MainWebWindow(webWindowOptions);
-                Application.Current.MainWindow.Show();
+                StartWithWebWindowOptions(webWindowOptions);
+
+                return;
             }
-            else
+
+            Application.Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
+            new MainWindow().Show();
+        }
+
+        protected override async void OnExit(ExitEventArgs e)
+        {
+            if (_host != null)
             {
-                Application.Current.MainWindow = new MainWindow();
-                Application.Current.MainWindow.Show();
+                await _host.StopAsync(_cancellationTokenSource.Token);
+                _host.Dispose();
             }
+            _cancellationTokenSource.Cancel();
+            _stopTaskSource.TrySetResult();
+            await _stopTaskSource.Task;
+            
+            base.OnExit(e);
         }
     }
 }

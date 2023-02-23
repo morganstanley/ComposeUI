@@ -17,9 +17,8 @@
     "StartupType": "selfhostedwebapp",
     "UIType": "web",
     "Name": "chart",
-    "Path": "..\\..\\..\\..\\..\\Plugins\\ApplicationPlugins\\chart\\src",
+    "Path": "..\\..\\..\\..\\..\\Plugins\\ApplicationPlugins\\chart",
     "Port": 8080,
     "Url": "http://localhost:8080"
   }
-  
 }

@@ -36,17 +36,17 @@ internal class MessageRouterServer : IMessageRouterServer
     {
         _stopTokenSource.Cancel();
 
-        foreach (var client in _clients.Values)
-        {
-            await client.Connection.DisposeAsync();
-        }
+        await Task.WhenAll(_clients.Values.Select(client => client.Connection.DisposeAsync().AsTask()));
     }
 
     public ValueTask ClientConnected(IClientConnection connection)
     {
         var client = new Client(connection);
         _connectionToClient[connection] = client;
-        ProcessMessagesAsync(client, _stopTokenSource.Token);
+
+        _logger.LogInformation("Client '{ClientId}' connected", client.ClientId);
+
+        _ = Task.Run(() => ProcessMessages(client, _stopTokenSource.Token));
 
         return default;
     }
@@ -58,6 +58,8 @@ internal class MessageRouterServer : IMessageRouterServer
         {
             return default;
         }
+
+        _logger.LogInformation("Client '{ClientId}' disconnected", client.ClientId);
 
         client.StopTokenSource.Cancel();
 
@@ -309,7 +311,7 @@ internal class MessageRouterServer : IMessageRouterServer
         return Task.CompletedTask;
     }
 
-    private async void ProcessMessagesAsync(Client client, CancellationToken cancellationToken)
+    private async Task ProcessMessages(Client client, CancellationToken cancellationToken)
     {
         try
         {
@@ -319,7 +321,10 @@ internal class MessageRouterServer : IMessageRouterServer
 
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {
-                    _logger.LogDebug("Message '{MessageType}' received from client '{ClientId}'", message.Type, client.ClientId);
+                    _logger.LogDebug(
+                        "Message '{MessageType}' received from client '{ClientId}'",
+                        message.Type,
+                        client.ClientId);
                 }
 
                 try
@@ -385,6 +390,11 @@ internal class MessageRouterServer : IMessageRouterServer
                         e.Message);
                 }
             }
+        }
+        catch (MessageRouterException e) when (e.Name is MessageRouterErrors.ConnectionClosed
+                                                   or MessageRouterErrors.ConnectionAborted)
+        {
+            client.StopTokenSource.Cancel();
         }
         catch (Exception e)
         {

@@ -43,6 +43,20 @@ class Program
         var monthlySalesDataService = serviceProvider.GetRequiredService<MonthlySalesDataService>();
         await monthlySalesDataService.Start();
 
-        Console.ReadLine();
+        var stopTaskSource = new TaskCompletionSource();
+
+        Console.CancelKeyPress += (sender, args) =>
+        {
+            stopTaskSource.SetResult();
+            args.Cancel = true;
+        };
+
+        await stopTaskSource.Task;
+
+        Console.WriteLine("Exiting");
+
+        await serviceProvider.DisposeAsync();
+
+        Console.WriteLine("Done");
     }
 }

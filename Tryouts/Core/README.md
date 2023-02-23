@@ -8,6 +8,5 @@ Core folder contain non-visual multiplatform code that can be re-used between va
 There are following projects under Core:
 
 1. Abstractions - containing interfaces and simple classes/structures that they depend on. These interfaces are being implemented primarily by the dynamically loaded plugins and are used for interactions between the varoius plugins, and the shell.
-2. BasicModels - contain the non-visual View Model functionality that can be used throughout the application.
-3. Utilities - basic non-visual utilities, e.g. classes containing extension methods, generic base classes and other functionality that can be used everywhere else.
+2. Utilities - basic non-visual utilities, e.g. classes containing extension methods, generic base classes and other functionality that can be used everywhere else.
 
