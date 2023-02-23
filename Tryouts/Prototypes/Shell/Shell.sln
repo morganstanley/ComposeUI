@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shell", "Shell.csproj", "{E
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Server", "..\..\Messaging\Server\MorganStanley.ComposeUI.Messaging.Server.csproj", "{9E6E9B3C-4BD0-4B1E-852E-0B2164D72C2F}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Core", "..\..\Messaging\Core\MorganStanley.ComposeUI.Messaging.Core.csproj", "{3ED32A3C-7958-4A83-8BB2-DD71528FAA17}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{9E6E9B3C-4BD0-4B1E-852E-0B2164D72C2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9E6E9B3C-4BD0-4B1E-852E-0B2164D72C2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9E6E9B3C-4BD0-4B1E-852E-0B2164D72C2F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3ED32A3C-7958-4A83-8BB2-DD71528FAA17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3ED32A3C-7958-4A83-8BB2-DD71528FAA17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3ED32A3C-7958-4A83-8BB2-DD71528FAA17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3ED32A3C-7958-4A83-8BB2-DD71528FAA17}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
