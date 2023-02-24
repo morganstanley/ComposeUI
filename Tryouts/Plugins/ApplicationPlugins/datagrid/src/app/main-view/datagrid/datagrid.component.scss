@@ -2,45 +2,39 @@
 
 @import "~@angular/material/prebuilt-themes/deeppurple-amber.css";
 
-.mat-mdc-table{
-    background-color: white;
-    align-items: center;
-    align-content: center;
-    align-self: center;
-    width: 1150px;
+
+.mat-mdc-table
+.mat-elevation-z8 {
+    overflow-x: auto;
+    min-width: fit-content;
 }
 
 .mat-mdc-header-row{
-    align-items: center;
+    align-items: center;;
     align-content: center;
     justify-content: center;
     background-color: rgb(10, 142, 199);
     font-weight: bold;
 }
 
-.mat-header-row{
-    color: red($color: #000000);
+.mat-mdc-header-cell{
+    font-weight: bold;
 }
 
 .mat-row{
-    align-items: center;
+    height: auto;
+}
+
+.mat-mdc-row-cell{
+    align-items: center;;
     align-content: center;
     justify-content: center;
+    display: flex;
 }
 
-.mat-mdc-cell{
-    align-content: center;
-    align-items: center;
-}
-
-.mat-mdc-paginator{
-    background-color: white;
-}
-
-.mat-column-select {
-    overflow: initial;
-}
 
 .button-placing{
     align-items: self-end;
+    justify-content: end;
+    display: flex;
 }
