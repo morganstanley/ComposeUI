@@ -36,7 +36,7 @@ public sealed class MessageRouterBuilder
         return this;
     }
 
-    public MessageRouterBuilder UseAccessTokenValidator(Action<string, string?> validatorCallback)
+    public MessageRouterBuilder UseAccessTokenValidator(AccessTokenValidatorCallback validatorCallback)
     {
         ServiceCollection.AddSingleton<IAccessTokenValidator>(
             new AccessTokenValidator(
@@ -50,7 +50,7 @@ public sealed class MessageRouterBuilder
         return this;
     }
 
-    public MessageRouterBuilder UseAccessTokenValidator(Func<string, string?, ValueTask> validatorCallback)
+    public MessageRouterBuilder UseAccessTokenValidator(AsyncAccessTokenValidatorCallback validatorCallback)
     {
         ServiceCollection.AddSingleton<IAccessTokenValidator>(new AccessTokenValidator(validatorCallback));
 
@@ -65,7 +65,6 @@ public sealed class MessageRouterBuilder
 
         return this;
     }
-
 
     internal IServiceCollection ServiceCollection { get; }
 }

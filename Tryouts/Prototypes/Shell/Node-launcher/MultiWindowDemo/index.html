@@ -28,9 +28,9 @@
         }
     </script>
     <div>
-        <form onsubmit="showPopup(); return false;">
-            <input type="text" id="popupContent"></input>
-            <button>Open</button>
+        <form onsubmit="return false">
+            <input type="text" id="popupContent" value="😎"></input>
+            <button onclick="showPopup()">Open popup</button>
         </form>
     </div>
 </body>

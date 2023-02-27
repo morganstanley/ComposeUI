@@ -28,7 +28,11 @@
       "@angular/*": [
         "./node_modules/@angular/*"
       ]
-    }
+    },
+    "types": [
+      "node",
+      "jasmine"
+    ]
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

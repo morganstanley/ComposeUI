@@ -11,7 +11,7 @@
     "start": "http-server"
   },
   "dependencies": {
-    "@morgan-stanley/compose-messaging-client": "*",
+    "@morgan-stanley/composeui-messaging-client": "*",
     "bootstrap": "5.2.3",
     "highcharts": "10.3.3",
     "jquery": "3.6.3",

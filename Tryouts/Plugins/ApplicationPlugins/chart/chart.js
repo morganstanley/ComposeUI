@@ -2,10 +2,7 @@
 import ColumnSeries from 'highcharts/es-modules/Series/Column/ColumnSeries.js';
 
 //TODO: check the bundling
-//import { MessageRouterClient , WebSocketConnection} from "@morgan-stanley/compose-messaging-client";
-
-import { MessageRouterClient } from "@morgan-stanley/compose-messaging-client/dist/esm/client/MessageRouterClient.js";
-import {  WebSocketConnection } from "@morgan-stanley/compose-messaging-client/dist/esm/client/websocket/WebSocketConnection.js";
+import { createMessageRouter } from "@morgan-stanley/composeui-messaging-client";
 
 let chart;
 let client;
@@ -67,7 +64,7 @@ window.addEventListener('load', function () {
 async function requestData() {
 
   (async () => {
-    client = new MessageRouterClient(new WebSocketConnection({ url: "ws://localhost:5000/ws" }));
+    client = createMessageRouter();
 
     window.client = client;
 

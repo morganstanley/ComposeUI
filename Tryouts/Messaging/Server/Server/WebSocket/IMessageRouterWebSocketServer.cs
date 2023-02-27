@@ -14,6 +14,5 @@ namespace MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 
 public interface IMessageRouterWebSocketServer
 {
-    public string RootPath { get; }
-    public int Port { get; }
+    public Uri WebSocketUrl { get; }
 }

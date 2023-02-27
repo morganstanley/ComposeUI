@@ -47,8 +47,7 @@ internal sealed class WebSocketListenerService : IHostedService, IMessageRouterW
     private async Task StartAsyncCore()
     {
         CreateHttpListener(_options, out _httpListener, out var port);
-        RootPath = _options.RootPath;
-        Port = port;
+        WebSocketUrl = new Uri($"ws://localhost:{port}{_options.RootPath}");
         _startTaskSource.SetResult();
 
         try
@@ -140,6 +139,5 @@ internal sealed class WebSocketListenerService : IHostedService, IMessageRouterW
         }
     }
 
-    public string RootPath { get; private set; } = null!;
-    public int Port { get; private set; }
+    public Uri WebSocketUrl { get; private set; } = null!;
 }

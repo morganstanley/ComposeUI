@@ -32,7 +32,7 @@ npx lerna run test --stream
 (If you don't want a detailed log, you can execute these without --stream)
 
 Building a sepecific module:
-npx lerna run build --stream --scope=@morgan-stanley/compose-messaging-client
+npx lerna run build --stream --scope=@morgan-stanley/composeui-messaging-client
 
 List all modules in the workspace
 npx lerna list
