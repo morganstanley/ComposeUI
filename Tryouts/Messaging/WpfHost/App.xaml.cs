@@ -88,14 +88,14 @@ public partial class App : Application
         MainWindow.Show();
 
         var server = Host.Services.GetRequiredService<IMessageRouterWebSocketServer>();
-        Logger.LogInformation("Server listening on port {port}", server.Port);
+        Logger.LogInformation("Server listening at {url}", server.WebSocketUrl);
 
         var messageRouter = new ServiceCollection()
             .AddMessageRouter(
                 mr => mr.UseWebSocket(
                     new MessageRouterWebSocketOptions
                     {
-                        Uri = new Uri($"ws://localhost:{server.Port}{server.RootPath}")
+                        Uri = server.WebSocketUrl
                     }))
             .BuildServiceProvider()
             .GetRequiredService<IMessageRouter>();

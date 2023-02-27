@@ -2,17 +2,22 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug Jest Tests",
             "type": "node",
+            "name": "vscode-jest-tests.v2",
             "request": "launch",
-            "runtimeExecutable": "yarn",
-            "runtimeArgs": [
-                "--inspect-brk",
-                "jest",
-                "--runInBand"
+            "args": [
+                "--runInBand",
+                "--watchAll=false",
+                "--testNamePattern",
+                "${jest.testNamePattern}",
+                "--runTestsByPath",
+                "${jest.testFile}"
             ],
+            "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen"
+            "internalConsoleOptions": "neverOpen",
+            "program": "jest",
+            "runtimeExecutable": "npx"
         }
     ]
 }
