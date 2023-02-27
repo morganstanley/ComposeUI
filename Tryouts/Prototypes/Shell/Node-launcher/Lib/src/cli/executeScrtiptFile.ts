@@ -1,4 +1,4 @@
-import { execFile } from 'child_process';
+import { execFile, fork } from 'child_process';
 import { resolve } from 'path';
 
 "use strict";
@@ -6,15 +6,9 @@ import { resolve } from 'path';
 export function executeScriptFile(fileName: string){
     console.log("executeScriptFile", fileName);
     if (fileName) {
-        let filePath= resolve(fileName);
-
-        const child = execFile("node", [filePath], (error, stdout, stderr) => {
-            console.log(stdout);
-            if (error) {
-                throw error;
-            }
-        });
+        let filePath: string = resolve(fileName);
+        const child = fork(filePath);
     } else {
         throw new Error("Specify filename.");
-    } 
+    }
 }
