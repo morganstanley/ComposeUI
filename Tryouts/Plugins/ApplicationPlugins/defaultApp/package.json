@@ -1,0 +1,23 @@
+{
+  "name": "@morgan-stanley/composeui-example-default",
+  "version": "0.1.0",
+  "description": "",
+  "main": "app.js",
+  "type": "module",
+  "scripts": {
+    "clean": "rimraf dist",
+    "bundle": "rollup -c",
+    "build": "npm run clean && npm run bundle",
+    "start": "http-server"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "24.0.1",
+    "@rollup/plugin-node-resolve": "15.0.1",
+    "http-server": "14.1.1",
+    "rimraf": "4.1.2",
+    "rollup": "^3.14.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
