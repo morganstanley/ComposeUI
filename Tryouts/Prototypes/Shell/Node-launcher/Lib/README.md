@@ -39,6 +39,8 @@ function loadUrlExample() {
 loadUrlExample();
 ```
 
+In order to set an icon for your application, set the _icon_ property when creating a new _BrowserWindow_. The url set for the icon must either be relative to the app url, or an http or https url. If the host part of the icon url is different from the app url, you must set the _COMPOSE_ALLOWED_IMAGE_SOURCES_ environment value to contain the allowed icon host(s). You may separate multiple allowed hosts with semicolons (;).
+
 ## CLI
 
 The CLI enables you to execute your app with compose by executing the following command:
