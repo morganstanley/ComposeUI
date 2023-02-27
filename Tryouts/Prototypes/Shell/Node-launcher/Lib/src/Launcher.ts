@@ -5,20 +5,23 @@ export class Launcher {
     private processArgs(config?: WindowConfig) {
         let argsArray = [];
         if (config) {
+            if (config?.title) {
+                argsArray.push(`--title=${config.title}`);
+            }
+            if(config?.icon) {
+                argsArray.push(`--icon=${config.icon}`)
+            }
             if (config?.url) {
-                argsArray.push(`--url=${config?.url}`);
+                argsArray.push(`--url=${config.url}`);
             }
        
             if (config?.width) {
-                argsArray.push(`--width=${config?.width}`);
+                argsArray.push(`--width=${config.width}`);
             }
 
             if (config?.height) {
-                argsArray.push(`--height=${config?.height}`);
-            }
-            if (config?.title) {
-                argsArray.push(`--title=${config?.title}`);
-            }
+                argsArray.push(`--height=${config.height}`);
+            }            
         }
 
         return argsArray;
@@ -27,15 +30,15 @@ export class Launcher {
     public launch(config?: WindowConfig) {
         let argsArray = this.processArgs(config);
 
-        if (argsArray.length === 0) {
-            throw new Error("Specify at least one argument.");
-        } else {
+        if (!config?.url) {
+            throw new Error("At least the url must be specified!");
+        } 
             const child = execFile("Shell.exe", argsArray, (error, stdout, stderr) => {
                 console.log(stdout);
                 if (error) {
                     throw error;
                 }
             });
-        }
+        
     }
 }
