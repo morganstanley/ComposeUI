@@ -32,7 +32,7 @@ import { MatButtonModule } from '@angular/material/button';
         MatButtonModule,
         MatPaginatorModule,
         MatSortModule,
-        MatProgressSpinnerModule
+        MatProgressSpinnerModule,
     ]
 })
 export class MainViewModule{
