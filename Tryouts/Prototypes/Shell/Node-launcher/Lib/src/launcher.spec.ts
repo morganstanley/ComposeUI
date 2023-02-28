@@ -14,6 +14,6 @@ describe('Launcher', () => {
 
     expect(() => {
       testLauncher.launch(testWindowConfig);
-    }).toThrow("Specify at least one argument.");
+    }).toThrow("At least the url must be specified!");
   });
 });
