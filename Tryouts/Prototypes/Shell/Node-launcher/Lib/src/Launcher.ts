@@ -42,6 +42,5 @@ export class Launcher {
         
             let exithandler = function() { process.exit() };
             child.on('close', exithandler);
-        }
     }
 }

@@ -4,5 +4,10 @@
 
 import { executeScriptFile } from './executeScrtiptFile.js';
 
-let fileName = process.argv.slice(2)[0];
-executeScriptFile(fileName);
+let fileName = process.argv[2];
+
+try {
+    executeScriptFile(fileName);
+} catch (error) {
+    console.error(error);
+}
