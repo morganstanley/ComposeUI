@@ -1,0 +1,103 @@
+/* Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. --> */
+
+body {
+    color: #aec7e8;
+    background-color: rgb(0, 43, 81);
+    font-family: Roboto, "Helvetica Neue", "Segoe UI", "Oxygen", "Ubuntu", "Cantarell", "Open Sans", sans-serif;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .container {
+    margin: 15px 30px;
+    background-color: rgb(0, 43, 81);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .vertical-middle {
+    vertical-align: middle;
+  }
+  
+  h2, h4, p, h1 {
+    text-align: center;
+  }
+  
+
+  h4 {
+    font-weight: normal;
+    margin: 0;
+    line-height: 3;
+  }
+      
+  a {
+    color: #1f77b4;
+    font-size: small;
+    font-weight: bolder;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+    
+  pre, code, .code {
+    font-family: "Menlo", "Lucida Console", monospace;
+    color: #1f77b4;
+  }
+  
+  pre {
+    background-color: #aec7e8;
+    white-space: pre-wrap;
+    line-height: 2.5;
+    overflow: auto;
+    margin: 0 auto;
+    display: inline-block;
+    padding: 6px 15px;
+    text-align: center;
+    border-radius: 3px;
+  }
+  
+  pre.with-prompt:before {
+    content: "$ ";
+    opacity: 0.7;
+  }
+  
+  code {
+    padding: 1px 4px;
+    font-size: 14px;
+    text-align: center;
+  }
+  
+  .versions {
+    list-style: none;
+    margin: 0 auto;
+    padding: 0;
+    clear: both;
+    overflow: visible;
+  }
+  
+  .versions li {
+    display: block;
+    float: left;
+    border-right: 3px solid #aec7e8;
+    padding: 0 20px;
+    font-size: 13px;
+    opacity: 0.3;
+  }
+  
+  .versions li:last-child {
+    border: none;
+  }
+  
+  nav {
+    margin: 40px 0 0 0;
+  }
+  
+  .linkcol {
+    float: left;
+    text-align: center;
+    width: 33.33%;
+  }
+
+  
