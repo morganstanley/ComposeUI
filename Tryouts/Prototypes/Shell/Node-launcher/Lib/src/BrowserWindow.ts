@@ -1,5 +1,5 @@
-import { WindowConfig } from './WindowConfig.js';
-import { Launcher } from './Launcher.js';
+import { WindowConfig } from './WindowConfig';
+import { Launcher } from './launcher.js';
 
 export class BrowserWindow {
     private launcher: Launcher;

@@ -48,3 +48,13 @@ The CLI enables you to execute your app with compose by executing the following 
 ```
 composeui myapp.js
 ```
+
+### Local Development
+
+If you're developing the CLI itself you need to execute the following command
+
+```
+npm link
+```
+
+in the `.\Tryouts\Prototypes\Shell\Node-launcher\Lib` folder
