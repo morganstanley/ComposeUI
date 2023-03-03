@@ -75,6 +75,7 @@ body {
     padding: 0;
     clear: both;
     overflow: visible;
+    color:#aec7e8;
   }
   
   .versions li {
@@ -83,7 +84,6 @@ body {
     border-right: 3px solid #aec7e8;
     padding: 0 20px;
     font-size: 13px;
-    opacity: 0.3;
   }
   
   .versions li:last-child {
@@ -100,4 +100,8 @@ body {
     width: 33.33%;
   }
 
+  
+  .filter-blue{
+    filter:  invert(42%) sepia(10%) saturate(5873%) hue-rotate(172deg) brightness(88%) contrast(85%);
+}
   
