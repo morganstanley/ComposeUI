@@ -33,11 +33,11 @@
               "src/assets"
             ],
             "styles": [
-              "../../../node_modules/igniteui-angular/styles/igniteui-angular-dark.css",
+              "../../../../node_modules/igniteui-angular/styles/igniteui-angular-dark.css",
               "src/styles.scss"
             ],
             "scripts": [
-              "../../../node_modules/hammerjs/hammer.min.js"
+              "../../../../node_modules/hammerjs/hammer.min.js"
             ]
           },
           "configurations": {
@@ -99,11 +99,11 @@
               "src/assets"
             ],
             "styles": [
-              "../../../node_modules/igniteui-angular/styles/igniteui-angular-dark.css",
+              "../../../../node_modules/igniteui-angular/styles/igniteui-angular-dark.css",
               "src/styles.scss"
             ],
             "scripts": [
-              "../../../node_modules/hammerjs/hammer.min.js"
+              "../../../../node_modules/hammerjs/hammer.min.js"
             ]
           }
         }

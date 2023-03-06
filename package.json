@@ -1,0 +1,13 @@
+{
+  "name": "@morgan-stanley/composeui-web-modules",
+  "description": "Lerna monorepo of the web dependencies in ComposeUI",
+  "private": true,
+  "workspaces": [
+    "Tryouts/Messaging-JS",
+    "Tryouts/Plugins/ApplicationPlugins/*",
+    "Tryouts/Prototypes/Shell/Node-launcher/*"
+  ],
+  "devDependencies": {
+    "lerna": "^6.4.1"
+  }
+}

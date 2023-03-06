@@ -11,3 +11,34 @@ ComposeUI is a A .NET Core based general UI Container and Unified UI and App hos
 Our goal is to fill the feature gaps with respect to UI components, layout management, and subpar native hosting in other industry container solutions by providing a standard container as an open desktop platform. It is a hybrid solution that meets the needs of a diverse application catalog as well as a compelling opensource alternative.
 
 It supports desktop and web applications in order to provide an evergreen alternative to Electron, OpenFin and similar by the use of WebView2.
+
+## Development Setup
+=========
+
+### Lerna
+=========
+
+The javascript dependencies are managed by a lerna monorepo.
+
+### Run scripts
+
+In the root folder
+npm i
+
+Build all modules:
+npx lerna run build --stream
+
+Test all modules:
+npx lerna run test --stream
+
+(If you don't want a detailed log, you can execute these without --stream)
+
+Building a sepecific module:
+npx lerna run build --stream --scope=@morgan-stanley/composeui-messaging-client
+
+List all modules in the workspace
+npx lerna list
+
+### Docs
+
+For mor info check the [documentation](https://lerna.js.org/docs/api-reference/commands).

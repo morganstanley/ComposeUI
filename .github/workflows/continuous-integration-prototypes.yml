@@ -26,13 +26,13 @@ jobs:
         dotnet-version: ${{ matrix.dotnet-version }}
     - name: Install Nuget dependencies
       run: Get-ChildItem -Recurse -Include *.sln | ForEach-Object {dotnet restore $_} 
-      working-directory: Tryouts
+
     - name: Build .Net
       run: Get-ChildItem -Recurse -Include *.sln | ForEach-Object {dotnet build $_ --configuration Release --no-restore; if ($LASTEXITCODE -ne 0 ) {throw "Build for $_ FAILED"; }} 
-      working-directory: Tryouts
+
     - name: Test .Net
       run: Get-ChildItem -Recurse -Include *.sln | ForEach-Object {dotnet test $_ --no-restore --verbosity normal}  
-      working-directory: Tryouts
+
 
     - name: Setup Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
@@ -40,10 +40,9 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - name: Install NPM dependencies
       run: npm ci
-      working-directory: Tryouts
+
     - name: Build JavaScript
       run: npx lerna run build
-      working-directory: Tryouts
+      
     - name: Test JavaScript
       run: npx lerna run test
-      working-directory: Tryouts
