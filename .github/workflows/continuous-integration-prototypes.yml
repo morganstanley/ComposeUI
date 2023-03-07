@@ -46,3 +46,6 @@ jobs:
       
     - name: Test JavaScript
       run: npx lerna run test
+
+    - name: Codecov
+      uses: codecov/codecov-action@v3.0.0
