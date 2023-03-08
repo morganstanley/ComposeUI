@@ -13,10 +13,8 @@ Our goal is to fill the feature gaps with respect to UI components, layout manag
 It supports desktop and web applications in order to provide an evergreen alternative to Electron, OpenFin and similar by the use of WebView2.
 
 ## Development Setup
-=========
 
 ### Lerna
-=========
 
 The javascript dependencies are managed by a lerna monorepo.
 
