@@ -36,46 +36,5 @@
     "dependencies": {
         "@types/node": "^18.11.18",
         "rxjs": "^7.8.0"
-    },
-    "jest": {
-        "preset": "ts-jest/presets/default-esm",
-        "setupFilesAfterEnv": [
-            "./testSetup.ts"
-        ]
-    },
-    "dependenciesMeta": {
-        "@jest/expect-utils@29.4.1": {
-            "unplugged": true
-        },
-        "@rollup/plugin-typescript@11.0.0": {
-            "unplugged": true
-        },
-        "@types/jest@29.4.0": {
-            "unplugged": true
-        },
-        "expect@29.4.1": {
-            "unplugged": true
-        },
-        "jest@29.4.1": {
-            "unplugged": true
-        },
-        "jest-extended@3.2.3": {
-            "unplugged": true
-        },
-        "rollup@3.17.2": {
-            "unplugged": true
-        },
-        "rollup-plugin-dts@5.2.0": {
-            "unplugged": true
-        },
-        "rollup-plugin-esbuild@5.0.0": {
-            "unplugged": true
-        },
-        "ts-jest@29.0.5": {
-            "unplugged": true
-        },
-        "typescript@4.9.5": {
-            "unplugged": true
-        }
     }
 }
