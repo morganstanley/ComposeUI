@@ -2,6 +2,7 @@
     <Import Project="../Directory.Build.props" Condition="Exists('../Directory.Build.props')" />
 
     <PropertyGroup>
-        <ComposeUIRepositoryRoot>$(MSBuildThisFileDirectory)</ComposeUIRepositoryRoot>
+        <ComposeUIRepositoryRoot>$(MSBuildThisFileDirectory.TrimEnd('/').TrimEnd('\'))</ComposeUIRepositoryRoot>
+        <PackageOutputPath>$(ComposeUIRepositoryRoot)/artifacts/packages/nuget</PackageOutputPath>
     </PropertyGroup>
 </Project>

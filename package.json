@@ -4,6 +4,7 @@
   "private": true,
   "workspaces": [
     "src/messaging/js/*",
+    "src/shell/js/*",
     "Tryouts/Plugins/ApplicationPlugins/*",
     "Tryouts/Prototypes/Shell/Node-launcher/*"
   ],

@@ -33,7 +33,7 @@ export class Launcher {
         if (!config?.url) {
             throw new Error("At least the url must be specified!");
         } 
-            const child = execFile("Shell.exe", argsArray, (error, stdout, stderr) => {
+            const child = execFile("ComposeUI-Shell.exe", argsArray, (error, stdout, stderr) => {
                 console.log(stdout);
                 if (error) {
                     throw error;
