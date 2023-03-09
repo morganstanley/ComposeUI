@@ -40,11 +40,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
     <PackageReference Include="Nito.AsyncEx" Version="5.1.2" />
   </ItemGroup>
   <ItemGroup>
+	  <ProjectReference Include="..\..\..\src\messaging\dotnet\src\Core\MorganStanley.ComposeUI.Messaging.Core.csproj" />
+	  <ProjectReference Include="..\..\..\src\messaging\dotnet\src\Server\MorganStanley.ComposeUI.Messaging.Server.csproj" />
 	  <ProjectReference Include="..\..\Core\Abstractions\MorganStanley.ComposeUI.Tryouts.Core.Abstractions.csproj" />
 	  <ProjectReference Include="..\..\Core\Services\ModulesService\MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService.csproj" />
 	  <ProjectReference Include="..\..\Core\Utilities\MorganStanley.ComposeUI.Tryouts.Core.Utilities.csproj" />
-	  <ProjectReference Include="..\..\Messaging\Client\MorganStanley.ComposeUI.Messaging.Client.csproj" />
-	  <ProjectReference Include="..\..\Messaging\Server\MorganStanley.ComposeUI.Messaging.Server.csproj" />
 	  <ProjectReference Include="..\..\Plugins\ApplicationPlugins\process explorer\backend\ModuleProcessMonitor\ModuleProcessMonitor.csproj" />
 	  <ProjectReference Include="..\ProcessExplorerMessageRouterTopics\ProcessExplorerMessageRouterTopics.csproj" />
   </ItemGroup>
