@@ -7,8 +7,10 @@ coverage:
 
   status:
     project: yes
-    patch: no
+    patch:
+      default:
+        target: 100%
     changes: no
 
 comment:
-  layout: "diff, flags, files"
+  layout: "reach, diff, flags, files"
