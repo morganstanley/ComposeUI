@@ -1,5 +1,5 @@
 import { execFile } from 'child_process';
-import { WindowConfig } from './WindowConfig';
+import { WindowConfig } from './WindowConfig.js';
 
 export class Launcher {
     private processArgs(config?: WindowConfig) {
