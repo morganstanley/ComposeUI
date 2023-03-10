@@ -3,21 +3,25 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Core", "Core\MorganStanley.ComposeUI.Messaging.Core.csproj", "{FC647551-B014-49A8-817E-F5FE6FEBF452}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Core", "src\Core\MorganStanley.ComposeUI.Messaging.Core.csproj", "{FC647551-B014-49A8-817E-F5FE6FEBF452}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Client", "Client\MorganStanley.ComposeUI.Messaging.Client.csproj", "{A3156691-0B46-4C3D-B042-E71D9BAF02EC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Client", "src\Client\MorganStanley.ComposeUI.Messaging.Client.csproj", "{A3156691-0B46-4C3D-B042-E71D9BAF02EC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Server", "Server\MorganStanley.ComposeUI.Messaging.Server.csproj", "{4AEFD2AA-CF42-401D-A058-E2B4C8E12283}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Server", "src\Server\MorganStanley.ComposeUI.Messaging.Server.csproj", "{4AEFD2AA-CF42-401D-A058-E2B4C8E12283}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Server.Tests", "Server.Tests\MorganStanley.ComposeUI.Messaging.Server.Tests.csproj", "{C95F8B4A-7E42-43A6-A57E-C3ACB6255EA3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Server.Tests", "test\Server.Tests\MorganStanley.ComposeUI.Messaging.Server.Tests.csproj", "{C95F8B4A-7E42-43A6-A57E-C3ACB6255EA3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.IntegrationTests", "IntegrationTests\MorganStanley.ComposeUI.Messaging.IntegrationTests.csproj", "{684367EE-406C-4727-993D-EF4B6FF5C37C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.IntegrationTests", "test\IntegrationTests\MorganStanley.ComposeUI.Messaging.IntegrationTests.csproj", "{684367EE-406C-4727-993D-EF4B6FF5C37C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WpfHost", "WpfHost\WpfHost.csproj", "{7BDA5B06-82A4-4BD7-BA70-82382CEABDF5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Core.Tests", "test\Core.Tests\MorganStanley.ComposeUI.Messaging.Core.Tests.csproj", "{CDC30566-1801-40CD-9EBD-2913418FC2F9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Core.Tests", "Core.Tests\MorganStanley.ComposeUI.Messaging.Core.Tests.csproj", "{CDC30566-1801-40CD-9EBD-2913418FC2F9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestServer", "examples\TestServer\TestServer.csproj", "{29122DF1-0AE3-4101-9D96-4711553C7696}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestServer", "TestServer\TestServer.csproj", "{29122DF1-0AE3-4101-9D96-4711553C7696}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{37DE16A7-F731-4206-B650-8A1D9D066B60}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{78E94277-B0B4-425C-9C47-81E09933FE5B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{B245E9BB-69CC-4457-9FDF-635E742993CB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,10 +49,6 @@ Global
 		{684367EE-406C-4727-993D-EF4B6FF5C37C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{684367EE-406C-4727-993D-EF4B6FF5C37C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{684367EE-406C-4727-993D-EF4B6FF5C37C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7BDA5B06-82A4-4BD7-BA70-82382CEABDF5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7BDA5B06-82A4-4BD7-BA70-82382CEABDF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7BDA5B06-82A4-4BD7-BA70-82382CEABDF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7BDA5B06-82A4-4BD7-BA70-82382CEABDF5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CDC30566-1801-40CD-9EBD-2913418FC2F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CDC30566-1801-40CD-9EBD-2913418FC2F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CDC30566-1801-40CD-9EBD-2913418FC2F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -60,6 +60,15 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{FC647551-B014-49A8-817E-F5FE6FEBF452} = {37DE16A7-F731-4206-B650-8A1D9D066B60}
+		{A3156691-0B46-4C3D-B042-E71D9BAF02EC} = {37DE16A7-F731-4206-B650-8A1D9D066B60}
+		{4AEFD2AA-CF42-401D-A058-E2B4C8E12283} = {37DE16A7-F731-4206-B650-8A1D9D066B60}
+		{C95F8B4A-7E42-43A6-A57E-C3ACB6255EA3} = {78E94277-B0B4-425C-9C47-81E09933FE5B}
+		{684367EE-406C-4727-993D-EF4B6FF5C37C} = {78E94277-B0B4-425C-9C47-81E09933FE5B}
+		{CDC30566-1801-40CD-9EBD-2913418FC2F9} = {78E94277-B0B4-425C-9C47-81E09933FE5B}
+		{29122DF1-0AE3-4101-9D96-4711553C7696} = {B245E9BB-69CC-4457-9FDF-635E742993CB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {38CFF5DF-459A-49E1-8189-2DB429A99B3A}

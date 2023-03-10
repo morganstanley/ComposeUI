@@ -3,7 +3,7 @@
   "description": "Lerna monorepo of the web dependencies in ComposeUI",
   "private": true,
   "workspaces": [
-    "Tryouts/Messaging-JS",
+    "src/messaging/js/*",
     "Tryouts/Plugins/ApplicationPlugins/*",
     "Tryouts/Prototypes/Shell/Node-launcher/*"
   ],

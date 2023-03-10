@@ -13,8 +13,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Core\MorganStanley.ComposeUI.Messaging.Core.csproj" />
-	  <ProjectReference Include="..\Server\MorganStanley.ComposeUI.Messaging.Server.csproj" />
+	  <ProjectReference Include="../../src/Core/MorganStanley.ComposeUI.Messaging.Core.csproj" />
+	  <ProjectReference Include="../../src/Server/MorganStanley.ComposeUI.Messaging.Server.csproj" />
 	</ItemGroup>
 
 </Project>
