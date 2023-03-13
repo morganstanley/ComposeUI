@@ -42,4 +42,4 @@ npx lerna list
 
 ### Docs
 
-For mor info check the [documentation](https://lerna.js.org/docs/api-reference/commands).
+For more information check the [documentation](https://lerna.js.org/docs/api-reference/commands).
