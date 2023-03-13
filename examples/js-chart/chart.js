@@ -1,7 +1,5 @@
 ﻿import Chart from 'highcharts/es-modules/Core/Chart/Chart.js';
 import ColumnSeries from 'highcharts/es-modules/Series/Column/ColumnSeries.js';
-
-//TODO: check the bundling
 import { createMessageRouter } from "@morgan-stanley/composeui-messaging-client";
 
 let chart;
