@@ -1,27 +1,13 @@
 import { execFile } from 'child_process';
-import { WindowConfig } from './WindowConfig';
+import { WindowConfig } from './windowConfig';
 
 export class Launcher {
     private processArgs(config?: WindowConfig) {
         let argsArray = [];
         if (config) {
-            if (config?.title) {
-                argsArray.push(`--title=${config.title}`);
+            for (const [key, value] of Object.entries(config)) {
+                argsArray.push(`--${key}=${value}`);
             }
-            if(config?.icon) {
-                argsArray.push(`--icon=${config.icon}`)
-            }
-            if (config?.url) {
-                argsArray.push(`--url=${config.url}`);
-            }
-       
-            if (config?.width) {
-                argsArray.push(`--width=${config.width}`);
-            }
-
-            if (config?.height) {
-                argsArray.push(`--height=${config.height}`);
-            }            
         }
 
         return argsArray;
