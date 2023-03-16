@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Shell": {
+      "commandName": "Project"
+    },
+    "Chart and grid": {
+      "commandName": "Project",
+      "commandLineArgs": "--url http://localhost:4200"
+    }
+  }
+}

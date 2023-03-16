@@ -3,10 +3,10 @@
   "description": "Lerna monorepo of the web dependencies in ComposeUI",
   "private": true,
   "workspaces": [
+    "examples/js-*",
     "src/messaging/js/*",
     "src/shell/js/*",
-    "Tryouts/Plugins/ApplicationPlugins/*",
-    "Tryouts/Prototypes/Shell/Node-launcher/*"
+    "Tryouts/Plugins/ApplicationPlugins/*"
   ],
   "devDependencies": {
     "lerna": "^6.4.1"
