@@ -6,7 +6,7 @@ namespace Shell
     {
         [Display(Description = "Set the height of the window. Default: 450")]
         public double? Height { get; set; }
-        
+
         [Display(Description = $"Set the title of the window. Default: {DefaultTitle}")]
         public string? Title { get; set; }
 

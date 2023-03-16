@@ -1,5 +1,5 @@
 import { Launcher } from './launcher';
-import { WindowConfig } from './WindowConfig';
+import { WindowConfig } from './windowConfig';
 
 describe('Launcher', () => {
   let testWindowConfig: WindowConfig;
