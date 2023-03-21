@@ -8,7 +8,7 @@
   "scripts": {
     "clean": "rimraf output",
     "build": "npm run clean && tsc",
-    "install": "node ./output/cli/install.js",
+    "install": "node ./src/cli/install.js",
     "test": "jest"
   },
   "bin": {
