@@ -30,7 +30,7 @@ let downloadedFile = '';
 const fileName = 'composeui.zip';
 const composeui_version = ''; //todo
 
-function ensureDirectoryExistence(filePath: string) {
+function ensureDirectoryExistence(filePath) {
     let dirname = path.dirname(filePath);
     if (fs.existsSync(dirname)) {
       return true;
@@ -39,7 +39,7 @@ function ensureDirectoryExistence(filePath: string) {
     fs.mkdirSync(dirname);
   }
 
-async function downloadFile(dirToLoadTo: string) {
+async function downloadFile(dirToLoadTo) {
     //todo replace localhost download with the actual one.
     //todo skip download is binary is already there
 
@@ -65,7 +65,7 @@ async function downloadFile(dirToLoadTo: string) {
     });
 }
 
-function extractFile (zipPath: string, outPath: string ) {
+function extractFile (zipPath, outPath ) {
     let path = `${zipPath}/${fileName}`;
 
     fs.createReadStream(path)
