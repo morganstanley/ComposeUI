@@ -7,6 +7,10 @@ import fs from 'fs';
 
 import axios from 'axios';
 
+// @ts-ignore
+import unzipper from '@deranged/unzipper';
+
+
 function validatePlatform() {
     let platform = process.platform;
     console.log("platform", platform);
@@ -21,8 +25,10 @@ function validatePlatform() {
     return platform;
 }
 
-let cdnUrl = 'http://127.0.0.1:8080';
+let cdnUrl = 'http://127.0.0.1:8080'; // todo OR 
 let downloadedFile = '';
+const fileName = 'composeui.zip';
+const composeui_version = ''; //todo
 
 function ensureDirectoryExistence(filePath: string) {
     let dirname = path.dirname(filePath);
@@ -33,28 +39,24 @@ function ensureDirectoryExistence(filePath: string) {
     fs.mkdirSync(dirname);
   }
 
-function downloadFile(dirToLoadTo: string) {
-    console.log('downloadFile');
+async function downloadFile(dirToLoadTo: string) {
     //todo replace localhost download with the actual one.
-
     //todo skip download is binary is already there
+
     //todo zip: `composeui_${platform}.zip
-    const fileName = 'ComposeUI-Shell.exe';
-    
-    const composeui_version = ''; //todo
 
     const tempDownloadedFile = path.resolve(dirToLoadTo, fileName);
     downloadedFile = tempDownloadedFile;
     console.log("downloadedFile: ", downloadedFile);
 
-    //todo ${composeui_version}/
+    //todo include composeui_version/
     const formattedDownloadUrl =`${cdnUrl}/${fileName}`;
     
     console.log('Downloading from file: ', formattedDownloadUrl);
     console.log('Saving to file:', downloadedFile);
 
     ensureDirectoryExistence(downloadedFile);
-    axios.request({
+    await axios.request({
         method: 'get',
         url: formattedDownloadUrl,
         responseType: 'stream'
@@ -63,13 +65,20 @@ function downloadFile(dirToLoadTo: string) {
     });
 }
 
-function install () {
-    console.log("install");
+function extractFile (zipPath: string, outPath: string ) {
+    let path = `${zipPath}/${fileName}`;
+
+    fs.createReadStream(path)
+        .pipe(unzipper.Extract({ path: outPath }));
+}
+
+async function install () {
     const tmpPath = process.cwd() + "/tmpdownload"; //todo
     console.log("tmpPath: ",tmpPath);
-   
+
     validatePlatform();
-    downloadFile(tmpPath);
+    await downloadFile(tmpPath);
+    extractFile(tmpPath, tmpPath);
 }
 
 install();
