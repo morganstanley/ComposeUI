@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ComposeUI.Example.WPFDataGrid\WPFDataGrid.csproj" />
+    <ProjectReference Include="../ComposeUI.Example.WPFDataGrid/WPFDataGrid.csproj" />
   </ItemGroup>
 
 </Project>

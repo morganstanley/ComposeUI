@@ -3,21 +3,21 @@
     "StartupType": "executable",
     "UIType": "none",
     "Name": "dataservice",
-    "Path": "..\\..\\..\\..\\..\\Plugins\\ApplicationPlugins\\ComposeUI.Example.DataService\\bin\\Debug\\net6.0\\ComposeUI.Example.DataService.exe",
+    "Path": "..\\..\\..\\..\\ComposeUI.Example.DataService\\bin\\Debug\\net6.0\\ComposeUI.Example.DataService.exe",
     "Arguments": [ "ws://localhost:5000/ws" ]
   },
   "datagrid": {
     "StartupType": "executable",
     "UIType": "window",
     "Name": "datagrid",
-    "Path": "..\\..\\..\\..\\..\\Plugins\\ApplicationPlugins\\ComposeUI.Example.WPFDataGrid.TestApp\\bin\\Debug\\net6.0-windows\\WPFDataGrid.TestApp.exe",
+    "Path": "..\\..\\..\\..\\ComposeUI.Example.WPFDataGrid.TestApp\\bin\\Debug\\net6.0-windows\\WPFDataGrid.TestApp.exe",
     "Arguments": [ "ws://localhost:5000/ws" ]
   },
   "chart": {
     "StartupType": "selfhostedwebapp",
     "UIType": "web",
     "Name": "chart",
-    "Path": "..\\..\\..\\..\\..\\Plugins\\ApplicationPlugins\\chart",
+    "Path": "..\\..\\..\\..\\..\\..\\examples\\js-chart",
     "Port": 8080,
     "Url": "http://localhost:8080"
   }

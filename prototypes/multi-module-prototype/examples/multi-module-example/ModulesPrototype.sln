@@ -1,50 +1,39 @@
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModulesPrototype", "ModulesPrototype.csproj", "{49279A6F-C9BC-4EFF-BBBB-72789599A46C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModulesPrototype", "ModulesPrototype\ModulesPrototype.csproj", "{49279A6F-C9BC-4EFF-BBBB-72789599A46C}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tryouts", "Tryouts", "{2D94959E-539E-43A8-B50D-435D969059FF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ModuleLoader", "..\..\src\module-loader\dotnet\ModuleLoader\MorganStanley.ComposeUI.ModuleLoader.csproj", "{2D16F7EF-D833-4D9C-90C0-C633F8E33A2B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Tryouts.Core.Utilities", "..\..\Core\Utilities\MorganStanley.ComposeUI.Tryouts.Core.Utilities.csproj", "{E2CC1CB0-7895-4A50-B62A-20F313A4C3B0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Server", "..\..\..\..\src\messaging\dotnet\src\Server\MorganStanley.ComposeUI.Messaging.Server.csproj", "{6019D5A5-3D0C-4A30-8025-B8F30050BEB6}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{B530EC0C-92A5-445F-8938-DBCD083DCF19}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Core", "..\..\..\..\src\messaging\dotnet\src\Core\MorganStanley.ComposeUI.Messaging.Core.csproj", "{11D505AF-310E-4536-A6DA-3E8DB053D1D6}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{E678CCB6-90FB-4C52-8AE0-911D313783F8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Client", "..\..\..\..\src\messaging\dotnet\src\Client\MorganStanley.ComposeUI.Messaging.Client.csproj", "{47CA77F0-3D59-47A6-AE1F-A2BAE2F72222}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Tryouts.Core.Abstractions", "..\..\Core\Abstractions\MorganStanley.ComposeUI.Tryouts.Core.Abstractions.csproj", "{2CD78E0B-F6E3-4A47-8D22-DDA7A33703AB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComposeUI.Example.DataService", "ComposeUI.Example.DataService\ComposeUI.Example.DataService.csproj", "{C20FA602-71E5-4383-8F8F-B966873EFA69}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ApplicationPlugins", "ApplicationPlugins", "{791349F6-58F6-4425-AAB1-DBD3C3B99D6B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WPFDataGrid", "ComposeUI.Example.WPFDataGrid\WPFDataGrid.csproj", "{EFF70E7E-C320-4F47-8A13-C1FE5C8F2982}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{C1364FA5-844D-4F5C-BF32-8FC2ECF5B25D}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService", "..\..\Core\Services\ModulesService\MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService.csproj", "{2D16F7EF-D833-4D9C-90C0-C633F8E33A2B}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Server", "..\..\..\src\messaging\dotnet\src\Server\MorganStanley.ComposeUI.Messaging.Server.csproj", "{6019D5A5-3D0C-4A30-8025-B8F30050BEB6}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Core", "..\..\..\src\messaging\dotnet\src\Core\MorganStanley.ComposeUI.Messaging.Core.csproj", "{11D505AF-310E-4536-A6DA-3E8DB053D1D6}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Client", "..\..\..\src\messaging\dotnet\src\Client\MorganStanley.ComposeUI.Messaging.Client.csproj", "{47CA77F0-3D59-47A6-AE1F-A2BAE2F72222}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComposeUI.Example.DataService", "..\..\Plugins\ApplicationPlugins\ComposeUI.Example.DataService\ComposeUI.Example.DataService.csproj", "{C20FA602-71E5-4383-8F8F-B966873EFA69}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WPFDataGrid", "..\..\Plugins\ApplicationPlugins\ComposeUI.Example.WPFDataGrid\WPFDataGrid.csproj", "{EFF70E7E-C320-4F47-8A13-C1FE5C8F2982}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WPFDataGrid.TestApp", "..\..\Plugins\ApplicationPlugins\ComposeUI.Example.WPFDataGrid.TestApp\WPFDataGrid.TestApp.csproj", "{21BA0993-6F19-4549-8884-CB4C7FAE34A8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WPFDataGrid.TestApp", "ComposeUI.Example.WPFDataGrid.TestApp\WPFDataGrid.TestApp.csproj", "{21BA0993-6F19-4549-8884-CB4C7FAE34A8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Process Explorer", "Process Explorer", "{BF3D9176-E2B0-4C87-9691-8288C257BFAF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LocalCollector", "..\..\Plugins\ApplicationPlugins\process explorer\backend\LocalCollector\LocalCollector.csproj", "{FDD9C089-5DC8-4194-AA82-51E915D249AF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LocalCollector", "..\..\..\..\Tryouts\Plugins\ApplicationPlugins\process explorer\backend\LocalCollector\LocalCollector.csproj", "{FDD9C089-5DC8-4194-AA82-51E915D249AF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModuleProcessMonitor", "..\..\Plugins\ApplicationPlugins\process explorer\backend\ModuleProcessMonitor\ModuleProcessMonitor.csproj", "{B41C1EEC-7EB1-43BB-995D-5E0E2809B16B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModuleProcessMonitor", "..\..\..\..\Tryouts\Plugins\ApplicationPlugins\process explorer\backend\ModuleProcessMonitor\ModuleProcessMonitor.csproj", "{B41C1EEC-7EB1-43BB-995D-5E0E2809B16B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProcessExplorer", "..\..\Plugins\ApplicationPlugins\process explorer\backend\ProcessExplorer\ProcessExplorer.csproj", "{89A8A63B-BC4E-4443-AC40-4F2D79BAED5D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProcessExplorer", "..\..\..\..\Tryouts\Plugins\ApplicationPlugins\process explorer\backend\ProcessExplorer\ProcessExplorer.csproj", "{89A8A63B-BC4E-4443-AC40-4F2D79BAED5D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SuperRPC-POC", "..\..\Plugins\ApplicationPlugins\process explorer\backend\SuperRPC-POC\SuperRPC-POC.csproj", "{9AF6AF79-0261-4C1B-A904-00DA29A04F12}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SuperRPC-POC", "..\..\..\..\Tryouts\Plugins\ApplicationPlugins\process explorer\backend\SuperRPC-POC\SuperRPC-POC.csproj", "{9AF6AF79-0261-4C1B-A904-00DA29A04F12}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProcessExplorerMessageRouterTopics", "..\ProcessExplorerMessageRouterTopics\ProcessExplorerMessageRouterTopics.csproj", "{B00789CA-40D7-462D-8A1D-11C672B30512}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProcessExplorerMessageRouterTopics", "ProcessExplorerMessageRouterTopics\ProcessExplorerMessageRouterTopics.csproj", "{B00789CA-40D7-462D-8A1D-11C672B30512}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lib", "lib", "{DFABC3EE-C089-4E76-AE83-76FBD6C407C6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "modules", "modules", "{E761C6B7-625B-47D8-811B-A67B3E7221D5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -56,14 +45,6 @@ Global
 		{49279A6F-C9BC-4EFF-BBBB-72789599A46C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{49279A6F-C9BC-4EFF-BBBB-72789599A46C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{49279A6F-C9BC-4EFF-BBBB-72789599A46C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E2CC1CB0-7895-4A50-B62A-20F313A4C3B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E2CC1CB0-7895-4A50-B62A-20F313A4C3B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E2CC1CB0-7895-4A50-B62A-20F313A4C3B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E2CC1CB0-7895-4A50-B62A-20F313A4C3B0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2CD78E0B-F6E3-4A47-8D22-DDA7A33703AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2CD78E0B-F6E3-4A47-8D22-DDA7A33703AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2CD78E0B-F6E3-4A47-8D22-DDA7A33703AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2CD78E0B-F6E3-4A47-8D22-DDA7A33703AB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2D16F7EF-D833-4D9C-90C0-C633F8E33A2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2D16F7EF-D833-4D9C-90C0-C633F8E33A2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D16F7EF-D833-4D9C-90C0-C633F8E33A2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -117,20 +98,14 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{E2CC1CB0-7895-4A50-B62A-20F313A4C3B0} = {E678CCB6-90FB-4C52-8AE0-911D313783F8}
-		{B530EC0C-92A5-445F-8938-DBCD083DCF19} = {2D94959E-539E-43A8-B50D-435D969059FF}
-		{E678CCB6-90FB-4C52-8AE0-911D313783F8} = {2D94959E-539E-43A8-B50D-435D969059FF}
-		{2CD78E0B-F6E3-4A47-8D22-DDA7A33703AB} = {E678CCB6-90FB-4C52-8AE0-911D313783F8}
-		{791349F6-58F6-4425-AAB1-DBD3C3B99D6B} = {B530EC0C-92A5-445F-8938-DBCD083DCF19}
-		{C1364FA5-844D-4F5C-BF32-8FC2ECF5B25D} = {E678CCB6-90FB-4C52-8AE0-911D313783F8}
-		{2D16F7EF-D833-4D9C-90C0-C633F8E33A2B} = {C1364FA5-844D-4F5C-BF32-8FC2ECF5B25D}
+		{2D16F7EF-D833-4D9C-90C0-C633F8E33A2B} = {DFABC3EE-C089-4E76-AE83-76FBD6C407C6}
 		{6019D5A5-3D0C-4A30-8025-B8F30050BEB6} = {DFABC3EE-C089-4E76-AE83-76FBD6C407C6}
 		{11D505AF-310E-4536-A6DA-3E8DB053D1D6} = {DFABC3EE-C089-4E76-AE83-76FBD6C407C6}
 		{47CA77F0-3D59-47A6-AE1F-A2BAE2F72222} = {DFABC3EE-C089-4E76-AE83-76FBD6C407C6}
-		{C20FA602-71E5-4383-8F8F-B966873EFA69} = {791349F6-58F6-4425-AAB1-DBD3C3B99D6B}
-		{EFF70E7E-C320-4F47-8A13-C1FE5C8F2982} = {791349F6-58F6-4425-AAB1-DBD3C3B99D6B}
-		{21BA0993-6F19-4549-8884-CB4C7FAE34A8} = {791349F6-58F6-4425-AAB1-DBD3C3B99D6B}
-		{BF3D9176-E2B0-4C87-9691-8288C257BFAF} = {791349F6-58F6-4425-AAB1-DBD3C3B99D6B}
+		{C20FA602-71E5-4383-8F8F-B966873EFA69} = {E761C6B7-625B-47D8-811B-A67B3E7221D5}
+		{EFF70E7E-C320-4F47-8A13-C1FE5C8F2982} = {E761C6B7-625B-47D8-811B-A67B3E7221D5}
+		{21BA0993-6F19-4549-8884-CB4C7FAE34A8} = {E761C6B7-625B-47D8-811B-A67B3E7221D5}
+		{BF3D9176-E2B0-4C87-9691-8288C257BFAF} = {E761C6B7-625B-47D8-811B-A67B3E7221D5}
 		{FDD9C089-5DC8-4194-AA82-51E915D249AF} = {BF3D9176-E2B0-4C87-9691-8288C257BFAF}
 		{B41C1EEC-7EB1-43BB-995D-5E0E2809B16B} = {BF3D9176-E2B0-4C87-9691-8288C257BFAF}
 		{89A8A63B-BC4E-4443-AC40-4F2D79BAED5D} = {BF3D9176-E2B0-4C87-9691-8288C257BFAF}
