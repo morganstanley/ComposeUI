@@ -4,12 +4,27 @@
 
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 
 import axios from 'axios';
 
 // @ts-ignore
 import unzipper from '@deranged/unzipper';
 
+
+let cdnUrl = 'http://127.0.0.1:8080'; // todo OR 
+let downloadedFile = '';
+
+let platform = validatePlatform();
+const fileName = `composeui_${platform}.zip`;
+
+const composeui_version = ''; //todo
+const skipDownload = process.env.npm_config_composeui_skip_download || process.env.COMPOSEUI_SKIP_DOWNLOAD;
+
+if (skipDownload === 'true') {
+    console.log('Found COMPOSEUI_SKIP_DOWNLOAD variable, skipping installation.');
+    process.exit(0);
+}
 
 function validatePlatform() {
     let platform = process.platform;
@@ -25,18 +40,8 @@ function validatePlatform() {
     return platform;
 }
 
-let cdnUrl = 'http://127.0.0.1:8080'; // todo OR 
-let downloadedFile = '';
-const fileName = 'composeui.zip';
-const composeui_version = ''; //todo
-const skipDownload = process.env.npm_config_composeui_skip_download || process.env.COMPOSEUI_SKIP_DOWNLOAD;
-
-if (skipDownload === 'true') {
-    console.log('Found COMPOSEUI_SKIP_DOWNLOAD variable, skipping installation.');
-    process.exit(0);
-}
-
 function ensureDirectoryExistence(filePath) {
+    console.log("ensureDirectoryExistence");
     let dirname = path.dirname(filePath);
     if (fs.existsSync(dirname)) {
       return true;
@@ -48,8 +53,6 @@ function ensureDirectoryExistence(filePath) {
 async function downloadFile(dirToLoadTo) {
     //todo replace localhost download with the actual one.
     //todo skip download is binary is already there
-
-    //todo zip: `composeui_${platform}.zip
 
     const tempDownloadedFile = path.resolve(dirToLoadTo, fileName);
     downloadedFile = tempDownloadedFile;
@@ -71,20 +74,40 @@ async function downloadFile(dirToLoadTo) {
     });
 }
 
-function extractFile (zipPath, outPath ) {
-    let path = `${zipPath}/${fileName}`;
+async function extractFile(zipPath, outPath) {
+    let zipFile = `${zipPath}/${fileName}`;
 
-    fs.createReadStream(path)
-        .pipe(unzipper.Extract({ path: outPath }));
+    if (path.extname(zipFile) !== '.zip') {
+        console.log('Skipping zip extraction - binary file found.');
+        return;
+      }
+      console.log(`Extracting zip contents to ${outPath}.`);
+      try {
+        fs.createReadStream(zipFile).pipe(unzipper.Extract({ path: outPath }));
+      } catch (error) {
+        throw new Error('Error extracting archive: ' + error);
+      }
 }
 
-async function install () {
-    const tmpPath = process.cwd() + "/tmpdownload"; //todo
-    console.log("tmpPath: ",tmpPath);
+function createTempFolder(){
+    let tempFolderPath
+    try {
+        tempFolderPath = fs.mkdtempSync(path.join(os.tmpdir(), 'composeui-'));
+      } catch (err) {
+        console.error(err);
+      }
 
+      return tempFolderPath;
+}
+
+async function install() {
     validatePlatform();
+
+    const tmpPath = createTempFolder();
+    const outPath = process.cwd() + "/dist";
+    
     await downloadFile(tmpPath);
-    extractFile(tmpPath, tmpPath);
+    await extractFile(tmpPath, outPath);
 }
 
 install();
