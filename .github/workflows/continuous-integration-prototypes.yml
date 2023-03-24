@@ -12,7 +12,8 @@ on:
 
 jobs:
   build:
-
+    env:
+      COMPOSEUI_SKIP_DOWNLOAD: 'true'
     runs-on: windows-latest
     strategy:
       matrix:
@@ -38,6 +39,7 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
+        COMPOSEUI_SKIP_DOWNLOAD: ${{env.COMPOSEUI_SKIP_DOWNLOAD}}
     - name: Install NPM dependencies
       run: npm ci
 
