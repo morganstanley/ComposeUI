@@ -17,7 +17,7 @@ namespace MorganStanley.ComposeUI.Messaging.Client.Abstractions;
 /// <summary>
 /// Represents a connection that can communicate with the server.
 /// </summary>
-internal interface IConnection : IAsyncDisposable
+public interface IConnection : IAsyncDisposable
 {
     /// <summary>
     /// Opens the connection.

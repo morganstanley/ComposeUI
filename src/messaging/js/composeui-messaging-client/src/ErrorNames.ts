@@ -17,6 +17,7 @@ export const ErrorNames = {
     invalidEndpoint: "InvalidEndpoint",
     invalidTopic: "InvalidTopic",
     unknownEndpoint: "UnknownEndpoint",
+    unknownClient: "UnknownClient",
     connectionClosed: "ConnectionClosed",
     connectionAborted: "ConnectionAborted",
     invalidAccessToken: "InvalidAccessToken",

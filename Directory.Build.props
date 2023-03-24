@@ -5,4 +5,9 @@
         <ComposeUIRepositoryRoot>$(MSBuildThisFileDirectory.TrimEnd('/').TrimEnd('\'))</ComposeUIRepositoryRoot>
         <PackageOutputPath>$(ComposeUIRepositoryRoot)/artifacts/packages/nuget</PackageOutputPath>
     </PropertyGroup>
+
+    <PropertyGroup>
+        <VSTestLogger>trx</VSTestLogger>
+        <VSTestResultsDirectory>$(ComposeUIRepositoryRoot)/artifacts/test-results</VSTestResultsDirectory>
+    </PropertyGroup>
 </Project>

@@ -119,14 +119,15 @@ internal class MessageRouterServer : IMessageRouterServer
 
             if (message.Scope.IsClientId)
             {
-                _clients.TryGetValue(message.Scope.GetClientId()!, out serviceClient);
-            }
-            else if (_serviceRegistrations.TryGetValue(message.Endpoint, out var serviceClientId))
-            {
-                _clients.TryGetValue(serviceClientId, out serviceClient);
-            }
+                var clientId = message.Scope.GetClientId()!;
 
-            if (serviceClient == null)
+                if (!_clients.TryGetValue(clientId, out serviceClient))
+                {
+                    throw ThrowHelper.UnknownClient(clientId);
+                }
+            }
+            else if (!_serviceRegistrations.TryGetValue(message.Endpoint, out var serviceClientId)
+                     || !_clients.TryGetValue(serviceClientId, out serviceClient))
             {
                 throw ThrowHelper.UnknownEndpoint(message.Endpoint);
             }
@@ -332,39 +333,39 @@ internal class MessageRouterServer : IMessageRouterServer
                     switch (message.Type)
                     {
                         case MessageType.Connect:
-                            await HandleConnectRequest(client, (ConnectRequest)message, cancellationToken);
+                            await HandleConnectRequest(client, (ConnectRequest) message, cancellationToken);
 
                             break;
 
                         case MessageType.Subscribe:
-                            await HandleSubscribeMessage(client, (SubscribeMessage)message, cancellationToken);
+                            await HandleSubscribeMessage(client, (SubscribeMessage) message, cancellationToken);
 
                             break;
 
                         case MessageType.Unsubscribe:
-                            await HandleUnsubscribeMessage(client, (UnsubscribeMessage)message, cancellationToken);
+                            await HandleUnsubscribeMessage(client, (UnsubscribeMessage) message, cancellationToken);
 
                             break;
 
                         case MessageType.Publish:
-                            await HandlePublishMessage(client, (PublishMessage)message, cancellationToken);
+                            await HandlePublishMessage(client, (PublishMessage) message, cancellationToken);
 
                             break;
 
                         case MessageType.Invoke:
-                            await HandleInvokeRequest(client, (InvokeRequest)message, cancellationToken);
+                            await HandleInvokeRequest(client, (InvokeRequest) message, cancellationToken);
 
                             break;
 
                         case MessageType.InvokeResponse:
-                            await HandleInvokeResponse(client, (InvokeResponse)message, cancellationToken);
+                            await HandleInvokeResponse(client, (InvokeResponse) message, cancellationToken);
 
                             break;
 
                         case MessageType.RegisterService:
                             await HandleRegisterServiceRequest(
                                 client,
-                                (RegisterServiceRequest)message,
+                                (RegisterServiceRequest) message,
                                 cancellationToken);
 
                             break;
@@ -372,7 +373,7 @@ internal class MessageRouterServer : IMessageRouterServer
                         case MessageType.UnregisterService:
                             await HandleUnregisterServiceMessage(
                                 client,
-                                (UnregisterServiceRequest)message,
+                                (UnregisterServiceRequest) message,
                                 cancellationToken);
 
                             break;

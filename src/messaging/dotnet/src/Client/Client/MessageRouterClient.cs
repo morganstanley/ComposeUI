@@ -11,7 +11,6 @@
 // and limitations under the License.
 
 using System.Collections.Concurrent;
-using System.Runtime.ExceptionServices;
 using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -146,6 +145,8 @@ internal sealed class MessageRouterClient : IMessageRouter
 
     public ValueTask UnregisterServiceAsync(string endpoint, CancellationToken cancellationToken = default)
     {
+        CheckState();
+
         if (!_endpointHandlers.TryRemove(endpoint, out _))
             return default;
 
@@ -185,7 +186,10 @@ internal sealed class MessageRouterClient : IMessageRouter
     private ConnectionState _connectionState;
     private readonly StateChangeEvents _stateChangeEvents = new();
     private readonly AsyncLock _mutex = new();
-    private readonly Channel<Message> _sendChannel = Channel.CreateUnbounded<Message>();
+
+    private readonly Channel<Message> _sendChannel =
+        Channel.CreateUnbounded<Message>(new UnboundedChannelOptions {SingleReader = true});
+
     private readonly ConcurrentDictionary<string, TaskCompletionSource<AbstractResponse>> _pendingRequests = new();
     private readonly ConcurrentDictionary<string, MessageHandler> _endpointHandlers = new();
     private readonly ConcurrentDictionary<string, Topic<TopicMessage>> _topics = new();
@@ -228,33 +232,24 @@ internal sealed class MessageRouterClient : IMessageRouter
         try
         {
             await _connection.ConnectAsync(cancellationToken);
+
             _stateChangeEvents.SendReceiveCompleted = Task.WhenAll(SendMessagesAsync(), ReceiveMessagesAsync());
 
             await _sendChannel.Writer.WriteAsync(
-                new ConnectRequest { AccessToken = _options.AccessToken }, 
+                new ConnectRequest {AccessToken = _options.AccessToken},
                 cancellationToken);
 
-            var connectResponse = await _stateChangeEvents.ConnectResponseReceived.Task.WaitAsync(cancellationToken);
-
-            if (connectResponse.Error != null)
-            {
-                throw new MessageRouterException(connectResponse.Error);
-            }
-
-            using (await _mutex.LockAsync(cancellationToken))
-            {
-                _clientId = connectResponse.ClientId;
-                _connectionState = ConnectionState.Connected;
-                _stateChangeEvents.Connected.SetResult();
-            }
+            await _stateChangeEvents.Connected.Task;
+        }
+        catch (MessageRouterException)
+        {
+            throw;
         }
         catch (Exception e)
         {
-            var exception = ThrowHelper.ConnectionFailed(e);
-            ExceptionDispatchInfo.SetCurrentStackTrace(exception);
-            await CloseAsync(exception);
+            await CloseAsyncCore(e);
 
-            throw exception;
+            throw ThrowHelper.ConnectionFailed(e);
         }
     }
 
@@ -292,20 +287,20 @@ internal sealed class MessageRouterClient : IMessageRouter
 
                 return;
 
-            case { Type: MessageType.Topic }:
-                HandleTopicMessage((Protocol.Messages.TopicMessage)message);
+            case {Type: MessageType.Topic}:
+                HandleTopicMessage((Protocol.Messages.TopicMessage) message);
 
                 return;
 
-            case { Type: MessageType.Invoke }:
+            case {Type: MessageType.Invoke}:
             {
-                HandleInvokeRequest((InvokeRequest)message);
+                HandleInvokeRequest((InvokeRequest) message);
 
                 return;
             }
 
-            case { Type: MessageType.ConnectResponse }:
-                HandleConnectResponse((ConnectResponse)message);
+            case {Type: MessageType.ConnectResponse}:
+                HandleConnectResponse((ConnectResponse) message);
 
                 return;
         }
@@ -315,7 +310,24 @@ internal sealed class MessageRouterClient : IMessageRouter
 
     private void HandleConnectResponse(ConnectResponse message)
     {
-        _stateChangeEvents.ConnectResponseReceived.SetResult(message);
+        _ = Task.Run(
+            async () =>
+            {
+                using (await _mutex.LockAsync())
+                {
+                    if (message.Error != null)
+                    {
+                        _connectionState = ConnectionState.Closed;
+                        _stateChangeEvents.Connected.TrySetException(new MessageRouterException(message.Error));
+                    }
+                    else
+                    {
+                        _clientId = message.ClientId;
+                        _connectionState = ConnectionState.Connected;
+                        _stateChangeEvents.Connected.TrySetResult();
+                    }
+                }
+            });
     }
 
     private void HandleInvokeRequest(InvokeRequest message)
@@ -388,11 +400,11 @@ internal sealed class MessageRouterClient : IMessageRouter
 
         if (message.Error != null)
         {
-            tcs.SetException(new MessageRouterException(message.Error));
+            tcs.TrySetException(new MessageRouterException(message.Error));
         }
         else
         {
-            tcs.SetResult(message);
+            tcs.TrySetResult(message);
         }
     }
 
@@ -435,7 +447,7 @@ internal sealed class MessageRouterClient : IMessageRouter
         catch (Exception e)
         {
             _pendingRequests.TryRemove(request.RequestId, out _);
-            tcs.SetException(e);
+            tcs.TrySetException(e);
         }
 
         if (cancellationToken.CanBeCanceled)
@@ -443,13 +455,13 @@ internal sealed class MessageRouterClient : IMessageRouter
             cancellationToken.Register(() => tcs.TrySetCanceled(cancellationToken));
         }
 
-        return (TResponse)await tcs.Task;
+        return (TResponse) await tcs.Task;
     }
 
     private async ValueTask SendMessageAsync(Message message, CancellationToken cancellationToken)
     {
         await ConnectAsync(CancellationToken.None);
-        await _sendChannel.Writer.WriteAsync(message, cancellationToken);
+        await _sendChannel.Writer.WriteAsync(message, CancellationToken.None);
     }
 
     private async Task SendMessagesAsync()
@@ -458,13 +470,14 @@ internal sealed class MessageRouterClient : IMessageRouter
         {
             while (await _sendChannel.Reader.WaitToReadAsync(_stateChangeEvents.CloseRequested.Token))
             {
-                while (_sendChannel.Reader.TryRead(out var message))
+                while (!_stateChangeEvents.CloseRequested.IsCancellationRequested
+                       && _sendChannel.Reader.TryRead(out var message))
                 {
                     await _connection.SendAsync(message, _stateChangeEvents.CloseRequested.Token);
                 }
             }
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException e) when (e.CancellationToken == _stateChangeEvents.CloseRequested.Token)
         {
         }
         catch (Exception e)
@@ -485,10 +498,13 @@ internal sealed class MessageRouterClient : IMessageRouter
             while (!_stateChangeEvents.CloseRequested.IsCancellationRequested)
             {
                 var message = await _connection.ReceiveAsync(_stateChangeEvents.CloseRequested.Token);
+
                 HandleMessage(message);
             }
         }
-        catch (OperationCanceledException) { }
+        catch (OperationCanceledException e) when (e.CancellationToken == _stateChangeEvents.CloseRequested.Token)
+        {
+        }
         catch (MessageRouterException e) when (e.Name is MessageRouterErrors.ConnectionClosed
                                                    or MessageRouterErrors.ConnectionAborted)
         {
@@ -501,7 +517,7 @@ internal sealed class MessageRouterClient : IMessageRouter
                 "Exception thrown while reading messages from the connection: {ExceptionMessage}",
                 e.Message);
 
-            RequestClose(e);
+            RequestClose(ThrowHelper.ConnectionAborted(e));
         }
     }
 
@@ -560,44 +576,107 @@ internal sealed class MessageRouterClient : IMessageRouter
 
     private void RequestClose(Exception? exception)
     {
-        _ = Task.Run(() => CloseAsync(exception));
+        _ = Task.Run(() => CloseAsyncCore(exception).AsTask());
     }
 
-    private async ValueTask CloseAsync(Exception? exception)
+    private ValueTask CloseAsync(Exception? exception)
     {
-        using (await _mutex.LockAsync())
+        switch (_connectionState)
         {
-            if (_connectionState != ConnectionState.Connected)
-                return;
-
-            switch (exception)
-            {
-                case null:
-                {
-                    exception = ThrowHelper.ConnectionClosed();
-
-                    break;
-                }
-
-                case MessageRouterException:
-                    break;
-
-                default:
-                {
-                    exception = ThrowHelper.ConnectionAborted(exception);
-
-                    break;
-                }
-            }
-
-            _connectionState = ConnectionState.Closing;
-            FailPendingRequests(exception);
-            FailSubscribers(exception);
+            case ConnectionState.Closed:
+                return default;
+            case ConnectionState.Closing:
+                return new ValueTask(_stateChangeEvents.Closed.Task);
         }
 
+        return CloseAsyncCore(exception);
+    }
+
+    private async ValueTask CloseAsyncCore(Exception? exception, ConnectionState? previousState = null)
+    {
+        ConnectionState oldState;
+
+        switch (exception)
+        {
+            case null:
+            {
+                exception = ThrowHelper.ConnectionClosed();
+
+                break;
+            }
+
+            case MessageRouterException:
+                break;
+
+            default:
+            {
+                exception = ThrowHelper.ConnectionAborted(exception);
+
+                break;
+            }
+        }
+
+        using (await _mutex.LockAsync())
+        {
+            switch (oldState = _connectionState)
+            {
+                case ConnectionState.NotConnected:
+                {
+                    _connectionState = ConnectionState.Closed;
+                    await _connection.DisposeAsync();
+
+                    return;
+                }
+
+                case ConnectionState.Connecting:
+                {
+                    _connectionState = ConnectionState.Closed;
+                    _stateChangeEvents.Connected.TrySetException(exception);
+
+                    break;
+                }
+
+                case ConnectionState.Closing:
+                    break;
+
+                case ConnectionState.Closed:
+                    return;
+
+                case ConnectionState.Connected:
+                {
+                    _connectionState = ConnectionState.Closing;
+
+                    break;
+                }
+
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        switch (oldState)
+        {
+            case ConnectionState.Closing:
+            {
+                await _stateChangeEvents.Closed.Task;
+
+                return;
+            }
+        }
+
+        FailPendingRequests(exception);
+        FailSubscribers(exception);
         _stateChangeEvents.CloseRequested.Cancel();
         await _stateChangeEvents.SendReceiveCompleted!;
-        await _connection.DisposeAsync();
+
+        try
+        {
+            await _connection.DisposeAsync();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Exception thrown when closing the connection: {ExceptionMessage}", e.Message);
+        }
 
         using (await _mutex.LockAsync())
         {
@@ -706,7 +785,7 @@ internal sealed class MessageRouterClient : IMessageRouter
 
                 _isCompleted = true;
                 _exception = exception;
-                
+
                 foreach (var subscription in _subscriptions)
                 {
                     subscription.OnError(exception);
@@ -753,7 +832,8 @@ internal sealed class MessageRouterClient : IMessageRouter
 
             public void OnNext(T value)
             {
-                _queue.Writer.TryWrite(value); // Since the queue is unbounded, this will succeed unless the channel was completed
+                _queue.Writer.TryWrite(
+                    value); // Since the queue is unbounded, this will succeed unless the channel was completed
             }
 
             public void OnError(Exception exception)

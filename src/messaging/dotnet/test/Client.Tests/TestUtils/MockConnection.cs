@@ -12,40 +12,36 @@
 
 using System.Linq.Expressions;
 using System.Threading.Channels;
+using MorganStanley.ComposeUI.Messaging.Client.Abstractions;
 using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
-using MorganStanley.ComposeUI.Messaging.Server.Abstractions;
 
 namespace MorganStanley.ComposeUI.Messaging.TestUtils;
 
-public class MockClientConnection : Mock<IClientConnection>
+public class MockConnection : Mock<IConnection>
 {
-    public MockClientConnection()
+    public MockConnection()
     {
         Setup(_ => _.SendAsync(Capture.In(Received), It.IsAny<CancellationToken>()));
 
         Setup(_ => _.ReceiveAsync(It.IsAny<CancellationToken>()))
-            .Returns((CancellationToken ct) => _sendChannel.Reader.ReadAsync(ct));
+            .Returns(async (CancellationToken ct) => await _sendChannel.Reader.ReadAsync(ct));
 
         Setup(_ => _.DisposeAsync())
             .Callback(
-                () => { _sendChannel.Writer.TryComplete(); });
+                () =>
+                {
+                    _sendChannel.Writer.TryComplete();
+                });
     }
 
     private readonly Channel<Message> _sendChannel = Channel.CreateUnbounded<Message>();
 
     public List<Message> Received { get; } = new();
 
-    public string? ClientId { get; private set; }
-
-    public async Task Connect()
+    public void AcceptConnections()
     {
-        var tcs = new TaskCompletionSource<ConnectResponse>();
-        
-        Handle<ConnectResponse>(msg => tcs.SetResult(msg));
-
-        await SendToServer(new ConnectRequest());
-        var response = await tcs.Task;
-        ClientId = response.ClientId;
+        Setup(_ => _.SendAsync(It.IsAny<ConnectRequest>(), It.IsAny<CancellationToken>()))
+            .Callback(() => _sendChannel.Writer.TryWrite(new ConnectResponse {ClientId = "client-id"}));
     }
 
     public void Close(Exception exception)
@@ -53,8 +49,7 @@ public class MockClientConnection : Mock<IClientConnection>
         _sendChannel.Writer.TryComplete(exception);
     }
 
-    public void Handle<TMessage>(Expression<Func<TMessage, bool>> filter, Func<TMessage, ValueTask> action)
-        where TMessage : Message
+    public void Handle<TMessage>(Expression<Func<TMessage, bool>> filter, Func<TMessage, ValueTask> action) where TMessage : Message
     {
         Setup(_ => _.SendAsync(It.Is<TMessage>(filter), It.IsAny<CancellationToken>()))
             .Returns((TMessage msg, CancellationToken _) => action(msg));
@@ -77,16 +72,16 @@ public class MockClientConnection : Mock<IClientConnection>
                 });
     }
 
-    public void Handle<TRequest, TResponse>(Func<TRequest, TResponse> action)
-        where TRequest : AbstractRequest<TResponse>
-        where TResponse : AbstractResponse
+    public void Handle<TRequest, TResponse>(Func<TRequest, TResponse> action) 
+        where TRequest: AbstractRequest<TResponse> 
+        where TResponse: AbstractResponse
     {
         Setup(_ => _.SendAsync(It.IsAny<TRequest>(), It.IsAny<CancellationToken>()))
             .Returns(
                 async (TRequest request, CancellationToken _) =>
                 {
                     var response = action(request);
-                    await SendToServer(response);
+                    await SendToClient(response);
                 });
     }
 
@@ -98,11 +93,10 @@ public class MockClientConnection : Mock<IClientConnection>
             .Returns(
                 async (TRequest request, CancellationToken _) =>
                 {
-                    await SendToServer(
-                        new TResponse
-                        {
-                            RequestId = request.RequestId
-                        });
+                    await SendToClient(new TResponse
+                    {
+                        RequestId = request.RequestId
+                    });
                 });
     }
 
@@ -111,8 +105,7 @@ public class MockClientConnection : Mock<IClientConnection>
         Expect<TMessage>(expectation, Times.AtLeastOnce());
     }
 
-    public void Expect<TMessage>(Expression<Func<TMessage, bool>> expectation, Func<Times> times)
-        where TMessage : Message
+    public void Expect<TMessage>(Expression<Func<TMessage, bool>> expectation, Func<Times> times) where TMessage : Message
     {
         Expect<TMessage>(expectation, times());
     }
@@ -127,7 +120,7 @@ public class MockClientConnection : Mock<IClientConnection>
         Expect<TMessage>(msg => true, times());
     }
 
-    public ValueTask SendToServer(Message message)
+    public ValueTask SendToClient(Message message)
     {
         return _sendChannel.Writer.WriteAsync(message);
     }
