@@ -29,6 +29,12 @@ let cdnUrl = 'http://127.0.0.1:8080'; // todo OR
 let downloadedFile = '';
 const fileName = 'composeui.zip';
 const composeui_version = ''; //todo
+const skipDownload = process.env.npm_config_composeui_skip_download || process.env.COMPOSEUI_SKIP_DOWNLOAD;
+
+if (skipDownload === 'true') {
+    console.log('Found COMPOSEUI_SKIP_DOWNLOAD variable, skipping installation.');
+    process.exit(0);
+}
 
 function ensureDirectoryExistence(filePath) {
     let dirname = path.dirname(filePath);
