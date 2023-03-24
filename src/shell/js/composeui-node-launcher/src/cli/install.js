@@ -7,8 +7,6 @@ import fs from 'fs';
 import os from 'os';
 
 import axios from 'axios';
-
-// @ts-ignore
 import unzipper from '@deranged/unzipper';
 
 
@@ -31,10 +29,7 @@ if (skipDownload === 'true') {
 
 function validatePlatform() {
     let platform = process.platform;
-    console.log("platform", platform);
-    console.log(process.arch);
 
-    
     if (platform !== 'win32') {
       console.log('Unexpected platform or architecture:', process.platform, process.arch);
       process.exit(1);
@@ -97,8 +92,6 @@ function createTempFolder(){
 }
 
 async function install() {
-    validatePlatform();
-
     const tmpPath = createTempFolder();
     const outPath = process.cwd() + "/dist";
     
