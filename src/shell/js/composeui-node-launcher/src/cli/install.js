@@ -12,13 +12,16 @@ import axios from 'axios';
 import unzipper from '@deranged/unzipper';
 
 
+//todo replace localhost download with the actual one.
+//todo skip download is binary is already there
+
 let cdnUrl = 'http://127.0.0.1:8080'; // todo OR 
 let downloadedFile = '';
 
 let platform = validatePlatform();
 const fileName = `composeui_${platform}.zip`;
 
-const composeui_version = ''; //todo
+const composeui_version = '0.1.0'; //todo
 const skipDownload = process.env.npm_config_composeui_skip_download || process.env.COMPOSEUI_SKIP_DOWNLOAD;
 
 if (skipDownload === 'true') {
@@ -41,7 +44,6 @@ function validatePlatform() {
 }
 
 function ensureDirectoryExistence(filePath) {
-    console.log("ensureDirectoryExistence");
     let dirname = path.dirname(filePath);
     if (fs.existsSync(dirname)) {
       return true;
@@ -51,15 +53,9 @@ function ensureDirectoryExistence(filePath) {
   }
 
 async function downloadFile(dirToLoadTo) {
-    //todo replace localhost download with the actual one.
-    //todo skip download is binary is already there
-
     const tempDownloadedFile = path.resolve(dirToLoadTo, fileName);
     downloadedFile = tempDownloadedFile;
-    console.log("downloadedFile: ", downloadedFile);
-
-    //todo include composeui_version/
-    const formattedDownloadUrl =`${cdnUrl}/${fileName}`;
+    const formattedDownloadUrl =`${cdnUrl}/${composeui_version}/${fileName}`;
     
     console.log('Downloading from file: ', formattedDownloadUrl);
     console.log('Saving to file:', downloadedFile);
