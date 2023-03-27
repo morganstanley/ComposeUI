@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LocalCollector\LocalCollector.csproj" />
-    <ProjectReference Include="..\ModuleProcessMonitor\ModuleProcessMonitor.csproj" />
+    <ProjectReference Include="../LocalCollector/LocalCollector.csproj" />
+    <ProjectReference Include="../ModuleProcessMonitor/ModuleProcessMonitor.csproj" />
   </ItemGroup>
 
 </Project>

@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\Core\Abstractions\MorganStanley.ComposeUI.Tryouts.Core.Abstractions.csproj" />
+    <ProjectReference Include="../../../../../../prototypes/multi-module-prototype/src/module-loader/dotnet/ModuleLoader/MorganStanley.ComposeUI.ModuleLoader.csproj" />
   </ItemGroup>
 
 </Project>
