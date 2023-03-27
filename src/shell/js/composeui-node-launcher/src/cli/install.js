@@ -12,7 +12,9 @@ import unzipper from '@deranged/unzipper';
 
 //todo skip download is binary is already there
 
-let cdnUrl = process.env.npm_config_composeui_cdn_url || process.env.COMPOSEUI_CDN_URL;
+const DEFAULT_CDN_URL = 'https://github.com/morganstanley/ComposeUI/releases/download';
+
+let cdnUrl = process.env.npm_config_composeui_cdn_url || process.env.COMPOSEUI_CDN_URL || DEFAULT_CDN_URL;
 let downloadedFile = '';
 
 let platform = validatePlatform();
