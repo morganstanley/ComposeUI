@@ -10,10 +10,9 @@ import axios from 'axios';
 import unzipper from '@deranged/unzipper';
 
 
-//todo replace localhost download with the actual one.
 //todo skip download is binary is already there
 
-let cdnUrl = 'http://127.0.0.1:8080'; // todo OR 
+let cdnUrl = process.env.npm_config_composeui_cdn_url || process.env.COMPOSEUI_CDN_URL;
 let downloadedFile = '';
 
 let platform = validatePlatform();
