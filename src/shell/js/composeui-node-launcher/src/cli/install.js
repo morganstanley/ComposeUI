@@ -9,6 +9,8 @@ import os from 'os';
 import axios from 'axios';
 import unzipper from '@deranged/unzipper';
 
+import pkg from './../../package.json' assert { type: "json" };
+
 
 //todo skip download is binary is already there
 
@@ -20,7 +22,7 @@ let downloadedFile = '';
 let platform = validatePlatform();
 const fileName = `composeui_${platform}.zip`;
 
-const composeui_version = process.env.npm_config_composeui_version || process.env.COMPOSEUI_VERSION;
+const composeui_version = process.env.npm_config_composeui_version || process.env.COMPOSEUI_VERSION || pkg.version;
 const skipDownload = process.env.npm_config_composeui_skip_download || process.env.COMPOSEUI_SKIP_DOWNLOAD;
 
 if (skipDownload === 'true') {
