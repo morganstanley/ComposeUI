@@ -14,11 +14,10 @@ using LocalCollector;
 using LocalCollector.Connections;
 using LocalCollector.Modules;
 using LocalCollector.Registrations;
-using ProcessExplorer.Abstraction.Infrastructure;
-using ProcessExplorer.Abstraction.Processes;
-using ProcessExplorer.Abstraction.Subsystems;
+using ProcessExplorer.Abstractions.Infrastructure;
+using ProcessExplorer.Abstractions.Subsystems;
 
-namespace ProcessExplorer.Abstraction;
+namespace ProcessExplorer.Abstractions;
 
 public interface IProcessInfoAggregator : IDisposable
 {
@@ -27,7 +26,7 @@ public interface IProcessInfoAggregator : IDisposable
     /// </summary>
     /// <param name="assemblyId"></param>
     /// <param name="processInfo"></param>
-    Task AddInformation(string assemblyId, ProcessInfoCollectorData processInfo);
+    Task AddRuntimeInformation(string assemblyId, ProcessInfoCollectorData processInfo);
 
     /// <summary>
     /// Removes a module information from the collection.
@@ -46,11 +45,6 @@ public interface IProcessInfoAggregator : IDisposable
     /// </summary>
     /// <param name="subsystemController"></param>
     void SetSubsystemController(ISubsystemController subsystemController);
-    /// <summary>
-    /// Sets ProcessMonitor instance.
-    /// </summary>
-    /// <param name="processMonitor"></param>
-    Task SetProcessMonitor(IProcessMonitor processMonitor);
 
     /// <summary>
     /// Sets the delay time for keeping a process after it was terminated.(s)
@@ -62,14 +56,15 @@ public interface IProcessInfoAggregator : IDisposable
     /// <summary>
     /// Adds a UIClient to the collection. Keeps track of the UIClients.
     /// </summary>
+    /// <param name="id"></param>
     /// <param name="uiHandler"></param>
-    void AddUiConnection(IUIHandler uiHandler);
+    void AddUiConnection(Guid id, IUIHandler uiHandler);
 
     /// <summary>
     /// Removes  a UIClient from the collection.
     /// </summary>
-    /// <param name="uiHandler"></param>
-    void RemoveUiConnection(IUIHandler uiHandler);
+    /// <param name="handler"></param>
+    void RemoveUiConnection(KeyValuePair<Guid, IUIHandler> handler);
 
     /// <summary>
     /// Adds or updates the connections in the collection.
@@ -105,13 +100,6 @@ public interface IProcessInfoAggregator : IDisposable
     /// <param name="assemblyId"></param>
     /// <param name="modules"></param>
     Task UpdateModuleInfo(string assemblyId, IEnumerable<ModuleInfo> modules);
-
-    /// <summary>
-    /// Terminates a process by ID.
-    /// </summary>
-    /// <param name="pid"></param>
-    /// <returns></returns>
-    Task RemoveProcessById(int pid);
 
     /// <summary>
     /// Enables to watch processes through ProcessMonitor.
@@ -173,5 +161,25 @@ public interface IProcessInfoAggregator : IDisposable
     /// <param name="state"></param>
     /// <returns></returns>
     Task ModifySubsystemState(Guid subsystemId, string state);
+
+    /// <summary>
+    /// Adds processes to watch to the existing watchable process ids list.
+    /// </summary>
+    /// <param name="processes"></param>
+    /// <returns></returns>
+    ValueTask AddProcesses(ReadOnlySpan<int> processes);
+
+    /// <summary>
+    /// Puts the given subsystem into the queue to send subsystem state changed information to the UI's.
+    /// </summary>
+    /// <param name="instanceId"></param>
+    /// <param name="state"></param>
     void ScheduleSubsystemStateChanged(Guid instanceId, string state);
+
+    /// <summary>
+    /// Asynchronusly dequeue the changes of the registered subsystems, and send to the initialized UI's.
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task RunSubsystemStateQueue(CancellationToken cancellationToken);
 }

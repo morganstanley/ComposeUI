@@ -18,13 +18,11 @@ using LocalCollector.Modules;
 using LocalCollector.Registrations;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using ModuleProcessMonitor.Processes;
-using ProcessExplorer.Abstraction;
-using ProcessExplorer.Abstraction.Infrastructure;
-using ProcessExplorer.Abstraction.Processes;
-using ProcessExplorer.Abstraction.Subsystems;
-using ProcessExplorer.Core.Infrastructure;
-using ProcessExplorer.Core.Logging;
+using ProcessExplorer.Abstractions;
+using ProcessExplorer.Abstractions.Infrastructure;
+using ProcessExplorer.Abstractions.Logging;
+using ProcessExplorer.Abstractions.Processes;
+using ProcessExplorer.Abstractions.Subsystems;
 using ProcessExplorer.Core.Processes;
 
 namespace ProcessExplorer.Core;
@@ -33,11 +31,13 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
 {
     private readonly ILogger<IProcessInfoAggregator> _logger;
     private readonly ConcurrentDictionary<string, ProcessInfoCollectorData> _processInformation = new();
-    private readonly ConcurrentDictionary<Guid, string> _subsysestemQueue = new(); //TODO(Lilla): put subsystem change messages to the queue and remove it if it has been sent
-    private IProcessMonitor _processMonitor;
+    private readonly object _processsInformationLock = new();
+    //putting subsystem change messages to the queue and remove it if it has been sent ~ FIFO
+    private readonly ConcurrentQueue<KeyValuePair<Guid, string>> _subsystemStateChanges = new();
     private readonly ProcessInfoManager _processInfoManager;
     private ISubsystemController? _subsystemController;
-    private readonly object _informationLocker = new();
+    private readonly ConcurrentDictionary<Guid, IUIHandler> _uiClients = new();
+    private readonly object _uiClientLock = new();
     private bool _disposed;
 
     public ProcessInfoAggregator(
@@ -50,21 +50,37 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
         _processInfoManager = processInfoManager;
         _subsystemController = subsystemController;
 
-        _processMonitor = new ProcessMonitor(_processInfoManager, _logger);
+        if (_subsystemController != null)
+            _subsystemController.SetUiDelegate(UpdateInfoOnUI);
+
         SetUiCommunicatorsToWatchProcessChanges();
     }
 
-    private static IEnumerable<IUIHandler> CreateCopyOfClients()
+    public async Task RunSubsystemStateQueue(CancellationToken cancellationToken)
     {
-        lock (UiClientsStore._uiClientLocker)
+        //TODO(Lilla): should i send here a warning if cancellationToken is default?
+        while (!cancellationToken.IsCancellationRequested)
         {
-            return UiClientsStore._uiClients.ToArray();
+            if (_uiClients.IsEmpty || !_subsystemStateChanges.IsEmpty && _subsystemController != null)
+            {
+                var succeed = _subsystemStateChanges.TryDequeue(out var subsystemInfo);
+
+                if (succeed) await ModifySubsystemState(subsystemInfo.Key, subsystemInfo.Value);
+            }
         }
     }
 
-    public async Task AddInformation(string assemblyId, ProcessInfoCollectorData runtimeInfo)
+    private IEnumerable<IUIHandler> CreateCopyOfClients()
     {
-        lock (_informationLocker)
+        lock (_uiClientLock)
+        {
+            return _uiClients.Select(kvp => kvp.Value);
+        }
+    }
+
+    public async Task AddRuntimeInformation(string assemblyId, ProcessInfoCollectorData runtimeInfo)
+    {
+        lock (_processsInformationLock)
         {
             _processInformation.AddOrUpdate(assemblyId, runtimeInfo, (_, _) => runtimeInfo);
         }
@@ -74,7 +90,7 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
 
     public void RemoveRuntimeInformation(string assembly)
     {
-        lock (_informationLocker)
+        lock (_processsInformationLock)
         {
             _processInformation.TryRemove(assembly, out _);
         }
@@ -82,14 +98,12 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
 
     public void SetComposePid(int pid)
     {
-        _processMonitor?.SetComposePid(pid);
+        _processInfoManager?.SetComposePid(pid);
     }
 
     private void SetUiCommunicatorsToWatchProcessChanges()
     {
-        if (_processMonitor == null) return;
-
-        _processMonitor.SetHandlers(
+        _processInfoManager.SetHandlers(
             ProcessModified,
             ProcessCreated,
             ProcessTerminated,
@@ -99,10 +113,6 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
 
     private IEnumerable<ProcessInfoData> GetProcesses(ReadOnlySpan<int> ids)
     {
-        if (_processMonitor == null) return Enumerable.Empty<ProcessInfoData>();
-
-        if (_processInfoManager == null) return Enumerable.Empty<ProcessInfoData>();
-
         var processes = new List<ProcessInfoData>();
 
         foreach (var id in ids)
@@ -119,9 +129,9 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
         var processes = GetProcesses(ids);
         if (!processes.Any()) return;
 
-        lock (UiClientsStore._uiClientLocker)
+        lock (_uiClientLock)
         {
-            foreach (var client in UiClientsStore._uiClients)
+            foreach (var client in _uiClients.Values)
             {
                 client.AddProcesses(processes);
             }
@@ -132,17 +142,14 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
     {
         _logger.ProcessTerminatedInformation(pid);
 
-        lock (UiClientsStore._uiClientLocker)
+        lock (_uiClientLock)
         {
-            foreach (var client in UiClientsStore._uiClients)
+            var processes = GetProcesses(_processInfoManager.GetProcessIds());
+
+            foreach (var client in _uiClients.Values)
             {
                 client.TerminateProcess(pid);
-
-                if (_processMonitor != null)
-                {
-                    var processes = GetProcesses(_processMonitor.GetProcessIds());
-                    if (processes.Any()) client.AddProcesses(processes);
-                }
+                if (processes.Any()) client.AddProcesses(processes);
             }
         }
     }
@@ -155,9 +162,9 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
 
         _logger.ProcessCreatedInformation(pid);
 
-        lock (UiClientsStore._uiClientLocker)
+        lock (_uiClientLock)
         {
-            foreach (var client in UiClientsStore._uiClients)
+            foreach (var client in _uiClients.Values)
             {
                 client.AddProcess((ProcessInfoData)process);
             }
@@ -166,9 +173,7 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
 
     private ProcessInfoData? GetProcess(int pid)
     {
-        if (_processMonitor == null) return null;
-
-        var process = GetProcesses(_processMonitor.GetProcessIds()).FirstOrDefault(proc => proc.PID == pid);
+        var process = GetProcesses(_processInfoManager.GetProcessIds()).FirstOrDefault(proc => proc.PID == pid);
 
         if (process.Equals(default)) return null;
 
@@ -182,9 +187,9 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
 
         _logger.ProcessModifiedDebug(pid);
 
-        lock (UiClientsStore._uiClientLocker)
+        lock (_uiClientLock)
         {
-            foreach (var client in UiClientsStore._uiClients)
+            foreach (var client in _uiClients.Values)
             {
                 client.UpdateProcess((ProcessInfoData)process);
             }
@@ -193,9 +198,9 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
 
     private void ProcessStatusChanged(KeyValuePair<int, Status> process)
     {
-        lock (UiClientsStore._uiClientLocker)
+        lock (_uiClientLock)
         {
-            foreach (var client in UiClientsStore._uiClients)
+            foreach (var client in _uiClients.Values)
             {
                 client.UpdateProcessStatus(process);
             }
@@ -204,39 +209,46 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
 
     public void SetDeadProcessRemovalDelay(int delay)
     {
-        _processMonitor?.SetDeadProcessRemovalDelay(delay);
+        _processInfoManager?.SetDeadProcessRemovalDelay(delay);
     }
 
-    public void AddUiConnection(IUIHandler uiHandler)
+    public void AddUiConnection(Guid id, IUIHandler uiHandler)
     {
-        UiClientsStore.AddUiConnection(uiHandler);
-        if (_processMonitor == null)
-        {
-            return;
-        }
+        bool success;
 
-        ProcessesModified(_processMonitor.GetProcessIds());
+        lock (_uiClientLock)
+            success = _uiClients.TryAdd(id, uiHandler);
+
+        if (!success) return;
+
+        ProcessesModified(_processInfoManager.GetProcessIds());
         uiHandler.AddRuntimeInfo(_processInformation);
-        _subsystemController?.SendInitializedSubsystemInfoToUis();
+
+        if (_subsystemController != null)
+            uiHandler.AddSubsystems(_subsystemController.GetSubsystems());
 
         _logger.ProcessMonitorCommunicatorIsSetDebug();
     }
 
-    public void RemoveUiConnection(IUIHandler uiHandler)
+    public void RemoveUiConnection(KeyValuePair<Guid, IUIHandler> handler)
     {
-        UiClientsStore.RemoveUiConnection(uiHandler);
+        bool success;
+        lock (_uiClientLock)
+        {
+            success = _uiClients.TryRemove(handler);
+        }
+
+        if (!success) return;
         _logger.UiCommunicatorIsRemovedDebug();
     }
 
-    private ProcessInfoCollectorData? GetDataToModify(string assemblyId)
+    private ProcessInfoCollectorData? GetRuntimeInformation(string assemblyId)
     {
         ProcessInfoCollectorData? data;
 
-        lock (_informationLocker)
+        lock (_processsInformationLock)
         {
-            data = _processInformation
-                .First(kvp => kvp.Key == assemblyId)
-                .Value;
+            _processInformation.TryGetValue(assemblyId, out data);
         }
 
         return data;
@@ -244,7 +256,7 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
 
     private void UpdateProcessInfoCollectorData(string assemblyId, ProcessInfoCollectorData data)
     {
-        lock (_informationLocker)
+        lock (_processsInformationLock)
         {
             _processInformation.AddOrUpdate(assemblyId, data, (_, _) => data);
         }
@@ -252,14 +264,14 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
 
     public async Task AddConnectionCollection(string assemblyId, IEnumerable<ConnectionInfo> connections)
     {
-        var processInfoToModify = GetDataToModify(assemblyId);
+        var runtimeInfoToModify = GetRuntimeInformation(assemblyId);
 
-        if (processInfoToModify == null) return;
+        if (runtimeInfoToModify == null) return;
 
         try
         {
-            processInfoToModify.AddOrUpdateConnections(connections);
-            UpdateProcessInfoCollectorData(assemblyId, processInfoToModify);
+            runtimeInfoToModify.AddOrUpdateConnections(connections);
+            UpdateProcessInfoCollectorData(assemblyId, runtimeInfoToModify);
         }
         catch (Exception exception)
         {
@@ -271,14 +283,14 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
 
     public async Task UpdateConnectionInfo(string assemblyId, ConnectionInfo connectionInfo)
     {
-        var processInfoToModify = GetDataToModify(assemblyId);
+        var runtimeInfoToModify = GetRuntimeInformation(assemblyId);
 
-        if (processInfoToModify == null) return;
+        if (runtimeInfoToModify == null) return;
 
         try
         {
-            processInfoToModify.UpdateConnection(connectionInfo);
-            UpdateProcessInfoCollectorData(assemblyId, processInfoToModify);
+            runtimeInfoToModify.UpdateConnection(connectionInfo);
+            UpdateProcessInfoCollectorData(assemblyId, runtimeInfoToModify);
         }
         catch (Exception exception)
         {
@@ -290,14 +302,14 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
 
     public async Task UpdateEnvironmentVariablesInfo(string assemblyId, IEnumerable<KeyValuePair<string, string>> environmentVariables)
     {
-        var processInfoToModify = GetDataToModify(assemblyId);
+        var runtimeInfoToModify = GetRuntimeInformation(assemblyId);
 
-        if (processInfoToModify == null) return;
+        if (runtimeInfoToModify == null) return;
 
         try
         {
-            processInfoToModify.UpdateEnvironmentVariables(environmentVariables);
-            UpdateProcessInfoCollectorData(assemblyId, processInfoToModify);
+            runtimeInfoToModify.UpdateEnvironmentVariables(environmentVariables);
+            UpdateProcessInfoCollectorData(assemblyId, runtimeInfoToModify);
         }
         catch (Exception exception)
         {
@@ -309,14 +321,14 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
 
     public async Task UpdateRegistrationInfo(string assemblyId, IEnumerable<RegistrationInfo> registrations)
     {
-        var processInfoToModify = GetDataToModify(assemblyId);
+        var runtimeInfoToModify = GetRuntimeInformation(assemblyId);
 
-        if (processInfoToModify == null) return;
+        if (runtimeInfoToModify == null) return;
 
         try
         {
-            processInfoToModify.UpdateRegistrations(registrations);
-            UpdateProcessInfoCollectorData(assemblyId, processInfoToModify);
+            runtimeInfoToModify.UpdateRegistrations(registrations);
+            UpdateProcessInfoCollectorData(assemblyId, runtimeInfoToModify);
         }
         catch (Exception exception)
         {
@@ -328,14 +340,14 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
 
     public async Task UpdateModuleInfo(string assemblyId, IEnumerable<ModuleInfo> modules)
     {
-        var processInfoToModify = GetDataToModify(assemblyId);
+        var runtimeInfoToModify = GetRuntimeInformation(assemblyId);
 
-        if (processInfoToModify == null) return;
+        if (runtimeInfoToModify == null) return;
 
         try
         {
-            processInfoToModify.UpdateModules(modules);
-            UpdateProcessInfoCollectorData(assemblyId, processInfoToModify);
+            runtimeInfoToModify.UpdateModules(modules);
+            UpdateProcessInfoCollectorData(assemblyId, runtimeInfoToModify);
         }
         catch (Exception exception)
         {
@@ -345,33 +357,20 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
         await UpdateInfoOnUI(handler => handler.UpdateModules(assemblyId, modules));
     }
 
-    public async Task RemoveProcessById(int pid)
-    {
-        try
-        {
-            _processMonitor?.KillProcessById(pid);
-        }
-        catch (Exception exception)
-        {
-            _logger.CannotTerminateProcessError(pid, exception);
-        }
-
-        await UpdateInfoOnUI(handler => handler.TerminateProcess(pid));
-    }
-
     public void EnableWatchingSavedProcesses()
     {
-        _processMonitor?.SetWatcher();
+        _processInfoManager.WatchProcesses();
     }
 
     public void DisableWatchingProcesses()
     {
-        _processMonitor?.Dispose();
+        _processInfoManager.Dispose();
     }
 
     public void InitProcesses(ReadOnlySpan<int> pids)
     {
-        _processMonitor?.InitProcesses(pids);
+        _processInfoManager.ClearProcessIds();
+        _processInfoManager.SetProcessIds(pids);
     }
 
     private Task UpdateInfoOnUI(Func<IUIHandler, Task> handlerAction)
@@ -387,20 +386,9 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
         }
     }
 
-    public Task SetProcessMonitor(IProcessMonitor processMonitor)
+    private void DisposeCore()
     {
-        return new Task(() =>
-        {
-            UnSubscribeProcessMonitor();
-            _processMonitor = processMonitor;
-            SetUiCommunicatorsToWatchProcessChanges();
-        });
-    }
-
-    private void UnSubscribeProcessMonitor()
-    {
-
-        _processMonitor.Dispose();
+        _processInfoManager.Dispose();
     }
 
     public Task ShutdownSubsystems(IEnumerable<string> subsystemIds)
@@ -448,13 +436,24 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
     {
         if (_disposed) return;
 
-        UnSubscribeProcessMonitor();
+        DisposeCore();
         _disposed = true;
         GC.SuppressFinalize(this);
     }
 
+    ~ProcessInfoAggregator()
+    {
+        Dispose();
+    }
+
     public void ScheduleSubsystemStateChanged(Guid instanceId, string state)
     {
-        //_subsystemChangedMessage
+        _subsystemStateChanges.Enqueue(new(instanceId, state));
+    }
+
+    public ValueTask AddProcesses(ReadOnlySpan<int> processes)
+    {
+        _processInfoManager.SetProcessIds(processes);
+        return ValueTask.CompletedTask;
     }
 }

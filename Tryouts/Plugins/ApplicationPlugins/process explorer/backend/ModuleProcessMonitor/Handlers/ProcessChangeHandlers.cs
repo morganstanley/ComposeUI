@@ -10,9 +10,9 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using ProcessExplorer.Abstraction.Processes;
+using ProcessExplorer.Abstractions.Processes;
 
-namespace ProcessExplorer.Abstraction.Handlers;
+namespace ProcessExplorer.Abstractions.Handlers;
 
 /// <summary>
 /// Used for sending modified process update to the UI(s).

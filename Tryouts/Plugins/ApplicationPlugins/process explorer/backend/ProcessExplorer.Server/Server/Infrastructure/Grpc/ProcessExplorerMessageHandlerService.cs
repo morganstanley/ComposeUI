@@ -14,7 +14,7 @@ using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using ProcessExplorer.Abstraction;
+using ProcessExplorer.Abstractions;
 using ProcessExplorer.Server.Logging;
 using ProcessExplorer.Server.Server.Infrastructure.Protos;
 
@@ -43,8 +43,8 @@ internal class ProcessExplorerMessageHandlerService : ProcessExplorerMessageHand
 
         try
         {
-            _processInfoAggregator.AddUiConnection(handler);
-
+            _processInfoAggregator.AddUiConnection(id, handler);
+            
             //wait here until the user is alive
             while (!context.CancellationToken.IsCancellationRequested)
                 continue;
@@ -55,7 +55,7 @@ internal class ProcessExplorerMessageHandlerService : ProcessExplorerMessageHand
         }
         finally
         {
-            _processInfoAggregator.RemoveUiConnection(handler);
+            _processInfoAggregator.RemoveUiConnection(new(id, handler));
         }
 
         return Task.CompletedTask;

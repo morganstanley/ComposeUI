@@ -17,7 +17,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using ProcessExplorerMessageRouterTopics;
 using MorganStanley.ComposeUI.Messaging;
-using ProcessExplorer.Abstraction.Subsystems;
+using ProcessExplorer.Abstractions.Subsystems;
 
 namespace ModulesPrototype.Infrastructure;
 
@@ -27,7 +27,8 @@ internal class SubsystemControllerCommunicator : ISubsystemControllerCommunicato
     private readonly IObserver<TopicMessage> _subsystemHandlerObserver;
     private readonly ILogger<SubsystemControllerCommunicator> _logger;
 
-    public SubsystemControllerCommunicator(ILogger<SubsystemControllerCommunicator>? logger,
+    public SubsystemControllerCommunicator(
+        ILogger<SubsystemControllerCommunicator>? logger,
         IMessageRouter messageRouter,
         SubsystemHandlerRouterMessage subsystemHandlerObserver)
     {

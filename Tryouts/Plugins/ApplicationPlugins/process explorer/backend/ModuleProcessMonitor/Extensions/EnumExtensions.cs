@@ -11,10 +11,10 @@
 // and limitations under the License.
 
 using System.Diagnostics;
-using ProcessExplorer.Abstraction.Processes;
+using ProcessExplorer.Abstractions.Processes;
 using ThreadState = System.Diagnostics.ThreadState;
 
-namespace ModuleProcessMonitor.Processes;
+namespace ProcessExplorer.Abstractions.Extensions;
 
 public static class EnumExtensions
 {

@@ -11,9 +11,9 @@
 // and limitations under the License.
 
 using System.Diagnostics;
-using ModuleProcessMonitor.Processes;
+using ProcessExplorer.Abstractions.Extensions;
 
-namespace ProcessExplorer.Abstraction.Processes;
+namespace ProcessExplorer.Abstractions.Processes;
 
 public struct ProcessInfoData
 {

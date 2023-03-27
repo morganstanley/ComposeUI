@@ -17,9 +17,9 @@ using LocalCollector.Modules;
 using LocalCollector.Registrations;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using ProcessExplorer.Abstraction.Infrastructure;
-using ProcessExplorer.Abstraction.Processes;
-using ProcessExplorer.Abstraction.Subsystems;
+using ProcessExplorer.Abstractions.Infrastructure;
+using ProcessExplorer.Abstractions.Processes;
+using ProcessExplorer.Abstractions.Subsystems;
 using ProcessExplorer.Server.Logging;
 using ProcessExplorer.Server.Server.Helper;
 using ProcessExplorer.Server.Server.Infrastructure.Protos;
@@ -31,7 +31,6 @@ internal class GrpcUIHandler : IUIHandler
     private readonly object _lock = new();
     private readonly ILogger _logger;
     private readonly KeyValuePair<Guid, IServerStreamWriter<Message>> stream;
-
     public GrpcUIHandler(
         IServerStreamWriter<Message> responseStream,
         Guid id,
@@ -317,7 +316,7 @@ internal class GrpcUIHandler : IUIHandler
         }
         catch (Exception exception)
         {
-            _logger.LogError("Error {exception}", exception);
+            _logger.AddSubsystemsError(exception, exception);
         }
 
         return Task.CompletedTask;
@@ -327,12 +326,10 @@ internal class GrpcUIHandler : IUIHandler
     {
         try
         {
-            var subsystemsCopy = subsystems.Select(subsystem => new KeyValuePair<string, SubsystemInfo>(subsystem.Key.ToString(), subsystem.Value));
-
             var message = new Message()
             {
                 Action = ActionType.AddSubsystemsAction,
-                Subsystems = { subsystemsCopy.DeriveProtoDictionaryType(ProtoConvertHelper.DeriveProtoSubsystemType) }
+                Subsystems = { subsystems.DeriveProtoDictionaryType(ProtoConvertHelper.DeriveProtoSubsystemType) }
             };
 
             lock (_lock)
@@ -372,7 +369,7 @@ internal class GrpcUIHandler : IUIHandler
         return Task.CompletedTask;
     }
 
-    public Task UpdateProcessStatus(KeyValuePair<int, Abstraction.Processes.Status> process)
+    public Task UpdateProcessStatus(KeyValuePair<int, ProcessExplorer.Abstractions.Processes.Status> process)
     {
         try
         {

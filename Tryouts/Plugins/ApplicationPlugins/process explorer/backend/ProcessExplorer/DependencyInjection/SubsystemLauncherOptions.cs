@@ -10,13 +10,15 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace ProcessExplorer.Core.User;
+using Microsoft.Extensions.Options;
 
-public class AppUserInfo
+namespace ProcessExplorer.Core.DependencyInjection;
+
+internal class SubsystemLauncherOptions<LaunchRequestType, StopRequestType> : IOptions<SubsystemLauncherOptions<LaunchRequestType, StopRequestType>>
 {
-    #region Properties
-    public string? UserName { get; internal set; }
-    public bool? IsAdmin { get; internal set; }
-    public MachineInfo? MachineInfo { get; internal set; } = default;
-    #endregion
+    public Action<LaunchRequestType>? LaunchRequest { get; set; }
+    public Action<StopRequestType>? StopRequest { get; set; }
+    public Func<Guid, string, LaunchRequestType>? CreateLaunchRequest { get; set; }
+    public Func<Guid, StopRequestType>? CreateStopRequest { get; set; }
+    public SubsystemLauncherOptions<LaunchRequestType, StopRequestType> Value => this;
 }

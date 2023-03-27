@@ -18,7 +18,7 @@ using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.IO;
-using ProcessExplorer.Abstraction;
+using ProcessExplorer.Abstractions;
 using ProcessExplorer.Server.Logging;
 using ProcessExplorer.Server.Server.Abstractions;
 using ProcessExplorer.Server.Server.Infrastructure.WebSocket;
@@ -78,11 +78,13 @@ internal class WebSocketConnection : IWebSocketConnection, IAsyncDisposable
         WebSocket webSocket,
         CancellationToken cancellationToken)
     {
-        _logger.WebSocketClientSubscribedDebug();
+        var id = Guid.NewGuid();
+
+        _logger.WebSocketClientSubscribedDebug(id.ToString());
 
         //here adding the pushing request handlers for process explorer, need to initialize commuunication route for this websocket
         var uiHandler = new WebSocketUIHandler(_logger, this, cancellationToken);
-        _processInfoAggregator.AddUiConnection(uiHandler);
+        _processInfoAggregator.AddUiConnection(id, uiHandler);
 
         try
         {
@@ -101,7 +103,7 @@ internal class WebSocketConnection : IWebSocketConnection, IAsyncDisposable
         catch (Exception exception)
         {
             _logger.WebSocketSubscribeError(exception, exception);
-            _processInfoAggregator.RemoveUiConnection(uiHandler);
+            _processInfoAggregator.RemoveUiConnection(new(id, uiHandler));
         }
     }
 
@@ -143,7 +145,8 @@ internal class WebSocketConnection : IWebSocketConnection, IAsyncDisposable
 
                         while (!readBuffer.IsEmpty && TryReadMessage(ref readBuffer, out var message))
                         {
-                            await _receiveChannel.Writer.WriteAsync(message, cancellationToken);
+                            if(message != null)
+                                await _receiveChannel.Writer.WriteAsync(message, cancellationToken);
                         }
 
                         pipe.Reader.AdvanceTo(readBuffer.Start, readBuffer.End);
@@ -175,7 +178,7 @@ internal class WebSocketConnection : IWebSocketConnection, IAsyncDisposable
         }
     }
 
-    private bool TryReadMessage(ref ReadOnlySequence<byte> readBuffer, out WebSocketMessage message)
+    private bool TryReadMessage(ref ReadOnlySequence<byte> readBuffer, out WebSocketMessage? message)
     {
         var innerBuffer = readBuffer;
 

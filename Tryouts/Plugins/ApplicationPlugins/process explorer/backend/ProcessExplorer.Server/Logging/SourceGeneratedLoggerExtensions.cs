@@ -38,8 +38,8 @@ internal static partial class SourceGeneratedLoggerExtensions
     [LoggerMessage(Level = LogLevel.Debug, Message = "A gRPC client subscribed with id: {id}.", SkipEnabledCheck = false)]
     public static partial void GrpcClientSubscribedDebug(this ILogger logger, string id);
 
-    [LoggerMessage(Level = LogLevel.Debug, Message = "A WebSocket client subscribed...", SkipEnabledCheck = false)]
-    public static partial void WebSocketClientSubscribedDebug(this ILogger logger);
+    [LoggerMessage(Level = LogLevel.Debug, Message = "A WebSocket client subscribed with id: {id}...", SkipEnabledCheck = false)]
+    public static partial void WebSocketClientSubscribedDebug(this ILogger logger, string id);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "A WebSocket connection handler have been added...", SkipEnabledCheck = false)]
     public static partial void WebSocketConnectionHandlerAddedDebug(this ILogger logger);
@@ -122,5 +122,12 @@ internal static partial class SourceGeneratedLoggerExtensions
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Error while handling WebSocket message for subsystem handling: {exception}...", SkipEnabledCheck = false)]
     public static partial void GrpcMessageHandlingError(this ILogger logger, Exception ex, Exception exception);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error while setting up process explorer server. Detailed exception: {exception}...", SkipEnabledCheck = false)]
+    public static partial void ProcessExplorerSetupError(this ILogger logger, Exception ex, Exception exception);
+
+    //Warnings
+    [LoggerMessage(Level = LogLevel.Warning, Message = "No timeout was declared while using CancellationToken for gRPC server...", SkipEnabledCheck = false)]
+    public static partial void GrpcCancellationTokenWarning(this ILogger logger);
 }
 

@@ -12,11 +12,8 @@
 
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.22.1" />
-    <PackageReference Include="Google.ProtocolBuffers" Version="2.4.1.555" />
     <PackageReference Include="Grpc" Version="2.46.6" />
     <PackageReference Include="Grpc.AspNetCore" Version="2.51.0" />
-    <PackageReference Include="Grpc.Core" Version="2.46.6" />
-    <PackageReference Include="Grpc.Core.Api" Version="2.51.0" />
     <PackageReference Include="Grpc.Tools" Version="2.52.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

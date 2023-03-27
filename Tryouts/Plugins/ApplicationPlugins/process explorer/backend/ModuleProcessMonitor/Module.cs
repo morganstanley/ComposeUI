@@ -10,9 +10,9 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using ProcessExplorer.Abstraction.Subsystems;
+using ProcessExplorer.Abstractions.Subsystems;
 
-namespace ProcessExplorer.Abstraction;
+namespace ProcessExplorer.Abstractions;
 
 public struct Module
 {

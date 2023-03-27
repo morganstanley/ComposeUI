@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules;
-using ProcessExplorer.Abstraction.Subsystems;
+using ProcessExplorer.Abstractions.Subsystems;
 using ProcessExplorerMessageRouterTopics;
 using System;
 using System.Collections.Generic;
@@ -26,16 +26,21 @@ using System.Threading.Tasks;
 namespace ModulesPrototype.Infrastructure;
 
 // If we do not want to depend on the moduleloader then it is necessary to have a SubsystemLauncher created by the user.
-//TODO(Lilla) rewrite the whole
+//TODO(Lilla) DELETE IT
 internal class SubsystemLauncher : ISubsystemLauncher
 {
-    private readonly ILogger<SubsystemLauncher> _logger;
+    private readonly ILogger _logger;
     private readonly Dictionary<Guid, SubsystemInfo> _subsystems;
+
+
     private readonly IModuleLoader _moduleLoader;
     private readonly IMessageRouter? _messageRouter;
+
+
     private readonly object _subsystemLocker = new();
-    private delegate Task<string> RequestSubsystemAction(Guid subsystemId);
     private readonly ISubsystemLauncherCommunicator _subsystemLauncherCommunicator;
+
+    private delegate Task<string> RequestSubsystemAction(Guid subsystemId);
 
     //public SubsystemLauncher(
     //    ILogger<SubsystemLauncher>? logger,
@@ -49,42 +54,42 @@ internal class SubsystemLauncher : ISubsystemLauncher
     //}
 
     public SubsystemLauncher(
-        ILogger<SubsystemLauncher>? logger,
+        ILogger? logger,
         IModuleLoader moduleLoader)
     {
-        _logger = logger ?? NullLogger<SubsystemLauncher>.Instance;
+        _logger = logger ?? NullLogger.Instance;
         _moduleLoader = moduleLoader;
         _subsystems = new Dictionary<Guid, SubsystemInfo>();
     }
 
-    public void SetSubsystems(string serializedSubsystems)
-    {
-        try
-        {
-            var subsystems = JsonSerializer.Deserialize<Dictionary<Guid, SubsystemInfo>>(serializedSubsystems);
+    //public void SetSubsystems(string serializedSubsystems)
+    //{
+    //    //try
+    //    //{
+    //    //    var subsystems = JsonSerializer.Deserialize<Dictionary<Guid, SubsystemInfo>>(serializedSubsystems);
 
-            if (subsystems == null)
-            {
-                _logger.LogWarning($"Cannot initialize subsystems. Null argumentum: {nameof(subsystems)}.");
-                return;
-            }
+    //    //    if (subsystems == null)
+    //    //    {
+    //    //        _logger.LogWarning($"Cannot initialize subsystems. Null argumentum: {nameof(subsystems)}.");
+    //    //        return;
+    //    //    }
 
-            lock (_subsystemLocker)
-            {
-                if (subsystems.Any())
-                {
-                    foreach (var subsystem in subsystems)
-                    {
-                        _subsystems[subsystem.Key] = subsystem.Value;
-                    }
-                }
-            }
-        }
-        catch (Exception exception)
-        {
-            _logger.LogError($@"Some error(s) occurred while initializing subsystems for Process Explorer backend. {exception}");
-        }
-    }
+    //    //    lock (_subsystemLocker)
+    //    //    {
+    //    //        if (subsystems.Any())
+    //    //        {
+    //    //            foreach (var subsystem in subsystems)
+    //    //            {
+    //    //                _subsystems[subsystem.Key] = subsystem.Value;
+    //    //            }
+    //    //        }
+    //    //    }
+    //    //}
+    //    //catch (Exception exception)
+    //    //{
+    //    //    _logger.LogError($@"Some error(s) occurred while initializing subsystems for Process Explorer backend. {exception}");
+    //    //}
+    //}
 
     public async Task InitSubsystems()
     {
@@ -171,7 +176,8 @@ internal class SubsystemLauncher : ISubsystemLauncher
             if (subsystem.Value.State != SubsystemState.Started)
             {
                 //TODO(Lilla): Send to the PE backend the given name in the manifest.
-                _moduleLoader.RequestStartProcess(new LaunchRequest { instanceId = subsystem.Key, name = subsystem.Value.Name });
+                //_moduleLoader.RequestStartProcess(new LaunchRequest { instanceId = subsystem.Key, name = subsystem.Value.Name });
+                //requestStartProcess.Invoke(createStartRequest.Invoke(subsystem.Key, subsystem.Value.Name));
             }
             else
             {
@@ -233,7 +239,8 @@ internal class SubsystemLauncher : ISubsystemLauncher
 
             if (subsystem.Value.State != SubsystemState.Stopped)
             {
-                _moduleLoader.RequestStopProcess(new StopRequest { instanceId = subsystem.Key });
+                //_moduleLoader.RequestStopProcess(new StopRequest { instanceId = subsystem.Key });
+                //stopProcess.Invoke(createStopRequest.Invoke(subsystem.Key));
             }
             else
             {
@@ -252,5 +259,10 @@ internal class SubsystemLauncher : ISubsystemLauncher
     public Task<IEnumerable<KeyValuePair<Guid, string>>> ShutdownSubsystems(IEnumerable<Guid> subsystems)
     {
         return HandleSubsystemAction(subsystems, ShutdownSubsystem);
+    }
+
+    public void SetSubsystems(ReadOnlySpan<KeyValuePair<Guid, SubsystemInfo>> subsystems)
+    {
+        throw new NotImplementedException();
     }
 }

@@ -10,20 +10,21 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using ModuleProcessMonitor.Processes;
-using ProcessExplorer.Abstraction;
-using ProcessExplorer.Abstraction.Subsystems;
+using Microsoft.Extensions.Options;
+using ProcessExplorer.Abstractions;
+using ProcessExplorer.Abstractions.Subsystems;
+using ProcessExplorer.Core.Processes;
 
 namespace ProcessExplorer.Server.Server.Abstractions;
 
-public class ProcessExplorerServerOptions
+public class ProcessExplorerServerOptions: IOptions<ProcessExplorerServerOptions>
 {
     public bool EnableProcessExplorer { get; set; }
     public IEnumerable<KeyValuePair<Guid, Module>>? Modules { get; set; }
     public IEnumerable<ProcessInformation>? Processes { get; set; }
-    public int? MainProcessID { get; set; }
+    public int? MainProcessId { get; set; }
     public int? Port { get; set; }
     public string? Host { get; set; }
-    public ISubsystemLauncher? SubsystemLauncher { get; set; }
     public ISubsystemLauncherCommunicator? SubsystemLauncherCommunicator { get; set; }
+    public ProcessExplorerServerOptions Value => this;
 }

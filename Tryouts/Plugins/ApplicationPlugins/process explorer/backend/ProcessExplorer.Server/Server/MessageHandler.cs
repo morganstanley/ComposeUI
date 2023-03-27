@@ -11,7 +11,7 @@
 // and limitations under the License.
 
 using Microsoft.Extensions.Logging;
-using ProcessExplorer.Abstraction;
+using ProcessExplorer.Abstractions;
 using ProcessExplorer.Server.Logging;
 using ProcessExplorer.Server.Server.Abstractions;
 using ProcessExplorer.Server.Server.Infrastructure.Protos;

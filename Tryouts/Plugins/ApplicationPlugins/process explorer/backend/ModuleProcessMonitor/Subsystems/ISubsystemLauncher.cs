@@ -10,29 +10,15 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace ProcessExplorer.Abstraction.Subsystems;
+namespace ProcessExplorer.Abstractions.Subsystems;
 
 public interface ISubsystemLauncher
 {
     /// <summary>
     /// Sets the available subsystems, which are initialized through ModuleLoader.
     /// </summary>
-    /// <param name="serializedSubsystems"></param>
-    void SetSubsystems(string serializedSubsystems);
-
-    /// <summary>
-    /// Initializes all the subsystems, which are communicated via the selected communicated route.
-    /// </summary>
-    /// <returns></returns>
-    Task InitSubsystems();
-
-    ///// <summary>
-    ///// Adds a subsystem to the subsystemController's list.
-    ///// </summary>
-    ///// <param name="subsystemId"></param>
-    ///// <param name="subsystem"></param>
-    ///// <returns></returns>
-    //Task AddSubsystem(Guid subsystemId, SubsystemInfo subsystem);
+    /// <param name="subsystems"></param>
+    void SetSubsystems(ReadOnlySpan<KeyValuePair<Guid, SubsystemInfo>> subsystems);
 
     /// <summary>
     /// Modifies a state of a subsystem in the subsystemController's list.
@@ -41,13 +27,6 @@ public interface ISubsystemLauncher
     /// <param name="state"></param>
     /// <returns></returns>
     Task ModifySubsystemState(Guid subsystemId, string state);
-
-    ///// <summary>
-    ///// Removes a subsystem from the subsystemController's list.
-    ///// </summary>
-    ///// <param name="subsystemId"></param>
-    ///// <returns></returns>
-    //Task RemoveSubsystem(Guid subsystemId);
 
     /// <summary>
     /// Sends launch command to the subsystem module via the selected communication route.

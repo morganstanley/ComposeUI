@@ -12,12 +12,27 @@
 
 using Microsoft.Extensions.Logging;
 
-namespace ProcessExplorer.Core.Logging;
+namespace ProcessExplorer.Abstractions.Logging;
 
-internal static partial class SourceGeneratedLoggerExtensions
+public static partial class SourceGeneratedLoggerExtensions
 {
     [LoggerMessage(Level = LogLevel.Debug, Message = "Couldn't find the PPID for the PID `{pid}`. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
     private static partial void ManagementObjectPpid(this ILogger logger, int pid, Exception ex, Exception exception);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "ProcessInfoManager is not initialized in the ProcessMonitor class", SkipEnabledCheck = false)]
+    public static partial void ProcessInfoManagerNotInitializedDebug(this ILogger logger);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Starting a subsystem with id: {id}", SkipEnabledCheck = false)]
+    public static partial void SubsystemStartedDebug(this ILogger logger, string id);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Subsystem with id: {id} is already started", SkipEnabledCheck = false)]
+    public static partial void SubsystemAlreadyStartedDebug(this ILogger logger, string id);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Stopping a subsystem with id: {id}", SkipEnabledCheck = false)]
+    public static partial void SubsystemStoppingDebug(this ILogger logger, string id);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Subsystem with id: {id} is already stopped", SkipEnabledCheck = false)]
+    public static partial void SubsystemAlreadyStoppedDebug(this ILogger logger, string id);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "ProcessMonitor UICommunicator is set.", SkipEnabledCheck = false)]
     public static partial void ProcessMonitorCommunicatorIsSetDebug(this ILogger logger);
@@ -45,6 +60,9 @@ internal static partial class SourceGeneratedLoggerExtensions
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Error while terminating the process, ID: {pid}. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
     private static partial void CannotTerminateProcess(this ILogger logger, int pid, Exception ex, Exception exception);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error while terminating the process, ID: {pid}", SkipEnabledCheck = true)]
+    public static partial void CannotTerminateProcessError(this ILogger logger, int pid);
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Updating the information on UI cannot be completed. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
     private static partial void UiInformationCannotBeUpdated(this ILogger logger, Exception ex, Exception exception);
@@ -99,6 +117,61 @@ internal static partial class SourceGeneratedLoggerExtensions
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Error while initializing list. The main process might be deleted. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
     private static partial void CannotFillList(this ILogger logger, Exception ex, Exception exception);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error while starting a subsystem with id: {id}. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
+    private static partial void SubsystemStartFailure(this ILogger logger, string id, Exception ex, Exception exception);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error while restarting a subsystem with id: {id}. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
+    private static partial void SubsystemRestartFailure(this ILogger logger, string id, Exception ex, Exception exception);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error while restarting a subsystem with id: {id}.", SkipEnabledCheck = true)]
+    private static partial void SubsystemRestartFailureWithoutException(this ILogger logger, string id);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error while stopping a subsystem with id: {id}. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
+    private static partial void SubsystemStopFailure(this ILogger logger, string id, Exception ex, Exception exception);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error while adding a subsystem with id: {id}, name: `{name}`", SkipEnabledCheck = true)]
+    private static partial void SubsystemAddFailure(this ILogger logger, string id, string name);
+
+    public static void SubsystemAddError(this ILogger logger, string id, string name)
+    {
+        if (logger.IsEnabled(LogLevel.Error))
+        {
+            logger.SubsystemAddFailure(id, name);
+        }
+    }
+
+    public static void SubsystemStopError(this ILogger logger, string id, Exception exception)
+    {
+        if (logger.IsEnabled(LogLevel.Error))
+        {
+            logger.SubsystemStopFailure(id, exception, exception);
+        }
+    }
+
+    public static void SubsystemRestartError(this ILogger logger, string id, Exception exception)
+    {
+        if (logger.IsEnabled(LogLevel.Error))
+        {
+            logger.SubsystemRestartFailure(id, exception, exception);
+        }
+    }
+
+    public static void SubsystemRestartError(this ILogger logger, string id)
+    {
+        if (logger.IsEnabled(LogLevel.Error))
+        {
+            logger.SubsystemRestartFailureWithoutException(id);
+        }
+    }
+
+    public static void SubsystemStartError(this ILogger logger, string id, Exception exception)
+    {
+        if (logger.IsEnabled(LogLevel.Error))
+        {
+            logger.SubsystemStartFailure(id, exception, exception);
+        }
+    }
 
     public static void ManagementObjectPpidExpected(this ILogger logger, int pid, Exception exception)
     {

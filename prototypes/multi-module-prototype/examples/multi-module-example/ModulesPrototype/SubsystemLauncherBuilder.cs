@@ -40,8 +40,8 @@ internal class SubsystemLauncherBuilder
             _serviceCollection.AddSingleton<ILoggerFactory>(loggerFactory);
             _loggerFactory = loggerFactory;
 
-            _serviceCollection.RemoveAll<ILogger<SubsystemLauncher>>();
-            _serviceCollection.AddSingleton<ILogger<SubsystemLauncher>>(_loggerFactory.CreateLogger<SubsystemLauncher>());
+            //_serviceCollection.RemoveAll<ILogger<SubsystemLauncher>>();
+            //_serviceCollection.AddSingleton<ILogger<SubsystemLauncher>>(_loggerFactory.CreateLogger<SubsystemLauncher>());
 
             _serviceCollection.RemoveAll<ILogger<SubsystemHandlerRouterMessage>>();
             _serviceCollection.AddSingleton<ILogger<SubsystemHandlerRouterMessage>>(_loggerFactory.CreateLogger<SubsystemHandlerRouterMessage>());

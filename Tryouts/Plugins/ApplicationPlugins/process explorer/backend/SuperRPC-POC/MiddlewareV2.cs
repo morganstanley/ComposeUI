@@ -13,6 +13,7 @@
 using System.Net;
 using System.Net.WebSockets;
 using LocalCollector.Communicator;
+using ProcessExplorer.Abstractions.Infrastructure;
 using ProcessExplorer.Core.Factories;
 using Super.RPC;
 using SuperRPC_POC.ClientBehavior;
@@ -107,7 +108,7 @@ public class SuperRpcWebSocketMiddlewareV2
 
                 // set implementation of ui notifications
                 var uiHandler = new UIHandler();
-
+                var id =Guid.NewGuid();
 
                 if (_collector.ProcessInfoAggregator != null)
                 {
@@ -123,13 +124,13 @@ public class SuperRpcWebSocketMiddlewareV2
                 if (_collector.ProcessInfoAggregator != null)
                 {
                     uiHandler.InitSuperRPCForProcessAsync(rpc)
-                        .ContinueWith(_ => _collector.ProcessInfoAggregator.AddUiConnection(uiHandler));
+                        .ContinueWith(_ => _collector.ProcessInfoAggregator.AddUiConnection(id, uiHandler));
 
-                    await rpcWebSocketHandler.StartReceivingAsync(_collector.ProcessInfoAggregator, uiHandler);
+                    await rpcWebSocketHandler.StartReceivingAsync(_collector.ProcessInfoAggregator, new(id, uiHandler));
                 }
                 else
                 {
-                    await rpcWebSocketHandler.StartReceivingAsync(uiHandler: uiHandler);
+                    await rpcWebSocketHandler.StartReceivingAsync(uiHandler: new(id, uiHandler));
                 }
             }
             else
@@ -150,13 +151,14 @@ public class SuperRpcWebSocketMiddlewareV2
                 var rpc = SetupRpc(rpcWebSocketHandler.ReceiveChannel, null);
 
                 var uiHandler = new UIHandler();
+                var id = Guid.NewGuid();
 
                 if (_collector.ProcessInfoAggregator != null)
                 {
                     uiHandler.InitSuperRPCForSubsystemAsync(rpc)
-                        .ContinueWith(_ => _collector.ProcessInfoAggregator.AddUiConnection(uiHandler));
+                        .ContinueWith(_ => _collector.ProcessInfoAggregator.AddUiConnection(id, uiHandler));
 
-                    await rpcWebSocketHandler.StartReceivingAsync(_collector.ProcessInfoAggregator, uiHandler);
+                    await rpcWebSocketHandler.StartReceivingAsync(_collector.ProcessInfoAggregator, new KeyValuePair<Guid, IUIHandler>(id, uiHandler));
                 }
             }
             else

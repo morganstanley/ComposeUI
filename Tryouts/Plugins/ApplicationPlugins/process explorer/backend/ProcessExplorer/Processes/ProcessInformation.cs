@@ -12,9 +12,10 @@
 
 using System.ComponentModel;
 using System.Diagnostics;
-using ProcessExplorer.Abstraction.Processes;
+using ProcessExplorer.Abstractions.Extensions;
+using ProcessExplorer.Abstractions.Processes;
 
-namespace ModuleProcessMonitor.Processes;
+namespace ProcessExplorer.Core.Processes;
 
 [Serializable]
 public class ProcessInformation
@@ -63,7 +64,7 @@ public class ProcessInformation
     {
         try
         {
-            var process = Process.GetProcessById((int)processInfo.ProcessInfo.PID!);
+            var process = Process.GetProcessById(processInfo.ProcessInfo.PID!);
             process.Refresh();
 
             processInfo._processInfo.PriorityLevel = process.BasePriority;

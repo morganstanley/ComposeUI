@@ -14,9 +14,9 @@ using Google.Protobuf;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using LocalCollector.Connections;
-using ModuleProcessMonitor.Processes;
-using ProcessExplorer.Abstraction.Processes;
-using ProcessExplorer.Abstraction.Subsystems;
+using ProcessExplorer.Abstractions.Extensions;
+using ProcessExplorer.Abstractions.Processes;
+using ProcessExplorer.Abstractions.Subsystems;
 using ProcessExplorer.Server.Server.Infrastructure.Protos;
 
 namespace ProcessExplorer.Server.Server.Helper;
@@ -25,29 +25,25 @@ internal static class ProtoConvertHelper
 {
     public static Process DeriveProtoProcessType(this ProcessInfoData process)
     {
-        IEnumerable<ProcessThreadInfo> threads = new List<ProcessThreadInfo>();
+        List<ProcessThreadInfo> threads = new();
 
-        if (process.Threads == null || process.Threads.Equals(default))
-            threads = Enumerable.Empty<ProcessThreadInfo>();
-        else
+        if (process.Threads != null && !process.Threads.Equals(default))
             foreach (var thread in process.Threads)
             {
                 if (thread.Id == 0) continue;
-                if(thread.ThreadState == System.Diagnostics.ThreadState.Terminated) continue;
+                if (thread.ThreadState == System.Diagnostics.ThreadState.Terminated) continue;
 
+                //we should add the try catch block because the thread might exit during the excution so the information won't be available
                 try
                 {
-                    //TODO(Lilla): check this
-                    threads.Append(new ProcessThreadInfo()
+                    threads.Add(new ProcessThreadInfo()
                     {
                         Id = thread.Id,
                         StartTime = thread.StartTime.ToString() ?? string.Empty,
                         PriorityLevel = thread.CurrentPriority,
                         Status = thread.ThreadState.ToStringCached() ?? string.Empty,
                         WaitReason = thread.ThreadState == System.Diagnostics.ThreadState.Wait ? thread.WaitReason.ToStringCached() : string.Empty,
-                        ProcessorUsageTime = thread.TotalProcessorTime != null ?
-                                            Duration.FromTimeSpan((TimeSpan)thread.TotalProcessorTime)
-                                            : Duration.FromTimeSpan(TimeSpan.Zero),
+                        ProcessorUsageTime = Duration.FromTimeSpan(thread.TotalProcessorTime)
                     });
                 }
                 catch (Exception)
@@ -85,10 +81,10 @@ internal static class ProtoConvertHelper
         {
             Id = connection.Id.ToString(),
             Name = connection.Name,
-            LocalEndpoint = connection.LocalEndpoint,
-            RemoteEndpoint = connection.RemoteEndpoint,
-            RemoteApplication = connection.RemoteApplication,
-            ConnectionInformation = { connection.ConnectionInformation?.DeriveProtoDictionaryType() },
+            LocalEndpoint = connection.LocalEndpoint ?? string.Empty,
+            RemoteEndpoint = connection.RemoteEndpoint ?? string.Empty,
+            RemoteApplication = connection.RemoteApplication ?? string.Empty,
+            ConnectionInformation = { connection.ConnectionInformation?.DeriveProtoDictionaryType() ?? new MapField<string, string>() },
             Status = connection.Status
         };
     }
@@ -132,15 +128,15 @@ internal static class ProtoConvertHelper
         return new()
         {
             Name = subsystem.Name,
-            Path = subsystem.Path,
+            Path = subsystem.Path ?? string.Empty,
             Port = subsystem.Port ?? 0,
-            UiType = subsystem.UIType,
-            Url = subsystem.Url,
-            StartupType = subsystem.StartupType,
-            State = subsystem.State,
+            UiType = subsystem.UIType ?? string.Empty,
+            Url = subsystem.Url ?? string.Empty,
+            StartupType = subsystem.StartupType ?? string.Empty,
+            State = subsystem.State ?? SubsystemState.Stopped,
             AutomatedStart = subsystem.AutomatedStart,
-            Arguments = { subsystem.Arguments?.ToList() },
-            Description = subsystem.Description
+            Arguments = { subsystem.Arguments?.ToList() ?? new List<string>() },
+            Description = subsystem.Description ?? string.Empty,
         };
     }
 
@@ -156,15 +152,21 @@ internal static class ProtoConvertHelper
         return map;
     }
 
-    public static MapField<T, TResult> DeriveProtoDictionaryType<T, R, TResult>(
+    public static MapField<string, TResult> DeriveProtoDictionaryType<T, R, TResult>(
         this IEnumerable<KeyValuePair<T, R>> dict,
         Func<R, TResult> converter)
     {
-        var map = new MapField<T, TResult>();
+        var map = new MapField<string, TResult>();
 
         if (dict != null && dict.Any())
+        {
             foreach (var kvp in dict)
-                map.Add(kvp.Key, converter.Invoke(kvp.Value));
+            {
+                var key = kvp.Key?.ToString();
+                if (key == null || kvp.Value == null) continue;
+                map.Add(key, converter.Invoke(kvp.Value));
+            }
+        }
 
         return map;
     }

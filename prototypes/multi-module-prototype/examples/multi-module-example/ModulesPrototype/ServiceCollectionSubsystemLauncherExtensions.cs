@@ -13,7 +13,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using ModulesPrototype.Infrastructure;
 using ModulesPrototype.Infrastructure.Messages;
-using ProcessExplorer.Abstraction.Subsystems;
+using ProcessExplorer.Abstractions.Subsystems;
 using System;
 
 namespace ModulesPrototype;

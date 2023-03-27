@@ -12,9 +12,9 @@
 
 using LocalCollector.Communicator;
 using Microsoft.Extensions.Logging;
-using ProcessExplorer.Abstraction;
-using ProcessExplorer.Abstraction.Processes;
-using ProcessExplorer.Abstraction.Subsystems;
+using ProcessExplorer.Abstractions;
+using ProcessExplorer.Abstractions.Processes;
+using ProcessExplorer.Abstractions.Subsystems;
 
 namespace ProcessExplorer.Core.Factories;
 

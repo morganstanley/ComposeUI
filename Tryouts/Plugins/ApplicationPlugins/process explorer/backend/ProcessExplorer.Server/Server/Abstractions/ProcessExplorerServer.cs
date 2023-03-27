@@ -12,8 +12,10 @@
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using ProcessExplorer.Abstraction;
-using ProcessExplorer.Abstraction.Subsystems;
+using Microsoft.Extensions.Options;
+using ProcessExplorer.Abstractions;
+using ProcessExplorer.Abstractions.Subsystems;
+using ProcessExplorer.Server.Logging;
 
 namespace ProcessExplorer.Server.Server.Abstractions;
 
@@ -34,24 +36,24 @@ public abstract class ProcessExplorerServer
     }
 
     internal void SetupProcessExplorer(
-        ProcessExplorerServerOptions options,
+        IOptions<ProcessExplorerServerOptions> options,
         IProcessInfoAggregator processInfoAggregator)
     {
         try
         {
-            if (options.Processes != null)
+            if (options.Value.Processes != null)
             {
-                var processes = options.Processes
+                var processes = options.Value.Processes
                   .Select(process => process.ProcessInfo.PID)
                   .ToArray();
 
                 if (processes != null) processInfoAggregator.InitProcesses(processes);
             }
 
-            if (options.Modules != null)
+            if (options.Value.Modules != null)
             {
                 var subsystems = new Dictionary<Guid, SubsystemInfo>();
-                foreach (var module in options.Modules)
+                foreach (var module in options.Value.Modules)
                 {
                     subsystems.TryAdd(module.Key, SubsystemInfo.FromModule(module.Value));
                 }
@@ -59,12 +61,15 @@ public abstract class ProcessExplorerServer
                 processInfoAggregator.InitializeSubsystems(subsystems);
             }
 
-            if (options.EnableProcessExplorer)
+            if(options.Value.MainProcessId != null)
+                processInfoAggregator.SetComposePid((int)options.Value.MainProcessId);
+
+            if (options.Value.EnableProcessExplorer)
                 processInfoAggregator.EnableWatchingSavedProcesses();
         }
         catch (Exception exception)
         {
-            _logger.LogError($"Setting up PE was unsuccessful. {0}", exception);
+            _logger.ProcessExplorerSetupError(exception, exception);
         }
     }
 }

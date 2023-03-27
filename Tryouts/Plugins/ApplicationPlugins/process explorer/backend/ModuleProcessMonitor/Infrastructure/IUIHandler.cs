@@ -14,10 +14,10 @@ using LocalCollector;
 using LocalCollector.Connections;
 using LocalCollector.Modules;
 using LocalCollector.Registrations;
-using ProcessExplorer.Abstraction.Processes;
-using ProcessExplorer.Abstraction.Subsystems;
+using ProcessExplorer.Abstractions.Processes;
+using ProcessExplorer.Abstractions.Subsystems;
 
-namespace ProcessExplorer.Abstraction.Infrastructure;
+namespace ProcessExplorer.Abstractions.Infrastructure;
 
 public interface IUIHandler
 {

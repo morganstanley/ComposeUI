@@ -13,7 +13,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Messaging;
-using ProcessExplorer.Abstraction.Subsystems;
+using ProcessExplorer.Abstractions.Subsystems;
 using ProcessExplorerMessageRouterTopics;
 using SuperRPC_POC.Infrastructure.Messages;
 

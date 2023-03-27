@@ -115,9 +115,9 @@ message Module{
 
 message Subsystem{
   string name = 1;
-  string startupType = 2;
-  string uiType = 3;
-  string path = 4;
+  optional string startupType = 2;
+  optional string uiType = 3;
+  optional string path = 4;
   optional string url = 5;
   repeated string arguments = 6;
   optional int32 port = 7;

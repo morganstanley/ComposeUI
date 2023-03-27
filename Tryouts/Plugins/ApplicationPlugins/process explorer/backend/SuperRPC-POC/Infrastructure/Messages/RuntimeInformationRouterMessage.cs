@@ -17,7 +17,7 @@ using LocalCollector.Modules;
 using LocalCollector.Registrations;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Messaging;
-using ProcessExplorer.Abstraction;
+using ProcessExplorer.Abstractions;
 using ProcessExplorerMessageRouterTopics;
 using ConnectionInfo = LocalCollector.Connections.ConnectionInfo;
 
@@ -85,7 +85,7 @@ public class RuntimeInformationRouterMessage : IObserver<TopicMessage>
                 foreach (var runtime in runtimeInfo)
                 {
                     if (runtime.Key == null || runtime.Value == null) continue;
-                    await _processInfoAggregator.AddInformation(runtime.Key.Name, runtime.Value);
+                    await _processInfoAggregator.AddRuntimeInformation(runtime.Key.Name, runtime.Value);
                 }
 
                 break;

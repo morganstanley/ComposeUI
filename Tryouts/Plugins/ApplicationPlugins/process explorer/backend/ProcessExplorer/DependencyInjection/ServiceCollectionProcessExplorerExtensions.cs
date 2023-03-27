@@ -12,10 +12,13 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using ProcessExplorer.Abstraction;
-using ProcessExplorer.Abstraction.Processes;
+using ProcessExplorer.Abstractions;
+using ProcessExplorer.Abstractions.Processes;
+using ProcessExplorer.Abstractions.Subsystems;
 using ProcessExplorer.Core;
+using ProcessExplorer.Core.DependencyInjection;
 using ProcessExplorer.Core.Processes;
+using ProcessExplorer.Core.Subsystems;
 
 namespace ProcessExplorer.Server.DependencyInjection;
 
@@ -31,8 +34,26 @@ public static class ServiceCollectionProcessExplorerExtensions
     public static IServiceCollection AddProcessMonitorWindows(
         this IServiceCollection serviceCollection)
     {
-        //serviceCollection.TryAddSingleton<IProcessMonitor, ProcessMonitor>();
         serviceCollection.TryAddSingleton<ProcessInfoManager, WindowsProcessInfoManager>();
+        return serviceCollection;
+    }
+
+    public static IServiceCollection ConfigureSubsystemLauncher<LaunchRequestType, StopRequestType>(
+        this IServiceCollection serviceCollection,
+        Action<LaunchRequestType>? launchRequest,
+        Action<StopRequestType>? stopRequest,
+        Func<Guid, string, LaunchRequestType>? launcRequestCtor,
+        Func<Guid, StopRequestType>? stopRequestCtor)
+    {
+        serviceCollection.TryAddSingleton<ISubsystemLauncher, SubsystemLauncher<LaunchRequestType, StopRequestType>>();
+
+        serviceCollection.Configure<SubsystemLauncherOptions<LaunchRequestType, StopRequestType>>(op =>
+        {
+            op.LaunchRequest = launchRequest;
+            op.StopRequest = stopRequest;
+            op.CreateLaunchRequest = launcRequestCtor;
+            op.CreateStopRequest = stopRequestCtor;
+        });
 
         return serviceCollection;
     }

@@ -16,8 +16,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using ProcessExplorer.Abstraction;
-using ProcessExplorer.Abstraction.Subsystems;
+using ProcessExplorer.Abstractions;
+using ProcessExplorer.Abstractions.Subsystems;
 using ProcessExplorer.Core.Factories;
 using ProcessExplorer.Server.Logging;
 using ProcessExplorer.Server.Server.Abstractions;
@@ -50,9 +50,7 @@ internal sealed class WebSocketListenerService : ProcessExplorerServer, IHostedS
         _logger = logger ?? NullLogger<WebSocketListenerService>.Instance;
         _processInfoAggregator = processInfoAggregator;
 
-        if (_options.SubsystemLauncher != null)
-            _processInfoAggregator.SetSubsystemController(DefineSubsystemController(_options.SubsystemLauncher));
-        else if (_options.SubsystemLauncherCommunicator != null)
+        if (_options.SubsystemLauncherCommunicator != null)
             _processInfoAggregator.SetSubsystemController(DefineSubsystemController(_options.SubsystemLauncherCommunicator));
     }
 

@@ -11,19 +11,16 @@
 // and limitations under the License.
 
 using Microsoft.Extensions.Logging;
-using ProcessExplorer.Abstraction.Processes;
+using ProcessExplorer.Abstractions.Processes;
 using ProcessExplorer.Core.Processes;
 
 namespace ProcessExplorer.Core.Factories;
 public static class ProcessMonitorFactory
 {
-    public static IProcessMonitor CreateProcessMonitor(ProcessInfoManager processInfoManager, ILogger<IProcessMonitor> logger)
-    {
-        return new ProcessMonitor(processInfoManager, logger);
-    }
-
     public static ProcessInfoManager CreateProcessInfoGeneratorWindows(ILogger<ProcessInfoManager> logger)
     {
+#pragma warning disable CA1416 // Validate platform compatibility
         return new WindowsProcessInfoManager(logger);
+#pragma warning restore CA1416 // Validate platform compatibility
     }
 }

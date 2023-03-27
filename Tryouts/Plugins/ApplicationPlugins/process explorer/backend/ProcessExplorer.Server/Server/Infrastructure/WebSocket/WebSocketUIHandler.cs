@@ -16,9 +16,9 @@ using LocalCollector.Modules;
 using LocalCollector.Registrations;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using ProcessExplorer.Abstraction.Infrastructure;
-using ProcessExplorer.Abstraction.Processes;
-using ProcessExplorer.Abstraction.Subsystems;
+using ProcessExplorer.Abstractions.Infrastructure;
+using ProcessExplorer.Abstractions.Processes;
+using ProcessExplorer.Abstractions.Subsystems;
 using ProcessExplorer.Server.Logging;
 using ProcessExplorer.Server.Server.Abstractions;
 

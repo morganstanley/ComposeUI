@@ -19,11 +19,11 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using ModuleProcessMonitor.Processes;
 using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.Tryouts.Core.Abstractions.Modules;
-using ProcessExplorer.Abstraction.Processes;
-using ProcessExplorer.Abstraction.Subsystems;
+using ProcessExplorer.Abstractions.Processes;
+using ProcessExplorer.Abstractions.Subsystems;
+using ProcessExplorer.Core.Processes;
 using ProcessExplorerMessageRouterTopics;
 
 namespace ModulesPrototype.Infrastructure;
@@ -147,8 +147,11 @@ public class ProcessInfoHandler : IProcessInfoHandler
             Thread.Sleep(5000);
             if (_subsystemLauncher == null) return;
 
-            _subsystemLauncher.SetSubsystems(subsystems);
-            await _subsystemLauncher.InitSubsystems();
+            var result = JsonSerializer.Deserialize<KeyValuePair<Guid, SubsystemInfo>[]>(subsystems);
+
+            if(result == null) return;
+            _subsystemLauncher.SetSubsystems(result);
+            //await _subsystemLauncher.InitSubsystems();
         }
         catch (Exception exception)
         {

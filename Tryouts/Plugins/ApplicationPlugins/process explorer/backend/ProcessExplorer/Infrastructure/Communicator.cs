@@ -15,10 +15,11 @@ using LocalCollector.Communicator;
 using LocalCollector.Connections;
 using LocalCollector.Modules;
 using LocalCollector.Registrations;
-using ProcessExplorer.Abstraction;
+using ProcessExplorer.Abstractions;
 
 namespace ProcessExplorer.Core.Infrastructure;
 
+//TODO(Lilla): refactor so it is longer using proxy based calling
 internal class Communicator : ICommunicator
 {
     private IProcessInfoAggregator _aggregator;
@@ -41,7 +42,7 @@ internal class Communicator : ICommunicator
         {
             if (runtimeInfo.Value != null && runtimeInfo.Key.Name != string.Empty)
             {
-                await _aggregator.AddInformation(runtimeInfo.Key.Name, runtimeInfo.Value);
+                await _aggregator.AddRuntimeInformation(runtimeInfo.Key.Name, runtimeInfo.Value);
             }
         }
     }

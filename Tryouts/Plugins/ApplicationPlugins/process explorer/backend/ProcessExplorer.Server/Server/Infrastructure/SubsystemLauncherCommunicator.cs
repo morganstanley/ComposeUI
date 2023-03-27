@@ -12,7 +12,7 @@
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using ProcessExplorer.Abstraction.Subsystems;
+using ProcessExplorer.Abstractions.Subsystems;
 using ProcessExplorer.Server.Logging;
 
 namespace ProcessExplorer.Server.Server.Infrastructure;

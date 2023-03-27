@@ -13,8 +13,8 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Messaging;
-using ProcessExplorer.Abstraction;
-using ProcessExplorer.Abstraction.Processes;
+using ProcessExplorer.Abstractions;
+using ProcessExplorer.Abstractions.Processes;
 
 namespace SuperRPC_POC.Infrastructure.Messages;
 

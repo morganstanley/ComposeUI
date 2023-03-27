@@ -10,13 +10,12 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using System.Collections.ObjectModel;
+using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using ProcessExplorer.Abstraction.Infrastructure;
-using ProcessExplorer.Abstraction.Subsystems;
-using ProcessExplorer.Core.Infrastructure;
-using ProcessExplorer.Core.Logging;
+using ProcessExplorer.Abstractions.Infrastructure;
+using ProcessExplorer.Abstractions.Logging;
+using ProcessExplorer.Abstractions.Subsystems;
 
 namespace ProcessExplorer.Core.Subsystems;
 
@@ -25,9 +24,13 @@ namespace ProcessExplorer.Core.Subsystems;
 /// </summary>
 internal class SubsystemController : ISubsystemController
 {
-    private ObservableCollection<KeyValuePair<Guid, SubsystemInfo>> _subsystems = new();
+    private ConcurrentDictionary<Guid, SubsystemInfo> _subsystems = new();
+    private Func<Func<IUIHandler, Task>, Task>? _updateInfoOnUi;
     private readonly object _subsystemLock = new();
     private readonly ILogger _logger;
+
+    //We are allowing that to users to create their own backend server or their own SubsystemLauncher, without depending on certain types and without circular dependency.
+    //We are using the _subsystemLauncher in the Server project.
     private readonly ISubsystemLauncherCommunicator? _subsystemLauncherCommunicator;
     private readonly ISubsystemLauncher? _subsystemLauncher;
 
@@ -36,7 +39,7 @@ internal class SubsystemController : ISubsystemController
         ILogger? logger)
     {
         _subsystemLauncher = subsystemLauncher;
-        _logger = logger ?? NullLogger<ISubsystemController>.Instance;
+        _logger = logger ?? NullLogger<SubsystemController>.Instance;
     }
 
     public SubsystemController(
@@ -44,35 +47,14 @@ internal class SubsystemController : ISubsystemController
         ILogger? logger = null)
     {
         _subsystemLauncherCommunicator = subsystemLauncherCommunicator;
-        _logger = logger ?? NullLogger<ISubsystemController>.Instance;
+        _logger = logger ?? NullLogger<SubsystemController>.Instance;
     }
 
     public async Task InitializeSubsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         UpdateOrAddElements(subsystems);
-
-        SetCollectionChangedEvent();
-
+        await SendModifiedSubsystems();
         await LaunchSubsystemsAutomatically();
-        await SendInitializedSubsystemInfoToUis();
-    }
-
-    private void SetCollectionChangedEvent()
-    {
-        lock (_subsystemLock)
-        {
-            //TODO(Lilla): chcek this
-            _subsystems.CollectionChanged += async (sender, args) =>
-            {
-                List<KeyValuePair<Guid, SubsystemInfo>> subsystemsCopy;
-                lock (_subsystemLock)
-                {
-                    subsystemsCopy = _subsystems.ToList();
-                }
-
-                await UpdateInfoOnUI(handler => handler.AddSubsystems(subsystemsCopy));
-            };
-        }
     }
 
     public async Task LaunchAllRegisteredSubsystem()
@@ -124,13 +106,14 @@ internal class SubsystemController : ISubsystemController
 
     public async Task LaunchSubsystemAutomatically(Guid subsystemId)
     {
-        var subsystem = GetSubsystem(subsystemId);
-
-        if (subsystem != null)
+        lock (_subsystemLock)
         {
-            await LaunchSubsystem(subsystem.Value.Key.ToString());
-            subsystem.Value.Value.AutomatedStart = true;
+            var succeed = _subsystems.TryGetValue(subsystemId, out var subsystem);
+            if (!succeed || subsystem == null) return;
+            subsystem.AutomatedStart = true;
         }
+
+        await LaunchSubsystem(subsystemId.ToString());
     }
 
     public async Task LaunchSubsystemsAutomatically()
@@ -184,12 +167,13 @@ internal class SubsystemController : ISubsystemController
     {
         foreach (var subsystemId in subsystems)
         {
-            var registeredSubsystem = GetSubsystem(new Guid(subsystemId));
+            bool succeed;
+            SubsystemInfo? registeredSubsystem;
 
-            if (registeredSubsystem == null)
-            {
-                continue;
-            }
+            lock (_subsystemLock)
+                succeed = _subsystems.TryGetValue(Guid.Parse(subsystemId), out registeredSubsystem);
+
+            if (registeredSubsystem == null || !succeed) continue;
 
             await SendRequest(
                 _subsystemLauncherCommunicator.SendRestartSubsystemsRequest(new List<Guid> { new(subsystemId) }),
@@ -259,9 +243,9 @@ internal class SubsystemController : ISubsystemController
 
         lock (_subsystemLock)
         {
-            subsystem = _subsystems
-                .FirstOrDefault(sub =>
-                    sub.Key.Equals(subsystemId));
+            subsystem = _subsystems.FirstOrDefault(sub => sub.Key.Equals(subsystemId));
+
+            if (subsystem.Value == null || subsystem.Value.State == state) return;
 
             try
             {
@@ -273,86 +257,50 @@ internal class SubsystemController : ISubsystemController
             }
         }
 
-        await UpdateInfoOnUI(handler => handler.UpdateSubsystemInfo(subsystemId, subsystem.Value));
+        if (_updateInfoOnUi == null) return;
+        await _updateInfoOnUi.Invoke(handler => handler.UpdateSubsystemInfo(subsystemId, subsystem.Value));
     }
-
-    public async Task AddUIConnection(IUIHandler uiHandler)
-    {
-        UiClientsStore.AddUiConnection(uiHandler);
-        await SendInitializedSubsystemInfoToUis();
-    }
-
 
     public async Task AddSubsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         UpdateOrAddElements(subsystems);
-        await UpdateInfoOnUI(handler => handler.AddSubsystems(subsystems));
+        if (_updateInfoOnUi == null) return;
+        await _updateInfoOnUi.Invoke(handler => handler.AddSubsystems(subsystems));
     }
 
     public void AddSubsystem(Guid subsystemId, SubsystemInfo subsystem)
     {
         lock (_subsystemLock)
         {
-            _subsystems.Add(new(subsystemId, subsystem));
+            var succeed = _subsystems.TryAdd(subsystemId, subsystem);
+            if (!succeed) _logger.SubsystemAddError(subsystemId.ToString(), subsystem.Name);
         }
     }
 
     public void RemoveSubsystem(Guid subsystemId)
     {
-        var subsystem = GetSubsystem(subsystemId);
-
         lock (_subsystemLock)
         {
-            if (subsystem == null ||
-                !_subsystems.Contains(subsystem.Value))
-            {
-                return;
-            }
-
-            var subsystems = _subsystems
-                .Where(subsystemKeyValuePair =>
-                    subsystemKeyValuePair.Key != subsystemId);
-
-            _subsystems = new ObservableCollection<KeyValuePair<Guid, SubsystemInfo>>(subsystems);
-            SetCollectionChangedEvent();
+            var succeed = _subsystems.TryRemove(subsystemId, out _);
+            if (!succeed) return;
+            Task.Run(() => SendModifiedSubsystems());
         }
     }
 
-    private KeyValuePair<Guid, SubsystemInfo>? GetSubsystem(Guid subsystemId)
+    private async Task SendModifiedSubsystems()
     {
-        KeyValuePair<Guid, SubsystemInfo> subsystem;
-
+        List<KeyValuePair<Guid, SubsystemInfo>> subsystemsCopy;
         lock (_subsystemLock)
         {
-            subsystem = _subsystems
-                .FirstOrDefault(s =>
-                    s.Key == subsystemId);
+            subsystemsCopy = _subsystems.ToList();
         }
 
-        return subsystem;
+        if (_updateInfoOnUi == null) return;
+        await _updateInfoOnUi.Invoke(handler => handler.AddSubsystems(subsystemsCopy));
     }
 
-    public Task SendInitializedSubsystemInfoToUis()
-    {
-        Span<IUIHandler> handlers = Array.Empty<IUIHandler>();
 
-        lock (UiClientsStore._uiClientLocker)
-        {
-            if (UiClientsStore._uiClients.Count > 0)
-            {
-                handlers = new Span<IUIHandler>(UiClientsStore._uiClients.ToArray());
-            }
-        }
-
-        if (handlers.Length > 0)
-        {
-            return SendInfoToInitializedUIs(handlers);
-        }
-
-        return Task.CompletedTask;
-    }
-
-    private Task SendInfoToInitializedUIs(ReadOnlySpan<IUIHandler> handlers)
+    public Task SendInitializedSubsystemInfoToUis(ReadOnlySpan<IUIHandler> handlers)
     {
         var subsystemCopy = new Dictionary<Guid, SubsystemInfo>();
 
@@ -381,19 +329,17 @@ internal class SubsystemController : ISubsystemController
 
     private async Task SetState(Guid subsystemId, string state)
     {
-        var subsystem = GetSubsystem(subsystemId);
-
-        if (subsystem == null) return;
+        SubsystemInfo subsystem;
 
         lock (_subsystemLock)
         {
-            if (subsystem.Value.Value.State != state)
-            {
-                subsystem.Value.Value.State = state;
-            }
+            if (!_subsystems.ContainsKey(subsystemId)) return;
+            _subsystems[subsystemId].State = state;
+            subsystem = _subsystems[subsystemId];
         }
 
-        await UpdateInfoOnUI(handler => handler.UpdateSubsystemInfo(subsystemId, subsystem.Value.Value));
+        if (_updateInfoOnUi == null || subsystem == null) return;
+        await _updateInfoOnUi.Invoke(handler => handler.UpdateSubsystemInfo(subsystemId, subsystem));
     }
 
     private async Task SetStates(IEnumerable<KeyValuePair<Guid, string>> states)
@@ -404,50 +350,25 @@ internal class SubsystemController : ISubsystemController
         }
     }
 
-    private Task UpdateInfoOnUI(Func<IUIHandler, Task> handlerAction)
-    {
-        try
-        {
-            return Task.WhenAll(CreateCopyOfClients().Select(handlerAction));
-        }
-        catch (Exception exception)
-        {
-            _logger.UiInformationCannotBeUpdatedError(exception);
-            return Task.CompletedTask;
-        }
-    }
-
-    private IEnumerable<IUIHandler> CreateCopyOfClients()
-    {
-        lock (UiClientsStore._uiClientLocker)
-        {
-            return UiClientsStore._uiClients.ToArray();
-        }
-    }
-
     private void UpdateOrAddElements(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         lock (_subsystemLock)
         {
             foreach (var subsystem in subsystems)
             {
-                var element = _subsystems
-                    .FirstOrDefault(sub =>
-                        subsystem.Key == sub.Key);
-
-                if (element.Value != null)
-                {
-                    element.Value.Name = subsystem.Value.Name;
-                    element.Value.Path = subsystem.Value.Path;
-                    element.Value.State = subsystem.Value.State;
-                    element.Value.Description = subsystem.Value.Description;
-                    element.Value.AutomatedStart = subsystem.Value.AutomatedStart;
-                }
-                else
-                {
-                    _subsystems.Add(subsystem);
-                }
+                _subsystems.AddOrUpdate(subsystem.Key, subsystem.Value, (key, value) => value = subsystem.Value);
             }
         }
+    }
+
+    public void SetUiDelegate(Func<Func<IUIHandler, Task>, Task> updateInfoOnUI)
+    {
+        _updateInfoOnUi = updateInfoOnUI;
+    }
+
+    public IEnumerable<KeyValuePair<Guid, SubsystemInfo>> GetSubsystems()
+    {
+       lock(_subsystemLock)
+            return _subsystems;
     }
 }

@@ -15,8 +15,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using ProcessExplorer.Abstraction;
-using ProcessExplorer.Abstraction.Subsystems;
+using ProcessExplorer.Abstractions;
+using ProcessExplorer.Abstractions.Subsystems;
 using ProcessExplorer.Core.Factories;
 using ProcessExplorer.Server.Logging;
 using ProcessExplorer.Server.Server.Abstractions;
@@ -60,11 +60,15 @@ internal class GrpcListenerService : ProcessExplorerServer, IHostedService
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        Task.Run(() => StartAsyncCore(cancellationToken));
+        if (cancellationToken == CancellationToken.None) _logger.GrpcCancellationTokenWarning();
+
+        Task.Run(() => StartAsyncCore());
+        Task.Run(() => _processInfoAggregator.RunSubsystemStateQueue(cancellationToken));
+
         return Task.CompletedTask;
     }
 
-    private void StartAsyncCore(CancellationToken cancellationToken)
+    private void StartAsyncCore()
     {
         _logger.GrpcServerStartedDebug();
 

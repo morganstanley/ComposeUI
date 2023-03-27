@@ -26,14 +26,11 @@ using Microsoft.Extensions.Logging;
 using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 using Nito.AsyncEx;
 using System.Linq;
-using ModuleProcessMonitor.Processes;
-using System.Collections.ObjectModel;
 using ProcessExplorer.Server.DependencyInjection;
 using System.Reactive.Linq;
-using ModulesPrototype.Infrastructure;
-using ProcessExplorer.Abstraction.Subsystems;
-using ProcessExplorer.Abstraction;
 using ProcessExplorer.Server.Server.Abstractions;
+using ProcessExplorer.Abstractions.Subsystems;
+using ProcessExplorer.Abstractions;
 
 namespace ModulesPrototype;
 
@@ -65,27 +62,6 @@ internal class Program
 
         await host.StartAsync(cts.Token);
 
-        var processExplorer = new HostBuilder()
-            .ConfigureLogging(l => l.AddConsole().SetMinimumLevel(LogLevel.Debug))
-            .ConfigureServices(
-                (context, services) => services
-                    //.AddSingleton<IModuleLoader>(loader)
-                    .AddProcessExplorerWindowsServer(pe => pe.UseGrpc())
-                    .Configure<ProcessExplorerServerOptions>(op =>
-                    {
-                        op.Port = 5056;
-                        //op.Modules = instances;
-                        //op.Processes = processInfo;
-                        op.MainProcessID = Process.GetCurrentProcess().Id;
-                        op.EnableProcessExplorer = true;
-                        //op.SubsystemLauncher = new SubsystemLauncher(host.Services.GetRequiredService<ILogger<SubsystemLauncher>>(), loader);
-                    }))
-            .Build();
-
-        await processExplorer.StartAsync(cts.Token);
-
-        var infoAggregator = processExplorer.Services.GetRequiredService<IProcessInfoAggregator>();
-
         var logger = host.Services.GetRequiredService<ILogger<Program>>();
         var manifestString = File.ReadAllText("manifest.json");
         var manifest = JsonSerializer.Deserialize<Dictionary<string, ModuleManifest>>(manifestString);
@@ -94,63 +70,22 @@ internal class Program
         var loader = factory.Create(catalogue);
         var moduleCounter = new AsyncCountdownEvent(0);
 
+        var processExplorer = new HostBuilder()
+            .ConfigureLogging(l => l.AddConsole().SetMinimumLevel(LogLevel.Debug))
+            .ConfigureServices(
+             (context, services) => services
+                 .AddProcessExplorerWindowsServer(pe => pe.UseGrpc())
+                 .ConfigureSubsystemLauncher(loader.RequestStartProcess, loader.RequestStopProcess, CreateLaunchRequest, CreateStopRequest)
+                 .Configure<ProcessExplorerServerOptions>(op =>
+                 {
+                     op.Port = 5056;
+                     op.MainProcessId = Process.GetCurrentProcess().Id;
+                     op.EnableProcessExplorer = true;
+                 }))
+            .Build();
 
-        var processInfo = new ObservableCollection<ProcessInformation>();
-
-        //var asyncObservable = Observable.Create<LifecycleEvent>(async observer =>
-        //{
-        //    using var subscription = loader.LifecycleEvents.Subscribe(async data =>
-        //    {
-        //        var unexpected = data.IsExpected ? string.Empty : " unexpectedly";
-
-        //        logger.LogInformation(
-        //            $"LifecycleEvent detected: {data.ProcessInfo.uiHint ?? "non-visual module"} {data.EventType}{unexpected}");
-
-        //        if (data.EventType == LifecycleEventType.Started && data.ProcessInfo.uiType == UIType.Web)
-        //        {
-        //            var webId = StartBrowser(data.ProcessInfo.uiHint!);
-        //            await subsystemLauncher.ModifySubsystemState(data.ProcessInfo.instanceId, SubsystemState.Started);
-        //        }
-
-        //        if (data.EventType == LifecycleEventType.Stopped)
-        //        {
-        //            instances[data.ProcessInfo.instanceId].State = SubsystemState.Stopped;
-        //            await subsystemLauncher.ModifySubsystemState(data.ProcessInfo.instanceId, SubsystemState.Stopped);
-
-        //            if (!data.IsExpected)
-        //            {
-        //                loader.RequestStartProcess(
-        //                    new LaunchRequest() { name = data.ProcessInfo.name, instanceId = data.ProcessInfo.instanceId });
-
-        //                instances[data.ProcessInfo.instanceId].State = SubsystemState.Started;
-        //                await subsystemLauncher.ModifySubsystemState(data.ProcessInfo.instanceId, SubsystemState.Started);
-        //            }
-        //            else
-        //            {
-        //                moduleCounter.Signal();
-        //            }
-        //        }
-
-        //        if (data.EventType == LifecycleEventType.Started)
-        //        {
-        //            instances[data.ProcessInfo.instanceId].State = SubsystemState.Started;
-        //            await subsystemLauncher.ModifySubsystemState(data.ProcessInfo.instanceId, SubsystemState.Started);
-        //        }
-
-        //        var proc = new ProcessInformation(e.ProcessInfo.name,
-        //            data.ProcessInfo.instanceId,
-        //            data.ProcessInfo.uiType,
-        //            data.ProcessInfo.uiHint!,
-        //            (int)data.ProcessInfo.pid!);
-
-        //        processInfo.Add(proc);
-        //        observer.OnNext(data);
-        //    },
-        //    observer.OnError,
-        //    observer.OnCompleted);
-
-        //    await subscription;
-        //});
+        await processExplorer.StartAsync(cts.Token);
+        var infoAggregator = processExplorer.Services.GetRequiredService<IProcessInfoAggregator>();
 
         loader.LifecycleEvents.Subscribe(
             e =>
@@ -180,18 +115,13 @@ internal class Program
                 }
 
                 infoAggregator.ScheduleSubsystemStateChanged(e.ProcessInfo.instanceId, SubsystemState.Started.ToString());
-                //var proc = new ProcessInformation(
-                //    e.ProcessInfo.name,
-                //    (int)e.ProcessInfo.pid!);
-
-                //processInfo.Add(proc);
             });
 
         var instances = new Dictionary<Guid, Module>();
         foreach (var module in manifest)
         {
             var instanceId = Guid.NewGuid();
-           
+
             instances.Add(instanceId, new()
             {
                 Name = module.Value.Name,
@@ -208,7 +138,7 @@ internal class Program
 
         foreach (var module in instances)
         {
-            if(module.Value.Name == "dataservice")
+            if (module.Value.Name == "dataservice")
             {
                 instances.TryGetValue(module.Key, out var instance);
                 instance = new()
@@ -227,8 +157,7 @@ internal class Program
             }
         }
 
-        //var consoleShellPrototype = new ProcessInformation(Process.GetCurrentProcess());
-        //processInfo.Add(consoleShellPrototype);
+        await infoAggregator.InitializeSubsystems(instances.Select(kvp => new KeyValuePair<Guid, SubsystemInfo>(kvp.Key, SubsystemInfo.FromModule(kvp.Value))));
 
         logger.LogInformation("ComposeUI application running, press Ctrl+C to exit");
 
@@ -261,5 +190,22 @@ internal class Program
         pr2.StartInfo.Arguments = url;
         pr2.Start();
         return pr2.Id;
+    }
+
+    static LaunchRequest CreateLaunchRequest(Guid id, string name)
+    {
+        return new LaunchRequest()
+        {
+            instanceId = id,
+            name = name,
+        };
+    }
+
+    static StopRequest CreateStopRequest(Guid id)
+    {
+        return new StopRequest()
+        {
+            instanceId = id,
+        };
     }
 }

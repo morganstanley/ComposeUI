@@ -13,24 +13,32 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
-using ProcessExplorer.Abstraction.Handlers;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using ProcessExplorer.Abstractions.Handlers;
+using ProcessExplorer.Abstractions.Logging;
 
-namespace ProcessExplorer.Abstraction.Processes;
+namespace ProcessExplorer.Abstractions.Processes;
 
 public abstract class ProcessInfoManager : IDisposable
 {
     private ProcessCreatedHandler? _processCreatedHandler;
     private ProcessModifiedHandler? _processModifiedHandler;
     private ProcessTerminatedHandler? _processTerminatedHandler;
-
+    private ProcessesModifiedHandler? _processesModifiedHandler;
+    private ProcessStatusChangedHandler? _processStatusChangedHandler;
+    private readonly ILogger _logger;
     private readonly ObservableCollection<int> _processIds = new();
     private readonly object _locker = new();
     private int _composePid;
+    private int _delayTime;
 
-    public ProcessInfoManager()
+    public ProcessInfoManager(ILogger? logger)
     {
+        _logger = logger ?? NullLogger.Instance;
         _processIds.CollectionChanged += ProcessIdsChanged;
     }
+
 
     private void ProcessIdsChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
@@ -59,11 +67,15 @@ public abstract class ProcessInfoManager : IDisposable
     public void SetHandlers(
         ProcessModifiedHandler processModifiedHandler,
         ProcessTerminatedHandler processTerminatedHandler,
-        ProcessCreatedHandler processCreatedHandler)
+        ProcessCreatedHandler processCreatedHandler,
+        ProcessesModifiedHandler processesModifiedHandler,
+        ProcessStatusChangedHandler processStatusChangedHandler)
     {
         _processCreatedHandler = processCreatedHandler;
         _processModifiedHandler = processModifiedHandler;
         _processTerminatedHandler = processTerminatedHandler;
+        _processStatusChangedHandler = processStatusChangedHandler;
+        _processesModifiedHandler = processesModifiedHandler;
     }
 
     public void SetComposePid(int pid)
@@ -83,6 +95,8 @@ public abstract class ProcessInfoManager : IDisposable
     {
         lock (_locker)
         {
+            if (pid == 0) return;
+
             _processIds.Add(pid);
         }
     }
@@ -103,7 +117,10 @@ public abstract class ProcessInfoManager : IDisposable
             {
                 if (_processIds.Contains(id)) continue;
                 _processIds.Add(id);
+                AddChildProcesses(id, Process.GetProcessById(id).ProcessName);
             }
+
+            if(_composePid != 0 && !_processIds.Contains(_composePid)) _processIds.Add(_composePid);
         }
     }
 
@@ -147,7 +164,12 @@ public abstract class ProcessInfoManager : IDisposable
     /// <summary>
     /// Continuously watching created processes.
     /// </summary>
-    public abstract void WatchProcesses();
+    public virtual void WatchProcesses()
+    {
+        if(_composePid == 0) return;
+        AddProcess(_composePid);
+        AddChildProcesses(_composePid, Process.GetProcessById(_composePid).ProcessName);
+    }
 
     /// <summary>
     /// Checks if the given process is related to the main process.
@@ -197,7 +219,7 @@ public abstract class ProcessInfoManager : IDisposable
     /// <param name="pid"></param>
     public void SendTerminatedProcessUpdate(int pid)
     {
-        _processTerminatedHandler?.Invoke(pid);
+        ProcessTerminated(pid);
     }
 
     /// <summary>
@@ -207,6 +229,11 @@ public abstract class ProcessInfoManager : IDisposable
     public void SendProcessModifiedUpdate(int pid)
     {
         _processModifiedHandler?.Invoke(pid);
+    }
+
+    public void SetDeadProcessRemovalDelay(int delay)
+    {
+        _delayTime = delay * 100;
     }
 
     ~ProcessInfoManager()
@@ -221,4 +248,38 @@ public abstract class ProcessInfoManager : IDisposable
     }
 
     public virtual void Dispose(bool disposing) { }
+
+
+    private void ProcessTerminated(int pid)
+    {
+        if (!TryDeleteProcess(pid)) _logger.CannotTerminateProcessError(pid);
+    }
+
+    private bool TryDeleteProcess(int pid)
+    {
+        try
+        {
+            _logger.ProcessTerminatedInformation(pid);
+            _processStatusChangedHandler?.Invoke(new(pid, Status.Terminated));
+            RemoveProcessAfterTimeout(pid);
+            return true;
+        }
+        catch (Exception exception)
+        {
+            _logger.PpidExpected(pid, exception);
+        }
+
+        return false;
+    }
+
+    private void RemoveProcessAfterTimeout(int item)
+    {
+        Task.Run(() =>
+        {
+            Task.Delay(_delayTime);
+            var ids = GetProcessIds();
+            _processesModifiedHandler?.Invoke(ids);
+            _processTerminatedHandler?.Invoke(item);
+        });
+    }
 }

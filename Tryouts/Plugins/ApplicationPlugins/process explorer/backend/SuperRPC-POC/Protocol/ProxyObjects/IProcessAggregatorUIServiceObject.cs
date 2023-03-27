@@ -13,7 +13,7 @@
 using LocalCollector;
 using LocalCollector.Modules;
 using LocalCollector.Registrations;
-using ProcessExplorer.Abstraction.Processes;
+using ProcessExplorer.Abstractions.Processes;
 using ConnectionInfo = LocalCollector.Connections.ConnectionInfo;
 
 namespace SuperRPC_POC.Protocol.ProxyObjects;

@@ -10,5 +10,5 @@
     <ProjectReference Include="../LocalCollector/LocalCollector.csproj" />
     <ProjectReference Include="../ModuleProcessMonitor/ModuleProcessMonitor.csproj" />
   </ItemGroup>
-
+  
 </Project>

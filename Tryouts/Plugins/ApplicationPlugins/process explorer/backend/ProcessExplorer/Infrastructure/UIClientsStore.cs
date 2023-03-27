@@ -11,16 +11,16 @@
 // and limitations under the License.
 
 
-using ProcessExplorer.Abstraction.Infrastructure;
+using ProcessExplorer.Abstractions.Infrastructure;
 
 namespace ProcessExplorer.Core.Infrastructure;
 
-internal static class UiClientsStore
+internal class UiClientsStore
 {
-    internal static readonly SynchronizedCollection<IUIHandler> _uiClients = new();
-    internal static readonly object _uiClientLocker = new();
+    internal readonly SynchronizedCollection<IUIHandler> _uiClients = new();
+    internal readonly object _uiClientLocker = new();
 
-    public static void AddUiConnection(IUIHandler uiHandler)
+    public void AddUiConnection(IUIHandler uiHandler)
     {
         lock (_uiClientLocker)
         {
@@ -32,7 +32,7 @@ internal static class UiClientsStore
         }
     }
 
-    public static void RemoveUiConnection(IUIHandler uiHandler)
+    public void RemoveUiConnection(IUIHandler uiHandler)
     {
         lock (_uiClientLocker)
         {

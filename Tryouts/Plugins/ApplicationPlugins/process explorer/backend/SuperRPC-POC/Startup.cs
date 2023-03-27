@@ -12,8 +12,8 @@
 
 using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
-using ProcessExplorer.Abstraction;
-using ProcessExplorer.Abstraction.Processes;
+using ProcessExplorer.Abstractions;
+using ProcessExplorer.Abstractions.Processes;
 using ProcessExplorer.Core.Factories;
 using SuperRPC_POC.Infrastructure;
 using SuperRPC_POC.Infrastructure.Messages;

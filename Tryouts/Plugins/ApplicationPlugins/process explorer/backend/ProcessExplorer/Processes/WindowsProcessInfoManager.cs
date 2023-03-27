@@ -15,8 +15,8 @@ using System.Diagnostics;
 using System.Management;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using ProcessExplorer.Abstraction.Processes;
-using ProcessExplorer.Core.Logging;
+using ProcessExplorer.Abstractions.Logging;
+using ProcessExplorer.Abstractions.Processes;
 
 namespace ProcessExplorer.Core.Processes;
 
@@ -33,6 +33,7 @@ internal class WindowsProcessInfoManager : ProcessInfoManager
     private bool _disposed = false;
     private readonly object _lock = new();
     public WindowsProcessInfoManager(ILogger<ProcessInfoManager>? logger)
+        :base(logger)
     {
         _logger = logger ?? NullLogger<WindowsProcessInfoManager>.Instance;
         _cpuPerformanceCounters = new();
@@ -54,7 +55,7 @@ internal class WindowsProcessInfoManager : ProcessInfoManager
             {
                 return new ManagementObjectSearcher(
                     string.Format(
-                        "Select ParentProcessId From Win32_Process Where ParentProcessID={0} Or ProcessID={0}",
+                        "Select ParentProcessId From Win32_Process Where ProcessID={0}",
                         processId));
             });
 
@@ -66,7 +67,7 @@ internal class WindowsProcessInfoManager : ProcessInfoManager
 
             if (deviceArray.Length <= 0) return null;
 
-            ppid = Convert.ToInt32(deviceArray.First()["ParentProcessId"]); //managementObjectSearcher["ParentProcessId"]
+            ppid = Convert.ToInt32(deviceArray.First()["ParentProcessId"]);
         }
         catch (Exception exception)
         {
@@ -163,10 +164,12 @@ internal class WindowsProcessInfoManager : ProcessInfoManager
 
     public override void WatchProcesses()
     {
+        base.WatchProcesses();
+
         const string wmiQuery =
 "SELECT TargetInstance.ProcessId " +
 "FROM __InstanceOperationEvent WITHIN 3 " +
-"WHERE TargetInstance ISA 'Win32_Process'"; // And __Class = '__InstanceModificationEvent'
+"WHERE TargetInstance ISA 'Win32_Process'";
 
         try
         {
@@ -317,8 +320,6 @@ internal class WindowsProcessInfoManager : ProcessInfoManager
 
             RemoveProcessId(pid);
         }
-
-        //SendTerminatedProcessUpdate(pid);
     }
 
     private static Process? GetProcessIfPidExists(int pid)

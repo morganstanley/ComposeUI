@@ -20,8 +20,8 @@ using System.Text;
 using Nerdbank.Streams;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using ProcessExplorer.Abstraction;
-using ProcessExplorer.Abstraction.Infrastructure;
+using ProcessExplorer.Abstractions;
+using ProcessExplorer.Abstractions.Infrastructure;
 using Super.RPC;
 
 namespace SuperRPC_POC;
@@ -49,7 +49,7 @@ public record SuperRPCWebSocket(WebSocket webSocket, object? context)
     public static Task HandleWebsocketConnectionAsync(WebSocket webSocket,
         RPCReceiveChannel receiveChannel,
         object? context = null,
-        IProcessInfoAggregator? aggregator = null, IUIHandler? uiHandler = null)
+        IProcessInfoAggregator? aggregator = null, KeyValuePair<Guid, IUIHandler>? uiHandler = null)
     {
         var rpcWebSocket = new SuperRPCWebSocket(webSocket, context);
         rpcWebSocket.ReceiveChannel = receiveChannel;
@@ -126,7 +126,7 @@ public record SuperRPCWebSocket(WebSocket webSocket, object? context)
         }
     }
 
-    public async Task StartReceivingAsync(IProcessInfoAggregator? aggregator = null, IUIHandler? uiHandler = null)
+    public async Task StartReceivingAsync(IProcessInfoAggregator? aggregator = null, KeyValuePair<Guid, IUIHandler>? uiHandler = null)
     {
         Debug.WriteLine("WebSocket connected");
 
@@ -170,7 +170,7 @@ public record SuperRPCWebSocket(WebSocket webSocket, object? context)
         }
         Debug.WriteLine($"WebSocket closed with status {webSocket.CloseStatus} {webSocket.CloseStatusDescription}");
         if(aggregator != null && uiHandler != null)
-            aggregator.RemoveUiConnection(uiHandler);
+            aggregator.RemoveUiConnection((KeyValuePair<Guid, IUIHandler>)uiHandler);
     }
 
 
