@@ -18,7 +18,7 @@ let downloadedFile = '';
 let platform = validatePlatform();
 const fileName = `composeui_${platform}.zip`;
 
-const composeui_version = '0.1.0'; //todo
+const composeui_version = process.env.npm_config_composeui_version || process.env.COMPOSEUI_VERSION;
 const skipDownload = process.env.npm_config_composeui_skip_download || process.env.COMPOSEUI_SKIP_DOWNLOAD;
 
 if (skipDownload === 'true') {
