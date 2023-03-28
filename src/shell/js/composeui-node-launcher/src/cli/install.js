@@ -12,8 +12,6 @@ import unzipper from '@deranged/unzipper';
 import pkg from './../../package.json' assert { type: "json" };
 
 
-//todo skip download is binary is already there
-
 const DEFAULT_CDN_URL = 'https://github.com/morganstanley/ComposeUI/releases/download';
 
 let cdnUrl = process.env.npm_config_composeui_cdn_url || process.env.COMPOSEUI_CDN_URL || DEFAULT_CDN_URL;
@@ -24,6 +22,8 @@ const fileName = `composeui_${platform}.zip`;
 
 const composeui_version = process.env.npm_config_composeui_version || process.env.COMPOSEUI_VERSION || pkg.version;
 const skipDownload = process.env.npm_config_composeui_skip_download || process.env.COMPOSEUI_SKIP_DOWNLOAD;
+
+let composeuiBinaryFilePath = '';
 
 if (skipDownload === 'true') {
     console.log('Found COMPOSEUI_SKIP_DOWNLOAD variable, skipping installation.');
@@ -94,9 +94,21 @@ function createTempFolder(){
       return tempFolderPath;
 }
 
+function isInstalled (outPath) {
+  let composeuiBinaryFileName = process.platform === 'win32' ? 'ComposeUI-Shell.exe' : 'ComposeUI-Shell';
+  composeuiBinaryFilePath = path.resolve(outPath, composeuiBinaryFileName);
+  
+  return fs.existsSync(composeuiBinaryFilePath);
+}
+
 async function install() {
     const tmpPath = createTempFolder();
     const outPath = process.cwd() + "/dist";
+
+    if (isInstalled(outPath)){
+      console.log('ComposeUI is already installed.');
+      process.exit(0);
+    }
     
     await downloadFile(tmpPath);
     await extractFile(tmpPath, outPath);
