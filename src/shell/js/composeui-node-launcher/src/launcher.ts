@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 export class Launcher {
     private composeuiBinaryFileName = process.platform === 'win32' ? 'ComposeUI-Shell.exe' : 'ComposeUI-Shell'; 
-    private composeuiBinaryFilePath = fileURLToPath(new URL(`./../dist/${this.composeuiBinaryFileName}`, import.meta.url));   
+    private composeuiBinaryFilePath = process.env.npm_config_composeui_binary_file_path || process.env.COMPOSEUI_BINARY_FILE_PATH || fileURLToPath(new URL(`./../dist/${this.composeuiBinaryFileName}`, import.meta.url));   
 
     private processArgs(config?: WindowConfig) {
         let argsArray = [];
