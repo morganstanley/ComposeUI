@@ -15,14 +15,18 @@ using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using LocalCollector.Connections;
 using ProcessExplorer.Abstractions.Extensions;
+using ProcessExplorer.Abstractions.Infrastructure.Protos;
 using ProcessExplorer.Abstractions.Processes;
 using ProcessExplorer.Abstractions.Subsystems;
-using ProcessExplorer.Server.Server.Infrastructure.Protos;
+using Process = ProcessExplorer.Abstractions.Infrastructure.Protos.Process;
 
 namespace ProcessExplorer.Server.Server.Helper;
 
 internal static class ProtoConvertHelper
 {
+    //n Proto3, all fields are optional and have a default value. For example, a string field has a default value of empty string ("") and an int field has a default value of zero (0).
+    //If you want to create a proto message without a certain field, you have to set its value to the default value.
+
     public static Process DeriveProtoProcessType(this ProcessInfoData process)
     {
         List<ProcessThreadInfo> threads = new();
@@ -54,16 +58,13 @@ internal static class ProtoConvertHelper
 
         return new()
         {
-            InstanceId = string.Empty,
-            UiType = string.Empty,
-            UiHint = string.Empty,
             StartTime = process.StartTime ?? string.Empty,
             ProcessorUsageTime = process.ProcessorUsageTime != null ?
                                         Duration.FromTimeSpan((TimeSpan)process.ProcessorUsageTime)
                                         : Duration.FromTimeSpan(TimeSpan.Zero),
             PhysicalMemoryUsageBit = process.PhysicalMemoryUsageBit ?? 0,
             ProcessName = process.ProcessName ?? string.Empty,
-            Pid = process.PID,
+            Pid = process.ProcessId,
             ProcessPriorityClass = process.ProcessPriorityClass ?? string.Empty,
             Threads = { threads },
             VirtualMemorySize = process.VirtualMemorySize ?? 0,

@@ -24,28 +24,29 @@ public interface ISubsystemLauncherCommunicator
     /// Sends a launch request to the launcher, which will launch the subsystem after the given timeperiod.
     /// </summary>
     /// <param name="subsystemId"></param>
+    /// <param name="subsystemName"></param>
     /// <param name="periodOfTime"></param>
     /// <returns>A state of the sent subsystem, regarding the success of the launch.</returns>
-    Task SendLaunchSubsystemAfterTimeRequest(Guid subsystemId, int periodOfTime);
+    Task SendLaunchSubsystemAfterTimeRequest(Guid subsystemId, string subsystemName, int periodOfTime);
 
     /// <summary>
     /// Sends launch requests to the launcher.
     /// </summary>
     /// <param name="subsystems"></param>
     /// <returns>A list of the states of the sent subsystems, regarding the success of the launches.</returns>
-    Task SendLaunchSubsystemsRequest(IEnumerable<Guid> subsystems);
+    Task SendLaunchSubsystemsRequest(IEnumerable<KeyValuePair<Guid, string>> subsystems);
 
     /// <summary>
     /// Sends restart requests to the launcher.
     /// </summary>
     /// <param name="subsystems"></param>
     /// <returns>A list of the states of the sent subsystems, regarding the success of the restarts.</returns>
-    Task SendRestartSubsystemsRequest(IEnumerable<Guid> subsystems);
+    Task SendRestartSubsystemsRequest(IEnumerable<KeyValuePair<Guid, string>> subsystems);
 
     /// <summary>
     /// Sends shutdown requests to the launcher.
     /// </summary>
     /// <param name="subsystems"></param>
     /// <returns>A list of the states of the sent subsystems, regarding the success of the shutdowns.</returns>
-    Task SendShutdownSubsystemsRequest(IEnumerable<Guid> subsystems);
+    Task SendShutdownSubsystemsRequest(IEnumerable<KeyValuePair<Guid, string>> subsystems);
 }

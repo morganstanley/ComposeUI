@@ -1,20 +1,38 @@
-﻿using System;
+﻿// Morgan Stanley makes this available to you under the Apache License,
+// Version 2.0 (the "License"). You may obtain a copy of the License at
+// 
+//      http://www.apache.org/licenses/LICENSE-2.0.
+// 
+// See the NOTICE file distributed with this work for additional information
+// regarding copyright ownership. Unless required by applicable law or agreed
+// to in writing, software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+// or implied. See the License for the specific language governing permissions
+// and limitations under the License.
+
+using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentAssertions;
 using LocalCollector;
+using LocalCollector.Connections;
+using LocalCollector.Modules;
+using LocalCollector.Registrations;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using ProcessExplorer.Abstractions;
 using ProcessExplorer.Abstractions.Infrastructure;
 using ProcessExplorer.Abstractions.Processes;
 using ProcessExplorer.Abstractions.Subsystems;
-using ProcessExplorer.Core.Processes;
 using Xunit;
 
 namespace ProcessExplorer.Core.Tests;
 
+//TODO(Lilla):  mock<IUIhandler>, and test windowsprocess with creating process release/debug folder
 public class ProcessInfoAggregatorTests
 {
     [Fact]
@@ -49,54 +67,31 @@ public class ProcessInfoAggregatorTests
         Assert.True(cancellationTokenSource.IsCancellationRequested);
     }
 
-    [Fact(Skip = "Run in Windows environment")]
+    [Fact]
     public void SetComposePid_will_set_the_main_id()
     {
-        //Creating mocks to handle method
-        var mockSubsystemController = new Mock<ISubsystemController>();
-
-        //due it is an abstarct class we should create an instance of it, to test the set will be called.
-#pragma warning disable CA1416 // Validate platform compatibility
-        var processInfoManager = new WindowsProcessInfoManager(NullLogger<ProcessInfoManager>.Instance);
-#pragma warning restore CA1416 // Validate platform compatibility
-
         var dummyPid = 1;
 
-        var processInfoAggregator = new ProcessInfoAggregator(
-            NullLogger<IProcessInfoAggregator>.Instance,
-            processInfoManager,
-            mockSubsystemController.Object);
+        var processInfoAggregator = CreateProcessInfoAggregator();
 
-        processInfoAggregator.SetComposePid(dummyPid);
-        //using reflection to compare values
-        var field = typeof(ProcessInfoManager).GetField("_composePid", BindingFlags.NonPublic | BindingFlags.Instance);
+        processInfoAggregator.SetMainProcessId(dummyPid);
 
-        var value = (int)field?.GetValue(processInfoManager);
+        var result = processInfoAggregator.MainProcessId;
 
-        Assert.Equal(dummyPid, value);
+        result.Should().Be(dummyPid);
     }
 
-    [Fact(Skip = "Run in Windows environment")]
+    [Fact]
     public void SetDeadProcessRemovalDelay_will_set_the_delay_of_process_deleting_from_the_collection()
     {
-        var mockSubsystemController = new Mock<ISubsystemController>();
-#pragma warning disable CA1416 // Validate platform compatibility
-        var processInfoManager = new WindowsProcessInfoManager(NullLogger<ProcessInfoManager>.Instance);
-#pragma warning restore CA1416 // Validate platform compatibility
-
-
-        var processInfoAggregator = new ProcessInfoAggregator(
-            NullLogger<IProcessInfoAggregator>.Instance,
-            processInfoManager,
-            mockSubsystemController.Object);
+        var processInfoAggregator = CreateProcessInfoAggregator();
 
         var dummyDelay = 0;
         processInfoAggregator.SetDeadProcessRemovalDelay(dummyDelay);
 
-        var delayField = typeof(ProcessInfoManager).GetField("_delayTime", BindingFlags.NonPublic | BindingFlags.Instance);
-        var result = (int)delayField.GetValue(processInfoManager);
+        var result = processInfoAggregator.TerminatingProcessDelay;
 
-        Assert.Equal(dummyDelay, result);
+        result.Should().Be(dummyDelay);
     }
 
     [Fact]
@@ -115,11 +110,11 @@ public class ProcessInfoAggregatorTests
 
         processInfoAggregator.AddUiConnection(id, mockUiHandler.Object);
 
-        var collectionOfUiHandlers = typeof(ProcessInfoAggregator).GetField("_uiClients", BindingFlags.NonPublic | BindingFlags.Instance);
-        var result = (ConcurrentDictionary<Guid, IUIHandler>)collectionOfUiHandlers?.GetValue(processInfoAggregator);
+        var result = processInfoAggregator.GetUiClients();
 
-        Assert.Single(result);
-        Assert.Equal(mockUiHandler.Object, result[id]);
+        result.Should().NotBeNull();
+        result.Should().HaveCount(1);
+        result.Should().Contain(new KeyValuePair<Guid, IUIHandler>(id, mockUiHandler.Object));
     }
 
     [Fact]
@@ -138,67 +133,68 @@ public class ProcessInfoAggregatorTests
 
         processInfoAggregator.AddUiConnection(id, mockUiHandler.Object);
 
-        var collectionOfUiHandlers = typeof(ProcessInfoAggregator).GetField("_uiClients", BindingFlags.NonPublic | BindingFlags.Instance);
-        var result = (ConcurrentDictionary<Guid, IUIHandler>)collectionOfUiHandlers?.GetValue(processInfoAggregator);
+        var result = processInfoAggregator.GetUiClients();
 
-        Assert.Single(result);
-        Assert.Equal(mockUiHandler.Object, result[id]);
+        result.Should().NotBeNull();
+        result.Should().HaveCount(1);
+        result.Should().Contain(new KeyValuePair<Guid, IUIHandler>(id, mockUiHandler.Object));
 
         var otherId = Guid.NewGuid();
         processInfoAggregator.AddUiConnection(otherId, mockUiHandler.Object);
-        Assert.Equal(2, result.Count);
+        result.Should().HaveCount(2);
 
         processInfoAggregator.RemoveUiConnection(new(id, mockUiHandler.Object));
-        Assert.True(result.ContainsKey(otherId));
-        Assert.Single(result);
+        result.Should().Contain(new KeyValuePair<Guid, IUIHandler>(otherId, mockUiHandler.Object));
+        result.Should().NotContain(new KeyValuePair<Guid, IUIHandler>(id, mockUiHandler.Object));
+        result.Should().HaveCount(1);
     }
 
     [Theory]
     [ClassData(typeof(RuntimeInfoTheoryData))]
     public async Task AddRuntimeInformation_will_add_a_new_info(string id, ProcessInfoCollectorData data)
     {
-        var mockSubsystemController = new Mock<ISubsystemController>();
-        var mockProcessInfoManager = new Mock<ProcessInfoManager>(NullLogger.Instance);
-
-        var processInfoAggregator = new ProcessInfoAggregator(
-            NullLogger<IProcessInfoAggregator>.Instance,
-            mockProcessInfoManager.Object,
-            mockSubsystemController.Object);
+        var processInfoAggregator = CreateProcessInfoAggregator();
 
         await processInfoAggregator.AddRuntimeInformation(id, data);
 
-        var field = typeof(ProcessInfoAggregator).GetField("_processInformation", BindingFlags.NonPublic | BindingFlags.Instance);
-        var collection = (ConcurrentDictionary<string, ProcessInfoCollectorData>)field?.GetValue(processInfoAggregator);
+        var collection = processInfoAggregator.GetRuntimeInformation();
 
-        var succeed = collection.TryGetValue(id, out ProcessInfoCollectorData? result);
+        collection.Should().HaveCount(1);
+        collection.Should().Contain(new KeyValuePair<string, ProcessInfoCollectorData>(id, data));
 
-        if (!succeed || result == null) throw new ArgumentNullException(nameof(result));
+        var result = collection.First().Value;
 
-        Assert.Single(collection);
-        Assert.True(collection?.ContainsKey(id));
-        Assert.Equal(data.Connections.Count, result.Connections.Count);
-        Assert.Equal(data.EnvironmentVariables.Count, result.EnvironmentVariables.Count);
-        Assert.Equal(data.Modules.Count, result.Modules.Count);
-        Assert.Equal(data.Registrations.Count, result.Registrations.Count);
+        data.Connections.Count.Should().Be(result.Connections.Count);
+        data.Connections.Should().BeEquivalentTo(result.Connections);
+        data.EnvironmentVariables.Count.Should().Be(result.EnvironmentVariables.Count);
+        data.EnvironmentVariables.Should().BeEquivalentTo(result.EnvironmentVariables);
+        data.Modules.Count.Should().Be(result.Modules.Count);
+        data.Modules.Should().BeEquivalentTo(result.Modules);
+        data.Registrations.Count.Should().Be(result.Registrations.Count);
+        data.Registrations.Should().BeEquivalentTo(result.Registrations);
     }
 
     [Theory]
     [ClassData(typeof(RuntimeInfoTheoryData))]
     public async Task AddRuntimeInformation_will_update_an_info(string id, ProcessInfoCollectorData data)
     {
-        var mockSubsystemController = new Mock<ISubsystemController>();
-        var mockProcessInfoManager = new Mock<ProcessInfoManager>(NullLogger.Instance);
-
-        var processInfoAggregator = new ProcessInfoAggregator(
-            NullLogger<IProcessInfoAggregator>.Instance,
-            mockProcessInfoManager.Object,
-            mockSubsystemController.Object);
+        var processInfoAggregator = CreateProcessInfoAggregator();
 
         var dummyRuntimeInfo = new ProcessInfoCollectorData()
         {
             Id = 2,
-            Connections = new() { new() { Id = Guid.NewGuid(), Name = "dummy" }, new() { Id = Guid.NewGuid(), Name = "dummy2" }, new() { Id = Guid.NewGuid(), Name = "dummy3" } },
-            Registrations = new() { new() { ImplementationType = "dummyImpl", LifeTime = "dummyLT", ServiceType = "dummyST" }, new() { ImplementationType = "dummyImpl", LifeTime = "dummyLT", ServiceType = "dummyST" }, new() { ImplementationType = "dummyImpl", LifeTime = "dummyLT", ServiceType = "dummyST" } }
+            Connections = new() 
+            { 
+                new() { Id = Guid.NewGuid(), Name = "dummy" }, 
+                new() { Id = Guid.NewGuid(), Name = "dummy2" }, 
+                new() { Id = Guid.NewGuid(), Name = "dummy3" } 
+            },
+            Registrations = new() 
+            { 
+                new() { ImplementationType = "dummyImpl", LifeTime = "dummyLT", ServiceType = "dummyST" }, 
+                new() { ImplementationType = "dummyImpl", LifeTime = "dummyLT", ServiceType = "dummyST" }, 
+                new() { ImplementationType = "dummyImpl", LifeTime = "dummyLT", ServiceType = "dummyST" } 
+            }
         };
 
         await processInfoAggregator.AddRuntimeInformation(id, dummyRuntimeInfo);
@@ -206,37 +202,42 @@ public class ProcessInfoAggregatorTests
         //modifying the existing one
         await processInfoAggregator.AddRuntimeInformation(id, data);
 
-        var field = typeof(ProcessInfoAggregator).GetField("_processInformation", BindingFlags.NonPublic | BindingFlags.Instance);
-        var collection = (ConcurrentDictionary<string, ProcessInfoCollectorData>)field?.GetValue(processInfoAggregator);
+        var collection = processInfoAggregator.GetRuntimeInformation();
 
-        var succeed = collection.TryGetValue(id, out ProcessInfoCollectorData? result);
+        collection.Should().HaveCount(1);
+        collection.Should().Contain(new KeyValuePair<string, ProcessInfoCollectorData>(id, data));
 
-        if (!succeed || result == null) throw new ArgumentNullException(nameof(result));
+        var result = collection.First().Value;
 
-        Assert.Single(collection);
-        Assert.True(collection?.ContainsKey(id));
-        Assert.Equal(data.Connections.Count, result.Connections.Count);
-        Assert.Equal(data.EnvironmentVariables.Count, result.EnvironmentVariables.Count);
-        Assert.Equal(data.Modules.Count, result.Modules.Count);
-        Assert.Equal(data.Registrations.Count, result.Registrations.Count);
+        data.Connections.Count.Should().Be(result.Connections.Count);
+        data.Connections.Should().BeEquivalentTo(result.Connections);
+        data.EnvironmentVariables.Count.Should().Be(result.EnvironmentVariables.Count);
+        data.EnvironmentVariables.Should().BeEquivalentTo(result.EnvironmentVariables);
+        data.Modules.Count.Should().Be(result.Modules.Count);
+        data.Modules.Should().BeEquivalentTo(result.Modules);
+        data.Registrations.Count.Should().Be(result.Registrations.Count);
+        data.Registrations.Should().BeEquivalentTo(result.Registrations);
     }
 
     [Fact]
     public async Task RemoveRuntimeInformation_will_remove_item_from_collection()
     {
-        var mockSubsystemController = new Mock<ISubsystemController>();
-        var mockProcessInfoManager = new Mock<ProcessInfoManager>(NullLogger.Instance);
-
-        var processInfoAggregator = new ProcessInfoAggregator(
-            NullLogger<IProcessInfoAggregator>.Instance,
-            mockProcessInfoManager.Object,
-            mockSubsystemController.Object);
+        var processInfoAggregator = CreateProcessInfoAggregator();
 
         var dummyRuntimeInfo = new ProcessInfoCollectorData()
         {
             Id = 2,
-            Connections = new() { new() { Id = Guid.NewGuid(), Name = "dummy" }, new() { Id = Guid.NewGuid(), Name = "dummy2" }, new() { Id = Guid.NewGuid(), Name = "dummy3" } },
-            Registrations = new() { new() { ImplementationType = "dummyImpl", LifeTime = "dummyLT", ServiceType = "dummyST" }, new() { ImplementationType = "dummyImpl", LifeTime = "dummyLT", ServiceType = "dummyST" }, new() { ImplementationType = "dummyImpl", LifeTime = "dummyLT", ServiceType = "dummyST" } }
+            Connections = new() 
+            { 
+                new() { Id = Guid.NewGuid(), Name = "dummy" }, new() { Id = Guid.NewGuid(), Name = "dummy2" }, 
+                new() { Id = Guid.NewGuid(), Name = "dummy3" } 
+            },
+            Registrations = new() 
+            { 
+                new() { ImplementationType = "dummyImpl", LifeTime = "dummyLT", ServiceType = "dummyST" }, 
+                new() { ImplementationType = "dummyImpl", LifeTime = "dummyLT", ServiceType = "dummyST" }, 
+                new() { ImplementationType = "dummyImpl", LifeTime = "dummyLT", ServiceType = "dummyST" }
+            }
         };
 
         var id = "dummyId";
@@ -245,126 +246,253 @@ public class ProcessInfoAggregatorTests
         await processInfoAggregator.AddRuntimeInformation(id, dummyRuntimeInfo);
         await processInfoAggregator.AddRuntimeInformation(id2, dummyRuntimeInfo);
 
-        var field = typeof(ProcessInfoAggregator).GetField("_processInformation", BindingFlags.NonPublic | BindingFlags.Instance);
-        var collection = (ConcurrentDictionary<string, ProcessInfoCollectorData>)field?.GetValue(processInfoAggregator);
+        var collection = processInfoAggregator.GetRuntimeInformation();
 
-        Assert.Equal(2, collection?.Count);
-        Assert.True(collection?.ContainsKey(id));
+        collection.Should().HaveCount(2);
+        collection.Should().Contain(new KeyValuePair<string, ProcessInfoCollectorData>(id, dummyRuntimeInfo));
+        collection.Should().Contain(new KeyValuePair<string, ProcessInfoCollectorData>(id2, dummyRuntimeInfo));
 
         processInfoAggregator.RemoveRuntimeInformation(id);
-        Assert.False(collection?.ContainsKey(id));
-        Assert.Single(collection);
+        collection.Should().HaveCount(1);
+        collection.Should().NotContain(new KeyValuePair<string, ProcessInfoCollectorData>(id, dummyRuntimeInfo));
+        collection.Should().Contain(new KeyValuePair<string, ProcessInfoCollectorData>(id2, dummyRuntimeInfo));
     }
 
-    //[Theory]
-    //[ClassData(typeof(ConnectionTheoryData))]
-    //public async Task AddConnectionCollection_will_add_a_new_connection_collection_information(string id, IEnumerable<ConnectionInfo> connections)
-    //{
+    [Theory]
+    [ClassData(typeof(ConnectionTheoryData))]
+    public async Task AddConnectionCollection_will_add_a_new_connection_collection_information(string id, IEnumerable<ConnectionInfo> connections)
+    {
+        var processInfoAggregator = CreateProcessInfoAggregator();
 
-    //}
+        //Add dummy data
+        await processInfoAggregator.AddRuntimeInformation(id, new ProcessInfoCollectorData());
+        await processInfoAggregator.AddConnectionCollection(id, connections);
 
-    //[Fact]
-    //public async Task AddConnectionCollection_will_update_connection_collection_information(string id, IEnumerable<ConnectionInfo> connections)
-    //{
+        var collection = processInfoAggregator.GetRuntimeInformation();
 
-    //}
+        collection.Should().HaveCount(1);
+        
+        var result = collection.First();
 
-    //[Fact]
-    //public async Task UpdateConnectionInfo_will_update_a_connection_information(string id, ConnectionInfo connection)
-    //{
+        result.Key.Should().Be(id);
+        result.Value.Connections.Should().BeEquivalentTo(connections);
+    }
 
-    //}
+    [Fact]
+    public async Task UpdateConnectionInfo_will_update_a_connection_information()
+    {
+        var processInfoAggregator = CreateProcessInfoAggregator();
 
-    //[Fact]
-    //public async Task UpdateEnvironmentVariablesInfo_will_update_environment_variables(string assemblyId, IEnumerable<KeyValuePair<string, string>> environmentVariables)
-    //{
+        var connectionId = Guid.NewGuid();
+        var wrongConnectionInfo = new ConnectionInfo { Id = connectionId, Name = "dummyName", LocalEndpoint = "http://dummyLocalEndpontWrong.com" };
+        var id = "dummyId";
 
-    //}
+        await processInfoAggregator.AddRuntimeInformation(id, new ProcessInfoCollectorData()
+        {
+            Connections = new() { wrongConnectionInfo }
+        });
 
-    //[Fact]
-    //public async Task UpdateRegistrationInfo_will_update_registrations(string assemblyId, IEnumerable<RegistrationInfo> registrations)
-    //{
+        var collection = processInfoAggregator.GetRuntimeInformation();
+        collection.Should().HaveCount(1);
+        
+        var result = collection.First().Value;
+        result.Connections.Should().HaveCount(1);
+        result.Connections.Should().Contain(wrongConnectionInfo);
 
-    //}
+        //updating
+        var dummyConnectionInfo = new ConnectionInfo { Id = connectionId, Name = "dummyName", LocalEndpoint = "https://dummyLocalEndpoint.com" };
+        await processInfoAggregator.UpdateOrAddConnectionInfo(id, dummyConnectionInfo);
 
-    //[Fact]
-    //public async Task UpdateModuleInfo_will_update_modules(string assemblyId, IEnumerable<ModuleInfo> modules)
-    //{
+        collection = processInfoAggregator.GetRuntimeInformation();
+        result = collection.First().Value;
 
-    //}
+        collection.Should().HaveCount(1);
+        result.Connections.Should().HaveCount(1);
+        result.Connections.Should().NotContain(wrongConnectionInfo);
+        result.Connections.Should().Contain(dummyConnectionInfo);
+    }
+
+    [Fact]
+    public async Task UpdateEnvironmentVariablesInfo_will_update_environment_variables()
+    {
+        var processInfoAggregator = CreateProcessInfoAggregator();
+
+        var id = "dummyId";
+        var envs = new ConcurrentDictionary<string, string>();
+
+        envs.TryAdd("dummyKey", "dummyValue");
+        envs.TryAdd("wrongEnv", "wrongValue");
+
+        await processInfoAggregator.AddRuntimeInformation(id, new()
+        {
+            EnvironmentVariables = envs,
+        });
+
+        var collection = processInfoAggregator.GetRuntimeInformation();
+        collection.Should().HaveCount(1);
+        collection.Should().ContainKey(id);
+
+        var result = collection.First().Value;
+        result.EnvironmentVariables.Should().HaveCount(2);
+        result.EnvironmentVariables.Should().BeEquivalentTo(envs);
+
+        var updatedEnvs = new Dictionary<string, string>()
+        {
+            { "wrongEnv", "newValue" },
+            { "newKey", "value" }
+        };
+
+        var expectedResult = new Dictionary<string, string>()
+        {
+            { "dummyKey", "dummyValue" },
+            { "wrongEnv", "newValue" },
+            { "newKey", "value" }
+        };
+
+        await processInfoAggregator.UpdateOrAddEnvironmentVariablesInfo(id, updatedEnvs);
+        collection = processInfoAggregator.GetRuntimeInformation();
+        collection.Should().HaveCount(1);
+        collection.Should().ContainKey(id);
+
+        result = collection.First().Value;
+        result.EnvironmentVariables.Should().HaveCount(3);
+        result.EnvironmentVariables.Should().BeEquivalentTo(expectedResult);
+    }
+
+    [Fact]
+    public async Task UpdateRegistrationInfo_will_update_registrations()
+    {
+        var processInfoAggregator = CreateProcessInfoAggregator();
+
+        var id = "dummyId";
+        var registrations = new SynchronizedCollection<RegistrationInfo>()
+        {
+            new RegistrationInfo()
+            {
+                ImplementationType = "dummyImplementation",
+                LifeTime = "dummyLifetime",
+                ServiceType = "dummyServiceType"
+            }
+        };
+
+        await processInfoAggregator.AddRuntimeInformation(id, new()
+        {
+            Registrations = registrations
+        });
+
+        var collection = processInfoAggregator.GetRuntimeInformation();
+        collection.Should().HaveCount(1);
+        collection.Should().ContainKey(id);
+
+        var result = collection.First().Value;
+        result.Registrations.Should().HaveCount(1);
+        result.Registrations.Should().BeEquivalentTo(registrations);
+
+        var update = new List<RegistrationInfo>()
+        {
+            new() { ServiceType = "dummyImplementation", ImplementationType = "dummyNewImplementationType", LifeTime = "dummyLifeTime" },
+            new() { ServiceType = "dummyImplementation2", ImplementationType = "dummyImplementationType2", LifeTime = "dummyLifeTime2" }
+        };
+
+        await processInfoAggregator.UpdateRegistrations(id, update);
+
+        collection = processInfoAggregator.GetRuntimeInformation();
+        collection.Should().HaveCount(1);
+
+        result = collection.First().Value;
+        result.Registrations.Should().HaveCount(3);
+
+        var expected = new List<RegistrationInfo>()
+        {
+            new() { ImplementationType = "dummyImplementation", LifeTime = "dummyLifetime", ServiceType = "dummyServiceType" },
+            new() { ServiceType = "dummyImplementation", ImplementationType = "dummyNewImplementationType", LifeTime = "dummyLifeTime" },
+            new() { ServiceType = "dummyImplementation2", ImplementationType = "dummyImplementationType2", LifeTime = "dummyLifeTime2" }
+        };
+
+        result.Registrations.Should().BeEquivalentTo(expected);
+    }
+
+    [Fact]
+    public async Task UpdateModuleInfo_will_update_modules()
+    {
+        var processInfoAggregator = CreateProcessInfoAggregator();
+
+        var id = "dummyId";
+
+        var modules = new SynchronizedCollection<ModuleInfo>()
+        {
+            new() { Name = "dummyModule", Location = "dummyLocation" }
+        };
+
+        await processInfoAggregator.AddRuntimeInformation(id, new()
+        {
+            Modules = modules
+        });
+
+        var update = new List<ModuleInfo>() { new() { Name = "dummyModule", Location = "newDummyLocation" } };
+
+        await processInfoAggregator.UpdateOrAddModuleInfo(id, update);
+
+        var collection = processInfoAggregator.GetRuntimeInformation();
+        collection.Should().HaveCount(1);
+        collection.Should().ContainKey(id);
+
+        var result = collection.First().Value;
+        result.Modules.Should().HaveCount(1);
+        result.Modules.Should().BeEquivalentTo(update);
+    }
 
 
-    //[Fact]
-    //public void EnableWatchingSavedProcesses_will_begin_to_watch_processes()
-    //{
+    [Fact]
+    public void EnableWatchingSavedProcesses_will_begin_to_watch_processes()
+    {
+        var mockSubsystemController = new Mock<ISubsystemController>();
+        var mockProcessInfoManager = new Mock<IProcessInfoManager>();
 
-    //}
+        var processInfoAggregator = new ProcessInfoAggregator(
+            NullLogger<IProcessInfoAggregator>.Instance,
+            mockProcessInfoManager.Object,
+            mockSubsystemController.Object);
 
-    //[Fact]
-    //public void DisableWatchingProcesses_will_dispose_processmonitor()
-    //{
+        processInfoAggregator.EnableWatchingSavedProcesses();
+        mockProcessInfoManager.Verify(x => x.WatchProcesses(processInfoAggregator.MainProcessId), Times.Once);
+    }
 
-    //}
 
-    //[Fact]
-    //public async Task ShutdownSubsystems_will_send_shutdown_command(IEnumerable<string> subsystemIds)
-    //{
+    [Fact]
+    public void ScheduleSubsystemStateChanged_will_put_items_to_the_queue()
+    {
+        var id = Guid.NewGuid();
+        var state = SubsystemState.Running;
 
-    //}
+        var processInfoAggregator = CreateProcessInfoAggregator();
+        processInfoAggregator.ScheduleSubsystemStateChanged(id, state);
 
-    //[Fact]
-    //public async Task RestartSubsystems_will_send_restart_command(IEnumerable<string> subsystemIds)
-    //{
+        var field = typeof(ProcessInfoAggregator).GetField("_subsystemStateChanges", BindingFlags.NonPublic | BindingFlags.Instance);
+        if (field == null) throw new ArgumentNullException(nameof(field));
+        
+        var queue = (ConcurrentQueue<KeyValuePair<Guid, string>>)field.GetValue(processInfoAggregator);
+        if (queue == null) throw new ArgumentNullException(nameof(queue));
 
-    //}
+        var succeed = queue.TryDequeue(out var result);
+        succeed.Should().BeTrue();
 
-    //[Fact]
-    //public async Task LaunchSubsystems_will_send_launch_command(IEnumerable<string> subsystemIds)
-    //{
+        result.Key.Should().Be(id);
+        result.Value.Should().Be(state);
+    }
 
-    //}
+    private IProcessInfoAggregator CreateProcessInfoAggregator()
+    {
+        var mockSubsystemController = new Mock<ISubsystemController>();
+        var mockProcessInfoManager = new Mock<IProcessInfoManager>();
 
-    //[Fact]
-    //public async Task LaunchSubsystemsWithDelay_will_send_launch_with_delay_command(IEnumerable<string> subsystemIds)
-    //{
+        var processInfoAggregator = new ProcessInfoAggregator(
+            NullLogger<IProcessInfoAggregator>.Instance,
+            mockProcessInfoManager.Object,
+            mockSubsystemController.Object);
 
-    //}
-
-    //[Fact]
-    //public async Task InitializeSubsystems_will_set_subsystems(IEnumerable<string> subsystemIds)
-    //{
-
-    //}
-
-    //[Fact]
-    //public async Task ModifySubsystemState_will_modify_the_state_of_the_item_in_the_collection(Guid subsystemId, string state)
-    //{
-
-    //}
-
-    //[Fact]
-    //public void SetSubsystemController_will_set_subsystemcontroller()
-    //{
-
-    //}
-
-    //[Fact]
-    //public void ScheduleSubsystemStateChanged_will_put_items_to_the_queue(Guid instanceId, string state)
-    //{
-
-    //}
-
-    //[Fact]
-    //public async Task InitializeProcesses_will_set_the_process_ids_to_watch()
-    //{
-
-    //}
-
-    //[Fact]
-    //public async Task AddProcesses_will_add_the_processes_to_the_existing_list_without_duplication()
-    //{
-
-    //}
+        return processInfoAggregator;
+    }
 
     private class RuntimeInfoTheoryData : TheoryData
     {
@@ -389,9 +517,10 @@ public class ProcessInfoAggregatorTests
     {
         public ConnectionTheoryData()
         {
-            AddRow();
+            AddRow("dummyId", new List<ConnectionInfo>()
+            {
+                new() { Id = Guid.NewGuid(), Name = "dummyConnection", LocalEndpoint = "dummyEndpoint" }
+            });
         }
     }
 }
-
-

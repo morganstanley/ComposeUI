@@ -19,7 +19,7 @@ using ProcessExplorer.Abstractions;
 
 namespace ProcessExplorer.Core.Infrastructure;
 
-//TODO(Lilla): refactor so it is longer using proxy based calling
+//TODO(Lilla): refactor so it is longer using proxy based callings
 internal class Communicator : ICommunicator
 {
     private IProcessInfoAggregator _aggregator;
@@ -65,7 +65,7 @@ internal class Communicator : ICommunicator
         foreach (var connection in connections)
         {
             if (connection.Value == null || connection.Key.Name == string.Empty) continue;
-            await _aggregator.UpdateConnectionInfo(connection.Key.Name, connection.Value);
+            await _aggregator.UpdateOrAddConnectionInfo(connection.Key.Name, connection.Value);
         }
     }
 
@@ -76,7 +76,7 @@ internal class Communicator : ICommunicator
         foreach (var env in environmentVariables)
         {
             if (env.Value == null || env.Key.Name == string.Empty) continue;
-            await _aggregator.UpdateEnvironmentVariablesInfo(env.Key.Name, env.Value);
+            await _aggregator.UpdateOrAddEnvironmentVariablesInfo(env.Key.Name, env.Value);
         }
     }
 
@@ -87,7 +87,7 @@ internal class Communicator : ICommunicator
         foreach (var registration in registrations)
         {
             if (registration.Value == null || registration.Key.Name == string.Empty) continue;
-            await _aggregator.UpdateRegistrationInfo(registration.Key.Name, registration.Value);
+            await _aggregator.UpdateRegistrations(registration.Key.Name, registration.Value);
         }
     }
 
@@ -98,7 +98,7 @@ internal class Communicator : ICommunicator
         foreach (var module in modules)
         {
             if (module.Value == null || module.Key.Name == string.Empty) continue;
-            await _aggregator.UpdateModuleInfo(module.Key.Name, module.Value);
+            await _aggregator.UpdateOrAddModuleInfo(module.Key.Name, module.Value);
         }
     }
 }

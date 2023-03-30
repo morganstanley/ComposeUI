@@ -22,9 +22,7 @@ namespace ProcessExplorer.Core.Subsystems;
 
 internal class SubsystemLauncher<LaunchRequestType, StopRequestType> : ISubsystemLauncher
 {
-    private delegate Task<string> RequestSubsystemAction(Guid subsystemId);
-    private readonly ConcurrentDictionary<Guid, SubsystemInfo> _subsystems = new();
-    private readonly object _lock = new();
+    private delegate Task<string> RequestSubsystemAction(Guid subsystemId, string subsystemName);
     private readonly ILogger _logger;
     private Action<LaunchRequestType>? _launchRequest;
     private Action<StopRequestType>? _stopRequest;
@@ -54,27 +52,15 @@ internal class SubsystemLauncher<LaunchRequestType, StopRequestType> : ISubsyste
         _createStopRequest = stopRequestCreator;
     }
 
-    public Task<string> LaunchSubsystem(Guid subsystemId)
+    public Task<string> LaunchSubsystem(Guid subsystemId, string subsystemName)
     {
         try
         {
-            KeyValuePair<Guid, SubsystemInfo> subsystem;
-
-            lock (_lock)
-                subsystem = _subsystems.First(sub => sub.Key == subsystemId);
-
-            _logger.SubsystemStartedDebug(subsystem.Key.ToString());
 
             if (_launchRequest == null || _createLaunchRequest == null) return Task.FromResult(SubsystemState.Stopped);
 
-            if (subsystem.Value.State != SubsystemState.Started)
-            {
-                _launchRequest.Invoke(_createLaunchRequest.Invoke(subsystem.Key, subsystem.Value.Name));
-            }
-            else
-            {
-                _logger.SubsystemAlreadyStartedDebug(subsystem.Key.ToString());
-            }
+            _launchRequest.Invoke(_createLaunchRequest.Invoke(subsystemId, subsystemName));
+            _logger.SubsystemStartedDebug(subsystemId.ToString());
 
             return Task.FromResult(SubsystemState.Started);
         }
@@ -86,22 +72,22 @@ internal class SubsystemLauncher<LaunchRequestType, StopRequestType> : ISubsyste
         return Task.FromResult(SubsystemState.Stopped);
     }
 
-    public Task<string> LaunchSubsystemAfterTime(Guid subsystemId, int periodOfTime)
+    public Task<string> LaunchSubsystemAfterTime(Guid subsystemId, string subsystemName, int periodOfTime)
     {
         Thread.Sleep(periodOfTime);
-        return LaunchSubsystem(subsystemId);
+        return LaunchSubsystem(subsystemId, subsystemName);
     }
 
-    public Task<IEnumerable<KeyValuePair<Guid, string>>> LaunchSubsystems(IEnumerable<Guid> subsystems)
+    public Task<IEnumerable<KeyValuePair<Guid, string>>> LaunchSubsystems(IEnumerable<KeyValuePair<Guid, string>> subsystems)
     {
         return HandleSubsystemAction(subsystems, LaunchSubsystem);
     }
 
-    public async Task<string> RestartSubsystem(Guid subsystemId)
+    public async Task<string> RestartSubsystem(Guid subsystemId, string subsystemName)
     {
-        await ShutdownSubsystem(subsystemId);
+        await ShutdownSubsystem(subsystemId, subsystemName);
 
-        var startedStateResult = await LaunchSubsystem(subsystemId);
+        var startedStateResult = await LaunchSubsystem(subsystemId, subsystemName);
         if (startedStateResult == SubsystemState.Stopped)
         {
             _logger.SubsystemRestartError(subsystemId.ToString());
@@ -110,33 +96,20 @@ internal class SubsystemLauncher<LaunchRequestType, StopRequestType> : ISubsyste
         return startedStateResult;
     }
 
-    public Task<IEnumerable<KeyValuePair<Guid, string>>> RestartSubsystems(IEnumerable<Guid> subsystems)
+    public Task<IEnumerable<KeyValuePair<Guid, string>>> RestartSubsystems(IEnumerable<KeyValuePair<Guid, string>> subsystems)
     {
         return HandleSubsystemAction(subsystems, RestartSubsystem);
     }
 
-    public Task<string> ShutdownSubsystem(Guid subsystemId)
+    public Task<string> ShutdownSubsystem(Guid subsystemId, string subsystemName)
     {
         try
         {
-            KeyValuePair<Guid, SubsystemInfo> subsystem;
-            lock (_lock)
-            {
-                subsystem = _subsystems.First(sub => sub.Key == subsystemId);
-            }
-
             _logger.SubsystemStoppingDebug(subsystemId.ToString());
 
             if (_stopRequest == null || _createStopRequest == null) return Task.FromResult(SubsystemState.Running);
 
-            if (subsystem.Value.State != SubsystemState.Stopped)
-            {
-                _stopRequest.Invoke(_createStopRequest.Invoke(subsystem.Key));
-            }
-            else
-            {
-                _logger.SubsystemAlreadyStoppedDebug(subsystemId.ToString());
-            }
+            _stopRequest.Invoke(_createStopRequest.Invoke(subsystemId));
 
             return Task.FromResult(SubsystemState.Stopped);
         }
@@ -147,45 +120,20 @@ internal class SubsystemLauncher<LaunchRequestType, StopRequestType> : ISubsyste
         }
     }
 
-    public void SetSubsystems(ReadOnlySpan<KeyValuePair<Guid,SubsystemInfo>> subsystems)
-    {
-        lock (_lock)
-        {
-            foreach (var subsystem in subsystems)
-            {
-                _subsystems.AddOrUpdate(subsystem.Key, subsystem.Value, (_,_) => subsystem.Value);
-            }
-        }
-    }
-
-    public Task ModifySubsystemState(Guid subsystemId, string state)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<IEnumerable<KeyValuePair<Guid, string>>> ShutdownSubsystems(IEnumerable<Guid> subsystems)
+    public Task<IEnumerable<KeyValuePair<Guid, string>>> ShutdownSubsystems(IEnumerable<KeyValuePair<Guid, string>> subsystems)
     {
         return HandleSubsystemAction(subsystems, ShutdownSubsystem);
     }
 
-    private async Task<IEnumerable<KeyValuePair<Guid, string>>> HandleSubsystemAction(IEnumerable<Guid> subsystems, RequestSubsystemAction action)
+    private async Task<IEnumerable<KeyValuePair<Guid, string>>> HandleSubsystemAction(IEnumerable<KeyValuePair<Guid, string>> subsystems, RequestSubsystemAction action)
     {
         var result = new Dictionary<Guid, string>();
 
         foreach (var subsystem in subsystems)
         {
-            KeyValuePair<Guid, SubsystemInfo> existedSubsystem;
+            var resultSubsystemState = await action(subsystem.Key, subsystem.Value);
 
-            lock (_lock)
-            {
-                existedSubsystem = _subsystems
-                    .FirstOrDefault(sub =>
-                        sub.Key == subsystem);
-            }
-
-            var resultSubsystemState = await action(existedSubsystem.Key);
-
-            result.Add(existedSubsystem.Key, resultSubsystemState);
+            result.Add(subsystem.Key, resultSubsystemState);
         }
 
         return result;

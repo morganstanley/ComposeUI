@@ -19,6 +19,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProcessExplorer.Abstraction
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProcessExplorer.Core.Tests", "test\ProcessExplorer.Core.Tests\ProcessExplorer.Core.Tests.csproj", "{3C2B4F9E-CA84-4FB1-AE2B-CC61886A3CE7}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProcessExplorer.Server.IntegrationTests", "test\ProcessExplorer.Server.EndToEndTests\ProcessExplorer.Server.IntegrationTests.csproj", "{18B9042E-0D77-4917-97FF-14BC34085385}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{3C2B4F9E-CA84-4FB1-AE2B-CC61886A3CE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3C2B4F9E-CA84-4FB1-AE2B-CC61886A3CE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3C2B4F9E-CA84-4FB1-AE2B-CC61886A3CE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18B9042E-0D77-4917-97FF-14BC34085385}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18B9042E-0D77-4917-97FF-14BC34085385}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18B9042E-0D77-4917-97FF-14BC34085385}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18B9042E-0D77-4917-97FF-14BC34085385}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -55,6 +61,7 @@ Global
 		{AF40EAD5-8A98-465E-BF26-2EB06274A384} = {3413C687-1DD1-4751-8C4F-0CD308248CB2}
 		{51110571-1082-4790-AA00-3DDDEE80641A} = {3413C687-1DD1-4751-8C4F-0CD308248CB2}
 		{3C2B4F9E-CA84-4FB1-AE2B-CC61886A3CE7} = {55657FBD-CD23-40A2-B8E9-2BBE734924CC}
+		{18B9042E-0D77-4917-97FF-14BC34085385} = {55657FBD-CD23-40A2-B8E9-2BBE734924CC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {819F883C-DDD0-4F2B-82C5-820D4D6AB446}

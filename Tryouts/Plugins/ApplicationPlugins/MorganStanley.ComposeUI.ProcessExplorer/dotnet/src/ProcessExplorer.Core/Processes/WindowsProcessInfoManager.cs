@@ -162,9 +162,9 @@ internal class WindowsProcessInfoManager : ProcessInfoManager
         return children;
     }
 
-    public override void WatchProcesses()
+    public override void WatchProcesses(int mainProcessId)
     {
-        base.WatchProcesses();
+        base.WatchProcesses(mainProcessId);
 
         const string wmiQuery =
 "SELECT TargetInstance.ProcessId " +

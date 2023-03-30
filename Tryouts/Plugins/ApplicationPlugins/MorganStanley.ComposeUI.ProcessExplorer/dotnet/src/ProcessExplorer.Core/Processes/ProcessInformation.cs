@@ -33,38 +33,27 @@ public class ProcessInformation
         }
     }
 
-    public ProcessInformation(
-        string name,
-        int pid)
-    {
-        _processInfo = new ProcessInfoData()
-        {
-            PID = pid,
-            ProcessName = name,
-        };
-    }
-
     public ProcessInformation(Process process)
     {
         _processInfo = new()
         {
-            PID = process.Id,
+            ProcessId = process.Id,
             ProcessName = process.ProcessName,
         };
     }
 
-    internal static ProcessInformation GetProcessInfoWithCalculatedData(Process process, ProcessInfoManager processInfoManager)
+    internal static ProcessInformation GetProcessInfoWithCalculatedData(Process process, IProcessInfoManager processInfoManager)
     {
         var processInformation = new ProcessInformation(process);
         SetProcessInfoData(ref processInformation, processInfoManager);
         return processInformation;
     }
 
-    internal static void SetProcessInfoData(ref ProcessInformation processInfo, ProcessInfoManager manager)
+    internal static void SetProcessInfoData(ref ProcessInformation processInfo, IProcessInfoManager manager)
     {
         try
         {
-            var process = Process.GetProcessById(processInfo.ProcessInfo.PID!);
+            var process = Process.GetProcessById(processInfo.ProcessInfo.ProcessId!);
             process.Refresh();
 
             processInfo._processInfo.PriorityLevel = process.BasePriority;

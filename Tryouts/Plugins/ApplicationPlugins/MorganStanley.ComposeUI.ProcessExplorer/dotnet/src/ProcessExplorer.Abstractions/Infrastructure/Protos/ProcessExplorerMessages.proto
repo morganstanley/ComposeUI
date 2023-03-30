@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "ProcessExplorer.Server.Server.Infrastructure.Protos";
+option csharp_namespace = "ProcessExplorer.Abstractions.Infrastructure.Protos";
 
 import "google/protobuf/duration.proto";
 import "google/protobuf/empty.proto";
@@ -12,7 +12,9 @@ service ProcessExplorerMessageHandler{
 }
 
 message Message{
-  ActionType action = 1;
+  oneof action1 {
+      ActionType action = 1;
+  };
   optional string assemblyId = 2;
   repeated Process processes = 3;
   repeated Registration registrations = 4;
@@ -25,6 +27,7 @@ message Message{
   map<string, ProcessInfoCollectorData> multipleRuntimeInfo = 11;
   int32 periodOfDelay = 12;
   map<int32, string> processStatusChanges = 13;
+  optional string description = 14;
 }
 
 enum ActionType{
@@ -50,12 +53,10 @@ enum ActionType{
   TerminateSubsystemsAction = 19;
   LaunchSubsystemsAction = 20;
   LaunchSubsystemsWithDelayAction = 21;
+  SubscriptionAliveAction = 22;
 }
 
 message Process{
-  optional string instanceId = 1;
-  optional string uiType = 2;
-  optional string uiHint = 3;
   optional string startTime = 4;
   optional google.protobuf.Duration processorUsageTime = 5;
   optional int64 physicalMemoryUsageBit = 6;

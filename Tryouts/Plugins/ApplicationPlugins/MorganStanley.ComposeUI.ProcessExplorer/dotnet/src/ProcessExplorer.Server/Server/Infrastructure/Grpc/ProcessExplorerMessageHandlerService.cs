@@ -15,8 +15,8 @@ using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using ProcessExplorer.Abstractions;
+using ProcessExplorer.Abstractions.Infrastructure.Protos;
 using ProcessExplorer.Server.Logging;
-using ProcessExplorer.Server.Server.Infrastructure.Protos;
 
 namespace ProcessExplorer.Server.Server.Infrastructure.Grpc;
 
@@ -33,7 +33,7 @@ internal class ProcessExplorerMessageHandlerService : ProcessExplorerMessageHand
         _logger = logger ?? NullLogger.Instance;
     }
 
-    public override Task Subscribe(Empty request, IServerStreamWriter<Message> responseStream, ServerCallContext context)
+    public override async Task Subscribe(Empty request, IServerStreamWriter<Message> responseStream, ServerCallContext context)
     {
         var id = Guid.NewGuid();
         _logger.GrpcClientSubscribedDebug(id.ToString());
@@ -43,9 +43,10 @@ internal class ProcessExplorerMessageHandlerService : ProcessExplorerMessageHand
 
         try
         {
+            await handler.SubscriptionIsAliveUpdate();
             _processInfoAggregator.AddUiConnection(id, handler);
             
-            //wait here until the user is alive
+            //wait here until the user is connected to the service
             while (!context.CancellationToken.IsCancellationRequested)
                 continue;
         }
@@ -57,13 +58,11 @@ internal class ProcessExplorerMessageHandlerService : ProcessExplorerMessageHand
         {
             _processInfoAggregator.RemoveUiConnection(new(id, handler));
         }
-
-        return Task.CompletedTask;
     }
 
     public override Task<Empty> Send(Message request, ServerCallContext context)
     {
-        //handle here the incoming messages form the clients.
+        //handle here the incoming messages from the clients.
         _logger.GrpcClientMessageReceivedDebug(request.Action.ToString());
 
         Task.Run(() =>
@@ -72,7 +71,7 @@ internal class ProcessExplorerMessageHandlerService : ProcessExplorerMessageHand
             request,
             _processInfoAggregator,
             context.CancellationToken);
-        });
+        }, context.CancellationToken);
 
         return Task.FromResult(new Empty());
     }

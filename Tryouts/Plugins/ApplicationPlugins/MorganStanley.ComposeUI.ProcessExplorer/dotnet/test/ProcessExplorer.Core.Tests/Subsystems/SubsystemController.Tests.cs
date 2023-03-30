@@ -10,18 +10,8 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace ProcessExplorer.Server.Server.Infrastructure.WebSocket;
+namespace ProcessExplorer.Core.Tests.Subsystems;
 
-public class WebSocketMessage
+public class SubsystemControllerTests
 {
-    /// <summary>
-    /// Topic, is used to identify the message's purpose for the clients. Check Topics.cs file.
-    /// </summary>
-    public string? Topic { get; set; }
-
-    /// <summary>
-    /// Payload is a boxed object which can contain the initialized processes, registrations, runtime information, connections, environment variables, etc.
-    /// Based on the Payload, it should be derived into the proper type.
-    /// </summary>
-    public object? Payload { get; set; }
 }

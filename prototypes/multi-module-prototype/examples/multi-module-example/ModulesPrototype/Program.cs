@@ -157,7 +157,8 @@ internal class Program
             }
         }
 
-        await infoAggregator.InitializeSubsystems(instances.Select(kvp => new KeyValuePair<Guid, SubsystemInfo>(kvp.Key, SubsystemInfo.FromModule(kvp.Value))));
+        if(infoAggregator.SubsystemController != null)
+            await infoAggregator.SubsystemController.InitializeSubsystems(instances.Select(kvp => new KeyValuePair<Guid, SubsystemInfo>(kvp.Key, SubsystemInfo.FromModule(kvp.Value))));
 
         logger.LogInformation("ComposeUI application running, press Ctrl+C to exit");
 

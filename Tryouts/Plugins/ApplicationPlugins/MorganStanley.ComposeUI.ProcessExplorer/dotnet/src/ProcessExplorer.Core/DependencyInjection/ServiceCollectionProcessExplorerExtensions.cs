@@ -34,7 +34,9 @@ public static class ServiceCollectionProcessExplorerExtensions
     public static IServiceCollection AddProcessMonitorWindows(
         this IServiceCollection serviceCollection)
     {
-        serviceCollection.TryAddSingleton<ProcessInfoManager, WindowsProcessInfoManager>();
+#pragma warning disable CA1416 // Validate platform compatibility
+        serviceCollection.TryAddSingleton<IProcessInfoManager, WindowsProcessInfoManager>();
+#pragma warning restore CA1416 // Validate platform compatibility
         return serviceCollection;
     }
 

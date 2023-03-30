@@ -18,11 +18,11 @@ using LocalCollector.Registrations;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using ProcessExplorer.Abstractions.Infrastructure;
+using ProcessExplorer.Abstractions.Infrastructure.Protos;
 using ProcessExplorer.Abstractions.Processes;
 using ProcessExplorer.Abstractions.Subsystems;
 using ProcessExplorer.Server.Logging;
 using ProcessExplorer.Server.Server.Helper;
-using ProcessExplorer.Server.Server.Infrastructure.Protos;
 
 namespace ProcessExplorer.Server.Server.Infrastructure.Grpc;
 
@@ -30,14 +30,14 @@ internal class GrpcUIHandler : IUIHandler
 {
     private readonly object _lock = new();
     private readonly ILogger _logger;
-    private readonly KeyValuePair<Guid, IServerStreamWriter<Message>> stream;
+    private readonly KeyValuePair<Guid, IServerStreamWriter<Message>> _stream;
     public GrpcUIHandler(
         IServerStreamWriter<Message> responseStream,
         Guid id,
         ILogger? logger)
     {
         _logger = logger ?? NullLogger.Instance;
-        stream = new(id, responseStream);
+        _stream = new(id, responseStream);
     }
 
     public Task AddConnections(string assemblyId, IEnumerable<ConnectionInfo> connections)
@@ -52,7 +52,7 @@ internal class GrpcUIHandler : IUIHandler
             };
 
             lock (_lock)
-                return stream.Value.WriteAsync(message);
+                return _stream.Value.WriteAsync(message);
         }
         catch (Exception exception)
         {
@@ -78,7 +78,7 @@ internal class GrpcUIHandler : IUIHandler
             };
 
             lock (_lock)
-                return stream.Value.WriteAsync(message);
+                return _stream.Value.WriteAsync(message);
         }
         catch (Exception exception)
         {
@@ -99,7 +99,7 @@ internal class GrpcUIHandler : IUIHandler
             };
 
             lock (_lock)
-                return stream.Value.WriteAsync(message);
+                return _stream.Value.WriteAsync(message);
         }
         catch (Exception exception)
         {
@@ -126,7 +126,7 @@ internal class GrpcUIHandler : IUIHandler
             };
 
             lock (_lock)
-                return stream.Value.WriteAsync(message);
+                return _stream.Value.WriteAsync(message);
         }
         catch (Exception exception)
         {
@@ -147,7 +147,7 @@ internal class GrpcUIHandler : IUIHandler
             };
 
             lock (_lock)
-                return stream.Value.WriteAsync(message);
+                return _stream.Value.WriteAsync(message);
         }
         catch (Exception exception)
         {
@@ -168,7 +168,7 @@ internal class GrpcUIHandler : IUIHandler
             };
 
             lock (_lock)
-                return stream.Value.WriteAsync(message);
+                return _stream.Value.WriteAsync(message);
         }
         catch (Exception exception)
         {
@@ -194,7 +194,7 @@ internal class GrpcUIHandler : IUIHandler
             };
 
             lock (_lock)
-                return stream.Value.WriteAsync(message);
+                return _stream.Value.WriteAsync(message);
         }
         catch (Exception exception)
         {
@@ -216,7 +216,7 @@ internal class GrpcUIHandler : IUIHandler
             };
 
             lock (_lock)
-                return stream.Value.WriteAsync(message);
+                return _stream.Value.WriteAsync(message);
         }
         catch (Exception exception)
         {
@@ -238,7 +238,7 @@ internal class GrpcUIHandler : IUIHandler
             };
 
             lock (_lock)
-                return stream.Value.WriteAsync(message);
+                return _stream.Value.WriteAsync(message);
         }
         catch (Exception exception)
         {
@@ -264,7 +264,7 @@ internal class GrpcUIHandler : IUIHandler
             };
 
             lock (_lock)
-                return stream.Value.WriteAsync(message);
+                return _stream.Value.WriteAsync(message);
         }
         catch (Exception exception)
         {
@@ -286,7 +286,7 @@ internal class GrpcUIHandler : IUIHandler
             };
 
             lock (_lock)
-                return stream.Value.WriteAsync(message);
+                return _stream.Value.WriteAsync(message);
         }
         catch (Exception exception)
         {
@@ -312,7 +312,7 @@ internal class GrpcUIHandler : IUIHandler
             };
 
             lock (_lock)
-                return stream.Value.WriteAsync(message);
+                return _stream.Value.WriteAsync(message);
         }
         catch (Exception exception)
         {
@@ -333,7 +333,7 @@ internal class GrpcUIHandler : IUIHandler
             };
 
             lock (_lock)
-                return stream.Value.WriteAsync(message);
+                return _stream.Value.WriteAsync(message);
         }
         catch (Exception exception)
         {
@@ -359,7 +359,7 @@ internal class GrpcUIHandler : IUIHandler
             };
 
             lock (_lock)
-                return stream.Value.WriteAsync(message);
+                return _stream.Value.WriteAsync(message);
         }
         catch (Exception exception)
         {
@@ -385,11 +385,31 @@ internal class GrpcUIHandler : IUIHandler
             };
 
             lock (_lock)
-                return stream.Value.WriteAsync(message);
+                return _stream.Value.WriteAsync(message);
         }
         catch (Exception exception)
         {
             _logger.UpdateProcessStatusError(process.Key, exception, exception);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task SubscriptionIsAliveUpdate()
+    {
+        var message = new Message()
+        {
+            Action = ActionType.SubscriptionAliveAction
+        };
+
+        try
+        {
+            lock (_lock)
+                return _stream.Value.WriteAsync(message);
+        }
+        catch(Exception exception)
+        {
+            _logger.SubscriptionError(exception, exception);
         }
 
         return Task.CompletedTask;

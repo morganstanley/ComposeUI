@@ -15,45 +15,13 @@ using ProcessExplorer.Abstractions.Extensions;
 
 namespace ProcessExplorer.Abstractions.Processes;
 
-public struct ProcessInfoData
+public class ProcessInfoData
 {
-    public ProcessInfoData(
-        string? startTime,
-        TimeSpan? processorUsageTime,
-        long? physicalMemoryUsageBit,
-        string? processName,
-        int pID,
-        int? priorityLevel,
-        string? processPriorityClass,
-        IEnumerable<ProcessThread> threads,
-        long? virtualMemorySize,
-        int? parentId,
-        long? privateMemoryUsage,
-        string? processStatus,
-        float? memoryUsage,
-        float? processorUsage)
-    {
-        StartTime = startTime;
-        ProcessorUsageTime = processorUsageTime;
-        PhysicalMemoryUsageBit = physicalMemoryUsageBit;
-        ProcessName = processName;
-        PID = pID;
-        PriorityLevel = priorityLevel;
-        ProcessPriorityClass = processPriorityClass;
-        Threads = threads;
-        VirtualMemorySize = virtualMemorySize;
-        ParentId = parentId;
-        PrivateMemoryUsage = privateMemoryUsage;
-        ProcessStatus = processStatus;
-        MemoryUsage = memoryUsage;
-        ProcessorUsage = processorUsage;
-    }
-
     public string? StartTime { get; set; }
     public TimeSpan? ProcessorUsageTime { get; set; }
     public long? PhysicalMemoryUsageBit { get; set; }
     public string? ProcessName { get; set; }
-    public int PID { get; set; }
+    public int ProcessId { get; set; }
     public int? PriorityLevel { get; set; }
     public string? ProcessPriorityClass { get; set; }
     public IEnumerable<ProcessThread> Threads { get; set; } = Enumerable.Empty<ProcessThread>();

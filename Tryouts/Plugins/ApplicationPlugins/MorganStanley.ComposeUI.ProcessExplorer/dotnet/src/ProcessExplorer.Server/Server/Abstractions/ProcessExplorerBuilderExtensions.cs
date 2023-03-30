@@ -15,25 +15,11 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using ProcessExplorer.Server.DependencyInjection;
 using ProcessExplorer.Server.Server.GrpcServer;
-using ProcessExplorer.Server.Server.WebSocketServer;
 
 namespace ProcessExplorer.Server.Server.Abstractions;
 
 public static class ProcessExplorerBuilderExtensions
 {
-    public static ProcessExplorerBuilder UseWebSockets(
-        this ProcessExplorerBuilder builder,
-        Action<ProcessExplorerServerOptions>? options = null)
-    {
-        if (options != null) builder.ServiceCollection.Configure(options);
-
-        builder.ServiceCollection.TryAddSingleton<WebSocketListenerService>();
-        builder.ServiceCollection.AddSingleton<IHostedService>(provider => provider.GetRequiredService<WebSocketListenerService>());
-        builder.ServiceCollection.AddSingleton<ProcessExplorerServer>(provider => provider.GetRequiredService<WebSocketListenerService>());
-
-        return builder;
-    }
-
     public static ProcessExplorerBuilder UseGrpc(
         this ProcessExplorerBuilder builder,
         Action<ProcessExplorerServerOptions>? options = null)

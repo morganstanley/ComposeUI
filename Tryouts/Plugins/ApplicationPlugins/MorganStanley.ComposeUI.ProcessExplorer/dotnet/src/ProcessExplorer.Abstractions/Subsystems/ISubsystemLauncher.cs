@@ -15,66 +15,56 @@ namespace ProcessExplorer.Abstractions.Subsystems;
 public interface ISubsystemLauncher
 {
     /// <summary>
-    /// Sets the available subsystems, which are initialized through ModuleLoader.
-    /// </summary>
-    /// <param name="subsystems"></param>
-    void SetSubsystems(ReadOnlySpan<KeyValuePair<Guid, SubsystemInfo>> subsystems);
-
-    /// <summary>
-    /// Modifies a state of a subsystem in the subsystemController's list.
-    /// </summary>
-    /// <param name="subsystemId"></param>
-    /// <param name="state"></param>
-    /// <returns></returns>
-    Task ModifySubsystemState(Guid subsystemId, string state);
-
-    /// <summary>
     /// Sends launch command to the subsystem module via the selected communication route.
     /// </summary>
     /// <param name="subsystemId"></param>
+    /// <param name="subsystemName"></param>
     /// <returns></returns>
-    Task<string> LaunchSubsystem(Guid subsystemId);
+    Task<string> LaunchSubsystem(Guid subsystemId, string subsystemName);
 
     /// <summary>
     /// Sends launch command (after a timeperiod) to the subsystem module via the selected communication route.
     /// </summary>
     /// <param name="subsystemId"></param>
+    /// <param name="subsystemName"></param>
     /// <param name="periodOfTime"></param>
     /// <returns></returns>
-    Task<string> LaunchSubsystemAfterTime(Guid subsystemId, int periodOfTime);
+    Task<string> LaunchSubsystemAfterTime(Guid subsystemId, string subsystemName, int periodOfTime);
 
     /// <summary>
     /// Sends launch command to the subsystem module via the selected communication route.
     /// </summary>
     /// <param name="subsystems"></param>
     /// <returns></returns>
-    Task<IEnumerable<KeyValuePair<Guid, string>>> LaunchSubsystems(IEnumerable<Guid> subsystems);
+    Task<IEnumerable<KeyValuePair<Guid, string>>> LaunchSubsystems(IEnumerable<KeyValuePair<Guid, string>> subsystems);
 
     /// <summary>
     /// Sends restart command to the subsystem module via the selected communication route.
     /// </summary>
     /// <param name="subsystemId"></param>
+    /// <param name="subsystemName"></param>
     /// <returns></returns>
-    Task<string> RestartSubsystem(Guid subsystemId);
+    Task<string> RestartSubsystem(Guid subsystemId, string subsystemName);
 
     /// <summary>
     /// Sends restart command to the subsystem module via the selected communication route.
     /// </summary>
     /// <param name="subsystems"></param>
     /// <returns></returns>
-    Task<IEnumerable<KeyValuePair<Guid, string>>> RestartSubsystems(IEnumerable<Guid> subsystems);
+    Task<IEnumerable<KeyValuePair<Guid, string>>> RestartSubsystems(IEnumerable<KeyValuePair<Guid, string>> subsystems);
 
     /// <summary>
     /// Sends shutdown command to the subsystem module via the selected communication route.
     /// </summary>
     /// <param name="subsystemId"></param>
+    /// <param name="subsystemName"></param>
     /// <returns></returns>
-    Task<string> ShutdownSubsystem(Guid subsystemId);
+    Task<string> ShutdownSubsystem(Guid subsystemId, string subsystemName);
 
     /// <summary>
     /// Sends shutdown command to the subsystem module via the selected communication route.
     /// </summary>
     /// <param name="subsystems"></param>
     /// <returns></returns>
-    Task<IEnumerable<KeyValuePair<Guid, string>>> ShutdownSubsystems(IEnumerable<Guid> subsystems);
+    Task<IEnumerable<KeyValuePair<Guid, string>>> ShutdownSubsystems(IEnumerable<KeyValuePair<Guid, string>> subsystems);
 }

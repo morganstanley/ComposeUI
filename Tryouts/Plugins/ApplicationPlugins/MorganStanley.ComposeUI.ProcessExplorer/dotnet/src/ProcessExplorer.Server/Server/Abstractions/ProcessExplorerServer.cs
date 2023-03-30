@@ -19,7 +19,7 @@ using ProcessExplorer.Server.Logging;
 
 namespace ProcessExplorer.Server.Server.Abstractions;
 
-public abstract class ProcessExplorerServer
+internal abstract class ProcessExplorerServer
 {
     private readonly ILogger _logger;
     public int Port { get; }
@@ -35,7 +35,7 @@ public abstract class ProcessExplorerServer
         Port = port;
     }
 
-    internal void SetupProcessExplorer(
+    public async void SetupProcessExplorer(
         IOptions<ProcessExplorerServerOptions> options,
         IProcessInfoAggregator processInfoAggregator)
     {
@@ -44,7 +44,7 @@ public abstract class ProcessExplorerServer
             if (options.Value.Processes != null)
             {
                 var processes = options.Value.Processes
-                  .Select(process => process.ProcessInfo.PID)
+                  .Select(process => process.ProcessInfo.ProcessId)
                   .ToArray();
 
                 if (processes != null) processInfoAggregator.InitProcesses(processes);
@@ -58,14 +58,15 @@ public abstract class ProcessExplorerServer
                     subsystems.TryAdd(module.Key, SubsystemInfo.FromModule(module.Value));
                 }
 
-                processInfoAggregator.InitializeSubsystems(subsystems);
+                if (processInfoAggregator != null && processInfoAggregator.SubsystemController != null)
+                    await processInfoAggregator.SubsystemController.InitializeSubsystems(subsystems);
             }
 
             if(options.Value.MainProcessId != null)
-                processInfoAggregator.SetComposePid((int)options.Value.MainProcessId);
+                processInfoAggregator?.SetMainProcessId((int)options.Value.MainProcessId);
 
             if (options.Value.EnableProcessExplorer)
-                processInfoAggregator.EnableWatchingSavedProcesses();
+                processInfoAggregator?.EnableWatchingSavedProcesses();
         }
         catch (Exception exception)
         {

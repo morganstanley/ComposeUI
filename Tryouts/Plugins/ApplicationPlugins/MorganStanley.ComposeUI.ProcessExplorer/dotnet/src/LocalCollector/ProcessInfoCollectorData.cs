@@ -40,6 +40,12 @@ public class ProcessInfoCollectorData
         lock (_locker)
         {
             var index = Connections.IndexOf(connection);
+            if (index == -1)
+            {
+                var element = Connections.FirstOrDefault(c => c.Id == connection.Id);
+                if(element != null)
+                    index = Connections.IndexOf(element);
+            }
             if (index >= 0)
             {
                 Connections[index] = connection;
@@ -47,7 +53,7 @@ public class ProcessInfoCollectorData
         }
     }
 
-    public void UpdateEnvironmentVariables(IEnumerable<KeyValuePair<string, string>> envs)
+    public void UpdateOrAddEnvironmentVariables(IEnumerable<KeyValuePair<string, string>> envs)
     {
         foreach (var item in envs)
         {
@@ -55,13 +61,13 @@ public class ProcessInfoCollectorData
         }
     }
 
-    public void UpdateRegistrations(IEnumerable<RegistrationInfo> services)
+    public void UpdateOrAddRegistrations(IEnumerable<RegistrationInfo> services)
     {
         UpdateOrAdd(services, Registrations, (item) => reg => reg.ImplementationType == item.ImplementationType &&
                 reg.ServiceType == item.ServiceType && reg.LifeTime == item.LifeTime);
     }
 
-    public void UpdateModules(IEnumerable<ModuleInfo> currentModules)
+    public void UpdateOrAddModules(IEnumerable<ModuleInfo> currentModules)
     {
         UpdateOrAdd(currentModules, Modules, (item) => (item2) => item.Name == item2.Name && item.PublicKeyToken == item2.PublicKeyToken);
     }
@@ -89,6 +95,10 @@ public class ProcessInfoCollectorData
                     {
                         target.Add(item);
                     }
+                }
+                else
+                {
+                    target.Add(item);
                 }
             }
         }

@@ -10,14 +10,14 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace ProcessExplorer.Abstractions.Subsystems;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-public interface ISubsystemControllerCommunicator
+namespace ProcessExplorer.Core.Tests.Processes;
+
+public class WindowsProcessInfoManagerTests
 {
-    /// <summary>
-    /// Sets the route of the communication to send messages to the ModuleLoader, if the user wants to launch/restart/stop multiple subsystems,
-    /// or launch a subsystem after a given period of time.
-    /// </summary>
-    /// <returns></returns>
-    ValueTask InitializeCommunicationRoute();
 }

@@ -20,7 +20,7 @@ using ProcessExplorer.Abstractions.Logging;
 
 namespace ProcessExplorer.Abstractions.Processes;
 
-public abstract class ProcessInfoManager : IDisposable
+public abstract class ProcessInfoManager : IProcessInfoManager
 {
     private ProcessCreatedHandler? _processCreatedHandler;
     private ProcessModifiedHandler? _processModifiedHandler;
@@ -30,15 +30,12 @@ public abstract class ProcessInfoManager : IDisposable
     private readonly ILogger _logger;
     private readonly ObservableCollection<int> _processIds = new();
     private readonly object _locker = new();
-    private int _composePid;
-    private int _delayTime;
 
     public ProcessInfoManager(ILogger? logger)
     {
         _logger = logger ?? NullLogger.Instance;
         _processIds.CollectionChanged += ProcessIdsChanged;
     }
-
 
     private void ProcessIdsChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
@@ -78,49 +75,47 @@ public abstract class ProcessInfoManager : IDisposable
         _processesModifiedHandler = processesModifiedHandler;
     }
 
-    public void SetComposePid(int pid)
-    {
-        _composePid = pid;
-    }
-
-    public bool ContainsId(int pid)
+    public bool ContainsId(int processId)
     {
         lock (_locker)
         {
-            return _processIds.Contains(pid);
+            return _processIds.Contains(processId);
         }
     }
 
-    public void AddProcess(int pid)
+    public void AddProcess(int processId)
     {
         lock (_locker)
         {
-            if (pid == 0) return;
+            if (processId == 0) return;
 
-            _processIds.Add(pid);
+            _processIds.Add(processId);
         }
     }
 
-    public void RemoveProcessId(int pid)
+    public void RemoveProcessId(int processId)
     {
         lock (_locker)
         {
-            _processIds.Remove(pid);
+            _processIds.Remove(processId);
         }
     }
 
-    public void SetProcessIds(ReadOnlySpan<int> ids)
+    public void SetProcessIds(
+        int mainProcessId,
+        ReadOnlySpan<int> processIds)
     {
         lock (_locker)
         {
-            foreach (var id in ids)
+            foreach (var id in processIds)
             {
                 if (_processIds.Contains(id)) continue;
                 _processIds.Add(id);
                 AddChildProcesses(id, Process.GetProcessById(id).ProcessName);
             }
 
-            if(_composePid != 0 && !_processIds.Contains(_composePid)) _processIds.Add(_composePid);
+            if (mainProcessId != 0 && !_processIds.Contains(mainProcessId))
+                _processIds.Add(mainProcessId);
         }
     }
 
@@ -150,25 +145,23 @@ public abstract class ProcessInfoManager : IDisposable
     /// <summary>
     /// Returns the memory usage (%) of the given process.
     /// </summary>
-    /// <param name="process"></param>
     /// <returns></returns>
-    public abstract float GetMemoryUsage(int id, string processName);
+    public abstract float GetMemoryUsage(int processId, string processName);
 
     /// <summary>
     /// Returns the CPU usage (%) of the given process.
     /// </summary>
-    /// <param name="process"></param>
     /// <returns></returns>
-    public abstract float GetCpuUsage(int id, string processName);
+    public abstract float GetCpuUsage(int processId, string processName);
 
     /// <summary>
     /// Continuously watching created processes.
     /// </summary>
-    public virtual void WatchProcesses()
+    public virtual void WatchProcesses(int mainProcessId)
     {
-        if(_composePid == 0) return;
-        AddProcess(_composePid);
-        AddChildProcesses(_composePid, Process.GetProcessById(_composePid).ProcessName);
+        if (mainProcessId == 0) return;
+        AddProcess(mainProcessId);
+        AddChildProcesses(mainProcessId, Process.GetProcessById(mainProcessId).ProcessName);
     }
 
     /// <summary>
@@ -181,15 +174,15 @@ public abstract class ProcessInfoManager : IDisposable
         //snapshot if the process has already exited
         if (!Process.GetProcesses().Any(p => p.Id == processId)) return false;
 
-        if (processId == _composePid || ContainsId(processId)) return true;
+        if (ContainsId(processId)) return true;
 
-        var ppid = GetParentId(processId, Process.GetProcessById(processId).ProcessName);
+        var parentProcessId = GetParentId(processId, Process.GetProcessById(processId).ProcessName);
 
-        if (ppid == null || ppid == 0) return false;
+        if (parentProcessId == null || parentProcessId == 0) return false;
 
-        if (ContainsId((int)ppid)) return true;
+        if (ContainsId((int)parentProcessId)) return true;
 
-        return IsComposeProcess(Convert.ToInt32(ppid));
+        return IsComposeProcess(Convert.ToInt32(parentProcessId));
     }
 
     /// <summary>
@@ -197,43 +190,38 @@ public abstract class ProcessInfoManager : IDisposable
     /// </summary>
     /// <param name="processInfo"></param>
     /// <returns></returns>
-    public abstract ReadOnlySpan<int> AddChildProcesses(int pid, string? processName);
+    public abstract ReadOnlySpan<int> AddChildProcesses(int processId, string? processName);
 
     /// <summary>
     /// Checks if a process belongs to the Compose.
     /// </summary>
-    /// <param name="pid"></param>
-    public bool CheckIfIsComposeProcess(int pid)
+    /// <param name="processId"></param>
+    public bool CheckIfIsComposeProcess(int processId)
     {
-        return IsComposeProcess(pid);
+        return IsComposeProcess(processId);
     }
 
-    public void SendNewProcessUpdate(int pid)
+    public void SendNewProcessUpdate(int processId)
     {
-        _processCreatedHandler?.Invoke(pid);
+        _processCreatedHandler?.Invoke(processId);
     }
 
     /// <summary>
     /// Sends a terminated process information to publish
     /// </summary>
-    /// <param name="pid"></param>
-    public void SendTerminatedProcessUpdate(int pid)
+    /// <param name="processId"></param>
+    public void SendTerminatedProcessUpdate(int processId)
     {
-        ProcessTerminated(pid);
+        ProcessTerminated(processId);
     }
 
     /// <summary>
     /// Sends a modified process information to publish
     /// </summary>
-    /// <param name="pid"></param>
-    public void SendProcessModifiedUpdate(int pid)
+    /// <param name="processId"></param>
+    public void SendProcessModifiedUpdate(int processId)
     {
-        _processModifiedHandler?.Invoke(pid);
-    }
-
-    public void SetDeadProcessRemovalDelay(int delay)
-    {
-        _delayTime = delay * 100;
+        _processModifiedHandler?.Invoke(processId);
     }
 
     ~ProcessInfoManager()
@@ -255,31 +243,27 @@ public abstract class ProcessInfoManager : IDisposable
         if (!TryDeleteProcess(pid)) _logger.CannotTerminateProcessError(pid);
     }
 
-    private bool TryDeleteProcess(int pid)
+    private bool TryDeleteProcess(int processId)
     {
         try
         {
-            _logger.ProcessTerminatedInformation(pid);
-            _processStatusChangedHandler?.Invoke(new(pid, Status.Terminated));
-            RemoveProcessAfterTimeout(pid);
+            _logger.ProcessTerminatedInformation(processId);
+            _processStatusChangedHandler?.Invoke(new(processId, Status.Terminated));
+            RemoveProcessAfterTimeout(processId);
             return true;
         }
         catch (Exception exception)
         {
-            _logger.PpidExpected(pid, exception);
+            _logger.PpidExpected(processId, exception);
         }
 
         return false;
     }
 
-    private void RemoveProcessAfterTimeout(int item)
+    private void RemoveProcessAfterTimeout(int processId)
     {
-        Task.Run(() =>
-        {
-            Task.Delay(_delayTime);
-            var ids = GetProcessIds();
-            _processesModifiedHandler?.Invoke(ids);
-            _processTerminatedHandler?.Invoke(item);
-        });
+        var ids = GetProcessIds();
+        _processesModifiedHandler?.Invoke(ids);
+        _processTerminatedHandler?.Invoke(processId);
     }
 }

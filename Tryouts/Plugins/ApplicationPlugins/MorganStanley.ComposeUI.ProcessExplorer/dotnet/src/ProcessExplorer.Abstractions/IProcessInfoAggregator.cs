@@ -22,11 +22,19 @@ namespace ProcessExplorer.Abstractions;
 public interface IProcessInfoAggregator : IDisposable
 {
     /// <summary>
-    /// Adds a runtime information to the collection.
+    /// Main process id to watch.
     /// </summary>
-    /// <param name="assemblyId"></param>
-    /// <param name="processInfo"></param>
-    Task AddRuntimeInformation(string assemblyId, ProcessInfoCollectorData processInfo);
+    public int MainProcessId { get; }
+
+    /// <summary>
+    /// Delay for actually sending terminate request for the UI.
+    /// </summary>
+    public int TerminatingProcessDelay { get; }
+
+    /// <summary>
+    /// Controls the initialized subsystems.
+    /// </summary>
+    public ISubsystemController? SubsystemController { get; }
 
     /// <summary>
     /// Removes a module information from the collection.
@@ -37,8 +45,8 @@ public interface IProcessInfoAggregator : IDisposable
     /// <summary>
     /// Sets Compose PID.
     /// </summary>
-    /// <param name="pid"></param>
-    void SetComposePid(int pid);
+    /// <param name="processId"></param>
+    void SetMainProcessId(int processId);
 
     /// <summary>
     /// Sets the SubsystemController.
@@ -67,41 +75,6 @@ public interface IProcessInfoAggregator : IDisposable
     void RemoveUiConnection(KeyValuePair<Guid, IUIHandler> handler);
 
     /// <summary>
-    /// Adds or updates the connections in the collection.
-    /// </summary>
-    /// <param name="assemblyId"></param>
-    /// <param name="connections"></param>
-    Task AddConnectionCollection(string assemblyId, IEnumerable<ConnectionInfo> connections);
-
-    /// <summary>
-    /// Updates a connection.
-    /// </summary>
-    /// <param name="assemblyId"></param>
-    /// <param name="connectionInfo"></param>
-    Task UpdateConnectionInfo(string assemblyId, ConnectionInfo connectionInfo);
-
-    /// <summary>
-    /// Updates the environment variables.
-    /// </summary>
-    /// <param name="assemblyId"></param>
-    /// <param name="environmentVariables"></param>
-    Task UpdateEnvironmentVariablesInfo(string assemblyId, IEnumerable<KeyValuePair<string, string>> environmentVariables);
-
-    /// <summary>
-    /// Updates the registrations in the collection.
-    /// </summary>
-    /// <param name="assemblyId"></param>
-    /// <param name="registrations"></param>
-    Task UpdateRegistrationInfo(string assemblyId, IEnumerable<RegistrationInfo> registrations);
-
-    /// <summary>
-    /// Updates the modules in the collection.
-    /// </summary>
-    /// <param name="assemblyId"></param>
-    /// <param name="modules"></param>
-    Task UpdateModuleInfo(string assemblyId, IEnumerable<ModuleInfo> modules);
-
-    /// <summary>
     /// Enables to watch processes through ProcessMonitor.
     /// Only available for Windows OS.
     /// </summary>
@@ -115,59 +88,8 @@ public interface IProcessInfoAggregator : IDisposable
     /// <summary>
     /// Sets the processes, which is gotten from the ModuleLoader.
     /// </summary>
-    /// <param name="processInfo"></param>
-    void InitProcesses(ReadOnlySpan<int> pids);
-
-    /// <summary>
-    /// Initializes the subsystems taken from the user defined manifest.
-    /// </summary>
-    /// <param name="subsystems"></param>
-    /// <returns></returns>
-    Task InitializeSubsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems);
-
-    /// <summary>
-    /// Terminates the given subsystems through the user defined ISubsystemLauncher.
-    /// </summary>
-    /// <param name="subsystemIds"></param>
-    /// <returns></returns>
-    Task ShutdownSubsystems(IEnumerable<string> subsystemIds);
-
-    /// <summary>
-    /// Restarts the given subsystems through the user defined ISubsystemLauncher.
-    /// </summary>
-    /// <param name="subsystemIds"></param>
-    /// <returns></returns>
-    Task RestartSubsystems(IEnumerable<string> subsystemIds);
-
-    /// <summary>
-    /// Launch the given subsystems through the user defined ISubsystemLauncher.
-    /// </summary>
-    /// <param name="subsystemIds"></param>
-    /// <returns></returns>
-    Task LaunchSubsystems(IEnumerable<string> subsystemIds);
-
-    /// <summary>
-    /// Launch the given subsystem through the user defined ISubsystemLauncher and <paramref name="periodOfTime"/>.
-    /// </summary>
-    /// <param name="id"></param>
-    /// <param name="periodOfTime"></param>
-    /// <returns></returns>
-    Task LaunchSubsystemWithDelay(Guid id, int periodOfTime);
-
-    /// <summary>
-    /// Modifies a state of a subsystem with the given data. Send update to the registered UIs.
-    /// </summary>
-    /// <param name="subsystemId"></param>
-    /// <param name="state"></param>
-    /// <returns></returns>
-    Task ModifySubsystemState(Guid subsystemId, string state);
-
-    /// <summary>
-    /// Adds processes to watch to the existing watchable process ids list.
-    /// </summary>
-    /// <param name="processes"></param>
-    /// <returns></returns>
-    ValueTask AddProcesses(ReadOnlySpan<int> processes);
+    /// <param name="processIds"></param>
+    void InitProcesses(ReadOnlySpan<int> processIds);
 
     /// <summary>
     /// Puts the given subsystem into the queue to send subsystem state changed information to the UI's.
@@ -175,6 +97,67 @@ public interface IProcessInfoAggregator : IDisposable
     /// <param name="instanceId"></param>
     /// <param name="state"></param>
     void ScheduleSubsystemStateChanged(Guid instanceId, string state);
+
+    /// <summary>
+    /// Returns the initialized runtime information.
+    /// </summary>
+    /// <returns></returns>
+    IEnumerable<KeyValuePair<string, ProcessInfoCollectorData>> GetRuntimeInformation();
+
+    /// <summary>
+    /// Returns the connected clients.
+    /// </summary>
+    /// <returns></returns>
+    IEnumerable<KeyValuePair<Guid, IUIHandler>> GetUiClients();
+
+    /// <summary>
+    /// Adds a runtime information to the collection.
+    /// </summary>
+    /// <param name="assemblyId"></param>
+    /// <param name="processInfo"></param>
+    Task AddRuntimeInformation(string assemblyId, ProcessInfoCollectorData processInfo);
+
+    /// <summary>
+    /// Adds or updates the connections in the collection.
+    /// </summary>
+    /// <param name="assemblyId"></param>
+    /// <param name="connections"></param>
+    Task AddConnectionCollection(string assemblyId, IEnumerable<ConnectionInfo> connections);
+
+    /// <summary>
+    /// Updates a connection.
+    /// </summary>
+    /// <param name="assemblyId"></param>
+    /// <param name="connectionInfo"></param>
+    Task UpdateOrAddConnectionInfo(string assemblyId, ConnectionInfo connectionInfo);
+
+    /// <summary>
+    /// Updates the environment variables.
+    /// </summary>
+    /// <param name="assemblyId"></param>
+    /// <param name="environmentVariables"></param>
+    Task UpdateOrAddEnvironmentVariablesInfo(string assemblyId, IEnumerable<KeyValuePair<string, string>> environmentVariables);
+
+    /// <summary>
+    /// Adds the registrations to the collection.
+    /// </summary>
+    /// <param name="assemblyId"></param>
+    /// <param name="registrations"></param>
+    Task UpdateRegistrations(string assemblyId, IEnumerable<RegistrationInfo> registrations);
+
+    /// <summary>
+    /// Updates the modules to the collection.
+    /// </summary>
+    /// <param name="assemblyId"></param>
+    /// <param name="modules"></param>
+    Task UpdateOrAddModuleInfo(string assemblyId, IEnumerable<ModuleInfo> modules);
+
+    /// <summary>
+    /// Adds processes to watch to the existing watchable process ids list.
+    /// </summary>
+    /// <param name="processIds"></param>
+    /// <returns></returns>
+    Task AddProcesses(ReadOnlySpan<int> processIds);
 
     /// <summary>
     /// Asynchronusly dequeue the changes of the registered subsystems, and send to the initialized UI's.

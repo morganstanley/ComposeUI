@@ -25,6 +25,5 @@ public class ProcessExplorerServerOptions: IOptions<ProcessExplorerServerOptions
     public int? MainProcessId { get; set; }
     public int? Port { get; set; }
     public string? Host { get; set; }
-    public ISubsystemLauncherCommunicator? SubsystemLauncherCommunicator { get; set; }
     public ProcessExplorerServerOptions Value => this;
 }

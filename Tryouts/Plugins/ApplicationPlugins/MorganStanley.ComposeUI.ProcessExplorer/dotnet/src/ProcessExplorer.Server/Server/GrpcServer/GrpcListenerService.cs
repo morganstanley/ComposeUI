@@ -16,18 +16,21 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using ProcessExplorer.Abstractions;
+using ProcessExplorer.Abstractions.Infrastructure.Protos;
 using ProcessExplorer.Abstractions.Subsystems;
 using ProcessExplorer.Core.Factories;
 using ProcessExplorer.Server.Logging;
 using ProcessExplorer.Server.Server.Abstractions;
 using ProcessExplorer.Server.Server.Infrastructure.Grpc;
-using ProcessExplorer.Server.Server.Infrastructure.Protos;
 using GRPCServer = Grpc.Core.Server;
 
 namespace ProcessExplorer.Server.Server.GrpcServer;
 
 internal class GrpcListenerService : ProcessExplorerServer, IHostedService
 {
+    private readonly CancellationTokenSource _stopTokenSource = new();
+    private readonly TaskCompletionSource _startTaskSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly TaskCompletionSource _stopTaskSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly IProcessInfoAggregator _processInfoAggregator;
     private readonly ProcessExplorerServerOptions _options;
     private readonly ILogger<GrpcListenerService> _logger;
@@ -62,21 +65,30 @@ internal class GrpcListenerService : ProcessExplorerServer, IHostedService
     {
         if (cancellationToken == CancellationToken.None) _logger.GrpcCancellationTokenWarning();
 
-        Task.Run(() => StartAsyncCore());
-        Task.Run(() => _processInfoAggregator.RunSubsystemStateQueue(cancellationToken));
+        Task.Run(() => StartAsyncCore(), _stopTokenSource.Token);
+        Task.Run(() => _processInfoAggregator.RunSubsystemStateQueue(_stopTokenSource.Token), _stopTokenSource.Token);
 
-        return Task.CompletedTask;
+        return _startTaskSource.Task;
     }
 
     private void StartAsyncCore()
     {
         _logger.GrpcServerStartedDebug();
+        _startTaskSource.SetResult();
 
         SetupGrpcServer();
-        if (_grpcServer == null) return;
-        _grpcServer.Start();
 
-        SetupProcessExplorer(_options, _processInfoAggregator);
+        if (_grpcServer == null) return;
+
+        try
+        {
+            _grpcServer.Start();
+            SetupProcessExplorer(_options, _processInfoAggregator);
+        }
+        catch (Exception)
+        {
+            _logger.GrpcServerStoppedDebug();
+        }
     }
 
     private void SetupGrpcServer()
@@ -84,14 +96,22 @@ internal class GrpcListenerService : ProcessExplorerServer, IHostedService
         _grpcServer = new GRPCServer
         {
             Services = { ProcessExplorerMessageHandler.BindService(new ProcessExplorerMessageHandlerService(_processInfoAggregator, _logger)) },
-            Ports = { new ServerPort(Host, Port, ServerCredentials.Insecure) }
+            Ports = { new ServerPort(Host, Port, ServerCredentials.Insecure) },
         };
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
+        _stopTaskSource.SetResult();
+        _stopTokenSource.Cancel();
+
+        if (_grpcServer == null) return;
+
+        _processInfoAggregator.Dispose();
+        
+        var shutdown = _grpcServer.ShutdownAsync();       
         _logger.GrpcServerStoppedDebug();
 
-        if(_grpcServer != null) await _grpcServer.ShutdownAsync();
+        await Task.WhenAll(shutdown, _stopTaskSource.Task);
     }
 }

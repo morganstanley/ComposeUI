@@ -10,7 +10,6 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using LocalCollector.Communicator;
 using Microsoft.Extensions.Logging;
 using ProcessExplorer.Abstractions;
 using ProcessExplorer.Abstractions.Processes;
@@ -20,11 +19,6 @@ namespace ProcessExplorer.Core.Factories;
 
 public static class ProcessAggregatorFactory
 {
-    public static ICommunicator CreateCommunicator(IProcessInfoAggregator processAggregator)
-    {
-        return new Infrastructure.Communicator(processAggregator);
-    }
-
     public static IProcessInfoAggregator CreateProcessInfoAggregator(ILogger<IProcessInfoAggregator> logger, ProcessInfoManager processInfoManager, ISubsystemController? subsystemController = null)
     {
         return new ProcessInfoAggregator(logger, processInfoManager, subsystemController);

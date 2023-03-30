@@ -12,6 +12,7 @@
 
 namespace ProcessExplorer.Abstractions.Subsystems;
 
+//TODO(Lilla): define ProtoContract to derive it implicitly without protoconverthelper
 public class SubsystemInfo
 {
     public string Name { get; set; } = string.Empty;
@@ -25,7 +26,7 @@ public class SubsystemInfo
     public string? Description { get; set; }
     public bool AutomatedStart { get; set; } = false;
 
-    public static SubsystemInfo FromModule(Module module) => new SubsystemInfo()
+    public static SubsystemInfo FromModule(Module module) => new()
     {
         Name = module.Name,
         StartupType = module.StartupType,
