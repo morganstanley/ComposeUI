@@ -42,8 +42,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
   <ItemGroup>
 	  <ProjectReference Include="..\..\..\..\..\src\messaging\dotnet\src\Core\MorganStanley.ComposeUI.Messaging.Core.csproj" />
 	  <ProjectReference Include="..\..\..\..\..\src\messaging\dotnet\src\Server\MorganStanley.ComposeUI.Messaging.Server.csproj" />
+	  <ProjectReference Include="..\..\..\..\..\Tryouts\Plugins\ApplicationPlugins\MorganStanley.ComposeUI.ProcessExplorer\dotnet\src\ProcessExplorer.Server\ProcessExplorer.Server.csproj" />
 	  <ProjectReference Include="..\..\..\src\module-loader\dotnet\ModuleLoader\MorganStanley.ComposeUI.ModuleLoader.csproj" />
-	  <ProjectReference Include="..\..\..\..\..\Tryouts\Plugins\ApplicationPlugins\process explorer\backend\ModuleProcessMonitor\ModuleProcessMonitor.csproj" />
-	  <ProjectReference Include="../ProcessExplorerMessageRouterTopics/ProcessExplorerMessageRouterTopics.csproj" />
   </ItemGroup>
 </Project>

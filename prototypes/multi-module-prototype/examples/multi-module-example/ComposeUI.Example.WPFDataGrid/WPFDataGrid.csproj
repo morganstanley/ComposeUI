@@ -23,7 +23,5 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\src\messaging\dotnet\src\Client\MorganStanley.ComposeUI.Messaging.Client.csproj" />
-    <ProjectReference Include="..\ProcessExplorerMessageRouterTopics\ProcessExplorerMessageRouterTopics.csproj" />
-    <ProjectReference Include="..\..\..\..\..\Tryouts\Plugins\ApplicationPlugins\process explorer\backend\LocalCollector\LocalCollector.csproj" />
   </ItemGroup>
 </Project>
