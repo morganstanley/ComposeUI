@@ -28,9 +28,9 @@
 
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\..\src\messaging\dotnet\src\Client\MorganStanley.ComposeUI.Messaging.Client.csproj" />
-    <ProjectReference Include="..\..\..\..\..\Prototypes\ProcessExplorerMessageRouterTopics\ProcessExplorerMessageRouterTopics.csproj" />
-    <ProjectReference Include="..\ProcessExplorer\ProcessExplorer.csproj" />
+    <ProjectReference Include="../../../../../../src/messaging/dotnet/src/Client/MorganStanley.ComposeUI.Messaging.Client.csproj" />
+    <ProjectReference Include="..\..\..\..\..\..\prototypes\multi-module-prototype\examples\multi-module-example\ProcessExplorerMessageRouterTopics\ProcessExplorerMessageRouterTopics.csproj" />
+    <ProjectReference Include="../ProcessExplorer/ProcessExplorer.csproj" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
