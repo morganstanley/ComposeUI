@@ -4,7 +4,7 @@
 
 ## Library
 
-The library enables you to dynmically set properties for your window in your javascript code.
+The library enables you to dynamically set properties for your window in your javascript code.
 
 ```
 function windowOpenExample() {
@@ -48,8 +48,38 @@ The CLI enables you to execute your app with compose by executing the following 
 ```
 composeui myapp.js
 ```
+### Install.js
+
+This script is downloading and extracting the necessary binaries from CDN during `npm install`.
+By default it's downloading the binaries from the github tagged releases but the following variables can be overridden by setting an environment variable or including an .npmrc file:
+
+CDN URL: `COMPOSEUI_CDN_URL` (or `npm_config_composeui_cdn_url`)
+
+```
+COMPOSEUI_CDN_URL='http://127.0.0.1:8080'
+```
+
+version: `COMPOSEUI_VERSION` (or `npm_config_composeui_version`)
+
+```
+COMPOSEUI_VERSION='0.1.0'
+```
+
+skip download: `COMPOSEUI_SKIP_DOWNLOAD` (or `npm_config_composeui_skip_download`)
+
+```
+COMPOSEUI_SKIP_DOWNLOAD='true'
+```
+
+location of the binary: `COMPOSEUI_BINARY_FILE_PATH` (or `npm_config_composeui_binary_file_path`)
+
+```
+COMPOSEUI_BINARY_FILE_PATH='path\to\binary\ComposeUI-Shell.exe'
+```
 
 ### Local Development
+
+#### Developing the CLI
 
 If you're developing the CLI itself you need to execute the following command
 
@@ -57,4 +87,22 @@ If you're developing the CLI itself you need to execute the following command
 npm link
 ```
 
-in the `.\Tryouts\Prototypes\Shell\Node-launcher\Lib` folder
+in the `./src/shell/js/composeui-node-launcher/` folder.
+
+#### Developing the install.js script
+
+If you're developing the install.js script and would like to test if the binaries downloading and extracting as expected you can serve a folder with a name of the version containing a zip with the binaries locally (e.g with http-server), and set that link for the `COMPOSEUI_CDN_URL` environment variable.
+
+For example:
+
+```
+COMPOSEUI_CDN_URL='http://127.0.0.1:8080'
+```
+
+#### Working with the locally compiled shell binary:
+
+To achieve this you can set the `COMPOSEUI_BINARY_FILE_PATH` variable to point to the exe compiled by Visual Studio:
+
+```
+COMPOSEUI_BINARY_FILE_PATH='path\to\your\project\folder\ComposeUI\src\shell\dotnet\Shell\bin\Debug\net6.0-windows\ComposeUI-Shell.exe'
+```
