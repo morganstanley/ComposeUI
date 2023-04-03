@@ -25,14 +25,14 @@
     "@morgan-stanley/composeui-messaging-client": "*",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
-    "zone.js": "~0.12.0"
+    "zone.js": "~0.13.0"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^15.2.4",
-    "@angular/cli": "~15.1.4",
+    "@angular/cli": "~15.2.4",
     "@angular/compiler-cli": "^15.1.0",
     "@types/jasmine": "~4.3.0",
-    "jasmine-core": "~4.5.0",
+    "jasmine-core": "~4.6.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.1.0",
     "karma-coverage": "~2.2.0",
