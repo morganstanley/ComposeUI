@@ -43,7 +43,7 @@
     "@angular-eslint/eslint-plugin-template": "^15.2.0",
     "@angular-eslint/schematics": "^15.2.0",
     "@angular-eslint/template-parser": "^15.2.0",
-    "@babel/runtime": "7.20.13",
+    "@babel/runtime": "7.21.0",
     "@igniteui/angular-schematics": "^15.0.1101",
     "@types/jasmine": "~4.3.0",
     "@types/node": "^12.11.1",
