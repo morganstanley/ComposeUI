@@ -1,0 +1,38 @@
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+name: Upload Release Asset
+
+jobs:
+  build:
+    uses: ./.github/workflows/continuous-integration-prototypes.yml
+  upload:
+    name: Upload Release Asset
+    needs: build
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        dotnet-version: [ '6.0.x' ]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Build project # This would actually build your project, using zip for an example artifact
+        run:  dotnet build ${{ github.workspace }}/src/shell/dotnet/Shell.sln --configuration Release; if ($LASTEXITCODE -ne 0 ) {throw "Build for $_ FAILED"; } 
+      
+      # only for testing 
+      - name: List bin
+        run: dir ${{ github.workspace }}/src/shell/dotnet/Shell/bin/
+      
+      - name: Compress
+        run: Compress-Archive -Path ${{ github.workspace }}/src/shell/dotnet/Shell/bin/Release/net6.0-windows/* composeui_win32.zip
