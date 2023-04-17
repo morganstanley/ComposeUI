@@ -12,6 +12,8 @@
 //  * and limitations under the License.
 //  */
 
+using System.Reactive;
+using System.Reactive.Linq;
 using Microsoft.Extensions.Logging;
 using MorganStanley.ComposeUI.Messaging;
 
@@ -38,7 +40,7 @@ namespace ComposeUI.Example.DataService
                 _subscriptions.Add(
                     await _messageRouter.SubscribeAsync(
                         "proto_select_marketData",
-                        Subscriber.Create<TopicMessage>(OnSymbolSelected, OnSymbolSelectionError)));
+                        AsyncObserver.Create<TopicMessage>(OnSymbolSelected, OnSymbolSelectionError, () => default)));
             }
             catch (Exception exception)
             {

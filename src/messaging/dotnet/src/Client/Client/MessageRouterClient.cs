@@ -56,10 +56,10 @@ internal sealed class MessageRouterClient : IMessageRouter
 
     public ValueTask<IDisposable> SubscribeAsync(
         string topicName,
-        ISubscriber<TopicMessage> subscriber,
+        IAsyncObserver<TopicMessage> subscriber,
         CancellationToken cancellationToken = default)
     {
-        Topic.Validate(topicName);
+        Protocol.Topic.Validate(topicName);
         CheckState();
 
         var needsSubscription = false;
@@ -69,11 +69,11 @@ internal sealed class MessageRouterClient : IMessageRouter
             _ =>
             {
                 needsSubscription = true;
-                return new Topic<TopicMessage>(topicName, _logger);
+                return new Topic(topicName, _logger);
             });
 
         return needsSubscription
-            ? SubscribeAsyncCore(topicName, topic, subscriber, cancellationToken)
+            ? SubscribeAsyncCore(topic, subscriber, cancellationToken)
             : ValueTask.FromResult(topic.Subscribe(subscriber));
     }
 
@@ -83,7 +83,7 @@ internal sealed class MessageRouterClient : IMessageRouter
         PublishOptions options = default,
         CancellationToken cancellationToken = default)
     {
-        Topic.Validate(topic);
+        Protocol.Topic.Validate(topic);
 
         return SendMessageAsync(
             new PublishMessage
@@ -192,7 +192,7 @@ internal sealed class MessageRouterClient : IMessageRouter
 
     private readonly ConcurrentDictionary<string, TaskCompletionSource<AbstractResponse>> _pendingRequests = new();
     private readonly ConcurrentDictionary<string, MessageHandler> _endpointHandlers = new();
-    private readonly ConcurrentDictionary<string, Topic<TopicMessage>> _topics = new();
+    private readonly ConcurrentDictionary<string, Topic> _topics = new();
     private readonly MessageRouterOptions _options;
     private readonly ILogger<MessageRouterClient> _logger;
 
@@ -537,9 +537,8 @@ internal sealed class MessageRouterClient : IMessageRouter
     }
 
     private async ValueTask<IDisposable> SubscribeAsyncCore(
-        string topicName,
-        Topic<TopicMessage> topic,
-        ISubscriber<TopicMessage> subscriber,
+        Topic topic,
+        IAsyncObserver<TopicMessage> subscriber,
         CancellationToken cancellationToken)
     {
         var subscription = topic.Subscribe(subscriber);
@@ -549,7 +548,7 @@ internal sealed class MessageRouterClient : IMessageRouter
             await SendMessageAsync(
                 new SubscribeMessage
                 {
-                    Topic = topicName,
+                    Topic = topic.Name
                 },
                 cancellationToken);
 
@@ -726,7 +725,7 @@ internal sealed class MessageRouterClient : IMessageRouter
         public Task? SendReceiveCompleted;
     }
 
-    private class Topic<T>
+    private class Topic
     {
         public string Name { get; }
 
@@ -736,7 +735,7 @@ internal sealed class MessageRouterClient : IMessageRouter
             _logger = logger;
         }
 
-        public IDisposable Subscribe(ISubscriber<T> subscriber)
+        public IDisposable Subscribe(IAsyncObserver<TopicMessage> subscriber)
         {
             lock (_mutex)
             {
@@ -762,7 +761,7 @@ internal sealed class MessageRouterClient : IMessageRouter
             // TODO: Unsubscribe from the topic completely if no more subscribers
         }
 
-        public void OnNext(T value)
+        public void OnNext(TopicMessage value)
         {
             lock (_mutex)
             {
@@ -817,7 +816,7 @@ internal sealed class MessageRouterClient : IMessageRouter
 
         private class Subscription : IDisposable
         {
-            public Subscription(Topic<T> topic, ISubscriber<T> subscriber, ILogger logger)
+            public Subscription(Topic topic, IAsyncObserver<TopicMessage> subscriber, ILogger logger)
             {
                 _subscriber = subscriber;
                 _topic = topic;
@@ -830,7 +829,7 @@ internal sealed class MessageRouterClient : IMessageRouter
                 _topic.Unsubscribe(this);
             }
 
-            public void OnNext(T value)
+            public void OnNext(TopicMessage value)
             {
                 _queue.Writer.TryWrite(
                     value); // Since the queue is unbounded, this will succeed unless the channel was completed
@@ -862,7 +861,7 @@ internal sealed class MessageRouterClient : IMessageRouter
                             {
                                 _logger.LogError(
                                     e,
-                                    $"Exception thrown while invoking {nameof(ISubscriber<T>.OnNextAsync)} on a subscriber of topic '{{TopicName}}': {{ExceptionMessage}}",
+                                    $"Exception thrown while invoking {nameof(IAsyncObserver<TopicMessage>.OnNextAsync)} on a subscriber of topic '{{TopicName}}': {{ExceptionMessage}}",
                                     _topic.Name,
                                     e.Message);
                             }
@@ -877,7 +876,7 @@ internal sealed class MessageRouterClient : IMessageRouter
                     {
                         _logger.LogError(
                             e,
-                            $"Exception thrown while invoking {nameof(ISubscriber<T>.OnCompletedAsync)} on a subscriber of topic '{{TopicName}}': {{ExceptionMessage}}",
+                            $"Exception thrown while invoking {nameof(IAsyncObserver<TopicMessage>.OnCompletedAsync)} on a subscriber of topic '{{TopicName}}': {{ExceptionMessage}}",
                             _topic.Name,
                             e.Message);
                     }
@@ -892,16 +891,16 @@ internal sealed class MessageRouterClient : IMessageRouter
                     {
                         _logger.LogError(
                             e2,
-                            $"Exception thrown while invoking {nameof(ISubscriber<T>.OnErrorAsync)} on a subscriber of topic '{{TopicName}}': {{ExceptionMessage}}",
+                            $"Exception thrown while invoking {nameof(IAsyncObserver<TopicMessage>.OnErrorAsync)} on a subscriber of topic '{{TopicName}}': {{ExceptionMessage}}",
                             _topic.Name,
                             e2.Message);
                     }
                 }
             }
 
-            private readonly ISubscriber<T> _subscriber;
+            private readonly IAsyncObserver<TopicMessage> _subscriber;
 
-            private readonly Channel<T> _queue = Channel.CreateUnbounded<T>(
+            private readonly Channel<TopicMessage> _queue = Channel.CreateUnbounded<TopicMessage>(
                 new UnboundedChannelOptions
                 {
                     AllowSynchronousContinuations = false,
@@ -909,7 +908,7 @@ internal sealed class MessageRouterClient : IMessageRouter
                     SingleWriter = false
                 });
 
-            private readonly Topic<T> _topic;
+            private readonly Topic _topic;
             private readonly ILogger _logger;
         }
     }

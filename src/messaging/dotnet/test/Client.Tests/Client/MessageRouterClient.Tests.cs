@@ -63,7 +63,7 @@ public class MessageRouterClientTests : IAsyncLifetime
     {
         var messageRouter = CreateMessageRouter();
         await messageRouter.ConnectAsync();
-        var subscriber = new Mock<ISubscriber<TopicMessage>>();
+        var subscriber = new Mock<IAsyncObserver<TopicMessage>>();
         await messageRouter.SubscribeAsync("test-topic", subscriber.Object);
 
         await messageRouter.DisposeAsync();
@@ -174,7 +174,7 @@ public class MessageRouterClientTests : IAsyncLifetime
             await Assert.ThrowsAsync<MessageRouterException>(
                 async () => await messageRouter.SubscribeAsync(
                     "test-topic",
-                    new Mock<ISubscriber<TopicMessage>>().Object));
+                    new Mock<IAsyncObserver<TopicMessage>>().Object));
         exception.Name.Should().Be(MessageRouterErrors.ConnectionClosed);
     }
 
@@ -184,7 +184,7 @@ public class MessageRouterClientTests : IAsyncLifetime
         await using var messageRouter = CreateMessageRouter();
         await messageRouter.ConnectAsync();
 
-        await messageRouter.SubscribeAsync("test-topic", new Mock<ISubscriber<TopicMessage>>().Object);
+        await messageRouter.SubscribeAsync("test-topic", new Mock<IAsyncObserver<TopicMessage>>().Object);
 
         _connectionMock.Expect<SubscribeMessage>(msg => msg.Topic == "test-topic");
     }
@@ -195,9 +195,9 @@ public class MessageRouterClientTests : IAsyncLifetime
         await using var messageRouter = CreateMessageRouter();
         await messageRouter.ConnectAsync();
 
-        await messageRouter.SubscribeAsync("test-topic", new Mock<ISubscriber<TopicMessage>>().Object);
-        await messageRouter.SubscribeAsync("test-topic", new Mock<ISubscriber<TopicMessage>>().Object);
-        await messageRouter.SubscribeAsync("test-topic", new Mock<ISubscriber<TopicMessage>>().Object);
+        await messageRouter.SubscribeAsync("test-topic", new Mock<IAsyncObserver<TopicMessage>>().Object);
+        await messageRouter.SubscribeAsync("test-topic", new Mock<IAsyncObserver<TopicMessage>>().Object);
+        await messageRouter.SubscribeAsync("test-topic", new Mock<IAsyncObserver<TopicMessage>>().Object);
 
         _connectionMock.Expect<SubscribeMessage>(msg => msg.Topic == "test-topic", Times.Once);
     }
@@ -208,8 +208,8 @@ public class MessageRouterClientTests : IAsyncLifetime
         await using var messageRouter = CreateMessageRouter();
         await messageRouter.ConnectAsync();
 
-        var sub1 = new Mock<ISubscriber<TopicMessage>>();
-        var sub2 = new Mock<ISubscriber<TopicMessage>>();
+        var sub1 = new Mock<IAsyncObserver<TopicMessage>>();
+        var sub2 = new Mock<IAsyncObserver<TopicMessage>>();
         await messageRouter.SubscribeAsync("test-topic", sub1.Object);
         await messageRouter.SubscribeAsync("test-topic", sub2.Object);
 
@@ -224,7 +224,7 @@ public class MessageRouterClientTests : IAsyncLifetime
 
         await TaskExtensions.WaitForBackgroundTasksAsync();
 
-        Expression<Func<ISubscriber<TopicMessage>, ValueTask>> expectedInvocation =
+        Expression<Func<IAsyncObserver<TopicMessage>, ValueTask>> expectedInvocation =
             _ => _.OnNextAsync(
                 It.Is<TopicMessage>(
                     msg => msg.Topic == "test-topic"
@@ -243,10 +243,10 @@ public class MessageRouterClientTests : IAsyncLifetime
         await using var messageRouter = CreateMessageRouter();
         await messageRouter.ConnectAsync();
 
-        var sub1 = new Mock<ISubscriber<TopicMessage>>();
+        var sub1 = new Mock<IAsyncObserver<TopicMessage>>();
         sub1.Setup(_ => _.OnNextAsync(It.IsAny<TopicMessage>()))
             .Returns(async (TopicMessage msg) => await messageRouter.InvokeAsync("test-service"));
-        var sub2 = new Mock<ISubscriber<TopicMessage>>();
+        var sub2 = new Mock<IAsyncObserver<TopicMessage>>();
 
         _connectionMock.Handle<InvokeRequest>(req => { }); // Swallow the request, let the caller wait forever
 
@@ -286,7 +286,7 @@ public class MessageRouterClientTests : IAsyncLifetime
     {
         await using var messageRouter = CreateMessageRouter();
         await messageRouter.ConnectAsync();
-        var subscriber = new Mock<ISubscriber<TopicMessage>>();
+        var subscriber = new Mock<IAsyncObserver<TopicMessage>>();
         var sub1 = await messageRouter.SubscribeAsync("test-topic", subscriber.Object);
         var sub2 = await messageRouter.SubscribeAsync("test-topic", subscriber.Object);
         var sub3 = await messageRouter.SubscribeAsync("test-topic", subscriber.Object);
@@ -597,7 +597,7 @@ public class MessageRouterClientTests : IAsyncLifetime
     {
         await using var messageRouter = CreateMessageRouter();
         await messageRouter.ConnectAsync();
-        var subscriber = new Mock<ISubscriber<TopicMessage>>();
+        var subscriber = new Mock<IAsyncObserver<TopicMessage>>();
         await messageRouter.SubscribeAsync("test-topic", subscriber.Object);
 
         _connectionMock.Close(new MessageRouterException(MessageRouterErrors.ConnectionAborted, ""));

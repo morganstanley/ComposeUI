@@ -10,6 +10,8 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using System.Reactive;
+using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 
@@ -87,7 +89,7 @@ public static class MessageRouterExtensions
         IObserver<TopicMessage> observer,
         CancellationToken cancellationToken = default)
     {
-        var innerSubscriber = Subscriber.Create<TopicMessage>(
+        var innerSubscriber = AsyncObserver.Create<TopicMessage>(
             message =>
             {
                 observer.OnNext(message);
@@ -126,7 +128,7 @@ public static class MessageRouterExtensions
         IObserver<string?> observer,
         CancellationToken cancellationToken = default)
     {
-        var innerSubscriber = Subscriber.Create<TopicMessage>(
+        var innerSubscriber = AsyncObserver.Create<TopicMessage>(
             message =>
             {
                 observer.OnNext(message.Payload?.GetString());
@@ -162,10 +164,10 @@ public static class MessageRouterExtensions
     public static ValueTask<IDisposable> SubscribeAsync(
         this IMessageRouter messageRouter,
         string topic,
-        ISubscriber<string?> subscriber,
+        IAsyncObserver<string?> subscriber,
         CancellationToken cancellationToken = default)
     {
-        var innerSubscriber = Subscriber.Create<TopicMessage>(
+        var innerSubscriber = AsyncObserver.Create<TopicMessage>(
             message => subscriber.OnNextAsync(message.Payload?.GetString()),
             subscriber.OnErrorAsync,
             subscriber.OnCompletedAsync);
@@ -189,15 +191,15 @@ public static class MessageRouterExtensions
 
         using var subscription = await messageRouter.SubscribeAsync(
             topic,
-            Subscriber.Create<TopicMessage>(
-                onNext: message => channel.Writer.WriteAsync(message, cancellationToken),
-                onError: exception =>
+            AsyncObserver.Create<TopicMessage>(
+                onNextAsync: message => channel.Writer.WriteAsync(message, cancellationToken),
+                onErrorAsync: exception =>
                 {
                     channel.Writer.TryComplete(exception);
 
                     return default;
                 },
-                onCompleted: () =>
+                onCompletedAsync: () =>
                 {
                     channel.Writer.TryComplete();
 

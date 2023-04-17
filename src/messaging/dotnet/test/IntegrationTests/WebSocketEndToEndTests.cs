@@ -10,6 +10,8 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using System.Reactive;
+using System.Reactive.Linq;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -148,7 +150,7 @@ public class WebSocketEndToEndTests : IAsyncLifetime
 
         await subscriber.SubscribeAsync(
             "test-topic",
-            Subscriber.Create(
+            AsyncObserver.Create<TopicMessage>(
                 new Func<TopicMessage, ValueTask>(
                     async msg =>
                     {
@@ -171,7 +173,7 @@ public class WebSocketEndToEndTests : IAsyncLifetime
 
         await subscriber.SubscribeAsync(
             "test-topic",
-            Subscriber.Create<TopicMessage>(
+            AsyncObserver.Create<TopicMessage>(
                 async msg =>
                 {
                     using (await semaphore.LockAsync(new CancellationTokenSource(TimeSpan.Zero).Token))
