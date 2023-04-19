@@ -55,3 +55,10 @@ jobs:
 
     - name: Codecov
       uses: codecov/codecov-action@v3.0.0
+
+    # By uploading it's shared with the other workflows that are reusing this
+    - name: Upload Shell Binaries
+      uses: actions/upload-artifact@v3
+      with:
+        name: shell-binaries
+        path: ${{ github.workspace }}/src/shell/dotnet/Shell/bin/Release/net6.0-windows/
