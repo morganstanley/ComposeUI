@@ -27,7 +27,7 @@ jobs:
         working-directory: ${{ github.workspace }}/shell-binaries
         
       - name: Compress
-        run: Compress-Archive -Path ${{ github.workspace }}/shell-binaries/* composeui_win32.zip
+        run: Compress-Archive -Path  ${{ github.workspace }}/shell-binaries/* composeui-${{ github.ref_name }}-win32.zip
         
       - name: Upload Release Asset
         id: upload-release-asset 
@@ -36,7 +36,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./composeui_win32.zip
-          asset_name: composeui_win32.zip
+          asset_path: ./composeui-${{ github.ref_name }}-win32.zip
+          asset_name: composeui-${{ github.ref_name }}-win32.zip
           asset_content_type: application/zip
           
