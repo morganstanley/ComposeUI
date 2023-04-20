@@ -10,22 +10,30 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using Microsoft.Extensions.Logging;
-using ProcessExplorer.Abstractions;
+using Grpc.Core;
 using ProcessExplorer.Abstractions.Infrastructure;
-using ProcessExplorer.Abstractions.Processes;
-using ProcessExplorer.Abstractions.Subsystems;
+using ProcessExplorer.Abstractions.Infrastructure.Protos;
 
-namespace ProcessExplorer.Core.Factories;
+namespace ProcessExplorer.Server.Server.Infrastructure.Grpc;
 
-public static class ProcessAggregatorFactory
+internal class GrpcClientConnection : IClientConnection<Message>
 {
-    public static IProcessInfoAggregator CreateProcessInfoAggregator(
-        ProcessInfoMonitor processInfoMonitor, 
-        IUiHandler handler,
-        ISubsystemController? subsystemController = null, 
-        ILogger<IProcessInfoAggregator>? logger = null)
+    private readonly KeyValuePair<Guid, IServerStreamWriter<Message>> _stream;
+    private readonly object _streamLock = new();
+
+    public GrpcClientConnection(
+        IServerStreamWriter<Message> responseStream,
+        Guid id)
     {
-        return new ProcessInfoAggregator(processInfoMonitor, handler, subsystemController, logger);
+        _stream = new(id, responseStream);
+    }
+
+    public Task SendMessage(Message message)
+    {
+        lock (_streamLock)
+        {
+            return _stream.Value.WriteAsync(message);
+        }
     }
 }
+

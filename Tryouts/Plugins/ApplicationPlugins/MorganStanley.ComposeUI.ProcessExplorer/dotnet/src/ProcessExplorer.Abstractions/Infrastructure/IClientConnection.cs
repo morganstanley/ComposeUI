@@ -10,17 +10,10 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using Microsoft.Extensions.Logging;
-using ProcessExplorer.Abstractions.Processes;
-using ProcessExplorer.Core.Processes;
+namespace ProcessExplorer.Abstractions.Infrastructure;
 
-namespace ProcessExplorer.Core.Factories;
-public static class ProcessMonitorFactory
+public interface IClientConnection<T>
 {
-    public static ProcessInfoMonitor CreateProcessInfoMonitorWindows(ILogger<ProcessInfoMonitor> logger)
-    {
-#pragma warning disable CA1416 // Validate platform compatibility
-        return new WindowsProcessInfoMonitor(logger);
-#pragma warning restore CA1416 // Validate platform compatibility
-    }
+    Task SendMessage(T message);
 }
+

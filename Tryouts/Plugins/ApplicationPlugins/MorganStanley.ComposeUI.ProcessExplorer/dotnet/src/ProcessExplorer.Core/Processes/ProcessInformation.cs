@@ -42,14 +42,14 @@ public class ProcessInformation
         };
     }
 
-    internal static ProcessInformation GetProcessInfoWithCalculatedData(Process process, IProcessInfoManager processInfoManager)
+    internal static ProcessInformation GetProcessInfoWithCalculatedData(Process process, IProcessInfoMonitor processInfoManager)
     {
         var processInformation = new ProcessInformation(process);
         SetProcessInfoData(ref processInformation, processInfoManager);
         return processInformation;
     }
 
-    internal static void SetProcessInfoData(ref ProcessInformation processInfo, IProcessInfoManager manager)
+    internal static void SetProcessInfoData(ref ProcessInformation processInfo, IProcessInfoMonitor manager)
     {
         try
         {

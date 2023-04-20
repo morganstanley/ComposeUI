@@ -15,6 +15,7 @@ using LocalCollector.Connections;
 using LocalCollector.Modules;
 using LocalCollector.Registrations;
 using ProcessExplorer.Abstractions.Infrastructure;
+using ProcessExplorer.Abstractions.Processes;
 using ProcessExplorer.Abstractions.Subsystems;
 
 namespace ProcessExplorer.Abstractions;
@@ -35,6 +36,11 @@ public interface IProcessInfoAggregator : IDisposable
     /// Controls the initialized subsystems.
     /// </summary>
     public ISubsystemController? SubsystemController { get; }
+
+    /// <summary>
+    /// Handles the communication between the server and clients.
+    /// </summary>
+    public IUiHandler UiHandler { get; }
 
     /// <summary>
     /// Removes a module information from the collection.
@@ -60,20 +66,7 @@ public interface IProcessInfoAggregator : IDisposable
     /// </summary>
     /// <param name="delay"></param>
     void SetDeadProcessRemovalDelay(int delay);
-
-    /// <summary>
-    /// Adds a UIClient to the collection. Keeps track of the UIClients.
-    /// </summary>
-    /// <param name="id"></param>
-    /// <param name="uiHandler"></param>
-    void AddUiConnection(Guid id, IUIHandler uiHandler);
-
-    /// <summary>
-    /// Removes  a UIClient from the collection.
-    /// </summary>
-    /// <param name="handler"></param>
-    void RemoveUiConnection(KeyValuePair<Guid, IUIHandler> handler);
-
+    
     /// <summary>
     /// Enables to watch processes through ProcessMonitor.
     /// Only available for Windows OS.
@@ -103,13 +96,7 @@ public interface IProcessInfoAggregator : IDisposable
     /// </summary>
     /// <returns></returns>
     IEnumerable<KeyValuePair<string, ProcessInfoCollectorData>> GetRuntimeInformation();
-
-    /// <summary>
-    /// Returns the connected clients.
-    /// </summary>
-    /// <returns></returns>
-    IEnumerable<KeyValuePair<Guid, IUIHandler>> GetUiClients();
-
+    
     /// <summary>
     /// Adds a runtime information to the collection.
     /// </summary>
@@ -160,9 +147,15 @@ public interface IProcessInfoAggregator : IDisposable
     Task AddProcesses(ReadOnlySpan<int> processIds);
 
     /// <summary>
-    /// Asynchronusly dequeue the changes of the registered subsystems, and send to the initialized UI's.
+    /// Asynchronously dequeue the changes of the registered subsystems, and send to the initialized UI's.
     /// </summary>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task RunSubsystemStateQueue(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns the initialized processes.
+    /// </summary>
+    /// <returns></returns>
+    IEnumerable<ProcessInfoData> GetProcesses();
 }

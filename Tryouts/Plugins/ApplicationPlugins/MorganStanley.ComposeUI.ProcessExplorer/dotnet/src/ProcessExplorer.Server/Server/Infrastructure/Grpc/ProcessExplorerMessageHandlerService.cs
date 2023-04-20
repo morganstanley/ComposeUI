@@ -39,13 +39,17 @@ internal class ProcessExplorerMessageHandlerService : ProcessExplorerMessageHand
         _logger.GrpcClientSubscribedDebug(id.ToString());
 
         //we will pass the IStreamWriter, which is the stream we can respond to per client
-        var handler = new GrpcUIHandler(responseStream, id, _logger);
+        var connection = new GrpcClientConnection(responseStream, id);
 
         try
         {
-            await handler.SubscriptionIsAliveUpdate();
-            _processInfoAggregator.AddUiConnection(id, handler);
-            
+            _processInfoAggregator.UiHandler.AddClientConnection(id, connection);
+            await _processInfoAggregator.UiHandler.SubscriptionIsAliveUpdate();
+            await _processInfoAggregator.UiHandler.AddProcesses(_processInfoAggregator.GetProcesses());
+            await _processInfoAggregator.UiHandler.AddRuntimeInfo(_processInfoAggregator.GetRuntimeInformation());
+            await _processInfoAggregator.UiHandler.AddSubsystems(
+                _processInfoAggregator.SubsystemController?.GetSubsystems());
+
             //wait here until the user is connected to the service
             while (!context.CancellationToken.IsCancellationRequested)
                 continue;
@@ -56,7 +60,7 @@ internal class ProcessExplorerMessageHandlerService : ProcessExplorerMessageHand
         }
         finally
         {
-            _processInfoAggregator.RemoveUiConnection(new(id, handler));
+            _processInfoAggregator.UiHandler.RemoveClientConnection(id);
         }
     }
 
@@ -68,9 +72,9 @@ internal class ProcessExplorerMessageHandlerService : ProcessExplorerMessageHand
         Task.Run(() =>
         {
             MessageHandler.HandleIncomingGrpcMessages(
-            request,
-            _processInfoAggregator,
-            context.CancellationToken);
+                request,
+                _processInfoAggregator,
+                context.CancellationToken);
         }, context.CancellationToken);
 
         return Task.FromResult(new Empty());

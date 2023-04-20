@@ -70,7 +70,7 @@ public static partial class SourceGeneratedLoggerExtensions
     [LoggerMessage(Level = LogLevel.Error, Message = "Cannot send launch request to the SubsystemLauncher. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
     private static partial void CannotSendLaunchRequest(this ILogger logger, Exception ex, Exception exception);
 
-    [LoggerMessage(Level = LogLevel.Error, Message = "Cannot terminate a subsystem. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
+    [LoggerMessage(Level = LogLevel.Error, Message = "Cannot terminate a subsystem/subsystems. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
     private static partial void CannotTerminateSubsystem(this ILogger logger, Exception ex, Exception exception);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "The Process Explorer list is initialized", SkipEnabledCheck = false)]
@@ -87,6 +87,9 @@ public static partial class SourceGeneratedLoggerExtensions
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "The process `{pid}` does not exist in the ProcessMonitor list", SkipEnabledCheck = false)]
     public static partial void ProcessNotFoundWarning(this ILogger logger, int pid);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "The subsystem with `{id}` couldn't be terminated. Subsystem name: `{name}`", SkipEnabledCheck = false)]
+    public static partial void SubsystemTerminationAddWarning(this ILogger logger, string id, string name);
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Couldn't read the child process. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
     private static partial void ManagementObjectChild(this ILogger logger, Exception ex, Exception exception);

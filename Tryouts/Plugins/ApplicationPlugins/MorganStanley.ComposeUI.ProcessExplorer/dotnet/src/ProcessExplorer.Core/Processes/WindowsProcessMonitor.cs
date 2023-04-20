@@ -21,9 +21,9 @@ using ProcessExplorer.Abstractions.Processes;
 namespace ProcessExplorer.Core.Processes;
 
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-internal class WindowsProcessInfoManager : ProcessInfoManager
+internal class WindowsProcessInfoMonitor : ProcessInfoMonitor
 {
-    private readonly ILogger<ProcessInfoManager> _logger;
+    private readonly ILogger<ProcessInfoMonitor> _logger;
     private readonly ConcurrentDictionary<int, PerformanceCounter> _cpuPerformanceCounters;
     private readonly ConcurrentDictionary<int, PerformanceCounter> _memoryPerformanceCounters;
     private readonly ConcurrentDictionary<int, ManagementObjectSearcher> _managementPidObjectSearchers;
@@ -32,10 +32,10 @@ internal class WindowsProcessInfoManager : ProcessInfoManager
     private ManagementEventWatcher? _watcher;
     private bool _disposed = false;
     private readonly object _lock = new();
-    public WindowsProcessInfoManager(ILogger<ProcessInfoManager>? logger)
+    public WindowsProcessInfoMonitor(ILogger<ProcessInfoMonitor>? logger)
         :base(logger)
     {
-        _logger = logger ?? NullLogger<WindowsProcessInfoManager>.Instance;
+        _logger = logger ?? NullLogger<WindowsProcessInfoMonitor>.Instance;
         _cpuPerformanceCounters = new();
         _memoryPerformanceCounters = new();
         _managementPidObjectSearchers = new();
@@ -44,53 +44,46 @@ internal class WindowsProcessInfoManager : ProcessInfoManager
 
     public override int? GetParentId(int processId, string processName)
     {
-        var ppid = 0;
+        var parentProcessId = 0;
 
         try
         {
             //snapshot
-            if (!Process.GetProcesses().Any(p => p.Id == processId)) return null;
+            if (!Process.GetProcesses().Any(p => p.Id == processId)) 
+                return null;
 
-            var managementObjectSearcher = _managementPPidObjectSearchers.GetOrAdd(processId, _ =>
-            {
-                return new ManagementObjectSearcher(
-                    string.Format(
-                        "Select ParentProcessId From Win32_Process Where ProcessID={0}",
-                        processId));
-            });
+            var managementObjectSearcher = _managementPPidObjectSearchers.GetOrAdd(processId, _ => new ManagementObjectSearcher(
+                $"Select ParentProcessId From Win32_Process Where ProcessID={processId}"));
 
 
             using var mo = managementObjectSearcher.Get();
-            var deviceArray = new ManagementObject[mo.Count];
+            var deviceArray = new ManagementBaseObject[mo.Count];
 
             mo.CopyTo(deviceArray, 0);
 
             if (deviceArray.Length <= 0) return null;
 
-            ppid = Convert.ToInt32(deviceArray.First()["ParentProcessId"]);
+            parentProcessId = Convert.ToInt32(deviceArray.First()["ParentProcessId"]);
         }
         catch (Exception exception)
         {
             _logger.ManagementObjectPpidExpected(processId, exception);
         }
 
-        return ppid;
+        return parentProcessId;
     }
 
-    public override float GetMemoryUsage(int id, string? processName)
+    public override float GetMemoryUsage(int processId, string? processName)
     {
         int memsize;
 
         if (processName == null) return default;
 
-        using var memoryPerformanceCounter = _memoryPerformanceCounters.GetOrAdd(id, _ =>
+        using var memoryPerformanceCounter = _memoryPerformanceCounters.GetOrAdd(processId, _ => new PerformanceCounter()
         {
-            return new PerformanceCounter()
-            {
-                CategoryName = "Process",
-                CounterName = "Working Set - Private",
-                InstanceName = processName,
-            };
+            CategoryName = "Process",
+            CounterName = "Working Set - Private",
+            InstanceName = processName,
         });
 
         memsize = Convert.ToInt32(memoryPerformanceCounter.NextValue()) / Convert.ToInt32(1024) / Convert.ToInt32(1024);
@@ -105,36 +98,31 @@ internal class WindowsProcessInfoManager : ProcessInfoManager
         return Convert.ToDouble(installedMemory) / 1048576.0;
     }
 
-    public override float GetCpuUsage(int id, string? processName)
+    public override float GetCpuUsage(int processId, string? processName)
     {
         if (processName == null) return default;
+
         using var cpuPerformanceCounter = _memoryPerformanceCounters.GetOrAdd(
-            id,
-            _ =>
-            {
-                return new PerformanceCounter(
-                            "Process",
-                            "% Processor Time",
-                            processName,
-                            true);
-            });
+            processId,
+            _ => new PerformanceCounter(
+                "Process",
+                "% Processor Time",
+                processName,
+                true));
+
+        cpuPerformanceCounter.NextValue();
 
         var processCpuUsage = cpuPerformanceCounter.NextValue();
 
         return processCpuUsage / Environment.ProcessorCount;
     }
 
-    public ReadOnlySpan<int> GetChildProcesses(int id, string processName)
+    private ReadOnlySpan<int> GetChildProcesses(int processId, string processName)
     {
         if (processName == null) return default;
 
-        using var managementObjectSearcher = _managementPidObjectSearchers.GetOrAdd(id, _ =>
-        {
-            return new ManagementObjectSearcher(
-                string.Format(
-                    "Select ProcessId From Win32_Process Where ParentProcessID={0} Or ProcessID={0}",
-                    id));
-        });
+        using var managementObjectSearcher = _managementPidObjectSearchers.GetOrAdd(processId, _ => new ManagementObjectSearcher(
+            string.Format("Select ProcessId From Win32_Process Where ParentProcessID={0} Or ProcessID={0}", processId)));
 
         var mo = managementObjectSearcher.Get();
         var children = new int[mo.Count];
@@ -147,8 +135,8 @@ internal class WindowsProcessInfoManager : ProcessInfoManager
 
             try
             {
-                var pid = Convert.ToInt32(managementObject["ProcessId"]);
-                children[i] = pid;
+                var childProcessId = Convert.ToInt32(managementObject["ProcessId"]);
+                children[i] = childProcessId;
                 i++;
 
                 mo = managementObjectSearcher.Get();
@@ -186,25 +174,25 @@ internal class WindowsProcessInfoManager : ProcessInfoManager
         }
     }
 
-    public override ReadOnlySpan<int> AddChildProcesses(int pid, string? processName)
+    public override ReadOnlySpan<int> AddChildProcesses(int processId, string? processName)
     {
         lock (_lock)
         {
-            if (!ContainsId(pid))
+            if (!ContainsId(processId))
             {
-                AddProcess(pid);
+                AddProcess(processId);
             }
         }
 
-        var processes = new List<int>() { pid };
+        var processes = new List<int>() { processId };
 
         try
         {
-            var children = GetChildProcesses(pid, processName ?? string.Empty);
+            var children = GetChildProcesses(processId, processName ?? string.Empty);
 
             foreach (var child in children)
             {
-                if (child == pid) continue;
+                if (child == processId) continue;
 
                 processes.Add(child);
 
@@ -222,22 +210,22 @@ internal class WindowsProcessInfoManager : ProcessInfoManager
         }
         catch (Exception exception)
         {
-            _logger.PpidExpected(pid, exception);
+            _logger.PpidExpected(processId, exception);
         }
 
         return processes.ToArray();
     }
 
-    private void AddIfComposeProcess(int pid)
+    private void AddIfComposeProcess(int processId)
     {
         lock (_lock)
         {
-            if (!CheckIfIsComposeProcess(pid)) return;
+            if (!CheckIfIsComposeProcess(processId)) return;
 
-            var alreadyAdded = ContainsId(pid);
+            var alreadyAdded = ContainsId(processId);
             if (alreadyAdded) return;
 
-            AddProcess(pid);
+            AddProcess(processId);
         }
     }
 
@@ -246,15 +234,15 @@ internal class WindowsProcessInfoManager : ProcessInfoManager
         var pid = Convert.ToInt32(
             ((ManagementBaseObject)e.NewEvent.Properties["TargetInstance"].Value)["ProcessId"]);
 
-        var wclass = e.NewEvent.SystemProperties["__Class"]
+        var eventDefinition = e.NewEvent.SystemProperties["__Class"]
             .Value
             .ToString();
 
-        if (wclass == null) return;
+        if (eventDefinition == null) return;
 
         try
         {
-            switch (wclass)
+            switch (eventDefinition)
             {
                 case "__InstanceCreationEvent":
                     InstanceCreated(pid);
@@ -275,58 +263,58 @@ internal class WindowsProcessInfoManager : ProcessInfoManager
         }
     }
 
-    private void InstanceModified(int pid)
+    private void InstanceModified(int processId)
     {
         lock (_lock)
         {
-            if (ContainsId(pid))
+            if (ContainsId(processId))
             {
-                SendProcessModifiedUpdate(pid);
+                SendProcessModifiedUpdate(processId);
             }
         }
     }
 
-    private void InstanceCreated(int pid)
+    private void InstanceCreated(int processId)
     {
-        var process = GetProcessIfPidExists(pid);
+        var process = GetProcessIfPidExists(processId);
 
         if (process == null) return;
 
         lock (_lock)
         {
-            if (!CheckIfIsComposeProcess(pid)) return;
+            if (!CheckIfIsComposeProcess(processId)) return;
 
-            AddProcess(pid);
+            AddProcess(processId);
         }
     }
 
-    private void InstanceDeleted(int pid)
+    private void InstanceDeleted(int processId)
     {
-        _cpuPerformanceCounters.TryRemove(pid, out var cpuPerf);
+        _cpuPerformanceCounters.TryRemove(processId, out var cpuPerf);
         cpuPerf?.Close();
         cpuPerf?.Dispose();
 
-        _memoryPerformanceCounters.TryRemove(pid, out var memoryPerf);
+        _memoryPerformanceCounters.TryRemove(processId, out var memoryPerf);
         memoryPerf?.Close();
         memoryPerf?.Dispose();
 
-        _managementPidObjectSearchers.TryRemove(pid, out var objectSearcher);
+        _managementPidObjectSearchers.TryRemove(processId, out var objectSearcher);
         objectSearcher?.Dispose();
 
         lock (_lock)
         {
-            var pidExists = ContainsId(pid);
+            var pidExists = ContainsId(processId);
             if (!pidExists) return;
 
-            RemoveProcessId(pid);
+            RemoveProcessId(processId);
         }
     }
 
-    private static Process? GetProcessIfPidExists(int pid)
+    private static Process? GetProcessIfPidExists(int processId)
     {
         try
         {
-            var process = Process.GetProcessById(pid);
+            var process = Process.GetProcessById(processId);
             process.Refresh();
             return process.Id == 0 ? null : process;
         }

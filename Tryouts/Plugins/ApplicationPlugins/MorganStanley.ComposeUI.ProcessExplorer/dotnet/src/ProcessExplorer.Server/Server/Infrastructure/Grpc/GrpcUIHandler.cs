@@ -10,8 +10,8 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using System.Collections.Concurrent;
 using Google.Protobuf.Collections;
-using Grpc.Core;
 using LocalCollector.Connections;
 using LocalCollector.Modules;
 using LocalCollector.Registrations;
@@ -19,29 +19,34 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using ProcessExplorer.Abstractions.Infrastructure;
 using ProcessExplorer.Abstractions.Infrastructure.Protos;
+using ProcessExplorer.Abstractions.Logging;
+using ProcessExplorer.Server.Logging;
 using ProcessExplorer.Abstractions.Processes;
 using ProcessExplorer.Abstractions.Subsystems;
-using ProcessExplorer.Server.Logging;
 using ProcessExplorer.Server.Server.Helper;
 
 namespace ProcessExplorer.Server.Server.Infrastructure.Grpc;
 
-internal class GrpcUIHandler : IUIHandler
+internal class GrpcUiHandler : IUiHandler
 {
-    private readonly object _lock = new();
+    private readonly object _uiHandlersLock = new();
     private readonly ILogger _logger;
-    private readonly KeyValuePair<Guid, IServerStreamWriter<Message>> _stream;
-    public GrpcUIHandler(
-        IServerStreamWriter<Message> responseStream,
-        Guid id,
-        ILogger? logger)
+    private readonly ConcurrentDictionary<Guid, IClientConnection<Message>> _uiHandlers;
+
+    public GrpcUiHandler(
+        ILogger? logger = null)
     {
         _logger = logger ?? NullLogger.Instance;
-        _stream = new(id, responseStream);
+        _uiHandlers = new ();
     }
-
+    
     public Task AddConnections(string assemblyId, IEnumerable<ConnectionInfo> connections)
     {
+        lock (_uiHandlersLock)
+        {
+            if (!_uiHandlers.Any() || connections == null || !connections.Any()) return Task.CompletedTask;
+        }
+
         try
         {
             var message = new Message()
@@ -51,8 +56,7 @@ internal class GrpcUIHandler : IUIHandler
                 Connections = { connections.Select(conn => conn.DeriveProtoConnectionType()) }
             };
 
-            lock (_lock)
-                return _stream.Value.WriteAsync(message);
+            return UpdateInfoOnUI(handler => handler.SendMessage(message));
         }
         catch (Exception exception)
         {
@@ -64,6 +68,11 @@ internal class GrpcUIHandler : IUIHandler
 
     public Task AddProcess(ProcessInfoData process)
     {
+        lock (_uiHandlersLock)
+        {
+            if (!_uiHandlers.Any() || process == null) return Task.CompletedTask;
+        }
+
         try
         {
             var list = new List<Process>
@@ -77,8 +86,7 @@ internal class GrpcUIHandler : IUIHandler
                 Processes = { list }
             };
 
-            lock (_lock)
-                return _stream.Value.WriteAsync(message);
+            return UpdateInfoOnUI(handler => handler.SendMessage(message));
         }
         catch (Exception exception)
         {
@@ -88,8 +96,32 @@ internal class GrpcUIHandler : IUIHandler
         return Task.CompletedTask;
     }
 
+    public void AddClientConnection<T>(Guid id, IClientConnection<T> connection)
+    {
+        if (typeof(T) == typeof(Message))
+        {
+            lock (_uiHandlersLock)
+            {
+                if (!_uiHandlers.TryAdd(id, connection as IClientConnection<Message>)) _logger.UIHandlerConnectionAddingError(id.ToString());
+            }
+        }
+    }
+
+    public void RemoveClientConnection(Guid id)
+    {
+        lock (_uiHandlersLock)
+        {
+            if (!_uiHandlers.TryRemove(id, out _)) _logger.UIHandlerConnectionRemoveError(id.ToString());
+        }
+    }
+
     public Task AddProcesses(IEnumerable<ProcessInfoData> processes)
     {
+        lock (_uiHandlersLock)
+        {
+            if (!_uiHandlers.Any() || processes == null || !processes.Any()) return Task.CompletedTask;
+        }
+
         try
         {
             var message = new Message()
@@ -98,8 +130,7 @@ internal class GrpcUIHandler : IUIHandler
                 Processes = { processes.Select(proc => proc.DeriveProtoProcessType()) }
             };
 
-            lock (_lock)
-                return _stream.Value.WriteAsync(message);
+            return UpdateInfoOnUI(handler => handler.SendMessage(message));
         }
         catch (Exception exception)
         {
@@ -111,6 +142,11 @@ internal class GrpcUIHandler : IUIHandler
 
     public Task AddRuntimeInfo(string assemblyId, LocalCollector.ProcessInfoCollectorData dataObject)
     {
+        lock (_uiHandlersLock)
+        {
+            if (!_uiHandlers.Any() || dataObject == null) return Task.CompletedTask;
+        }
+
         try
         {
             var list = new List<ProcessInfoCollectorData>()
@@ -125,8 +161,7 @@ internal class GrpcUIHandler : IUIHandler
                 RuntimeInfo = { list }
             };
 
-            lock (_lock)
-                return _stream.Value.WriteAsync(message);
+            return UpdateInfoOnUI(handler => handler.SendMessage(message));
         }
         catch (Exception exception)
         {
@@ -138,6 +173,11 @@ internal class GrpcUIHandler : IUIHandler
 
     public Task AddRuntimeInfo(IEnumerable<KeyValuePair<string, LocalCollector.ProcessInfoCollectorData>> runtimeInfo)
     {
+        lock (_uiHandlersLock)
+        {
+            if (!_uiHandlers.Any() || !runtimeInfo.Any()) return Task.CompletedTask;
+        }
+
         try
         {
             var message = new Message()
@@ -146,8 +186,7 @@ internal class GrpcUIHandler : IUIHandler
                 MultipleRuntimeInfo = { runtimeInfo.DeriveProtoDictionaryType(ProtoConvertHelper.DeriveProtoRuntimeInfoType) }
             };
 
-            lock (_lock)
-                return _stream.Value.WriteAsync(message);
+            return UpdateInfoOnUI(handler => handler.SendMessage(message));
         }
         catch (Exception exception)
         {
@@ -159,6 +198,11 @@ internal class GrpcUIHandler : IUIHandler
 
     public Task TerminateProcess(int pid)
     {
+        lock (_uiHandlersLock)
+        {
+            if (!_uiHandlers.Any()) return Task.CompletedTask;
+        }
+
         try
         {
             var message = new Message()
@@ -167,8 +211,7 @@ internal class GrpcUIHandler : IUIHandler
                 Pid = pid
             };
 
-            lock (_lock)
-                return _stream.Value.WriteAsync(message);
+            return UpdateInfoOnUI(handler => handler.SendMessage(message));
         }
         catch (Exception exception)
         {
@@ -180,6 +223,11 @@ internal class GrpcUIHandler : IUIHandler
 
     public Task UpdateConnection(string assemblyId, ConnectionInfo connection)
     {
+        lock (_uiHandlersLock)
+        {
+            if (!_uiHandlers.Any()) return Task.CompletedTask;
+        }
+
         try
         {
             var list = new List<Connection>()
@@ -193,8 +241,7 @@ internal class GrpcUIHandler : IUIHandler
                 Connections = { list }
             };
 
-            lock (_lock)
-                return _stream.Value.WriteAsync(message);
+            return UpdateInfoOnUI(handler => handler.SendMessage(message));
         }
         catch (Exception exception)
         {
@@ -206,6 +253,11 @@ internal class GrpcUIHandler : IUIHandler
 
     public Task UpdateEnvironmentVariables(string assemblyId, IEnumerable<KeyValuePair<string, string>> environmentVariables)
     {
+        lock (_uiHandlersLock)
+        {
+            if (!_uiHandlers.Any() || !environmentVariables.Any()) return Task.CompletedTask;
+        }
+
         try
         {
             var message = new Message()
@@ -215,8 +267,7 @@ internal class GrpcUIHandler : IUIHandler
                 EnvironmentVariables = { environmentVariables.DeriveProtoDictionaryType() }
             };
 
-            lock (_lock)
-                return _stream.Value.WriteAsync(message);
+            return UpdateInfoOnUI(handler => handler.SendMessage(message));
         }
         catch (Exception exception)
         {
@@ -228,6 +279,11 @@ internal class GrpcUIHandler : IUIHandler
 
     public Task UpdateModules(string assemblyId, IEnumerable<ModuleInfo> modules)
     {
+        lock (_uiHandlersLock)
+        {
+            if (!_uiHandlers.Any() || !modules.Any()) return Task.CompletedTask;
+        }
+
         try
         {
             var message = new Message()
@@ -237,8 +293,7 @@ internal class GrpcUIHandler : IUIHandler
                 Modules = { modules.Select(module => module.DeriveProtoModuleType()) }
             };
 
-            lock (_lock)
-                return _stream.Value.WriteAsync(message);
+            return UpdateInfoOnUI(handler => handler.SendMessage(message));
         }
         catch (Exception exception)
         {
@@ -250,6 +305,11 @@ internal class GrpcUIHandler : IUIHandler
 
     public Task UpdateProcess(ProcessInfoData process)
     {
+        lock (_uiHandlersLock)
+        {
+            if (!_uiHandlers.Any()) return Task.CompletedTask;
+        }
+
         try
         {
             var list = new List<Process>()
@@ -263,8 +323,7 @@ internal class GrpcUIHandler : IUIHandler
                 Processes = { list }
             };
 
-            lock (_lock)
-                return _stream.Value.WriteAsync(message);
+            return UpdateInfoOnUI(handler => handler.SendMessage(message));
         }
         catch (Exception exception)
         {
@@ -276,6 +335,11 @@ internal class GrpcUIHandler : IUIHandler
 
     public Task UpdateRegistrations(string assemblyId, IEnumerable<RegistrationInfo> registrations)
     {
+        lock (_uiHandlersLock)
+        {
+            if (!_uiHandlers.Any() || !registrations.Any()) return Task.CompletedTask;
+        }
+
         try
         {
             var message = new Message()
@@ -285,8 +349,7 @@ internal class GrpcUIHandler : IUIHandler
                 Registrations = { registrations.Select(registration => registration.DeriveProtoRegistrationType()) }
             };
 
-            lock (_lock)
-                return _stream.Value.WriteAsync(message);
+            return UpdateInfoOnUI(handler => handler.SendMessage(message));
         }
         catch (Exception exception)
         {
@@ -298,6 +361,11 @@ internal class GrpcUIHandler : IUIHandler
 
     public Task AddSubsystem(Guid subsystemId, SubsystemInfo subsystem)
     {
+        lock (_uiHandlersLock)
+        {
+            if (!_uiHandlers.Any()) return Task.CompletedTask;
+        }
+
         try
         {
             var map = new MapField<string, Subsystem>
@@ -311,8 +379,7 @@ internal class GrpcUIHandler : IUIHandler
                 Subsystems = { map }
             };
 
-            lock (_lock)
-                return _stream.Value.WriteAsync(message);
+            return UpdateInfoOnUI(handler => handler.SendMessage(message));
         }
         catch (Exception exception)
         {
@@ -324,6 +391,11 @@ internal class GrpcUIHandler : IUIHandler
 
     public Task AddSubsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
+        lock (_uiHandlersLock)
+        {
+            if (!_uiHandlers.Any() || !subsystems.Any()) return Task.CompletedTask;
+        }
+
         try
         {
             var message = new Message()
@@ -332,8 +404,7 @@ internal class GrpcUIHandler : IUIHandler
                 Subsystems = { subsystems.DeriveProtoDictionaryType(ProtoConvertHelper.DeriveProtoSubsystemType) }
             };
 
-            lock (_lock)
-                return _stream.Value.WriteAsync(message);
+            return UpdateInfoOnUI(handler => handler.SendMessage(message));
         }
         catch (Exception exception)
         {
@@ -345,6 +416,11 @@ internal class GrpcUIHandler : IUIHandler
 
     public Task UpdateSubsystemInfo(Guid subsystemId, SubsystemInfo subsystem)
     {
+        lock (_uiHandlersLock)
+        {
+            if (!_uiHandlers.Any()) return Task.CompletedTask;
+        }
+
         try
         {
             var map = new MapField<string, Subsystem>()
@@ -358,8 +434,7 @@ internal class GrpcUIHandler : IUIHandler
                 Subsystems = { map }
             };
 
-            lock (_lock)
-                return _stream.Value.WriteAsync(message);
+            return UpdateInfoOnUI(handler => handler.SendMessage(message));
         }
         catch (Exception exception)
         {
@@ -369,8 +444,13 @@ internal class GrpcUIHandler : IUIHandler
         return Task.CompletedTask;
     }
 
-    public Task UpdateProcessStatus(KeyValuePair<int, ProcessExplorer.Abstractions.Processes.Status> process)
+    public Task UpdateProcessStatus(KeyValuePair<int, Status> process)
     {
+        lock (_uiHandlersLock)
+        {
+            if (!_uiHandlers.Any()) return Task.CompletedTask;
+        }
+
         try
         {
             var map = new MapField<int, string>
@@ -384,8 +464,7 @@ internal class GrpcUIHandler : IUIHandler
                 ProcessStatusChanges = { map }
             };
 
-            lock (_lock)
-                return _stream.Value.WriteAsync(message);
+            return UpdateInfoOnUI(handler => handler.SendMessage(message));
         }
         catch (Exception exception)
         {
@@ -397,6 +476,11 @@ internal class GrpcUIHandler : IUIHandler
 
     public Task SubscriptionIsAliveUpdate()
     {
+        lock (_uiHandlersLock)
+        {
+            if (!_uiHandlers.Any()) return Task.CompletedTask;
+        }
+
         var message = new Message()
         {
             Action = ActionType.SubscriptionAliveAction
@@ -404,8 +488,7 @@ internal class GrpcUIHandler : IUIHandler
 
         try
         {
-            lock (_lock)
-                return _stream.Value.WriteAsync(message);
+            return UpdateInfoOnUI(handler => handler.SendMessage(message));
         }
         catch(Exception exception)
         {
@@ -413,5 +496,26 @@ internal class GrpcUIHandler : IUIHandler
         }
 
         return Task.CompletedTask;
+    }
+
+    private IEnumerable<IClientConnection<Message>> CreateCopyOfClients()
+    {
+        lock (_uiHandlersLock)
+        {
+            return _uiHandlers.Select(kvp => kvp.Value);
+        }
+    }
+
+    private Task UpdateInfoOnUI(Func<IClientConnection<Message>, Task> handlerAction)
+    {
+        try
+        {
+            return Task.WhenAll(CreateCopyOfClients().Select(handlerAction));
+        }
+        catch (Exception exception)
+        {
+            _logger.UiInformationCannotBeUpdatedError(exception);
+            return Task.CompletedTask;
+        }
     }
 }

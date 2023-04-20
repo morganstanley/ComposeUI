@@ -15,12 +15,10 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using ProcessExplorer.Abstractions;
 using ProcessExplorer.Abstractions.Processes;
 using ProcessExplorer.Abstractions.Subsystems;
-using ProcessExplorer.Core;
-using ProcessExplorer.Core.DependencyInjection;
 using ProcessExplorer.Core.Processes;
 using ProcessExplorer.Core.Subsystems;
 
-namespace ProcessExplorer.Server.DependencyInjection;
+namespace ProcessExplorer.Core.DependencyInjection;
 
 public static class ServiceCollectionProcessExplorerExtensions
 {
@@ -35,7 +33,7 @@ public static class ServiceCollectionProcessExplorerExtensions
         this IServiceCollection serviceCollection)
     {
 #pragma warning disable CA1416 // Validate platform compatibility
-        serviceCollection.TryAddSingleton<IProcessInfoManager, WindowsProcessInfoManager>();
+        serviceCollection.TryAddSingleton<IProcessInfoMonitor, WindowsProcessInfoMonitor>();
 #pragma warning restore CA1416 // Validate platform compatibility
         return serviceCollection;
     }

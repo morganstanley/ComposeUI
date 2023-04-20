@@ -25,7 +25,7 @@ namespace ProcessExplorer.Core.Subsystems;
 internal class SubsystemController : ISubsystemController
 {
     private ConcurrentDictionary<Guid, SubsystemInfo> _subsystems = new();
-    private Func<Func<IUIHandler, Task>, Task>? _updateInfoOnUi;
+    private Func<Func<IUiHandler, Task>, Task>? _updateInfoOnUi;
     private readonly object _subsystemLock = new();
     private readonly ILogger _logger;
 
@@ -36,7 +36,7 @@ internal class SubsystemController : ISubsystemController
 
     public SubsystemController(
         ISubsystemLauncher subsystemLauncher,
-        ILogger? logger)
+        ILogger? logger = null)
     {
         _subsystemLauncher = subsystemLauncher;
         _logger = logger ?? NullLogger<SubsystemController>.Instance;
@@ -52,7 +52,10 @@ internal class SubsystemController : ISubsystemController
 
     public async Task InitializeSubsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
+        if (subsystems == null || !subsystems.Any()) return;
+
         UpdateOrAddElements(subsystems);
+
         await SendModifiedSubsystems();
         await LaunchSubsystemsAutomatically();
     }
@@ -75,8 +78,8 @@ internal class SubsystemController : ISubsystemController
             }
 
             await SendRequest(
-                _subsystemLauncher.LaunchSubsystems(subsystemIds),
-                _subsystemLauncherCommunicator.SendLaunchSubsystemsRequest(subsystemIds));
+                communicatorTask: _subsystemLauncherCommunicator?.SendLaunchSubsystemsRequest(subsystemIds),
+                launcherTask: _subsystemLauncher?.LaunchSubsystems(subsystemIds));
 
         }
         catch (Exception exception)
@@ -95,13 +98,13 @@ internal class SubsystemController : ISubsystemController
         if (subsystem == null) return;
 
         await SendRequest(
-            _subsystemLauncherCommunicator.SendLaunchSubsystemAfterTimeRequest(subsystemId, subsystem.Name, periodOfTime),
-            _subsystemLauncher.LaunchSubsystemAfterTime(subsystemId, subsystem.Name, periodOfTime));
+            communicatorTask: _subsystemLauncherCommunicator?.SendLaunchSubsystemAfterTimeRequest(subsystemId, subsystem.Name, periodOfTime),
+            launcherTask: _subsystemLauncher?.LaunchSubsystemAfterTime(subsystemId, subsystem.Name, periodOfTime));
     }
 
     private Task SendRequest(
-        Task communicatorTask,
-        Task launcherTask)
+        Task? communicatorTask,
+        Task? launcherTask)
     {
         if (_subsystemLauncherCommunicator == null && _subsystemLauncher == null) return Task.CompletedTask;
 
@@ -147,23 +150,29 @@ internal class SubsystemController : ISubsystemController
     {
         try
         {
-            var ids = new Dictionary<Guid, string>();
+            var subsystemIds = new Dictionary<Guid, string>();
 
-            if (!subsystems.Any()) return;
+            if (subsystems == null || !subsystems.Any()) return;
 
             lock (_subsystemLock)
             {
                 foreach (var id in subsystems)
                 {
+                    var subsystemState = GetSubsystemState(id);
+
+                    if (subsystemState != SubsystemState.Stopped) continue;
+
                     var guidId = Guid.Parse(id);
+
                     if(!_subsystems.TryGetValue(guidId, out var subsystem)) continue;
-                    ids.Add(guidId, subsystem.Name);
+
+                    subsystemIds.Add(guidId, subsystem.Name);
                 }
             }
 
             await SendRequest(
-                    _subsystemLauncherCommunicator.SendLaunchSubsystemsRequest(ids),
-                    _subsystemLauncher.LaunchSubsystems(ids));
+                    communicatorTask: _subsystemLauncherCommunicator?.SendLaunchSubsystemsRequest(subsystemIds),
+                    launcherTask: _subsystemLauncher?.LaunchSubsystems(subsystemIds));
         }
         catch (Exception exception)
         {
@@ -171,7 +180,7 @@ internal class SubsystemController : ISubsystemController
         }
     }
 
-    private KeyValuePair<Guid, string?> GetSubsystem(string subsystemId)
+    private KeyValuePair<Guid, string?> GetSubsystemIdAndName(string subsystemId)
     {
         SubsystemInfo? subsystem;
         var guidId = Guid.Parse(subsystemId);
@@ -186,48 +195,71 @@ internal class SubsystemController : ISubsystemController
 
     public async Task LaunchSubsystem(string subsystemId)
     {
-        var subsystem = GetSubsystem(subsystemId);
+        var subsystemState = GetSubsystemState(subsystemId);
+
+        if (subsystemState != SubsystemState.Stopped) return;
+
+        var subsystem = GetSubsystemIdAndName(subsystemId);
         if(subsystem.Value == null) return;
 
         await SendRequest(
-            _subsystemLauncherCommunicator.SendLaunchSubsystemsRequest(new Dictionary<Guid, string> { { subsystem.Key, subsystem.Value } }),
-            _subsystemLauncher.LaunchSubsystem(subsystem.Key, subsystem.Value));
+            communicatorTask: _subsystemLauncherCommunicator?.SendLaunchSubsystemsRequest(new Dictionary<Guid, string> { { subsystem.Key, subsystem.Value } }),
+            launcherTask: _subsystemLauncher?.LaunchSubsystem(subsystem.Key, subsystem.Value));
     }
 
     public async Task RestartSubsystems(IEnumerable<string> subsystems)
     {
+        if (subsystems == null || !subsystems.Any()) return;
+
+        var subsystemIds = new Dictionary<Guid, string>();
         foreach (var subsystemId in subsystems)
         {
-            var subsystem = GetSubsystem(subsystemId);
-            if (subsystem.Value == null) return;
+            var subsystemState = GetSubsystemState(subsystemId);
 
-            await SendRequest(
-                _subsystemLauncherCommunicator.SendRestartSubsystemsRequest(new Dictionary<Guid, string> { { subsystem.Key, subsystem.Value } }),
-                _subsystemLauncher.RestartSubsystem(subsystem.Key, subsystem.Value));
+            if (subsystemState != SubsystemState.Started && subsystemState != SubsystemState.Running) continue;
+
+            var subsystem = GetSubsystemIdAndName(subsystemId);
+
+            subsystemIds.TryAdd(subsystem.Key, subsystem.Value!);
         }
+
+        await SendRequest(
+            communicatorTask: _subsystemLauncherCommunicator?.SendRestartSubsystemsRequest( subsystemIds ),
+            launcherTask: _subsystemLauncher?.RestartSubsystems(subsystemIds));
     }
 
     public async Task RestartSubsystem(string subsystemId)
     {
-        var subsystem = GetSubsystem(subsystemId);
+        var subsystemState = GetSubsystemState(subsystemId);
+
+        if (subsystemState != SubsystemState.Started && subsystemState != SubsystemState.Running) return;
+
+        var subsystem = GetSubsystemIdAndName(subsystemId);
         if (subsystem.Value == null) return;
 
         await SendRequest(
-            _subsystemLauncherCommunicator.SendRestartSubsystemsRequest(new Dictionary<Guid, string> { { subsystem.Key, subsystem.Value } }),
-            _subsystemLauncher.RestartSubsystem(subsystem.Key, subsystem.Value));
+            communicatorTask: _subsystemLauncherCommunicator?.SendRestartSubsystemsRequest(new Dictionary<Guid, string> { { subsystem.Key, subsystem.Value } }),
+            launcherTask: _subsystemLauncher?.RestartSubsystem(subsystem.Key, subsystem.Value));
     }
 
     public async Task ShutdownAllRegisteredSubsystem()
     {
         try
         {
-            var copySubsystems = GetCopySubsystems();
+            var copySubsystems = Enumerable.Empty<KeyValuePair<Guid, string>>();
+
+            lock (_subsystemLock)
+            {
+                copySubsystems = _subsystems
+                        .Where(subsystem => subsystem.Value.State == SubsystemState.Started || subsystem.Value.State == SubsystemState.Running)
+                        .Select(subsystem => new KeyValuePair<Guid, string>(subsystem.Key, subsystem.Value.Name));
+            }
             
             if (copySubsystems.Any())
             {
                 await SendRequest(
-                    _subsystemLauncherCommunicator.SendShutdownSubsystemsRequest(copySubsystems),
-                    _subsystemLauncher.ShutdownSubsystems(copySubsystems));
+                    communicatorTask: _subsystemLauncherCommunicator?.SendShutdownSubsystemsRequest(copySubsystems),
+                    launcherTask: _subsystemLauncher?.ShutdownSubsystems(copySubsystems));
             }
         }
         catch (Exception exception)
@@ -238,7 +270,7 @@ internal class SubsystemController : ISubsystemController
 
     private IEnumerable<KeyValuePair<Guid, string>> GetCopySubsystems()
     {
-        IEnumerable<KeyValuePair<Guid, string>> copySubsystems = Enumerable.Empty<KeyValuePair<Guid, string>>();
+        var copySubsystems = Enumerable.Empty<KeyValuePair<Guid, string>>();
 
         lock (_subsystemLock)
         {
@@ -250,35 +282,59 @@ internal class SubsystemController : ISubsystemController
 
     public async Task ShutdownSubsystem(string subsystemId)
     {
-        var subsystem = GetSubsystem(subsystemId);
+        var subsystemState = GetSubsystemState(subsystemId);
+
+        if (subsystemState != SubsystemState.Started && subsystemState != SubsystemState.Running) return;
+        
+        var subsystem = GetSubsystemIdAndName(subsystemId);
         if (subsystem.Value == null) return;
 
         await SendRequest(
-            _subsystemLauncherCommunicator.SendShutdownSubsystemsRequest(new Dictionary<Guid, string>() { { subsystem.Key, subsystem.Value } }),
-            _subsystemLauncher.ShutdownSubsystem(subsystem.Key, subsystem.Value));
+            communicatorTask: _subsystemLauncherCommunicator?.SendShutdownSubsystemsRequest(new Dictionary<Guid, string>() { { subsystem.Key, subsystem.Value } }),
+            launcherTask: _subsystemLauncher?.ShutdownSubsystem(subsystem.Key, subsystem.Value));
+    }
+
+    private string GetSubsystemState(string subsystemId)
+    {
+        var result = string.Empty;
+
+        lock (_subsystemLock)
+        {
+            if (_subsystems.Any())
+                result = _subsystems
+                    .First(subsystem => subsystem.Key == Guid.Parse(subsystemId))
+                    .Value
+                    .State;
+        }
+
+        return result;
     }
 
     public async Task ShutdownSubsystems(IEnumerable<string> subsystems)
     {
         try
         {
-            IEnumerable<KeyValuePair<Guid, string>> copySubsystems;
+            var copySubsystems = GetCopySubsystems();
 
-            lock (_subsystemLock)
+            var subsystemsToTerminate = new Dictionary<Guid, string>();
+
+            foreach (var subsystemId in subsystems)
             {
-                copySubsystems = _subsystems.Select(subsystem => new KeyValuePair<Guid, string>(subsystem.Key, subsystem.Value.Name));
+                var subsystemKvp = copySubsystems
+                    .First(sub => sub.Key == Guid.Parse(subsystemId));
+
+                if (!subsystemsToTerminate.TryAdd(subsystemKvp.Key, subsystemKvp.Value)) _logger.SubsystemTerminationAddWarning(subsystemKvp.Key.ToString(), subsystemKvp.Value);
             }
 
             await SendRequest(
-                _subsystemLauncherCommunicator.SendShutdownSubsystemsRequest(copySubsystems),
-                _subsystemLauncher.ShutdownSubsystems(copySubsystems));
+                communicatorTask: _subsystemLauncherCommunicator?.SendShutdownSubsystemsRequest(copySubsystems),
+                launcherTask: _subsystemLauncher?.ShutdownSubsystems(copySubsystems));
         }
         catch (Exception exception)
         {
             _logger.CannotTerminateSubsystemError(exception);
         }
     }
-
 
     public async Task ModifySubsystemState(Guid subsystemId, string state)
     {
@@ -306,8 +362,17 @@ internal class SubsystemController : ISubsystemController
 
     public async Task AddSubsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
+        if (subsystems == null || !subsystems.Any()) return;
+
         UpdateOrAddElements(subsystems);
+
+        foreach (var subsystem in subsystems)
+        {
+            if (subsystem.Value.AutomatedStart) Task.Run(async () => await LaunchSubsystem(subsystem.Key.ToString()));
+        }
+
         if (_updateInfoOnUi == null) return;
+
         await _updateInfoOnUi.Invoke(handler => handler.AddSubsystems(subsystems));
     }
 
@@ -320,19 +385,28 @@ internal class SubsystemController : ISubsystemController
         }
     }
 
-    public void RemoveSubsystem(Guid subsystemId)
+    public async Task RemoveSubsystem(Guid subsystemId)
     {
+        var subsystem = _subsystems.First(subsystem => subsystem.Key == subsystemId);
+
+        if (subsystem.Key == default) return;
+
+        if (subsystem.Value.State == SubsystemState.Started || subsystem.Value.State == SubsystemState.Running)
+            await ShutdownSubsystem(subsystemId.ToString());
+
         lock (_subsystemLock)
         {
             var succeed = _subsystems.TryRemove(subsystemId, out _);
+
             if (!succeed) return;
-            Task.Run(() => SendModifiedSubsystems());
+
+            Task.Run(async () => await SendModifiedSubsystems());
         }
     }
 
     private async Task SendModifiedSubsystems()
     {
-        List<KeyValuePair<Guid, SubsystemInfo>> subsystemsCopy;
+        var subsystemsCopy = Enumerable.Empty<KeyValuePair<Guid, SubsystemInfo>>();
         lock (_subsystemLock)
         {
             subsystemsCopy = _subsystems.ToList();
@@ -340,34 +414,6 @@ internal class SubsystemController : ISubsystemController
 
         if (_updateInfoOnUi == null) return;
         await _updateInfoOnUi.Invoke(handler => handler.AddSubsystems(subsystemsCopy));
-    }
-
-
-    public Task SendInitializedSubsystemInfoToUis(ReadOnlySpan<IUIHandler> handlers)
-    {
-        var subsystemCopy = new Dictionary<Guid, SubsystemInfo>();
-
-        lock (_subsystemLock)
-        {
-            if (_subsystems.Any())
-            {
-                foreach (var subsystem in _subsystems)
-                {
-                    subsystemCopy
-                        .Add(subsystem.Key, subsystem.Value);
-                }
-            }
-        }
-
-        if (subsystemCopy.Count > 0)
-        {
-            foreach (var uiHandler in handlers)
-            {
-                return uiHandler.AddSubsystems(subsystemCopy);
-            }
-        }
-
-        return Task.CompletedTask;
     }
 
     private async Task SetState(Guid subsystemId, string state)
@@ -404,7 +450,7 @@ internal class SubsystemController : ISubsystemController
         }
     }
 
-    public void SetUiDelegate(Func<Func<IUIHandler, Task>, Task> updateInfoOnUI)
+    public void SetUiDelegate(Func<Func<IUiHandler, Task>, Task> updateInfoOnUI)
     {
         _updateInfoOnUi = updateInfoOnUI;
     }

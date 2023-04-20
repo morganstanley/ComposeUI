@@ -11,13 +11,263 @@
 // and limitations under the License.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
+using System.Threading;
+using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Moq;
+using ProcessExplorer.Abstractions.Handlers;
+using ProcessExplorer.Abstractions.Processes;
+using ProcessExplorer.Core.Processes;
+using Xunit;
 
 namespace ProcessExplorer.Core.Tests.Processes;
 
 public class WindowsProcessInfoManagerTests
 {
+    [Fact]
+    public void AddChildProcesses_will_add_child_processes_to_the_list()
+    {
+        var loggerMock = CreateLoggerMock();
+        var processMonitor = CreateWindowsProcessMonitor(loggerMock.Object);
+
+        var testApplication = Process.Start(GetTestApplicationPath()); //It will start an another child process
+
+        // Waiting for the child process to start
+        Thread.Sleep(100);
+
+        processMonitor.AddChildProcesses(testApplication.Id, testApplication.ProcessName);
+
+        var result = processMonitor.GetProcessIds().ToArray();
+
+        result.Should().NotBeEmpty();
+        result.Should().HaveCount(2);
+        result.Should().Contain(testApplication.Id);
+
+        processMonitor.Dispose();
+    }
+
+    [Fact]
+    public void AddProcess_will_add_process_to_the_watchable_list()
+    {
+        var loggerMock = CreateLoggerMock();
+        var processMonitor = CreateWindowsProcessMonitor(loggerMock.Object);
+
+        var process = Process.Start(GetSimpleTestApplicationPath());
+
+        processMonitor.AddProcess(process.Id);
+        var result = processMonitor.GetProcessIds().ToArray();
+
+        result.Should().NotBeEmpty();
+        result.Should().HaveCount(1);
+        result.Should().Contain(process.Id);
+
+        process.Kill();
+        processMonitor.Dispose();
+    }
+
+    [Fact]
+    public void CheckIfIsComposeProcess_will_check_if_it_is_contained_by_the_list_and_return_true()
+    {
+        var loggerMock = CreateLoggerMock();
+        var processMonitor = CreateWindowsProcessMonitor(loggerMock.Object);
+        var process = Process.Start(GetSimpleTestApplicationPath());
+        processMonitor.AddProcess(process.Id);
+
+        var result = processMonitor.CheckIfIsComposeProcess(process.Id);
+
+        result.Should().BeTrue();
+
+        process.Kill();
+        processMonitor.Dispose();
+    }
+
+    [Fact]
+    public void CheckIfIsComposeProcess_will_check_if_it_is_contained_by_the_list_and_return_false()
+    {
+        var loggerMock = CreateLoggerMock();
+        var processMonitor = CreateWindowsProcessMonitor(loggerMock.Object);
+        var process = Process.Start(GetSimpleTestApplicationPath());
+        var result = processMonitor.CheckIfIsComposeProcess(process.Id);
+
+        result.Should().BeFalse();
+
+        process.Kill();
+        processMonitor.Dispose();
+    }
+
+    [Fact]
+    public void ClearProcessIds_will_remove_all_the_elements()
+    {
+        var loggerMock = CreateLoggerMock();
+        var processMonitor = CreateWindowsProcessMonitor(loggerMock.Object);
+        var process = Process.Start(GetSimpleTestApplicationPath());
+        processMonitor.AddProcess(process.Id);
+
+        processMonitor.ClearProcessIds();
+        var result = processMonitor.GetProcessIds().ToArray();
+
+        result.Should().BeEmpty();
+
+        process.Kill();
+        processMonitor.Dispose();
+    }
+
+    [Fact]
+    public void GetCpuUsage_will_return_with_some_value()
+    {
+        var loggerMock = CreateLoggerMock();
+        var processMonitor = CreateWindowsProcessMonitor(loggerMock.Object);
+
+        var cpuUsageResult = processMonitor.GetCpuUsage(
+            Environment.ProcessId, 
+            Process.GetProcessById(Environment.ProcessId).ProcessName);
+
+        cpuUsageResult.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public void GetMemoryUsage_will_return_with_some_value()
+    {
+        var loggerMock = CreateLoggerMock();
+        var processMonitor = CreateWindowsProcessMonitor(loggerMock.Object);
+
+        var memoryUsageResult = processMonitor.GetMemoryUsage(
+            Environment.ProcessId,
+            Process.GetProcessById(Environment.ProcessId).ProcessName);
+
+        memoryUsageResult.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public void GetParentId_will_return_the_parent_id_of_the_process()
+    {
+        var loggerMock = CreateLoggerMock();
+        var processMonitor = CreateWindowsProcessMonitor(loggerMock.Object);
+
+        var process = Process.Start(GetSimpleTestApplicationPath());
+
+        //Expected parentid should be the current process id, as we are starting this process from the code.
+        var parentId = processMonitor.GetParentId(process.Id, process.ProcessName);
+
+        parentId.Should().NotBeNull();
+        parentId.Should().Be(Process.GetCurrentProcess().Id);
+
+        process.Kill();
+        processMonitor.Dispose();
+    }
+
+    [Fact]
+    public void GetParentId_will_return_null()
+    {
+        var loggerMock = CreateLoggerMock();
+        var processMonitor = CreateWindowsProcessMonitor(loggerMock.Object);
+
+        //Expected parentid should be the current process id, as we are starting this process from the code.
+        var parentId = processMonitor.GetParentId(666666, string.Empty);
+
+        parentId.Should().BeNull();
+
+        processMonitor.Dispose();
+    }
+    
+    [Fact]
+    public void SetProcessIds_will_set_the_ids_and_its_child_process_ids()
+    {
+        var loggerMock = CreateLoggerMock();
+        var processMonitor = CreateWindowsProcessMonitor(loggerMock.Object);
+
+        var testApplication = Process.Start(GetTestApplicationPath()); //It will start a process
+
+        var processes = new[] { testApplication.Id };
+
+        // Waiting for the notepad process to start
+        Thread.Sleep(100);
+        processMonitor.SetProcessIds(Environment.ProcessId, processes);
+
+        var result = processMonitor.GetProcessIds().ToArray();
+
+        result.Should().Contain(processes);
+        result.Should().HaveCount(3);
+
+        processMonitor.Dispose();
+    }
+
+    [Fact]
+    public void WatchProcesses_will_begin_to_watch_all_the_processes_in_windows()
+    {
+        var loggerMock = CreateLoggerMock();
+        var processMonitor = CreateWindowsProcessMonitor(loggerMock.Object);
+        var modifiedProcessActionMock = new Mock<ProcessModifiedHandler>();
+        var terminatedProcessActionMock = new Mock<ProcessTerminatedHandler>();
+        var createdProcessActionMock = new Mock<ProcessCreatedHandler>();
+        var modifiedProcessesActionMock = new Mock<ProcessesModifiedHandler>();
+        var statusModifiedProcessActionMock = new Mock<ProcessStatusChangedHandler>();
+
+        var testApplication = Process.Start(GetTestApplicationPath()); //It will start a child process
+
+        processMonitor.SetHandlers(
+            modifiedProcessActionMock.Object, 
+            terminatedProcessActionMock.Object, 
+            createdProcessActionMock.Object, 
+            modifiedProcessesActionMock.Object, 
+            statusModifiedProcessActionMock.Object);
+
+        processMonitor.WatchProcesses(Environment.ProcessId);
+
+        var result = processMonitor.GetProcessIds().ToArray();
+
+        result.Should().HaveCountGreaterOrEqualTo(3);
+        createdProcessActionMock.Verify(x => x.Invoke(It.IsAny<int>()), Times.AtLeast(3));
+
+        processMonitor.Dispose();
+    }
+
+    [Conditional("DEBUG")]
+    private static void IsDebug(ref bool isDebug) => isDebug = true;
+
+    private Mock<ILogger<ProcessInfoMonitor>> CreateLoggerMock()
+    {
+        var loggerMock = new Mock<ILogger<ProcessInfoMonitor>>();
+
+        var loggerFilterOptions = new LoggerFilterOptions();
+
+        loggerFilterOptions.AddFilter("", LogLevel.Debug);
+
+        loggerMock
+            .Setup(x => x.IsEnabled(It.IsAny<LogLevel>()))
+            .Returns<LogLevel>(level => loggerFilterOptions.MinLevel <= level);
+
+        return loggerMock;
+    }
+
+    private ProcessInfoMonitor CreateWindowsProcessMonitor(ILogger<ProcessInfoMonitor> logger)
+    {
+        var processMonitor = new WindowsProcessInfoMonitor(logger);
+        return processMonitor;
+    }
+
+    private static string GetTestApplicationPath()
+    {
+        var folder = GetEnvironmentFolder();
+
+        return $"../../../../TestConsoleApp/bin/{folder}/net6.0/TestConsoleApp.exe";
+    }
+
+    private static string GetSimpleTestApplicationPath()
+    {
+        var folder = GetEnvironmentFolder();
+
+        return $"../../../../TestConsoleApp2/bin/{folder}/net6.0/TestConsoleApp2.exe";
+    }
+
+    private static string GetEnvironmentFolder()
+    {
+        var isDebug = false;
+        IsDebug(ref isDebug);
+
+        var folder = isDebug ? "Debug" : "Release";
+
+        return folder;
+    }
 }

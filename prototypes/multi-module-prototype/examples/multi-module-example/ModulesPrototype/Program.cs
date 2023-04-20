@@ -27,10 +27,10 @@ using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 using Nito.AsyncEx;
 using System.Linq;
 using ProcessExplorer.Server.DependencyInjection;
-using System.Reactive.Linq;
 using ProcessExplorer.Server.Server.Abstractions;
 using ProcessExplorer.Abstractions.Subsystems;
 using ProcessExplorer.Abstractions;
+using ProcessExplorer.Core.DependencyInjection;
 
 namespace ModulesPrototype;
 
@@ -74,7 +74,7 @@ internal class Program
             .ConfigureLogging(l => l.AddConsole().SetMinimumLevel(LogLevel.Debug))
             .ConfigureServices(
              (context, services) => services
-                 .AddProcessExplorerWindowsServer(pe => pe.UseGrpc())
+                 .AddProcessExplorerWindowsServerWithGrpc(pe => pe.UseGrpc())
                  .ConfigureSubsystemLauncher(loader.RequestStartProcess, loader.RequestStopProcess, CreateLaunchRequest, CreateStopRequest)
                  .Configure<ProcessExplorerServerOptions>(op =>
                  {

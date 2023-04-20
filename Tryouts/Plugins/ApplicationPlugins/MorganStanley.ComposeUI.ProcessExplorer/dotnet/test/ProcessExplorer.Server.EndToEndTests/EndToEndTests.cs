@@ -26,6 +26,7 @@ using ProcessExplorer.Server.DependencyInjection;
 using ProcessExplorer.Server.Server.Abstractions;
 using Xunit;
 using FluentAssertions;
+using ProcessExplorer.Core.DependencyInjection;
 
 namespace ProcessExplorer.Server.IntegrationTests;
 
@@ -52,7 +53,7 @@ public class EndToEndTests : IAsyncLifetime
 
         var call = client.Subscribe(new Empty(), cancellationToken: cancellationTokenSource.Token);
 
-        // We want to receive the message, that the subscription is estabilished, and we do not want to wait.
+        // We want to receive the message, that the subscription is established, and we do not want to wait.
         // Due to that no processes/subsystems/runtime information have not been declared it will just receive the subscription alive notification
 
         try
@@ -159,7 +160,7 @@ public class EndToEndTests : IAsyncLifetime
 
         builder.ConfigureServices(
              (context, services) => services
-                 .AddProcessExplorerWindowsServer(pe => pe.UseGrpc())
+                 .AddProcessExplorerWindowsServerWithGrpc(pe => pe.UseGrpc())
                  .ConfigureSubsystemLauncher(Start, Stop, CreateDummyStartType, CreateDummyStopType)
                  .Configure<ProcessExplorerServerOptions>(op =>
                  {

@@ -61,7 +61,7 @@ public interface ISubsystemController
     /// Sets the updating method for the UI's.
     /// </summary>
     /// <param name="updateInfoOnUI"></param>
-    void SetUiDelegate(Func<Func<IUIHandler, Task>, Task> updateInfoOnUI);
+    void SetUiDelegate(Func<Func<IUiHandler, Task>, Task> updateInfoOnUI);
 
     /// <summary>
     /// It will send a launch request for a subsystem.
@@ -124,7 +124,7 @@ public interface ISubsystemController
     /// </summary>
     /// <param name="subsystemId"></param>
     /// <returns></returns>
-    void RemoveSubsystem(Guid subsystemId);
+    Task RemoveSubsystem(Guid subsystemId);
 
     /// <summary>
     /// Modifies a state of a subsystem with the given data. Send update to the registered UIs.
@@ -133,13 +133,6 @@ public interface ISubsystemController
     /// <param name="state"></param>
     /// <returns></returns>
     Task ModifySubsystemState(Guid subsystemId, string state);
-
-    /// <summary>
-    /// Sends the subsystems to the defined Ui's.
-    /// </summary>
-    /// <param name="handlers"></param>
-    /// <returns></returns>
-    Task SendInitializedSubsystemInfoToUis(ReadOnlySpan<IUIHandler> handlers);
 
     /// <summary>
     /// Returns the initialized subsystems.

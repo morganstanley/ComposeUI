@@ -56,7 +56,6 @@ internal class SubsystemLauncher<LaunchRequestType, StopRequestType> : ISubsyste
     {
         try
         {
-
             if (_launchRequest == null || _createLaunchRequest == null) return Task.FromResult(SubsystemState.Stopped);
 
             _launchRequest.Invoke(_createLaunchRequest.Invoke(subsystemId, subsystemName));
@@ -85,7 +84,14 @@ internal class SubsystemLauncher<LaunchRequestType, StopRequestType> : ISubsyste
 
     public async Task<string> RestartSubsystem(Guid subsystemId, string subsystemName)
     {
-        await ShutdownSubsystem(subsystemId, subsystemName);
+        var stopResult = await ShutdownSubsystem(subsystemId, subsystemName);
+
+        if (stopResult == SubsystemState.Running 
+            || stopResult == SubsystemState.Started)
+        {
+            _logger.SubsystemRestartError(subsystemId.ToString());
+            return stopResult;
+        }
 
         var startedStateResult = await LaunchSubsystem(subsystemId, subsystemName);
         if (startedStateResult == SubsystemState.Stopped)
@@ -125,7 +131,9 @@ internal class SubsystemLauncher<LaunchRequestType, StopRequestType> : ISubsyste
         return HandleSubsystemAction(subsystems, ShutdownSubsystem);
     }
 
-    private async Task<IEnumerable<KeyValuePair<Guid, string>>> HandleSubsystemAction(IEnumerable<KeyValuePair<Guid, string>> subsystems, RequestSubsystemAction action)
+    private async Task<IEnumerable<KeyValuePair<Guid, string>>> HandleSubsystemAction(
+        IEnumerable<KeyValuePair<Guid, string>> subsystems, 
+        RequestSubsystemAction action)
     {
         var result = new Dictionary<Guid, string>();
 

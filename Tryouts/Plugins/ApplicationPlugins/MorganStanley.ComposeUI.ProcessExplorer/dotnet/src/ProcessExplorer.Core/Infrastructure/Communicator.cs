@@ -29,11 +29,6 @@ internal class Communicator : ICommunicator
         _aggregator = processAggregator;
     }
 
-    public void SetProcessInfoAggregator(IProcessInfoAggregator aggregator)
-    {
-        _aggregator = aggregator;
-    }
-
     public async ValueTask AddRuntimeInfo(IEnumerable<KeyValuePair<AssemblyInformation, ProcessInfoCollectorData>> listOfRuntimeInfos)
     {
         if (listOfRuntimeInfos == null) return;

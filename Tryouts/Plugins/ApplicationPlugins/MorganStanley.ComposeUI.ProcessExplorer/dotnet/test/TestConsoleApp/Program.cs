@@ -10,17 +10,30 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using Microsoft.Extensions.Logging;
-using ProcessExplorer.Abstractions.Processes;
-using ProcessExplorer.Core.Processes;
+using System.Diagnostics;
+using TestConsoleApp;
 
-namespace ProcessExplorer.Core.Factories;
-public static class ProcessMonitorFactory
+Console.WriteLine("Hello, World!");
+
+Console.WriteLine("This is a test application to test the ProcessMonitor...");
+
+Console.WriteLine("Starting a process...");
+
+var isDebug = false;
+Helper.IsDebug(ref isDebug);
+
+var folder = isDebug ? "Debug" : "Release";
+
+var childProcess = Process.Start($"../../../../TestConsoleApp2/bin/{folder}/net6.0/TestConsoleApp2.exe");
+
+var sum = 0;
+for (int i = 0; i < 50000000; i++)
 {
-    public static ProcessInfoMonitor CreateProcessInfoMonitorWindows(ILogger<ProcessInfoMonitor> logger)
-    {
-#pragma warning disable CA1416 // Validate platform compatibility
-        return new WindowsProcessInfoMonitor(logger);
-#pragma warning restore CA1416 // Validate platform compatibility
-    }
+    sum += i;
 }
+Thread.Sleep(10000);
+
+Console.WriteLine("Terminating a process....");
+childProcess.Kill();
+
+Console.WriteLine("ChildProcess is terminated");

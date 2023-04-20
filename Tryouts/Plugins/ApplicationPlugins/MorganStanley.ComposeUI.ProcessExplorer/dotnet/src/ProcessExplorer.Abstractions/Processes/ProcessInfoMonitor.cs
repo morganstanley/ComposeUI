@@ -20,7 +20,7 @@ using ProcessExplorer.Abstractions.Logging;
 
 namespace ProcessExplorer.Abstractions.Processes;
 
-public abstract class ProcessInfoManager : IProcessInfoManager
+public abstract class ProcessInfoMonitor : IProcessInfoMonitor
 {
     private ProcessCreatedHandler? _processCreatedHandler;
     private ProcessModifiedHandler? _processModifiedHandler;
@@ -31,7 +31,7 @@ public abstract class ProcessInfoManager : IProcessInfoManager
     private readonly ObservableCollection<int> _processIds = new();
     private readonly object _locker = new();
 
-    public ProcessInfoManager(ILogger? logger)
+    public ProcessInfoMonitor(ILogger? logger)
     {
         _logger = logger ?? NullLogger.Instance;
         _processIds.CollectionChanged += ProcessIdsChanged;
@@ -54,7 +54,7 @@ public abstract class ProcessInfoManager : IProcessInfoManager
                 {
                     if (e.OldItems != null)
                         foreach (int pid in e.OldItems)
-                            _processTerminatedHandler?.Invoke(pid);
+                            ProcessTerminated(pid);
 
                     break;
                 }
@@ -109,9 +109,20 @@ public abstract class ProcessInfoManager : IProcessInfoManager
         {
             foreach (var id in processIds)
             {
-                if (_processIds.Contains(id)) continue;
-                _processIds.Add(id);
-                AddChildProcesses(id, Process.GetProcessById(id).ProcessName);
+                try
+                {
+                    if (_processIds.Contains(id)) continue;
+
+                    var process = Process.GetProcessById(id);
+
+                    _processIds.Add(id);
+
+                    AddChildProcesses(id, process.ProcessName);
+                }
+                catch (Exception exception)
+                {
+                    _logger.ProcessExpected(exception);
+                }
             }
 
             if (mainProcessId != 0 && !_processIds.Contains(mainProcessId))
@@ -188,8 +199,6 @@ public abstract class ProcessInfoManager : IProcessInfoManager
     /// <summary>
     /// Searches for child processes to watch.
     /// </summary>
-    /// <param name="processInfo"></param>
-    /// <returns></returns>
     public abstract ReadOnlySpan<int> AddChildProcesses(int processId, string? processName);
 
     /// <summary>
@@ -201,20 +210,6 @@ public abstract class ProcessInfoManager : IProcessInfoManager
         return IsComposeProcess(processId);
     }
 
-    public void SendNewProcessUpdate(int processId)
-    {
-        _processCreatedHandler?.Invoke(processId);
-    }
-
-    /// <summary>
-    /// Sends a terminated process information to publish
-    /// </summary>
-    /// <param name="processId"></param>
-    public void SendTerminatedProcessUpdate(int processId)
-    {
-        ProcessTerminated(processId);
-    }
-
     /// <summary>
     /// Sends a modified process information to publish
     /// </summary>
@@ -224,7 +219,7 @@ public abstract class ProcessInfoManager : IProcessInfoManager
         _processModifiedHandler?.Invoke(processId);
     }
 
-    ~ProcessInfoManager()
+    ~ProcessInfoMonitor()
     {
         Dispose();
     }

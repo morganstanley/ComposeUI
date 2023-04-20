@@ -28,11 +28,11 @@ using ProcessExplorer.Abstractions;
 using ProcessExplorer.Abstractions.Infrastructure;
 using ProcessExplorer.Abstractions.Processes;
 using ProcessExplorer.Abstractions.Subsystems;
+using ProcessExplorer.Core.Tests.Subsystems;
 using Xunit;
 
 namespace ProcessExplorer.Core.Tests;
 
-//TODO(Lilla):  mock<IUIhandler>, and test windowsprocess with creating process release/debug folder
 public class ProcessInfoAggregatorTests
 {
     [Fact]
@@ -42,14 +42,15 @@ public class ProcessInfoAggregatorTests
         var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(3));
 
         //Creating mocks to handle method
-        var mockUiHandler = new Mock<IUIHandler>();
+        var mockUiHandler = new Mock<IUiHandler>();
         var mockSubsystemController = new Mock<ISubsystemController>();
-        var mockProcessInfoManager = new Mock<ProcessInfoManager>(NullLogger.Instance);
-
+        var mockProcessInfoMonitor = new Mock<ProcessInfoMonitor>(NullLogger.Instance);
+        var clientMock = new Mock<IClientConnection<SubsystemLauncherTests.DummyStartType>>();
         var processInfoAggregator = new ProcessInfoAggregator(
-            NullLogger<IProcessInfoAggregator>.Instance,
-            mockProcessInfoManager.Object,
-            mockSubsystemController.Object);
+            mockProcessInfoMonitor.Object,
+            mockUiHandler.Object,
+            mockSubsystemController.Object,
+            NullLogger<IProcessInfoAggregator>.Instance);
 
         //Run in the background
         var task = Task.Run(() => processInfoAggregator.RunSubsystemStateQueue(cancellationTokenSource.Token));
@@ -59,12 +60,12 @@ public class ProcessInfoAggregatorTests
         processInfoAggregator.ScheduleSubsystemStateChanged(id, SubsystemState.Started);
 
         //Add a mock ui connection to send to.
-        processInfoAggregator.AddUiConnection(Guid.NewGuid(), mockUiHandler.Object);
+        processInfoAggregator.UiHandler.AddClientConnection(id, clientMock.Object);
 
         //Wait for the task to finish
         await task;
 
-        Assert.True(cancellationTokenSource.IsCancellationRequested);
+        cancellationTokenSource.IsCancellationRequested.Should().BeTrue();
     }
 
     [Fact]
@@ -92,131 +93,6 @@ public class ProcessInfoAggregatorTests
         var result = processInfoAggregator.TerminatingProcessDelay;
 
         result.Should().Be(dummyDelay);
-    }
-
-    [Fact]
-    public void AddUiConnection_will_add_a_connection_information()
-    {
-        var mockUiHandler = new Mock<IUIHandler>();
-        var mockSubsystemController = new Mock<ISubsystemController>();
-        var mockProcessInfoManager = new Mock<ProcessInfoManager>(NullLogger.Instance);
-
-        var processInfoAggregator = new ProcessInfoAggregator(
-            NullLogger<IProcessInfoAggregator>.Instance,
-            mockProcessInfoManager.Object,
-            mockSubsystemController.Object);
-
-        var id = Guid.NewGuid();
-
-        processInfoAggregator.AddUiConnection(id, mockUiHandler.Object);
-
-        var result = processInfoAggregator.GetUiClients();
-
-        result.Should().NotBeNull();
-        result.Should().HaveCount(1);
-        result.Should().Contain(new KeyValuePair<Guid, IUIHandler>(id, mockUiHandler.Object));
-    }
-
-    [Fact]
-    public void RemoveUiConnection_will_add_a_connection_information()
-    {
-        var mockUiHandler = new Mock<IUIHandler>();
-        var mockSubsystemController = new Mock<ISubsystemController>();
-        var mockProcessInfoManager = new Mock<ProcessInfoManager>(NullLogger.Instance);
-
-        var processInfoAggregator = new ProcessInfoAggregator(
-            NullLogger<IProcessInfoAggregator>.Instance,
-            mockProcessInfoManager.Object,
-            mockSubsystemController.Object);
-
-        var id = Guid.NewGuid();
-
-        processInfoAggregator.AddUiConnection(id, mockUiHandler.Object);
-
-        var result = processInfoAggregator.GetUiClients();
-
-        result.Should().NotBeNull();
-        result.Should().HaveCount(1);
-        result.Should().Contain(new KeyValuePair<Guid, IUIHandler>(id, mockUiHandler.Object));
-
-        var otherId = Guid.NewGuid();
-        processInfoAggregator.AddUiConnection(otherId, mockUiHandler.Object);
-        result.Should().HaveCount(2);
-
-        processInfoAggregator.RemoveUiConnection(new(id, mockUiHandler.Object));
-        result.Should().Contain(new KeyValuePair<Guid, IUIHandler>(otherId, mockUiHandler.Object));
-        result.Should().NotContain(new KeyValuePair<Guid, IUIHandler>(id, mockUiHandler.Object));
-        result.Should().HaveCount(1);
-    }
-
-    [Theory]
-    [ClassData(typeof(RuntimeInfoTheoryData))]
-    public async Task AddRuntimeInformation_will_add_a_new_info(string id, ProcessInfoCollectorData data)
-    {
-        var processInfoAggregator = CreateProcessInfoAggregator();
-
-        await processInfoAggregator.AddRuntimeInformation(id, data);
-
-        var collection = processInfoAggregator.GetRuntimeInformation();
-
-        collection.Should().HaveCount(1);
-        collection.Should().Contain(new KeyValuePair<string, ProcessInfoCollectorData>(id, data));
-
-        var result = collection.First().Value;
-
-        data.Connections.Count.Should().Be(result.Connections.Count);
-        data.Connections.Should().BeEquivalentTo(result.Connections);
-        data.EnvironmentVariables.Count.Should().Be(result.EnvironmentVariables.Count);
-        data.EnvironmentVariables.Should().BeEquivalentTo(result.EnvironmentVariables);
-        data.Modules.Count.Should().Be(result.Modules.Count);
-        data.Modules.Should().BeEquivalentTo(result.Modules);
-        data.Registrations.Count.Should().Be(result.Registrations.Count);
-        data.Registrations.Should().BeEquivalentTo(result.Registrations);
-    }
-
-    [Theory]
-    [ClassData(typeof(RuntimeInfoTheoryData))]
-    public async Task AddRuntimeInformation_will_update_an_info(string id, ProcessInfoCollectorData data)
-    {
-        var processInfoAggregator = CreateProcessInfoAggregator();
-
-        var dummyRuntimeInfo = new ProcessInfoCollectorData()
-        {
-            Id = 2,
-            Connections = new() 
-            { 
-                new() { Id = Guid.NewGuid(), Name = "dummy" }, 
-                new() { Id = Guid.NewGuid(), Name = "dummy2" }, 
-                new() { Id = Guid.NewGuid(), Name = "dummy3" } 
-            },
-            Registrations = new() 
-            { 
-                new() { ImplementationType = "dummyImpl", LifeTime = "dummyLT", ServiceType = "dummyST" }, 
-                new() { ImplementationType = "dummyImpl", LifeTime = "dummyLT", ServiceType = "dummyST" }, 
-                new() { ImplementationType = "dummyImpl", LifeTime = "dummyLT", ServiceType = "dummyST" } 
-            }
-        };
-
-        await processInfoAggregator.AddRuntimeInformation(id, dummyRuntimeInfo);
-
-        //modifying the existing one
-        await processInfoAggregator.AddRuntimeInformation(id, data);
-
-        var collection = processInfoAggregator.GetRuntimeInformation();
-
-        collection.Should().HaveCount(1);
-        collection.Should().Contain(new KeyValuePair<string, ProcessInfoCollectorData>(id, data));
-
-        var result = collection.First().Value;
-
-        data.Connections.Count.Should().Be(result.Connections.Count);
-        data.Connections.Should().BeEquivalentTo(result.Connections);
-        data.EnvironmentVariables.Count.Should().Be(result.EnvironmentVariables.Count);
-        data.EnvironmentVariables.Should().BeEquivalentTo(result.EnvironmentVariables);
-        data.Modules.Count.Should().Be(result.Modules.Count);
-        data.Modules.Should().BeEquivalentTo(result.Modules);
-        data.Registrations.Count.Should().Be(result.Registrations.Count);
-        data.Registrations.Should().BeEquivalentTo(result.Registrations);
     }
 
     [Fact]
@@ -447,15 +323,16 @@ public class ProcessInfoAggregatorTests
     public void EnableWatchingSavedProcesses_will_begin_to_watch_processes()
     {
         var mockSubsystemController = new Mock<ISubsystemController>();
-        var mockProcessInfoManager = new Mock<IProcessInfoManager>();
-
+        var mockProcessInfoMonitor = new Mock<IProcessInfoMonitor>();
+        var mockUiHandler = new Mock<IUiHandler>();
         var processInfoAggregator = new ProcessInfoAggregator(
-            NullLogger<IProcessInfoAggregator>.Instance,
-            mockProcessInfoManager.Object,
-            mockSubsystemController.Object);
+            mockProcessInfoMonitor.Object,
+            mockUiHandler.Object,
+            mockSubsystemController.Object,
+            NullLogger<IProcessInfoAggregator>.Instance);
 
         processInfoAggregator.EnableWatchingSavedProcesses();
-        mockProcessInfoManager.Verify(x => x.WatchProcesses(processInfoAggregator.MainProcessId), Times.Once);
+        mockProcessInfoMonitor.Verify(x => x.WatchProcesses(processInfoAggregator.MainProcessId), Times.Once);
     }
 
 
@@ -484,15 +361,88 @@ public class ProcessInfoAggregatorTests
     private IProcessInfoAggregator CreateProcessInfoAggregator()
     {
         var mockSubsystemController = new Mock<ISubsystemController>();
-        var mockProcessInfoManager = new Mock<IProcessInfoManager>();
-
+        var mockProcessInfoMonitor = new Mock<IProcessInfoMonitor>();
+        var mockUiHandler = new Mock<IUiHandler>();
         var processInfoAggregator = new ProcessInfoAggregator(
-            NullLogger<IProcessInfoAggregator>.Instance,
-            mockProcessInfoManager.Object,
-            mockSubsystemController.Object);
+            mockProcessInfoMonitor.Object,
+            mockUiHandler.Object,
+            mockSubsystemController.Object,
+            NullLogger<IProcessInfoAggregator>.Instance);
 
         return processInfoAggregator;
     }
+
+    [Theory]
+    [ClassData(typeof(RuntimeInfoTheoryData))]
+    public async Task AddRuntimeInformation_will_add_a_new_info(string id, ProcessInfoCollectorData data)
+    {
+        var processInfoAggregator = CreateProcessInfoAggregator();
+
+        await processInfoAggregator.AddRuntimeInformation(id, data);
+
+        var collection = processInfoAggregator.GetRuntimeInformation();
+
+        collection.Should().HaveCount(1);
+        collection.Should().Contain(new KeyValuePair<string, ProcessInfoCollectorData>(id, data));
+
+        var result = collection.First().Value;
+
+        data.Connections.Count.Should().Be(result.Connections.Count);
+        data.Connections.Should().BeEquivalentTo(result.Connections);
+        data.EnvironmentVariables.Count.Should().Be(result.EnvironmentVariables.Count);
+        data.EnvironmentVariables.Should().BeEquivalentTo(result.EnvironmentVariables);
+        data.Modules.Count.Should().Be(result.Modules.Count);
+        data.Modules.Should().BeEquivalentTo(result.Modules);
+        data.Registrations.Count.Should().Be(result.Registrations.Count);
+        data.Registrations.Should().BeEquivalentTo(result.Registrations);
+    }
+
+
+    [Theory]
+    [ClassData(typeof(RuntimeInfoTheoryData))]
+    public async Task AddRuntimeInformation_will_update_an_info(string id, ProcessInfoCollectorData data)
+    {
+        var processInfoAggregator = CreateProcessInfoAggregator();
+
+        var dummyRuntimeInfo = new ProcessInfoCollectorData()
+        {
+            Id = 2,
+            Connections = new()
+            {
+                new() { Id = Guid.NewGuid(), Name = "dummy" },
+                new() { Id = Guid.NewGuid(), Name = "dummy2" },
+                new() { Id = Guid.NewGuid(), Name = "dummy3" }
+            },
+            Registrations = new()
+            {
+                new() { ImplementationType = "dummyImpl", LifeTime = "dummyLT", ServiceType = "dummyST" },
+                new() { ImplementationType = "dummyImpl", LifeTime = "dummyLT", ServiceType = "dummyST" },
+                new() { ImplementationType = "dummyImpl", LifeTime = "dummyLT", ServiceType = "dummyST" }
+            }
+        };
+
+        await processInfoAggregator.AddRuntimeInformation(id, dummyRuntimeInfo);
+
+        //modifying the existing one
+        await processInfoAggregator.AddRuntimeInformation(id, data);
+
+        var collection = processInfoAggregator.GetRuntimeInformation();
+
+        collection.Should().HaveCount(1);
+        collection.Should().Contain(new KeyValuePair<string, ProcessInfoCollectorData>(id, data));
+
+        var result = collection.First().Value;
+
+        data.Connections.Count.Should().Be(result.Connections.Count);
+        data.Connections.Should().BeEquivalentTo(result.Connections);
+        data.EnvironmentVariables.Count.Should().Be(result.EnvironmentVariables.Count);
+        data.EnvironmentVariables.Should().BeEquivalentTo(result.EnvironmentVariables);
+        data.Modules.Count.Should().Be(result.Modules.Count);
+        data.Modules.Should().BeEquivalentTo(result.Modules);
+        data.Registrations.Count.Should().Be(result.Registrations.Count);
+        data.Registrations.Should().BeEquivalentTo(result.Registrations);
+    }
+
 
     private class RuntimeInfoTheoryData : TheoryData
     {

@@ -10,17 +10,9 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using Microsoft.Extensions.Logging;
-using ProcessExplorer.Abstractions.Processes;
-using ProcessExplorer.Core.Processes;
-
-namespace ProcessExplorer.Core.Factories;
-public static class ProcessMonitorFactory
-{
-    public static ProcessInfoMonitor CreateProcessInfoMonitorWindows(ILogger<ProcessInfoMonitor> logger)
-    {
-#pragma warning disable CA1416 // Validate platform compatibility
-        return new WindowsProcessInfoMonitor(logger);
-#pragma warning restore CA1416 // Validate platform compatibility
-    }
-}
+Console.WriteLine("Hello, World!");
+Console.WriteLine("Doing some stuff");
+var dummy = new object();
+var dummyString = string.Empty;
+Thread.Sleep(15000);
+Console.WriteLine("Exiting...");

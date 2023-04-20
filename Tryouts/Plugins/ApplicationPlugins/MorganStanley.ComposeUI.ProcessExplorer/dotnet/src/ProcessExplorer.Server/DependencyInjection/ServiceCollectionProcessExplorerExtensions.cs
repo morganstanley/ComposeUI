@@ -11,15 +11,20 @@
 // and limitations under the License.
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using ProcessExplorer.Abstractions.Infrastructure;
+using ProcessExplorer.Core.DependencyInjection;
+using ProcessExplorer.Server.Server.Infrastructure.Grpc;
 
 namespace ProcessExplorer.Server.DependencyInjection;
 
 public static class ServiceCollectionProcessExplorerExtensions
 {
-    public static IServiceCollection AddProcessExplorerWindowsServer(
+    public static IServiceCollection AddProcessExplorerWindowsServerWithGrpc(
         this IServiceCollection serviceCollection,
         Action<ProcessExplorerBuilder> builderAction)
     {
+        serviceCollection.TryAddSingleton<IUiHandler, GrpcUiHandler>();
         serviceCollection.AddProcessMonitorWindows();
         serviceCollection.AddProcessExplorerAggregator();
 

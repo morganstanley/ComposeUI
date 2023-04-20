@@ -36,6 +36,12 @@ internal static partial class SourceGeneratedLoggerExtensions
     [LoggerMessage(Level = LogLevel.Error, Message = "Sending connection information to the UI(s) was unsuccessful. Detailed axception: `{exception}`", SkipEnabledCheck = false)]
     public static partial void AddConnectionsError(this ILogger logger, Exception ex, Exception exception);
 
+    [LoggerMessage(Level = LogLevel.Error, Message = "Adding UIHandler was unsuccessful. Id: `{id}`", SkipEnabledCheck = false)]
+    public static partial void UIHandlerConnectionAddingError(this ILogger logger, string id);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Removing UIHandler was unsuccessful. Id: `{id}`", SkipEnabledCheck = false)]
+    public static partial void UIHandlerConnectionRemoveError(this ILogger logger, string id);
+
     [LoggerMessage(Level = LogLevel.Error, Message = "Sending a process information to the UI(s) was unsuccessful. Detailed axception: `{exception}`", SkipEnabledCheck = false)]
     public static partial void AddProcessError(this ILogger logger, Exception ex, Exception exception);
 

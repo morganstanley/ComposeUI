@@ -19,8 +19,11 @@ using ProcessExplorer.Abstractions.Subsystems;
 
 namespace ProcessExplorer.Abstractions.Infrastructure;
 
-public interface IUIHandler
+public interface IUiHandler
 {
+    void AddClientConnection<T>(Guid id, IClientConnection<T> connection);
+    void RemoveClientConnection(Guid id);
+
     /// <summary>
     /// Adds a list of processes to the collection.
     /// </summary>
@@ -135,4 +138,10 @@ public interface IUIHandler
     /// <param name="process"></param>
     /// <returns></returns>
     Task UpdateProcessStatus(KeyValuePair<int, Status> process);
+
+    /// <summary>
+    /// Updates the client that the connection has been established.
+    /// </summary>
+    /// <returns></returns>
+    Task SubscriptionIsAliveUpdate();
 }
