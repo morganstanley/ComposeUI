@@ -11,18 +11,17 @@ import unzipper from '@deranged/unzipper';
 
 import pkg from './../../package.json' assert { type: "json" };
 
-
 const DEFAULT_CDN_URL = 'https://github.com/morganstanley/ComposeUI/releases/download';
 
 let cdnUrl = process.env.npm_config_composeui_cdn_url || process.env.COMPOSEUI_CDN_URL || DEFAULT_CDN_URL;
 let downloadedFile = '';
 
 let platform = validatePlatform();
-const fileName = `composeui_${platform}.zip`;
 
 const composeui_version = process.env.npm_config_composeui_version || process.env.COMPOSEUI_VERSION || pkg.version;
 const skipDownload = process.env.npm_config_composeui_skip_download || process.env.COMPOSEUI_SKIP_DOWNLOAD;
 
+const fileName = `composeui-v${composeui_version}-${platform}.zip`;
 let composeuiBinaryFilePath = '';
 
 if (skipDownload === 'true') {
@@ -53,7 +52,7 @@ function ensureDirectoryExistence(filePath) {
 async function downloadFile(dirToLoadTo) {
     const tempDownloadedFile = path.resolve(dirToLoadTo, fileName);
     downloadedFile = tempDownloadedFile;
-    const formattedDownloadUrl =`${cdnUrl}/${composeui_version}/${fileName}`;
+    const formattedDownloadUrl =`${cdnUrl}/v${composeui_version}/${fileName}`;
     
     console.log('Downloading from file: ', formattedDownloadUrl);
     console.log('Saving to file:', downloadedFile);
