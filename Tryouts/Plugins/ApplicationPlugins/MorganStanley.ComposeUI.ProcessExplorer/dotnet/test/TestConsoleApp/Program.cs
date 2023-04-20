@@ -14,7 +14,7 @@ using System.Diagnostics;
 using TestConsoleApp;
 
 Console.WriteLine("Hello, World!");
-
+var stopwatch = Stopwatch.StartNew();
 Console.WriteLine("This is a test application to test the ProcessMonitor...");
 
 Console.WriteLine("Starting a process...");
@@ -23,6 +23,7 @@ var isDebug = false;
 Helper.IsDebug(ref isDebug);
 
 var folder = isDebug ? "Debug" : "Release";
+Console.WriteLine(folder);
 
 var childProcess = Process.Start($"../../../../TestConsoleApp2/bin/{folder}/net6.0/TestConsoleApp2.exe");
 
@@ -35,5 +36,5 @@ Thread.Sleep(10000);
 
 Console.WriteLine("Terminating a process....");
 childProcess.Kill();
-
+stopwatch.Stop();
 Console.WriteLine("ChildProcess is terminated");

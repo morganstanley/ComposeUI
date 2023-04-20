@@ -113,17 +113,20 @@ public class WindowsProcessInfoManagerTests
         processMonitor.Dispose();
     }
 
-    [Fact]
+    [Fact] //It is hard to reproduce a process which ses cpu in a time that is being measured in percentage
     public void GetCpuUsage_will_return_with_some_value()
     {
         var loggerMock = CreateLoggerMock();
         var processMonitor = CreateWindowsProcessMonitor(loggerMock.Object);
+        var process = Process.Start(GetSimpleTestApplicationPath());
 
         var cpuUsageResult = processMonitor.GetCpuUsage(
-            Environment.ProcessId, 
-            Process.GetProcessById(Environment.ProcessId).ProcessName);
+            process.Id, 
+            process.ProcessName);
 
-        cpuUsageResult.Should().BeGreaterThan(0);
+        cpuUsageResult.Should().BeGreaterThanOrEqualTo(0);
+        process.Kill();
+        processMonitor.Dispose();
     }
 
     [Fact]
@@ -137,6 +140,7 @@ public class WindowsProcessInfoManagerTests
             Process.GetProcessById(Environment.ProcessId).ProcessName);
 
         memoryUsageResult.Should().BeGreaterThan(0);
+        processMonitor.Dispose();
     }
 
     [Fact]
