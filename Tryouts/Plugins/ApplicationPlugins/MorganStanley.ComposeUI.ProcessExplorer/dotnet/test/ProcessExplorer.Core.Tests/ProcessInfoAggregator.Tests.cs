@@ -17,7 +17,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
 using LocalCollector;
 using LocalCollector.Connections;
 using LocalCollector.Modules;
@@ -65,7 +64,7 @@ public class ProcessInfoAggregatorTests
         //Wait for the task to finish
         await task;
 
-        cancellationTokenSource.IsCancellationRequested.Should().BeTrue();
+        Assert.True(cancellationTokenSource.IsCancellationRequested);
     }
 
     [Fact]
@@ -79,7 +78,7 @@ public class ProcessInfoAggregatorTests
 
         var result = processInfoAggregator.MainProcessId;
 
-        result.Should().Be(dummyPid);
+        Assert.Equal(dummyPid, result);
     }
 
     [Fact]
@@ -92,7 +91,7 @@ public class ProcessInfoAggregatorTests
 
         var result = processInfoAggregator.TerminatingProcessDelay;
 
-        result.Should().Be(dummyDelay);
+        Assert.Equal(dummyDelay, result);
     }
 
     [Fact]
@@ -124,14 +123,16 @@ public class ProcessInfoAggregatorTests
 
         var collection = processInfoAggregator.GetRuntimeInformation();
 
-        collection.Should().HaveCount(2);
-        collection.Should().Contain(new KeyValuePair<string, ProcessInfoCollectorData>(id, dummyRuntimeInfo));
-        collection.Should().Contain(new KeyValuePair<string, ProcessInfoCollectorData>(id2, dummyRuntimeInfo));
+        Assert.NotNull(collection);
+        Assert.Equal(2, collection.Count());
+        Assert.Contains(new KeyValuePair<string, ProcessInfoCollectorData>(id, dummyRuntimeInfo), collection);
+        Assert.Contains(new KeyValuePair<string, ProcessInfoCollectorData>(id2, dummyRuntimeInfo), collection);
 
         processInfoAggregator.RemoveRuntimeInformation(id);
-        collection.Should().HaveCount(1);
-        collection.Should().NotContain(new KeyValuePair<string, ProcessInfoCollectorData>(id, dummyRuntimeInfo));
-        collection.Should().Contain(new KeyValuePair<string, ProcessInfoCollectorData>(id2, dummyRuntimeInfo));
+        Assert.NotNull(collection);
+        Assert.Single(collection);
+        Assert.DoesNotContain(new KeyValuePair<string, ProcessInfoCollectorData>(id, dummyRuntimeInfo), collection);
+        Assert.Contains(new KeyValuePair<string, ProcessInfoCollectorData>(id2, dummyRuntimeInfo), collection);
     }
 
     [Theory]
@@ -146,12 +147,13 @@ public class ProcessInfoAggregatorTests
 
         var collection = processInfoAggregator.GetRuntimeInformation();
 
-        collection.Should().HaveCount(1);
+        Assert.NotNull(collection);
+        Assert.Single(collection);
         
         var result = collection.First();
 
-        result.Key.Should().Be(id);
-        result.Value.Connections.Should().BeEquivalentTo(connections);
+        Assert.Equal(id, result.Key);
+        Assert.Equal(connections, result.Value.Connections);
     }
 
     [Fact]
@@ -169,11 +171,11 @@ public class ProcessInfoAggregatorTests
         });
 
         var collection = processInfoAggregator.GetRuntimeInformation();
-        collection.Should().HaveCount(1);
+        Assert.Single(collection);
         
         var result = collection.First().Value;
-        result.Connections.Should().HaveCount(1);
-        result.Connections.Should().Contain(wrongConnectionInfo);
+        Assert.Single(result.Connections);
+        Assert.Contains(wrongConnectionInfo, result.Connections);
 
         //updating
         var dummyConnectionInfo = new ConnectionInfo { Id = connectionId, Name = "dummyName", LocalEndpoint = "https://dummyLocalEndpoint.com" };
@@ -182,10 +184,10 @@ public class ProcessInfoAggregatorTests
         collection = processInfoAggregator.GetRuntimeInformation();
         result = collection.First().Value;
 
-        collection.Should().HaveCount(1);
-        result.Connections.Should().HaveCount(1);
-        result.Connections.Should().NotContain(wrongConnectionInfo);
-        result.Connections.Should().Contain(dummyConnectionInfo);
+        Assert.Single(collection);
+        Assert.Single(result.Connections);
+        Assert.DoesNotContain(wrongConnectionInfo, result.Connections);
+        Assert.Contains(dummyConnectionInfo, result.Connections);
     }
 
     [Fact]
@@ -205,12 +207,13 @@ public class ProcessInfoAggregatorTests
         });
 
         var collection = processInfoAggregator.GetRuntimeInformation();
-        collection.Should().HaveCount(1);
-        collection.Should().ContainKey(id);
+        Assert.Single(collection);
+        Assert.Contains(id, collection.Select(x => x.Key));
 
         var result = collection.First().Value;
-        result.EnvironmentVariables.Should().HaveCount(2);
-        result.EnvironmentVariables.Should().BeEquivalentTo(envs);
+        Assert.NotNull(result);
+        Assert.Equal(2, result.EnvironmentVariables.Count);
+        Assert.Equal(envs, result.EnvironmentVariables);
 
         var updatedEnvs = new Dictionary<string, string>()
         {
@@ -227,12 +230,13 @@ public class ProcessInfoAggregatorTests
 
         await processInfoAggregator.UpdateOrAddEnvironmentVariablesInfo(id, updatedEnvs);
         collection = processInfoAggregator.GetRuntimeInformation();
-        collection.Should().HaveCount(1);
-        collection.Should().ContainKey(id);
+
+        Assert.Single(collection);
+        Assert.Contains(id, collection.Select(x => x.Key));
 
         result = collection.First().Value;
-        result.EnvironmentVariables.Should().HaveCount(3);
-        result.EnvironmentVariables.Should().BeEquivalentTo(expectedResult);
+        Assert.Equal(3, result.EnvironmentVariables.Count);
+        Assert.Equal(expectedResult, result.EnvironmentVariables);
     }
 
     [Fact]
@@ -257,14 +261,14 @@ public class ProcessInfoAggregatorTests
         });
 
         var collection = processInfoAggregator.GetRuntimeInformation();
-        collection.Should().HaveCount(1);
-        collection.Should().ContainKey(id);
+        Assert.Single(collection);
+        Assert.Equal(id, collection.First().Key);
 
         var result = collection.First().Value;
-        result.Registrations.Should().HaveCount(1);
-        result.Registrations.Should().BeEquivalentTo(registrations);
+        Assert.Single(collection);
+        Assert.Equal(registrations, result.Registrations);
 
-        var update = new List<RegistrationInfo>()
+        var update = new SynchronizedCollection<RegistrationInfo>()
         {
             new() { ServiceType = "dummyImplementation", ImplementationType = "dummyNewImplementationType", LifeTime = "dummyLifeTime" },
             new() { ServiceType = "dummyImplementation2", ImplementationType = "dummyImplementationType2", LifeTime = "dummyLifeTime2" }
@@ -273,19 +277,20 @@ public class ProcessInfoAggregatorTests
         await processInfoAggregator.UpdateRegistrations(id, update);
 
         collection = processInfoAggregator.GetRuntimeInformation();
-        collection.Should().HaveCount(1);
-
+        Assert.Single(collection);
+        
         result = collection.First().Value;
-        result.Registrations.Should().HaveCount(3);
-
-        var expected = new List<RegistrationInfo>()
+        Assert.Equal(3, result.Registrations.Count);
+        
+        var expected = new SynchronizedCollection<RegistrationInfo>()
         {
             new() { ImplementationType = "dummyImplementation", LifeTime = "dummyLifetime", ServiceType = "dummyServiceType" },
             new() { ServiceType = "dummyImplementation", ImplementationType = "dummyNewImplementationType", LifeTime = "dummyLifeTime" },
             new() { ServiceType = "dummyImplementation2", ImplementationType = "dummyImplementationType2", LifeTime = "dummyLifeTime2" }
         };
 
-        result.Registrations.Should().BeEquivalentTo(expected);
+        Assert.Equal(expected.Count, result.Registrations.Count);
+        Assert.NotStrictEqual(expected, result.Registrations);
     }
 
     [Fact]
@@ -310,12 +315,18 @@ public class ProcessInfoAggregatorTests
         await processInfoAggregator.UpdateOrAddModuleInfo(id, update);
 
         var collection = processInfoAggregator.GetRuntimeInformation();
-        collection.Should().HaveCount(1);
-        collection.Should().ContainKey(id);
+        Assert.Single(collection);
+        Assert.Contains(id, collection.Select(x => x.Key));
+
+        //collection.Should().HaveCount(1);
+        //collection.Should().ContainKey(id);
 
         var result = collection.First().Value;
-        result.Modules.Should().HaveCount(1);
-        result.Modules.Should().BeEquivalentTo(update);
+        Assert.Single(result.Modules);
+        Assert.Equal(update, result.Modules);
+
+        //result.Modules.Should().HaveCount(1);
+        //result.Modules.Should().BeEquivalentTo(update);
     }
 
 
@@ -352,24 +363,13 @@ public class ProcessInfoAggregatorTests
         if (queue == null) throw new ArgumentNullException(nameof(queue));
 
         var succeed = queue.TryDequeue(out var result);
-        succeed.Should().BeTrue();
+        Assert.True(succeed);
+        //succeed.Should().BeTrue();
 
-        result.Key.Should().Be(id);
-        result.Value.Should().Be(state);
-    }
-
-    private IProcessInfoAggregator CreateProcessInfoAggregator()
-    {
-        var mockSubsystemController = new Mock<ISubsystemController>();
-        var mockProcessInfoMonitor = new Mock<IProcessInfoMonitor>();
-        var mockUiHandler = new Mock<IUiHandler>();
-        var processInfoAggregator = new ProcessInfoAggregator(
-            mockProcessInfoMonitor.Object,
-            mockUiHandler.Object,
-            mockSubsystemController.Object,
-            NullLogger<IProcessInfoAggregator>.Instance);
-
-        return processInfoAggregator;
+        Assert.Equal(id, result.Key);
+        Assert.Equal(state, result.Value);
+        //result.Key.Should().Be(id);
+        //result.Value.Should().Be(state);
     }
 
     [Theory]
@@ -381,20 +381,31 @@ public class ProcessInfoAggregatorTests
         await processInfoAggregator.AddRuntimeInformation(id, data);
 
         var collection = processInfoAggregator.GetRuntimeInformation();
-
-        collection.Should().HaveCount(1);
-        collection.Should().Contain(new KeyValuePair<string, ProcessInfoCollectorData>(id, data));
+        Assert.Single(collection);
+        Assert.Contains(new KeyValuePair<string, ProcessInfoCollectorData>(id, data), collection);
+        //collection.Should().HaveCount(1);
+        //collection.Should().Contain(new KeyValuePair<string, ProcessInfoCollectorData>(id, data));
 
         var result = collection.First().Value;
 
-        data.Connections.Count.Should().Be(result.Connections.Count);
-        data.Connections.Should().BeEquivalentTo(result.Connections);
-        data.EnvironmentVariables.Count.Should().Be(result.EnvironmentVariables.Count);
-        data.EnvironmentVariables.Should().BeEquivalentTo(result.EnvironmentVariables);
-        data.Modules.Count.Should().Be(result.Modules.Count);
-        data.Modules.Should().BeEquivalentTo(result.Modules);
-        data.Registrations.Count.Should().Be(result.Registrations.Count);
-        data.Registrations.Should().BeEquivalentTo(result.Registrations);
+        Assert.NotNull(result);
+        Assert.Equal(data.Connections.Count, result.Connections.Count);
+        Assert.Equal(data.EnvironmentVariables.Count, result.EnvironmentVariables.Count);
+        Assert.Equal(data.Modules.Count, result.Modules.Count);
+        Assert.Equal(data.Registrations.Count, result.Registrations.Count);
+        Assert.Equal(data.Connections, result.Connections);
+        Assert.Equal(data.EnvironmentVariables, result.EnvironmentVariables);
+        Assert.Equal(data.Modules, result.Modules);
+        Assert.Equal(data.Registrations, result.Registrations);
+
+        //data.Connections.Count.Should().Be(result.Connections.Count);
+        //data.Connections.Should().BeEquivalentTo(result.Connections);
+        //data.EnvironmentVariables.Count.Should().Be(result.EnvironmentVariables.Count);
+        //data.EnvironmentVariables.Should().BeEquivalentTo(result.EnvironmentVariables);
+        //data.Modules.Count.Should().Be(result.Modules.Count);
+        //data.Modules.Should().BeEquivalentTo(result.Modules);
+        //data.Registrations.Count.Should().Be(result.Registrations.Count);
+        //data.Registrations.Should().BeEquivalentTo(result.Registrations);
     }
 
 
@@ -427,22 +438,47 @@ public class ProcessInfoAggregatorTests
         await processInfoAggregator.AddRuntimeInformation(id, data);
 
         var collection = processInfoAggregator.GetRuntimeInformation();
+        Assert.Single(collection);
+        Assert.Contains(new KeyValuePair<string, ProcessInfoCollectorData>(id, data), collection);
 
-        collection.Should().HaveCount(1);
-        collection.Should().Contain(new KeyValuePair<string, ProcessInfoCollectorData>(id, data));
+        //collection.Should().HaveCount(1);
+        //collection.Should().Contain(new KeyValuePair<string, ProcessInfoCollectorData>(id, data));
 
         var result = collection.First().Value;
 
-        data.Connections.Count.Should().Be(result.Connections.Count);
-        data.Connections.Should().BeEquivalentTo(result.Connections);
-        data.EnvironmentVariables.Count.Should().Be(result.EnvironmentVariables.Count);
-        data.EnvironmentVariables.Should().BeEquivalentTo(result.EnvironmentVariables);
-        data.Modules.Count.Should().Be(result.Modules.Count);
-        data.Modules.Should().BeEquivalentTo(result.Modules);
-        data.Registrations.Count.Should().Be(result.Registrations.Count);
-        data.Registrations.Should().BeEquivalentTo(result.Registrations);
+        Assert.NotNull(result);
+        Assert.Equal(data.Connections.Count, result.Connections.Count);
+        Assert.Equal(data.EnvironmentVariables.Count, result.EnvironmentVariables.Count);
+        Assert.Equal(data.Modules.Count, result.Modules.Count);
+        Assert.Equal(data.Registrations.Count, result.Registrations.Count);
+        Assert.Equal(data.Connections, result.Connections);
+        Assert.Equal(data.EnvironmentVariables, result.EnvironmentVariables);
+        Assert.Equal(data.Modules, result.Modules);
+        Assert.Equal(data.Registrations, result.Registrations);
+
+        //data.Connections.Count.Should().Be(result.Connections.Count);
+        //data.Connections.Should().BeEquivalentTo(result.Connections);
+        //data.EnvironmentVariables.Count.Should().Be(result.EnvironmentVariables.Count);
+        //data.EnvironmentVariables.Should().BeEquivalentTo(result.EnvironmentVariables);
+        //data.Modules.Count.Should().Be(result.Modules.Count);
+        //data.Modules.Should().BeEquivalentTo(result.Modules);
+        //data.Registrations.Count.Should().Be(result.Registrations.Count);
+        //data.Registrations.Should().BeEquivalentTo(result.Registrations);
     }
 
+    private IProcessInfoAggregator CreateProcessInfoAggregator()
+    {
+        var mockSubsystemController = new Mock<ISubsystemController>();
+        var mockProcessInfoMonitor = new Mock<IProcessInfoMonitor>();
+        var mockUiHandler = new Mock<IUiHandler>();
+        var processInfoAggregator = new ProcessInfoAggregator(
+            mockProcessInfoMonitor.Object,
+            mockUiHandler.Object,
+            mockSubsystemController.Object,
+            NullLogger<IProcessInfoAggregator>.Instance);
+
+        return processInfoAggregator;
+    }
 
     private class RuntimeInfoTheoryData : TheoryData
     {

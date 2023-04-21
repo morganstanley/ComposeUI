@@ -13,7 +13,6 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
-using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using ProcessExplorer.Abstractions.Handlers;
@@ -40,9 +39,9 @@ public class WindowsProcessInfoManagerTests
 
         var result = processMonitor.GetProcessIds().ToArray();
 
-        result.Should().NotBeEmpty();
-        result.Should().HaveCount(2);
-        result.Should().Contain(testApplication.Id);
+        Assert.NotEmpty(result);
+        Assert.Equal(2, result.Length);
+        Assert.Contains(testApplication.Id, result);
 
         processMonitor.Dispose();
     }
@@ -58,9 +57,9 @@ public class WindowsProcessInfoManagerTests
         processMonitor.AddProcess(process.Id);
         var result = processMonitor.GetProcessIds().ToArray();
 
-        result.Should().NotBeEmpty();
-        result.Should().HaveCount(1);
-        result.Should().Contain(process.Id);
+        Assert.NotEmpty(result);
+        Assert.Single(result);
+        Assert.Contains(process.Id, result);
 
         process.Kill();
         processMonitor.Dispose();
@@ -76,7 +75,7 @@ public class WindowsProcessInfoManagerTests
 
         var result = processMonitor.CheckIfIsComposeProcess(process.Id);
 
-        result.Should().BeTrue();
+        Assert.True(result);
 
         process.Kill();
         processMonitor.Dispose();
@@ -90,7 +89,7 @@ public class WindowsProcessInfoManagerTests
         var process = Process.Start(GetSimpleTestApplicationPath());
         var result = processMonitor.CheckIfIsComposeProcess(process.Id);
 
-        result.Should().BeFalse();
+        Assert.False(result);
 
         process.Kill();
         processMonitor.Dispose();
@@ -107,7 +106,7 @@ public class WindowsProcessInfoManagerTests
         processMonitor.ClearProcessIds();
         var result = processMonitor.GetProcessIds().ToArray();
 
-        result.Should().BeEmpty();
+        Assert.Empty(result);
 
         process.Kill();
         processMonitor.Dispose();
@@ -124,7 +123,8 @@ public class WindowsProcessInfoManagerTests
             process.Id, 
             process.ProcessName);
 
-        cpuUsageResult.Should().BeGreaterThanOrEqualTo(0);
+        Assert.True(cpuUsageResult >= 0);
+        
         process.Kill();
         processMonitor.Dispose();
     }
@@ -139,7 +139,8 @@ public class WindowsProcessInfoManagerTests
             Environment.ProcessId,
             Process.GetProcessById(Environment.ProcessId).ProcessName);
 
-        memoryUsageResult.Should().BeGreaterThan(0);
+        Assert.True(memoryUsageResult > 0);
+        
         processMonitor.Dispose();
     }
 
@@ -154,8 +155,8 @@ public class WindowsProcessInfoManagerTests
         //Expected parentid should be the current process id, as we are starting this process from the code.
         var parentId = processMonitor.GetParentId(process.Id, process.ProcessName);
 
-        parentId.Should().NotBeNull();
-        parentId.Should().Be(Process.GetCurrentProcess().Id);
+        Assert.NotNull(parentId);
+        Assert.Equal(Process.GetCurrentProcess().Id, parentId);
 
         process.Kill();
         processMonitor.Dispose();
@@ -170,7 +171,7 @@ public class WindowsProcessInfoManagerTests
         //Expected parentid should be the current process id, as we are starting this process from the code.
         var parentId = processMonitor.GetParentId(666666, string.Empty);
 
-        parentId.Should().BeNull();
+        Assert.Null(parentId);
 
         processMonitor.Dispose();
     }
@@ -191,8 +192,8 @@ public class WindowsProcessInfoManagerTests
 
         var result = processMonitor.GetProcessIds().ToArray();
 
-        result.Should().Contain(processes);
-        result.Should().HaveCount(3);
+        Assert.NotStrictEqual(processes, result);
+        Assert.Equal(3, result.Length);
 
         processMonitor.Dispose();
     }
@@ -221,7 +222,8 @@ public class WindowsProcessInfoManagerTests
 
         var result = processMonitor.GetProcessIds().ToArray();
 
-        result.Should().HaveCountGreaterOrEqualTo(3);
+        Assert.True(result.Length >= 3);
+
         createdProcessActionMock.Verify(x => x.Invoke(It.IsAny<int>()), Times.AtLeast(3));
 
         processMonitor.Dispose();

@@ -15,7 +15,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using ProcessExplorer.Abstractions.Subsystems;
@@ -45,7 +44,7 @@ public class SubsystemLauncherTests
         var result = await subsystemLauncher.LaunchSubsystem(testInformation.LaunchRequestId, testInformation.LaunchRequestSubsystemName);
 
         // Assert
-        result.Should().Be(testInformation.ExpectedLaunchStateResult);
+        Assert.Equal(testInformation.ExpectedLaunchStateResult, result);
 
         var element = testInformation.Subsystems.FirstOrDefault(x => x.Key == testInformation.LaunchRequestId);
 
@@ -77,7 +76,7 @@ public class SubsystemLauncherTests
         var result = await subsystemLauncher.LaunchSubsystem(testInformation.LaunchRequestId, testInformation.LaunchRequestSubsystemName);
 
         //Assert
-        result.Should().Be(SubsystemState.Stopped); //That is the default value
+        Assert.Equal(SubsystemState.Stopped, result); //That is the default value
     }
 
     [Theory]
@@ -97,7 +96,7 @@ public class SubsystemLauncherTests
         stopwatch.Stop();
 
         // Assert
-        stopwatch.ElapsedMilliseconds.Should().BeGreaterThanOrEqualTo(periodOfTime);
+        Assert.True(stopwatch.ElapsedMilliseconds >= periodOfTime);
     }
 
     [Theory]
@@ -118,7 +117,7 @@ public class SubsystemLauncherTests
         var result = await subsystemLauncher.LaunchSubsystems(testInformation.LaunchRequestIds);
 
         // Assert
-        result.Should().BeEquivalentTo(testInformation.ExpectedLaunchStateResults);
+        Assert.Equal(testInformation.ExpectedLaunchStateResults, result);
 
         launchRequestMock.Verify(x => x.Invoke(It.IsAny<DummyStartType>()), Times.Exactly(testInformation.ExpectedLaunchStateResults.Count()));
     }
@@ -149,7 +148,8 @@ public class SubsystemLauncherTests
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
-        result.Should().Be(SubsystemState.Stopped);
+
+        Assert.Equal(SubsystemState.Stopped, result);
     }
 
     [Theory]
@@ -174,7 +174,8 @@ public class SubsystemLauncherTests
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
-        result.Should().Be(SubsystemState.Running);
+
+        Assert.Equal(SubsystemState.Running, result);
     }
 
     [Theory]
@@ -195,7 +196,7 @@ public class SubsystemLauncherTests
         var result = await subsystemLauncher.ShutdownSubsystems(testInformation.StopRequestIds);
 
         // Assert
-        result.Should().BeEquivalentTo(testInformation.ExpectedStopStateResults);
+        Assert.Equal(testInformation.ExpectedStopStateResults, result);
 
         stopRequestMock.Verify(x => x.Invoke(It.IsAny<DummyStopType>()), Times.Exactly(testInformation.ExpectedStopStateResults.Count()));
     }
@@ -235,7 +236,7 @@ public class SubsystemLauncherTests
 
         launchRequestMock.Verify(x => x.Invoke(It.IsAny<DummyStartType>()), Times.Once);
 
-        result.Should().Be(SubsystemState.Started);
+        Assert.Equal(SubsystemState.Started, result);
     }
 
     [Theory]
@@ -277,7 +278,7 @@ public class SubsystemLauncherTests
 
         launchRequestMock.Verify(x => x.Invoke(It.IsAny<DummyStartType>()), Times.Never);
 
-        result.Should().Be(SubsystemState.Running);
+        Assert.Equal(SubsystemState.Running, result);
     }
 
     [Theory]
@@ -318,7 +319,7 @@ public class SubsystemLauncherTests
 
         stopRequestMock.Verify(x => x.Invoke(It.IsAny<DummyStopType>()), Times.Once);
 
-        result.Should().Be(SubsystemState.Stopped);
+        Assert.Equal(SubsystemState.Stopped, result);
     }
 
     [Theory]

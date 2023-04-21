@@ -25,11 +25,11 @@ using ProcessExplorer.Abstractions.Subsystems;
 using ProcessExplorer.Server.DependencyInjection;
 using ProcessExplorer.Server.Server.Abstractions;
 using Xunit;
-using FluentAssertions;
 using ProcessExplorer.Core.DependencyInjection;
 
 namespace ProcessExplorer.Server.IntegrationTests;
 
+[Collection("EndToEndTestsCollection")]
 public class EndToEndTests : IAsyncLifetime
 {
     private IHost? _host;
@@ -65,8 +65,8 @@ public class EndToEndTests : IAsyncLifetime
         }
         catch (RpcException) { }
 
-        messages.Count.Should().Be(1);
-        messages[0].Action.Should().Be(ActionType.SubscriptionAliveAction); 
+        Assert.Single(messages);
+        Assert.Equal(ActionType.SubscriptionAliveAction, messages[0].Action);
     }
 
     [Fact]
@@ -114,25 +114,26 @@ public class EndToEndTests : IAsyncLifetime
         catch(RpcException) { }
 
         // We just need to receive SubscriptionAlive and a subsystems collection
-        messages.Count.Should().Be(2);
-        messages[0].Action.Should().Be(ActionType.SubscriptionAliveAction);
-        messages[1].Action.Should().Be(ActionType.AddSubsystemsAction);
-        messages[1].Subsystems.Count.Should().Be(1);
-        messages[1].Subsystems.Should().ContainKey(dummyId.ToString());
+        Assert.Equal(2, messages.Count);
+        Assert.Equal(ActionType.SubscriptionAliveAction, messages[0].Action);
+        Assert.Equal(ActionType.AddSubsystemsAction, messages[1].Action);
+        Assert.Single(messages[1].Subsystems);
+        Assert.Contains(dummyId.ToString(), messages[1].Subsystems.Keys);
 
         //In Proto3, all fields are optional and have a default value. For example, a string field has a default value of empty string ("") and an int field has a default value of zero (0).
         //If you want to create a proto message without a certain field, you have to set its value to the default value.
         var result = messages[1].Subsystems[dummyId.ToString()];
-        result.Should().NotBeNull();
-        result.Name.Should().BeEquivalentTo(dummySubsystemInfo.Name);
-        result.State.Should().BeEquivalentTo(dummySubsystemInfo.State);
-        result.UiType.Should().BeEquivalentTo(dummySubsystemInfo.UIType);
-        result.StartupType.Should().BeEquivalentTo(dummySubsystemInfo.StartupType);
-        result.Path.Should().BeEquivalentTo(dummySubsystemInfo.Path);
-        result.AutomatedStart.Should().Be(dummySubsystemInfo.AutomatedStart);
-        result.Arguments.Should().BeEmpty();
-        result.Url.Should().BeNullOrEmpty();
-        result.Description.Should().BeNullOrEmpty();
+
+        Assert.NotNull(result);
+        Assert.Equal(dummySubsystemInfo.Name, result.Name);
+        Assert.Equal(dummySubsystemInfo.State, result.State);
+        Assert.Equal(dummySubsystemInfo.UIType, result.UiType);
+        Assert.Equal(dummySubsystemInfo.StartupType, result.StartupType);
+        Assert.Equal(dummySubsystemInfo.Path, result.Path);
+        Assert.Equal(dummySubsystemInfo.AutomatedStart, result.AutomatedStart);
+        Assert.Empty(result.Arguments);
+        Assert.Empty(result.Url);
+        Assert.Empty(result.Description);
     }
 
     [Fact]
@@ -147,11 +148,15 @@ public class EndToEndTests : IAsyncLifetime
             Description = "dummy message"
         };
 
-        var act = () => client.Send(message, cancellationToken: cancellationTokenSource.Token);
-        act.Should().NotThrow();
+        Empty? result = null;
+        try
+        {
+            result = client.Send(message, cancellationToken: cancellationTokenSource.Token);
+        }
+        catch (RpcException) { }
 
-        var result = client.Send(message, cancellationToken: cancellationTokenSource.Token);
-        result.Should().BeOfType<Empty>();
+        Assert.NotNull(result);
+        Assert.IsType<Empty>(result);
     }
 
     public async Task InitializeAsync()

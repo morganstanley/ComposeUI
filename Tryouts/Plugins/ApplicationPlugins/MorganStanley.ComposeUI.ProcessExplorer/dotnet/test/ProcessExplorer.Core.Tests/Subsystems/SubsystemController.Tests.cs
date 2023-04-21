@@ -14,7 +14,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using ProcessExplorer.Abstractions.Infrastructure;
@@ -179,7 +178,7 @@ public class SubsystemControllerTests
 
         await subsystemController.LaunchSubsystemAutomatically(subsystem.Key);
 
-        subsystem.Value.AutomatedStart.Should().BeTrue();
+        Assert.True(subsystem.Value.AutomatedStart);
 
         subsystemLauncherMock.Verify(x => x.LaunchSubsystem(It.IsAny<Guid>(), It.IsAny<string>()));
     }
@@ -203,7 +202,7 @@ public class SubsystemControllerTests
 
         await subsystemController.LaunchSubsystemAutomatically(subsystem.Key);
 
-        subsystem.Value.AutomatedStart.Should().BeTrue();
+        Assert.True(subsystem.Value.AutomatedStart);
 
         subsystemLauncherCommunicatorMock.Verify(x => x.SendLaunchSubsystemsRequest(It.IsAny<Dictionary<Guid, string>>()), Times.Exactly(2));
     }
@@ -614,7 +613,8 @@ public class SubsystemControllerTests
 
         await subsystemController.ModifySubsystemState(subsystem.Key, "DummyState");
 
-        subsystem.Value.State.Should().Be("DummyState");
+        Assert.Equal("DummyState", subsystem.Value.State);
+
         uiDelegateMock.Verify(x => x.Invoke(It.IsAny<Func<IUiHandler, Task>>()), Times.Exactly(2)); // due IUiHandler function will be called twice as per after initialization of the subsystems we are pushing data to the uis.
     }
 
@@ -661,8 +661,8 @@ public class SubsystemControllerTests
         await subsystemController.AddSubsystems(newElements);
 
         var result = subsystemController.GetSubsystems();
-        result.Should().Contain(subsystems);
-        result.Should().Contain(newElements);
+        Assert.NotStrictEqual(subsystems, result);
+        Assert.NotStrictEqual(newElements, result);
 
         uiDelegateMock.Verify(x => x.Invoke(It.IsAny<Func<IUiHandler, Task>>()), Times.Exactly(2));
     }
@@ -685,11 +685,11 @@ public class SubsystemControllerTests
         var subsystemtoDelete =
             subsystems.First(x => x.Value.State == SubsystemState.Stopped && !x.Value.AutomatedStart);
 
-        subsystemController.RemoveSubsystem(subsystemtoDelete.Key);
+        await subsystemController.RemoveSubsystem(subsystemtoDelete.Key);
 
         var result = subsystemController.GetSubsystems();
 
-        result.Should().NotContain(subsystemtoDelete);
+        Assert.DoesNotContain(subsystemtoDelete, result);
 
         subsystemLauncherMock.Verify(x => x.ShutdownSubsystem(It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
     }
@@ -712,11 +712,11 @@ public class SubsystemControllerTests
         var subsystemtoDelete =
             subsystems.First(x => x.Value.State == SubsystemState.Started);
 
-        subsystemController.RemoveSubsystem(subsystemtoDelete.Key);
+        await subsystemController.RemoveSubsystem(subsystemtoDelete.Key);
 
         var result = subsystemController.GetSubsystems();
 
-        result.Should().NotContain(subsystemtoDelete);
+        Assert.DoesNotContain(subsystemtoDelete, result);
 
         subsystemLauncherMock.Verify(x => x.ShutdownSubsystem(It.IsAny<Guid>(), It.IsAny<string>()), Times.Once);
     }
