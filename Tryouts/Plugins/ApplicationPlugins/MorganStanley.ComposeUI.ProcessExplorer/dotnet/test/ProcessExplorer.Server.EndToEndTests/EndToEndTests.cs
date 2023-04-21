@@ -29,7 +29,6 @@ using ProcessExplorer.Core.DependencyInjection;
 
 namespace ProcessExplorer.Server.IntegrationTests;
 
-[Collection("EndToEndTestsCollection")]
 public class EndToEndTests : IAsyncLifetime
 {
     private IHost? _host;
@@ -51,7 +50,7 @@ public class EndToEndTests : IAsyncLifetime
 
         var messages = new List<Message>();
 
-        var call = client.Subscribe(new Empty(), cancellationToken: cancellationTokenSource.Token);
+        using var call = client.Subscribe(new Empty(), cancellationToken: cancellationTokenSource.Token);
 
         // We want to receive the message, that the subscription is established, and we do not want to wait.
         // Due to that no processes/subsystems/runtime information have not been declared it will just receive the subscription alive notification
@@ -101,9 +100,9 @@ public class EndToEndTests : IAsyncLifetime
         var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(2));
         var messages = new List<Message>();
 
-        var call = client.Subscribe(new Empty(), cancellationToken: cancellationTokenSource.Token);
+        using var call = client.Subscribe(new Empty(), cancellationToken: cancellationTokenSource.Token);
 
-        //try catch block to avoid OperationCanceledException due to that we are just waiting for 1 second
+        //try catch block to avoid OperationCanceledException due to that we are just waiting for 2 seconds
         try
         {
             await foreach (var message in call.ResponseStream.ReadAllAsync())
