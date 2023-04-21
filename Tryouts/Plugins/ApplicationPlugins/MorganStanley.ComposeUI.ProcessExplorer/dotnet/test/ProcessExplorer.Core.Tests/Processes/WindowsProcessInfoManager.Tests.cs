@@ -168,7 +168,6 @@ public class WindowsProcessInfoManagerTests
         var loggerMock = CreateLoggerMock();
         var processMonitor = CreateWindowsProcessMonitor(loggerMock.Object);
 
-        //Expected parentid should be the current process id, as we are starting this process from the code.
         var parentId = processMonitor.GetParentId(666666, string.Empty);
 
         Assert.Null(parentId);
@@ -186,8 +185,8 @@ public class WindowsProcessInfoManagerTests
 
         var processes = new[] { testApplication.Id };
 
-        // Waiting for the notepad process to start
-        Thread.Sleep(100);
+        // Waiting for the test process to start
+        Thread.Sleep(1000);
         processMonitor.SetProcessIds(Environment.ProcessId, processes);
 
         var result = processMonitor.GetProcessIds().ToArray();
