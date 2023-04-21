@@ -12,7 +12,7 @@
 
 using System.Reflection;
 
-namespace LocalCollector.Modules;
+namespace ProcessExplorer.Abstractions.Entities.Modules;
 
 public class ModuleInfo
 {
@@ -22,7 +22,7 @@ public class ModuleInfo
     public byte[]? PublicKeyToken { get; set; }
     public string? Location { get; set; }
 
-    internal static ModuleInfo FromModule(Assembly assembly, Module module)
+    public static ModuleInfo FromModule(Assembly assembly, System.Reflection.Module module)
     {
         string? location;
         try

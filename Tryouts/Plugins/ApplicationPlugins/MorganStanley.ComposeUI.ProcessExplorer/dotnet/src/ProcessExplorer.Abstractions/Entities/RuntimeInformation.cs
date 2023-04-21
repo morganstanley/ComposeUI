@@ -10,9 +10,10 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace LocalCollector.Connections;
+namespace ProcessExplorer.Abstractions.Entities;
 
-public class ConnectionMonitorInfo
+[Serializable]
+public class RuntimeInformation
 {
-    public SynchronizedCollection<ConnectionInfo> Connections { get; internal set; } = new();
+    public string Name { get; set; } = string.Empty;
 }

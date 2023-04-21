@@ -10,11 +10,9 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace LocalCollector.Registrations;
+namespace ProcessExplorer.Abstractions.Entities.Connections;
 
-public class RegistrationInfo
+public class ConnectionMonitorInfo
 {
-    public string? ImplementationType { get; set; }
-    public string? LifeTime { get; set; }
-    public string? ServiceType { get; set; }
+    public SynchronizedCollection<ConnectionInfo> Connections { get; set; } = new();
 }

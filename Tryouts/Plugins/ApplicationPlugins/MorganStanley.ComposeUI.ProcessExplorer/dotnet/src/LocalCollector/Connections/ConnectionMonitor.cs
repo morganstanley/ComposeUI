@@ -10,14 +10,22 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using ProcessExplorer.Abstractions.Entities.Connections;
+
 namespace LocalCollector.Connections;
 
 public class ConnectionMonitor : IConnectionMonitor
 {
-    private ConnectionMonitorInfo Data { get; } = new();
-    ConnectionMonitorInfo IConnectionMonitor.Data
+    private readonly ConnectionMonitorInfo _connections = new();
+    ConnectionMonitorInfo IConnectionMonitor.Connections
     {
-        get => Data;
+        get
+        {
+            lock (_locker)
+            {
+                return _connections;
+            }
+        }
     }
 
     private readonly object _locker = new();
@@ -26,14 +34,14 @@ public class ConnectionMonitor : IConnectionMonitor
 
     public ConnectionMonitor(SynchronizedCollection<ConnectionInfo> connections)
     {
-        Data.Connections = connections;
+        _connections.Connections = connections;
     }
 
     public void AddConnection(ConnectionInfo connectionInfo)
     {
         lock (_locker)
         {
-            Data.Connections.Add(connectionInfo);
+            _connections.Connections.Add(connectionInfo);
         }
     }
 
@@ -41,7 +49,7 @@ public class ConnectionMonitor : IConnectionMonitor
     {
         lock (_locker)
         {
-            var element = Data.Connections
+            var element = _connections.Connections
                 .FirstOrDefault(x => x.Id == connectionInfo.Id);
 
             if (element == null)
@@ -49,8 +57,8 @@ public class ConnectionMonitor : IConnectionMonitor
                 return;
             }
 
-            var index = Data.Connections.IndexOf(element);
-            Data.Connections.RemoveAt(index);
+            var index = _connections.Connections.IndexOf(element);
+            _connections.Connections.RemoveAt(index);
         }
     }
 
@@ -60,7 +68,7 @@ public class ConnectionMonitor : IConnectionMonitor
         {
             foreach (var conn in connections)
             {
-                var element = Data.Connections
+                var element = _connections.Connections
                     .FirstOrDefault(item => item.Id == conn.Id);
 
                 if (element == null)
@@ -68,14 +76,14 @@ public class ConnectionMonitor : IConnectionMonitor
                     continue;
                 }
 
-                var index = Data.Connections.IndexOf(element);
+                var index = _connections.Connections.IndexOf(element);
                 if (index != -1)
                 {
-                    Data.Connections[index] = conn;
+                    _connections.Connections[index] = conn;
                 }
                 else
                 {
-                    Data.Connections.Add(conn);
+                    _connections.Connections.Add(conn);
                 }
             }
         }
@@ -83,14 +91,14 @@ public class ConnectionMonitor : IConnectionMonitor
 
     public void UpdateConnection(Guid connId, ConnectionStatus status)
     {
-        if (Data.Connections.Count <= 0)
-        {
-            return;
-        }
-
         lock (_locker)
         {
-            var conn = Data.Connections
+            if (_connections.Connections.Count <= 0)
+            {
+                return;
+            }
+
+            var conn = _connections.Connections
                 .FirstOrDefault(c => c.Id == connId);
 
             if (conn == null || conn.Status == status.ToStringCached())

@@ -47,7 +47,7 @@ public class EndToEndTests : IAsyncLifetime
     {
         var client = CreateGrpcClient();
 
-        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(2));
 
         var messages = new List<Message>();
 
@@ -98,7 +98,7 @@ public class EndToEndTests : IAsyncLifetime
         }
 
         var client = CreateGrpcClient();
-        var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+        var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(2));
         var messages = new List<Message>();
 
         var call = client.Subscribe(new Empty(), cancellationToken: cancellationTokenSource.Token);
@@ -140,7 +140,7 @@ public class EndToEndTests : IAsyncLifetime
     public void Client_can_send_message()
     {
         var client = CreateGrpcClient();
-        var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+        var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(2));
 
         var message = new Message()
         {

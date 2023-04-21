@@ -10,18 +10,18 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using System.Collections.Concurrent;
+namespace ProcessExplorer.Abstractions.Entities.Connections;
 
-namespace LocalCollector.Connections;
-
-public record ConnectionInfo
+public static class ConnectionStatusExtensions
 {
-    public Guid? Id { get; set; }
-    public string? Name { get; set; }
-    public string? LocalEndpoint { get; set; }
-    public string? RemoteEndpoint { get; set; }
-    public string? RemoteApplication { get; set; }
-    public string? RemoteHostname { get; set; }
-    public ConcurrentDictionary<string, string>? ConnectionInformation { get; set; }
-    public string? Status { get; set; }
+    public static string ToStringCached(this ConnectionStatus status)
+    {
+        return status switch
+        {
+            ConnectionStatus.Stopped => nameof(ConnectionStatus.Stopped),
+            ConnectionStatus.Failed => nameof(ConnectionStatus.Failed),
+            ConnectionStatus.Running => nameof(ConnectionStatus.Running),
+            _ => status.ToString(),
+        };
+    }
 }

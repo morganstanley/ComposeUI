@@ -11,6 +11,7 @@
 // and limitations under the License.
 
 using Microsoft.Extensions.DependencyInjection;
+using ProcessExplorer.Abstractions.Entities.Registrations;
 
 namespace LocalCollector.Registrations;
 

@@ -12,7 +12,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\LocalCollector\LocalCollector.csproj" />
     <ProjectReference Include="..\ProcessExplorer.Abstractions\ProcessExplorer.Abstractions.csproj" />
   </ItemGroup>
   

@@ -12,13 +12,13 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using LocalCollector;
-using LocalCollector.Connections;
-using LocalCollector.Modules;
-using LocalCollector.Registrations;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using ProcessExplorer.Abstractions;
+using ProcessExplorer.Abstractions.Entities;
+using ProcessExplorer.Abstractions.Entities.Connections;
+using ProcessExplorer.Abstractions.Entities.Modules;
+using ProcessExplorer.Abstractions.Entities.Registrations;
 using ProcessExplorer.Abstractions.Infrastructure;
 using ProcessExplorer.Abstractions.Logging;
 using ProcessExplorer.Abstractions.Processes;

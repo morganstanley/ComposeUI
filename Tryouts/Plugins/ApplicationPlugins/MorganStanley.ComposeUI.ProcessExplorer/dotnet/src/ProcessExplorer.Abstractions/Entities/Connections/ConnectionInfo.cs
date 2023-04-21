@@ -10,10 +10,18 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace LocalCollector.Communicator;
+using System.Collections.Concurrent;
 
-[Serializable]
-public class AssemblyInformation
+namespace ProcessExplorer.Abstractions.Entities.Connections;
+
+public record ConnectionInfo
 {
-    public string Name { get; set; } = string.Empty;
+    public Guid? Id { get; set; }
+    public string? Name { get; set; }
+    public string? LocalEndpoint { get; set; }
+    public string? RemoteEndpoint { get; set; }
+    public string? RemoteApplication { get; set; }
+    public string? RemoteHostname { get; set; }
+    public ConcurrentDictionary<string, string>? ConnectionInformation { get; set; }
+    public string? Status { get; set; }
 }

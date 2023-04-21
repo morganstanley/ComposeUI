@@ -10,12 +10,12 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using LocalCollector;
-using LocalCollector.Communicator;
-using LocalCollector.Connections;
-using LocalCollector.Modules;
-using LocalCollector.Registrations;
 using ProcessExplorer.Abstractions;
+using ProcessExplorer.Abstractions.Entities;
+using ProcessExplorer.Abstractions.Entities.Connections;
+using ProcessExplorer.Abstractions.Entities.Modules;
+using ProcessExplorer.Abstractions.Entities.Registrations;
+using ProcessExplorer.Abstractions.Infrastructure;
 
 namespace ProcessExplorer.Core.Infrastructure;
 
@@ -29,7 +29,7 @@ internal class Communicator : ICommunicator
         _aggregator = processAggregator;
     }
 
-    public async ValueTask AddRuntimeInfo(IEnumerable<KeyValuePair<AssemblyInformation, ProcessInfoCollectorData>> listOfRuntimeInfos)
+    public async ValueTask AddRuntimeInfo(IEnumerable<KeyValuePair<RuntimeInformation, ProcessInfoCollectorData>> listOfRuntimeInfos)
     {
         if (listOfRuntimeInfos == null) return;
 
@@ -42,7 +42,7 @@ internal class Communicator : ICommunicator
         }
     }
 
-    public async ValueTask AddConnectionCollection(IEnumerable<KeyValuePair<AssemblyInformation, IEnumerable<ConnectionInfo>>> connections)
+    public async ValueTask AddConnectionCollection(IEnumerable<KeyValuePair<RuntimeInformation, IEnumerable<ConnectionInfo>>> connections)
     {
         if (connections == null) return;
 
@@ -53,7 +53,7 @@ internal class Communicator : ICommunicator
         }
     }
 
-    public async ValueTask UpdateConnectionInformation(IEnumerable<KeyValuePair<AssemblyInformation, ConnectionInfo>> connections)
+    public async ValueTask UpdateConnectionInformation(IEnumerable<KeyValuePair<RuntimeInformation, ConnectionInfo>> connections)
     {
         if (connections == null) return;
 
@@ -64,7 +64,7 @@ internal class Communicator : ICommunicator
         }
     }
 
-    public async ValueTask UpdateEnvironmentVariableInformation(IEnumerable<KeyValuePair<AssemblyInformation, IEnumerable<KeyValuePair<string, string>>>> environmentVariables)
+    public async ValueTask UpdateEnvironmentVariableInformation(IEnumerable<KeyValuePair<RuntimeInformation, IEnumerable<KeyValuePair<string, string>>>> environmentVariables)
     {
         if (environmentVariables == null) return;
 
@@ -75,7 +75,7 @@ internal class Communicator : ICommunicator
         }
     }
 
-    public async ValueTask UpdateRegistrationInformation(IEnumerable<KeyValuePair<AssemblyInformation, IEnumerable<RegistrationInfo>>> registrations)
+    public async ValueTask UpdateRegistrationInformation(IEnumerable<KeyValuePair<RuntimeInformation, IEnumerable<RegistrationInfo>>> registrations)
     {
         if (registrations == null) return;
 
@@ -86,7 +86,7 @@ internal class Communicator : ICommunicator
         }
     }
 
-    public async ValueTask UpdateModuleInformation(IEnumerable<KeyValuePair<AssemblyInformation, IEnumerable<ModuleInfo>>> modules)
+    public async ValueTask UpdateModuleInformation(IEnumerable<KeyValuePair<RuntimeInformation, IEnumerable<ModuleInfo>>> modules)
     {
         if (modules == null) return;
 

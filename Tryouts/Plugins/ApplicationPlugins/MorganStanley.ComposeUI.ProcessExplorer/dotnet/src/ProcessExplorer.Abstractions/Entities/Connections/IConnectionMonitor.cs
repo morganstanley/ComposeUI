@@ -10,14 +10,15 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace LocalCollector.Connections;
+
+namespace ProcessExplorer.Abstractions.Entities.Connections;
 
 public interface IConnectionMonitor
 {
     /// <summary>
     /// Contains the information of the relevant connections.
     /// </summary>
-    ConnectionMonitorInfo Data { get; }
+    ConnectionMonitorInfo Connections { get; }
 
     /// <summary>
     /// Event for status change of a connection.

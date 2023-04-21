@@ -12,21 +12,20 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using LocalCollector.Connections;
-using LocalCollector.EnvironmentVariables;
-using LocalCollector.Modules;
-using LocalCollector.Registrations;
+using ProcessExplorer.Abstractions.Entities.Connections;
+using ProcessExplorer.Abstractions.Entities.Modules;
+using ProcessExplorer.Abstractions.Entities.Registrations;
 
-namespace LocalCollector;
+namespace ProcessExplorer.Abstractions.Entities;
 
 [Serializable]
 public class ProcessInfoCollectorData
 {
     public int Id { get; set; } = Process.GetCurrentProcess().Id;
     public SynchronizedCollection<RegistrationInfo> Registrations { get; set; } = new();
-    public ConcurrentDictionary<string, string> EnvironmentVariables { get; set; } = EnvironmentMonitorInfo.FromEnvironment().EnvironmentVariables;
+    public ConcurrentDictionary<string, string> EnvironmentVariables { get; set; } = new();
     public SynchronizedCollection<ConnectionInfo> Connections { get; set; } = new();
-    public SynchronizedCollection<ModuleInfo> Modules { get; set; } = ModuleMonitorInfo.FromAssembly().CurrentModules;
+    public SynchronizedCollection<ModuleInfo> Modules { get; set; } = new();
 
     private readonly object _locker = new();
 

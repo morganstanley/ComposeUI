@@ -28,10 +28,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LocalCollector\LocalCollector.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Protobuf Include="Infrastructure\Protos\ProcessExplorerMessages.proto">
       <GrpcServices>Both</GrpcServices>
     </Protobuf>

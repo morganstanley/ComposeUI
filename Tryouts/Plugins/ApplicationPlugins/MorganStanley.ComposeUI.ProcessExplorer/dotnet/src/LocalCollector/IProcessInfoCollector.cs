@@ -10,11 +10,13 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using LocalCollector.Communicator;
 using LocalCollector.Connections;
 using LocalCollector.EnvironmentVariables;
 using LocalCollector.Modules;
 using LocalCollector.Registrations;
+using ProcessExplorer.Abstractions.Entities;
+using ProcessExplorer.Abstractions.Entities.Connections;
+using ProcessExplorer.Abstractions.Infrastructure;
 
 namespace LocalCollector;
 
@@ -23,7 +25,7 @@ public interface IProcessInfoCollector
     /// <summary>
     /// Contains information of the environment variables, connections, registrations, modules
     /// </summary>
-    ProcessInfoCollectorData Data { get; }
+    ProcessInfoCollectorData ProcessInformation { get; }
 
     /// <summary>
     /// Adds a list of connections to the existing one.

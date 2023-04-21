@@ -10,10 +10,10 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using LocalCollector;
-using LocalCollector.Connections;
-using LocalCollector.Modules;
-using LocalCollector.Registrations;
+using ProcessExplorer.Abstractions.Entities;
+using ProcessExplorer.Abstractions.Entities.Connections;
+using ProcessExplorer.Abstractions.Entities.Modules;
+using ProcessExplorer.Abstractions.Entities.Registrations;
 using ProcessExplorer.Abstractions.Infrastructure;
 using ProcessExplorer.Abstractions.Processes;
 using ProcessExplorer.Abstractions.Subsystems;

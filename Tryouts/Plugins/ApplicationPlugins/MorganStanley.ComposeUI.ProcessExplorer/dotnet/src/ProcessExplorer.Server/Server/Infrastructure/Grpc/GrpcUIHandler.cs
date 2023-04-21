@@ -12,11 +12,11 @@
 
 using System.Collections.Concurrent;
 using Google.Protobuf.Collections;
-using LocalCollector.Connections;
-using LocalCollector.Modules;
-using LocalCollector.Registrations;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ProcessExplorer.Abstractions.Entities.Connections;
+using ProcessExplorer.Abstractions.Entities.Modules;
+using ProcessExplorer.Abstractions.Entities.Registrations;
 using ProcessExplorer.Abstractions.Infrastructure;
 using ProcessExplorer.Abstractions.Infrastructure.Protos;
 using ProcessExplorer.Abstractions.Logging;
@@ -140,7 +140,7 @@ internal class GrpcUiHandler : IUiHandler
         return Task.CompletedTask;
     }
 
-    public Task AddRuntimeInfo(string assemblyId, LocalCollector.ProcessInfoCollectorData dataObject)
+    public Task AddRuntimeInfo(string assemblyId, ProcessExplorer.Abstractions.Entities.ProcessInfoCollectorData dataObject)
     {
         lock (_uiHandlersLock)
         {
@@ -171,7 +171,7 @@ internal class GrpcUiHandler : IUiHandler
         return Task.CompletedTask;
     }
 
-    public Task AddRuntimeInfo(IEnumerable<KeyValuePair<string, LocalCollector.ProcessInfoCollectorData>> runtimeInfo)
+    public Task AddRuntimeInfo(IEnumerable<KeyValuePair<string, ProcessExplorer.Abstractions.Entities.ProcessInfoCollectorData>> runtimeInfo)
     {
         lock (_uiHandlersLock)
         {
@@ -208,7 +208,7 @@ internal class GrpcUiHandler : IUiHandler
             var message = new Message()
             {
                 Action = ActionType.RemoveProcessByIdAction,
-                Pid = pid
+                ProcessId = pid
             };
 
             return UpdateInfoOnUI(handler => handler.SendMessage(message));

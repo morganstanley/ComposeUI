@@ -10,18 +10,11 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace LocalCollector.Connections;
+namespace ProcessExplorer.Abstractions.Entities.Connections;
 
-public static class ConnectionStatusExtensions
+public enum ConnectionStatus
 {
-    public static string ToStringCached(this ConnectionStatus status)
-    {
-        return status switch
-        {
-            ConnectionStatus.Stopped => nameof(ConnectionStatus.Stopped),
-            ConnectionStatus.Failed => nameof(ConnectionStatus.Failed),
-            ConnectionStatus.Running => nameof(ConnectionStatus.Running),
-            _ => status.ToString(),
-        };
-    }
+    Running,
+    Stopped,
+    Failed
 }

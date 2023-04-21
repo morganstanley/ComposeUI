@@ -10,11 +10,11 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace LocalCollector.Connections;
+namespace ProcessExplorer.Abstractions.Entities.Registrations;
 
-public enum ConnectionStatus
+public class RegistrationInfo
 {
-    Running,
-    Stopped,
-    Failed
+    public string? ImplementationType { get; set; }
+    public string? LifeTime { get; set; }
+    public string? ServiceType { get; set; }
 }

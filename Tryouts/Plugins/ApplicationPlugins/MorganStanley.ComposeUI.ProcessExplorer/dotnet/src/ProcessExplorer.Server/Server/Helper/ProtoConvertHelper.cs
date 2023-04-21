@@ -13,7 +13,9 @@
 using Google.Protobuf;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
-using LocalCollector.Connections;
+using ProcessExplorer.Abstractions.Entities.Connections;
+using ProcessExplorer.Abstractions.Entities.Modules;
+using ProcessExplorer.Abstractions.Entities.Registrations;
 using ProcessExplorer.Abstractions.Extensions;
 using ProcessExplorer.Abstractions.Infrastructure.Protos;
 using ProcessExplorer.Abstractions.Processes;
@@ -64,7 +66,7 @@ internal static class ProtoConvertHelper
                                         : Duration.FromTimeSpan(TimeSpan.Zero),
             PhysicalMemoryUsageBit = process.PhysicalMemoryUsageBit ?? 0,
             ProcessName = process.ProcessName ?? string.Empty,
-            Pid = process.ProcessId,
+            ProcessId = process.ProcessId,
             ProcessPriorityClass = process.ProcessPriorityClass ?? string.Empty,
             Threads = { threads },
             VirtualMemorySize = process.VirtualMemorySize ?? 0,
@@ -90,7 +92,7 @@ internal static class ProtoConvertHelper
         };
     }
 
-    public static ProcessInfoCollectorData DeriveProtoRuntimeInfoType(this LocalCollector.ProcessInfoCollectorData runtimeInfo)
+    public static ProcessInfoCollectorData DeriveProtoRuntimeInfoType(this ProcessExplorer.Abstractions.Entities.ProcessInfoCollectorData runtimeInfo)
     {
         return new()
         {
@@ -102,7 +104,7 @@ internal static class ProtoConvertHelper
         };
     }
 
-    public static Registration DeriveProtoRegistrationType(this LocalCollector.Registrations.RegistrationInfo registration)
+    public static Registration DeriveProtoRegistrationType(this RegistrationInfo registration)
     {
         return new()
         {
@@ -112,7 +114,7 @@ internal static class ProtoConvertHelper
         };
     }
 
-    public static Module DeriveProtoModuleType(this LocalCollector.Modules.ModuleInfo module)
+    public static Module DeriveProtoModuleType(this ModuleInfo module)
     {
         return new()
         {
