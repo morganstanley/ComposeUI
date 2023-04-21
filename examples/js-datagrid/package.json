@@ -1,6 +1,7 @@
 {
   "name": "@morgan-stanley/composeui-example-grid",
   "version": "0.1.0",
+  "private": true,
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -8,7 +9,6 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test --watch=false"
   },
-  "private": true,
   "dependencies": {
     "@angular/animations": "^15.1.0",
     "@angular/cdk": "~15.1.4",

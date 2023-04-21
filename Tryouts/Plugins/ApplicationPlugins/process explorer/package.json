@@ -1,6 +1,7 @@
 {
   "name": "@morgan-stanley/composeui-process-explorer-frontend",
   "version": "0.1.0",
+  "private": true,
   
   "scripts": {
     "ng": "ng",

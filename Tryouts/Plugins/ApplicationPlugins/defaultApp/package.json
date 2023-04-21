@@ -1,6 +1,7 @@
 {
   "name": "@morgan-stanley/composeui-example-default",
   "version": "0.1.0",
+  "private": true,
   "description": "ComposeUI Default App",
   "main": "app.js",
   "type": "module",
