@@ -4,11 +4,11 @@ on:
   release:
     types: [published]
 jobs:
-  build:
-    uses: ./.github/workflows/continuous-integration-prototypes.yml
+  release:
+    uses: ./.github/workflows/release.yml
   deploy-npm:
     name: Deploy packages to NPM
-    needs: build
+    needs: release
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
