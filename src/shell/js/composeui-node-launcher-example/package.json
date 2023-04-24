@@ -1,6 +1,6 @@
 {
   "name": "@morgan-stanley/composeui-node-launcher-example",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.1",
   "private": true,
   "description": "Example usage of @morgan-stanley/composeui-node-launcher-example",
   "main": "example.js",
