@@ -3,6 +3,11 @@ on:
     types: [ published ]
     branches: [ main ]
 
+  workflow_call:
+
+permissions:
+  contents: read
+
 name: Upload Release Asset
 
 jobs:
