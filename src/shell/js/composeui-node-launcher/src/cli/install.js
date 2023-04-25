@@ -11,7 +11,7 @@ import unzipper from '@deranged/unzipper';
 
 import pkg from './../../package.json' assert { type: "json" };
 
-const DEFAULT_CDN_URL = 'https://github.com/morganstanley/ComposeUI/releases/download';
+const DEFAULT_CDN_URL = 'https://github.com/kruplm/ComposeUI/releases/download';
 
 let cdnUrl = process.env.npm_config_composeui_cdn_url || process.env.COMPOSEUI_CDN_URL || DEFAULT_CDN_URL;
 let downloadedFile = '';
