@@ -1,7 +1,7 @@
 on:
-  release:
-    types: [ published ]
-    branches: [ main ]
+#  release:
+#    types: [ published ]
+#    branches: [ main ]
 
   workflow_call:
 
