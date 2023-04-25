@@ -10,15 +10,18 @@ jobs:
     name: Deploy packages to NPM
     needs: release
     runs-on: windows-latest
+    strategy:
+      matrix:
+        node-version: [ '18.x' ]
     steps:
       - uses: actions/checkout@v3
       # Setup .npmrc file to publish to npm
       - uses: actions/setup-node@v3
         with:
-          node-version: [ '18.x' ]
+          node-version: ${{ matrix.node-version }}
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
       - run: npx lerna run build
-      - run: npm publish
+      #- run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
