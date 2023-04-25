@@ -36,6 +36,7 @@ jobs:
         
   assets:
       runs-on: windows-latest
+      needs: upload
       permissions:
         contents: write
         actions: read
