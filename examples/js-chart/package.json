@@ -1,6 +1,7 @@
 {
-  "name": "@morgan-stanley/composeui-example-chart",
-  "version": "0.1.0",
+  "name": "@morgan-stanley/composeui-example-chart",  
+  "version": "0.1.0-alpha.1",
+  "private": true,
   "description": "Example Web Application",
   "main": "chat.js",
   "type": "module",
