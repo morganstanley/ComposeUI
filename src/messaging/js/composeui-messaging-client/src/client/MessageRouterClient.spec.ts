@@ -90,7 +90,13 @@ describe("MessageRouterClient", () => {
 
             const client = new MessageRouterClient(connection, {});
 
-            await expect(client.connect()).rejects.toThrowWithName(MessageRouterError, ErrorNames.connectionFailed);
+            try {
+                await client.connect();
+            } catch (error: any) {
+                expect(error).toBeInstanceOf(MessageRouterError);
+                expect(error.name).toBe("Error");
+                expect(error.message).toBe("Connect failed");
+            }
             expect(client.state).toBe(ClientState.Closed);
 
         });
@@ -108,6 +114,20 @@ describe("MessageRouterClient", () => {
             expect(connection.mock.connect).not.toHaveBeenCalled();
             expect(connection.mock.send).not.toHaveBeenCalled();
             expect(connection.mock.close).not.toHaveBeenCalled();
+        });
+
+        it("when called while connecting, transitions to Closed state", async () => {
+
+            const client = new MessageRouterClient(connection, {});
+            connection.handle<messages.ConnectRequest>("Connect", () => Promise.resolve());
+            const connectPromise = client.connect();
+
+            await client.close();
+
+            expect(client.state).toBe(ClientState.Closed);
+            expect(connection.mock.connect).toHaveBeenCalled();
+            expect(connection.mock.close).not.toHaveBeenCalled();
+            await expect(connectPromise).rejects.toThrowWithName(MessageRouterError, ErrorNames.connectionClosed);
         });
 
         it("closes the connection and transitions to Closed state", async () => {
@@ -384,6 +404,18 @@ describe("MessageRouterClient", () => {
                     requestId: expect.anything()
                 }));
         });
+
+        it("throws if the InvokeResponse contains an error", async () => {
+
+            connection.handle<messages.InvokeRequest>(
+                "Invoke",
+                msg => connection.sendToClient<messages.InvokeResponse>({ type: "InvokeResponse", requestId: msg.requestId, error: { name: "Error", message: "Invoke failed" } })
+            );
+
+            const client = new MessageRouterClient(connection, {});
+
+            await expect(client.invoke("test-endpoint", "test-request")).rejects.toThrow({ name: "Error", message: "Invoke failed" });
+        });
     });
 
     describe("registerService", () => {
@@ -606,7 +638,7 @@ describe("MessageRouterClient", () => {
             connection.raiseClose();
             await new Promise(process.nextTick);
 
-            expect(invokePromise).rejects.toThrowWithName(MessageRouterError, ErrorNames.connectionAborted);
+            await expect(invokePromise).rejects.toThrowWithName(MessageRouterError, ErrorNames.connectionAborted);
         });
 
     })
@@ -626,6 +658,20 @@ describe("MessageRouterClient", () => {
             await new Promise(process.nextTick);
 
             expect(subscriber.error).toHaveBeenCalledOnceWith(err);
+        });
+
+        it("fails pending requests", async () => {
+
+            const client = new MessageRouterClient(connection, {});
+            await client.connect();
+
+            const invokePromise = client.invoke("test-service");
+            await new Promise(process.nextTick);
+            const err = new Error("Fail");
+            connection.raiseError(err);
+            await new Promise(process.nextTick);
+
+            await expect(invokePromise).rejects.toThrow("Fail");
         });
 
     })
@@ -687,7 +733,7 @@ class MockConnection implements Connection {
     sendToClient<TMessage extends messages.Message>(msg: TMessage): Promise<void> {
         if (!this.onMessageCallback) throw new Error("onMessageCallback is not set");
         this.onMessageCallback(msg);
-        return Promise.resolve();
+        return new Promise(process.nextTick);
     }
 
     raiseError(err: any) {

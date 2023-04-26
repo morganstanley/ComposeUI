@@ -44,6 +44,11 @@ public static class MessageRouterErrors
     public const string UnknownEndpoint = "UnknownEndpoint";
 
     /// <summary>
+    /// The scope of the request contains an unknown client ID.
+    /// </summary>
+    public const string UnknownClient = "UnknownClient";
+
+    /// <summary>
     /// Client side error that occurs when user code tries to call a method after closing the connection.
     /// </summary>
     public const string ConnectionClosed = "ConnectionClosed";

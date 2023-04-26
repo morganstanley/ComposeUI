@@ -1,0 +1,8 @@
+<Project>
+	<Import Project="../Directory.Build.props" Condition="Exists('../Directory.Build.props')" />
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="$(AssemblyName).Tests"/>
+		<InternalsVisibleTo Include="DynamicProxyGenAssembly2"/>
+	</ItemGroup>
+</Project>

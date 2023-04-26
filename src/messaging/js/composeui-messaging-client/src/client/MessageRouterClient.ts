@@ -59,18 +59,6 @@ export class MessageRouterClient implements MessageRouter {
     }
 
     close(): Promise<void> {
-        switch (this._state) {
-            case ClientState.Created:
-                {
-                    this._state = ClientState.Closed;
-                    return Promise.resolve();
-                }
-            case ClientState.Closed:
-                return Promise.resolve();
-            case ClientState.Closing:
-                return this.closed.promise;
-        }
-
         return this.closeCore();
     }
 
@@ -204,47 +192,77 @@ export class MessageRouterClient implements MessageRouter {
 
     private async connectCore(): Promise<void> {
         this._state = ClientState.Connecting;
-        
+
         try {
-            this.connection.onMessage((msg) => this.handleMessage(msg));
-            this.connection.onError(err => this.handleError(err));
-            this.connection.onClose(() => this.handleClose());
+            this.connection.onMessage(this.handleMessage.bind(this));
+            this.connection.onError(this.handleError.bind(this));
+            this.connection.onClose(this.handleClose.bind(this));
             await this.connection.connect();
-    
+
             const req: messages.ConnectRequest = {
                 type: "Connect",
                 accessToken: this.options.accessToken
             };
-    
+
             await this.connection.send(req);
+            // This must be the last statement before catch so that awaiting `connected` 
+            // has the same effect as awaiting `connect()`. `close()` also rejects this promise.
             await this.connected.promise;
-        } catch (e: any) {
-            this._state = ClientState.Closed;
-            throw new MessageRouterError(ErrorNames.connectionFailed, e.message, e.stack);
+        } catch (error: any) {
+            if (error instanceof MessageRouterError) {
+                throw error;
+            }
+            else {
+                await this.closeCore(error);
+                throw ThrowHelper.connectionFailed(error.message || error);
+            }
         }
     }
 
-    private async closeCore(): Promise<void> {
+    private async closeCore(error?: any): Promise<void> {
+        error ??= ThrowHelper.connectionClosed();
+        switch (this._state) {
+            case ClientState.Created:
+                {
+                    this._state = ClientState.Closed;
+                    return;
+                }
+            case ClientState.Closed:
+                return;
+            case ClientState.Closing:
+                await this.closed.promise;
+                return;
+            case ClientState.Connecting:
+                {
+                    this._state = ClientState.Closed;
+                    this.connected.reject(ThrowHelper.connectionClosed());
+                    return;
+                }
+        }
         this._state = ClientState.Closing;
-        await this.connection.close();
-        const err = ThrowHelper.connectionClosed();
-        this.failPendingRequests(err);
-        this.failSubscribers(err);
+        this.failPendingRequests(error);
+        this.failSubscribers(error);
+        try {
+            await this.connection.close();
+        }
+        catch (e) {
+            console.error(e)
+        }
         this._state = ClientState.Closed;
         this.closed.resolve();
     }
 
-    private failPendingRequests(err: any) {
+    private failPendingRequests(error: any) {
         for (let requestId in this.pendingRequests) {
-            this.pendingRequests[requestId].reject(err);
+            this.pendingRequests[requestId].reject(error);
             delete this.pendingRequests[requestId];
         }
     }
 
-    private async failSubscribers(err: any) {
+    private async failSubscribers(error: any) {
         for (let topicName in this.topics) {
             const topic = this.topics[topicName];
-            topic.error(err);
+            topic.error(error);
         }
     }
 
@@ -256,9 +274,15 @@ export class MessageRouterClient implements MessageRouter {
     private async sendRequest<TRequest extends messages.AbstractRequest<TResponse>, TResponse extends messages.AbstractResponse>(
         request: TRequest): Promise<TResponse> {
 
-        await this.connect();
         const deferred = this.pendingRequests[request.requestId] = new Deferred<messages.AbstractResponse>();
-        await this.sendMessage(request);
+
+        try {
+            await this.sendMessage(request);
+        } catch (error) {
+            delete this.pendingRequests[request.requestId];
+            throw error;
+        }
+
         return <TResponse>await deferred.promise;
     }
 
@@ -355,8 +379,8 @@ export class MessageRouterClient implements MessageRouter {
             this.connected.reject(new MessageRouterError(message.error));
         }
         else {
-            this._state = ClientState.Connected;
             this.clientId = message.clientId;
+            this._state = ClientState.Connected;
             this.connected.resolve();
         }
     }
@@ -367,27 +391,18 @@ export class MessageRouterClient implements MessageRouter {
         }
     }
 
-    private async handleError(err: any): Promise<void> {
-        this.failPendingRequests(err);
-        this.failSubscribers(err);
-        
-        if (this._state == ClientState.Connecting) {
-            this.connected.reject(err);
-            return;
-        }
-
-        this._state = ClientState.Closed;
-        await this.connection?.close();
-    }
-
-    private handleClose(): Promise<void> {
+    private handleError(error: any): void {
         switch (this._state) {
             case ClientState.Closing:
             case ClientState.Closed:
-                return Promise.resolve();
+                return;
         }
 
-        return this.handleError(ThrowHelper.connectionAborted());
+        this.closeCore(error);
+    }
+
+    private handleClose(): void {
+        this.handleError(ThrowHelper.connectionAborted());
     }
 
     private async unsubscribe(topicName: string): Promise<void> {
@@ -418,6 +433,10 @@ class Topic {
     }
 
     subscribe(subscriber: TopicSubscriberInternal): Unsubscribable {
+        if (this.isCompleted) return {
+            unsubscribe: () => { }
+        };;
+
         this.subscribers.push(subscriber);
 
         return {
@@ -426,6 +445,8 @@ class Topic {
     }
 
     unsubscribe(subscriber: TopicSubscriberInternal): void {
+        if (this.isCompleted) return;
+
         const idx = this.subscribers.lastIndexOf(subscriber);
 
         if (idx < 0)
@@ -439,17 +460,23 @@ class Topic {
     }
 
     next(message: TopicMessage): void {
+        if (this.isCompleted) return;
+
         for (let subscriber of this.subscribers) {
             try {
                 subscriber.next?.call(subscriber, message);
             }
-            catch (err) {
-                console.error(err);
+            catch (error) {
+                console.error(error);
             }
         }
     }
 
     error(error: any): void {
+        if (this.isCompleted) return;
+
+        this.isCompleted = true;
+
         for (let subscriber of this.subscribers) {
             try {
                 subscriber.error?.call(subscriber, error);
@@ -460,6 +487,8 @@ class Topic {
     }
 
     complete(): void {
+        if (this.isCompleted) return;
+
         for (let subscriber of this.subscribers) {
             try {
                 subscriber.complete?.call(subscriber);
@@ -469,6 +498,7 @@ class Topic {
         }
     }
 
+    private isCompleted: boolean = false;
     private onUnsubscribe: () => void;
     private subscribers: TopicSubscriberInternal[] = [];
 }

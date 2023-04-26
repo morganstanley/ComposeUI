@@ -34,6 +34,9 @@ public static class ThrowHelper
     public static MessageRouterException UnknownEndpoint(string endpoint) =>
         new(MessageRouterErrors.UnknownEndpoint, $"Unknown endpoint: {endpoint}");
 
+    public static MessageRouterException UnknownClient(string clientId) =>
+        new(MessageRouterErrors.UnknownClient, $"Unknown client: {clientId}");
+
     public static MessageRouterException ConnectionClosed() =>
         new(MessageRouterErrors.ConnectionClosed, "The connection has been closed");
 

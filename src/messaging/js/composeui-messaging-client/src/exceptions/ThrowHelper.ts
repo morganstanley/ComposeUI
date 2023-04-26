@@ -40,8 +40,8 @@ export class ThrowHelper {
         return new MessageRouterError({ name: ErrorNames.connectionClosed, message: "The connection has been closed"});
     }
 
-    static connectionFailed(): MessageRouterError {
-        return new MessageRouterError({ name: ErrorNames.connectionFailed, message: "Connection failed"});
+    static connectionFailed(message: string): MessageRouterError {
+        return new MessageRouterError({ name: ErrorNames.connectionFailed, message: `Connection failed with message ${message}`});
     }
 
     static connectionAborted(): MessageRouterError {
