@@ -6,7 +6,8 @@ on:
   workflow_call:
 
 permissions:
-  contents: read
+  contents: write
+  actions: read
 
 name: Upload Release Asset
 
@@ -45,3 +46,6 @@ jobs:
           asset_name: composeui-${{ github.ref_name }}-win32.zip
           asset_content_type: application/zip
           
+  deploy:
+    uses: ./.github/workflows/deploy-to-npm.yml
+    needs: upload

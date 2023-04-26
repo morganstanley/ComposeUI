@@ -1,21 +1,21 @@
 name: Publish Package to npmjs
 
 on:
-  release:
-    types: [published]
+  workflow_call:
+  
 jobs:
-  release:
-    uses: ./.github/workflows/release.yml
   deploy-npm:
     name: Deploy packages to NPM
-    needs: release
     runs-on: windows-latest
+    strategy:
+      matrix:
+        node-version: [ '18.x' ]
     steps:
       - uses: actions/checkout@v3
       # Setup .npmrc file to publish to npm
       - uses: actions/setup-node@v3
         with:
-          node-version: [ '18.x' ]
+          node-version: ${{ matrix.node-version }}
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
       - run: npx lerna run build
