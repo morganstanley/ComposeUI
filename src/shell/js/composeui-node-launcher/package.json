@@ -6,6 +6,12 @@
   "main": "output/index.js",
   "module": "output/index.js",
   "type": "module",
+  "author": "Morgan Stanley",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/morganstanley/ComposeUI.git#main"
+  },
   "scripts": {
     "clean": "rimraf output",
     "build": "npm run clean && tsc",
