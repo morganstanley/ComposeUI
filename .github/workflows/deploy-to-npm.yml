@@ -19,6 +19,6 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
       - run: npx lerna run build
-      - run: npm publish
+      - run: npx lerna exec -- npm publish
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
