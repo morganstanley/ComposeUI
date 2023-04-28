@@ -5,7 +5,8 @@ on:
   
 jobs:
   deploy-npm:
-    name: Deploy packages to NPM
+    # TODO: revist this workflow to include all packages
+    name: Deploy composeui-node-launcher to NPM
     runs-on: windows-latest
     strategy:
       matrix:
@@ -20,6 +21,11 @@ jobs:
       - run: npm ci
       - run: npx lerna run build
       - run: npm config set //registry.npmjs.org/:_authToken=$NPM_TOKEN
-      - run: npx lerna exec -- npm publish
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish composeui-node-launcher
+        run: npm publish
+        working-directory: ${{ github.workspace }}/src/shell/js/composeui-node-launcher/
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
