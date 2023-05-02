@@ -18,10 +18,11 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: 'https://registry.npmjs.org'
-      - run: npm ci
-      - run: npm run build
-      - run: npm publish
-      #- run: npm config set //registry.npmjs.org/:_authToken=$NPM_TOKEN
+      - run: |
+             dir
+             npm ci
+             npm run build
+             npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         working-directory: ${{ github.workspace }}/src/shell/js/composeui-node-launcher/
