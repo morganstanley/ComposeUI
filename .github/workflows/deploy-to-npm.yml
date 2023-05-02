@@ -19,16 +19,9 @@ jobs:
           node-version: ${{ matrix.node-version }}
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
-      - run: npx lerna run build
-      #- run: npm publish
+      - run: npm run build
+      - run: npm publish
       #- run: npm config set //registry.npmjs.org/:_authToken=$NPM_TOKEN
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Publish composeui-node-launcher
-        run: npm publish
         working-directory: ${{ github.workspace }}/src/shell/js/composeui-node-launcher/
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
