@@ -5,25 +5,14 @@ on:
   
 jobs:
   deploy-npm:
-    # TODO: revist this workflow to include all packages
-    name: Deploy composeui-node-launcher to NPM
     runs-on: windows-latest
-    strategy:
-      matrix:
-        node-version: [ '18.x' ]
     steps:
       - uses: actions/checkout@v3
-      # Setup .npmrc file to publish to npm
       - uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
-          registry-url: 'https://registry.npmjs.org'
-      - run: |
-             npm whoami
-             dir
-             npm ci
-             npm run build
-             npm publish
+          node-version: 18
+          registry-url: https://registry.npmjs.org/
+      - run: npm ci
+      - run: npm whoami
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        working-directory: ${{ github.workspace }}/src/shell/js/composeui-node-launcher/
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
