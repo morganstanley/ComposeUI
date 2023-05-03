@@ -13,45 +13,45 @@ permissions:
 name: Upload Release Asset
 
 jobs:
-  build:
-    uses: ./.github/workflows/continuous-integration-prototypes.yml
-  upload:
-    name: Upload Release Asset
-    needs: build
-    runs-on: windows-latest
+  #build:
+    #uses: ./.github/workflows/continuous-integration-prototypes.yml
+  #upload:
+    #name: Upload Release Asset
+    #needs: build
+    #runs-on: windows-latest
   
-    steps:
+    #steps:
 
       # Using shared artifact from build workflow
-      - name: Download Artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: shell-binaries
-          path: ${{ github.workspace }}/shell-binaries
+      #- name: Download Artifact
+        #uses: actions/download-artifact@v3
+        #with:
+          #name: shell-binaries
+          #path: ${{ github.workspace }}/shell-binaries
     
-      - name: Display structure of downloaded files
-        run: Get-ChildItem -Recurse
-        working-directory: ${{ github.workspace }}/shell-binaries
+      #- name: Display structure of downloaded files
+        #run: Get-ChildItem -Recurse
+        #working-directory: ${{ github.workspace }}/shell-binaries
         
-      - name: Compress
-        run: Compress-Archive -Path  ${{ github.workspace }}/shell-binaries/* composeui-${{ github.ref_name }}-win32.zip
+      #- name: Compress
+        #run: Compress-Archive -Path  ${{ github.workspace }}/shell-binaries/* composeui-${{ github.ref_name }}-win32.zip
         
-      - name: Upload Release Asset
-        id: upload-release-asset 
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./composeui-${{ github.ref_name }}-win32.zip
-          asset_name: composeui-${{ github.ref_name }}-win32.zip
-          asset_content_type: application/zip
+      #- name: Upload Release Asset
+        #id: upload-release-asset 
+        #uses: actions/upload-release-asset@v1
+        #env:
+          #GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        #with:
+          #upload_url: ${{ github.event.release.upload_url }}
+          #asset_path: ./composeui-${{ github.ref_name }}-win32.zip
+          #asset_name: composeui-${{ github.ref_name }}-win32.zip
+          #asset_content_type: application/zip
           
   deploy:
     name: Publish Package to npmjs
     runs-on: windows-latest
-    #uses: ./.github/workflows/deploy-to-npm.yml
-    needs: upload
+    ##uses: ./.github/workflows/deploy-to-npm.yml
+    #needs: upload
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
