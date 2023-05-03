@@ -62,7 +62,7 @@ jobs:
              npm ci
              npm run build
              npm whoami
-             npm publish
+             npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
         working-directory: ${{ github.workspace }}/src/shell/js/composeui-node-launcher/
