@@ -1,7 +1,7 @@
 on:
   release:
     types: [ published ]
-    branches: [ main ]
+    branches: [ main, action-testing ]
 
   workflow_call:
   workflow_dispatch:
