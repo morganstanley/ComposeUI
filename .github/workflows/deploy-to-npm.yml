@@ -1,7 +1,10 @@
 name: Publish Package to npmjs
+permissions:
+  contents: read
 
 on:
   workflow_call:
+  workflow_dispatch:
   
 jobs:
   deploy-npm:
