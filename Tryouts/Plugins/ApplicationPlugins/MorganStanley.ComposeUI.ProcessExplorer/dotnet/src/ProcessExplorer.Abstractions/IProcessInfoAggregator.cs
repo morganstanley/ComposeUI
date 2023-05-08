@@ -20,12 +20,12 @@ using ProcessExplorer.Abstractions.Subsystems;
 
 namespace ProcessExplorer.Abstractions;
 
-public interface IProcessInfoAggregator : IDisposable
+public interface IProcessInfoAggregator 
 {
     /// <summary>
-    /// Main process id to watch.
+    /// The main id, which childprocesses should be watched.
     /// </summary>
-    public int MainProcessId { get; }
+    public int MainProcessId { get; set; }
 
     /// <summary>
     /// Delay for actually sending terminate request for the UI.
@@ -35,7 +35,7 @@ public interface IProcessInfoAggregator : IDisposable
     /// <summary>
     /// Controls the initialized subsystems.
     /// </summary>
-    public ISubsystemController? SubsystemController { get; }
+    public ISubsystemController SubsystemController { get; }
 
     /// <summary>
     /// Handles the communication between the server and clients.
@@ -47,18 +47,6 @@ public interface IProcessInfoAggregator : IDisposable
     /// </summary>
     /// <param name="assembly"></param>
     void RemoveRuntimeInformation(string assembly);
-
-    /// <summary>
-    /// Sets Compose PID.
-    /// </summary>
-    /// <param name="processId"></param>
-    void SetMainProcessId(int processId);
-
-    /// <summary>
-    /// Sets the SubsystemController.
-    /// </summary>
-    /// <param name="subsystemController"></param>
-    void SetSubsystemController(ISubsystemController subsystemController);
 
     /// <summary>
     /// Sets the delay time for keeping a process after it was terminated.(s)

@@ -30,19 +30,18 @@ public class SubsystemControllerTests
     public async Task InitializeSubsystems_will_add_elements_trigger_automated_start_and_update_to_the_ui(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherMock = new Mock<ISubsystemLauncher>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncher: subsystemLauncherMock.Object);
-        var uiDelegateMock = new Mock<Func<Func<IUiHandler, Task>, Task>>();
-
-        subsystemController.SetUiDelegate(uiDelegateMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
 
         subsystemLauncherMock.Verify(x => x.LaunchSubsystems(It.IsAny<Dictionary<Guid, string>>()), Times.Once);
 
-        uiDelegateMock.Verify(x => x.Invoke(It.IsAny<Func<IUiHandler, Task>>()));
+        uiDelegateMock.Verify(x => x.AddSubsystems(It.IsAny<IEnumerable<KeyValuePair<Guid, SubsystemInfo>>>()));
     }
 
     [Theory]
@@ -50,13 +49,12 @@ public class SubsystemControllerTests
     public async Task LaunchAllRegisteredSubsystem_will_use_subsystemLauncher_to_launch_subsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherMock = new Mock<ISubsystemLauncher>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncher: subsystemLauncherMock.Object);
-        var uiDelegateMock = new Mock<Func<Func<IUiHandler, Task>, Task>>();
-
-        subsystemController.SetUiDelegate(uiDelegateMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
 
@@ -70,13 +68,12 @@ public class SubsystemControllerTests
     public async Task LaunchAllRegisteredSubsystem_will_use_subsystemCommunicator_to_launch_subsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherMock = new Mock<ISubsystemLauncher>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncher: subsystemLauncherMock.Object);
-        var uiDelegateMock = new Mock<Func<Func<IUiHandler, Task>, Task>>();
-
-        subsystemController.SetUiDelegate(uiDelegateMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
 
@@ -90,13 +87,12 @@ public class SubsystemControllerTests
     public async Task LaunchSubsystemAfterTime_will_use_subsystemLauncher_to_launch_subsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherMock = new Mock<ISubsystemLauncher>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncher: subsystemLauncherMock.Object);
-        var uiDelegateMock = new Mock<Func<Func<IUiHandler, Task>, Task>>();
-
-        subsystemController.SetUiDelegate(uiDelegateMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
 
@@ -116,13 +112,12 @@ public class SubsystemControllerTests
     public async Task LaunchSubsystemAfterTime_will_use_subsystemCommunicator_to_launch_subsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherCommunicatorMock = new Mock<ISubsystemLauncherCommunicator>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncherCommunicator: subsystemLauncherCommunicatorMock.Object);
-        var uiDelegateMock = new Mock<Func<Func<IUiHandler, Task>, Task>>();
-
-        subsystemController.SetUiDelegate(uiDelegateMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
 
@@ -141,13 +136,12 @@ public class SubsystemControllerTests
     public async Task LaunchSubsystemAfterTime_will_return_without_triggering_anything()
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherCommunicatorMock = new Mock<ISubsystemLauncherCommunicator>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncherCommunicator: subsystemLauncherCommunicatorMock.Object);
-        var uiDelegateMock = new Mock<Func<Func<IUiHandler, Task>, Task>>();
-
-        subsystemController.SetUiDelegate(uiDelegateMock.Object);
 
         var subsystems = new Dictionary<Guid, SubsystemInfo>();
         await subsystemController.InitializeSubsystems(subsystems);
@@ -164,13 +158,12 @@ public class SubsystemControllerTests
     public async Task LaunchSubsystemAutomatically_will_use_subsystemLauncher_to_launch_subsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherMock = new Mock<ISubsystemLauncher>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncher: subsystemLauncherMock.Object);
-        var uiDelegateMock = new Mock<Func<Func<IUiHandler, Task>, Task>>();
-
-        subsystemController.SetUiDelegate(uiDelegateMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
 
@@ -188,13 +181,12 @@ public class SubsystemControllerTests
     public async Task LaunchSubsystemAutomatically_will_use_subsystemCommunicator_to_launch_subsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherCommunicatorMock = new Mock<ISubsystemLauncherCommunicator>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncherCommunicator: subsystemLauncherCommunicatorMock.Object);
-        var uiDelegateMock = new Mock<Func<Func<IUiHandler, Task>, Task>>();
-
-        subsystemController.SetUiDelegate(uiDelegateMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
 
@@ -211,13 +203,12 @@ public class SubsystemControllerTests
     public async Task LaunchSubsystemAutomatically_will_return_without_triggering_anything()
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherCommunicatorMock = new Mock<ISubsystemLauncherCommunicator>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncherCommunicator: subsystemLauncherCommunicatorMock.Object);
-        var uiDelegateMock = new Mock<Func<Func<IUiHandler, Task>, Task>>();
-
-        subsystemController.SetUiDelegate(uiDelegateMock.Object);
         
         await subsystemController.LaunchSubsystemAutomatically(Guid.Empty);
 
@@ -229,9 +220,11 @@ public class SubsystemControllerTests
     public async Task LaunchSubsystemsAutomatically_will_use_subsystemLauncher_to_launch_subsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherMock = new Mock<ISubsystemLauncher>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncher: subsystemLauncherMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
@@ -246,9 +239,11 @@ public class SubsystemControllerTests
     public async Task LaunchSubsystemsAutomatically_will_use_subsystemCommunicator_to_launch_subsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherCommunicatorMock = new Mock<ISubsystemLauncherCommunicator>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncherCommunicator: subsystemLauncherCommunicatorMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
@@ -263,9 +258,11 @@ public class SubsystemControllerTests
     public async Task LaunchSubsystem_will_use_subsystemLauncher_to_launch_subsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherMock = new Mock<ISubsystemLauncher>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncher: subsystemLauncherMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
@@ -283,9 +280,11 @@ public class SubsystemControllerTests
     public async Task LaunchSubsystem_will_use_subsystemCommunicator_to_launch_subsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherCommunicatorMock = new Mock<ISubsystemLauncherCommunicator>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncherCommunicator: subsystemLauncherCommunicatorMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
@@ -303,9 +302,11 @@ public class SubsystemControllerTests
     public async Task LaunchSubsystems_will_use_subsystemLauncher_to_launch_subsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherMock = new Mock<ISubsystemLauncher>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncher: subsystemLauncherMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
@@ -324,9 +325,11 @@ public class SubsystemControllerTests
     public async Task LaunchSubsystems_will_use_subsystemCommunicator_to_launch_subsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherCommunicatorMock = new Mock<ISubsystemLauncherCommunicator>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncherCommunicator: subsystemLauncherCommunicatorMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
@@ -345,9 +348,11 @@ public class SubsystemControllerTests
     public async Task RestartSubsystem_will_use_subsystemLauncher_to_restart_subsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherMock = new Mock<ISubsystemLauncher>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncher: subsystemLauncherMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
@@ -365,9 +370,11 @@ public class SubsystemControllerTests
     public async Task RestartSubsystem_will_use_subsystemCommunicator_to_restart_subsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherCommunicatorMock = new Mock<ISubsystemLauncherCommunicator>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncherCommunicator: subsystemLauncherCommunicatorMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
@@ -385,9 +392,11 @@ public class SubsystemControllerTests
     public async Task RestartSubsystems_will_use_subsystemLauncher_to_restart_subsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherMock = new Mock<ISubsystemLauncher>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncher: subsystemLauncherMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
@@ -406,9 +415,11 @@ public class SubsystemControllerTests
     public async Task RestartSubsystems_will_use_subsystemCommunicator_to_restart_subsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherCommunicatorMock = new Mock<ISubsystemLauncherCommunicator>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncherCommunicator: subsystemLauncherCommunicatorMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
@@ -427,9 +438,11 @@ public class SubsystemControllerTests
     public async Task ShutdownAllRegisteredSubsystem_will_use_subsystemLauncher_to_shutdown_subsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherMock = new Mock<ISubsystemLauncher>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncher: subsystemLauncherMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
@@ -444,9 +457,11 @@ public class SubsystemControllerTests
     public async Task ShutdownAllRegisteredSubsystem_will_use_subsystemCommunicator_to_shutdown_subsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherCommunicatorMock = new Mock<ISubsystemLauncherCommunicator>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncherCommunicator: subsystemLauncherCommunicatorMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
@@ -461,9 +476,11 @@ public class SubsystemControllerTests
     public async Task ShutdownSubsystem_will_use_subsystemLauncher_to_shutdown_subsystem(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherMock = new Mock<ISubsystemLauncher>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncher: subsystemLauncherMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
@@ -482,9 +499,11 @@ public class SubsystemControllerTests
     public async Task ShutdownSubsystem_will_use_subsystemCommunicator_to_shutdown_subsystem(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherCommunicatorMock = new Mock<ISubsystemLauncherCommunicator>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncherCommunicator: subsystemLauncherCommunicatorMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
@@ -502,9 +521,11 @@ public class SubsystemControllerTests
     public async Task ShutdownSubsystem_will_do_nothing()
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherCommunicatorMock = new Mock<ISubsystemLauncherCommunicator>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncherCommunicator: subsystemLauncherCommunicatorMock.Object);
 
         await subsystemController.InitializeSubsystems(new List<KeyValuePair<Guid, SubsystemInfo>>());
@@ -519,9 +540,11 @@ public class SubsystemControllerTests
     public async Task ShutdownSubsystems_will_use_subsystemLauncher_to_shutdown_subsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherMock = new Mock<ISubsystemLauncher>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncher: subsystemLauncherMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
@@ -539,9 +562,11 @@ public class SubsystemControllerTests
     public async Task ShutdownSubsystems_will_use_subsystemCommunicator_to_launch_subsystems(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherCommunicatorMock = new Mock<ISubsystemLauncherCommunicator>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncherCommunicator: subsystemLauncherCommunicatorMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
@@ -558,9 +583,11 @@ public class SubsystemControllerTests
     public async Task ShutdownSubsystems_will_return_without_triggering_anything()
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherCommunicatorMock = new Mock<ISubsystemLauncherCommunicator>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncherCommunicator: subsystemLauncherCommunicatorMock.Object);
 
         await subsystemController.InitializeSubsystems(new List<KeyValuePair<Guid, SubsystemInfo>>());
@@ -574,14 +601,16 @@ public class SubsystemControllerTests
     public async Task ShutdownSubsystems_will_log_exception()
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherCommunicatorMock = new Mock<ISubsystemLauncherCommunicator>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncherCommunicator: subsystemLauncherCommunicatorMock.Object);
 
         await subsystemController.InitializeSubsystems(new List<KeyValuePair<Guid, SubsystemInfo>>());
 
-        await subsystemController.ShutdownSubsystems(null);
+        await subsystemController.ShutdownSubsystems(null!);
 
         loggerMock.Verify(
             x => x.Log(
@@ -598,13 +627,12 @@ public class SubsystemControllerTests
     public async Task ModifySubsystemState_will_modify_the_state_and_trigger_UI_update(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherMock = new Mock<ISubsystemLauncher>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncher: subsystemLauncherMock.Object);
-        var uiDelegateMock = new Mock<Func<Func<IUiHandler, Task>, Task>>();
-
-        subsystemController.SetUiDelegate(uiDelegateMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
 
@@ -615,24 +643,25 @@ public class SubsystemControllerTests
 
         Assert.Equal("DummyState", subsystem.Value.State);
 
-        uiDelegateMock.Verify(x => x.Invoke(It.IsAny<Func<IUiHandler, Task>>()), Times.Exactly(2)); // due IUiHandler function will be called twice as per after initialization of the subsystems we are pushing data to the uis.
+        uiDelegateMock.Verify(x => x.AddSubsystems(It.IsAny<IEnumerable<KeyValuePair<Guid, SubsystemInfo>>>()), Times.Once); // due IUiHandler function will be called twice as per after initialization of the subsystems we are pushing data to the uis.
+        uiDelegateMock.Verify(x => x.UpdateSubsystemInfo(It.IsAny<Guid>(), It.IsAny<SubsystemInfo>()), Times.Once);
     }
 
     [Fact]
     public async Task ModifySubsystemState_will_return_and_wont_trigger_update()
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherMock = new Mock<ISubsystemLauncher>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncher: subsystemLauncherMock.Object);
-        var uiDelegateMock = new Mock<Func<Func<IUiHandler, Task>, Task>>();
-
-        subsystemController.SetUiDelegate(uiDelegateMock.Object);
 
         await subsystemController.InitializeSubsystems(null);
         await subsystemController.ModifySubsystemState(Guid.NewGuid(), "DummyState");
-        uiDelegateMock.Verify(x => x.Invoke(It.IsAny<Func<IUiHandler, Task>>()), Times.Never);
+        uiDelegateMock.Verify(x => x.AddSubsystems(It.IsAny<Dictionary<Guid, SubsystemInfo>>()), Times.Never);
+        uiDelegateMock.Verify(x => x.UpdateSubsystemInfo(It.IsAny<Guid>(), It.IsAny<SubsystemInfo>()), Times.Never);
     }
 
     [Theory]
@@ -640,23 +669,24 @@ public class SubsystemControllerTests
     public async Task AddSubsystems_will_add_elements_and_update_to_the_ui(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherMock = new Mock<ISubsystemLauncher>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncher: subsystemLauncherMock.Object);
-        var uiDelegateMock = new Mock<Func<Func<IUiHandler, Task>, Task>>();
-
-        subsystemController.SetUiDelegate(uiDelegateMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
 
-        var newElements = new List<KeyValuePair<Guid, SubsystemInfo>>();
-        newElements.Add(new KeyValuePair<Guid, SubsystemInfo>(
+        var newElements = new List<KeyValuePair<Guid, SubsystemInfo>>
+        {
+            new KeyValuePair<Guid, SubsystemInfo>(
             Guid.NewGuid(), new SubsystemInfo()
             {
                 State = SubsystemState.Stopped,
                 Name = "DummySubsystemNew"
-            }));
+            })
+        };
 
         await subsystemController.AddSubsystems(newElements);
 
@@ -664,7 +694,7 @@ public class SubsystemControllerTests
         Assert.NotStrictEqual(subsystems, result);
         Assert.NotStrictEqual(newElements, result);
 
-        uiDelegateMock.Verify(x => x.Invoke(It.IsAny<Func<IUiHandler, Task>>()), Times.Exactly(2));
+        uiDelegateMock.Verify(x => x.AddSubsystems(It.IsAny<IEnumerable<KeyValuePair<Guid, SubsystemInfo>>>()), Times.Exactly(2)); // due IUiHandler function will be called twice as per after initialization of the subsystems we are pushing data to the uis.
     }
 
     [Theory]
@@ -672,13 +702,12 @@ public class SubsystemControllerTests
     public async Task RemoveSubsystem_will_remove_element_without_triggering_shutdown(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherMock = new Mock<ISubsystemLauncher>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncher: subsystemLauncherMock.Object);
-        var uiDelegateMock = new Mock<Func<Func<IUiHandler, Task>, Task>>();
-
-        subsystemController.SetUiDelegate(uiDelegateMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
 
@@ -699,13 +728,12 @@ public class SubsystemControllerTests
     public async Task RemoveSubsystem_will_remove_element_wit_triggering_shutdown(IEnumerable<KeyValuePair<Guid, SubsystemInfo>> subsystems)
     {
         var loggerMock = CreateLoggerMock();
+        var uiDelegateMock = new Mock<IUiHandler>();
         var subsystemLauncherMock = new Mock<ISubsystemLauncher>();
         var subsystemController = CreateSubsystemController(
             logger: loggerMock.Object,
+            uiHandler: uiDelegateMock.Object,
             dummySubsystemLauncher: subsystemLauncherMock.Object);
-        var uiDelegateMock = new Mock<Func<Func<IUiHandler, Task>, Task>>();
-
-        subsystemController.SetUiDelegate(uiDelegateMock.Object);
 
         await subsystemController.InitializeSubsystems(subsystems);
 
@@ -721,7 +749,7 @@ public class SubsystemControllerTests
         subsystemLauncherMock.Verify(x => x.ShutdownSubsystem(It.IsAny<Guid>(), It.IsAny<string>()), Times.Once);
     }
 
-    private Mock<ILogger> CreateLoggerMock()
+    private static Mock<ILogger> CreateLoggerMock()
     {
         var loggerMock = new Mock<ILogger>();
 
@@ -736,8 +764,9 @@ public class SubsystemControllerTests
         return loggerMock;
     }
 
-    private ISubsystemController CreateSubsystemController(
+    private static ISubsystemController CreateSubsystemController(
         ILogger logger,
+        IUiHandler uiHandler,
         ISubsystemLauncher? dummySubsystemLauncher = null,
         ISubsystemLauncherCommunicator? dummySubsystemLauncherCommunicator = null)
     {
@@ -745,10 +774,12 @@ public class SubsystemControllerTests
         if (dummySubsystemLauncher != null)
             subsystemController = new SubsystemController(
                 subsystemLauncher: dummySubsystemLauncher,
+                uiHandler: uiHandler,
                 logger: logger);
         else if (dummySubsystemLauncherCommunicator != null)
             subsystemController = new SubsystemController(
                 subsystemLauncherCommunicator: dummySubsystemLauncherCommunicator,
+                uiHandler: uiHandler,
                 logger: logger);
 
         return subsystemController;

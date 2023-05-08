@@ -57,4 +57,11 @@ public static class ServiceCollectionProcessExplorerExtensions
 
         return serviceCollection;
     }
+
+    public static IServiceCollection AddSubsystemController(this IServiceCollection serviceCollection)
+    {
+        serviceCollection.TryAddSingleton<ISubsystemController, SubsystemController>();
+
+        return serviceCollection;
+    }
 }

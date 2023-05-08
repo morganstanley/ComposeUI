@@ -26,6 +26,7 @@ public static class ServiceCollectionProcessExplorerExtensions
     {
         serviceCollection.TryAddSingleton<IUiHandler, GrpcUiHandler>();
         serviceCollection.AddProcessMonitorWindows();
+        serviceCollection.AddSubsystemController();
         serviceCollection.AddProcessExplorerAggregator();
 
         var builder = new ProcessExplorerBuilder(serviceCollection);

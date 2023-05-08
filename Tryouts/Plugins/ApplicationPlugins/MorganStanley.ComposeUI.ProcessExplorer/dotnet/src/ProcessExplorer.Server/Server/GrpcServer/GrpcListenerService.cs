@@ -39,9 +39,7 @@ internal class GrpcListenerService : ProcessExplorerServer, IHostedService
     public GrpcListenerService(
         IProcessInfoAggregator processInfoAggregator,
         IOptions<ProcessExplorerServerOptions> options,
-        ILogger<GrpcListenerService>? logger = null,
-        ISubsystemLauncher? subsystemLauncher = null,
-        ISubsystemLauncherCommunicator? subsystemLauncherCommunicator = null)
+        ILogger<GrpcListenerService>? logger = null)
         :base(
             options.Value.Port ?? 5056,
             options.Value.Host ?? "localhost",
@@ -50,15 +48,6 @@ internal class GrpcListenerService : ProcessExplorerServer, IHostedService
         _processInfoAggregator = processInfoAggregator;
         _options = options.Value;
         _logger = logger ?? NullLogger<GrpcListenerService>.Instance;
-
-        if (subsystemLauncher != null)
-        {
-            _processInfoAggregator.SetSubsystemController(SubsystemFactory.CreateSubsystemController(subsystemLauncher, _logger));
-        }
-        else if (subsystemLauncherCommunicator != null)
-        {
-            _processInfoAggregator.SetSubsystemController(SubsystemFactory.CreateSubsystemController(subsystemLauncherCommunicator, _logger));
-        }
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -106,8 +95,6 @@ internal class GrpcListenerService : ProcessExplorerServer, IHostedService
         _stopTokenSource.Cancel();
 
         if (_grpcServer == null) return;
-
-        _processInfoAggregator.Dispose();
         
         var shutdown = _grpcServer.ShutdownAsync();       
         _logger.GrpcServerStoppedDebug();

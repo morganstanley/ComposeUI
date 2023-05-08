@@ -36,7 +36,7 @@ public delegate void ProcessCreatedHandler(int pid);
 /// Used for sending status change update of a process to the UI(s).
 /// </summary>
 /// <param name="process"></param>
-public delegate void ProcessStatusChangedHandler(KeyValuePair<int, Status> process);
+public delegate void ProcessStatusChangedHandler(KeyValuePair<int, ProcessStatus> process);
 
 /// <summary>
 /// Used for sending updated processes to the UI(s).

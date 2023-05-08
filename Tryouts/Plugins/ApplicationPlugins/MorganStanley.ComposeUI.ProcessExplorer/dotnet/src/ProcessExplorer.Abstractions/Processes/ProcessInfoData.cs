@@ -28,7 +28,7 @@ public class ProcessInfoData
     public long? VirtualMemorySize { get; set; }
     public int? ParentId { get; set; }
     public long? PrivateMemoryUsage { get; set; }
-    public string? ProcessStatus { get; set; } = Status.Running.ToStringCached();
+    public string? ProcessStatus { get; set; } = Processes.ProcessStatus.Running.ToStringCached();
     public float? MemoryUsage { get; set; }
     public float? ProcessorUsage { get; set; }
 }

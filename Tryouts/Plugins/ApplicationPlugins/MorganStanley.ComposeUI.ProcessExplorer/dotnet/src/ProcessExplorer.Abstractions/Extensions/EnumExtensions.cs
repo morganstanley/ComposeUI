@@ -18,13 +18,14 @@ namespace ProcessExplorer.Abstractions.Extensions;
 
 public static class EnumExtensions
 {
-    public static string ToStringCached(this Status status)
+    public static string ToStringCached(this ProcessStatus status)
     {
         return status switch
         {
-            Status.Terminated => nameof(Status.Terminated),
-            Status.Running => nameof(Status.Running),
-            Status.Stopped => nameof(Status.Stopped),
+            ProcessStatus.Modified => nameof(ProcessStatus.Modified),
+            ProcessStatus.Terminated => nameof(ProcessStatus.Terminated),
+            ProcessStatus.Running => nameof(ProcessStatus.Running),
+            ProcessStatus.Stopped => nameof(ProcessStatus.Stopped),
             _ => status.ToString(),
         };
     }

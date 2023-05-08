@@ -12,12 +12,11 @@
 
 using Microsoft.Extensions.Options;
 using ProcessExplorer.Abstractions;
-using ProcessExplorer.Abstractions.Subsystems;
 using ProcessExplorer.Core.Processes;
 
 namespace ProcessExplorer.Server.Server.Abstractions;
 
-public class ProcessExplorerServerOptions: IOptions<ProcessExplorerServerOptions>
+public class ProcessExplorerServerOptions : IOptions<ProcessExplorerServerOptions>
 {
     public bool EnableProcessExplorer { get; set; }
     public IEnumerable<KeyValuePair<Guid, Module>>? Modules { get; set; }

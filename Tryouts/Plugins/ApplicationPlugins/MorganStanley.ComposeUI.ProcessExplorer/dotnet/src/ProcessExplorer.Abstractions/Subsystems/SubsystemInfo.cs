@@ -16,8 +16,8 @@ namespace ProcessExplorer.Abstractions.Subsystems;
 public class SubsystemInfo
 {
     public string Name { get; set; } = string.Empty;
-    public string StartupType { get; set; }
-    public string UIType { get; set; }
+    public string StartupType { get; set; } = string.Empty;
+    public string UIType { get; set; } = string.Empty;
     public string Path { get; set; } = string.Empty;
     public string? Url { get; set; }
     public string[]? Arguments { get; set; }

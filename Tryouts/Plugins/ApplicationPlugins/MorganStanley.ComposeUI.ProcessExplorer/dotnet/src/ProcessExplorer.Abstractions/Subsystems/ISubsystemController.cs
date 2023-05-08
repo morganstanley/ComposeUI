@@ -10,8 +10,6 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using ProcessExplorer.Abstractions.Infrastructure;
-
 namespace ProcessExplorer.Abstractions.Subsystems;
 
 public interface ISubsystemController
@@ -56,12 +54,6 @@ public interface ISubsystemController
     /// <param name="subsystems"></param>
     /// <returns></returns>
     Task LaunchSubsystems(IEnumerable<string> subsystems);
-
-    /// <summary>
-    /// Sets the updating method for the UI's.
-    /// </summary>
-    /// <param name="updateInfoOnUI"></param>
-    void SetUiDelegate(Func<Func<IUiHandler, Task>, Task> updateInfoOnUI);
 
     /// <summary>
     /// It will send a launch request for a subsystem.

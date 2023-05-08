@@ -74,8 +74,8 @@ internal class Program
             .ConfigureLogging(l => l.AddConsole().SetMinimumLevel(LogLevel.Debug))
             .ConfigureServices(
              (context, services) => services
-                 .AddProcessExplorerWindowsServerWithGrpc(pe => pe.UseGrpc())
                  .ConfigureSubsystemLauncher(loader.RequestStartProcess, loader.RequestStopProcess, CreateLaunchRequest, CreateStopRequest)
+                 .AddProcessExplorerWindowsServerWithGrpc(pe => pe.UseGrpc())
                  .Configure<ProcessExplorerServerOptions>(op =>
                  {
                      op.Port = 5056;

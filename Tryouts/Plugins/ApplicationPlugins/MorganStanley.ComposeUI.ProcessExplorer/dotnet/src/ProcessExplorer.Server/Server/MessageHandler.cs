@@ -31,8 +31,6 @@ internal static class MessageHandler
             {
                 var ids = message.Subsystems.Select(subsystem => subsystem.Key);
 
-                if (processInfoAggregator.SubsystemController == null) continue;
-
                 switch (message.Action)
                 {
                     case ActionType.TerminateSubsystemsAction:

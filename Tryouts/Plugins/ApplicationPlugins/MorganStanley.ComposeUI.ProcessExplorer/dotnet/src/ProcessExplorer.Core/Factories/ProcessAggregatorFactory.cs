@@ -23,7 +23,7 @@ public static class ProcessAggregatorFactory
     public static IProcessInfoAggregator CreateProcessInfoAggregator(
         ProcessInfoMonitor processInfoMonitor, 
         IUiHandler handler,
-        ISubsystemController? subsystemController = null, 
+        ISubsystemController subsystemController, 
         ILogger<IProcessInfoAggregator>? logger = null)
     {
         return new ProcessInfoAggregator(processInfoMonitor, handler, subsystemController, logger);

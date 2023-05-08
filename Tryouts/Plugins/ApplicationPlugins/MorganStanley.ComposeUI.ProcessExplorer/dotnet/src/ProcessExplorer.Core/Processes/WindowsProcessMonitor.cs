@@ -42,15 +42,19 @@ internal class WindowsProcessInfoMonitor : ProcessInfoMonitor
         _managementPPidObjectSearchers = new();
     }
 
+    public override void StopWatchingProcesses()
+    {
+        if (_watcher == null) return;
+        _watcher.Stop();
+    }
+
     public override int? GetParentId(int processId, string processName)
     {
         var parentProcessId = 0;
 
         try
         {
-            //snapshot
-            if (!Process.GetProcesses().Any(p => p.Id == processId)) 
-                return null;
+            if (Process.GetProcessById(processId) == null) return null;
 
             var managementObjectSearcher = _managementPPidObjectSearchers.GetOrAdd(processId, _ => new ManagementObjectSearcher(
                 $"Select ParentProcessId From Win32_Process Where ProcessID={processId}"));
@@ -68,6 +72,7 @@ internal class WindowsProcessInfoMonitor : ProcessInfoMonitor
         catch (Exception exception)
         {
             _logger.ManagementObjectPpidExpected(processId, exception);
+            return null;
         }
 
         return parentProcessId;
@@ -127,14 +132,14 @@ internal class WindowsProcessInfoMonitor : ProcessInfoMonitor
         using var managementObjectSearcher = _managementPidObjectSearchers.GetOrAdd(processId, _ => new ManagementObjectSearcher(
             string.Format("Select ProcessId From Win32_Process Where ParentProcessID={0} Or ProcessID={0}", processId)));
 
-        var mo = managementObjectSearcher.Get();
-        var children = new int[mo.Count];
+        var managementCollection = managementObjectSearcher.Get();
+        var children = new int[managementCollection.Count];
 
         var i = 0;
 
-        foreach (var managementObjectCollection in mo)
+        foreach (var managementBaseObject in managementCollection)
         {
-            using var managementObject = (ManagementObject)managementObjectCollection;
+            using var managementObject = (ManagementObject)managementBaseObject;
 
             try
             {
@@ -142,7 +147,7 @@ internal class WindowsProcessInfoMonitor : ProcessInfoMonitor
                 children[i] = childProcessId;
                 i++;
 
-                mo = managementObjectSearcher.Get();
+                managementCollection = managementObjectSearcher.Get();
             }
             catch (Exception exception)
             {
@@ -155,6 +160,8 @@ internal class WindowsProcessInfoMonitor : ProcessInfoMonitor
 
     public override void WatchProcesses(int mainProcessId)
     {
+        _logger.ProcessMonitorEnabledDebug();
+
         base.WatchProcesses(mainProcessId);
 
         const string wmiQuery =
@@ -164,11 +171,15 @@ internal class WindowsProcessInfoMonitor : ProcessInfoMonitor
 
         try
         {
-            var scope = new ManagementScope(@"\\.\root\CIMV2");
-            scope.Connect();
+            if(_watcher == null)
+            {
+                var scope = new ManagementScope(@"\\.\root\CIMV2");
+                scope.Connect();
 
-            _watcher = new ManagementEventWatcher(scope, new EventQuery(wmiQuery));
-            _watcher.EventArrived += WmiEventHandler;
+                _watcher = new ManagementEventWatcher(scope, new EventQuery(wmiQuery));
+                _watcher.EventArrived += WmiEventHandler;
+            }
+
             _watcher.Start();
         }
         catch (Exception exception)
@@ -191,23 +202,26 @@ internal class WindowsProcessInfoMonitor : ProcessInfoMonitor
 
         try
         {
-            var children = GetChildProcesses(processId, processName ?? string.Empty);
+            var childrenProcessIds = GetChildProcesses(processId, processName ?? string.Empty);
 
-            foreach (var child in children)
+            foreach (var childProcessId in childrenProcessIds)
             {
-                if (child == processId) continue;
+                if (childProcessId == processId) continue;
 
-                processes.Add(child);
+                processes.Add(childProcessId);
 
-                AddIfComposeProcess(child);
+                AddIfComposeProcess(childProcessId);
 
-                var childrenOfChild = AddChildProcesses(child, Process.GetProcessById(child).ProcessName);
-                foreach (var cChild in childrenOfChild)
+                var childrenOfChildIds = AddChildProcesses(
+                        childProcessId, 
+                        GetProcessIfProcessIdExists(childProcessId)?.ProcessName ?? null);
+
+                foreach (var childOfChildId in childrenOfChildIds)
                 {
-                    if (processes.Contains(cChild)) continue;
+                    if (processes.Contains(childOfChildId)) continue;
 
-                    processes.Add(cChild);
-                    AddIfComposeProcess(cChild);
+                    processes.Add(childOfChildId);
+                    AddIfComposeProcess(childOfChildId);
                 }
             }
         }
@@ -234,7 +248,7 @@ internal class WindowsProcessInfoMonitor : ProcessInfoMonitor
 
     private void WmiEventHandler(object sender, EventArrivedEventArgs e)
     {
-        var pid = Convert.ToInt32(
+        var processId = Convert.ToInt32(
             ((ManagementBaseObject)e.NewEvent.Properties["TargetInstance"].Value)["ProcessId"]);
 
         var eventDefinition = e.NewEvent.SystemProperties["__Class"]
@@ -248,15 +262,15 @@ internal class WindowsProcessInfoMonitor : ProcessInfoMonitor
             switch (eventDefinition)
             {
                 case "__InstanceCreationEvent":
-                    InstanceCreated(pid);
+                    InstanceCreated(processId);
                     break;
 
                 case "__InstanceDeletionEvent":
-                    InstanceDeleted(pid);
+                    InstanceDeleted(processId);
                     break;
 
                 case "__InstanceModificationEvent":
-                    InstanceModified(pid);
+                    InstanceModified(processId);
                     break;
             }
         }
@@ -272,14 +286,14 @@ internal class WindowsProcessInfoMonitor : ProcessInfoMonitor
         {
             if (ContainsId(processId))
             {
-                SendProcessModifiedUpdate(processId);
+                ProcessModifiedUpdate(processId);
             }
         }
     }
 
     private void InstanceCreated(int processId)
     {
-        var process = GetProcessIfPidExists(processId);
+        var process = GetProcessIfProcessIdExists(processId);
 
         if (process == null) return;
 
@@ -293,27 +307,30 @@ internal class WindowsProcessInfoMonitor : ProcessInfoMonitor
 
     private void InstanceDeleted(int processId)
     {
-        _cpuPerformanceCounters.TryRemove(processId, out var cpuPerf);
-        cpuPerf?.Close();
-        cpuPerf?.Dispose();
+        var _cpuPerformanceCounterRemoved = _cpuPerformanceCounters.TryRemove(processId, out var cpuPerf);
+        if (_cpuPerformanceCounterRemoved && cpuPerf != null)
+        {
+            cpuPerf.Close();
+            cpuPerf.Dispose();
+        }
 
-        _memoryPerformanceCounters.TryRemove(processId, out var memoryPerf);
-        memoryPerf?.Close();
-        memoryPerf?.Dispose();
+        var memoryPerformanceCounterRemoved = _memoryPerformanceCounters.TryRemove(processId, out var memoryPerf);
+        if (memoryPerformanceCounterRemoved && memoryPerf != null)
+        {
+            memoryPerf.Close();
+            memoryPerf.Dispose();
+        }
 
-        _managementPidObjectSearchers.TryRemove(processId, out var objectSearcher);
-        objectSearcher?.Dispose();
+        var managementPidSearcherRemoved = _managementPidObjectSearchers.TryRemove(processId, out var objectSearcher);
+        if (managementPidSearcherRemoved && objectSearcher != null) objectSearcher.Dispose();
 
         lock (_lock)
         {
-            var pidExists = ContainsId(processId);
-            if (!pidExists) return;
-
             RemoveProcessId(processId);
         }
     }
 
-    private static Process? GetProcessIfPidExists(int processId)
+    private static Process? GetProcessIfProcessIdExists(int processId)
     {
         try
         {

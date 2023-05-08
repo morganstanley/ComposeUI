@@ -137,7 +137,7 @@ public interface IUiHandler
     /// </summary>
     /// <param name="process"></param>
     /// <returns></returns>
-    Task UpdateProcessStatus(KeyValuePair<int, Status> process);
+    Task UpdateProcessStatus(KeyValuePair<int, ProcessStatus> process);
 
     /// <summary>
     /// Updates the client that the connection has been established.

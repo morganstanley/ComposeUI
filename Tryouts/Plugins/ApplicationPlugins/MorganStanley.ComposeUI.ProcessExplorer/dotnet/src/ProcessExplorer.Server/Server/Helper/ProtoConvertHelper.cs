@@ -39,13 +39,14 @@ internal static class ProtoConvertHelper
                 if (thread.Id == 0) continue;
                 if (thread.ThreadState == System.Diagnostics.ThreadState.Terminated) continue;
 
+                GetStartTime(thread, out string startTime);
                 //we should add the try catch block because the thread might exit during the excution so the information won't be available
                 try
                 {
                     threads.Add(new ProcessThreadInfo()
                     {
                         Id = thread.Id,
-                        StartTime = thread.StartTime.ToString() ?? string.Empty,
+                        StartTime = startTime,
                         PriorityLevel = thread.CurrentPriority,
                         Status = thread.ThreadState.ToStringCached() ?? string.Empty,
                         WaitReason = thread.ThreadState == System.Diagnostics.ThreadState.Wait ? thread.WaitReason.ToStringCached() : string.Empty,
@@ -76,6 +77,19 @@ internal static class ProtoConvertHelper
             MemoryUsage = process.MemoryUsage ?? 0,
             ProcessorUsage = process.ProcessorUsage ?? 0,
         };
+    }
+
+    private static bool GetStartTime(System.Diagnostics.ProcessThread thread, out string startTime)
+    {
+        startTime = string.Empty;
+
+        try
+        {
+            startTime = thread.StartTime.ToString();
+        }
+        catch (Exception) { }
+        
+        return startTime == string.Empty;
     }
 
     public static Connection DeriveProtoConnectionType(this ConnectionInfo connection)

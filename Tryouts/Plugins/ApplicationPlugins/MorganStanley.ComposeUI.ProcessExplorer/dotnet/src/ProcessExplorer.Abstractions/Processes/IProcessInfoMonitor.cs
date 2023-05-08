@@ -10,13 +10,15 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using ProcessExplorer.Abstractions.Handlers;
-
 namespace ProcessExplorer.Abstractions.Processes;
 
-//TODO(Lilla): should be async?
 public interface IProcessInfoMonitor : IDisposable
 {
+    /// <summary>
+    /// Returns the collection of processes.
+    /// </summary>
+    public IObservable<KeyValuePair<int, ProcessStatus>> ProcessIds { get; }
+
     /// <summary>
     /// Clears the currently initilialzed processes.
     /// </summary>
@@ -53,19 +55,6 @@ public interface IProcessInfoMonitor : IDisposable
     ReadOnlySpan<int> GetProcessIds();
 
     /// <summary>
-    /// Sets the behaviors of the process changed events.
-    /// </summary>
-    /// <param name="processModifiedHandler"></param>
-    /// <param name="processTerminatedHandler"></param>
-    /// <param name="processCreatedHandler"></param>
-    void SetHandlers(
-        ProcessModifiedHandler processModifiedHandler, 
-        ProcessTerminatedHandler processTerminatedHandler,
-        ProcessCreatedHandler processCreatedHandler, 
-        ProcessesModifiedHandler processesModifiedHandler, 
-        ProcessStatusChangedHandler processStatusChangedHandler);
-
-    /// <summary>
     /// Sets the watchable process list.
     /// </summary>
     /// <param name="mainProcessId"></param>
@@ -77,4 +66,9 @@ public interface IProcessInfoMonitor : IDisposable
     /// </summary>
     /// <param name="mainProcessId"></param>
     void WatchProcesses(int mainProcessId);
+
+    /// <summary>
+    /// Disables to watch processes.
+    /// </summary>
+    void StopWatchingProcesses();
 }

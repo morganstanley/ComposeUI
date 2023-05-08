@@ -4,7 +4,6 @@ option csharp_namespace = "ProcessExplorer.Abstractions.Infrastructure.Protos";
 
 import "google/protobuf/duration.proto";
 import "google/protobuf/empty.proto";
-import "google/protobuf/wrappers.proto";
 
 service ProcessExplorerMessageHandler{
   rpc Send(Message) returns (google.protobuf.Empty);

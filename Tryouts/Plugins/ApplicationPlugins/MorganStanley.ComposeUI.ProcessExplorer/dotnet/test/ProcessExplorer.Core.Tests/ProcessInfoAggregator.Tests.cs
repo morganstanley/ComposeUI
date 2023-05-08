@@ -17,6 +17,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using ProcessExplorer.Abstractions;
@@ -27,6 +28,7 @@ using ProcessExplorer.Abstractions.Entities.Registrations;
 using ProcessExplorer.Abstractions.Infrastructure;
 using ProcessExplorer.Abstractions.Processes;
 using ProcessExplorer.Abstractions.Subsystems;
+using ProcessExplorer.Core.Processes;
 using ProcessExplorer.Core.Tests.Subsystems;
 using Xunit;
 
@@ -45,7 +47,7 @@ public class ProcessInfoAggregatorTests
         var mockSubsystemController = new Mock<ISubsystemController>();
         var mockProcessInfoMonitor = new Mock<ProcessInfoMonitor>(NullLogger.Instance);
         var clientMock = new Mock<IClientConnection<SubsystemLauncherTests.DummyStartType>>();
-        var processInfoAggregator = new ProcessInfoAggregator(
+         var processInfoAggregator = new ProcessInfoAggregator(
             mockProcessInfoMonitor.Object,
             mockUiHandler.Object,
             mockSubsystemController.Object,
@@ -65,20 +67,6 @@ public class ProcessInfoAggregatorTests
         await task;
 
         Assert.True(cancellationTokenSource.IsCancellationRequested);
-    }
-
-    [Fact]
-    public void SetComposePid_will_set_the_main_id()
-    {
-        var dummyPid = 1;
-
-        var processInfoAggregator = CreateProcessInfoAggregator();
-
-        processInfoAggregator.SetMainProcessId(dummyPid);
-
-        var result = processInfoAggregator.MainProcessId;
-
-        Assert.Equal(dummyPid, result);
     }
 
     [Fact]
@@ -318,15 +306,9 @@ public class ProcessInfoAggregatorTests
         Assert.Single(collection);
         Assert.Contains(id, collection.Select(x => x.Key));
 
-        //collection.Should().HaveCount(1);
-        //collection.Should().ContainKey(id);
-
         var result = collection.First().Value;
         Assert.Single(result.Modules);
         Assert.Equal(update, result.Modules);
-
-        //result.Modules.Should().HaveCount(1);
-        //result.Modules.Should().BeEquivalentTo(update);
     }
 
 
@@ -334,18 +316,28 @@ public class ProcessInfoAggregatorTests
     public void EnableWatchingSavedProcesses_will_begin_to_watch_processes()
     {
         var mockSubsystemController = new Mock<ISubsystemController>();
-        var mockProcessInfoMonitor = new Mock<IProcessInfoMonitor>();
+        var loggerMock = CreateProcessMonitorLoggerMock();
+
+#pragma warning disable CA1416 // Validate platform compatibility
+        var processInfoMonitor = new WindowsProcessInfoMonitor(loggerMock.Object);
+#pragma warning restore CA1416 // Validate platform compatibility
         var mockUiHandler = new Mock<IUiHandler>();
         var processInfoAggregator = new ProcessInfoAggregator(
-            mockProcessInfoMonitor.Object,
+            processInfoMonitor,
             mockUiHandler.Object,
             mockSubsystemController.Object,
             NullLogger<IProcessInfoAggregator>.Instance);
 
         processInfoAggregator.EnableWatchingSavedProcesses();
-        mockProcessInfoMonitor.Verify(x => x.WatchProcesses(processInfoAggregator.MainProcessId), Times.Once);
+        loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Debug,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Starting to watch processes, due it is enabled by the user.")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
     }
-
 
     [Fact]
     public void ScheduleSubsystemStateChanged_will_put_items_to_the_queue()
@@ -364,12 +356,9 @@ public class ProcessInfoAggregatorTests
 
         var succeed = queue.TryDequeue(out var result);
         Assert.True(succeed);
-        //succeed.Should().BeTrue();
 
         Assert.Equal(id, result.Key);
         Assert.Equal(state, result.Value);
-        //result.Key.Should().Be(id);
-        //result.Value.Should().Be(state);
     }
 
     [Theory]
@@ -383,8 +372,6 @@ public class ProcessInfoAggregatorTests
         var collection = processInfoAggregator.GetRuntimeInformation();
         Assert.Single(collection);
         Assert.Contains(new KeyValuePair<string, ProcessInfoCollectorData>(id, data), collection);
-        //collection.Should().HaveCount(1);
-        //collection.Should().Contain(new KeyValuePair<string, ProcessInfoCollectorData>(id, data));
 
         var result = collection.First().Value;
 
@@ -397,15 +384,6 @@ public class ProcessInfoAggregatorTests
         Assert.Equal(data.EnvironmentVariables, result.EnvironmentVariables);
         Assert.Equal(data.Modules, result.Modules);
         Assert.Equal(data.Registrations, result.Registrations);
-
-        //data.Connections.Count.Should().Be(result.Connections.Count);
-        //data.Connections.Should().BeEquivalentTo(result.Connections);
-        //data.EnvironmentVariables.Count.Should().Be(result.EnvironmentVariables.Count);
-        //data.EnvironmentVariables.Should().BeEquivalentTo(result.EnvironmentVariables);
-        //data.Modules.Count.Should().Be(result.Modules.Count);
-        //data.Modules.Should().BeEquivalentTo(result.Modules);
-        //data.Registrations.Count.Should().Be(result.Registrations.Count);
-        //data.Registrations.Should().BeEquivalentTo(result.Registrations);
     }
 
 
@@ -441,9 +419,6 @@ public class ProcessInfoAggregatorTests
         Assert.Single(collection);
         Assert.Contains(new KeyValuePair<string, ProcessInfoCollectorData>(id, data), collection);
 
-        //collection.Should().HaveCount(1);
-        //collection.Should().Contain(new KeyValuePair<string, ProcessInfoCollectorData>(id, data));
-
         var result = collection.First().Value;
 
         Assert.NotNull(result);
@@ -455,24 +430,36 @@ public class ProcessInfoAggregatorTests
         Assert.Equal(data.EnvironmentVariables, result.EnvironmentVariables);
         Assert.Equal(data.Modules, result.Modules);
         Assert.Equal(data.Registrations, result.Registrations);
-
-        //data.Connections.Count.Should().Be(result.Connections.Count);
-        //data.Connections.Should().BeEquivalentTo(result.Connections);
-        //data.EnvironmentVariables.Count.Should().Be(result.EnvironmentVariables.Count);
-        //data.EnvironmentVariables.Should().BeEquivalentTo(result.EnvironmentVariables);
-        //data.Modules.Count.Should().Be(result.Modules.Count);
-        //data.Modules.Should().BeEquivalentTo(result.Modules);
-        //data.Registrations.Count.Should().Be(result.Registrations.Count);
-        //data.Registrations.Should().BeEquivalentTo(result.Registrations);
     }
 
-    private IProcessInfoAggregator CreateProcessInfoAggregator()
+    private static Mock<ILogger<ProcessInfoMonitor>> CreateProcessMonitorLoggerMock()
+    {
+        var loggerMock = new Mock<ILogger<ProcessInfoMonitor>>();
+
+        var loggerFilterOptions = new LoggerFilterOptions();
+
+        loggerFilterOptions.AddFilter("", LogLevel.Debug);
+
+        loggerMock
+            .Setup(x => x.IsEnabled(It.IsAny<LogLevel>()))
+            .Returns<LogLevel>(level => loggerFilterOptions.MinLevel <= level);
+
+        return loggerMock;
+    }
+
+    private static IProcessInfoAggregator CreateProcessInfoAggregator()
     {
         var mockSubsystemController = new Mock<ISubsystemController>();
-        var mockProcessInfoMonitor = new Mock<IProcessInfoMonitor>();
+        var mockLogger = CreateProcessMonitorLoggerMock();
+
+        //TODO(later): should create an if statement regarding to the OS
+#pragma warning disable CA1416 // Validate platform compatibility
+        var processMonitor = new WindowsProcessInfoMonitor(mockLogger.Object);
+#pragma warning restore CA1416 // Validate platform compatibility
+
         var mockUiHandler = new Mock<IUiHandler>();
         var processInfoAggregator = new ProcessInfoAggregator(
-            mockProcessInfoMonitor.Object,
+            processMonitor,
             mockUiHandler.Object,
             mockSubsystemController.Object,
             NullLogger<IProcessInfoAggregator>.Instance);

@@ -42,18 +42,18 @@ public class ProcessInformation
         };
     }
 
-    internal static ProcessInformation GetProcessInfoWithCalculatedData(Process process, IProcessInfoMonitor processInfoManager)
+    internal static ProcessInformation GetProcessInfoWithCalculatedData(Process process, IProcessInfoMonitor processMonitor)
     {
         var processInformation = new ProcessInformation(process);
-        SetProcessInfoData(ref processInformation, processInfoManager);
+        SetProcessInfoData(processInformation, processMonitor);
         return processInformation;
     }
 
-    internal static void SetProcessInfoData(ref ProcessInformation processInfo, IProcessInfoMonitor manager)
+    internal static void SetProcessInfoData(ProcessInformation processInfo, IProcessInfoMonitor manager)
     {
         try
         {
-            var process = Process.GetProcessById(processInfo.ProcessInfo.ProcessId!);
+            var process = Process.GetProcessById(processInfo.ProcessInfo.ProcessId);
             process.Refresh();
 
             processInfo._processInfo.PriorityLevel = process.BasePriority;
@@ -74,13 +74,13 @@ public class ProcessInformation
 
             processInfo._processInfo.ProcessStatus =
                 process.HasExited == false ?
-                    Status.Running.ToStringCached()
-                    : Status.Stopped.ToStringCached();
+                    ProcessStatus.Running.ToStringCached()
+                    : ProcessStatus.Stopped.ToStringCached();
         }
         catch (Exception exception)
         {
             if (exception is Win32Exception || exception is NotSupportedException) return;
-            processInfo._processInfo.ProcessStatus = Status.Terminated.ToStringCached();
+            processInfo._processInfo.ProcessStatus = ProcessStatus.Terminated.ToStringCached();
         }
     }
 }

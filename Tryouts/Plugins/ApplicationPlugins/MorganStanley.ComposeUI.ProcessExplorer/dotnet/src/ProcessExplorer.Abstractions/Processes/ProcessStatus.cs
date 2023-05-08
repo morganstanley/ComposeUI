@@ -12,8 +12,9 @@
 
 namespace ProcessExplorer.Abstractions.Processes;
 
-public enum Status
+public enum ProcessStatus
 {
+    Modified = 3,
     Terminated = 2,
     Running = 1,
     Stopped = 0

@@ -91,7 +91,7 @@ public class EndToEndTests : IAsyncLifetime
                 { dummyId, dummySubsystemInfo }
             };
 
-        if (aggregator != null && aggregator.SubsystemController != null)
+        if (aggregator != null)
         {
             await aggregator.SubsystemController.InitializeSubsystems(subsystems);
         }

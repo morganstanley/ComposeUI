@@ -11,6 +11,7 @@
 // and limitations under the License.
 
 using Microsoft.Extensions.Logging;
+using ProcessExplorer.Abstractions.Infrastructure;
 using ProcessExplorer.Abstractions.Subsystems;
 using ProcessExplorer.Core.Subsystems;
 
@@ -20,17 +21,17 @@ public static class SubsystemFactory
 {
     public static ISubsystemController CreateSubsystemController(
         ISubsystemLauncherCommunicator subsystemCommunicator,
+        IUiHandler uiHandler,
         ILogger? logger)
     {
-        return new SubsystemController(subsystemCommunicator, logger);
+        return new SubsystemController(subsystemCommunicator, uiHandler, logger);
     }
 
     public static ISubsystemController CreateSubsystemController(
         ISubsystemLauncher subsystemLauncher,
+        IUiHandler uiHandler,
         ILogger? logger)
     {
-        return new SubsystemController(
-            subsystemLauncher,
-            logger);
+        return new SubsystemController(subsystemLauncher, uiHandler, logger);
     }
 }

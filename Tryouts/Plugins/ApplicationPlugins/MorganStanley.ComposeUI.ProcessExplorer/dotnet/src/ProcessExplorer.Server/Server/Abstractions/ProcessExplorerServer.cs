@@ -58,15 +58,14 @@ internal abstract class ProcessExplorerServer
                     subsystems.TryAdd(module.Key, SubsystemInfo.FromModule(module.Value));
                 }
 
-                if (processInfoAggregator != null && processInfoAggregator.SubsystemController != null)
-                    await processInfoAggregator.SubsystemController.InitializeSubsystems(subsystems);
+                await processInfoAggregator.SubsystemController.InitializeSubsystems(subsystems);
             }
 
             if(options.Value.MainProcessId != null)
-                processInfoAggregator?.SetMainProcessId((int)options.Value.MainProcessId);
+                processInfoAggregator.MainProcessId = (int)options.Value.MainProcessId;
 
             if (options.Value.EnableProcessExplorer)
-                processInfoAggregator?.EnableWatchingSavedProcesses();
+                processInfoAggregator.EnableWatchingSavedProcesses();
         }
         catch (Exception exception)
         {

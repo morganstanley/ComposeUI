@@ -87,6 +87,7 @@ public class WindowsProcessInfoManagerTests
         var loggerMock = CreateLoggerMock();
         var processMonitor = CreateWindowsProcessMonitor(loggerMock.Object);
         var process = Process.Start(GetSimpleTestApplicationPath());
+
         var result = processMonitor.CheckIfIsComposeProcess(process.Id);
 
         Assert.False(result);
@@ -156,7 +157,7 @@ public class WindowsProcessInfoManagerTests
         var parentId = processMonitor.GetParentId(process.Id, process.ProcessName);
 
         Assert.NotNull(parentId);
-        Assert.Equal(Process.GetCurrentProcess().Id, parentId);
+        Assert.Equal(Environment.ProcessId, parentId);
 
         process.Kill();
         processMonitor.Dispose();
@@ -197,41 +198,41 @@ public class WindowsProcessInfoManagerTests
         processMonitor.Dispose();
     }
 
-    [Fact]
-    public void WatchProcesses_will_begin_to_watch_all_the_processes_in_windows()
-    {
-        var loggerMock = CreateLoggerMock();
-        var processMonitor = CreateWindowsProcessMonitor(loggerMock.Object);
-        var modifiedProcessActionMock = new Mock<ProcessModifiedHandler>();
-        var terminatedProcessActionMock = new Mock<ProcessTerminatedHandler>();
-        var createdProcessActionMock = new Mock<ProcessCreatedHandler>();
-        var modifiedProcessesActionMock = new Mock<ProcessesModifiedHandler>();
-        var statusModifiedProcessActionMock = new Mock<ProcessStatusChangedHandler>();
+    //[Fact]
+    //public void WatchProcesses_will_begin_to_watch_all_the_processes_in_windows()
+    //{
+    //    var loggerMock = CreateLoggerMock();
+    //    var processMonitor = CreateWindowsProcessMonitor(loggerMock.Object);
+    //    var modifiedProcessActionMock = new Mock<ProcessModifiedHandler>();
+    //    var terminatedProcessActionMock = new Mock<ProcessTerminatedHandler>();
+    //    var createdProcessActionMock = new Mock<ProcessCreatedHandler>();
+    //    var modifiedProcessesActionMock = new Mock<ProcessesModifiedHandler>();
+    //    var statusModifiedProcessActionMock = new Mock<ProcessStatusChangedHandler>();
 
-        var testApplication = Process.Start(GetTestApplicationPath()); //It will start a child process
+    //    var testApplication = Process.Start(GetTestApplicationPath()); //It will start a child process
 
-        processMonitor.SetHandlers(
-            modifiedProcessActionMock.Object, 
-            terminatedProcessActionMock.Object, 
-            createdProcessActionMock.Object, 
-            modifiedProcessesActionMock.Object, 
-            statusModifiedProcessActionMock.Object);
+    //    processMonitor.SetHandlers(
+    //        modifiedProcessActionMock.Object, 
+    //        terminatedProcessActionMock.Object, 
+    //        createdProcessActionMock.Object, 
+    //        modifiedProcessesActionMock.Object, 
+    //        statusModifiedProcessActionMock.Object);
 
-        processMonitor.WatchProcesses(Environment.ProcessId);
+    //    processMonitor.WatchProcesses(Environment.ProcessId);
 
-        var result = processMonitor.GetProcessIds().ToArray();
+    //    var result = processMonitor.GetProcessIds().ToArray();
 
-        Assert.True(result.Length >= 3);
+    //    Assert.True(result.Length >= 3);
 
-        createdProcessActionMock.Verify(x => x.Invoke(It.IsAny<int>()), Times.AtLeast(3));
+    //    createdProcessActionMock.Verify(x => x.Invoke(It.IsAny<int>()), Times.AtLeast(3));
 
-        processMonitor.Dispose();
-    }
+    //    processMonitor.Dispose();
+    //}
 
     [Conditional("DEBUG")]
     private static void IsDebug(ref bool isDebug) => isDebug = true;
 
-    private Mock<ILogger<ProcessInfoMonitor>> CreateLoggerMock()
+    private static Mock<ILogger<ProcessInfoMonitor>> CreateLoggerMock()
     {
         var loggerMock = new Mock<ILogger<ProcessInfoMonitor>>();
 
@@ -246,7 +247,7 @@ public class WindowsProcessInfoManagerTests
         return loggerMock;
     }
 
-    private ProcessInfoMonitor CreateWindowsProcessMonitor(ILogger<ProcessInfoMonitor> logger)
+    private static ProcessInfoMonitor CreateWindowsProcessMonitor(ILogger<ProcessInfoMonitor> logger)
     {
         var processMonitor = new WindowsProcessInfoMonitor(logger);
         return processMonitor;

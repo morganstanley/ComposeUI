@@ -102,7 +102,8 @@ internal class GrpcUiHandler : IUiHandler
         {
             lock (_uiHandlersLock)
             {
-                if (!_uiHandlers.TryAdd(id, connection as IClientConnection<Message>)) _logger.UIHandlerConnectionAddingError(id.ToString());
+                if (connection is not IClientConnection<Message> clientConnection) return;
+                if (!_uiHandlers.TryAdd(id, clientConnection)) _logger.UIHandlerConnectionAddingError(id.ToString());
             }
         }
     }
@@ -444,7 +445,7 @@ internal class GrpcUiHandler : IUiHandler
         return Task.CompletedTask;
     }
 
-    public Task UpdateProcessStatus(KeyValuePair<int, Status> process)
+    public Task UpdateProcessStatus(KeyValuePair<int, ProcessStatus> process)
     {
         lock (_uiHandlersLock)
         {
