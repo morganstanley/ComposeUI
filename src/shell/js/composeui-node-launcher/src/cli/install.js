@@ -9,6 +9,9 @@ import os from 'os';
 import axios from 'axios';
 import extract from 'extract-zip';
 
+import * as stream from 'stream';
+import { promisify } from 'util';
+
 import pkg from './../../package.json' assert { type: "json" };
 
 const DEFAULT_CDN_URL = 'https://github.com/morganstanley/ComposeUI/releases/download';
@@ -58,12 +61,16 @@ async function downloadFile(dirToLoadTo) {
     console.log('Saving to file:', downloadedFile);
 
     ensureDirectoryExistence(downloadedFile);
-    await axios.request({
+
+  const finished = promisify(stream.finished);
+  const writer = fs.createWriteStream(downloadedFile);
+  return axios({
         method: 'get',
         url: formattedDownloadUrl,
-        responseType: 'stream'
-    }).then(function (response) {
-        response.data.pipe(fs.createWriteStream(downloadedFile))
+    responseType: 'stream',
+  }).then(response => {
+    response.data.pipe(writer);
+    return finished(writer);
     });
 }
 
