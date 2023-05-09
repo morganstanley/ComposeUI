@@ -53,40 +53,45 @@ function ensureDirectoryExistence(filePath) {
   }
 
 async function downloadFile(dirToLoadTo) {
-    const tempDownloadedFile = path.resolve(dirToLoadTo, fileName);
-    downloadedFile = tempDownloadedFile;
-    const formattedDownloadUrl =`${cdnUrl}/v${composeui_version}/${fileName}`;
-    
-    console.log('Downloading from file: ', formattedDownloadUrl);
-    console.log('Saving to file:', downloadedFile);
-
-    ensureDirectoryExistence(downloadedFile);
+  const tempDownloadedFile = path.resolve(dirToLoadTo, fileName);
+  downloadedFile = tempDownloadedFile;
+  const formattedDownloadUrl =`${cdnUrl}/v${composeui_version}/${fileName}`;
+  
+  console.log('Downloading from file: ', formattedDownloadUrl);
+  console.log('Saving to file:', downloadedFile);
+  
+  ensureDirectoryExistence(downloadedFile);
 
   const finished = promisify(stream.finished);
   const writer = fs.createWriteStream(downloadedFile);
   return axios({
-        method: 'get',
-        url: formattedDownloadUrl,
+    method: 'get',
+    url: formattedDownloadUrl,
     responseType: 'stream',
   }).then(response => {
     response.data.pipe(writer);
     return finished(writer);
-    });
+  });
 }
 
 async function extractFile(zipPath, outPath) {
-    let zipFile = `${zipPath}/${fileName}`;
+  let zipFile = `${zipPath}/${fileName}`;
+  const finished_read = promisify(stream.finished);
+  const reader = fs.createReadStream(zipFile);
 
-    if (path.extname(zipFile) !== '.zip') {
-        console.log('Skipping zip extraction - binary file found.');
-        return;
-      }
-      console.log(`Extracting zip contents to ${outPath}.`);
-      try {
-        fs.createReadStream(zipFile).pipe(unzipper.Extract({ path: outPath }));
-      } catch (error) {
-        throw new Error('Error extracting archive: ' + error);
-      }
+  if (path.extname(zipFile) !== '.zip') {
+      console.log('Skipping zip extraction - binary file found.');
+      return;
+    }
+    console.log(`Extracting zip contents to ${outPath}.`);
+
+    try {
+      await extract(zipFile, { dir: outPath })
+      console.log('Extraction complete');
+      return finished_read(reader);
+    } catch (error) {
+      throw new Error('Error extracting archive: ' + error);
+    }
 }
 
 function createTempFolder(){
