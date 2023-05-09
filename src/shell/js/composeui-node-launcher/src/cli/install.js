@@ -7,7 +7,7 @@ import fs from 'fs';
 import os from 'os';
 
 import axios from 'axios';
-import unzipper from '@deranged/unzipper';
+import extract from 'extract-zip';
 
 import pkg from './../../package.json' assert { type: "json" };
 
