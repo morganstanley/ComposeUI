@@ -2,6 +2,12 @@
 
 # @morgan-stanley/composeui-node-launcher
 
+## Pre-requisites
+
+### For the shell:
+* [.Net Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-6.0.16-windows-x64-installer)
+* [Edge WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section)
+
 ## Library
 
 The library enables you to dynamically set properties for your window in your javascript code.
@@ -43,7 +49,7 @@ In order to set an icon for your application, set the _icon_ property when creat
 
 ## CLI
 
-The CLI enables you to execute your app with compose by executing the following command:
+The CLI enables you to execute your app with ComposeUI by executing the following command:
 
 ```
 composeui myapp.js
