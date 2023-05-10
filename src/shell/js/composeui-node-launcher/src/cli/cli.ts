@@ -2,7 +2,7 @@
 
 "use strict";
 
-import { executeScriptFile } from './executeScrtiptFile.js';
+import { executeScriptFile } from './executeScriptFile.js';
 
 let fileName = process.argv[2];
 
