@@ -1,4 +1,4 @@
-import { executeScriptFile } from './executeScrtiptFile';
+import { executeScriptFile } from './executeScriptFile';
 
 describe('CLI', () => {
   let testFileName: string;
