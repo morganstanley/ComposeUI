@@ -30,7 +30,7 @@ public abstract class ProcessInfoMonitor : IProcessInfoMonitor
     public IObservable<KeyValuePair<int, ProcessStatus>> ProcessIds => _processIdsSubject;
 
 
-    public ProcessInfoMonitor(ILogger? logger)
+    protected ProcessInfoMonitor(ILogger? logger)
     {
         _logger = logger ?? NullLogger.Instance;
     }
@@ -115,6 +115,7 @@ public abstract class ProcessInfoMonitor : IProcessInfoMonitor
     /// Returns the PPID of the given process.
     /// </summary>
     /// <param name="processId"></param>
+    /// <param name="processName"></param>
     /// <returns></returns>
     public abstract int? GetParentId(int processId, string processName);
 
@@ -135,10 +136,13 @@ public abstract class ProcessInfoMonitor : IProcessInfoMonitor
     /// </summary>
     public virtual void WatchProcesses(int mainProcessId)
     {
-        ClearProcessIds();
-        if (mainProcessId == 0) return;
-        AddProcess(mainProcessId);
-        AddChildProcesses(mainProcessId, Process.GetProcessById(mainProcessId).ProcessName);
+        lock (_processIdsLocker)
+        {
+            ClearProcessIds();
+            if (mainProcessId == 0) return;
+            AddProcess(mainProcessId);
+            AddChildProcesses(mainProcessId, Process.GetProcessById(mainProcessId).ProcessName);
+        }
     }
 
     /// <summary>
@@ -154,7 +158,7 @@ public abstract class ProcessInfoMonitor : IProcessInfoMonitor
         if (ContainsId(processId)) return true;
 
         var process = Process.GetProcessById(processId);
-        if (process == null || process.Id == 0) return false;
+        if (process.Id == 0) return false;
 
         var parentProcessId = GetParentId(processId, process.ProcessName);
 

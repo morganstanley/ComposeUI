@@ -15,7 +15,6 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 using Moq;
-using ProcessExplorer.Abstractions.Handlers;
 using ProcessExplorer.Abstractions.Processes;
 using ProcessExplorer.Core.Processes;
 using Xunit;

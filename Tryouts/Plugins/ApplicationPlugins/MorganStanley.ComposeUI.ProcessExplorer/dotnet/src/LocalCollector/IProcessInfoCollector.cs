@@ -10,11 +10,9 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using LocalCollector.Connections;
 using LocalCollector.EnvironmentVariables;
 using LocalCollector.Modules;
 using LocalCollector.Registrations;
-using ProcessExplorer.Abstractions.Entities;
 using ProcessExplorer.Abstractions.Entities.Connections;
 using ProcessExplorer.Abstractions.Infrastructure;
 
@@ -22,11 +20,6 @@ namespace LocalCollector;
 
 public interface IProcessInfoCollector
 {
-    /// <summary>
-    /// Contains information of the environment variables, connections, registrations, modules
-    /// </summary>
-    ProcessInfoCollectorData ProcessInformation { get; }
-
     /// <summary>
     /// Adds a list of connections to the existing one.
     /// </summary>
@@ -63,7 +56,7 @@ public interface IProcessInfoCollector
     Task AddModules(ModuleMonitorInfo modules);
 
     /// <summary>
-    /// Adds information of conenctions/environment variables/registrations/modules to the colelction.
+    /// Adds information of connections/environment variables/registrations/modules to the colelction.
     /// </summary>
     /// <param name="connections"></param>
     /// <param name="environmentVariables"></param>
@@ -72,12 +65,6 @@ public interface IProcessInfoCollector
     /// <returns></returns>
     Task AddRuntimeInformation(IConnectionMonitor connections, EnvironmentMonitorInfo environmentVariables,
         RegistrationMonitorInfo registrations, ModuleMonitorInfo modules);
-
-    /// <summary>
-    /// Sets communicator, which talks with the Process Explorer backend. Also after the connection initialized it will send the data of the existing collections.
-    /// </summary>
-    /// <param name="communicator"></param>
-    void SetCommunicator(ICommunicator communicator);
 
     /// <summary>
     /// Sends the runtime information of the current process.

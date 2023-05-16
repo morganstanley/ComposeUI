@@ -64,6 +64,7 @@ public class EndToEndTests : IAsyncLifetime
         }
         catch (RpcException) { }
 
+        //TODO(Lilla): investigate why the integrationtests are keeping to fail on CI, but works everytime locally.
         Skip.If(messages.Count < 1, "Error while running on CI...");
 
         Assert.Single(messages);
@@ -113,6 +114,8 @@ public class EndToEndTests : IAsyncLifetime
         catch(RpcException) { }
 
         // We just need to receive SubscriptionAlive and a subsystems collection, skipping if that some error occurred
+
+        //TODO(Lilla): investigate why the integrationtests are keeping to fail on CI, but works everytime locally.
         Skip.If(messages.Count < 2, "Local testing does not throws error");
 
         Assert.Equal(2, messages.Count);
@@ -156,6 +159,7 @@ public class EndToEndTests : IAsyncLifetime
         }
         catch (RpcException) { }
 
+        //TODO(Lilla): investigate why the integrationtests are keeping to fail on CI, but works everytime locally.
         Skip.If(result == null, "Error while running on CI...");
         Assert.NotNull(result);
         Assert.IsType<Empty>(result);

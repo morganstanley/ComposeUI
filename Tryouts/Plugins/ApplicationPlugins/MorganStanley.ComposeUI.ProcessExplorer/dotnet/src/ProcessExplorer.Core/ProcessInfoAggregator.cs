@@ -70,12 +70,16 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
                 break;
 
             case ProcessStatus.Terminated:
+            case ProcessStatus.Stopped:
                 await ProcessTerminated(kvp.Key);
                 break;
 
             case ProcessStatus.Modified:
                 await ProcessModified(kvp.Key);
                 break;
+
+            default:
+                return;
         }
     }
 
@@ -128,9 +132,7 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
     {
         var process = GetProcesses(_processInfoMonitor.GetProcessIds()).FirstOrDefault(proc => proc.ProcessId == processId);
 
-        if (process == null) return null;
-
-        return process;
+        return process ?? null;
     }
 
     private async Task ProcessModified(int processId)

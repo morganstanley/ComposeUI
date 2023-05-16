@@ -11,8 +11,8 @@
 // and limitations under the License.
 
 using System.Diagnostics;
-using LocalCollector.Connections;
 using LocalCollector.EnvironmentVariables;
+using LocalCollector.Extensions;
 using LocalCollector.Logging;
 using LocalCollector.Modules;
 using LocalCollector.Registrations;
@@ -26,52 +26,49 @@ namespace LocalCollector;
 
 public class ProcessInfoCollector : IProcessInfoCollector
 {
-    public ProcessInfoCollectorData ProcessInformation { get; } = new();
-    private ICommunicator? _communicator;
+    private readonly ProcessInfoCollectorData _processInformation = new();
+    private readonly ICommunicator _communicator;
     private readonly ILogger<ProcessInfoCollector> _logger;
     private readonly RuntimeInformation _runtimeId = new();
     private readonly object _locker = new();
 
     public ProcessInfoCollector(
+        ICommunicator communicator,
         ILogger<ProcessInfoCollector>? logger = null,
-        ICommunicator? communicator = null,
-        EnvironmentMonitorInfo? environmentVariables = null, 
+        EnvironmentMonitorInfo? environmentVariables = null,
         IConnectionMonitor? connections = null,
-        RegistrationMonitorInfo? registrations = null, 
+        RegistrationMonitorInfo? registrations = null,
         ModuleMonitorInfo? modules = null,
-        string? assemblyId = null, 
+        string? assemblyId = null,
         int? processId = null)
     {
         _logger = logger ?? NullLogger<ProcessInfoCollector>.Instance;
 
-        ProcessInformation.Id = processId ?? Process.GetCurrentProcess().Id;
+        _processInformation.Id = processId ?? Process.GetCurrentProcess().Id;
 
-        ProcessInformation.EnvironmentVariables = environmentVariables != null 
-            ? environmentVariables.EnvironmentVariables 
+        _processInformation.EnvironmentVariables = environmentVariables != null
+            ? environmentVariables.EnvironmentVariables
             : EnvironmentMonitorInfo.FromEnvironment().EnvironmentVariables;
 
-        ProcessInformation.Modules = modules != null 
-            ? modules.CurrentModules 
+        _processInformation.Modules = modules != null
+            ? modules.CurrentModules
             : ModuleMonitorInfo.FromAssembly().CurrentModules;
 
         if (assemblyId != null) _runtimeId.Name = assemblyId;
 
         if (connections != null)
         {
-            ProcessInformation.Connections = connections.Connections.Connections;
+            _processInformation.Connections = connections.Connections.Connections;
 
             SetConnectionChangedEvent(connections);
         }
 
         if (registrations != null)
         {
-            ProcessInformation.Registrations = registrations.Services;
+            _processInformation.Registrations = registrations.Services;
         }
 
-        if (communicator != null)
-        {
-            _communicator = communicator;
-        }
+        _communicator = communicator;
     }
 
     private void SetConnectionChangedEvent(IConnectionMonitor connectionMonitor)
@@ -79,73 +76,60 @@ public class ProcessInfoCollector : IProcessInfoCollector
         connectionMonitor._connectionStatusChanged += ConnectionStatusChangedHandler;
     }
 
-    public void SetCommunicator(ICommunicator communicator)
+    private async void ConnectionStatusChangedHandler(object? sender, ConnectionInfo connection)
     {
-        _communicator = communicator;
-        var runtimeInfo = new List<KeyValuePair<RuntimeInformation, ProcessInfoCollectorData>>()
-        {
-            new(_runtimeId, ProcessInformation)
-        };
-
-        _communicator.AddRuntimeInfo(runtimeInfo);
-    }
-
-
-    private void ConnectionStatusChangedHandler(object? sender, ConnectionInfo connection)
-    {
-        if (_communicator == null)
-        {
-            return;
-        }
+        IEnumerable<KeyValuePair<RuntimeInformation, ConnectionInfo>> connections;
 
         try
         {
             lock (_locker)
             {
-                var info = ProcessInformation.Connections.FirstOrDefault(p => p.Id == connection.Id);
+                var info = _processInformation.Connections.FirstOrDefault(p => p.Id == connection.Id);
                 if (info != null)
                 {
-                    var index = ProcessInformation.Connections.IndexOf(info);
-                    if (index >= 0 && ProcessInformation.Connections.Count <= index)
+                    var index = _processInformation.Connections.IndexOf(info);
+                    if (index >= 0 && _processInformation.Connections.Count <= index)
                     {
-                        ProcessInformation.Connections[Convert.ToInt32(index)] = connection;
+                        _processInformation.Connections[Convert.ToInt32(index)] = connection;
                     }
                 }
+
+                connections = new List<KeyValuePair<RuntimeInformation, ConnectionInfo>>()
+                {
+                    new(_runtimeId, connection)
+                };
             }
         }
         catch (Exception exception)
         {
             _logger.ConnectionStatusChangedError(exception);
+            return;
         }
 
-        var connections = new List<KeyValuePair<RuntimeInformation, ConnectionInfo>>()
-        {
-            new(_runtimeId, connection)
-        };
-
-        _communicator.UpdateConnectionInformation(connections)
-            .ConfigureAwait(true);
+        if (connections.Any())
+            await _communicator.UpdateConnectionInformation(connections);
     }
 
     public async Task SendRuntimeInfo()
     {
-        if (_communicator != null)
-        {
-            var runtimeInfo = new List<KeyValuePair<RuntimeInformation, ProcessInfoCollectorData>>()
-            {
-                new(_runtimeId, ProcessInformation)
-            };
+        IEnumerable<KeyValuePair<RuntimeInformation, ProcessInfoCollectorData>> runtimeInfo;
 
-            await _communicator.AddRuntimeInfo(runtimeInfo);
+        lock(_locker)
+        {
+            runtimeInfo = new List<KeyValuePair<RuntimeInformation, ProcessInfoCollectorData>>()
+            {
+                new(_runtimeId, _processInformation)
+            };
         }
+
+        await _communicator.AddRuntimeInfo(runtimeInfo);
     }
 
     public async Task AddConnectionMonitor(ConnectionMonitorInfo connections)
     {
-        if(_communicator != null)
-            await AddOrUpdateElements(
+        await AddOrUpdateElements(
                 connections.Connections,
-                ProcessInformation.Connections,
+                _processInformation.Connections,
                 (item) => (conn) => conn.Id == item.Id,
                 _communicator.AddConnectionCollection);
     }
@@ -157,103 +141,81 @@ public class ProcessInfoCollector : IProcessInfoCollector
 
     public async Task AddEnvironmentVariables(EnvironmentMonitorInfo environmentVariables)
     {
-        if (ProcessInformation.EnvironmentVariables.IsEmpty)
-        {
-            lock (_locker)
-            {
-                ProcessInformation.EnvironmentVariables = environmentVariables.EnvironmentVariables;
-            }
-        }
-        else
+        IEnumerable<KeyValuePair<RuntimeInformation, IEnumerable<KeyValuePair<string, string>>>> info;
+
+        lock (_locker)
         {
             foreach (var env in environmentVariables.EnvironmentVariables)
             {
-                lock (_locker)
-                {
-                    ProcessInformation.EnvironmentVariables.AddOrUpdate(env.Key, env.Value, (_, _) => env.Value);
-                }
+                _processInformation.EnvironmentVariables.AddOrUpdate(env.Key, env.Value, (_, _) => env.Value);
             }
 
-        }
-
-        if (_communicator != null)
-        {
-            var info = new List<KeyValuePair<RuntimeInformation, IEnumerable<KeyValuePair<string, string>>>>()
+            info = new List<KeyValuePair<RuntimeInformation, IEnumerable<KeyValuePair<string, string>>>>()
             {
                 new(_runtimeId, environmentVariables.EnvironmentVariables)
             };
+        }
 
+        if (info.Any())
+        {
             await _communicator.UpdateEnvironmentVariableInformation(info);
         }
     }
 
     private async Task AddOrUpdateElements<T>(
-        SynchronizedCollection<T> source,
-        SynchronizedCollection<T> target,
+        IEnumerable<T> source, 
+        IEnumerable<T> target,
         Func<T, Func<T, bool>> predicate,
         Func<IEnumerable<KeyValuePair<RuntimeInformation, IEnumerable<T>>>, ValueTask> handler)
     {
-        if (!target.Any())
+        IEnumerable<KeyValuePair<RuntimeInformation, IEnumerable<T>>> info;
+
+        lock (_locker)
         {
-            lock (_locker)
+            if (!target.Any()) target = source;
+            else
             {
-                target = source;
-            }
-        }
-        else
-        {
-            foreach (var item in source)
-            {
-                lock (_locker)
+                foreach (var item in source)
                 {
                     var element = target.FirstOrDefault(predicate(item));
-                    if (element == null)
-                    {
-                        continue;
-                    }
+
+                    if (element == null) continue;
 
                     var index = target.IndexOf(element);
-                    if(index != -1)
+
+                    if (index == -1)
                     {
-                        target[index] = item;
+                        target = target.Append(item);
                     }
                     else
                     {
-                        target.Add(item);
+                        target = target.Replace(index, element);
                     }
                 }
             }
+
+            info = new List<KeyValuePair<RuntimeInformation, IEnumerable<T>>>() { new(_runtimeId, source) };
         }
 
-        if(_communicator != null)
-        {
-            var info = new List<KeyValuePair<RuntimeInformation, IEnumerable<T>>>()
-            {
-                new(_runtimeId, source)
-            };
-
-            await handler(info);
-        }
+        await handler(info);
     }
 
     public async Task AddRegistrations(RegistrationMonitorInfo registrations)
     {
-        if (_communicator != null)
-            await AddOrUpdateElements(
-                registrations.Services,
-                ProcessInformation.Registrations,
-                (item) => (reg) => reg.LifeTime == item.LifeTime && reg.ImplementationType == item.ImplementationType && reg.LifeTime == item.LifeTime,
-                _communicator.UpdateRegistrationInformation);
+        await AddOrUpdateElements(
+            registrations.Services,
+            _processInformation.Registrations,
+            (item) => (reg) => reg.LifeTime == item.LifeTime && reg.ImplementationType == item.ImplementationType && reg.LifeTime == item.LifeTime,
+            _communicator.UpdateRegistrationInformation);
     }
 
     public async Task AddModules(ModuleMonitorInfo modules)
     {
-        if (_communicator != null)
-            await AddOrUpdateElements(
-                modules.CurrentModules,
-                ProcessInformation.Modules,
-                (item) => (mod) => mod.Name == item.Name && mod.PublicKeyToken == item.PublicKeyToken && mod.Version == item.Version,
-                _communicator.UpdateModuleInformation);
+        await AddOrUpdateElements(
+            modules.CurrentModules,
+            _processInformation.Modules,
+            (item) => (mod) => mod.Name == item.Name && mod.PublicKeyToken == item.PublicKeyToken && mod.Version == item.Version,
+            _communicator.UpdateModuleInformation);
     }
 
     public async Task AddRuntimeInformation(IConnectionMonitor connections,
@@ -268,11 +230,17 @@ public class ProcessInfoCollector : IProcessInfoCollector
 
     public void SetAssemblyId(string assemblyId)
     {
-        _runtimeId.Name = assemblyId;
+        lock (_locker)
+        {
+            _runtimeId.Name = assemblyId;
+        }
     }
 
     public void SetClientPid(int clientPid)
     {
-        ProcessInformation.Id = clientPid;
+        lock (_locker)
+        {
+            _processInformation.Id = clientPid;
+        }
     }
 }
