@@ -36,7 +36,7 @@ jobs:
       run: Get-ChildItem -Recurse -Include *.sln | ForEach-Object {dotnet build $_ --configuration Release --no-restore; if ($LASTEXITCODE -ne 0 ) {throw "Build for $_ FAILED"; }} 
 
     - name: Test .Net
-      run: Get-ChildItem -Recurse -Include *.sln | ForEach-Object {dotnet test $_ --no-restore --verbosity normal --collect:"XPlat Code Coverage"}  
+      run: Get-ChildItem -Recurse -Include *.sln | ForEach-Object {dotnet test $_ --configuration Release --no-restore --verbosity normal --collect:"XPlat Code Coverage"}  
 
 
     - name: Setup Node.js ${{ matrix.node-version }}

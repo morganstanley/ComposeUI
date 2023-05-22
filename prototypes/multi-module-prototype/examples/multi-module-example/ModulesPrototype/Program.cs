@@ -26,9 +26,11 @@ using Microsoft.Extensions.Logging;
 using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 using Nito.AsyncEx;
 using System.Linq;
-using ModuleProcessMonitor.Processes;
-using System.Collections.ObjectModel;
-using ModuleProcessMonitor;
+using ProcessExplorer.Server.DependencyInjection;
+using ProcessExplorer.Server.Server.Abstractions;
+using ProcessExplorer.Abstractions.Subsystems;
+using ProcessExplorer.Abstractions;
+using ProcessExplorer.Core.DependencyInjection;
 
 namespace ModulesPrototype;
 
@@ -68,8 +70,22 @@ internal class Program
         var loader = factory.Create(catalogue);
         var moduleCounter = new AsyncCountdownEvent(0);
 
+        var processExplorer = new HostBuilder()
+            .ConfigureLogging(l => l.AddConsole().SetMinimumLevel(LogLevel.Debug))
+            .ConfigureServices(
+             (context, services) => services
+                 .ConfigureSubsystemLauncher(loader.RequestStartProcess, loader.RequestStopProcess, CreateLaunchRequest, CreateStopRequest)
+                 .AddProcessExplorerWindowsServerWithGrpc(pe => pe.UseGrpc())
+                 .Configure<ProcessExplorerServerOptions>(op =>
+                 {
+                     op.Port = 5056;
+                     op.MainProcessId = Process.GetCurrentProcess().Id;
+                     op.EnableProcessExplorer = true;
+                 }))
+            .Build();
 
-        var processInfo = new ObservableCollection<ProcessInformation>();
+        await processExplorer.StartAsync(cts.Token);
+        var infoAggregator = processExplorer.Services.GetRequiredService<IProcessInfoAggregator>();
 
         loader.LifecycleEvents.Subscribe(
             e =>
@@ -95,30 +111,54 @@ internal class Program
                     {
                         moduleCounter.Signal();
                     }
+                    infoAggregator.ScheduleSubsystemStateChanged(e.ProcessInfo.instanceId, SubsystemState.Stopped.ToString());
                 }
 
-                var proc = new ProcessInformation(e.ProcessInfo.name,
-                    e.ProcessInfo.instanceId,
-                    e.ProcessInfo.uiType,
-                    e.ProcessInfo.uiHint!,
-                    (int)e.ProcessInfo.pid!);
-
-                processInfo.Add(proc);
+                infoAggregator.ScheduleSubsystemStateChanged(e.ProcessInfo.instanceId, SubsystemState.Started.ToString());
             });
 
         var instances = new Dictionary<Guid, Module>();
         foreach (var module in manifest)
         {
             var instanceId = Guid.NewGuid();
-            instances.Add(instanceId, (Module)module.Value);
+
+            instances.Add(instanceId, new()
+            {
+                Name = module.Value.Name,
+                StartupType = module.Value.StartupType,
+                UIType = module.Value.UIType,
+                Path = module.Value.Path ?? string.Empty,
+                Url = module.Value.Url,
+                Arguments = module.Value.Arguments,
+                Port = module.Value.Port,
+            });
+
             moduleCounter.AddCount();
         }
 
         foreach (var module in instances)
         {
-            module.Value.State = ModuleState.Started;
-            loader.RequestStartProcess(new LaunchRequest { name = module.Value.Name, instanceId = module.Key });
+            if (module.Value.Name == "dataservice")
+            {
+                instances.TryGetValue(module.Key, out var instance);
+                instance = new()
+                {
+                    StartupType = module.Value.StartupType,
+                    Arguments = module.Value.Arguments,
+                    State = SubsystemState.Started.ToString(),
+                    Name = module.Value.Name,
+                    Path = module.Value.Path,
+                    Port = module.Value.Port,
+                    UIType = module.Value.UIType,
+                    Url = module.Value.Url,
+                };
+
+                loader.RequestStartProcess(new LaunchRequest { name = module.Value.Name, instanceId = module.Key });
+            }
         }
+
+        if(infoAggregator.SubsystemController != null)
+            await infoAggregator.SubsystemController.InitializeSubsystems(instances.Select(kvp => new KeyValuePair<Guid, SubsystemInfo>(kvp.Key, SubsystemInfo.FromModule(kvp.Value))));
 
         logger.LogInformation("ComposeUI application running, press Ctrl+C to exit");
 
@@ -151,5 +191,22 @@ internal class Program
         pr2.StartInfo.Arguments = url;
         pr2.Start();
         return pr2.Id;
+    }
+
+    static LaunchRequest CreateLaunchRequest(Guid id, string name)
+    {
+        return new LaunchRequest()
+        {
+            instanceId = id,
+            name = name,
+        };
+    }
+
+    static StopRequest CreateStopRequest(Guid id)
+    {
+        return new StopRequest()
+        {
+            instanceId = id,
+        };
     }
 }
