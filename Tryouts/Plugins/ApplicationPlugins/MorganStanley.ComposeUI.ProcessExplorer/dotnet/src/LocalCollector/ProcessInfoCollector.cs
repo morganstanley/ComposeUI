@@ -94,9 +94,9 @@ public class ProcessInfoCollector : IProcessInfoCollector
                     }
                 }
 
-                connections = new List<KeyValuePair<RuntimeInformation, ConnectionInfo>>()
+                connections = new Dictionary<RuntimeInformation, ConnectionInfo>()
                 {
-                    new(_runtimeId, connection)
+                    { _runtimeId, connection }
                 };
             }
         }
@@ -106,8 +106,7 @@ public class ProcessInfoCollector : IProcessInfoCollector
             return;
         }
 
-        if (connections.Any())
-            await _communicator.UpdateConnectionInformation(connections);
+        await _communicator.UpdateConnectionInformation(connections);
     }
 
     public async Task SendRuntimeInfo()
@@ -116,9 +115,9 @@ public class ProcessInfoCollector : IProcessInfoCollector
 
         lock(_locker)
         {
-            runtimeInfo = new List<KeyValuePair<RuntimeInformation, ProcessInfoCollectorData>>()
+            runtimeInfo = new Dictionary<RuntimeInformation, ProcessInfoCollectorData>()
             {
-                new(_runtimeId, _processInformation)
+                { _runtimeId, _processInformation }
             };
         }
 
@@ -150,16 +149,13 @@ public class ProcessInfoCollector : IProcessInfoCollector
                 _processInformation.EnvironmentVariables.AddOrUpdate(env.Key, env.Value, (_, _) => env.Value);
             }
 
-            info = new List<KeyValuePair<RuntimeInformation, IEnumerable<KeyValuePair<string, string>>>>()
+            info = new Dictionary<RuntimeInformation, IEnumerable<KeyValuePair<string, string>>>()
             {
-                new(_runtimeId, environmentVariables.EnvironmentVariables)
+                { _runtimeId, environmentVariables.EnvironmentVariables }
             };
         }
 
-        if (info.Any())
-        {
-            await _communicator.UpdateEnvironmentVariableInformation(info);
-        }
+        await _communicator.UpdateEnvironmentVariableInformation(info);
     }
 
     private async Task AddOrUpdateElements<T>(
@@ -194,7 +190,7 @@ public class ProcessInfoCollector : IProcessInfoCollector
                 }
             }
 
-            info = new List<KeyValuePair<RuntimeInformation, IEnumerable<T>>>() { new(_runtimeId, source) };
+            info = new Dictionary<RuntimeInformation, IEnumerable<T>>() { { _runtimeId, source } };
         }
 
         await handler(info);
