@@ -6,7 +6,7 @@
     "examples/js-*",
     "src/messaging/js/*",
     "src/shell/js/*",
-    "Tryouts/Plugins/ApplicationPlugins/*"
+    "prototypes/process-explorer/js"
   ],
   "devDependencies": {
     "lerna": "^6.4.1"

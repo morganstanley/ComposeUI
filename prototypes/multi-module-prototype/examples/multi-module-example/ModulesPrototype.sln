@@ -23,11 +23,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Process Explorer", "Process
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "modules", "modules", "{E761C6B7-625B-47D8-811B-A67B3E7221D5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProcessExplorer.Abstractions", "..\..\..\..\Tryouts\Plugins\ApplicationPlugins\MorganStanley.ComposeUI.ProcessExplorer\dotnet\src\ProcessExplorer.Abstractions\ProcessExplorer.Abstractions.csproj", "{81560FF4-912B-4993-A132-D4E8B4F3AC83}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ProcessExplorer.LocalCollector", "..\..\..\process-explorer\dotnet\src\MorganStanley.ComposeUI.LocalCollector\MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.csproj", "{592929ED-A4B6-4A0E-B30B-610D9110BF8E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProcessExplorer.Core", "..\..\..\..\Tryouts\Plugins\ApplicationPlugins\MorganStanley.ComposeUI.ProcessExplorer\dotnet\src\ProcessExplorer.Core\ProcessExplorer.Core.csproj", "{1E6E6698-CA30-4B30-B6A6-F58D9C7E4C90}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ProcessExplorer.Abstractions", "..\..\..\process-explorer\dotnet\src\MorganStanley.ComposeUI.ProcessExplorer.Abstractions\MorganStanley.ComposeUI.ProcessExplorer.Abstractions.csproj", "{C82B3A79-82C7-409D-868E-0DF45C0DFB56}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProcessExplorer.Server", "..\..\..\..\Tryouts\Plugins\ApplicationPlugins\MorganStanley.ComposeUI.ProcessExplorer\dotnet\src\ProcessExplorer.Server\ProcessExplorer.Server.csproj", "{44D71CFD-7E68-46E5-8A3C-D18CEB80E11E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ProcessExplorer.Core", "..\..\..\process-explorer\dotnet\src\MorganStanley.ComposeUI.ProcessExplorer.Core\MorganStanley.ComposeUI.ProcessExplorer.Core.csproj", "{AF8A1D0A-D20F-4853-89C0-C9C80F50C5ED}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ProcessExplorer.Server", "..\..\..\process-explorer\dotnet\src\MorganStanley.ComposeUI.ProcessExplorer.Server\MorganStanley.ComposeUI.ProcessExplorer.Server.csproj", "{D5327512-2467-4EE0-83F8-3630997703F2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -67,18 +69,22 @@ Global
 		{21BA0993-6F19-4549-8884-CB4C7FAE34A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{21BA0993-6F19-4549-8884-CB4C7FAE34A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{21BA0993-6F19-4549-8884-CB4C7FAE34A8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{81560FF4-912B-4993-A132-D4E8B4F3AC83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{81560FF4-912B-4993-A132-D4E8B4F3AC83}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{81560FF4-912B-4993-A132-D4E8B4F3AC83}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{81560FF4-912B-4993-A132-D4E8B4F3AC83}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1E6E6698-CA30-4B30-B6A6-F58D9C7E4C90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1E6E6698-CA30-4B30-B6A6-F58D9C7E4C90}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1E6E6698-CA30-4B30-B6A6-F58D9C7E4C90}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1E6E6698-CA30-4B30-B6A6-F58D9C7E4C90}.Release|Any CPU.Build.0 = Release|Any CPU
-		{44D71CFD-7E68-46E5-8A3C-D18CEB80E11E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{44D71CFD-7E68-46E5-8A3C-D18CEB80E11E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{44D71CFD-7E68-46E5-8A3C-D18CEB80E11E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{44D71CFD-7E68-46E5-8A3C-D18CEB80E11E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{592929ED-A4B6-4A0E-B30B-610D9110BF8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{592929ED-A4B6-4A0E-B30B-610D9110BF8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{592929ED-A4B6-4A0E-B30B-610D9110BF8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{592929ED-A4B6-4A0E-B30B-610D9110BF8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C82B3A79-82C7-409D-868E-0DF45C0DFB56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C82B3A79-82C7-409D-868E-0DF45C0DFB56}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C82B3A79-82C7-409D-868E-0DF45C0DFB56}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C82B3A79-82C7-409D-868E-0DF45C0DFB56}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF8A1D0A-D20F-4853-89C0-C9C80F50C5ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF8A1D0A-D20F-4853-89C0-C9C80F50C5ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF8A1D0A-D20F-4853-89C0-C9C80F50C5ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF8A1D0A-D20F-4853-89C0-C9C80F50C5ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5327512-2467-4EE0-83F8-3630997703F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5327512-2467-4EE0-83F8-3630997703F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5327512-2467-4EE0-83F8-3630997703F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5327512-2467-4EE0-83F8-3630997703F2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -88,9 +94,10 @@ Global
 		{EFF70E7E-C320-4F47-8A13-C1FE5C8F2982} = {E761C6B7-625B-47D8-811B-A67B3E7221D5}
 		{21BA0993-6F19-4549-8884-CB4C7FAE34A8} = {E761C6B7-625B-47D8-811B-A67B3E7221D5}
 		{BF3D9176-E2B0-4C87-9691-8288C257BFAF} = {E761C6B7-625B-47D8-811B-A67B3E7221D5}
-		{81560FF4-912B-4993-A132-D4E8B4F3AC83} = {BF3D9176-E2B0-4C87-9691-8288C257BFAF}
-		{1E6E6698-CA30-4B30-B6A6-F58D9C7E4C90} = {BF3D9176-E2B0-4C87-9691-8288C257BFAF}
-		{44D71CFD-7E68-46E5-8A3C-D18CEB80E11E} = {BF3D9176-E2B0-4C87-9691-8288C257BFAF}
+		{592929ED-A4B6-4A0E-B30B-610D9110BF8E} = {BF3D9176-E2B0-4C87-9691-8288C257BFAF}
+		{C82B3A79-82C7-409D-868E-0DF45C0DFB56} = {BF3D9176-E2B0-4C87-9691-8288C257BFAF}
+		{AF8A1D0A-D20F-4853-89C0-C9C80F50C5ED} = {BF3D9176-E2B0-4C87-9691-8288C257BFAF}
+		{D5327512-2467-4EE0-83F8-3630997703F2} = {BF3D9176-E2B0-4C87-9691-8288C257BFAF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {98497725-4038-46B9-910E-2BADC6FDC7E4}

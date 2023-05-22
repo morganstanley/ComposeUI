@@ -26,11 +26,11 @@ using Microsoft.Extensions.Logging;
 using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 using Nito.AsyncEx;
 using System.Linq;
-using ProcessExplorer.Server.DependencyInjection;
-using ProcessExplorer.Server.Server.Abstractions;
-using ProcessExplorer.Abstractions.Subsystems;
-using ProcessExplorer.Abstractions;
-using ProcessExplorer.Core.DependencyInjection;
+using MorganStanley.ComposeUI.ProcessExplorer.Abstractions;
+using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Subsystems;
+using MorganStanley.ComposeUI.ProcessExplorer.Core.DependencyInjection;
+using MorganStanley.ComposeUI.ProcessExplorer.Server.DependencyInjection;
+using MorganStanley.ComposeUI.ProcessExplorer.Server.Server.Abstractions;
 
 namespace ModulesPrototype;
 
@@ -141,24 +141,12 @@ internal class Program
             if (module.Value.Name == "dataservice")
             {
                 instances.TryGetValue(module.Key, out var instance);
-                instance = new()
-                {
-                    StartupType = module.Value.StartupType,
-                    Arguments = module.Value.Arguments,
-                    State = SubsystemState.Started.ToString(),
-                    Name = module.Value.Name,
-                    Path = module.Value.Path,
-                    Port = module.Value.Port,
-                    UIType = module.Value.UIType,
-                    Url = module.Value.Url,
-                };
-
+                instance.State = SubsystemState.Started;
                 loader.RequestStartProcess(new LaunchRequest { name = module.Value.Name, instanceId = module.Key });
             }
         }
 
-        if(infoAggregator.SubsystemController != null)
-            await infoAggregator.SubsystemController.InitializeSubsystems(instances.Select(kvp => new KeyValuePair<Guid, SubsystemInfo>(kvp.Key, SubsystemInfo.FromModule(kvp.Value))));
+        await infoAggregator.SubsystemController.InitializeSubsystems(instances.Select(kvp => new KeyValuePair<Guid, SubsystemInfo>(kvp.Key, SubsystemInfo.FromModule(kvp.Value))));
 
         logger.LogInformation("ComposeUI application running, press Ctrl+C to exit");
 
