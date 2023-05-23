@@ -13,18 +13,17 @@
 using Google.Protobuf;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Connections;
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Modules;
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Registrations;
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Extensions;
+using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Processes;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Subsystems;
 using ProcessExplorer.Abstractions.Infrastructure.Protos;
 using Process = ProcessExplorer.Abstractions.Infrastructure.Protos.Process;
+using ProcessInfoCollectorData = ProcessExplorer.Abstractions.Infrastructure.Protos.ProcessInfoCollectorData;
+using ModuleProto = ProcessExplorer.Abstractions.Infrastructure.Protos.Module;
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.Server.Server.Helper;
+namespace MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Extensions;
 
-internal static class ProtoConvertHelper
+public static class ProtoConvertHelper
 {
     //n Proto3, all fields are optional and have a default value. For example, a string field has a default value of empty string ("") and an int field has a default value of zero (0).
     //If you want to create a proto message without a certain field, you have to set its value to the default value.
@@ -92,7 +91,7 @@ internal static class ProtoConvertHelper
         return startTime == string.Empty;
     }
 
-    public static Connection DeriveProtoConnectionType(this ConnectionInfo connection)
+    public static Connection DeriveProtoConnectionType(this IConnectionInfo connection)
     {
         return new()
         {
@@ -106,7 +105,7 @@ internal static class ProtoConvertHelper
         };
     }
 
-    public static ProcessInfoCollectorData DeriveProtoRuntimeInfoType(this MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.ProcessInfoCollectorData runtimeInfo)
+    public static ProcessInfoCollectorData DeriveProtoRuntimeInfoType(this Entities.ProcessInfoCollectorData runtimeInfo)
     {
         return new()
         {
@@ -122,21 +121,21 @@ internal static class ProtoConvertHelper
     {
         return new()
         {
-            ServiceType = registration.ServiceType,
-            ImplementationType = registration.ImplementationType,
-            LifeTime = registration.LifeTime
+            ServiceType = registration.ServiceType ?? string.Empty,
+            ImplementationType = registration.ImplementationType ?? string.Empty,
+            LifeTime = registration.LifeTime ?? string.Empty
         };
     }
 
-    public static Module DeriveProtoModuleType(this ModuleInfo module)
+    public static ModuleProto DeriveProtoModuleType(this ModuleInfo module)
     {
         return new()
         {
-            Name = module.Name,
-            Location = module.Location,
-            Version = module.Version.ToString(),
-            VersionRedirectedFrom = module.VersionRedirectedFrom,
-            PublicKeyToken = ByteString.CopyFrom(module.PublicKeyToken)
+            Name = module.Name ?? string.Empty,
+            Location = module.Location ?? string.Empty,
+            Version = module.Version.ToString() ?? string.Empty,
+            VersionRedirectedFrom = module.VersionRedirectedFrom ?? string.Empty,
+            PublicKeyToken = module.PublicKeyToken == null ? ByteString.Empty: ByteString.CopyFrom(module.PublicKeyToken)
         };
     }
 
@@ -183,6 +182,21 @@ internal static class ProtoConvertHelper
                 if (key == null || kvp.Value == null) continue;
                 map.Add(key, converter.Invoke(kvp.Value));
             }
+        }
+
+        return map;
+    }
+
+    public static MapField<string, ProcessInfoCollectorData> DeriveRuntimeInformation(
+        this IEnumerable<KeyValuePair<RuntimeInformation, MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.ProcessInfoCollectorData>> runtimeInformation)
+    {
+        var map = new MapField<string, ProcessInfoCollectorData>();
+
+        if (runtimeInformation == null || !runtimeInformation.Any()) return map;
+
+        foreach (var runtimeInfo in runtimeInformation)
+        {
+            map.Add(runtimeInfo.Key.Name, runtimeInfo.Value.DeriveProtoRuntimeInfoType());
         }
 
         return map;

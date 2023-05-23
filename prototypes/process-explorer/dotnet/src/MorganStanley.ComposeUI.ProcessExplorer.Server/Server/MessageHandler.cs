@@ -12,6 +12,7 @@
 
 using Microsoft.Extensions.Logging;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions;
+using MorganStanley.ComposeUI.ProcessExplorer.Server.Extensions;
 using MorganStanley.ComposeUI.ProcessExplorer.Server.Logging;
 using ProcessExplorer.Abstractions.Infrastructure.Protos;
 
@@ -22,53 +23,96 @@ internal static class MessageHandler
     public static async void HandleIncomingGrpcMessages(
         Message message,
         IProcessInfoAggregator processInfoAggregator,
-        CancellationToken cancellationToken,
         ILogger? logger = null)
     {
         try
         {
-            while (!cancellationToken.IsCancellationRequested)
+            var ids = message.Subsystems.Select(subsystem => subsystem.Key);
+
+            switch (message.Action)
             {
-                var ids = message.Subsystems.Select(subsystem => subsystem.Key);
+                case ActionType.TerminateSubsystemsAction:
+                    await processInfoAggregator.SubsystemController.ShutdownSubsystems(ids);
 
-                switch (message.Action)
-                {
-                    case ActionType.TerminateSubsystemsAction:
-                        await processInfoAggregator.SubsystemController.ShutdownSubsystems(ids);
+                    break;
 
-                        break;
+                case ActionType.RestartSubsystemsAction:
+                    await processInfoAggregator.SubsystemController.RestartSubsystems(ids);
 
-                    case ActionType.RestartSubsystemsAction:
-                        await processInfoAggregator.SubsystemController.RestartSubsystems(ids);
+                    break;
 
-                        break;
+                case ActionType.LaunchSubsystemsAction:
+                    await processInfoAggregator.SubsystemController.LaunchSubsystems(ids);
 
-                    case ActionType.LaunchSubsystemsAction:
-                        await processInfoAggregator.SubsystemController.LaunchSubsystems(ids);
+                    break;
 
-                        break;
+                case ActionType.LaunchSubsystemsWithDelayAction:
+                    try
+                    {
+                        if (ids.ElementAt(0) == null) break;
 
-                    case ActionType.LaunchSubsystemsWithDelayAction:
-                        try
-                        {
-                            if (ids.ElementAt(0) == null) continue;
+                        var id = Guid.Parse(ids.ElementAt(0));
+                        await processInfoAggregator.SubsystemController.LaunchSubsystemAfterTime(id, message.PeriodOfDelay);
+                    }
+                    catch (Exception exception)
+                    {
+                        logger?.GrpcMessageReadingError(exception, exception);
+                    }
 
-                            var id = Guid.Parse(ids.ElementAt(0));
-                            await processInfoAggregator.SubsystemController.LaunchSubsystemAfterTime(id, message.PeriodOfDelay);
-                        }
-                        catch(Exception exception)
-                        {
-                            logger?.GrpcMessageReadingError(exception, exception);
-                        }
+                    break;
 
-                        break;
-                }
+                case ActionType.AddRuntimeInfoAction:
+                    await processInfoAggregator.AddRuntimeInformation(
+                        message.AssemblyId,
+                        message.RuntimeInfo.DeriveProcessInfoCollectorData());
 
-                if (cancellationToken.IsCancellationRequested) 
+                    break;
+
+                case ActionType.AddConnectionListAction:
+                    await processInfoAggregator.AddConnectionCollection(
+                        message.AssemblyId,
+                        message.Connections.Select(connection => connection.DeriveConnectionInfo()));
+
+                    break;
+
+                case ActionType.UpdateConnectionAction:
+                    await processInfoAggregator.UpdateOrAddConnectionInfo(
+                        message.AssemblyId,
+                        message.Connections.First().DeriveConnectionInfo());
+
+                    break;
+
+                case ActionType.UpdateEnvironmentVariablesAction:
+                    await processInfoAggregator.UpdateOrAddEnvironmentVariablesInfo(
+                        message.AssemblyId,
+                        message.EnvironmentVariables);
+
+                    break;
+
+                case ActionType.UpdateRegistrationsAction:
+                    await processInfoAggregator.UpdateRegistrations(
+                        message.AssemblyId,
+                        message.Registrations.Select(registration => registration.DeriveRegistration()));
+
+                    break;
+
+                case ActionType.UpdateModulesAction:
+                    await processInfoAggregator.UpdateOrAddModuleInfo(
+                        message.AssemblyId,
+                        message.Modules.Select(module => module.DeriveModule()));
+
+                    break;
+
+                case ActionType.UpdateConnectionStatusAction:
+                    await processInfoAggregator.UpdateConnectionStatus(
+                        message.AssemblyId,
+                        message.ConnectionStatusChanges.First().Key,
+                        message.ConnectionStatusChanges.First().Value);
+
                     break;
             }
         }
-        catch(Exception exception)
+        catch (Exception exception)
         {
             logger?.GrpcMessageHandlingError(exception, exception);
         }

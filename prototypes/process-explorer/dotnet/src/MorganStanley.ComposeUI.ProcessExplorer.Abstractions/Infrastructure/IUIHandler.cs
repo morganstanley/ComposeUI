@@ -11,9 +11,6 @@
 // and limitations under the License.
 
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities;
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Connections;
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Modules;
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Registrations;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Processes;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Subsystems;
 
@@ -56,9 +53,9 @@ public interface IUiHandler
     /// Collects runtime information to the collection. (Environment variables/modules/connections/registrations)
     /// </summary>
     /// <param name="assemblyId"></param>
-    /// <param name="dataObject"></param>
+    /// <param name="runtimeInformation"></param>
     /// <returns></returns>
-    Task AddRuntimeInfo(string assemblyId, ProcessInfoCollectorData dataObject);
+    Task AddRuntimeInfo(string assemblyId, ProcessInfoCollectorData runtimeInformation);
 
     /// <summary>
     /// Adds a collection of runtime information to the collection. (List of environment variables/modules/connections/registrations)
@@ -73,7 +70,7 @@ public interface IUiHandler
     /// <param name="assemblyId"></param>
     /// <param name="connections"></param>
     /// <returns></returns>
-    Task AddConnections(string assemblyId, IEnumerable<ConnectionInfo> connections);
+    Task AddConnections(string assemblyId, IEnumerable<IConnectionInfo> connections);
 
     /// <summary>
     /// Updates an information of connection in the collection.
@@ -81,7 +78,7 @@ public interface IUiHandler
     /// <param name="assemblyId"></param>
     /// <param name="connection"></param>
     /// <returns></returns>
-    Task UpdateConnection(string assemblyId, ConnectionInfo connection);
+    Task UpdateConnection(string assemblyId, IConnectionInfo connection);
 
     /// <summary>
     /// Updates information of environment variables in the collection.

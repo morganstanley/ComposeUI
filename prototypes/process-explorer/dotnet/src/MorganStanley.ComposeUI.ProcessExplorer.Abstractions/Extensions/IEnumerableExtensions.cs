@@ -10,9 +10,9 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.Extensions;
+namespace MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Extensions;
 
-internal static class HelperExtensionMethods
+public static class IEnumerableExtensions
 {
     public static int IndexOf<T>(this IEnumerable<T> source, T value, IEqualityComparer<T>? comparer = null)
     {

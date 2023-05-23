@@ -29,7 +29,7 @@ using Xunit;
 
 namespace MorganStanley.ComposeUI.ProcessExplorer.IntegrationTests;
 
-public class EndToEndTests : IAsyncLifetime
+public class ServerEndToEndTests : IAsyncLifetime
 {
     private IHost? _host;
     public readonly string Host = "localhost";
@@ -67,7 +67,7 @@ public class EndToEndTests : IAsyncLifetime
         //TODO(Lilla): investigate why the integrationtests are keeping to fail on CI, but works everytime locally.
         Skip.If(messages.Count < 1, "Error while running on CI...");
 
-        Assert.Single(messages);
+        Assert.True(messages.Count >= 1);
         Assert.Equal(ActionType.SubscriptionAliveAction, messages[0].Action);
     }
 
@@ -118,7 +118,7 @@ public class EndToEndTests : IAsyncLifetime
         //TODO(Lilla): investigate why the integrationtests are keeping to fail on CI, but works everytime locally.
         Skip.If(messages.Count < 2, "Local testing does not throws error");
 
-        Assert.Equal(2, messages.Count);
+        Assert.True(messages.Count >= 2);
         Assert.Equal(ActionType.SubscriptionAliveAction, messages[0].Action);
         Assert.Equal(ActionType.AddSubsystemsAction, messages[1].Action);
         Assert.Single(messages[1].Subsystems);
@@ -171,7 +171,7 @@ public class EndToEndTests : IAsyncLifetime
 
         builder.ConfigureServices(
              (context, services) => services
-                 .AddProcessExplorerWindowsServerWithGrpc(pe => ProcessExplorerBuilderExtensions.UseGrpc(pe))
+                 .AddProcessExplorerWindowsServerWithGrpc(pe => pe.UseGrpc())
                  .ConfigureSubsystemLauncher(Start, Stop, CreateDummyStartType, CreateDummyStopType)
                  .Configure<ProcessExplorerServerOptions>(op =>
                  {

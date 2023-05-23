@@ -12,7 +12,7 @@
 
 using System.Reflection;
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Modules;
+namespace MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities;
 
 public class ModuleInfo
 {
@@ -33,7 +33,8 @@ public class ModuleInfo
         {
             location = null;
         }
-        return new ModuleInfo()
+
+        return new ()
         {
             Name = assembly.GetName().Name,
             Version = module.ModuleVersionId,
@@ -41,5 +42,16 @@ public class ModuleInfo
             PublicKeyToken = assembly.GetName().GetPublicKeyToken(),
             Location = location
         };
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj == null) return false;
+
+        if (obj.GetType() != typeof(ModuleInfo)) return false;
+
+        return Name == ((ModuleInfo)obj).Name
+               && Location == ((ModuleInfo)obj).Location
+               && Version == ((ModuleInfo)obj).Version;
     }
 }

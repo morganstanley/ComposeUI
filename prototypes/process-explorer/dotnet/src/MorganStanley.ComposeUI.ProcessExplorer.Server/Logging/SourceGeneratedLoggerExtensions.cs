@@ -96,8 +96,11 @@ internal static partial class SourceGeneratedLoggerExtensions
     [LoggerMessage(Level = LogLevel.Error, Message = "Error while reading, deserializing gRPC message: {exception}...", SkipEnabledCheck = false)]
     public static partial void GrpcMessageReadingError(this ILogger logger, Exception ex, Exception exception);
 
-    [LoggerMessage(Level = LogLevel.Error, Message = "Error while handling WebSocket message for subsystem handling: {exception}...", SkipEnabledCheck = false)]
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error while handling gRPC message for subsystem handling: {exception}...", SkipEnabledCheck = false)]
     public static partial void GrpcMessageHandlingError(this ILogger logger, Exception ex, Exception exception);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error while handling gRPC message for subsystem handling: {exception}...", SkipEnabledCheck = false)]
+    public static partial void GrpcServerStopAsyncError(this ILogger logger, Exception ex, Exception exception);
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Error while setting up process explorer server. Detailed exception: {exception}...", SkipEnabledCheck = false)]
     public static partial void ProcessExplorerSetupError(this ILogger logger, Exception ex, Exception exception);

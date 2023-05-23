@@ -69,13 +69,10 @@ internal class ProcessExplorerMessageHandlerService : ProcessExplorerMessageHand
         //handle here the incoming messages from the clients.
         _logger.GrpcClientMessageReceivedDebug(request.Action.ToString());
 
-        Task.Run(() =>
-        {
-            MessageHandler.HandleIncomingGrpcMessages(
-                request,
-                _processInfoAggregator,
-                context.CancellationToken);
-        }, context.CancellationToken);
+        MessageHandler.HandleIncomingGrpcMessages(
+              request,
+              _processInfoAggregator,
+              _logger);
 
         return Task.FromResult(new Empty());
     }

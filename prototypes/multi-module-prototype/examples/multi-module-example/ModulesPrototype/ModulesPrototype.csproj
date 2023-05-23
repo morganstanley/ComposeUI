@@ -40,9 +40,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
     <PackageReference Include="Nito.AsyncEx" Version="5.1.2" />
   </ItemGroup>
   <ItemGroup>
-	  <ProjectReference Include="..\..\..\..\..\src\messaging\dotnet\src\Core\MorganStanley.ComposeUI.Messaging.Core.csproj" />
-	  <ProjectReference Include="..\..\..\..\..\src\messaging\dotnet\src\Server\MorganStanley.ComposeUI.Messaging.Server.csproj" />
-	  <ProjectReference Include="..\..\..\..\process-explorer\dotnet\src\MorganStanley.ComposeUI.ProcessExplorer.Server\MorganStanley.ComposeUI.ProcessExplorer.Server.csproj" />
-	  <ProjectReference Include="..\..\..\src\module-loader\dotnet\ModuleLoader\MorganStanley.ComposeUI.ModuleLoader.csproj" />
+	  <ProjectReference Include="../../../../../src/messaging/dotnet/src/Core/MorganStanley.ComposeUI.Messaging.Core.csproj" />
+	  <ProjectReference Include="../../../../../src/messaging/dotnet/src/Server/MorganStanley.ComposeUI.Messaging.Server.csproj" />
+	  <ProjectReference Include="../../../../process-explorer/dotnet/src/MorganStanley.ComposeUI.ProcessExplorer.Server/MorganStanley.ComposeUI.ProcessExplorer.Server.csproj" />
+	  <ProjectReference Include="../../../src/module-loader/dotnet/ModuleLoader/MorganStanley.ComposeUI.ModuleLoader.csproj" />
   </ItemGroup>
 </Project>

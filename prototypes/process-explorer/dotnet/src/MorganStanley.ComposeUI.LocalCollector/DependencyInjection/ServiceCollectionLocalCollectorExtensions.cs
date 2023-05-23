@@ -10,11 +10,19 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Connections;
+using Microsoft.Extensions.DependencyInjection;
 
-public enum ConnectionStatus
+namespace MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.DependencyInjection;
+
+public static class ServiceCollectionLocalCollectorExtensions
 {
-    Running,
-    Stopped,
-    Failed
+    public static IServiceCollection AddLocalCollectorWithGrpc(
+        this IServiceCollection serviceCollection,
+        Action<LocalCollectorBuilder> builderAction)
+    {
+        var builder = new LocalCollectorBuilder(serviceCollection);
+        builderAction(builder);
+
+        return serviceCollection;
+    }
 }

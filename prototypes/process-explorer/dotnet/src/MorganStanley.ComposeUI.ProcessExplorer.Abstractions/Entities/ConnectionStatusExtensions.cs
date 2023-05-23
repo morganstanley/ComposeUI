@@ -10,9 +10,18 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Connections;
+namespace MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities;
 
-public class ConnectionMonitorInfo
+public static class ConnectionStatusExtensions
 {
-    public SynchronizedCollection<ConnectionInfo> Connections { get; set; } = new();
+    public static string ToStringCached(this ConnectionStatus status)
+    {
+        return status switch
+        {
+            ConnectionStatus.Stopped => nameof(ConnectionStatus.Stopped),
+            ConnectionStatus.Failed => nameof(ConnectionStatus.Failed),
+            ConnectionStatus.Running => nameof(ConnectionStatus.Running),
+            _ => status.ToString(),
+        };
+    }
 }

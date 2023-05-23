@@ -10,10 +10,7 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Connections;
-using MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.EnvironmentVariables;
-using MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.Modules;
-using MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.Registrations;
+using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities;
 
 namespace MorganStanley.ComposeUI.ProcessExplorer.LocalCollector;
 
@@ -24,35 +21,28 @@ public interface IProcessInfoCollector
     /// </summary>
     /// <param name="connections"></param>
     /// <returns></returns>
-    Task AddConnectionMonitor(ConnectionMonitorInfo connections);
-
-    /// <summary>
-    /// Adds a connection monitor to watch connections.
-    /// </summary>
-    /// <param name="connections"></param>
-    /// <returns></returns>
-    Task AddConnectionMonitor(IConnectionMonitor connections);
+    ValueTask AddConnections(IEnumerable<IConnectionInfo> connections);
 
     /// <summary>
     /// Adds a list of environment variables.
     /// </summary>
     /// <param name="environmentVariables"></param>
     /// <returns></returns>
-    Task AddEnvironmentVariables(EnvironmentMonitorInfo environmentVariables);
+    ValueTask AddEnvironmentVariables(IEnumerable<KeyValuePair<string, string>> environmentVariables);
 
     /// <summary>
     /// Adds a list of registrations.
     /// </summary>
     /// <param name="registrations"></param>
     /// <returns></returns>
-    Task AddRegistrations(RegistrationMonitorInfo registrations);
+    ValueTask AddRegistrations(IEnumerable<RegistrationInfo> registrations);
 
     /// <summary>
     /// Adds a list of modules.
     /// </summary>
     /// <param name="modules"></param>
     /// <returns></returns>
-    Task AddModules(ModuleMonitorInfo modules);
+    ValueTask AddModules(IEnumerable<ModuleInfo> modules);
 
     /// <summary>
     /// Adds information of connections/environment variables/registrations/modules to the colelction.
@@ -62,14 +52,17 @@ public interface IProcessInfoCollector
     /// <param name="registrations"></param>
     /// <param name="modules"></param>
     /// <returns></returns>
-    Task AddRuntimeInformation(IConnectionMonitor connections, EnvironmentMonitorInfo environmentVariables,
-        RegistrationMonitorInfo registrations, ModuleMonitorInfo modules);
+    ValueTask AddRuntimeInformation(
+        IEnumerable<IConnectionInfo> connections,
+        IEnumerable<KeyValuePair<string, string>> environmentVariables,
+        IEnumerable<RegistrationInfo> registrations,
+        IEnumerable<ModuleInfo> modules);
 
     /// <summary>
     /// Sends the runtime information of the current process.
     /// </summary>
     /// <returns></returns>
-    Task SendRuntimeInfo();
+    ValueTask SendRuntimeInfo();
 
     /// <summary>
     /// Sets the name of the assembly, potentially it is the assembly name of the current running process, what we want to send to the backend.
@@ -82,4 +75,10 @@ public interface IProcessInfoCollector
     /// </summary>
     /// <param name="clientPid"></param>
     void SetClientPid(int clientPid);
+
+    /// <summary>
+    /// Returns the ProcessInfoColelctorData object.
+    /// </summary>
+    /// <returns></returns>
+    ProcessInfoCollectorData GetProcessInfoCollectorData();
 }

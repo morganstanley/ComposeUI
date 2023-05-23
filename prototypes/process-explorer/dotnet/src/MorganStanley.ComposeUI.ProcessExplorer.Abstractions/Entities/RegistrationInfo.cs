@@ -10,18 +10,21 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Connections;
+namespace MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities;
 
-public static class ConnectionStatusExtensions
+public class RegistrationInfo
 {
-    public static string ToStringCached(this ConnectionStatus status)
+    public string? ImplementationType { get; set; }
+    public string? LifeTime { get; set; }
+    public string? ServiceType { get; set; }
+
+    public override bool Equals(object? obj)
     {
-        return status switch
-        {
-            ConnectionStatus.Stopped => nameof(ConnectionStatus.Stopped),
-            ConnectionStatus.Failed => nameof(ConnectionStatus.Failed),
-            ConnectionStatus.Running => nameof(ConnectionStatus.Running),
-            _ => status.ToString(),
-        };
+        if (obj == null) return false;
+
+        if (obj.GetType() != typeof(RegistrationInfo)) return false;
+
+        return ImplementationType == ((RegistrationInfo)obj).ImplementationType
+            && ServiceType == ((RegistrationInfo)obj).ServiceType;
     }
 }

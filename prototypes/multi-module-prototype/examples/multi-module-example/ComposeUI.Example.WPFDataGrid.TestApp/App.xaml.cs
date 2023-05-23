@@ -19,6 +19,9 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
+using MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.DependencyInjection;
+using System.Collections.Generic;
+using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Connections;
 
 namespace WPFDataGrid.TestApp;
 
@@ -33,6 +36,7 @@ public partial class App : Application
     /// Url to connect
     /// </summary>
     public static Uri WebsocketURI { get; set; } = new("ws://localhost:5000/ws");
+    public static Guid WebsocketURIId { get; } = Guid.NewGuid();
 
     /// <summary>
     /// Overriding Statup so we can do DI.
@@ -52,7 +56,7 @@ public partial class App : Application
         var loggerFactory = new LoggerFactory();
 
         var serilogger = new LoggerConfiguration()
-            .WriteTo.File(string.Format("{0}/log.log", Directory.GetCurrentDirectory()))
+            .WriteTo.File($"{Directory.GetCurrentDirectory()}/log.log")
             .CreateLogger();
 
         serviceCollection
@@ -65,13 +69,29 @@ public partial class App : Application
                 mr =>
                     mr.UseWebSocket(new MessageRouterWebSocketOptions { Uri = WebsocketURI }));
 
-        serviceCollection.AddSingleton(typeof(DataGridView));
+        serviceCollection
+            .AddLocalCollectorWithGrpc(localCollector => 
+            localCollector.UseGrpc(new LocalCollectorServiceOptions
+                {
+                    Connections = new List<IConnectionInfo>()
+                    {
+                        new ConnectionInfo(
+                            id: WebsocketURIId,
+                            name: nameof(WebsocketURI),
+                            status: ConnectionStatus.Running,
+                            remoteEndpoint: WebsocketURI.ToString())
+                    },
+                    LoadedServices = serviceCollection,
+                    Port = 5056,
+                    Host = "localhost"
+                }));
 
+serviceCollection.AddSingleton(typeof(DataGridView));
 
-        _serviceProvider = serviceCollection.BuildServiceProvider();
+_serviceProvider = serviceCollection.BuildServiceProvider();
 
-        var dataGridView = _serviceProvider?.GetRequiredService<DataGridView>();
+var dataGridView = _serviceProvider?.GetRequiredService<DataGridView>();
 
-        dataGridView?.Show();
+dataGridView?.Show();
     }
 }

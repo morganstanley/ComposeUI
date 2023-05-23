@@ -42,6 +42,7 @@ public class WindowsProcessInfoManagerTests
         Assert.Equal(2, result.Length);
         Assert.Contains(testApplication.Id, result);
 
+        testApplication.Kill();
         processMonitor.Dispose();
     }
 
@@ -112,12 +113,12 @@ public class WindowsProcessInfoManagerTests
         processMonitor.Dispose();
     }
 
-    [Fact] //It is hard to reproduce a process which ses cpu in a time that is being measured in percentage
+    [Fact] //It is hard to reproduce a process which uses cpu in a time that is being measured in percentage
     public void GetCpuUsage_will_return_with_some_value()
     {
         var loggerMock = CreateLoggerMock();
         var processMonitor = CreateWindowsProcessMonitor(loggerMock.Object);
-        var process = Process.Start(GetSimpleTestApplicationPath());
+        var process = Process.GetProcessById(Environment.ProcessId);
 
         var cpuUsageResult = processMonitor.GetCpuUsage(
             process.Id, 
@@ -125,7 +126,6 @@ public class WindowsProcessInfoManagerTests
 
         Assert.True(cpuUsageResult >= 0);
         
-        process.Kill();
         processMonitor.Dispose();
     }
 
@@ -191,9 +191,12 @@ public class WindowsProcessInfoManagerTests
 
         var result = processMonitor.GetProcessIds().ToArray();
 
-        Assert.NotStrictEqual(processes, result);
+        foreach (var process in processes)
+            Assert.Contains(process, result);
+
         Assert.Equal(3, result.Length);
 
+        testApplication.Kill();
         processMonitor.Dispose();
     }
 

@@ -16,7 +16,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\MorganStanley.ComposeUI.ProcessExplorer.Abstractions\MorganStanley.ComposeUI.ProcessExplorer.Abstractions.csproj" />
+    <ProjectReference Include="../MorganStanley.ComposeUI.ProcessExplorer.Abstractions/MorganStanley.ComposeUI.ProcessExplorer.Abstractions.csproj" />
   </ItemGroup>
   
 </Project>

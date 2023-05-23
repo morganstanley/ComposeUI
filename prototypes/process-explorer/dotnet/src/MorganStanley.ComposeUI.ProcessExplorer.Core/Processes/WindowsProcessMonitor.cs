@@ -107,7 +107,7 @@ internal class WindowsProcessInfoMonitor : ProcessInfoMonitor
     {
         if (processName == null) return default;
 
-        using var cpuPerformanceCounter = _memoryPerformanceCounters.GetOrAdd(
+        using var cpuPerformanceCounter = _cpuPerformanceCounters.GetOrAdd(
             processId, _ =>
             {
                 return new PerformanceCounter(
@@ -116,7 +116,6 @@ internal class WindowsProcessInfoMonitor : ProcessInfoMonitor
                     processName,
                     true);
             });
-            
 
         cpuPerformanceCounter.NextValue();
 

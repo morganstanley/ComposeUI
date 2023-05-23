@@ -22,9 +22,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities;
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Connections;
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Modules;
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Registrations;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Infrastructure;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Processes;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Subsystems;
@@ -47,11 +44,11 @@ public class ProcessInfoAggregatorTests
         var mockSubsystemController = new Mock<ISubsystemController>();
         var mockProcessInfoMonitor = new Mock<ProcessInfoMonitor>(NullLogger.Instance);
         var clientMock = new Mock<IClientConnection<SubsystemLauncherTests.DummyStartType>>();
-         var processInfoAggregator = new ProcessInfoAggregator(
-            mockProcessInfoMonitor.Object,
-            mockUiHandler.Object,
-            mockSubsystemController.Object,
-            NullLogger<IProcessInfoAggregator>.Instance);
+        var processInfoAggregator = new ProcessInfoAggregator(
+           mockProcessInfoMonitor.Object,
+           mockUiHandler.Object,
+           mockSubsystemController.Object,
+           NullLogger<IProcessInfoAggregator>.Instance);
 
         //Run in the background
         var task = Task.Run(() => processInfoAggregator.RunSubsystemStateQueue(cancellationTokenSource.Token));
@@ -90,15 +87,16 @@ public class ProcessInfoAggregatorTests
         var dummyRuntimeInfo = new ProcessInfoCollectorData()
         {
             Id = 2,
-            Connections = new() 
-            { 
-                new() { Id = Guid.NewGuid(), Name = "dummy" }, new() { Id = Guid.NewGuid(), Name = "dummy2" }, 
-                new() { Id = Guid.NewGuid(), Name = "dummy3" } 
+            Connections = new List<ConnectionInfo>()
+            {
+                new(id:Guid.NewGuid(), name:"dummy", status: ConnectionStatus.Running),
+                new(id: Guid.NewGuid(), name: "dummy2", status: ConnectionStatus.Running),
+                new(id: Guid.NewGuid(), name: "dummy3", status: ConnectionStatus.Running)
             },
-            Registrations = new() 
-            { 
-                new() { ImplementationType = "dummyImpl", LifeTime = "dummyLT", ServiceType = "dummyST" }, 
-                new() { ImplementationType = "dummyImpl", LifeTime = "dummyLT", ServiceType = "dummyST" }, 
+            Registrations = new List<RegistrationInfo>()
+            {
+                new() { ImplementationType = "dummyImpl", LifeTime = "dummyLT", ServiceType = "dummyST" },
+                new() { ImplementationType = "dummyImpl", LifeTime = "dummyLT", ServiceType = "dummyST" },
                 new() { ImplementationType = "dummyImpl", LifeTime = "dummyLT", ServiceType = "dummyST" }
             }
         };
@@ -125,7 +123,7 @@ public class ProcessInfoAggregatorTests
 
     [Theory]
     [ClassData(typeof(ConnectionTheoryData))]
-    public async Task AddConnectionCollection_will_add_a_new_connection_collection_information(string id, IEnumerable<ConnectionInfo> connections)
+    public async Task AddConnectionCollection_will_add_a_new_connection_collection_information(string id, IEnumerable<IConnectionInfo> connections)
     {
         var processInfoAggregator = CreateProcessInfoAggregator();
 
@@ -137,11 +135,13 @@ public class ProcessInfoAggregatorTests
 
         Assert.NotNull(collection);
         Assert.Single(collection);
-        
+
         var result = collection.First();
 
         Assert.Equal(id, result.Key);
-        Assert.Equal(connections, result.Value.Connections);
+
+        foreach (var connection in connections)
+            Assert.Contains(connection, result.Value.Connections);
     }
 
     [Fact]
@@ -150,23 +150,28 @@ public class ProcessInfoAggregatorTests
         var processInfoAggregator = CreateProcessInfoAggregator();
 
         var connectionId = Guid.NewGuid();
-        var wrongConnectionInfo = new ConnectionInfo { Id = connectionId, Name = "dummyName", LocalEndpoint = "http://dummyLocalEndpontWrong.com" };
+        var wrongConnectionInfo = new ConnectionInfo(connectionId, "dummmyName", ConnectionStatus.Running, localEndpoint: "http://dummyLocalEndpontWrong.com");
         var id = "dummyId";
 
         await processInfoAggregator.AddRuntimeInformation(id, new ProcessInfoCollectorData()
         {
-            Connections = new() { wrongConnectionInfo }
+            Connections = new List<IConnectionInfo>() { wrongConnectionInfo }
         });
 
         var collection = processInfoAggregator.GetRuntimeInformation();
         Assert.Single(collection);
-        
+
         var result = collection.First().Value;
         Assert.Single(result.Connections);
         Assert.Contains(wrongConnectionInfo, result.Connections);
 
         //updating
-        var dummyConnectionInfo = new ConnectionInfo { Id = connectionId, Name = "dummyName", LocalEndpoint = "https://dummyLocalEndpoint.com" };
+        var dummyConnectionInfo = new ConnectionInfo(
+            id: connectionId,
+            name: "dummyName",
+            status: ConnectionStatus.Running,
+            localEndpoint: "https://dummyLocalEndpoint.com");
+
         await processInfoAggregator.UpdateOrAddConnectionInfo(id, dummyConnectionInfo);
 
         collection = processInfoAggregator.GetRuntimeInformation();
@@ -200,7 +205,7 @@ public class ProcessInfoAggregatorTests
 
         var result = collection.First().Value;
         Assert.NotNull(result);
-        Assert.Equal(2, result.EnvironmentVariables.Count);
+        Assert.Equal(2, result.EnvironmentVariables.Count());
         Assert.Equal(envs, result.EnvironmentVariables);
 
         var updatedEnvs = new Dictionary<string, string>()
@@ -223,8 +228,11 @@ public class ProcessInfoAggregatorTests
         Assert.Contains(id, collection.Select(x => x.Key));
 
         result = collection.First().Value;
-        Assert.Equal(3, result.EnvironmentVariables.Count);
-        Assert.Equal(expectedResult, result.EnvironmentVariables);
+        Assert.Equal(3, result.EnvironmentVariables.Count());
+
+        //Could be used the FluentAssertions, but currently to unordered lists couldn't be asserted by XUnit easier
+        foreach (var env in expectedResult) 
+            Assert.Contains(env, result.EnvironmentVariables);
     }
 
     [Fact]
@@ -233,7 +241,7 @@ public class ProcessInfoAggregatorTests
         var processInfoAggregator = CreateProcessInfoAggregator();
 
         var id = "dummyId";
-        var registrations = new SynchronizedCollection<RegistrationInfo>()
+        var registrations = new List<RegistrationInfo>()
         {
             new RegistrationInfo()
             {
@@ -256,7 +264,7 @@ public class ProcessInfoAggregatorTests
         Assert.Single(collection);
         Assert.Equal(registrations, result.Registrations);
 
-        var update = new SynchronizedCollection<RegistrationInfo>()
+        var update = new List<RegistrationInfo>()
         {
             new() { ServiceType = "dummyImplementation", ImplementationType = "dummyNewImplementationType", LifeTime = "dummyLifeTime" },
             new() { ServiceType = "dummyImplementation2", ImplementationType = "dummyImplementationType2", LifeTime = "dummyLifeTime2" }
@@ -266,19 +274,21 @@ public class ProcessInfoAggregatorTests
 
         collection = processInfoAggregator.GetRuntimeInformation();
         Assert.Single(collection);
-        
+
         result = collection.First().Value;
-        Assert.Equal(3, result.Registrations.Count);
-        
-        var expected = new SynchronizedCollection<RegistrationInfo>()
+        Assert.Equal(3, result.Registrations.Count());
+
+        var expected = new List<RegistrationInfo>()
         {
             new() { ImplementationType = "dummyImplementation", LifeTime = "dummyLifetime", ServiceType = "dummyServiceType" },
             new() { ServiceType = "dummyImplementation", ImplementationType = "dummyNewImplementationType", LifeTime = "dummyLifeTime" },
             new() { ServiceType = "dummyImplementation2", ImplementationType = "dummyImplementationType2", LifeTime = "dummyLifeTime2" }
         };
 
-        Assert.Equal(expected.Count, result.Registrations.Count);
-        Assert.NotStrictEqual(expected, result.Registrations);
+        Assert.Equal(expected.Count, result.Registrations.Count());
+
+        foreach (var registration in expected)
+            Assert.Contains(registration, result.Registrations);
     }
 
     [Fact]
@@ -288,7 +298,7 @@ public class ProcessInfoAggregatorTests
 
         var id = "dummyId";
 
-        var modules = new SynchronizedCollection<ModuleInfo>()
+        var modules = new List<ModuleInfo>()
         {
             new() { Name = "dummyModule", Location = "dummyLocation" }
         };
@@ -298,7 +308,7 @@ public class ProcessInfoAggregatorTests
             Modules = modules
         });
 
-        var update = new List<ModuleInfo>() { new() { Name = "dummyModule", Location = "newDummyLocation" } };
+        var update = new List<ModuleInfo>() { new() { Name = "dummyModule", Location = "dummyLocation", Version = Guid.NewGuid()} };
 
         await processInfoAggregator.UpdateOrAddModuleInfo(id, update);
 
@@ -308,7 +318,9 @@ public class ProcessInfoAggregatorTests
 
         var result = collection.First().Value;
         Assert.Single(result.Modules);
-        Assert.Equal(update, result.Modules);
+
+        foreach (var module in update)
+            Assert.Contains(module, result.Modules);
     }
 
 
@@ -350,7 +362,7 @@ public class ProcessInfoAggregatorTests
 
         var field = typeof(ProcessInfoAggregator).GetField("_subsystemStateChanges", BindingFlags.NonPublic | BindingFlags.Instance);
         if (field == null) throw new ArgumentNullException(nameof(field));
-        
+
         var queue = (ConcurrentQueue<KeyValuePair<Guid, string>>)field.GetValue(processInfoAggregator);
         if (queue == null) throw new ArgumentNullException(nameof(queue));
 
@@ -376,10 +388,10 @@ public class ProcessInfoAggregatorTests
         var result = collection.First().Value;
 
         Assert.NotNull(result);
-        Assert.Equal(data.Connections.Count, result.Connections.Count);
-        Assert.Equal(data.EnvironmentVariables.Count, result.EnvironmentVariables.Count);
-        Assert.Equal(data.Modules.Count, result.Modules.Count);
-        Assert.Equal(data.Registrations.Count, result.Registrations.Count);
+        Assert.Equal(data.Connections.Count(), result.Connections.Count());
+        Assert.Equal(data.EnvironmentVariables.Count(), result.EnvironmentVariables.Count());
+        Assert.Equal(data.Modules.Count(), result.Modules.Count());
+        Assert.Equal(data.Registrations.Count(), result.Registrations.Count());
         Assert.Equal(data.Connections, result.Connections);
         Assert.Equal(data.EnvironmentVariables, result.EnvironmentVariables);
         Assert.Equal(data.Modules, result.Modules);
@@ -396,13 +408,13 @@ public class ProcessInfoAggregatorTests
         var dummyRuntimeInfo = new ProcessInfoCollectorData()
         {
             Id = 2,
-            Connections = new()
+            Connections = new List<ConnectionInfo>()
             {
-                new() { Id = Guid.NewGuid(), Name = "dummy" },
-                new() { Id = Guid.NewGuid(), Name = "dummy2" },
-                new() { Id = Guid.NewGuid(), Name = "dummy3" }
+                new(id: Guid.NewGuid(), name: "dummy", status: ConnectionStatus.Running),
+                new(id: Guid.NewGuid(), name: "dummy2", status: ConnectionStatus.Running),
+                new(id: Guid.NewGuid(), name: "dummy3", status: ConnectionStatus.Running)
             },
-            Registrations = new()
+            Registrations = new List<RegistrationInfo>()
             {
                 new() { ImplementationType = "dummyImpl", LifeTime = "dummyLT", ServiceType = "dummyST" },
                 new() { ImplementationType = "dummyImpl", LifeTime = "dummyLT", ServiceType = "dummyST" },
@@ -422,10 +434,10 @@ public class ProcessInfoAggregatorTests
         var result = collection.First().Value;
 
         Assert.NotNull(result);
-        Assert.Equal(data.Connections.Count, result.Connections.Count);
-        Assert.Equal(data.EnvironmentVariables.Count, result.EnvironmentVariables.Count);
-        Assert.Equal(data.Modules.Count, result.Modules.Count);
-        Assert.Equal(data.Registrations.Count, result.Registrations.Count);
+        Assert.Equal(data.Connections.Count(), result.Connections.Count());
+        Assert.Equal(data.EnvironmentVariables.Count(), result.EnvironmentVariables.Count());
+        Assert.Equal(data.Modules.Count(), result.Modules.Count());
+        Assert.Equal(data.Registrations.Count(), result.Registrations.Count());
         Assert.Equal(data.Connections, result.Connections);
         Assert.Equal(data.EnvironmentVariables, result.EnvironmentVariables);
         Assert.Equal(data.Modules, result.Modules);
@@ -474,14 +486,14 @@ public class ProcessInfoAggregatorTests
             AddRow("dummyId", new ProcessInfoCollectorData()
             {
                 Id = 1,
-                Connections = new() { new() { Id = Guid.NewGuid(), Name = "dummyConnection" } },
-                Registrations = new() { new() { ImplementationType = "dummyImplementation", LifeTime = "dummyLifeTime", ServiceType = "dummyServiceType" } }
+                Connections = new List<ConnectionInfo>() { new(id: Guid.NewGuid(), name: "dummyConnection", status: ConnectionStatus.Running) },
+                Registrations = new List<RegistrationInfo>() { new() { ImplementationType = "dummyImplementation", LifeTime = "dummyLifeTime", ServiceType = "dummyServiceType" } }
             });
             AddRow("dummyId2", new ProcessInfoCollectorData()
             {
                 Id = 1,
-                Connections = new() { new() { Id = Guid.NewGuid(), Name = "dummyConnection2" } },
-                Registrations = new() { new() { ImplementationType = "dummyImplementation2", LifeTime = "dummyLifeTime2", ServiceType = "dummyServiceType2" }, new() { ImplementationType = "dummyImplementation1", LifeTime = "dummyLifeTime1", ServiceType = "dummyServiceType1" } }
+                Connections = new List<ConnectionInfo>() { new(id: Guid.NewGuid(), name: "dummyConnection2", status: ConnectionStatus.Running) },
+                Registrations = new List<RegistrationInfo>() { new() { ImplementationType = "dummyImplementation2", LifeTime = "dummyLifeTime2", ServiceType = "dummyServiceType2" }, new() { ImplementationType = "dummyImplementation1", LifeTime = "dummyLifeTime1", ServiceType = "dummyServiceType1" } }
             });
         }
     }
@@ -492,7 +504,7 @@ public class ProcessInfoAggregatorTests
         {
             AddRow("dummyId", new List<ConnectionInfo>()
             {
-                new() { Id = Guid.NewGuid(), Name = "dummyConnection", LocalEndpoint = "dummyEndpoint" }
+                new(id: Guid.NewGuid(), name: "dummyConnection", status: ConnectionStatus.Running, localEndpoint: "dummyEndpoint")
             });
         }
     }
