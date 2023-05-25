@@ -46,7 +46,7 @@ public class WebSocketEndToEndTests : IAsyncLifetime
         var publishedPayload = new TestPayload
         {
             IntProperty = 0x10203040,
-            StringProperty = "Compose UI 🔥"
+            StringProperty = "ComposeUI 🔥"
         };
 
         await publisher.PublishAsync(
