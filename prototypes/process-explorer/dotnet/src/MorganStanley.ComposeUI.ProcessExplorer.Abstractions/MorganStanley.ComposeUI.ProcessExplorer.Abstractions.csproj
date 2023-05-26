@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Infrastructure\Protos\ProcessExplorerMessages.proto">
+    <Protobuf Include="Infrastructure/Protos/ProcessExplorerMessages.proto">
       <GrpcServices>Both</GrpcServices>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Protobuf>

@@ -21,7 +21,7 @@ using System.Windows;
 using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
 using MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.DependencyInjection;
 using System.Collections.Generic;
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Connections;
+using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities;
 
 namespace WPFDataGrid.TestApp;
 
