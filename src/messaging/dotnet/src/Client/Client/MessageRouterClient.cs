@@ -54,27 +54,15 @@ internal sealed class MessageRouterClient : IMessageRouter
         return ConnectAsyncCore(cancellationToken);
     }
 
-    public ValueTask<IDisposable> SubscribeAsync(
-        string topicName,
+    public ValueTask<IAsyncDisposable> SubscribeAsync(
+        string topic,
         IAsyncObserver<TopicMessage> subscriber,
         CancellationToken cancellationToken = default)
     {
-        Protocol.Topic.Validate(topicName);
+        Protocol.Topic.Validate(topic);
         CheckState();
 
-        var needsSubscription = false;
-
-        var topic = _topics.GetOrAdd(
-            topicName,
-            _ =>
-            {
-                needsSubscription = true;
-                return new Topic(topicName, _logger);
-            });
-
-        return needsSubscription
-            ? SubscribeAsyncCore(topic, subscriber, cancellationToken)
-            : ValueTask.FromResult(topic.Subscribe(subscriber));
+        return SubscribeAsyncCore(GetTopic(topic), subscriber, cancellationToken);
     }
 
     public ValueTask PublishAsync(
@@ -179,6 +167,21 @@ internal sealed class MessageRouterClient : IMessageRouter
     public ValueTask DisposeAsync()
     {
         return CloseAsync(null);
+    }
+
+    internal IAsyncObservable<TopicMessage> GetTopicObservable(string topic)
+    {
+        Protocol.Topic.Validate(topic);
+        CheckState();
+
+        return GetTopic(topic);
+    }
+
+    private Topic GetTopic(string topicName)
+    {
+        return _topics.GetOrAdd(
+            topicName,
+            _ => new Topic(topicName, this, _logger));
     }
 
     private string? _clientId;
@@ -536,12 +539,23 @@ internal sealed class MessageRouterClient : IMessageRouter
         await SendRequestAsync(request, cancellationToken);
     }
 
-    private async ValueTask<IDisposable> SubscribeAsyncCore(
+    private async ValueTask<IAsyncDisposable> SubscribeAsyncCore(
         Topic topic,
         IAsyncObserver<TopicMessage> subscriber,
         CancellationToken cancellationToken)
     {
-        var subscription = topic.Subscribe(subscriber);
+        var subscribeResult = topic.Subscribe(subscriber);
+
+        if (!subscribeResult.NeedsSubscription) return subscribeResult.Subscription;
+
+        if (cancellationToken.CanBeCanceled)
+        {
+            cancellationToken.Register(
+                () =>
+                {
+                    subscribeResult.Subscription.Complete();
+                });
+        }
 
         try
         {
@@ -552,11 +566,12 @@ internal sealed class MessageRouterClient : IMessageRouter
                 },
                 cancellationToken);
 
-            return subscription;
+            cancellationToken.ThrowIfCancellationRequested();
+            return subscribeResult.Subscription;
         }
         catch
         {
-            subscription.Dispose();
+            await subscribeResult.Subscription.DisposeAsync();
 
             throw;
         }
@@ -705,6 +720,13 @@ internal sealed class MessageRouterClient : IMessageRouter
         }
     }
 
+    private ValueTask TryUnsubscribe(Topic topic)
+    {
+        return topic.CanUnsubscribe
+            ? SendMessageAsync(new UnsubscribeMessage {Topic = topic.Name}, CancellationToken.None)
+            : default;
+    }
+
     private enum ConnectionState
     {
         NotConnected,
@@ -725,17 +747,29 @@ internal sealed class MessageRouterClient : IMessageRouter
         public Task? SendReceiveCompleted;
     }
 
-    private class Topic
+    private class Topic : IAsyncObservable<TopicMessage>
     {
-        public string Name { get; }
-
-        public Topic(string name, ILogger logger)
+        public Topic(string name, MessageRouterClient messageRouter, ILogger logger)
         {
             Name = name;
+            _messageRouter = messageRouter;
             _logger = logger;
         }
 
-        public IDisposable Subscribe(IAsyncObserver<TopicMessage> subscriber)
+        public string Name { get; }
+
+        public bool CanUnsubscribe
+        {
+            get
+            {
+                lock (_mutex)
+                {
+                    return _subscriptions.Count == 0;
+                }
+            }
+        }
+
+        public SubscribeResult Subscribe(IAsyncObserver<TopicMessage> subscriber)
         {
             lock (_mutex)
             {
@@ -745,20 +779,12 @@ internal sealed class MessageRouterClient : IMessageRouter
                 if (_isCompleted)
                     throw ThrowHelper.ConnectionClosed();
 
+                var needsSubscription = _subscriptions.Count == 0;
                 var subscription = new Subscription(this, subscriber, _logger);
                 _subscriptions.Add(subscription);
 
-                return subscription;
+                return new SubscribeResult(subscription, needsSubscription);
             }
-        }
-
-        private void Unsubscribe(Subscription subscription)
-        {
-            lock (_mutex)
-            {
-                _subscriptions.Remove(subscription);
-            }
-            // TODO: Unsubscribe from the topic completely if no more subscribers
         }
 
         public void OnNext(TopicMessage value)
@@ -808,108 +834,130 @@ internal sealed class MessageRouterClient : IMessageRouter
             }
         }
 
+        public void Unsubscribe(Subscription subscription)
+        {
+            lock (_mutex)
+            {
+                _subscriptions.Remove(subscription);
+                if (_subscriptions.Count == 0)
+                {
+                    Task.Run(() => _messageRouter.TryUnsubscribe(this));
+                }
+            }
+        }
+
+        public ValueTask<IAsyncDisposable> SubscribeAsync(IAsyncObserver<TopicMessage> observer)
+        {
+            return _messageRouter.SubscribeAsyncCore(this, observer, CancellationToken.None);
+        }
+
+        private readonly MessageRouterClient _messageRouter;
         private readonly ILogger _logger;
         private readonly object _mutex = new();
         private readonly List<Subscription> _subscriptions = new();
         private bool _isCompleted;
         private Exception? _exception;
+    }
 
-        private class Subscription : IDisposable
+    private class Subscription : IAsyncDisposable
+    {
+        public Subscription(Topic topic, IAsyncObserver<TopicMessage> subscriber, ILogger logger)
         {
-            public Subscription(Topic topic, IAsyncObserver<TopicMessage> subscriber, ILogger logger)
-            {
-                _subscriber = subscriber;
-                _topic = topic;
-                _logger = logger;
-                _ = Task.Run(ProcessMessages);
-            }
+            _subscriber = subscriber;
+            _topic = topic;
+            _logger = logger;
+            _ = Task.Run(ProcessMessages);
+        }
 
-            public void Dispose()
-            {
-                _topic.Unsubscribe(this);
-            }
+        public void OnNext(TopicMessage value)
+        {
+            _queue.Writer.TryWrite(
+                value); // Since the queue is unbounded, this will succeed unless the channel was completed
+        }
 
-            public void OnNext(TopicMessage value)
-            {
-                _queue.Writer.TryWrite(
-                    value); // Since the queue is unbounded, this will succeed unless the channel was completed
-            }
+        public void OnError(Exception exception)
+        {
+            _queue.Writer.TryComplete(exception);
+        }
 
-            public void OnError(Exception exception)
-            {
-                _queue.Writer.TryComplete(exception);
-            }
+        public void Complete()
+        {
+            _queue.Writer.TryComplete();
+        }
 
-            public void Complete()
-            {
-                _queue.Writer.TryComplete();
-            }
+        public ValueTask DisposeAsync()
+        {
+            _topic.Unsubscribe(this);
 
-            private async Task ProcessMessages()
+            return default;
+        }
+
+        private async Task ProcessMessages()
+        {
+            try
             {
-                try
+                while (await _queue.Reader.WaitToReadAsync())
                 {
-                    while (await _queue.Reader.WaitToReadAsync())
+                    while (_queue.Reader.TryRead(out var value))
                     {
-                        while (_queue.Reader.TryRead(out var value))
+                        try
                         {
-                            try
-                            {
-                                await _subscriber.OnNextAsync(value);
-                            }
-                            catch (Exception e)
-                            {
-                                _logger.LogError(
-                                    e,
-                                    $"Exception thrown while invoking {nameof(IAsyncObserver<TopicMessage>.OnNextAsync)} on a subscriber of topic '{{TopicName}}': {{ExceptionMessage}}",
-                                    _topic.Name,
-                                    e.Message);
-                            }
+                            await _subscriber.OnNextAsync(value);
+                        }
+                        catch (Exception e)
+                        {
+                            _logger.LogError(
+                                e,
+                                $"Exception thrown while invoking {nameof(IAsyncObserver<TopicMessage>.OnNextAsync)} on a subscriber of topic '{{TopicName}}': {{ExceptionMessage}}",
+                                _topic.Name,
+                                e.Message);
                         }
                     }
+                }
 
-                    try
-                    {
-                        await _subscriber.OnCompletedAsync();
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.LogError(
-                            e,
-                            $"Exception thrown while invoking {nameof(IAsyncObserver<TopicMessage>.OnCompletedAsync)} on a subscriber of topic '{{TopicName}}': {{ExceptionMessage}}",
-                            _topic.Name,
-                            e.Message);
-                    }
+                try
+                {
+                    await _subscriber.OnCompletedAsync();
                 }
                 catch (Exception e)
                 {
-                    try
-                    {
-                        await _subscriber.OnErrorAsync(e is ChannelClosedException ? e.InnerException ?? e : e);
-                    }
-                    catch (Exception e2)
-                    {
-                        _logger.LogError(
-                            e2,
-                            $"Exception thrown while invoking {nameof(IAsyncObserver<TopicMessage>.OnErrorAsync)} on a subscriber of topic '{{TopicName}}': {{ExceptionMessage}}",
-                            _topic.Name,
-                            e2.Message);
-                    }
+                    _logger.LogError(
+                        e,
+                        $"Exception thrown while invoking {nameof(IAsyncObserver<TopicMessage>.OnCompletedAsync)} on a subscriber of topic '{{TopicName}}': {{ExceptionMessage}}",
+                        _topic.Name,
+                        e.Message);
                 }
             }
-
-            private readonly IAsyncObserver<TopicMessage> _subscriber;
-
-            private readonly Channel<TopicMessage> _queue = Channel.CreateUnbounded<TopicMessage>(
-                new UnboundedChannelOptions
+            catch (Exception e)
+            {
+                try
                 {
-                    AllowSynchronousContinuations = false,
-                    SingleReader = true,
-                    SingleWriter = false
-                });
-
-            private readonly Topic _topic;
-            private readonly ILogger _logger;
+                    await _subscriber.OnErrorAsync(e is ChannelClosedException ? e.InnerException ?? e : e);
+                }
+                catch (Exception e2)
+                {
+                    _logger.LogError(
+                        e2,
+                        $"Exception thrown while invoking {nameof(IAsyncObserver<TopicMessage>.OnErrorAsync)} on a subscriber of topic '{{TopicName}}': {{ExceptionMessage}}",
+                        _topic.Name,
+                        e2.Message);
+                }
+            }
         }
+
+        private readonly IAsyncObserver<TopicMessage> _subscriber;
+
+        private readonly Channel<TopicMessage> _queue = Channel.CreateUnbounded<TopicMessage>(
+            new UnboundedChannelOptions
+            {
+                AllowSynchronousContinuations = false,
+                SingleReader = true,
+                SingleWriter = false
+            });
+
+        private readonly Topic _topic;
+        private readonly ILogger _logger;
     }
+
+    private record struct SubscribeResult(Subscription Subscription, bool NeedsSubscription);
 }
