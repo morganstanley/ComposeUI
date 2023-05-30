@@ -1,8 +1,8 @@
 {
     "compilerOptions": {
-        "target": "ESNext",
-        "module": "ESNext",
-        "moduleResolution": "Node",
+        "target": "es2022",
+        "module": "es2022",
+        "moduleResolution": "node",
         "declaration": true,
         "sourceMap": true,
         "esModuleInterop": true,
@@ -12,7 +12,7 @@
         "noImplicitThis": true,
         "outDir": "dist",
         "lib": [
-            "ES2021",
+            "es2022",
             "DOM"
         ],
         "types": [

@@ -2,7 +2,7 @@
     "name": "@morgan-stanley/composeui-messaging-client",
     "version": "0.1.0-alpha.1",
     "private": true,
-    "description": "JavaScript client for Compose UI's Message Router",
+    "description": "JavaScript client for ComposeUI's Message Router",
     "type": "module",
     "files": [
         "dist/esm/**/*"
