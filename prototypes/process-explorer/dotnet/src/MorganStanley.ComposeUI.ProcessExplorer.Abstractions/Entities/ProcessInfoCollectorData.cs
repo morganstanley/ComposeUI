@@ -136,10 +136,6 @@ public class ProcessInfoCollectorData
                 {
                     result = result.Replace(index, item);
                 }
-                else
-                {
-                    result = result.Append(item);
-                }
             }
             else
             {

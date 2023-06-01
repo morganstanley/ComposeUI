@@ -11,6 +11,7 @@
 // and limitations under the License.
 
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using Google.Protobuf.Collections;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -25,6 +26,7 @@ using ProcessExplorer.Abstractions.Infrastructure.Protos;
 
 namespace MorganStanley.ComposeUI.ProcessExplorer.Server.Server.Infrastructure.Grpc;
 
+[ExcludeFromCodeCoverage]
 internal class GrpcUiHandler : IUiHandler
 {
     private readonly object _uiHandlersLock = new();

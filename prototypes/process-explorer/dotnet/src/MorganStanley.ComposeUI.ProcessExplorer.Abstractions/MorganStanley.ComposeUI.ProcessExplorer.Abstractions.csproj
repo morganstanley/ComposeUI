@@ -3,12 +3,12 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <IsPackable>true</IsPackable>
+    <IsPackable>false</IsPackable>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Infrastructure\Protos\ProcessExplorerMessages.proto" />
+    <None Remove="Infrastructure/Protos/ProcessExplorerMessages.proto" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,7 +30,7 @@
   <ItemGroup>
     <Protobuf Include="Infrastructure/Protos/ProcessExplorerMessages.proto">
       <GrpcServices>Both</GrpcServices>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>if newer</CopyToOutputDirectory>
     </Protobuf>
   </ItemGroup>
 

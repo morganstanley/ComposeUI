@@ -186,19 +186,4 @@ public static class ProtoConvertHelper
 
         return map;
     }
-
-    public static MapField<string, ProcessInfoCollectorData> DeriveRuntimeInformation(
-        this IEnumerable<KeyValuePair<RuntimeInformation, MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.ProcessInfoCollectorData>> runtimeInformation)
-    {
-        var map = new MapField<string, ProcessInfoCollectorData>();
-
-        if (runtimeInformation == null || !runtimeInformation.Any()) return map;
-
-        foreach (var runtimeInfo in runtimeInformation)
-        {
-            map.Add(runtimeInfo.Key.Name, runtimeInfo.Value.DeriveProtoRuntimeInfoType());
-        }
-
-        return map;
-    }
 }

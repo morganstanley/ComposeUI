@@ -160,6 +160,7 @@ public class LocalCollectorEndToEndTests
     public async Task AddConnectionCollection_will_update_collection()
     {
         await InitializeAsync(new Random().Next(6000));
+        
         var loggerMock = CreateGrpcCommunicatorLoggerMock();
 
         var client = new GrpcCommunicator(
@@ -186,7 +187,11 @@ public class LocalCollectorEndToEndTests
             new ConnectionInfo(
                 id: randomConnection.Id,
                 name: randomConnection.Name,
-                status: ConnectionStatus.Failed)
+                status: ConnectionStatus.Failed,
+                connectionInformation: new Dictionary<string, string>()
+                {
+                    { "dummyInformationKey", "dummyInformationValue" }
+                })
         };
 
         await client.AddConnectionCollection(
@@ -212,6 +217,7 @@ public class LocalCollectorEndToEndTests
         {
             Assert.Contains(connection, result.Value.Connections);
         }
+
         await DisposeAsync();
     }
 
@@ -921,7 +927,7 @@ public class LocalCollectorEndToEndTests
         return loggerMock;
     }
 
-    public async Task InitializeAsync(int port)
+    private async Task InitializeAsync(int port)
     {
         IHostBuilder builder = new HostBuilder();
         

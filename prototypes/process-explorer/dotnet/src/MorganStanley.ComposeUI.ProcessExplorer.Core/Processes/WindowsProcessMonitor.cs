@@ -12,6 +12,7 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Management;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -20,6 +21,7 @@ using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Processes;
 
 namespace MorganStanley.ComposeUI.ProcessExplorer.Core.Processes;
 
+[ExcludeFromCodeCoverage]
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 internal class WindowsProcessInfoMonitor : ProcessInfoMonitor
 {

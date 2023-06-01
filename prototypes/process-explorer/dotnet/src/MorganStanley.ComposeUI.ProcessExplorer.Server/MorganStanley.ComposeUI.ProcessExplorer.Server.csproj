@@ -18,6 +18,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="$(AssemblyName).Tests" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <ProjectReference Include="../MorganStanley.ComposeUI.ProcessExplorer.Core/MorganStanley.ComposeUI.ProcessExplorer.Core.csproj" />
   </ItemGroup>
 

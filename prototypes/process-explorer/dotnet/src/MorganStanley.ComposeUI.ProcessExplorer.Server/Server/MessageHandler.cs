@@ -51,7 +51,7 @@ internal static class MessageHandler
                     {
                         if (ids.ElementAt(0) == null) break;
 
-                        var id = Guid.Parse(ids.ElementAt(0));
+                        var id = Guid.Parse(ids.ElementAt(0)); // or foreach? 
                         await processInfoAggregator.SubsystemController.LaunchSubsystemAfterTime(id, message.PeriodOfDelay);
                     }
                     catch (Exception exception)

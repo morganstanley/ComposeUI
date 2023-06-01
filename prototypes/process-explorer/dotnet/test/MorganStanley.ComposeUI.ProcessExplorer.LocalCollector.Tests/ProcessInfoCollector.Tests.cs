@@ -55,7 +55,7 @@ public class ProcessInfoCollectorTests
     {
         var loggerMock = CreateProcessInfoCollectorLoggerMock();
         var communicatorMock = new Mock<ICommunicator>();
-        var options = CreateProcessInfoCollector();
+        var options = CreateLocalCollectorServiceOptions();
 
         var processInfoCollector = new ProcessInfoCollector(
             communicator: communicatorMock.Object,
@@ -81,7 +81,7 @@ public class ProcessInfoCollectorTests
     {
         var loggerMock = CreateProcessInfoCollectorLoggerMock();
         var communicatorMock = new Mock<ICommunicator>();
-        var options = CreateProcessInfoCollector();
+        var options = CreateLocalCollectorServiceOptions();
 
         var processInfoCollector = new ProcessInfoCollector(
             communicator: communicatorMock.Object,
@@ -126,7 +126,7 @@ public class ProcessInfoCollectorTests
     {
         var loggerMock = CreateProcessInfoCollectorLoggerMock();
         var communicatorMock = new Mock<ICommunicator>();
-        var options = CreateProcessInfoCollector();
+        var options = CreateLocalCollectorServiceOptions();
 
         var processInfoCollector = new ProcessInfoCollector(
             communicator: communicatorMock.Object,
@@ -143,7 +143,7 @@ public class ProcessInfoCollectorTests
     {
         var loggerMock = CreateProcessInfoCollectorLoggerMock();
         var communicatorMock = new Mock<ICommunicator>();
-        var options = CreateProcessInfoCollector();
+        var options = CreateLocalCollectorServiceOptions();
 
         var processInfoCollector = new ProcessInfoCollector(
             communicator: communicatorMock.Object,
@@ -186,7 +186,7 @@ public class ProcessInfoCollectorTests
     {
         var loggerMock = CreateProcessInfoCollectorLoggerMock();
         var communicatorMock = new Mock<ICommunicator>();
-        var options = CreateProcessInfoCollector();
+        var options = CreateLocalCollectorServiceOptions();
 
         var processInfoCollector = new ProcessInfoCollector(
             communicator: communicatorMock.Object,
@@ -203,7 +203,7 @@ public class ProcessInfoCollectorTests
     {
         var loggerMock = CreateProcessInfoCollectorLoggerMock();
         var communicatorMock = new Mock<ICommunicator>();
-        var options = CreateProcessInfoCollector();
+        var options = CreateLocalCollectorServiceOptions();
 
         var processInfoCollector = new ProcessInfoCollector(
             communicator: communicatorMock.Object,
@@ -233,7 +233,7 @@ public class ProcessInfoCollectorTests
     {
         var loggerMock = CreateProcessInfoCollectorLoggerMock();
         var communicatorMock = new Mock<ICommunicator>();
-        var options = CreateProcessInfoCollector();
+        var options = CreateLocalCollectorServiceOptions();
 
         var processInfoCollector = new ProcessInfoCollector(
             communicator: communicatorMock.Object,
@@ -250,7 +250,7 @@ public class ProcessInfoCollectorTests
     {
         var loggerMock = CreateProcessInfoCollectorLoggerMock();
         var communicatorMock = new Mock<ICommunicator>();
-        var options = CreateProcessInfoCollector();
+        var options = CreateLocalCollectorServiceOptions();
 
         var processInfoCollector = new ProcessInfoCollector(
             communicator: communicatorMock.Object,
@@ -284,7 +284,7 @@ public class ProcessInfoCollectorTests
     {
         var loggerMock = CreateProcessInfoCollectorLoggerMock();
         var communicatorMock = new Mock<ICommunicator>();
-        var options = CreateProcessInfoCollector();
+        var options = CreateLocalCollectorServiceOptions();
 
         var processInfoCollector = new ProcessInfoCollector(
             communicator: communicatorMock.Object,
@@ -301,7 +301,7 @@ public class ProcessInfoCollectorTests
     {
         var loggerMock = CreateProcessInfoCollectorLoggerMock();
         var communicatorMock = new Mock<ICommunicator>();
-        var options = CreateProcessInfoCollector();
+        var options = CreateLocalCollectorServiceOptions();
 
         var processInfoCollector = new ProcessInfoCollector(
             communicator: communicatorMock.Object,
@@ -435,7 +435,7 @@ public class ProcessInfoCollectorTests
     {
         var loggerMock = CreateProcessInfoCollectorLoggerMock();
         var communicatorMock = new Mock<ICommunicator>();
-        var options = CreateProcessInfoCollector();
+        var options = CreateLocalCollectorServiceOptions();
 
         var processInfoCollector = new ProcessInfoCollector(
             communicator: communicatorMock.Object,
@@ -451,7 +451,7 @@ public class ProcessInfoCollectorTests
         await Assert.ThrowsAsync<ArgumentNullException>(act);
     }
 
-    private static LocalCollectorServiceOptions CreateProcessInfoCollector()
+    private static LocalCollectorServiceOptions CreateLocalCollectorServiceOptions()
     {
         return new LocalCollectorServiceOptions()
         {

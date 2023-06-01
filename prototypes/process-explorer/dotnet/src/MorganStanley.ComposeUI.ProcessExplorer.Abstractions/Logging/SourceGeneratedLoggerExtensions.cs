@@ -115,6 +115,9 @@ public static partial class SourceGeneratedLoggerExtensions
     [LoggerMessage(Level = LogLevel.Error, Message = "Unable to remove ProcessInfoCollectorData from collection. Id: `{assemblyId}`", SkipEnabledCheck = false)]
     public static partial void UnableToRemoveRuntimeInformationError(this ILogger logger, string assemblyId);
 
+    [LoggerMessage(Level = LogLevel.Error, Message = "Unable to set ProcessMonitor's collection change events. Detailed exception: `{exception}`", SkipEnabledCheck = false)]
+    public static partial void UnableToSetNotificationMethodSubscriptionError(this ILogger logger, Exception ex, Exception exception);
+
     public static void SubsystemAddError(this ILogger logger, string id, string name)
     {
         if (logger.IsEnabled(LogLevel.Error))

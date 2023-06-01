@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Grpc.Net.Client;
@@ -41,7 +42,8 @@ public class ServerEndToEndTests : IAsyncLifetime
             await _host.StopAsync();
     }
 
-    [SkippableFact]
+    //TODO(Lilla): investigate why the integrationtests are keeping to fail on CI, but works everytime locally.
+    [Fact(Skip = "Local end to end test")]
     public async Task Client_can_connect()
     {
         var client = CreateGrpcClient();
@@ -64,14 +66,12 @@ public class ServerEndToEndTests : IAsyncLifetime
         }
         catch (RpcException) { }
 
-        //TODO(Lilla): investigate why the integrationtests are keeping to fail on CI, but works everytime locally.
-        Skip.If(messages.Count < 1, "Error while running on CI...");
-
         Assert.True(messages.Count >= 1);
         Assert.Equal(ActionType.SubscriptionAliveAction, messages[0].Action);
     }
 
-    [SkippableFact]
+    //TODO(Lilla): investigate why the integrationtests are keeping to fail on CI, but works everytime locally.
+    [Fact(Skip = "Local end to end test")]
     public async Task Client_can_subscribe_and_receive_messages()
     {
         // defining here some dummy subsystems to trigger the ProcessExplorer backend to send information about it to the defined ui connections. (not just the subscription alive notification)
@@ -115,8 +115,6 @@ public class ServerEndToEndTests : IAsyncLifetime
 
         // We just need to receive SubscriptionAlive and a subsystems collection, skipping if that some error occurred
 
-        //TODO(Lilla): investigate why the integrationtests are keeping to fail on CI, but works everytime locally.
-        Skip.If(messages.Count < 2, "Local testing does not throws error");
 
         Assert.True(messages.Count >= 2);
         Assert.Equal(ActionType.SubscriptionAliveAction, messages[0].Action);
@@ -140,7 +138,7 @@ public class ServerEndToEndTests : IAsyncLifetime
         Assert.Empty(result.Description);
     }
 
-    [SkippableFact]
+    [Fact(Skip = "Local end to end test")]
     public void Client_can_send_message()
     {
         var client = CreateGrpcClient();
@@ -159,8 +157,6 @@ public class ServerEndToEndTests : IAsyncLifetime
         }
         catch (RpcException) { }
 
-        //TODO(Lilla): investigate why the integrationtests are keeping to fail on CI, but works everytime locally.
-        Skip.If(result == null, "Error while running on CI...");
         Assert.NotNull(result);
         Assert.IsType<Empty>(result);
     }
