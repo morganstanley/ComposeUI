@@ -46,7 +46,7 @@ internal class GrpcCommunicator : ICommunicator
     {
         try
         {
-            _logger.SendingLocalCollectorRuntimeInformationDebug();
+            _logger.SendingClientRuntimeInformationDebug();
 
             var message = new Message()
             {
@@ -69,7 +69,7 @@ internal class GrpcCommunicator : ICommunicator
         {
             if (!connections.Value.Any()) return;
 
-            _logger.SendingLocalCollectorConnectionCollectionDebug();
+            _logger.SendingClientConnectionCollectionDebug();
 
             var message = new Message()
             {
@@ -91,7 +91,7 @@ internal class GrpcCommunicator : ICommunicator
     {
         try
         {
-            _logger.SendingLocalCollectorConnectionDebug(connection.Key.Name);
+            _logger.SendingClientConnectionDebug(connection.Key.Name);
 
             var message = new Message()
             {
@@ -115,7 +115,7 @@ internal class GrpcCommunicator : ICommunicator
         {
             if (!environmentVariables.Value.Any()) return;
 
-            _logger.SendingLocalCollectorEnvironmentVariablesDebug(environmentVariables.Key.Name);
+            _logger.SendingClientEnvironmentVariablesDebug(environmentVariables.Key.Name);
 
             var message = new Message()
             {
@@ -139,7 +139,7 @@ internal class GrpcCommunicator : ICommunicator
         {
             if (!registrations.Value.Any()) return;
 
-            _logger.SendingLocalCollectorRegistrationsDebug(registrations.Key.Name);
+            _logger.SendingClientRegistrationsDebug(registrations.Key.Name);
 
             var message = new Message()
             {
@@ -163,7 +163,7 @@ internal class GrpcCommunicator : ICommunicator
         {
             if (!modules.Value.Any()) return;
 
-            _logger.SendingLocalCollectorModulesDebug(modules.Key.Name);
+            _logger.SendingClientModulesDebug(modules.Key.Name);
 
             var message = new Message()
             {
@@ -188,7 +188,7 @@ internal class GrpcCommunicator : ICommunicator
     {
         try
         {
-            _logger.SendingLocalCollectorConnectionStatusDebug(connectionId);
+            _logger.SendingClientConnectionStatusDebug(connectionId);
 
             var message = new Message()
             {

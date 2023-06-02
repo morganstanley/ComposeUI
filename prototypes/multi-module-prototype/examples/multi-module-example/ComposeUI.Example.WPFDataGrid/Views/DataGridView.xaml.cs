@@ -33,7 +33,7 @@ public partial class DataGridView : Window
     private readonly ILogger<DataGridView> _logger;
     private readonly IMessageRouter _messageRouter;
     private readonly ObservableCollection<SymbolModel> _symbols;
-    private readonly IProcessInfoHandler _processInfoCollector;
+    private readonly IProcessInfoHandler _processInfoHandler;
 
     /// <summary>
     /// Constructor for the View.
@@ -43,12 +43,12 @@ public partial class DataGridView : Window
     public DataGridView(
         ILogger<DataGridView>? logger, 
         IMessageRouter messageRouter,
-        IProcessInfoHandler processInfoCollector)
+        IProcessInfoHandler processInfoHandler)
     {
         _logger = logger ?? NullLogger<DataGridView>.Instance;
         _messageRouter = messageRouter;
         _symbols = new(MarketDataAccess.MarketData);
-        _processInfoCollector = processInfoCollector;
+        _processInfoHandler = processInfoHandler;
         InitializeComponent();
     }
 
@@ -58,7 +58,7 @@ public partial class DataGridView : Window
 
         try
         {
-            await _processInfoCollector.SendRuntimeInfo();
+            await _processInfoHandler.SendRuntimeInfo();
         }
         catch (Exception exception)
         {

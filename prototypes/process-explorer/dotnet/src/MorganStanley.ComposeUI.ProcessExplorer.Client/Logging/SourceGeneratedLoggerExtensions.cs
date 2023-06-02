@@ -44,31 +44,31 @@ internal static partial class SourceGeneratedLoggerExtensions
     public static partial void ConnectionUpdatedDebug(this ILogger logger, string connectionId, string connectionStatus);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "Sending runtime information collected by LocalCollector.", SkipEnabledCheck = false)]
-    public static partial void SendingLocalCollectorRuntimeInformationDebug(this ILogger logger);
+    public static partial void SendingClientRuntimeInformationDebug(this ILogger logger);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "Sending runtime information collected by LocalCollector. Id: `{id}`", SkipEnabledCheck = false)]
-    public static partial void SendingLocalCollectorRuntimeInformationWithIdDebug(this ILogger logger, string id);
+    public static partial void SendingClientRuntimeInformationWithIdDebug(this ILogger logger, string id);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "Sending connection collection collected by LocalCollector.", SkipEnabledCheck = false)]
-    public static partial void SendingLocalCollectorConnectionCollectionDebug(this ILogger logger);
+    public static partial void SendingClientConnectionCollectionDebug(this ILogger logger);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "Sending connection collection collected by LocalCollector. Id: `{id}`", SkipEnabledCheck = false)]
-    public static partial void SendingLocalCollectorConnectionCollectionWithIdDebug(this ILogger logger, string id);
+    public static partial void SendingClientConnectionCollectionWithIdDebug(this ILogger logger, string id);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "Sending a connection collected by LocalCollector. Id: `{id}`", SkipEnabledCheck = false)]
-    public static partial void SendingLocalCollectorConnectionDebug(this ILogger logger, string id);
+    public static partial void SendingClientConnectionDebug(this ILogger logger, string id);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "Sending environment variables update collected by LocalCollector. Id: `{id}`", SkipEnabledCheck = false)]
-    public static partial void SendingLocalCollectorEnvironmentVariablesDebug(this ILogger logger, string id);
+    public static partial void SendingClientEnvironmentVariablesDebug(this ILogger logger, string id);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "Sending registrations update collected by LocalCollector. Id: `{id}`", SkipEnabledCheck = false)]
-    public static partial void SendingLocalCollectorRegistrationsDebug(this ILogger logger, string id);
+    public static partial void SendingClientRegistrationsDebug(this ILogger logger, string id);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "Sending modules update collected by LocalCollector. Id: `{id}`", SkipEnabledCheck = false)]
-    public static partial void SendingLocalCollectorModulesDebug(this ILogger logger, string id);
+    public static partial void SendingClientModulesDebug(this ILogger logger, string id);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "Sending connection status update collected by LocalCollector. Id: `{id}`", SkipEnabledCheck = false)]
-    public static partial void SendingLocalCollectorConnectionStatusDebug(this ILogger logger, string id);
+    public static partial void SendingClientConnectionStatusDebug(this ILogger logger, string id);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "EnvironmentVariable couldn't be parsed : {key}, {value}", SkipEnabledCheck = false)]
     public static partial void EnvironmentVariableParingErrorDebug(this ILogger logger, string key, string value);

@@ -78,7 +78,7 @@ internal class ProcessInfoHandler : IProcessInfoHandler
         {
             lock (_runtimeInformationLocker)
             {
-                _logger.SendingLocalCollectorRuntimeInformationWithIdDebug(_runtimeId.Name);
+                _logger.SendingClientRuntimeInformationWithIdDebug(_runtimeId.Name);
                 return _communicator.AddRuntimeInfo(new(_runtimeId, _processInformation));
             }
         }
@@ -92,7 +92,7 @@ internal class ProcessInfoHandler : IProcessInfoHandler
             {
                 _processInformation.AddOrUpdateConnections(connections);
                 AddConnectionSubscription(_runtimeId.Name, connections);
-                _logger.SendingLocalCollectorConnectionCollectionWithIdDebug(_runtimeId.Name);
+                _logger.SendingClientConnectionCollectionWithIdDebug(_runtimeId.Name);
                 return _communicator.AddConnectionCollection(new KeyValuePair<RuntimeInformation, IEnumerable<IConnectionInfo>>(_runtimeId, connections));
             }
         }
@@ -105,7 +105,7 @@ internal class ProcessInfoHandler : IProcessInfoHandler
             lock (_runtimeInformationLocker)
             {
                 _processInformation.UpdateOrAddEnvironmentVariables(environmentVariables);
-                _logger.SendingLocalCollectorEnvironmentVariablesDebug(_runtimeId.Name);
+                _logger.SendingClientEnvironmentVariablesDebug(_runtimeId.Name);
                 return _communicator.UpdateEnvironmentVariableInformation(
                     new KeyValuePair<RuntimeInformation, IEnumerable<KeyValuePair<string, string>>>(
                         _runtimeId,
@@ -121,7 +121,7 @@ internal class ProcessInfoHandler : IProcessInfoHandler
             lock (_runtimeInformationLocker)
             {
                 _processInformation.UpdateOrAddRegistrations(registrations);
-                _logger.SendingLocalCollectorRegistrationsDebug(_runtimeId.Name);
+                _logger.SendingClientRegistrationsDebug(_runtimeId.Name);
                 return _communicator.UpdateRegistrationInformation(
                     new KeyValuePair<RuntimeInformation, IEnumerable<RegistrationInfo>>(_runtimeId, registrations));
             }
@@ -135,7 +135,7 @@ internal class ProcessInfoHandler : IProcessInfoHandler
             lock (_runtimeInformationLocker)
             {
                 _processInformation.UpdateOrAddModules(modules);
-                _logger.SendingLocalCollectorModulesDebug(_runtimeId.Name);
+                _logger.SendingClientModulesDebug(_runtimeId.Name);
                 return _communicator.UpdateModuleInformation(new KeyValuePair<RuntimeInformation, IEnumerable<ModuleInfo>>(_runtimeId, modules));
             }
         }
