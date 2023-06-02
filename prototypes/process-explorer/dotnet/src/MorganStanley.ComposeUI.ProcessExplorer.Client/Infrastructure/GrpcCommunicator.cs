@@ -18,12 +18,12 @@ using Microsoft.Extensions.Options;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Extensions;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Infrastructure;
-using MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.DependencyInjection;
-using MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.Logging;
+using MorganStanley.ComposeUI.ProcessExplorer.Client.DependencyInjection;
+using MorganStanley.ComposeUI.ProcessExplorer.Client.Logging;
 using ProcessExplorer.Abstractions.Infrastructure.Protos;
 using ProcessInfoCollectorData = MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.ProcessInfoCollectorData;
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.Infrastructure;
+namespace MorganStanley.ComposeUI.ProcessExplorer.Client.Infrastructure;
 
 internal class GrpcCommunicator : ICommunicator
 {
@@ -31,7 +31,7 @@ internal class GrpcCommunicator : ICommunicator
     private readonly ProcessExplorerMessageHandler.ProcessExplorerMessageHandlerClient _client;
 
     public GrpcCommunicator(
-        IOptions<LocalCollectorServiceOptions> options,
+        IOptions<ClientServiceOptions> options,
         ILogger<ICommunicator>? logger = null)
     {
         var channel = GrpcChannel.ForAddress($"http://{options.Value.Host}:{options.Value.Port}/");
@@ -98,7 +98,7 @@ internal class GrpcCommunicator : ICommunicator
                 Action = ActionType.UpdateConnectionAction,
                 Description = "Update of a connection collected by LocalCollector",
                 AssemblyId = connection.Key.Name,
-                Connections = { new List<Connection>(){ connection.Value.DeriveProtoConnectionType() } }
+                Connections = { new List<Connection>() { connection.Value.DeriveProtoConnectionType() } }
             };
 
             await _client.SendAsync(message);
@@ -182,8 +182,8 @@ internal class GrpcCommunicator : ICommunicator
     }
 
     public async ValueTask UpdateConnectionStatus(
-        string assemblyId, 
-        string connectionId, 
+        string assemblyId,
+        string connectionId,
         ConnectionStatus connectionStatus)
     {
         try
@@ -195,7 +195,7 @@ internal class GrpcCommunicator : ICommunicator
                 Action = ActionType.UpdateConnectionStatusAction,
                 Description = "Update of a connection status change collected by LocalCollector",
                 AssemblyId = assemblyId,
-                ConnectionStatusChanges = { new MapField<string, string>(){ { connectionId, connectionStatus.ToStringCached() } } }
+                ConnectionStatusChanges = { new MapField<string, string>() { { connectionId, connectionStatus.ToStringCached() } } }
             };
 
             await _client.SendAsync(message);

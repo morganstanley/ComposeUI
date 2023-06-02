@@ -19,12 +19,13 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Infrastructure;
-using MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.DependencyInjection;
+using MorganStanley.ComposeUI.ProcessExplorer.Client;
+using MorganStanley.ComposeUI.ProcessExplorer.Client.DependencyInjection;
 using Xunit;
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.Tests;
+namespace MorganStanley.ComposeUI.ProcessExplorer.LocalHandler.Tests;
 
-public class ProcessInfoCollectorTests
+public class ProcessInfoHandlerTests
 {
     private static readonly string _dummyAssemblyId = "dummyAssemblyId";
     private static readonly int _dummyProcessId = 6666;
@@ -57,7 +58,7 @@ public class ProcessInfoCollectorTests
         var communicatorMock = new Mock<ICommunicator>();
         var options = CreateLocalCollectorServiceOptions();
 
-        var processInfoCollector = new ProcessInfoCollector(
+        var processInfoCollector = new ProcessInfoHandler(
             communicator: communicatorMock.Object,
             logger: loggerMock.Object,
             options: options);
@@ -83,7 +84,7 @@ public class ProcessInfoCollectorTests
         var communicatorMock = new Mock<ICommunicator>();
         var options = CreateLocalCollectorServiceOptions();
 
-        var processInfoCollector = new ProcessInfoCollector(
+        var processInfoCollector = new ProcessInfoHandler(
             communicator: communicatorMock.Object,
             logger: loggerMock.Object,
             options: options);
@@ -128,12 +129,12 @@ public class ProcessInfoCollectorTests
         var communicatorMock = new Mock<ICommunicator>();
         var options = CreateLocalCollectorServiceOptions();
 
-        var processInfoCollector = new ProcessInfoCollector(
+        var processInfoCollector = new ProcessInfoHandler(
             communicator: communicatorMock.Object,
             logger: loggerMock.Object,
             options: options);
 
-        var act = async() => await processInfoCollector.AddConnections(null);
+        var act = async () => await processInfoCollector.AddConnections(null);
 
         await Assert.ThrowsAsync<ArgumentNullException>(act);
     }
@@ -145,7 +146,7 @@ public class ProcessInfoCollectorTests
         var communicatorMock = new Mock<ICommunicator>();
         var options = CreateLocalCollectorServiceOptions();
 
-        var processInfoCollector = new ProcessInfoCollector(
+        var processInfoCollector = new ProcessInfoHandler(
             communicator: communicatorMock.Object,
             logger: loggerMock.Object,
             options: options);
@@ -188,7 +189,7 @@ public class ProcessInfoCollectorTests
         var communicatorMock = new Mock<ICommunicator>();
         var options = CreateLocalCollectorServiceOptions();
 
-        var processInfoCollector = new ProcessInfoCollector(
+        var processInfoCollector = new ProcessInfoHandler(
             communicator: communicatorMock.Object,
             logger: loggerMock.Object,
             options: options);
@@ -205,7 +206,7 @@ public class ProcessInfoCollectorTests
         var communicatorMock = new Mock<ICommunicator>();
         var options = CreateLocalCollectorServiceOptions();
 
-        var processInfoCollector = new ProcessInfoCollector(
+        var processInfoCollector = new ProcessInfoHandler(
             communicator: communicatorMock.Object,
             logger: loggerMock.Object,
             options: options);
@@ -219,7 +220,7 @@ public class ProcessInfoCollectorTests
                 ServiceType = "newDummyServiceType"
             }
         };
-        
+
         await processInfoCollector.AddRegistrations(updatedRegistrations);
 
         var result = processInfoCollector.GetProcessInfoCollectorData().Registrations;
@@ -235,7 +236,7 @@ public class ProcessInfoCollectorTests
         var communicatorMock = new Mock<ICommunicator>();
         var options = CreateLocalCollectorServiceOptions();
 
-        var processInfoCollector = new ProcessInfoCollector(
+        var processInfoCollector = new ProcessInfoHandler(
             communicator: communicatorMock.Object,
             logger: loggerMock.Object,
             options: options);
@@ -252,7 +253,7 @@ public class ProcessInfoCollectorTests
         var communicatorMock = new Mock<ICommunicator>();
         var options = CreateLocalCollectorServiceOptions();
 
-        var processInfoCollector = new ProcessInfoCollector(
+        var processInfoCollector = new ProcessInfoHandler(
             communicator: communicatorMock.Object,
             logger: loggerMock.Object,
             options: options);
@@ -286,7 +287,7 @@ public class ProcessInfoCollectorTests
         var communicatorMock = new Mock<ICommunicator>();
         var options = CreateLocalCollectorServiceOptions();
 
-        var processInfoCollector = new ProcessInfoCollector(
+        var processInfoCollector = new ProcessInfoHandler(
             communicator: communicatorMock.Object,
             logger: loggerMock.Object,
             options: options);
@@ -303,7 +304,7 @@ public class ProcessInfoCollectorTests
         var communicatorMock = new Mock<ICommunicator>();
         var options = CreateLocalCollectorServiceOptions();
 
-        var processInfoCollector = new ProcessInfoCollector(
+        var processInfoCollector = new ProcessInfoHandler(
             communicator: communicatorMock.Object,
             logger: loggerMock.Object,
             options: options);
@@ -437,23 +438,23 @@ public class ProcessInfoCollectorTests
         var communicatorMock = new Mock<ICommunicator>();
         var options = CreateLocalCollectorServiceOptions();
 
-        var processInfoCollector = new ProcessInfoCollector(
+        var processInfoCollector = new ProcessInfoHandler(
             communicator: communicatorMock.Object,
             logger: loggerMock.Object,
             options: options);
 
         var act = async () => await processInfoCollector.AddRuntimeInformation(
-            connections:null,
-            environmentVariables:null,
-            registrations:null,
-            modules:null);
+            connections: null,
+            environmentVariables: null,
+            registrations: null,
+            modules: null);
 
         await Assert.ThrowsAsync<ArgumentNullException>(act);
     }
 
-    private static LocalCollectorServiceOptions CreateLocalCollectorServiceOptions()
+    private static ClientServiceOptions CreateLocalCollectorServiceOptions()
     {
-        return new LocalCollectorServiceOptions()
+        return new ClientServiceOptions()
         {
             AssemblyId = _dummyAssemblyId,
             ProcessId = _dummyProcessId,
@@ -466,9 +467,9 @@ public class ProcessInfoCollectorTests
         };
     }
 
-    private static Mock<ILogger<IProcessInfoCollector>> CreateProcessInfoCollectorLoggerMock()
+    private static Mock<ILogger<IProcessInfoHandler>> CreateProcessInfoCollectorLoggerMock()
     {
-        var loggerMock = new Mock<ILogger<IProcessInfoCollector>>();
+        var loggerMock = new Mock<ILogger<IProcessInfoHandler>>();
 
         var loggerFilterOptions = new LoggerFilterOptions();
 

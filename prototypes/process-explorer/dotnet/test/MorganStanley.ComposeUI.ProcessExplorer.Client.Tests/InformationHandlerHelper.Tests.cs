@@ -13,16 +13,17 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities;
+using MorganStanley.ComposeUI.ProcessExplorer.Client;
 using Xunit;
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.Tests;
+namespace MorganStanley.ComposeUI.ProcessExplorer.LocalHandler.Tests;
 
-public class InformationCollectorTests
+public class InformationHandlerHelperTests
 {
     [Fact]
     public void GetModulesFromAssembly_will_return_some_value()
     {
-        var result = InformationCollectorHelper.GetModulesFromAssembly();
+        var result = InformationHandlerHelper.GetModulesFromAssembly();
         Assert.NotNull(result);
         Assert.NotEmpty(result);
     }
@@ -30,7 +31,7 @@ public class InformationCollectorTests
     [Fact]
     public void GetEnvironmentVariablesFromAssembly_will_return_some_value()
     {
-        var result = InformationCollectorHelper.GetEnvironmentVariablesFromAssembly();
+        var result = InformationHandlerHelper.GetEnvironmentVariablesFromAssembly();
         Assert.NotNull(result);
         Assert.NotEmpty(result);
     }
@@ -40,7 +41,7 @@ public class InformationCollectorTests
     {
         var dummyServiceCollection = new ServiceCollection();
         dummyServiceCollection.AddSingleton<IFakeService, DummyFakeService>();
-        var result = InformationCollectorHelper.GetRegistrations(dummyServiceCollection);
+        var result = InformationHandlerHelper.GetRegistrations(dummyServiceCollection);
 
         Assert.NotNull(result);
         Assert.Single(result);

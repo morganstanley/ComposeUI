@@ -15,18 +15,17 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities;
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.DependencyInjection;
+namespace MorganStanley.ComposeUI.ProcessExplorer.Client.DependencyInjection;
 
-public class LocalCollectorServiceOptions : IOptions<LocalCollectorServiceOptions>
+public class ClientServiceOptions : IOptions<ClientServiceOptions>
 {
     public string AssemblyId { get; set; } = Assembly.GetCallingAssembly().GetName().Name ?? string.Empty;
     public int ProcessId { get; set; } = Environment.ProcessId;
-    //TODO(Lilla): set Registrations
     public IServiceCollection? LoadedServices { get; set; }
     public IEnumerable<IConnectionInfo>? Connections { get; set; }
     public IEnumerable<ModuleInfo>? Modules { get; set; }
     public IEnumerable<KeyValuePair<string, string>>? EnvironmentVariables { get; set; }
     public string Host { get; set; } = "localhost";
     public int Port { get; set; } = 5056;
-    public LocalCollectorServiceOptions Value => this;
+    public ClientServiceOptions Value => this;
 }

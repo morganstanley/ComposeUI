@@ -20,7 +20,7 @@ using System.Windows.Controls;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Messaging;
-using MorganStanley.ComposeUI.ProcessExplorer.LocalCollector;
+using MorganStanley.ComposeUI.ProcessExplorer.Client;
 using WPFDataGrid.Models;
 
 namespace WPFDataGrid.Views;
@@ -33,7 +33,7 @@ public partial class DataGridView : Window
     private readonly ILogger<DataGridView> _logger;
     private readonly IMessageRouter _messageRouter;
     private readonly ObservableCollection<SymbolModel> _symbols;
-    private readonly IProcessInfoCollector _processInfoCollector;
+    private readonly IProcessInfoHandler _processInfoCollector;
 
     /// <summary>
     /// Constructor for the View.
@@ -43,7 +43,7 @@ public partial class DataGridView : Window
     public DataGridView(
         ILogger<DataGridView>? logger, 
         IMessageRouter messageRouter,
-        IProcessInfoCollector processInfoCollector)
+        IProcessInfoHandler processInfoCollector)
     {
         _logger = logger ?? NullLogger<DataGridView>.Instance;
         _messageRouter = messageRouter;

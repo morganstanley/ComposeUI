@@ -14,11 +14,11 @@ using System.Collections;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities;
-using MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.Logging;
+using MorganStanley.ComposeUI.ProcessExplorer.Client.Logging;
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.LocalCollector;
+namespace MorganStanley.ComposeUI.ProcessExplorer.Client;
 
-public static class InformationCollectorHelper
+public static class InformationHandlerHelper
 {
     public static IEnumerable<ModuleInfo> GetModulesFromAssembly()
     {
@@ -74,7 +74,7 @@ public static class InformationCollectorHelper
                 ServiceType = service.ServiceType.Name ?? string.Empty,
                 ImplementationType = service.ImplementationType?.Name ?? string.Empty,
                 LifeTime = service.Lifetime.ToString() ?? string.Empty,
-                };
+            };
 
             registrations.Add(registration);
         }

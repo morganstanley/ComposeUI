@@ -12,7 +12,7 @@
 
 using Microsoft.Extensions.Logging;
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.Logging;
+namespace MorganStanley.ComposeUI.ProcessExplorer.Client.Logging;
 
 internal static partial class SourceGeneratedLoggerExtensions
 {

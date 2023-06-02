@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/MorganStanley.ComposeUI.LocalCollector/MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.csproj" />
+    <ProjectReference Include="../../src/MorganStanley.ComposeUI.ProcessExplorer.Client/MorganStanley.ComposeUI.ProcessExplorer.Client.csproj" />
     <ProjectReference Include="../../src/MorganStanley.ComposeUI.ProcessExplorer.Server/MorganStanley.ComposeUI.ProcessExplorer.Server.csproj" />
   </ItemGroup>
 

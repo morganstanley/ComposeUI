@@ -16,33 +16,33 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Infrastructure;
-using MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.DependencyInjection;
-using MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.Logging;
+using MorganStanley.ComposeUI.ProcessExplorer.Client.DependencyInjection;
+using MorganStanley.ComposeUI.ProcessExplorer.Client.Logging;
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.LocalCollector;
+namespace MorganStanley.ComposeUI.ProcessExplorer.Client;
 
-internal class ProcessInfoCollector : IProcessInfoCollector
+internal class ProcessInfoHandler : IProcessInfoHandler
 {
     private readonly ProcessInfoCollectorData _processInformation = new();
     private readonly ICommunicator _communicator;
-    private readonly ILogger<IProcessInfoCollector> _logger;
+    private readonly ILogger<IProcessInfoHandler> _logger;
     private readonly RuntimeInformation _runtimeId = new();
     private readonly object _processInformationLocker = new();
     private readonly object _runtimeInformationLocker = new();
 
-    public ProcessInfoCollector(
+    public ProcessInfoHandler(
         ICommunicator communicator,
-        ILogger<IProcessInfoCollector>? logger = null,
-        IOptions<LocalCollectorServiceOptions>? options = null)
+        ILogger<IProcessInfoHandler>? logger = null,
+        IOptions<ClientServiceOptions>? options = null)
     {
-        _logger = logger ?? NullLogger<IProcessInfoCollector>.Instance;
+        _logger = logger ?? NullLogger<IProcessInfoHandler>.Instance;
         _communicator = communicator;
         _processInformation.Id = options?.Value.ProcessId ?? Environment.ProcessId;
-        _processInformation.EnvironmentVariables = options?.Value.EnvironmentVariables ?? InformationCollectorHelper.GetEnvironmentVariablesFromAssembly(_logger);
-        _processInformation.Modules = options?.Value.Modules ?? InformationCollectorHelper.GetModulesFromAssembly();
+        _processInformation.EnvironmentVariables = options?.Value.EnvironmentVariables ?? InformationHandlerHelper.GetEnvironmentVariablesFromAssembly(_logger);
+        _processInformation.Modules = options?.Value.Modules ?? InformationHandlerHelper.GetModulesFromAssembly();
         _runtimeId.Name = options?.Value.AssemblyId ?? string.Empty;
 
-        if (options?.Value.LoadedServices != null) _processInformation.Registrations = InformationCollectorHelper.GetRegistrations(options.Value.LoadedServices);
+        if (options?.Value.LoadedServices != null) _processInformation.Registrations = InformationHandlerHelper.GetRegistrations(options.Value.LoadedServices);
 
         if (options?.Value.Connections == null) return;
 
@@ -93,7 +93,7 @@ internal class ProcessInfoCollector : IProcessInfoCollector
                 _processInformation.AddOrUpdateConnections(connections);
                 AddConnectionSubscription(_runtimeId.Name, connections);
                 _logger.SendingLocalCollectorConnectionCollectionWithIdDebug(_runtimeId.Name);
-                return _communicator.AddConnectionCollection(new KeyValuePair<RuntimeInformation, IEnumerable<IConnectionInfo>>(_runtimeId , connections));
+                return _communicator.AddConnectionCollection(new KeyValuePair<RuntimeInformation, IEnumerable<IConnectionInfo>>(_runtimeId, connections));
             }
         }
     }

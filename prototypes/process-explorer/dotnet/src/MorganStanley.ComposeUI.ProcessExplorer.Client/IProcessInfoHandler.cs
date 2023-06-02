@@ -12,9 +12,9 @@
 
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities;
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.LocalCollector;
+namespace MorganStanley.ComposeUI.ProcessExplorer.Client;
 
-public interface IProcessInfoCollector
+public interface IProcessInfoHandler
 {
     /// <summary>
     /// Adds a list of connections to the existing one.

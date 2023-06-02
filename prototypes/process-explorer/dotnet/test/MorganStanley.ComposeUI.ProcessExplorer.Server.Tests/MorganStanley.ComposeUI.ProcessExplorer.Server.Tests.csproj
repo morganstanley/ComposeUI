@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\MorganStanley.ComposeUI.ProcessExplorer.Server\MorganStanley.ComposeUI.ProcessExplorer.Server.csproj" />
+    <ProjectReference Include="../../src/MorganStanley.ComposeUI.ProcessExplorer.Server/MorganStanley.ComposeUI.ProcessExplorer.Server.csproj" />
   </ItemGroup>
 
 </Project>

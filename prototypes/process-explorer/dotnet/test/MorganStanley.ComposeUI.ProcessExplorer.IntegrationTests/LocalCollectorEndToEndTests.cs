@@ -23,9 +23,9 @@ using MorganStanley.ComposeUI.ProcessExplorer.Abstractions;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Extensions;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Infrastructure;
+using MorganStanley.ComposeUI.ProcessExplorer.Client.DependencyInjection;
+using MorganStanley.ComposeUI.ProcessExplorer.Client.Infrastructure;
 using MorganStanley.ComposeUI.ProcessExplorer.Core.DependencyInjection;
-using MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.DependencyInjection;
-using MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.Infrastructure;
 using MorganStanley.ComposeUI.ProcessExplorer.Server.DependencyInjection;
 using MorganStanley.ComposeUI.ProcessExplorer.Server.Server.Abstractions;
 using Xunit;
@@ -75,7 +75,7 @@ public class LocalCollectorEndToEndTests
         await InitializeAsync(new Random().Next(6000));
         var loggerMock = CreateGrpcCommunicatorLoggerMock();
         var client = new GrpcCommunicator(
-            options: new LocalCollectorServiceOptions()
+            options: new ClientServiceOptions()
             {
                 Host = Host,
                 Port = Port
@@ -139,7 +139,7 @@ public class LocalCollectorEndToEndTests
         var loggerMock = CreateGrpcCommunicatorLoggerMock();
 
         var client = new GrpcCommunicator(
-            options: new LocalCollectorServiceOptions() { Host = Host, Port = Port },
+            options: new ClientServiceOptions() { Host = Host, Port = Port },
             logger: loggerMock.Object);
 
         await client.AddRuntimeInfo(new(
@@ -164,7 +164,7 @@ public class LocalCollectorEndToEndTests
         var loggerMock = CreateGrpcCommunicatorLoggerMock();
 
         var client = new GrpcCommunicator(
-            options: new LocalCollectorServiceOptions() { Host = Host, Port = Port },
+            options: new ClientServiceOptions() { Host = Host, Port = Port },
             logger: loggerMock.Object);
 
         var processInfoCollectorData = CreateProcessInfoCollectorData();
@@ -228,7 +228,7 @@ public class LocalCollectorEndToEndTests
         var loggerMock = CreateGrpcCommunicatorLoggerMock();
 
         var client = new GrpcCommunicator(
-            options: new LocalCollectorServiceOptions() { Host = Host, Port = Port },
+            options: new ClientServiceOptions() { Host = Host, Port = Port },
             logger: loggerMock.Object);
 
         var processInfoCollectorData = CreateProcessInfoCollectorData();
@@ -259,7 +259,7 @@ public class LocalCollectorEndToEndTests
         var loggerMock = CreateGrpcCommunicatorLoggerMock();
 
         var client = new GrpcCommunicator(
-            options: new LocalCollectorServiceOptions() { Host = Host, Port = Port },
+            options: new ClientServiceOptions() { Host = Host, Port = Port },
             logger: loggerMock.Object);
 
         var updatedConnections = new List<IConnectionInfo>()
@@ -302,7 +302,7 @@ public class LocalCollectorEndToEndTests
         var loggerMock = CreateGrpcCommunicatorLoggerMock();
 
         var client = new GrpcCommunicator(
-            options: new LocalCollectorServiceOptions() { Host = Host, Port = Port },
+            options: new ClientServiceOptions() { Host = Host, Port = Port },
             logger: loggerMock.Object);
 
         var processInfoCollectorData = CreateProcessInfoCollectorData();
@@ -360,7 +360,7 @@ public class LocalCollectorEndToEndTests
         var loggerMock = CreateGrpcCommunicatorLoggerMock();
 
         var client = new GrpcCommunicator(
-            options: new LocalCollectorServiceOptions() { Host = Host, Port = Port },
+            options: new ClientServiceOptions() { Host = Host, Port = Port },
             logger: loggerMock.Object);
 
         var index = new Random().Next(_dummyConnections.Count() - 1);
@@ -408,7 +408,7 @@ public class LocalCollectorEndToEndTests
         var loggerMock = CreateGrpcCommunicatorLoggerMock();
 
         var client = new GrpcCommunicator(
-            options: new LocalCollectorServiceOptions() { Host = Host, Port = Port },
+            options: new ClientServiceOptions() { Host = Host, Port = Port },
             logger: loggerMock.Object);
 
         var processInfoCollectorData = CreateProcessInfoCollectorData();
@@ -460,7 +460,7 @@ public class LocalCollectorEndToEndTests
         var loggerMock = CreateGrpcCommunicatorLoggerMock();
 
         var client = new GrpcCommunicator(
-            options: new LocalCollectorServiceOptions() { Host = Host, Port = Port },
+            options: new ClientServiceOptions() { Host = Host, Port = Port },
             logger: loggerMock.Object);
 
         var processInfoCollectorData = CreateProcessInfoCollectorData();
@@ -491,7 +491,7 @@ public class LocalCollectorEndToEndTests
         var loggerMock = CreateGrpcCommunicatorLoggerMock();
 
         var client = new GrpcCommunicator(
-            options: new LocalCollectorServiceOptions() { Host = Host, Port = Port },
+            options: new ClientServiceOptions() { Host = Host, Port = Port },
             logger: loggerMock.Object);
 
         var updatedEnvironmentVariables = new Dictionary<string, string>()
@@ -531,7 +531,7 @@ public class LocalCollectorEndToEndTests
         var loggerMock = CreateGrpcCommunicatorLoggerMock();
 
         var client = new GrpcCommunicator(
-            options: new LocalCollectorServiceOptions() { Host = Host, Port = Port },
+            options: new ClientServiceOptions() { Host = Host, Port = Port },
             logger: loggerMock.Object);
 
         var processInfoCollectorData = CreateProcessInfoCollectorData();
@@ -595,7 +595,7 @@ public class LocalCollectorEndToEndTests
         var loggerMock = CreateGrpcCommunicatorLoggerMock();
 
         var client = new GrpcCommunicator(
-            options: new LocalCollectorServiceOptions() { Host = Host, Port = Port },
+            options: new ClientServiceOptions() { Host = Host, Port = Port },
             logger: loggerMock.Object);
 
         var processInfoCollectorData = CreateProcessInfoCollectorData();
@@ -626,7 +626,7 @@ public class LocalCollectorEndToEndTests
         var loggerMock = CreateGrpcCommunicatorLoggerMock();
 
         var client = new GrpcCommunicator(
-            options: new LocalCollectorServiceOptions() { Host = Host, Port = Port },
+            options: new ClientServiceOptions() { Host = Host, Port = Port },
             logger: loggerMock.Object);
 
         var registrationInfoToUpdate = _dummyRegistrations.First();
@@ -679,7 +679,7 @@ public class LocalCollectorEndToEndTests
         var loggerMock = CreateGrpcCommunicatorLoggerMock();
 
         var client = new GrpcCommunicator(
-            options: new LocalCollectorServiceOptions() { Host = Host, Port = Port },
+            options: new ClientServiceOptions() { Host = Host, Port = Port },
             logger: loggerMock.Object);
 
         var processInfoCollectorData = CreateProcessInfoCollectorData();
@@ -748,7 +748,7 @@ public class LocalCollectorEndToEndTests
         var loggerMock = CreateGrpcCommunicatorLoggerMock();
 
         var client = new GrpcCommunicator(
-            options: new LocalCollectorServiceOptions() { Host = Host, Port = Port },
+            options: new ClientServiceOptions() { Host = Host, Port = Port },
             logger: loggerMock.Object);
 
         var processInfoCollectorData = CreateProcessInfoCollectorData();
@@ -779,7 +779,7 @@ public class LocalCollectorEndToEndTests
         var loggerMock = CreateGrpcCommunicatorLoggerMock();
 
         var client = new GrpcCommunicator(
-            options: new LocalCollectorServiceOptions() { Host = Host, Port = Port },
+            options: new ClientServiceOptions() { Host = Host, Port = Port },
             logger: loggerMock.Object);
 
         var moduleToUpdate = _dummyModules.First();
@@ -833,7 +833,7 @@ public class LocalCollectorEndToEndTests
         var loggerMock = CreateGrpcCommunicatorLoggerMock();
 
         var client = new GrpcCommunicator(
-            options: new LocalCollectorServiceOptions() { Host = Host, Port = Port },
+            options: new ClientServiceOptions() { Host = Host, Port = Port },
             logger: loggerMock.Object);
 
         var processInfoCollectorData = CreateProcessInfoCollectorData();
@@ -880,7 +880,7 @@ public class LocalCollectorEndToEndTests
         var loggerMock = CreateGrpcCommunicatorLoggerMock();
 
         var client = new GrpcCommunicator(
-            options: new LocalCollectorServiceOptions() { Host = Host, Port = Port },
+            options: new ClientServiceOptions() { Host = Host, Port = Port },
             logger: loggerMock.Object);
         
         var connectionToUpdate = _dummyConnections.First();

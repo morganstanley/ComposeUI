@@ -14,20 +14,20 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Infrastructure;
-using MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.Infrastructure;
+using MorganStanley.ComposeUI.ProcessExplorer.Client.Infrastructure;
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.DependencyInjection;
+namespace MorganStanley.ComposeUI.ProcessExplorer.Client.DependencyInjection;
 
-public static class LocalCollectorBuilderExtensions
+public static class ClientBuilderExtensions
 {
-    public static LocalCollectorBuilder UseGrpc(
-        this LocalCollectorBuilder builder,
-        LocalCollectorServiceOptions? options = null)
+    public static ClientBuilder UseGrpc(
+        this ClientBuilder builder,
+        ClientServiceOptions? options = null)
     {
-        if (options != null) builder.ServiceCollection.TryAddSingleton<IOptions<LocalCollectorServiceOptions>>(options);
+        if (options != null) builder.ServiceCollection.TryAddSingleton<IOptions<ClientServiceOptions>>(options);
         builder.ServiceCollection.AddGrpc();
         builder.ServiceCollection.TryAddSingleton<ICommunicator, GrpcCommunicator>();
-        builder.ServiceCollection.TryAddSingleton<IProcessInfoCollector, ProcessInfoCollector>();
+        builder.ServiceCollection.TryAddSingleton<IProcessInfoHandler, ProcessInfoHandler>();
 
         return builder;
     }

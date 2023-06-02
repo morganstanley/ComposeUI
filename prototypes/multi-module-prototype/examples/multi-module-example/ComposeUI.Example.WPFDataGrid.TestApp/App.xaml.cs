@@ -19,9 +19,9 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
-using MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.DependencyInjection;
 using System.Collections.Generic;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities;
+using MorganStanley.ComposeUI.ProcessExplorer.Client.DependencyInjection;
 
 namespace WPFDataGrid.TestApp;
 
@@ -70,10 +70,10 @@ public partial class App : Application
                     mr.UseWebSocket(new MessageRouterWebSocketOptions { Uri = WebsocketURI }));
 
         serviceCollection
-            .AddLocalCollectorWithGrpc(localCollector => 
-            localCollector.UseGrpc(new LocalCollectorServiceOptions
-                {
-                    Connections = new List<IConnectionInfo>()
+            .AddProcessExplorerClientWithGrpc(localCollector =>
+            localCollector.UseGrpc(new ClientServiceOptions
+            {
+                Connections = new List<IConnectionInfo>()
                     {
                         new ConnectionInfo(
                             id: WebsocketURIId,
@@ -81,17 +81,17 @@ public partial class App : Application
                             status: ConnectionStatus.Running,
                             remoteEndpoint: WebsocketURI.ToString())
                     },
-                    LoadedServices = serviceCollection,
-                    Port = 5056,
-                    Host = "localhost"
-                }));
+                LoadedServices = serviceCollection,
+                Port = 5056,
+                Host = "localhost"
+            }));
 
-serviceCollection.AddSingleton(typeof(DataGridView));
+        serviceCollection.AddSingleton(typeof(DataGridView));
 
-_serviceProvider = serviceCollection.BuildServiceProvider();
+        _serviceProvider = serviceCollection.BuildServiceProvider();
 
-var dataGridView = _serviceProvider?.GetRequiredService<DataGridView>();
+        var dataGridView = _serviceProvider?.GetRequiredService<DataGridView>();
 
-dataGridView?.Show();
+        dataGridView?.Show();
     }
 }

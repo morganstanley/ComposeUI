@@ -12,14 +12,17 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.LocalCollector.DependencyInjection;
+namespace MorganStanley.ComposeUI.ProcessExplorer.Client.DependencyInjection;
 
-public sealed class LocalCollectorBuilder
+public static class ServiceCollectionClientExtensions
 {
-    internal IServiceCollection ServiceCollection { get; }
-
-    public LocalCollectorBuilder(IServiceCollection serviceCollection)
+    public static IServiceCollection AddProcessExplorerClientWithGrpc(
+        this IServiceCollection serviceCollection,
+        Action<ClientBuilder> builderAction)
     {
-        ServiceCollection = serviceCollection;
+        var builder = new ClientBuilder(serviceCollection);
+        builderAction(builder);
+
+        return serviceCollection;
     }
 }
