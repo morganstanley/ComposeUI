@@ -11,5 +11,8 @@
  *  
  */
 
-
-export * from "./ComposeUIDesktopAgent";
+export enum ComposeUIChannelType {
+    User = "user",
+    App = "app",
+    Private = "private"
+}

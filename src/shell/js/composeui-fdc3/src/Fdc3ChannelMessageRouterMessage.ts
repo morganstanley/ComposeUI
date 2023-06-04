@@ -11,5 +11,14 @@
  *  
  */
 
+import { Context } from "@finos/fdc3";
 
-export * from "./ComposeUIDesktopAgent";
+export class Fdc3ChannelMessageRouterMessage {
+    public Id!: string; //this is the topic actually
+    public Context!: Context;
+
+    constructor(id: string, context: Context) {
+        this.Id = id;
+        this.Context = context;
+    }
+}

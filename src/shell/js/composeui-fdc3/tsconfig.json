@@ -1,14 +1,14 @@
 ﻿{
 "compilerOptions": {
     "moduleResolution": "node",
-	"types": [ "node" ],
-    "module": "es2022",
-    "esModuleInterop": true,
-    "target": "es2022",
-    "declaration": true,
-    "outDir": "output",
-    "lib": [ "es2022" ],
-    "strict": true
+    "types": [ "node", "jest" ],
+      "module": "commonjs",
+      "esModuleInterop": true,
+      "target": "es6",
+      "declaration": true,
+      "outDir": "output",
+      "lib": [ "es6" ],
+      "strict": true
   },
   "include": [ "src/**/*.ts" ]
 }
