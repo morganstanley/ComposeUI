@@ -27,4 +27,9 @@ public class RegistrationInfo
         return ImplementationType == ((RegistrationInfo)obj).ImplementationType
             && ServiceType == ((RegistrationInfo)obj).ServiceType;
     }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(ImplementationType, ServiceType);
+    }
 }

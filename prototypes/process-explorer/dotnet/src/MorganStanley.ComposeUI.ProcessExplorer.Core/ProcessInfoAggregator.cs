@@ -57,17 +57,11 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
 
     private void SetProcessIdsNotificationMethods()
     {
-        try
-        {
-            _processInfoMonitor.ProcessIds
-            .Select(kvp => Observable.FromAsync(async () => await PushNotification(kvp)))
-            .Concat()
-            .Subscribe();
-        }
-        catch (ArgumentNullException exception)
-        {
-            _logger.UnableToSetNotificationMethodSubscriptionError(exception, exception);
-        }
+        if (_processInfoMonitor.ProcessIds == null) return;
+        _processInfoMonitor.ProcessIds
+        .Select(kvp => Observable.FromAsync(async () => await PushNotification(kvp)))
+        .Concat()
+        .Subscribe();
     }
 
     private async Task PushNotification(KeyValuePair<int, ProcessStatus> kvp)

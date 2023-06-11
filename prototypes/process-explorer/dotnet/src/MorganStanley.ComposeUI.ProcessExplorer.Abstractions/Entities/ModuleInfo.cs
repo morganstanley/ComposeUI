@@ -54,4 +54,9 @@ public class ModuleInfo
                && Location == ((ModuleInfo)obj).Location
                && Version == ((ModuleInfo)obj).Version;
     }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Name, Version, Location);
+    }
 }

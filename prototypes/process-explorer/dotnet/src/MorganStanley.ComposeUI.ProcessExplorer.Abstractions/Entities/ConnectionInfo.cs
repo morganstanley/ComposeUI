@@ -95,4 +95,9 @@ public sealed class ConnectionInfo : IConnectionInfo
         return Id == ((ConnectionInfo)obj).Id
                && Name == ((ConnectionInfo)obj).Name;
     }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Id, Name);
+    }
 }

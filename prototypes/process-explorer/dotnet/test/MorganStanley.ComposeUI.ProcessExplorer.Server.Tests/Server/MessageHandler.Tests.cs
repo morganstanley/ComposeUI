@@ -62,15 +62,6 @@ public class MessageHandlerTests
             loggerMock.Object);
 
         subsystemControllerMock.Verify(x => x.ShutdownSubsystems(It.IsAny<IEnumerable<string>>()), Times.Once);
-
-        loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Error,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Unable to set ProcessMonitor's collection change events. Detailed exception:")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Once);
     }
 
     [Fact]
@@ -106,15 +97,6 @@ public class MessageHandlerTests
             loggerMock.Object);
 
         subsystemControllerMock.Verify(x => x.RestartSubsystems(It.IsAny<IEnumerable<string>>()), Times.Once);
-
-        loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Error,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Unable to set ProcessMonitor's collection change events. Detailed exception:")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Once);
     }
 
     [Fact]
@@ -150,15 +132,6 @@ public class MessageHandlerTests
             loggerMock.Object);
 
         subsystemControllerMock.Verify(x => x.LaunchSubsystems(It.IsAny<IEnumerable<string>>()), Times.Once);
-
-        loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Error,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Unable to set ProcessMonitor's collection change events. Detailed exception:")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Once);
     }
 
     [Fact]
@@ -196,15 +169,6 @@ public class MessageHandlerTests
             loggerMock.Object);
 
         subsystemControllerMock.Verify(x => x.LaunchSubsystemAfterTime(id, message.PeriodOfDelay), Times.Once);
-
-        loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Error,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Unable to set ProcessMonitor's collection change events. Detailed exception:")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Once);
     }
 
     [Fact]
