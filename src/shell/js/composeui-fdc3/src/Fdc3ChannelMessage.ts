@@ -11,8 +11,14 @@
  *  
  */
 
-export enum ComposeUIChannelType {
-    User = "user",
-    App = "app",
-    Private = "private"
+import { Context } from "@finos/fdc3";
+
+export class Fdc3ChannelMessage {
+    public Id!: string;
+    public Context!: Context;
+
+    constructor(id: string, context: Context) {
+        this.Id = id;
+        this.Context = context;
+    }
 }

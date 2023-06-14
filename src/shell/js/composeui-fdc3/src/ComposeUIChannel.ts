@@ -13,11 +13,11 @@
 
 import { Channel, Context, ContextHandler, DisplayMetadata, Listener } from "@finos/fdc3";
 import { MessageRouter } from "@morgan-stanley/composeui-messaging-client";
-import { ComposeUIChannelType } from "./ComposeUIChannelType";
+import { ChannelType } from "./ChannelType";
 import { ComposeUIListener } from "./ComposeUIListener";
-import { Fdc3ChannelMessageRouterMessage } from "./Fdc3ChannelMessageRouterMessage";
+import { Fdc3ChannelMessage } from "./Fdc3ChannelMessage";
+import { ComposeUITopic } from "./ComposeUITopic";
 
-//TODO (For now we are working on just the user channel)
 export class ComposeUIChannel implements Channel{
     id!: string;
     type!: "user" | "app" | "private";
@@ -27,9 +27,9 @@ export class ComposeUIChannel implements Channel{
     private lastContexts: Map<string, Context> = new Map<string, Context>();
     private lastContext?: Context;
 
-    constructor(id: string /*topic*/, type: ComposeUIChannelType, messageRouterClient: MessageRouter){
-        this.id = id; //"composeui/fdc3/v2.0/userchannels/{name}/"
-        this.type = type; //USER
+    constructor(id: string, type: ChannelType, messageRouterClient: MessageRouter){
+        this.id = id; 
+        this.type = type;
         this.messageRouterClient = messageRouterClient;
     }
 
@@ -37,8 +37,8 @@ export class ComposeUIChannel implements Channel{
         //Setting the last published context message.
         this.lastContexts.set(context.type, context);
         this.lastContext = context;
-        const fdc3Message = new Fdc3ChannelMessageRouterMessage(this.id + "broadcast", context);
-        return this.messageRouterClient.publish(this.id + "broadcast", JSON.stringify(fdc3Message));
+        const fdc3Message = new Fdc3ChannelMessage(this.id, context);
+        return this.messageRouterClient.publish(ComposeUITopic.broadcast(this.id), JSON.stringify(fdc3Message));
     }
 
     public getCurrentContext(contextType?: string | undefined): Promise<Context | null> {
@@ -58,13 +58,11 @@ export class ComposeUIChannel implements Channel{
     public addContextListener(contextType: string | null, handler: ContextHandler): Promise<Listener>;
     public addContextListener(handler: ContextHandler): Promise<Listener>;
     public async addContextListener(contextType: any, handler?: any): Promise<Listener> {
-        if(contextType === null 
-            || contextType === undefined 
-            || typeof contextType != 'string'){
+        if(typeof contextType != 'string'){
             throw new Error("addContextListener without contextType is depracted, please use the newer version.");
         } else {
             const listener = new ComposeUIListener(this.messageRouterClient, handler, this.id, contextType);
-            await listener.subscribe("broadcast");
+            await listener.subscribe(ComposeUITopic.broadcast(this.id));
             return listener;
         };
     }

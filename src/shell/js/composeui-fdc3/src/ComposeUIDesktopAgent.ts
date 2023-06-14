@@ -27,23 +27,22 @@ import {
     PrivateChannel } from '@finos/fdc3'
 import { MessageRouter } from '@morgan-stanley/composeui-messaging-client';
 import { ComposeUIChannel } from './ComposeUIChannel';
-import { ComposeUIChannelType } from './ComposeUIChannelType';
+import { ChannelType } from './ChannelType';
 import { ComposeUIListener } from './ComposeUIListener';
 
 export class ComposeUIDesktopAgent implements DesktopAgent {
-    private appChannels: Array<Channel> = new Array<ComposeUIChannel>();
-    private userChannels: Array<Channel> = new Array<ComposeUIChannel>();
-    private privateChannels: Array<Channel> = new Array<ComposeUIChannel>();
-    private currentChannel?: Channel;
+    private appChannels: ComposeUIChannel[] = [];
+    private userChannels: ComposeUIChannel[] = [];
+    private privateChannels: ComposeUIChannel[] = [];
+    private currentChannel?: ComposeUIChannel;
     private messageRouterClient!: MessageRouter;
-    private topicRoot: string = "composeui/fdc3/v2.0/userchannels/";
-    private currentChannelListeners: Array<Listener> = new Array<ComposeUIListener>();
+    private currentChannelListeners: ComposeUIListener[] = [];
 
     constructor(name: string, messageRouterClient: MessageRouter) {
         this.messageRouterClient = messageRouterClient;
         var channel = new ComposeUIChannel(
-            this.topicRoot + name + "/", 
-            ComposeUIChannelType.User,
+            name, 
+            "user",
             this.messageRouterClient);
         this.addChannel(channel);
     }
@@ -70,7 +69,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
 
     public broadcast(context: Context): Promise<void> {
         return new Promise((resolve, reject) => {
-            if(this.currentChannel === undefined || this.currentChannel === null){
+            if(!this.currentChannel){
                 reject(new Error("The current channel have not been set."));
             } else {
                 resolve(this.currentChannel.broadcast(context));
@@ -95,7 +94,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
 
     public addContextListener(contextType?: string | null | ContextHandler, handler?: ContextHandler): Promise<Listener> {
         return new Promise<ComposeUIListener>(async(resolve, reject) => {
-            if(this.currentChannel == null) {
+            if(!this.currentChannel) {
                 reject(new Error("The current channel is null or undefined"));
                 return;
             }
@@ -106,8 +105,8 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
             contextType = contextType as string ?? null; 
             
             //Resolving the task of subscription to the messageRouter server.
-            const listener = <ComposeUIListener>await this.currentChannel?.addContextListener(contextType, handler!);
-            const context = await this.currentChannel?.getCurrentContext(contextType); //TODO: what happens whe a broadcasted message arrives between 2 points
+            const listener = <ComposeUIListener>await this.currentChannel!.addContextListener(contextType, handler!);
+            const context = await this.currentChannel.getCurrentContext(contextType); //TODO: what happens whe a broadcasted message arrives between 2 points
             await listener.handleContextMessage(context!);
             this.currentChannelListeners.push(listener);
             resolve(listener);
@@ -115,15 +114,13 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     }
 
     public getUserChannels(): Promise<Array<Channel>> {
-        return new Promise<Array<Channel>>((resolve, reject) => {
-            resolve(this.userChannels);
-        });
+        return Promise.resolve(this.userChannels);
     }
 
     public joinUserChannel(channelId: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            let channel = this.userChannels.find(innerChannel => innerChannel.id ==  this.topicRoot + channelId + "/");
-            if (channel == null || channel == undefined) {
+            let channel = this.userChannels.find(innerChannel => innerChannel.id == channelId);
+            if (!channel) {
                 reject(new Error("Channel couldn't be found in user channels"));
             } else {
                 this.currentChannel = channel;
@@ -134,9 +131,9 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
 
     public getOrCreateChannel(channelId: string): Promise<Channel> {
         return new Promise<Channel>((resolve, reject) => {
-            let channel = this.userChannels.find(innerChannel => innerChannel.id == this.topicRoot + channelId + "/");
-            if (channel == null || channel == undefined) {
-                channel = new ComposeUIChannel(this.topicRoot + channelId + "/", ComposeUIChannelType.App, this.messageRouterClient); //TODO later
+            let channel = this.userChannels.find(innerChannel => innerChannel.id == channelId);
+            if (!channel) {
+                channel = new ComposeUIChannel(channelId, "app", this.messageRouterClient); //TODO later
                 this.addChannel(channel);
             }
             resolve(channel);
@@ -149,9 +146,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     }
 
     public getCurrentChannel(): Promise<Channel | null> {
-        return new Promise<Channel>((resolve, reject) => {
-            resolve(this.currentChannel!);
-        });
+        return Promise.resolve(this.currentChannel!);
     }
 
     public leaveCurrentChannel(): Promise<void> {
@@ -194,15 +189,15 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
                 return;
             }
 
-            let channel = this.findChannel(channelId, ComposeUIChannelType.User);
-            if(channel != null && channel != undefined){
+            let channel = this.findChannel(channelId, "user");
+            if(channel != undefined){
                 this.currentChannel = channel;
                 resolve();
                 return;
             }
 
-            channel = this.findChannel(channelId, ComposeUIChannelType.App);
-            if(channel != null && channel != undefined){
+            channel = this.findChannel(channelId, "app");
+            if(channel != undefined){
                 this.currentChannel = channel;
                 resolve();
                 return;
@@ -215,7 +210,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
             //     return;
             // }
 
-            if(channel == null || channel === undefined)
+            if(!channel)
             {
                 reject(new Error("No channel is found with id: " + channelId));
                 return;
@@ -223,19 +218,18 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         });
     }
 
-    private findChannel(channelId: string, channelType: ComposeUIChannelType): Channel | undefined {
-        let channel: Channel | undefined;
-        const topic = this.topicRoot + channelId + "/";
-        const predicate = (channel: Channel) => channel.id == topic;
+    private findChannel(channelId: string, channelType: ChannelType): ComposeUIChannel | undefined {
+        let channel: ComposeUIChannel | undefined;
+        const predicate = (channel: Channel) => channel.id == channelId;
 
         switch(channelType) {
-            case ComposeUIChannelType.App:
+            case "app":
                 channel = this.appChannels.find(predicate);
                 break;
-            case ComposeUIChannelType.Private:
+            case "private":
                 channel = this.privateChannels.find(predicate);
                 break;
-            case ComposeUIChannelType.User:
+            case "user":
                 channel = this.userChannels.find(predicate);
                 break;
         }
@@ -243,16 +237,16 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         return channel;
     }
 
-    private addChannel(channel: Channel): void {
+    private addChannel(channel: ComposeUIChannel): void {
         if (channel == null) return;
         switch (channel.type) {
-            case ComposeUIChannelType.App:
+            case "app":
                 this.appChannels.push(channel);
                 break;
-            case ComposeUIChannelType.User:
+            case "user":
                 this.userChannels.push(channel);
                 break;
-            case ComposeUIChannelType.Private:
+            case "private":
                 this.privateChannels.push(channel);
                 break;
         }

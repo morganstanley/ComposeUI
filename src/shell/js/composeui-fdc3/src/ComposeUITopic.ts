@@ -11,14 +11,15 @@
  *  
  */
 
-import { Context } from "@finos/fdc3";
+export class ComposeUITopic {
+    private static readonly topicRoot = "composeui/fdc3/v2.0/";
+    private static readonly userChannelTopicRoot: string = this.topicRoot + "userchannels/";
 
-export class Fdc3ChannelMessageRouterMessage {
-    public Id!: string; //this is the topic actually
-    public Context!: Context;
+    static broadcast(topicId: string) {
+        return this.userChannelTopicRoot + topicId + "/broadcast";
+    }
 
-    constructor(id: string, context: Context) {
-        this.Id = id;
-        this.Context = context;
+    static subscribe(channelId: string, topicId: string) {
+        return this.userChannelTopicRoot + channelId + "/" + topicId;
     }
 }

@@ -14,7 +14,8 @@
 import { Context, ContextHandler, Listener } from "@finos/fdc3";
 import { MessageRouter, TopicMessage } from "@morgan-stanley/composeui-messaging-client";
 import { Unsubscribable } from "rxjs";
-import { Fdc3ChannelMessageRouterMessage } from "./Fdc3ChannelMessageRouterMessage";
+import { Fdc3ChannelMessage } from "./Fdc3ChannelMessage";
+import { ComposeUITopic } from "./ComposeUITopic";
 
 export class ComposeUIListener implements Listener {
     private messageRouterClient: MessageRouter;
@@ -28,19 +29,18 @@ export class ComposeUIListener implements Listener {
         this.messageRouterClient = messageRouterClient;
         this.handler = handler;
 
-        if (channelId != null) { //topic: "composeui/fdc3/v2.0/userchannels/{name}/"
+        if (channelId != null) { 
             this.channelId = channelId;
         }
 
         this.contextType = contextType;
     }
 
-    public async subscribe(channel: string): Promise<void> { //"composeui/fdc3/v2.0/userchannels/{name}/broadcast"
-        const subscribeTopic = this.channelId + channel;
+    public async subscribe(topicId: string): Promise<void> { 
+        const subscribeTopic = ComposeUITopic.subscribe(this.channelId!, topicId);
         this.unsubscribable = await this.messageRouterClient.subscribe(subscribeTopic, (topicMessage: TopicMessage) => {
-            //message payload format: {Context: {contextmessage}}
             //TODO: integration test to it
-            const fdc3Message = new Fdc3ChannelMessageRouterMessage(topicMessage.topic, JSON.parse(topicMessage.payload!)); //Id: {{channelName}/{operation}} -> topicRoot
+            const fdc3Message = new Fdc3ChannelMessage(topicMessage.topic, JSON.parse(topicMessage.payload!)); //Id: {{channelName}/{operation}} -> topicRoot
             if (this.channelId == fdc3Message.Id
                 && (this.contextType == null || this.contextType == fdc3Message.Context.type)) {
                 this.handler!(fdc3Message.Context);
@@ -60,7 +60,7 @@ export class ComposeUIListener implements Listener {
     }
 
     public unsubscribe(): Boolean {
-        if (this.unsubscribable == null || this.unsubscribable == undefined || !this.isSubscribed) return false;
+        if (!this.unsubscribable || !this.isSubscribed) return false;
         this.unsubscribable.unsubscribe();
         this.isSubscribed = false;
         return true;
