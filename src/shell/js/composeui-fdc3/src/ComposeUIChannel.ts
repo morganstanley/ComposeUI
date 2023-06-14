@@ -37,8 +37,8 @@ export class ComposeUIChannel implements Channel{
         //Setting the last published context message.
         this.lastContexts.set(context.type, context);
         this.lastContext = context;
-        const fdc3Message = new Fdc3ChannelMessageRouterMessage(this.id, context);
-        return this.messageRouterClient.publish(this.id, JSON.stringify(fdc3Message));
+        const fdc3Message = new Fdc3ChannelMessageRouterMessage(this.id + "broadcast", context);
+        return this.messageRouterClient.publish(this.id + "broadcast", JSON.stringify(fdc3Message));
     }
 
     public getCurrentContext(contextType?: string | undefined): Promise<Context | null> {

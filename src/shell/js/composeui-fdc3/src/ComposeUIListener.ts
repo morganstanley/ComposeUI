@@ -19,43 +19,40 @@ import { Fdc3ChannelMessageRouterMessage } from "./Fdc3ChannelMessageRouterMessa
 export class ComposeUIListener implements Listener {
     private messageRouterClient: MessageRouter;
     private unsubscribable?: Unsubscribable;
-    private handler?: ContextHandler;
+    private handler: ContextHandler;
     private channelId?: string;
     private contextType?: string;
-    private isSubscribed: boolean = true;
+    private isSubscribed: boolean = false;
 
-    constructor (messageRouterClient: MessageRouter, handler?: ContextHandler, channelId?: string, contextType?: string) {
+    constructor(messageRouterClient: MessageRouter, handler: ContextHandler, channelId?: string, contextType?: string) {
         this.messageRouterClient = messageRouterClient;
         this.handler = handler;
 
-        if(channelId != null) { //topic: "composeui/fdc3/v2.0/userchannels/{name}/"
+        if (channelId != null) { //topic: "composeui/fdc3/v2.0/userchannels/{name}/"
             this.channelId = channelId;
         }
-        
+
         this.contextType = contextType;
     }
 
     public async subscribe(channel: string): Promise<void> { //"composeui/fdc3/v2.0/userchannels/{name}/broadcast"
-        if(this.handler === undefined || this.handler === null) {
-            this.isSubscribed = false;
-            throw new Error("No subscription have been established, due contextHandler have not been added.");
-        } else {
-            const subscribeTopic = this.channelId + channel;
-            this.unsubscribable = await this.messageRouterClient.subscribe(subscribeTopic, (topicMessage: TopicMessage) => {
+        const subscribeTopic = this.channelId + channel;
+        this.unsubscribable = await this.messageRouterClient.subscribe(subscribeTopic, (topicMessage: TopicMessage) => {
             //message payload format: {Context: {contextmessage}}
             //TODO: integration test to it
             const fdc3Message = new Fdc3ChannelMessageRouterMessage(topicMessage.topic, JSON.parse(topicMessage.payload!)); //Id: {{channelName}/{operation}} -> topicRoot
-            if (this.channelId == fdc3Message.Id 
+            if (this.channelId == fdc3Message.Id
                 && (this.contextType == null || this.contextType == fdc3Message.Context.type)) {
-                    this.handler!(fdc3Message.Context);
+                this.handler!(fdc3Message.Context);
             }
-        });}
-    } 
+        });
+        this.isSubscribed = true;
+    }
 
     public handleContextMessage(context: Context): Promise<void> {
         return new Promise((resolve, reject) => {
-            if(!this.isSubscribed || this.handler === null || context === null || this.handler === undefined){
-                reject(new Error("The current listener is not subscribed or the context/contextHandler hasn't been added."));
+            if (!this.isSubscribed ) {
+                reject(new Error("The current listener is not subscribed."));
             } else {
                 resolve(this.handler(context));
             }

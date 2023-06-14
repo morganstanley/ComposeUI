@@ -48,13 +48,13 @@ describe('Tests for ComposeUIChannel implementation API', () => {
         await testChannel.broadcast(testInstrument);
         const resultContext = await testChannel.getCurrentContext();
         const expectedObject = {
-            Id: dummyTopic,
+            Id: dummyTopic + "broadcast",
             Context: testInstrument
         };
         expect(messageRouterClient.mock.publish).toHaveBeenCalledTimes(1);
         expect(messageRouterClient.PublishedMessages.size).toBe(1);
-        expect(messageRouterClient.PublishedMessages.get(dummyTopic)).toBe(JSON.stringify(expectedObject));
-        expect(resultContext).toBe(testInstrument);
+        expect(messageRouterClient.PublishedMessages.get(dummyTopic + "broadcast")).toBe(JSON.stringify(expectedObject));
+        expect(resultContext).toEqual(testInstrument);
     });
 
     it('getCurrentContext will result the lastContext', async() => {
@@ -104,24 +104,18 @@ describe('Tests for ComposeUIListener implementation API', () => {
         expect(messageRouterClient.Subscribers.has("dummyChannelId/dummyPath/dummyBroadcast")).toBeTruthy();
     });
 
-    it('subscribe will be rejected', async() => {
-        const testListener = new ComposeUIListener(messageRouterClient, undefined, "dummyChannelId/dummyPath/", "fdc3.instrument");
-        await expect(testListener.subscribe("dummy"))
-        .rejects
-        .toEqual(new Error("No subscription have been established, due contextHandler have not been added."));
-    });
-
     it('handleContextMessage will trigger the handler', async() => {
         const testListener = new ComposeUIListener(messageRouterClient, contextMessageHandlerMock, undefined, "fdc3.instrument");
+        await testListener.subscribe("dummyChannelTopicSuffix");
         await testListener.handleContextMessage(testInstrument);
         expect(contextMessageHandlerMock).toHaveBeenCalledWith(testInstrument);
     });
 
     it('handleContextMessage will be rejected with Error as no handler', async() => {
-        const testListener = new ComposeUIListener(messageRouterClient, undefined, undefined, "fdc3.instrument");
+        const testListener = new ComposeUIListener(messageRouterClient, contextMessageHandlerMock, undefined, "fdc3.instrument");
         await expect(testListener.handleContextMessage(testInstrument))
             .rejects
-            .toEqual(new Error("The current listener is not subscribed or the context/contextHandler hasn't been added."));
+            .toEqual(new Error("The current listener is not subscribed."));
     });
 
     it('unsubscribe will be true', async() => {
@@ -132,12 +126,7 @@ describe('Tests for ComposeUIListener implementation API', () => {
     });
 
     it('unsubscribe will be false', async() => {
-        const testListener = new ComposeUIListener(messageRouterClient, undefined, undefined, "fdc3.instrument");
-        
-        await expect(testListener.subscribe("dummyChannelId"))
-        .rejects
-        .toEqual(new Error("No subscription have been established, due contextHandler have not been added."));
-
+        const testListener = new ComposeUIListener(messageRouterClient, contextMessageHandlerMock, undefined, "fdc3.instrument");
         const resultUnsubscription = testListener.unsubscribe();
         expect(resultUnsubscription).toBeFalsy();
     });

@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "target": "es2022",
+        "module": "es2022",
+        "moduleResolution": "node",
+        "declaration": true,
+        "sourceMap": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "strict": true,
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "outDir": "dist",
+        "lib": [
+            "es2022",
+            "DOM"
+        ],
+        "types": [
+            "node"
+        ]
+    }
+}

@@ -1,14 +1,13 @@
 ﻿{
-"compilerOptions": {
-    "moduleResolution": "node",
-    "types": [ "node", "jest" ],
-      "module": "commonjs",
-      "esModuleInterop": true,
-      "target": "es6",
-      "declaration": true,
-      "outDir": "output",
-      "lib": [ "es6" ],
-      "strict": true
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+      "types": [
+          "node",
+          "jest"
+      ]
   },
-  "include": [ "src/**/*.ts" ]
+  "include": [
+      "src/**/*.ts",
+      "test/**/*.ts"
+  ]
 }
