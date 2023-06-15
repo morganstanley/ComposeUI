@@ -16,20 +16,22 @@ import {
     AppIntent, 
     AppMetadata, 
     Channel, 
+    ChannelError, 
     Context, 
     ContextHandler, 
-    ContextTypes, 
     DesktopAgent, 
     ImplementationMetadata, 
     IntentHandler, 
     IntentResolution, 
     Listener, 
-    PrivateChannel } from '@finos/fdc3'
+    PrivateChannel} from '@finos/fdc3'
 import { MessageRouter } from '@morgan-stanley/composeui-messaging-client';
 import { ComposeUIChannel } from './ComposeUIChannel';
 import { ChannelType } from './ChannelType';
 import { ComposeUIListener } from './ComposeUIListener';
 
+//TODO sweep for non-standard errors
+//TODO tests
 export class ComposeUIDesktopAgent implements DesktopAgent {
     private appChannels: ComposeUIChannel[] = [];
     private userChannels: ComposeUIChannel[] = [];
@@ -74,7 +76,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
             } else {
                 resolve(this.currentChannel.broadcast(context));
             }
-        })
+        });
     }
 
     //TODO
@@ -95,7 +97,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     public addContextListener(contextType?: string | null | ContextHandler, handler?: ContextHandler): Promise<Listener> {
         return new Promise<ComposeUIListener>(async(resolve, reject) => {
             if(!this.currentChannel) {
-                reject(new Error("The current channel is null or undefined"));
+                reject(new Error("The current channel have not been set."));
                 return;
             }
             if(typeof contextType == 'function') {
@@ -117,26 +119,34 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         return Promise.resolve(this.userChannels);
     }
 
+    //TODO: should return AccessDenied error when a channel object is denied?
     public joinUserChannel(channelId: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             let channel = this.userChannels.find(innerChannel => innerChannel.id == channelId);
             if (!channel) {
-                reject(new Error("Channel couldn't be found in user channels"));
+                reject(new Error(ChannelError.NoChannelFound));
             } else {
+                //this.messageRouterClient.connect() ??
                 this.currentChannel = channel;
                 resolve();
             }
         });
     }
 
+    //TODO: should return AccesDenied error when a channel object is denied?
+    //should return a CreationFailed error when a channel cannot be created or retrieved?
     public getOrCreateChannel(channelId: string): Promise<Channel> {
         return new Promise<Channel>((resolve, reject) => {
             let channel = this.userChannels.find(innerChannel => innerChannel.id == channelId);
             if (!channel) {
-                channel = new ComposeUIChannel(channelId, "app", this.messageRouterClient); //TODO later
+                channel = new ComposeUIChannel(channelId, "app", this.messageRouterClient);
                 this.addChannel(channel);
             }
-            resolve(channel);
+            if(channel) {
+                resolve(channel);
+            } else {
+                reject(new Error(ChannelError.CreationFailed));
+            }
         });
     }
 
@@ -184,20 +194,20 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     //TODO: Revisit for private channels
     public joinChannel(channelId: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            if(this.currentChannel != null){
-                reject(new Error("The current channel is already instantiated."));
+            if(this.currentChannel){
+                reject(new Error(ChannelError.CreationFailed));
                 return;
             }
 
             let channel = this.findChannel(channelId, "user");
-            if(channel != undefined){
+            if(channel){
                 this.currentChannel = channel;
                 resolve();
                 return;
             }
 
             channel = this.findChannel(channelId, "app");
-            if(channel != undefined){
+            if(channel){
                 this.currentChannel = channel;
                 resolve();
                 return;

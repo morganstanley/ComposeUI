@@ -19,9 +19,9 @@ import { Fdc3ChannelMessage } from "./Fdc3ChannelMessage";
 import { ComposeUITopic } from "./ComposeUITopic";
 
 export class ComposeUIChannel implements Channel{
-    id!: string;
-    type!: "user" | "app" | "private";
-    displayMetadata?: DisplayMetadata | undefined;
+    id: string;
+    type: "user" | "app" | "private";
+    displayMetadata?: DisplayMetadata;
 
     private messageRouterClient!: MessageRouter;
     private lastContexts: Map<string, Context> = new Map<string, Context>();
@@ -42,15 +42,22 @@ export class ComposeUIChannel implements Channel{
     }
 
     public getCurrentContext(contextType?: string | undefined): Promise<Context | null> {
-        if (contextType != null && contextType != undefined) {
+        if (contextType) {
             return new Promise<Context>((resolve, reject) => {
-                console.log("Resolving the current context: ", contextType);
-                resolve(this.lastContexts.get(contextType)!);
+                const context = this.lastContexts.get(contextType);
+                if(context) {
+                    resolve(context);
+                } else {
+                    reject(new Error("The given contextType: " + contextType + " was not found in the saved contexts."));
+                }
             });
         } else {
             return new Promise<Context>((resolve, reject) => {
-                console.log("Resolving the current context with the last context: ", this.lastContext);
-                resolve(this.lastContext!);
+                if(this.lastContext) {
+                    resolve(this.lastContext);
+                } else {
+                    reject(new Error("The last saved context is undefined."));
+                }
             });
         }
     }
@@ -59,10 +66,10 @@ export class ComposeUIChannel implements Channel{
     public addContextListener(handler: ContextHandler): Promise<Listener>;
     public async addContextListener(contextType: any, handler?: any): Promise<Listener> {
         if(typeof contextType != 'string'){
-            throw new Error("addContextListener without contextType is depracted, please use the newer version.");
+            throw new Error("addContextListener without contextType is deprecated, please use the newer version.");
         } else {
             const listener = new ComposeUIListener(this.messageRouterClient, handler, this.id, contextType);
-            await listener.subscribe(ComposeUITopic.broadcast(this.id));
+            await listener.subscribe();
             return listener;
         };
     }

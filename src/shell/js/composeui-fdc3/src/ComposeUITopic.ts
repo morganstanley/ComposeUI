@@ -18,8 +18,4 @@ export class ComposeUITopic {
     static broadcast(topicId: string) {
         return this.userChannelTopicRoot + topicId + "/broadcast";
     }
-
-    static subscribe(channelId: string, topicId: string) {
-        return this.userChannelTopicRoot + channelId + "/" + topicId;
-    }
 }

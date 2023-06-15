@@ -3,17 +3,17 @@
   "version": "0.1.0",
   "description": "FDC3 DesktopAgent implementation for Compose UI",
   "type": "module",
-  "main": "output/index.js",
-  "module": "output/index.js",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
   "scripts": {
-    "clean": "rimraf output",
+    "clean": "rimraf dist",
     "build": "npm run clean && tsc",
     "test": "jest"
   },
   "author": "Morgan Stanley",
   "license": "Apache-2.0",
   "dependencies": {
-    "@finos/fdc3": "^2.0.1",
+    "@finos/fdc3": "^2.0.3",
     "@morgan-stanley/composeui-messaging-client": "^0.1.0-alpha.1",
     "@types/node": "^18.11.18",
     "rxjs": "^7.8.1"

@@ -29,15 +29,15 @@ export class ComposeUIListener implements Listener {
         this.messageRouterClient = messageRouterClient;
         this.handler = handler;
 
-        if (channelId != null) { 
+        if (channelId) { 
             this.channelId = channelId;
         }
 
         this.contextType = contextType;
     }
 
-    public async subscribe(topicId: string): Promise<void> { 
-        const subscribeTopic = ComposeUITopic.subscribe(this.channelId!, topicId);
+    public async subscribe(): Promise<void> { 
+        const subscribeTopic = ComposeUITopic.broadcast(this.channelId!);
         this.unsubscribable = await this.messageRouterClient.subscribe(subscribeTopic, (topicMessage: TopicMessage) => {
             //TODO: integration test to it
             const fdc3Message = new Fdc3ChannelMessage(topicMessage.topic, JSON.parse(topicMessage.payload!)); //Id: {{channelName}/{operation}} -> topicRoot

@@ -17,7 +17,7 @@ import { MessageRouter } from '@morgan-stanley/composeui-messaging-client';
 import { ComposeUIListener } from './ComposeUIListener';
 import { ComposeUIDesktopAgent } from '.';
 import { ComposeUITopic } from './ComposeUITopic';
-import { Channel } from '@finos/fdc3';
+import { Channel, ChannelError } from '@finos/fdc3';
 import { Fdc3ChannelMessage } from './Fdc3ChannelMessage';
 
 let messageRouterClient: MessageRouter= {
@@ -57,10 +57,6 @@ describe('Tests for ComposeUIChannel implementation API', () => {
         const testChannel = new ComposeUIChannel(dummyTopic, "user", messageRouterClient);
         await testChannel.broadcast(testInstrument);
         const resultContext = await testChannel.getCurrentContext();
-        const expectedObject = {
-            Id: dummyTopic,
-            Context: testInstrument
-        };
         expect(messageRouterClient.publish).toHaveBeenCalledTimes(1);
         expect(messageRouterClient.publish).toHaveBeenCalledWith(ComposeUITopic.broadcast(dummyTopic), JSON.stringify(new Fdc3ChannelMessage(dummyTopic, testInstrument)));
         expect(resultContext).toMatchObject(testInstrument);
@@ -85,6 +81,20 @@ describe('Tests for ComposeUIChannel implementation API', () => {
         expect(resultContext).toBe(testInstrument2);
     });
 
+    it('getCurrentContext will fail as per the given contextType couldnt be found in the saved contexts', async() =>{
+        const testChannel = new ComposeUIChannel(dummyTopic, "user", messageRouterClient);
+        await expect(testChannel.getCurrentContext("dummyContextType"))
+            .rejects
+            .toThrow("The given contextType: dummyContextType was not found in the saved contexts.");
+    });
+
+    it('getCurrentContext will fail as per the last context is undefined', async() =>{
+        const testChannel = new ComposeUIChannel(dummyTopic, "user", messageRouterClient);
+        await expect(testChannel.getCurrentContext())
+            .rejects
+            .toThrow("The last saved context is undefined.");
+    });
+
     it('addContextListener will result a ComposeUIListener', async() => {
         const testChannel = new ComposeUIChannel(dummyTopic, "user", messageRouterClient);
         const resultListener = await testChannel.addContextListener('fdc3.instrument', instrument => {
@@ -97,7 +107,7 @@ describe('Tests for ComposeUIChannel implementation API', () => {
         const testChannel = new ComposeUIChannel(dummyTopic, "user", messageRouterClient);
         await expect(testChannel.addContextListener(null, instrument => {}))
             .rejects
-            .toThrow("addContextListener without contextType is depracted, please use the newer version.");
+            .toThrow("addContextListener without contextType is deprecated, please use the newer version.");
     });
 });
 
@@ -105,14 +115,14 @@ describe('Tests for ComposeUIListener implementation API', () => {
 
     it('subscribe will call messagerouter subscribe method', async() => {
         const testListener = new ComposeUIListener(messageRouterClient, instrument => { console.log(instrument); }, "dummyChannelId", "fdc3.instrument");
-        await testListener.subscribe("dummyBroadcast");
+        await testListener.subscribe();
         expect(messageRouterClient.subscribe).toHaveBeenCalledTimes(1);
-        //expect(messageRouterClient.subscribe).toHaveBeenCalledWith(ComposeUITopic.subscribe("dummyChannelId", "dummyBroadcast"), jest.fn());
+        //expect(messageRouterClient.subscribe).toHaveBeenCalledWith(ComposeUITopic.broadcast("dummyChannelId"), jest.fn());
     });
 
     it('handleContextMessage will trigger the handler', async() => {
         const testListener = new ComposeUIListener(messageRouterClient, contextMessageHandlerMock, undefined, "fdc3.instrument");
-        await testListener.subscribe("dummyChannelTopicSuffix");
+        await testListener.subscribe();
         await testListener.handleContextMessage(testInstrument);
         expect(contextMessageHandlerMock).toHaveBeenCalledWith(testInstrument);
     });
@@ -126,7 +136,7 @@ describe('Tests for ComposeUIListener implementation API', () => {
 
     it('unsubscribe will be true', async() => {
         const testListener = new ComposeUIListener(messageRouterClient, contextMessageHandlerMock, "dummyChannelId", "fdc3.instrument");
-        await testListener.subscribe("dummyChannelId");
+        await testListener.subscribe();
         const resultUnsubscription = testListener.unsubscribe();
         expect(resultUnsubscription).toBeTruthy();
     });
@@ -159,16 +169,18 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
     it('addContextListener will trigger messageRouter subscribe method', async() => {
         const testDesktopAgent = new ComposeUIDesktopAgent("dummyPath", messageRouterClient);
         await testDesktopAgent.joinUserChannel("dummyPath");
+        await testDesktopAgent.broadcast(testInstrument); //this will set the last context
         const resultListener = await testDesktopAgent.addContextListener("fdc3.instrument", contextMessageHandlerMock);
         expect(resultListener).toBeInstanceOf(ComposeUIListener);
         expect(messageRouterClient.subscribe).toBeCalledTimes(1);
+        //expect(messageRouterClient.subscribe).toHaveBeenCalledWith({Id: "dummyPath", Context: {type: fdc3.instrument", id: { ticker: "AAPL"} }});
     });
 
     it('addContextListener will fail as per the current channel is not defined', async() => {
         const testDesktopAgent = new ComposeUIDesktopAgent("dummyPath", messageRouterClient);
         await expect(testDesktopAgent.addContextListener("fdc3.instrument", contextMessageHandlerMock))
             .rejects
-            .toThrow("The current channel is null or undefined");
+            .toThrow("The current channel have not been set.");
         expect(messageRouterClient.subscribe).toBeCalledTimes(0);
     });
 
@@ -198,7 +210,7 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
         const testDesktopAgent = new ComposeUIDesktopAgent("dummyPath", messageRouterClient);
         await expect(testDesktopAgent.joinUserChannel("dummyPath2"))
             .rejects
-            .toThrow("Channel couldn't be found in user channels");
+            .toThrow(ChannelError.NoChannelFound);
     });
 
     it('getOrCreateChannel will create a new APP channel', async() => {
@@ -256,6 +268,6 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
         await testDesktopAgent.joinChannel("dummyPath");
         await expect(testDesktopAgent.joinChannel("dummyNewNewId"))
             .rejects
-            .toThrow("The current channel is already instantiated.");
+            .toThrow(ChannelError.CreationFailed);
     });
 });
