@@ -43,7 +43,7 @@ public interface IMessageRouter : IAsyncDisposable
     /// <param name="subscriber"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    ValueTask<IDisposable> SubscribeAsync(
+    ValueTask<IAsyncDisposable> SubscribeAsync(
         string topic,
         IAsyncObserver<TopicMessage> subscriber,
         CancellationToken cancellationToken = default);

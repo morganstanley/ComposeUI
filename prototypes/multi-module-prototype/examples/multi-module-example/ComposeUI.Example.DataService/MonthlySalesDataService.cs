@@ -19,11 +19,11 @@ using MorganStanley.ComposeUI.Messaging;
 
 namespace ComposeUI.Example.DataService
 {
-    internal class MonthlySalesDataService : IDisposable
+    internal class MonthlySalesDataService : IAsyncDisposable
     {
         private readonly IMessageRouter _messageRouter;
         private readonly ILogger<MonthlySalesDataService>? _logger;
-        private readonly List<IDisposable> _subscriptions = new();
+        private readonly List<IAsyncDisposable> _subscriptions = new();
 
         public MonthlySalesDataService(IMessageRouter messageRouter, ILogger<MonthlySalesDataService>? logger = null)
         {
@@ -84,12 +84,11 @@ namespace ComposeUI.Example.DataService
             return default;
         }
 
-        public void Dispose()
+        public ValueTask DisposeAsync()
         {
-            foreach (var subscription in _subscriptions)
-            {
-                subscription.Dispose();
-            }
+            return new ValueTask(
+                Task.WhenAll(
+                    _subscriptions.Select(x => x.DisposeAsync().AsTask())));
         }
 
         private class SymbolSelectedModel

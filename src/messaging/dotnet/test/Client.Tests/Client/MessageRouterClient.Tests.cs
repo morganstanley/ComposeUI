@@ -281,7 +281,43 @@ public class MessageRouterClientTests : IAsyncLifetime
                     msg => msg.Topic == "test-topic" && msg.Payload!.GetString() == "payload2")));
     }
 
-    [Fact(Skip = "TODO")]
+    [Fact]
+    public async Task Topic_extension_sends_a_Subscribe_message_on_first_subscription()
+    {
+        await using var messageRouter = CreateMessageRouter();
+
+        var topic = messageRouter.Topic("test-topic");
+        await using var sub1 = await topic.SubscribeAsync(_ => { });
+
+        _connectionMock.Expect<SubscribeMessage>(msg => msg.Topic == "test-topic", Times.Once);
+        _connectionMock.Invocations.Clear();
+
+        await using var sub2 = await topic.SubscribeAsync(_ => { });
+
+        _connectionMock.Expect<SubscribeMessage>(msg => msg.Topic == "test-topic", Times.Never);
+    }
+
+    [Fact]
+    public async Task Topic_extension_sends_an_Unsubscribe_message_after_the_last_subscription_is_disposed()
+    {
+        await using var messageRouter = CreateMessageRouter();
+
+        var topic = messageRouter.Topic("test-topic");
+        var sub1 = await topic.SubscribeAsync(_ => { });
+        var sub2 = await topic.SubscribeAsync(_ => { });
+        await TaskExtensions.WaitForBackgroundTasksAsync();
+        await sub1.DisposeAsync();
+        await TaskExtensions.WaitForBackgroundTasksAsync();
+
+        _connectionMock.Expect<UnsubscribeMessage>(msg => msg.Topic == "test-topic", Times.Never);
+
+        await sub2.DisposeAsync();
+        await TaskExtensions.WaitForBackgroundTasksAsync();
+
+        _connectionMock.Expect<UnsubscribeMessage>(msg => msg.Topic == "test-topic", Times.Once);
+    }
+
+    [Fact]
     public async Task When_the_last_subscription_is_disposed_it_sends_an_Unsubscribe_message()
     {
         await using var messageRouter = CreateMessageRouter();
@@ -290,13 +326,13 @@ public class MessageRouterClientTests : IAsyncLifetime
         var sub1 = await messageRouter.SubscribeAsync("test-topic", subscriber.Object);
         var sub2 = await messageRouter.SubscribeAsync("test-topic", subscriber.Object);
         var sub3 = await messageRouter.SubscribeAsync("test-topic", subscriber.Object);
-        sub1.Dispose();
-        sub2.Dispose();
+        await sub1.DisposeAsync();
+        await sub2.DisposeAsync();
         await TaskExtensions.WaitForBackgroundTasksAsync();
 
         _connectionMock.Expect<UnsubscribeMessage>(Times.Never);
 
-        sub3.Dispose();
+        await sub3.DisposeAsync();
         await TaskExtensions.WaitForBackgroundTasksAsync();
 
         _connectionMock.Expect<UnsubscribeMessage>(msg => msg.Topic == "test-topic", Times.Once);

@@ -14,6 +14,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
+using MorganStanley.ComposeUI.Messaging.Internal;
 
 namespace MorganStanley.ComposeUI.Messaging;
 
@@ -110,7 +111,8 @@ public static class MessageRouterExtensions
                 return default;
             });
 
-        return messageRouter.SubscribeAsync(topic, innerSubscriber, cancellationToken);
+        return Disposable.FromAsyncDisposable(
+            messageRouter.SubscribeAsync(topic, innerSubscriber, cancellationToken));
     }
 
     /// <summary>
@@ -149,7 +151,8 @@ public static class MessageRouterExtensions
                 return default;
             });
 
-        return messageRouter.SubscribeAsync(topic, innerSubscriber, cancellationToken);
+        return Disposable.FromAsyncDisposable(
+            messageRouter.SubscribeAsync(topic, innerSubscriber, cancellationToken));
     }
 
     /// <summary>
@@ -161,7 +164,7 @@ public static class MessageRouterExtensions
     /// <param name="subscriber"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static ValueTask<IDisposable> SubscribeAsync(
+    public static ValueTask<IAsyncDisposable> SubscribeAsync(
         this IMessageRouter messageRouter,
         string topic,
         IAsyncObserver<string?> subscriber,
@@ -189,7 +192,7 @@ public static class MessageRouterExtensions
     {
         var channel = Channel.CreateUnbounded<TopicMessage>();
 
-        using var subscription = await messageRouter.SubscribeAsync(
+        await using var subscription = await messageRouter.SubscribeAsync(
             topic,
             AsyncObserver.Create<TopicMessage>(
                 onNextAsync: message => channel.Writer.WriteAsync(message, cancellationToken),
