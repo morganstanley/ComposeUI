@@ -54,6 +54,20 @@ public class MessageBufferJsonExtensionsTests
                 });
     }
 
+    [Fact]
+    public void CreateJson_creates_a_MessageBuffer_with_the_JSON_string()
+    {
+        var payload = new TestPayload
+        {
+            Name = "test-name",
+            Value = "test-value"
+        };
+
+        var buffer = MessageBuffer.Factory.CreateJson(payload);
+
+        JsonSerializer.Deserialize<TestPayload>(buffer.GetString()).Should().BeEquivalentTo(payload);
+    }
+
     private class TestPayload
     {
         public string Name { get; set; }
