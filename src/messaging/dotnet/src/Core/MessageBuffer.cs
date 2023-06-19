@@ -15,6 +15,7 @@ using System.Buffers.Text;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using CommunityToolkit.HighPerformance.Buffers;
 
 namespace MorganStanley.ComposeUI.Messaging;
 
@@ -53,16 +54,9 @@ public sealed class MessageBuffer : IDisposable
     /// <returns>True, if the decoding was successful, False otherwise.</returns>
     public bool TryGetBase64Bytes(IBufferWriter<byte> bufferWriter)
     {
-        var utf8Span = new Span<byte>(_bytes, 0, _length);
-        var span = bufferWriter.GetSpan(Base64.GetMaxDecodedFromUtf8Length(utf8Span.Length));
-        var status = Base64.DecodeFromUtf8(utf8Span, span, out _, out var bytesWritten);
+        ThrowIfDisposed();
 
-        if (status != OperationStatus.Done)
-            return false;
-
-        bufferWriter.Advance(bytesWritten);
-
-        return true;
+        return TryGetBase64BytesCore(bufferWriter);
     }
 
     /// <summary>
@@ -124,6 +118,11 @@ public sealed class MessageBuffer : IDisposable
     }
 
     /// <summary>
+    /// Acts as a stub for extensions methods that create <see cref="MessageBuffer"/> instances with various formats.
+    /// </summary>
+    public static MessageBufferFactory Factory { get; } = new();
+
+    /// <summary>
     ///     Creates a new <see cref="MessageBuffer" /> from a string.
     /// </summary>
     /// <param name="value"></param>
@@ -160,6 +159,14 @@ public sealed class MessageBuffer : IDisposable
 
         return new MessageBuffer(buffer, utf8Bytes.Length);
     }
+
+    /// <summary>
+    ///     Creates a new <see cref="MessageBuffer" /> from a memory block containing the raw UTF8 bytes.
+    /// </summary>
+    /// <param name="utf8Bytes"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException">The content of the buffer is not a valid UTF8 byte sequence.</exception>
+    public static MessageBuffer Create(ReadOnlyMemory<byte> utf8Bytes) => Create(utf8Bytes.Span);
 
     /// <summary>
     ///     Creates a new <see cref="MessageBuffer" /> from a sequence containing the raw UTF8 bytes.
@@ -248,6 +255,25 @@ public sealed class MessageBuffer : IDisposable
     }
 
     /// <summary>
+    /// Returns an <see cref="ArrayPoolBufferWriter{T}"/> that can be used to build byte arrays in a memory-efficient way.
+    /// </summary>
+    /// <returns></returns>
+    public static ArrayPoolBufferWriter<byte> GetBufferWriter()
+    {
+        return new ArrayPoolBufferWriter<byte>(Pool);
+    }
+
+    /// <summary>
+    /// Returns an <see cref="ArrayPoolBufferWriter{T}"/> that can be used to build byte arrays in a memory-efficient way.
+    /// </summary>
+    /// <param name="capacity">The initial capacity of the buffer</param>
+    /// <returns></returns>
+    public static ArrayPoolBufferWriter<byte> GetBufferWriter(int capacity)
+    {
+        return new ArrayPoolBufferWriter<byte>(Pool, capacity);
+    }
+
+    /// <summary>
     ///     Creates a new <see cref="MessageBuffer" /> using the provided buffer.
     ///     The buffer must have been allocated by calling <see cref="MessageBuffer.GetBuffer" />
     /// </summary>
@@ -304,6 +330,20 @@ public sealed class MessageBuffer : IDisposable
         }
     }
 
+    private bool TryGetBase64BytesCore(IBufferWriter<byte> bufferWriter)
+    {
+        var utf8Span = new Span<byte>(_bytes, 0, _length);
+        var span = bufferWriter.GetSpan(Base64.GetMaxDecodedFromUtf8Length(utf8Span.Length));
+        var status = Base64.DecodeFromUtf8(utf8Span, span, out _, out var bytesWritten);
+
+        if (status != OperationStatus.Done)
+            return false;
+
+        bufferWriter.Advance(bytesWritten);
+
+        return true;
+    }
+
     ~MessageBuffer()
     {
         DisposeCore();
@@ -311,9 +351,16 @@ public sealed class MessageBuffer : IDisposable
 
     private static readonly UTF8Encoding Encoding = new(false, true);
 
+    /// <summary>
+    /// <seealso cref="MessageBuffer.Factory"/>
+    /// </summary>
+    public sealed class MessageBufferFactory
+    {
+    }
+
     private static class ThrowHelper
     {
-        public static InvalidOperationException InvalidBase64()
+        public static FormatException InvalidBase64()
         {
             return new("The current buffer is not Base64-encoded");
         }

@@ -37,16 +37,21 @@ public static class MessageBufferJsonExtensions
     /// <summary>
     /// Creates a <see cref="MessageBuffer"/> from the provided value serialized to JSON.
     /// </summary>
+    /// <param name="factory"></param>
     /// <param name="value"></param>
     /// <param name="options"></param>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public static MessageBuffer CreateJson<T>(T value, JsonSerializerOptions? options = null)
+    public static MessageBuffer CreateJson<T>(
+        this MessageBuffer.MessageBufferFactory factory,
+        T value,
+        JsonSerializerOptions? options = null)
     {
-        using var stream = new RecyclableMemoryStream(RecyclableMemoryStreamManager);
-        JsonSerializer.Serialize(stream, value, options);
-        return MessageBuffer.Create(stream.GetReadOnlySequence());
+        using var bufferWriter = MessageBuffer.GetBufferWriter();
+        using var jsonWriter = new Utf8JsonWriter(bufferWriter);
+        JsonSerializer.Serialize(jsonWriter, value, options);
+        jsonWriter.Flush();
+        
+        return MessageBuffer.Create(bufferWriter.WrittenMemory);
     }
-
-    private static readonly RecyclableMemoryStreamManager RecyclableMemoryStreamManager = new();
 }

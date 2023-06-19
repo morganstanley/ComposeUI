@@ -11,6 +11,7 @@
 // and limitations under the License.
 
 using System.Buffers;
+using System.Buffers.Text;
 using System.Text;
 using MorganStanley.ComposeUI.Messaging.TestUtils;
 
@@ -29,6 +30,15 @@ public class MessageBufferTests
         buffer.GetString().Should().Be(input);
     }
 
+    [Fact]
+    public void GetString_throws_if_disposed()
+    {
+        var buffer = MessageBuffer.Create("x");
+        buffer.Dispose();
+
+        Assert.Throws<ObjectDisposedException>(() => buffer.GetString());
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData(StringConstants.LoremIpsum)]
@@ -39,6 +49,15 @@ public class MessageBufferTests
         var span = buffer.GetSpan();
 
         span.ToArray().Should().Equal(Encoding.UTF8.GetBytes(input));
+    }
+
+    [Fact]
+    public void GetSpan_throws_if_disposed()
+    {
+        var buffer = MessageBuffer.Create("x");
+        buffer.Dispose();
+
+        Assert.Throws<ObjectDisposedException>(() => buffer.GetSpan());
     }
 
     [Theory]
@@ -63,6 +82,58 @@ public class MessageBufferTests
         var span = buffer.GetSpan();
 
         span.ToArray().Should().Equal(bytes);
+    }
+
+    [Fact]
+    public void TryGetBase64Bytes_gets_the_decoded_bytes_and_returns_true_when_the_data_is_valid_Base64()
+    {
+        var bytes = GetRandomBytes(100);
+        var base64String = Convert.ToBase64String(bytes);
+        var bufferWriter = new ArrayBufferWriter<byte>();
+        var buffer = MessageBuffer.Create(base64String);
+
+        buffer.TryGetBase64Bytes(out var decodedBytes).Should().BeTrue();
+        buffer.TryGetBase64Bytes(bufferWriter).Should().BeTrue();
+        decodedBytes.Should().Equal(bytes);
+        bufferWriter.WrittenMemory.ToArray().Should().Equal(bytes);
+    }
+
+    [Fact]
+    public void TryGetBase64Bytes_throws_if_disposed()
+    {
+        var buffer = MessageBuffer.Create("x");
+        buffer.Dispose();
+
+        Assert.Throws<ObjectDisposedException>(() => buffer.TryGetBase64Bytes(out _));
+        Assert.Throws<ObjectDisposedException>(() => buffer.TryGetBase64Bytes(new ArrayBufferWriter<byte>()));
+    }
+
+    [Fact]
+    public void GetBase64Bytes_throws_if_disposed()
+    {
+        var buffer = MessageBuffer.Create("x");
+        buffer.Dispose();
+
+        Assert.Throws<ObjectDisposedException>(() => buffer.GetBase64Bytes());
+        Assert.Throws<ObjectDisposedException>(() => buffer.GetBase64Bytes(new ArrayBufferWriter<byte>()));
+    }
+
+    [Fact]
+    public void TryGetBase64Bytes_returns_false_if_the_data_is_not_valid_Base64()
+    {
+        var buffer = MessageBuffer.Create("****");
+
+        buffer.TryGetBase64Bytes(out _).Should().BeFalse();
+        buffer.TryGetBase64Bytes(new ArrayBufferWriter<byte>()).Should().BeFalse();
+    }
+
+    [Fact]
+    public void GetBase64Bytes_throws_if_the_data_is_not_valid_Base64()
+    {
+        var buffer = MessageBuffer.Create("****");
+        
+        Assert.Throws<FormatException>(() => buffer.GetBase64Bytes());
+        Assert.Throws<FormatException>(() => buffer.GetBase64Bytes(new ArrayBufferWriter<byte>()));
     }
 
     [Fact]
