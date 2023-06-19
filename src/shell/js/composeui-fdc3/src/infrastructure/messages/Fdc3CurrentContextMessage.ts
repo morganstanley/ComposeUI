@@ -11,11 +11,10 @@
  *  
  */
 
-export class ComposeUITopic {
-    private static readonly topicRoot = "composeui/fdc3/v2.0/";
-    private static readonly userChannelTopicRoot: string = this.topicRoot + "userchannels/";
+export class Fdc3CurrentContextMessage {
+    contextType: string;
 
-    static broadcast(topicId: string) {
-        return this.userChannelTopicRoot + topicId + "/broadcast";
+    constructor(contextType: string) {
+        this.contextType = contextType;
     }
 }

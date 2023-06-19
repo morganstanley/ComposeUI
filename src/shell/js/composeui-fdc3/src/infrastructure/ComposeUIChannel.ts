@@ -15,7 +15,7 @@ import { Channel, Context, ContextHandler, DisplayMetadata, Listener } from "@fi
 import { MessageRouter } from "@morgan-stanley/composeui-messaging-client";
 import { ChannelType } from "./ChannelType";
 import { ComposeUIListener } from "./ComposeUIListener";
-import { Fdc3ChannelMessage } from "./Fdc3ChannelMessage";
+import { Fdc3ChannelMessage } from "./messages/Fdc3ChannelMessage";
 import { ComposeUITopic } from "./ComposeUITopic";
 
 export class ComposeUIChannel implements Channel{
@@ -32,44 +32,53 @@ export class ComposeUIChannel implements Channel{
         this.type = type;
         this.messageRouterClient = messageRouterClient;
     }
-
-    public broadcast(context: Context): Promise<void> {
+    
+    //TODO: broadcast on both appchannels and userchannels they are subscribed.
+    public async broadcast(context: Context): Promise<void> {
         //Setting the last published context message.
         this.lastContexts.set(context.type, context);
         this.lastContext = context;
-        const fdc3Message = new Fdc3ChannelMessage(this.id, context);
-        return this.messageRouterClient.publish(ComposeUITopic.broadcast(this.id), JSON.stringify(fdc3Message));
+
+        //TODO: more topic message will be created
+        const message = JSON.stringify(new Fdc3ChannelMessage(this.id, context));
+        await this.messageRouterClient.publish(ComposeUITopic.broadcast(this.id), message);
     }
 
     public getCurrentContext(contextType?: string | undefined): Promise<Context | null> {
-        if (contextType) {
-            return new Promise<Context>((resolve, reject) => {
-                const context = this.lastContexts.get(contextType);
-                if(context) {
-                    resolve(context);
-                } else {
-                    reject(new Error("The given contextType: " + contextType + " was not found in the saved contexts."));
+        return new Promise<Context>(async (resolve, reject) => {
+            let context: Context | undefined;
+            if (contextType) {
+                context = this.lastContexts.get(contextType);
+                if (!context){
+                    reject(new Error(`The given contextType: ${contextType} was not found in the saved contexts.`));
                 }
-            });
-        } else {
-            return new Promise<Context>((resolve, reject) => {
-                if(this.lastContext) {
-                    resolve(this.lastContext);
-                } else {
-                    reject(new Error("The last saved context is undefined."));
-                }
-            });
-        }
+            } else {
+                context = this.lastContext;
+            }
+            resolve(context!);
+        });
     }
 
     public addContextListener(contextType: string | null, handler: ContextHandler): Promise<Listener>;
     public addContextListener(handler: ContextHandler): Promise<Listener>;
     public async addContextListener(contextType: any, handler?: any): Promise<Listener> {
-        if(typeof contextType != 'string'){
-            throw new Error("addContextListener without contextType is deprecated, please use the newer version.");
+        if(typeof contextType != 'string' && contextType != null){
+            throw new Error("addContextListener with contextType as ContextHandler is deprecated, please use the newer version.");
         } else {
             const listener = new ComposeUIListener(this.messageRouterClient, handler, this.id, contextType);
             await listener.subscribe();
+
+            await this.getCurrentContext(contextType)
+                .then(async (resultContext) => {
+                    listener.LatestContext = await this.getCurrentContext(contextType);
+                    if(resultContext != listener.LatestContext) {
+                        //TODO: test
+                        await listener.handleContextMessage();
+                    } else {
+                        await listener.handleContextMessage(resultContext);
+                    }
+                }); //TODO: what happens whe a broadcasted message arrives between 2 points,
+
             return listener;
         };
     }

@@ -26,12 +26,11 @@ import {
     Listener, 
     PrivateChannel} from '@finos/fdc3'
 import { MessageRouter } from '@morgan-stanley/composeui-messaging-client';
-import { ComposeUIChannel } from './ComposeUIChannel';
-import { ChannelType } from './ChannelType';
-import { ComposeUIListener } from './ComposeUIListener';
+import { ComposeUIChannel } from './infrastructure/ComposeUIChannel';
+import { ChannelType } from './infrastructure/ChannelType';
+import { ComposeUIListener } from './infrastructure/ComposeUIListener';
 
 //TODO sweep for non-standard errors
-//TODO tests
 export class ComposeUIDesktopAgent implements DesktopAgent {
     private appChannels: ComposeUIChannel[] = [];
     private userChannels: ComposeUIChannel[] = [];
@@ -106,10 +105,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
             }
             contextType = contextType as string ?? null; 
             
-            //Resolving the task of subscription to the messageRouter server.
             const listener = <ComposeUIListener>await this.currentChannel!.addContextListener(contextType, handler!);
-            const context = await this.currentChannel.getCurrentContext(contextType); //TODO: what happens whe a broadcasted message arrives between 2 points
-            await listener.handleContextMessage(context!);
             this.currentChannelListeners.push(listener);
             resolve(listener);
         });
@@ -126,27 +122,22 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
             if (!channel) {
                 reject(new Error(ChannelError.NoChannelFound));
             } else {
-                //this.messageRouterClient.connect() ??
                 this.currentChannel = channel;
                 resolve();
             }
         });
     }
 
-    //TODO: should return AccesDenied error when a channel object is denied?
-    //should return a CreationFailed error when a channel cannot be created or retrieved?
+    //TODO: should return AccessDenied error when a channel object is denied
+    //TODO: should return a CreationFailed error when a channel cannot be created or retrieved (channelId failure)
     public getOrCreateChannel(channelId: string): Promise<Channel> {
         return new Promise<Channel>((resolve, reject) => {
-            let channel = this.userChannels.find(innerChannel => innerChannel.id == channelId);
+            let channel = this.appChannels.find(innerChannel => innerChannel.id == channelId);
             if (!channel) {
                 channel = new ComposeUIChannel(channelId, "app", this.messageRouterClient);
                 this.addChannel(channel);
             }
-            if(channel) {
-                resolve(channel);
-            } else {
-                reject(new Error(ChannelError.CreationFailed));
-            }
+            resolve(channel);
         });
     }
 
@@ -213,16 +204,16 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
                 return;
             }
 
-            // channel = this.findChannel(channelId, ComposeUIChannelType.Private);
-            // if(channel != null && channel != undefined){
-            //     this.currentChannel = channel;
-            //     resolve();
-            //     return;
-            // }
+            channel = this.findChannel(channelId, "private");
+            if(channel){
+                this.currentChannel = channel;
+                resolve();
+                return;
+            }
 
             if(!channel)
             {
-                reject(new Error("No channel is found with id: " + channelId));
+                reject(new Error(`No channel is found with id: ${channelId}`));
                 return;
             }
         });

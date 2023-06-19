@@ -12,13 +12,13 @@
  */
 
 import { jest } from '@jest/globals';
-import { ComposeUIChannel } from './ComposeUIChannel';
+import { ComposeUIChannel } from './infrastructure/ComposeUIChannel';
 import { MessageRouter } from '@morgan-stanley/composeui-messaging-client';
-import { ComposeUIListener } from './ComposeUIListener';
+import { ComposeUIListener } from './infrastructure/ComposeUIListener';
 import { ComposeUIDesktopAgent } from '.';
-import { ComposeUITopic } from './ComposeUITopic';
-import { Channel, ChannelError } from '@finos/fdc3';
-import { Fdc3ChannelMessage } from './Fdc3ChannelMessage';
+import { ComposeUITopic } from './infrastructure/ComposeUITopic';
+import { Channel, ChannelError, Context, Listener } from '@finos/fdc3';
+import { Fdc3ChannelMessage } from './infrastructure/messages/Fdc3ChannelMessage';
 
 let messageRouterClient: MessageRouter= {
     subscribe: jest.fn(() => {
@@ -88,26 +88,37 @@ describe('Tests for ComposeUIChannel implementation API', () => {
             .toThrow("The given contextType: dummyContextType was not found in the saved contexts.");
     });
 
-    it('getCurrentContext will fail as per the last context is undefined', async() =>{
+    it('addContextListener will result a ComposeUIListener and get the latest result of broadcast', async() => {
         const testChannel = new ComposeUIChannel(dummyTopic, "user", messageRouterClient);
-        await expect(testChannel.getCurrentContext())
-            .rejects
-            .toThrow("The last saved context is undefined.");
+        await testChannel.broadcast(testInstrument);
+        const testInstrument2 = {
+            type: 'fdc3.instrument',
+            id: {
+                ticker: 'SMSN'
+            }
+        };
+        testChannel.broadcast(testInstrument2);
+        let resultInstrument: any = undefined;
+        const resultListener = await testChannel.addContextListener(null, instrument => {
+            resultInstrument = instrument;
+        });
+        expect(resultListener).toBeInstanceOf(ComposeUIListener);
+        expect(resultInstrument.id.ticker).toBe("SMSN");
     });
 
     it('addContextListener will result a ComposeUIListener', async() => {
         const testChannel = new ComposeUIChannel(dummyTopic, "user", messageRouterClient);
-        const resultListener = await testChannel.addContextListener('fdc3.instrument', instrument => {
-            console.log(instrument);
-        });
+        await testChannel.broadcast(testInstrument);
+        const resultListener = await testChannel.addContextListener('fdc3.instrument', contextMessageHandlerMock);
         expect(resultListener).toBeInstanceOf(ComposeUIListener);
+        expect(contextMessageHandlerMock).toBeCalled();
     });
 
-    it('addContextListener will fail as per no contexTypet will be set', async() => {
+    it('addContextListener will fail as per contexType is ContextHandler', async() => {
         const testChannel = new ComposeUIChannel(dummyTopic, "user", messageRouterClient);
-        await expect(testChannel.addContextListener(null, instrument => {}))
+        await expect(testChannel.addContextListener(test => {}))
             .rejects
-            .toThrow("addContextListener without contextType is deprecated, please use the newer version.");
+            .toThrow("addContextListener with contextType as ContextHandler is deprecated, please use the newer version.");
     });
 });
 
@@ -125,6 +136,21 @@ describe('Tests for ComposeUIListener implementation API', () => {
         await testListener.subscribe();
         await testListener.handleContextMessage(testInstrument);
         expect(contextMessageHandlerMock).toHaveBeenCalledWith(testInstrument);
+    });
+
+    it('handleContextMessage will resolve the LatestContext saved for ComposeUIListener', async() => {
+        const testListener = new ComposeUIListener(messageRouterClient, contextMessageHandlerMock, undefined, "fdc3.instrument");
+        await testListener.subscribe();
+        testListener.LatestContext = testInstrument;
+        await testListener.handleContextMessage();
+        expect(contextMessageHandlerMock).toHaveBeenCalledWith(testListener.LatestContext);
+    });
+
+    it('handleContextMessage will resolve an empty context', async() => {
+        const testListener = new ComposeUIListener(messageRouterClient, contextMessageHandlerMock, undefined, "fdc3.instrument");
+        await testListener.subscribe();
+        await testListener.handleContextMessage();
+        expect(contextMessageHandlerMock).toHaveBeenCalledWith({type: ""});
     });
 
     it('handleContextMessage will be rejected with Error as no handler', async() => {
