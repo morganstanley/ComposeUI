@@ -25,11 +25,11 @@ namespace MorganStanley.ComposeUI.Messaging.Client;
 internal sealed class MessageRouterClient : IMessageRouter
 {
     public MessageRouterClient(
-        IConnection connection,
+        IConnectionFactory connectionFactory,
         MessageRouterOptions options,
         ILogger<MessageRouterClient>? logger = null)
     {
-        _connection = connection;
+        _connection = connectionFactory.CreateConnection();
         _options = options;
         _logger = logger ?? NullLogger<MessageRouterClient>.Instance;
     }

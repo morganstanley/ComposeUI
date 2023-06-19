@@ -28,7 +28,7 @@ public static class MessageRouterBuilderInProcessExtensions
     /// <returns></returns>
     public static MessageRouterBuilder UseServer(this MessageRouterBuilder builder)
     {
-        builder.ServiceCollection.AddTransient<IConnection, InProcessConnection>();
+        builder.ServiceCollection.AddSingleton<IConnectionFactory, InProcessConnectionFactory>();
 
         return builder;
     }

@@ -14,8 +14,6 @@ using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
 namespace MorganStanley.ComposeUI.Messaging.Client.Abstractions;
 
-// TODO: Add IConnectionFactory abstraction to adhere to DI best practices
-
 /// <summary>
 /// Represents a connection that can communicate with the server.
 /// </summary>

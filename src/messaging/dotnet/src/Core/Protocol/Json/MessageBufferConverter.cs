@@ -28,13 +28,15 @@ internal class MessageBufferConverter : JsonConverter<MessageBuffer>
                 return null;
 
             case JsonTokenType.String:
-                {
-                    var length = reader.HasValueSequence ? checked((int)reader.ValueSequence.Length) : reader.ValueSpan.Length;
-                    var buffer = MessageBuffer.GetBuffer(length);
-                    length = reader.CopyString(buffer);
+            {
+                var length = reader.HasValueSequence
+                    ? checked((int) reader.ValueSequence.Length)
+                    : reader.ValueSpan.Length;
+                var buffer = MessageBuffer.GetBuffer(length);
+                length = reader.CopyString(buffer);
 
-                    return new MessageBuffer(buffer, length);
-                }
+                return new MessageBuffer(buffer, length);
+            }
         }
 
         throw new JsonException();
