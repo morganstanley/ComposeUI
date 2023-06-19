@@ -11,22 +11,22 @@
 // and limitations under the License.
 
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using Google.Protobuf.Collections;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Connections;
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Modules;
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Registrations;
+using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities;
+using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Extensions;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Infrastructure;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Logging;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Processes;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Subsystems;
 using MorganStanley.ComposeUI.ProcessExplorer.Server.Logging;
-using MorganStanley.ComposeUI.ProcessExplorer.Server.Server.Helper;
 using ProcessExplorer.Abstractions.Infrastructure.Protos;
 
 namespace MorganStanley.ComposeUI.ProcessExplorer.Server.Server.Infrastructure.Grpc;
 
+[ExcludeFromCodeCoverage]
 internal class GrpcUiHandler : IUiHandler
 {
     private readonly object _uiHandlersLock = new();
@@ -37,10 +37,10 @@ internal class GrpcUiHandler : IUiHandler
         ILogger? logger = null)
     {
         _logger = logger ?? NullLogger.Instance;
-        _uiHandlers = new ();
+        _uiHandlers = new();
     }
-    
-    public Task AddConnections(string assemblyId, IEnumerable<ConnectionInfo> connections)
+
+    public Task AddConnections(string assemblyId, IEnumerable<IConnectionInfo> connections)
     {
         lock (_uiHandlersLock)
         {
@@ -141,25 +141,20 @@ internal class GrpcUiHandler : IUiHandler
         return Task.CompletedTask;
     }
 
-    public Task AddRuntimeInfo(string assemblyId, MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.ProcessInfoCollectorData dataObject)
+    public Task AddRuntimeInfo(string assemblyId, ProcessExplorer.Abstractions.Entities.ProcessInfoCollectorData runtimeInformation)
     {
         lock (_uiHandlersLock)
         {
-            if (!_uiHandlers.Any() || dataObject == null) return Task.CompletedTask;
+            if (!_uiHandlers.Any() || runtimeInformation == null) return Task.CompletedTask;
         }
 
         try
         {
-            var list = new List<ProcessInfoCollectorData>()
-            {
-                dataObject.DeriveProtoRuntimeInfoType()
-            };
-
             var message = new Message()
             {
                 Action = ActionType.AddRuntimeInfoAction,
                 AssemblyId = assemblyId,
-                RuntimeInfo = { list }
+                RuntimeInfo = runtimeInformation.DeriveProtoRuntimeInfoType() 
             };
 
             return UpdateInfoOnUI(handler => handler.SendMessage(message));
@@ -183,7 +178,7 @@ internal class GrpcUiHandler : IUiHandler
         {
             var message = new Message()
             {
-                Action = ActionType.AddMultipleRuntimeInfoAction,
+                Action = ActionType.AddRuntimeInfoAction,
                 MultipleRuntimeInfo = { runtimeInfo.DeriveProtoDictionaryType(ProtoConvertHelper.DeriveProtoRuntimeInfoType) }
             };
 
@@ -222,7 +217,7 @@ internal class GrpcUiHandler : IUiHandler
         return Task.CompletedTask;
     }
 
-    public Task UpdateConnection(string assemblyId, ConnectionInfo connection)
+    public Task UpdateConnection(string assemblyId, IConnectionInfo connection)
     {
         lock (_uiHandlersLock)
         {
@@ -491,7 +486,7 @@ internal class GrpcUiHandler : IUiHandler
         {
             return UpdateInfoOnUI(handler => handler.SendMessage(message));
         }
-        catch(Exception exception)
+        catch (Exception exception)
         {
             _logger.SubscriptionError(exception, exception);
         }

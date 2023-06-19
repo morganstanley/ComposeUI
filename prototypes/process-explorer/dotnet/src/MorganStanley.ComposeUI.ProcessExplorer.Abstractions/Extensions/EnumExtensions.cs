@@ -25,7 +25,6 @@ public static class EnumExtensions
             ProcessStatus.Modified => nameof(ProcessStatus.Modified),
             ProcessStatus.Terminated => nameof(ProcessStatus.Terminated),
             ProcessStatus.Running => nameof(ProcessStatus.Running),
-            ProcessStatus.Stopped => nameof(ProcessStatus.Stopped),
             _ => status.ToString(),
         };
     }

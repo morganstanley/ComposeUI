@@ -11,9 +11,6 @@
 // and limitations under the License.
 
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities;
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Connections;
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Modules;
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Registrations;
 
 namespace MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Infrastructure;
 
@@ -22,42 +19,51 @@ public interface ICommunicator
     /// <summary>
     /// Adds the collected runtime information to the Process Explorer backend.
     /// </summary>
-    /// <param name="listOfRuntimeInfos"></param>
+    /// <param name="runtimeInformation"></param>
     /// <returns></returns>
-    ValueTask AddRuntimeInfo(IEnumerable<KeyValuePair<RuntimeInformation, ProcessInfoCollectorData>> listOfRuntimeInfos);
+    ValueTask AddRuntimeInfo(KeyValuePair<RuntimeInformation, ProcessInfoCollectorData> runtimeInformation);
 
     /// <summary>
     /// Sends a message to the UI, if a new list of connections has been added.
     /// </summary>
     /// <param name="connections"></param>
     /// <returns></returns>
-    ValueTask AddConnectionCollection(IEnumerable<KeyValuePair<RuntimeInformation, IEnumerable<ConnectionInfo>>> connections);
+    ValueTask AddConnectionCollection(KeyValuePair<RuntimeInformation, IEnumerable<IConnectionInfo>> connections);
 
     /// <summary>
     /// Sends a message to the UI, if a connection has been updated.
     /// </summary>
-    /// <param name="connections"></param>
+    /// <param name="connection"></param>
     /// <returns></returns>
-    ValueTask UpdateConnectionInformation(IEnumerable<KeyValuePair<RuntimeInformation, ConnectionInfo>> connections);
+    ValueTask UpdateConnectionInformation(KeyValuePair<RuntimeInformation, IConnectionInfo> connection);
 
     /// <summary>
     /// Sends a message to the UI, if the environment variables of the collector has been updated.
     /// </summary>
     /// <param name="environmentVariables"></param>
     /// <returns></returns>
-    ValueTask UpdateEnvironmentVariableInformation(IEnumerable<KeyValuePair<RuntimeInformation, IEnumerable<KeyValuePair<string, string>>>> environmentVariables);
+    ValueTask UpdateEnvironmentVariableInformation(KeyValuePair<RuntimeInformation, IEnumerable<KeyValuePair<string, string>>> environmentVariables);
 
     /// <summary>
     /// Sends a message to the UI, if the registrations of the collector has been updated.
     /// </summary>
     /// <param name="registrations"></param>
     /// <returns></returns>
-    ValueTask UpdateRegistrationInformation(IEnumerable<KeyValuePair<RuntimeInformation, IEnumerable<RegistrationInfo>>> registrations);
+    ValueTask UpdateRegistrationInformation(KeyValuePair<RuntimeInformation, IEnumerable<RegistrationInfo>> registrations);
 
     /// <summary>
     /// Sends a message to the UI, if the modules of the collector has been updated.
     /// </summary>
     /// <param name="modules"></param>
     /// <returns></returns>
-    ValueTask UpdateModuleInformation(IEnumerable<KeyValuePair<RuntimeInformation, IEnumerable<ModuleInfo>>> modules);
+    ValueTask UpdateModuleInformation(KeyValuePair<RuntimeInformation, IEnumerable<ModuleInfo>> modules);
+
+    /// <summary>
+    /// Updates the status of the connection.
+    /// </summary>
+    /// <param name="assemblyId"></param>
+    /// <param name="connectionId"></param>
+    /// <param name="connectionStatus"></param>
+    /// <returns></returns>
+    ValueTask UpdateConnectionStatus(string assemblyId, string connectionId, ConnectionStatus connectionStatus);
 }

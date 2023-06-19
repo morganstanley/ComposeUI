@@ -12,6 +12,7 @@
 
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Subjects;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -19,6 +20,7 @@ using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Logging;
 
 namespace MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Processes;
 
+[ExcludeFromCodeCoverage]
 public abstract class ProcessInfoMonitor : IProcessInfoMonitor
 {
     private readonly ILogger _logger;

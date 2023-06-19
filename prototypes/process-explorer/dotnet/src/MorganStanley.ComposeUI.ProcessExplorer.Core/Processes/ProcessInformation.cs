@@ -75,7 +75,7 @@ public class ProcessInformation
             processInfo._processInfo.ProcessStatus =
                 process.HasExited == false ?
                     ProcessStatus.Running.ToStringCached()
-                    : ProcessStatus.Stopped.ToStringCached();
+                    : ProcessStatus.Terminated.ToStringCached();
         }
         catch (Exception exception)
         {

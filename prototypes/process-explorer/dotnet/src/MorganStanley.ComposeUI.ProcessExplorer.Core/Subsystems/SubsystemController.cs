@@ -381,6 +381,7 @@ internal class SubsystemController : ISubsystemController
         await _handler.AddSubsystems(subsystems);
     }
 
+    //TODO(Lilla): Missing test
     public void AddSubsystem(Guid subsystemId, SubsystemInfo subsystem)
     {
         lock (_subsystemLock)
