@@ -138,12 +138,9 @@ internal class Program
 
         foreach (var module in instances)
         {
-            if (module.Value.Name == "dataservice")
-            {
-                instances.TryGetValue(module.Key, out var instance);
-                instance.State = SubsystemState.Started;
-                loader.RequestStartProcess(new LaunchRequest { name = module.Value.Name, instanceId = module.Key });
-            }
+            instances.TryGetValue(module.Key, out var instance);
+            instance.State = SubsystemState.Started;
+            loader.RequestStartProcess(new LaunchRequest { name = module.Value.Name, instanceId = module.Key });
         }
 
         await infoAggregator.SubsystemController.InitializeSubsystems(instances.Select(kvp => new KeyValuePair<Guid, SubsystemInfo>(kvp.Key, SubsystemInfo.FromModule(kvp.Value))));

@@ -78,7 +78,7 @@ internal class SubsystemLauncher<LaunchRequestType, StopRequestType> : ISubsyste
 
     public Task<IEnumerable<KeyValuePair<Guid, string>>> LaunchSubsystems(IEnumerable<KeyValuePair<Guid, string>> subsystems)
     {
-        return HandleSubsystemAction(subsystems, LaunchSubsystem);
+        return SubsystemLauncher<LaunchRequestType, StopRequestType>.HandleSubsystemAction(subsystems, LaunchSubsystem);
     }
 
     public async Task<string> RestartSubsystem(Guid subsystemId, string subsystemName)
@@ -103,7 +103,7 @@ internal class SubsystemLauncher<LaunchRequestType, StopRequestType> : ISubsyste
 
     public Task<IEnumerable<KeyValuePair<Guid, string>>> RestartSubsystems(IEnumerable<KeyValuePair<Guid, string>> subsystems)
     {
-        return HandleSubsystemAction(subsystems, RestartSubsystem);
+        return SubsystemLauncher<LaunchRequestType, StopRequestType>.HandleSubsystemAction(subsystems, RestartSubsystem);
     }
 
     public Task<string> ShutdownSubsystem(Guid subsystemId, string subsystemName)
@@ -127,10 +127,10 @@ internal class SubsystemLauncher<LaunchRequestType, StopRequestType> : ISubsyste
 
     public Task<IEnumerable<KeyValuePair<Guid, string>>> ShutdownSubsystems(IEnumerable<KeyValuePair<Guid, string>> subsystems)
     {
-        return HandleSubsystemAction(subsystems, ShutdownSubsystem);
+        return SubsystemLauncher<LaunchRequestType, StopRequestType>.HandleSubsystemAction(subsystems, ShutdownSubsystem);
     }
 
-    private async Task<IEnumerable<KeyValuePair<Guid, string>>> HandleSubsystemAction(
+    private static async Task<IEnumerable<KeyValuePair<Guid, string>>> HandleSubsystemAction(
         IEnumerable<KeyValuePair<Guid, string>> subsystems, 
         RequestSubsystemAction action)
     {

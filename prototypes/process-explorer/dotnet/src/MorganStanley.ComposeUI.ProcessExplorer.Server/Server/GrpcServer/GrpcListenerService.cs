@@ -89,14 +89,21 @@ internal class GrpcListenerService : ProcessExplorerServer, IHostedService
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        _stopTaskSource.SetResult();
-        _stopTokenSource.Cancel();
+        try
+        {
+            _stopTaskSource.SetResult();
+            _stopTokenSource.Cancel();
 
-        if (_grpcServer == null) return;
-        
-        var shutdown = _grpcServer.ShutdownAsync();       
-        _logger.GrpcServerStoppedDebug();
+            if (_grpcServer == null) return;
 
-        await Task.WhenAll(shutdown, _stopTaskSource.Task);
+            var shutdown = _grpcServer.ShutdownAsync();
+            _logger.GrpcServerStoppedDebug();
+
+            await Task.WhenAll(shutdown, _stopTaskSource.Task);
+        }
+        catch (InvalidOperationException exception)
+        {
+            _logger.GrpcServerStopAsyncError(exception, exception);
+        }
     }
 }

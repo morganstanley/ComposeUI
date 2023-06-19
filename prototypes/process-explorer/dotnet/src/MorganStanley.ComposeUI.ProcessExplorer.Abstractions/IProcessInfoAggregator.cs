@@ -11,9 +11,6 @@
 // and limitations under the License.
 
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities;
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Connections;
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Modules;
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Registrations;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Infrastructure;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Processes;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Subsystems;
@@ -97,14 +94,22 @@ public interface IProcessInfoAggregator
     /// </summary>
     /// <param name="assemblyId"></param>
     /// <param name="connections"></param>
-    Task AddConnectionCollection(string assemblyId, IEnumerable<ConnectionInfo> connections);
+    Task AddConnectionCollection(string assemblyId, IEnumerable<IConnectionInfo> connections);
 
     /// <summary>
     /// Updates a connection.
     /// </summary>
     /// <param name="assemblyId"></param>
     /// <param name="connectionInfo"></param>
-    Task UpdateOrAddConnectionInfo(string assemblyId, ConnectionInfo connectionInfo);
+    Task UpdateOrAddConnectionInfo(string assemblyId, IConnectionInfo connectionInfo);
+
+    /// <summary>
+    /// Updates the status of a connection.
+    /// </summary>
+    /// <param name="assemblyId"></param>
+    /// <param name="connectionId"></param>
+    /// <param name="status"></param>
+    Task UpdateConnectionStatus(string assemblyId, string connectionId, string status);
 
     /// <summary>
     /// Updates the environment variables.

@@ -18,7 +18,9 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Messaging;
+using MorganStanley.ComposeUI.ProcessExplorer.Client;
 using WPFDataGrid.Models;
 
 namespace WPFDataGrid.Views;
@@ -28,26 +30,40 @@ namespace WPFDataGrid.Views;
 /// </summary>
 public partial class DataGridView : Window
 {
-    private readonly ILogger<DataGridView>? _logger;
+    private readonly ILogger<DataGridView> _logger;
     private readonly IMessageRouter _messageRouter;
     private readonly ObservableCollection<SymbolModel> _symbols;
+    private readonly IProcessInfoHandler _processInfoHandler;
 
     /// <summary>
     /// Constructor for the View.
     /// </summary>
     /// <param name="logger"></param>
     /// <param name="messageRouter"></param>
-    public DataGridView(ILogger<DataGridView> logger, IMessageRouter messageRouter)
+    public DataGridView(
+        ILogger<DataGridView>? logger, 
+        IMessageRouter messageRouter,
+        IProcessInfoHandler processInfoHandler)
     {
-        _logger = logger;
+        _logger = logger ?? NullLogger<DataGridView>.Instance;
         _messageRouter = messageRouter;
         _symbols = new(MarketDataAccess.MarketData);
+        _processInfoHandler = processInfoHandler;
         InitializeComponent();
     }
 
     private async void Window_Loaded(object sender, RoutedEventArgs e)
     {
         MyDataGridMarketData.ItemsSource = _symbols;
+
+        try
+        {
+            await _processInfoHandler.SendRuntimeInfo();
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError($"Error occurred while sending information to the Process Explorer server. Detailed exception: {exception}");
+        }
     }
 
     private async void DataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -56,15 +72,15 @@ public partial class DataGridView : Window
         {
             var selectedObject = e.AddedItems.Cast<SymbolModel>().FirstOrDefault();
 
-            if (selectedObject is not null)
+            if (selectedObject != null)
             {
-                _logger?.LogInformation(string.Format("You have selected: {0}", selectedObject.Fullname));
+                _logger.LogInformation(string.Format("You have selected: {0}", selectedObject.Fullname));
                 await _messageRouter.PublishJsonAsync("proto_select_marketData", selectedObject, SymbolModel.JsonSerializerOptions);
             }
         }
         catch (Exception exception)
         {
-            _logger?.LogError(exception.ToString());
+            _logger.LogError(exception.ToString());
         }
     }
 }

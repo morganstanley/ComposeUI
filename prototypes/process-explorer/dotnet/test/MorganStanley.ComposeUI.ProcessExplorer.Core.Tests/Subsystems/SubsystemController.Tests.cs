@@ -691,8 +691,12 @@ public class SubsystemControllerTests
         await subsystemController.AddSubsystems(newElements);
 
         var result = subsystemController.GetSubsystems();
-        Assert.NotStrictEqual(subsystems, result);
-        Assert.NotStrictEqual(newElements, result);
+
+        foreach (var subsystem in subsystems)
+            Assert.Contains(subsystem, result);
+
+        foreach (var subsystem in newElements)
+            Assert.Contains(subsystem, result);
 
         uiDelegateMock.Verify(x => x.AddSubsystems(It.IsAny<IEnumerable<KeyValuePair<Guid, SubsystemInfo>>>()), Times.Exactly(2)); // due IUiHandler function will be called twice as per after initialization of the subsystems we are pushing data to the uis.
     }

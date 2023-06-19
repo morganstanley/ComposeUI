@@ -17,9 +17,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities;
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Connections;
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Modules;
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.Registrations;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Infrastructure;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Logging;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Processes;
@@ -55,10 +52,16 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
         _processInfoMonitor = processInfoMonitor;
         _subsystemController = subsystemController;
 
+        SetProcessIdsNotificationMethods();
+    }
+
+    private void SetProcessIdsNotificationMethods()
+    {
+        if (_processInfoMonitor.ProcessIds == null) return;
         _processInfoMonitor.ProcessIds
-            .Select(kvp => Observable.FromAsync(async () => await PushNotification(kvp)))
-            .Concat()
-            .Subscribe();
+        .Select(kvp => Observable.FromAsync(async () => await PushNotification(kvp)))
+        .Concat()
+        .Subscribe();
     }
 
     private async Task PushNotification(KeyValuePair<int, ProcessStatus> kvp)
@@ -70,7 +73,6 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
                 break;
 
             case ProcessStatus.Terminated:
-            case ProcessStatus.Stopped:
                 await ProcessTerminated(kvp.Key);
                 break;
 
@@ -190,7 +192,7 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
         return data;
     }
 
-    public async Task AddConnectionCollection(string assemblyId, IEnumerable<ConnectionInfo> connections)
+    public async Task AddConnectionCollection(string assemblyId, IEnumerable<IConnectionInfo> connections)
     {
         var runtimeInfoToModify = GetRuntimeInformation(assemblyId);
 
@@ -209,7 +211,7 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
         await _handler.AddConnections(assemblyId, connections);
     }
 
-    public async Task UpdateOrAddConnectionInfo(string assemblyId, ConnectionInfo connectionInfo)
+    public async Task UpdateOrAddConnectionInfo(string assemblyId, IConnectionInfo connectionInfo)
     {
         var runtimeInfoToModify = GetRuntimeInformation(assemblyId);
 
@@ -226,6 +228,23 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
         }
 
         await _handler.UpdateConnection(assemblyId, connectionInfo);
+    }
+
+    public async Task UpdateConnectionStatus(string assemblyId, string connectionId, string status)
+    {
+        var runtimeInfoToModify = GetRuntimeInformation(assemblyId);
+        if (runtimeInfoToModify == null) return;
+
+        try
+        {
+            if (!Enum.TryParse(typeof(ConnectionStatus), status, out var connectionStatus)) return;
+            runtimeInfoToModify.UpdateConnection(Guid.Parse(connectionId), (ConnectionStatus)connectionStatus);
+            UpdateProcessInfoCollectorData(assemblyId, runtimeInfoToModify);
+        }
+        catch (Exception exception)
+        {
+            _logger.ConnectionCannotBeUpdatedError(exception);
+        }
     }
 
     public async Task UpdateOrAddEnvironmentVariablesInfo(string assemblyId, IEnumerable<KeyValuePair<string, string>> environmentVariables)

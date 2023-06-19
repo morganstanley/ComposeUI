@@ -79,24 +79,6 @@ public static partial class SourceGeneratedLoggerExtensions
     [LoggerMessage(Level = LogLevel.Error, Message = "Cannot find an element with PID `{pid}` in the current process list. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
     private static partial void CannotFindElement(this ILogger logger, int pid, Exception ex, Exception exception);
 
-    [LoggerMessage(Level = LogLevel.Error, Message = "Cannot stop process watcher. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
-    private static partial void CannotStopProcessWatcher(this ILogger logger, Exception ex, Exception exception);
-
-    [LoggerMessage(Level = LogLevel.Error, Message = "Cannot find an element with PID `{pid}` or the communicator has been not set properly. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
-    private static partial void CouldNotFoundModifiableProcess(this ILogger logger, int pid, Exception ex, Exception exception);
-
-    [LoggerMessage(Level = LogLevel.Error, Message = "Nor PID does not exists: `{pid}` or the process list does not exists. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
-    private static partial void PidNotExists(this ILogger logger, int pid, Exception ex, Exception exception);
-
-    [LoggerMessage(Level = LogLevel.Error, Message = "Index does not exists for the PID: `{pid}` or the process list does not exists. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
-    private static partial void IndexDoesNotExists(this ILogger logger, int pid, Exception ex, Exception exception);
-
-    [LoggerMessage(Level = LogLevel.Error, Message = "Cannot terminate process or the process does not exists in the current context. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
-    private static partial void CannotKillProcess(this ILogger logger, Exception ex, Exception exception);
-
-    [LoggerMessage(Level = LogLevel.Error, Message = "Error while initializing list. The main process might be deleted. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
-    private static partial void CannotFillList(this ILogger logger, Exception ex, Exception exception);
-
     [LoggerMessage(Level = LogLevel.Error, Message = "Error while starting a subsystem with id: {id}. Detailed exception: `{exception}`", SkipEnabledCheck = true)]
     private static partial void SubsystemStartFailure(this ILogger logger, string id, Exception ex, Exception exception);
 

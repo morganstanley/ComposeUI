@@ -12,6 +12,7 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Management;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -20,6 +21,7 @@ using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Processes;
 
 namespace MorganStanley.ComposeUI.ProcessExplorer.Core.Processes;
 
+[ExcludeFromCodeCoverage]
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 internal class WindowsProcessInfoMonitor : ProcessInfoMonitor
 {
@@ -107,7 +109,7 @@ internal class WindowsProcessInfoMonitor : ProcessInfoMonitor
     {
         if (processName == null) return default;
 
-        using var cpuPerformanceCounter = _memoryPerformanceCounters.GetOrAdd(
+        using var cpuPerformanceCounter = _cpuPerformanceCounters.GetOrAdd(
             processId, _ =>
             {
                 return new PerformanceCounter(
@@ -116,7 +118,6 @@ internal class WindowsProcessInfoMonitor : ProcessInfoMonitor
                     processName,
                     true);
             });
-            
 
         cpuPerformanceCounter.NextValue();
 

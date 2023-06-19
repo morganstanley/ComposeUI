@@ -14,8 +14,7 @@ namespace MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Processes;
 
 public enum ProcessStatus
 {
-    Modified = 3,
-    Terminated = 2,
-    Running = 1,
-    Stopped = 0
+    Modified = 2,
+    Terminated = 1,
+    Running = 0
 }

@@ -21,7 +21,7 @@ namespace MorganStanley.ComposeUI.ProcessExplorer.Core.Factories;
 public static class ProcessAggregatorFactory
 {
     public static IProcessInfoAggregator CreateProcessInfoAggregator(
-        ProcessInfoMonitor processInfoMonitor, 
+        IProcessInfoMonitor processInfoMonitor, 
         IUiHandler handler,
         ISubsystemController subsystemController, 
         ILogger<IProcessInfoAggregator>? logger = null)

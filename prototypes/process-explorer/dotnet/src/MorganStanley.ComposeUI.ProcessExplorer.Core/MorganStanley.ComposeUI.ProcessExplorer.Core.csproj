@@ -12,11 +12,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Management" Version="7.0.1" />
+    <PackageReference Include="System.Management" Version="6.0.1" />
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\MorganStanley.ComposeUI.ProcessExplorer.Abstractions\MorganStanley.ComposeUI.ProcessExplorer.Abstractions.csproj" />
+    <ProjectReference Include="../MorganStanley.ComposeUI.ProcessExplorer.Abstractions/MorganStanley.ComposeUI.ProcessExplorer.Abstractions.csproj" />
   </ItemGroup>
   
 </Project>
