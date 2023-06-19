@@ -36,6 +36,7 @@ internal class MessageRouterServer : IMessageRouterServer
     {
         _stopTokenSource.Cancel();
 
+        // TODO: Don't dispose objects that were created by someone else. Signal disconnection using a dedicated method.
         await Task.WhenAll(_clients.Values.Select(client => client.Connection.DisposeAsync().AsTask()));
     }
 

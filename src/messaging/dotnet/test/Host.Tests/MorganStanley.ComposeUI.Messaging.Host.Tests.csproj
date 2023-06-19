@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<IsPackable>false</IsPackable>
+		<RootNamespace>MorganStanley.ComposeUI.Messaging</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\src\Host\MorganStanley.ComposeUI.Messaging.Host.csproj" />
+	  <ProjectReference Include="..\..\src\Server\MorganStanley.ComposeUI.Messaging.Server.csproj" />
+	</ItemGroup>
+
+</Project>

@@ -19,6 +19,7 @@ namespace MorganStanley.ComposeUI.Messaging;
 /// </summary>
 public static class MessageRouterClientExtensions
 {
+    // TODO: Move this to IMessageRouter - this should be available even if only the Core package is referenced
     public static IAsyncObservable<TopicMessage> Topic(this IMessageRouter messageRouter, string topic)
     {
         return messageRouter is MessageRouterClient messageRouterClient

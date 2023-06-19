@@ -18,7 +18,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// Contains extension methods for adding the Message Router server to a service collection.
 /// </summary>
-public static class ServiceCollectionMessageRouterExceptions
+public static class ServiceCollectionMessageRouterServerExtensions
 {
     /// <summary>
     /// Adds <see cref="IMessageRouterServer"/> and related types to the service collection.
@@ -28,12 +28,12 @@ public static class ServiceCollectionMessageRouterExceptions
     /// <returns></returns>
     public static IServiceCollection AddMessageRouterServer(
         this IServiceCollection serviceCollection,
-        Action<MessageRouterBuilder> builderAction)
+        Action<MessageRouterServerBuilder> builderAction)
     {
         serviceCollection.AddSingleton<IMessageRouterServer, MessageRouterServer>();
         serviceCollection.AddSingleton<MessageRouterServerDependencies>();
 
-        var builder = new MessageRouterBuilder(serviceCollection);
+        var builder = new MessageRouterServerBuilder(serviceCollection);
         builderAction(builder);
 
         return serviceCollection;

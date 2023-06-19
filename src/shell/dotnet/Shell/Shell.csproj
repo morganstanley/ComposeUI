@@ -42,8 +42,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\messaging\dotnet\src\Core\MorganStanley.ComposeUI.Messaging.Core.csproj" />
-		<ProjectReference Include="..\..\..\messaging\dotnet\src\Server\MorganStanley.ComposeUI.Messaging.Server.csproj" />
+		<ProjectReference Include="..\..\..\messaging\dotnet\src\Host\MorganStanley.ComposeUI.Messaging.Host.csproj" />
 	</ItemGroup>
 
 </Project>

@@ -10,15 +10,16 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 
-namespace MorganStanley.ComposeUI.Messaging.Server.WebSocket;
+// ReSharper disable once CheckNamespace
+namespace Microsoft.Extensions.DependencyInjection;
 
-public static class MessageRouterBuilderWebSocketExtensions
+public static class MessageRouterServerBuilderWebSocketExtensions
 {
-    public static MessageRouterBuilder UseWebSockets(
-        this MessageRouterBuilder builder,
+    public static MessageRouterServerBuilder UseWebSockets(
+        this MessageRouterServerBuilder builder,
         Action<MessageRouterWebSocketServerOptions>? configureOptions = null)
     {
         if (configureOptions != null)
