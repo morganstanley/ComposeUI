@@ -43,7 +43,11 @@ export class MessageRouterClient implements MessageRouter {
         this.options = options ?? {};
     }
 
-    clientId?: string;
+    private _clientId?: string;
+
+    get clientId() {
+        return this._clientId;
+    }
 
     connect(): Promise<void> {
         switch (this._state) {
@@ -379,7 +383,7 @@ export class MessageRouterClient implements MessageRouter {
             this.connected.reject(new MessageRouterError(message.error));
         }
         else {
-            this.clientId = message.clientId;
+            this._clientId = message.clientId;
             this._state = ClientState.Connected;
             this.connected.resolve();
         }
