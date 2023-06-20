@@ -22,6 +22,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 using Shell.Utilities;
 
@@ -32,13 +33,13 @@ namespace Shell;
 /// </summary>
 public partial class App : Application
 {
-    public new static App Current => (App)Application.Current;
+    public new static App Current => (App) Application.Current;
 
     public IHost Host =>
         _host
         ?? throw new InvalidOperationException(
             "Attempted to access the Host object before async startup has completed");
-
+    
     /// <summary>
     /// Creates a new window of the specified type. Constructor arguments that are not registered in DI can be provided.
     /// </summary>
@@ -85,8 +86,9 @@ public partial class App : Application
         await host.StartAsync();
         _host = host;
         _logger = _host.Services.GetRequiredService<ILogger<App>>();
+
         await OnHostInitializedAsync();
-        
+
         Dispatcher.Invoke(() => OnAsyncStartupCompleted(e));
     }
 
@@ -102,12 +104,15 @@ public partial class App : Application
                         // TODO: Assign a separate token for each client and only allow a single connection with each token
                         if (_messageRouterAccessToken != token)
                             throw new InvalidOperationException("The provided access token is invalid");
-                    } ));
+                    }));
 
         services.AddMessageRouter(
             mr => mr
                 .UseServer()
                 .UseAccessToken(_messageRouterAccessToken));
+
+
+        services.AddFdc3DesktopAgent(fdc3 => fdc3.WithUserChannel("default"));
 
         services.Configure<LoggerFactoryOptions>(context.Configuration.GetSection("Logging"));
     }
@@ -171,4 +176,3 @@ public partial class App : Application
                 """);
     }
 }
- 
