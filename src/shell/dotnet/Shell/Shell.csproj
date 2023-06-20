@@ -42,6 +42,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\..\fdc3\dotnet\DesktopAgent\src\DesktopAgent\DesktopAgent.csproj" />
 		<ProjectReference Include="..\..\..\messaging\dotnet\src\Host\MorganStanley.ComposeUI.Messaging.Host.csproj" />
 	</ItemGroup>
 
