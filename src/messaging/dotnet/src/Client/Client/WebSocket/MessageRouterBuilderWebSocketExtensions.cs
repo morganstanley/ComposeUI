@@ -10,11 +10,12 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using MorganStanley.ComposeUI.Messaging.Client.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
 
-namespace MorganStanley.ComposeUI.Messaging.Client.WebSocket;
+// ReSharper disable once CheckNamespace
+namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
 ///     Static utilities for configuring WebSocket connections.

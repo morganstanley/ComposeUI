@@ -10,24 +10,26 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using MorganStanley.ComposeUI.Messaging.Client.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Client.Internal;
+
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
-public sealed class MessageRouterBuilder
+/// <summary>
+/// Adds extension methods for configuring an in-process Message Router client.
+/// </summary>
+public static class MessageRouterBuilderInProcessExtensions
 {
-    public MessageRouterBuilder UseAccessToken(string accessToken)
+    /// <summary>
+    /// Configures the Message Router to connect to the in-process server.
+    /// The server must be set up using <see cref="ServiceCollectionMessageRouterServerExtensions.AddMessageRouterServer"/>.
+    /// </summary>
+    /// <returns></returns>
+    public static MessageRouterBuilder UseServer(this MessageRouterBuilder builder)
     {
-        AccessToken = accessToken;
+        builder.ServiceCollection.AddTransient<IConnection, InProcessConnection>();
 
-        return this;
+        return builder;
     }
-
-    internal MessageRouterBuilder(IServiceCollection serviceCollection)
-    {
-        ServiceCollection = serviceCollection;
-    }
-
-    public IServiceCollection ServiceCollection { get; }
-
-    internal string? AccessToken { get; set; }
 }

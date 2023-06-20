@@ -80,7 +80,7 @@ public partial class App : Application
                 config => config.AddJsonFile("appsettings.json", optional: true))
             .ConfigureLogging(l => l.AddDebug().SetMinimumLevel(LogLevel.Debug))
             .ConfigureServices(ConfigureServices)
-        .Build();
+            .Build();
 
         await host.StartAsync();
         _host = host;
@@ -99,9 +99,16 @@ public partial class App : Application
                 .UseAccessTokenValidator(
                     (clientId, token) =>
                     {
+                        // TODO: Assign a separate token for each client and only allow a single connection with each token
                         if (_messageRouterAccessToken != token)
                             throw new InvalidOperationException("The provided access token is invalid");
                     } ));
+
+        services.AddMessageRouter(
+            mr => mr
+                .UseServer()
+                .UseAccessToken(_messageRouterAccessToken));
+
         services.Configure<LoggerFactoryOptions>(context.Configuration.GetSection("Logging"));
     }
 

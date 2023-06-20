@@ -15,28 +15,28 @@ using MorganStanley.ComposeUI.Messaging.Server;
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
-public sealed class MessageRouterBuilder
+public sealed class MessageRouterServerBuilder
 {
-    public MessageRouterBuilder(IServiceCollection serviceCollection)
+    public MessageRouterServerBuilder(IServiceCollection serviceCollection)
     {
         ServiceCollection = serviceCollection;
     }
 
-    public MessageRouterBuilder UseAccessTokenValidator(IAccessTokenValidator validator)
+    public MessageRouterServerBuilder UseAccessTokenValidator(IAccessTokenValidator validator)
     {
         ServiceCollection.AddSingleton(validator);
 
         return this;
     }
 
-    public MessageRouterBuilder UseAccessTokenValidator(Func<IServiceProvider, IAccessTokenValidator> factory)
+    public MessageRouterServerBuilder UseAccessTokenValidator(Func<IServiceProvider, IAccessTokenValidator> factory)
     {
         ServiceCollection.AddSingleton(factory);
 
         return this;
     }
 
-    public MessageRouterBuilder UseAccessTokenValidator(AccessTokenValidatorCallback validatorCallback)
+    public MessageRouterServerBuilder UseAccessTokenValidator(AccessTokenValidatorCallback validatorCallback)
     {
         ServiceCollection.AddSingleton<IAccessTokenValidator>(
             new AccessTokenValidator(
@@ -50,14 +50,14 @@ public sealed class MessageRouterBuilder
         return this;
     }
 
-    public MessageRouterBuilder UseAccessTokenValidator(AsyncAccessTokenValidatorCallback validatorCallback)
+    public MessageRouterServerBuilder UseAccessTokenValidator(AsyncAccessTokenValidatorCallback validatorCallback)
     {
         ServiceCollection.AddSingleton<IAccessTokenValidator>(new AccessTokenValidator(validatorCallback));
 
         return this;
     }
 
-    public MessageRouterBuilder UseAccessTokenValidator(Func<string, string?, Task> validatorCallback)
+    public MessageRouterServerBuilder UseAccessTokenValidator(Func<string, string?, Task> validatorCallback)
     {
         ServiceCollection.AddSingleton<IAccessTokenValidator>(
             new AccessTokenValidator(

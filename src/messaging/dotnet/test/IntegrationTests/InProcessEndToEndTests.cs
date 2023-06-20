@@ -10,24 +10,24 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-// ReSharper disable once CheckNamespace
-namespace Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 
-public sealed class MessageRouterBuilder
+namespace MorganStanley.ComposeUI.Messaging;
+
+public class InProcessEndToEndTests : EndToEndTestsBase
 {
-    public MessageRouterBuilder UseAccessToken(string accessToken)
+    protected override IMessageRouter CreateClient()
     {
-        AccessToken = accessToken;
-
-        return this;
+        return Host.Services.GetRequiredService<IMessageRouter>();
     }
 
-    internal MessageRouterBuilder(IServiceCollection serviceCollection)
+    protected override void ConfigureServer(MessageRouterServerBuilder serverBuilder)
     {
-        ServiceCollection = serviceCollection;
     }
 
-    public IServiceCollection ServiceCollection { get; }
-
-    internal string? AccessToken { get; set; }
+    protected override void ConfigureServices(IServiceCollection services)
+    {
+        base.ConfigureServices(services);
+        services.AddMessageRouter(mr => mr.UseServer().UseAccessToken(AccessToken));
+    }
 }
