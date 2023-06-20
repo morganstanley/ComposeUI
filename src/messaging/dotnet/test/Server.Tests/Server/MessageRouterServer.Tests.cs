@@ -13,6 +13,7 @@
 using System.Linq.Expressions;
 using MorganStanley.ComposeUI.Messaging.Protocol;
 using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
+using MorganStanley.ComposeUI.Messaging.Server.Abstractions;
 using MorganStanley.ComposeUI.Messaging.TestUtils;
 using TaskExtensions = MorganStanley.ComposeUI.Testing.TaskExtensions;
 
@@ -347,6 +348,25 @@ public class MessageRouterServerTests
             Times.Once);
     }
 
+    [Fact]
+    public async Task When_disposed_it_calls_CloseAsync_on_active_connections()
+    {
+        var server = CreateServer();
+        var connection = new Mock<IClientConnection>();
+        
+        connection.SetupSequence(_ => _.ReceiveAsync(It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<Message>(
+                new ConnectRequest()))
+            .Returns(new ValueTask<Message>(
+                Task.Delay(1000).ContinueWith(_ => (Message)new PublishMessage {Topic = "dummy"})));
+        
+        await server.ClientConnected(connection.Object);
+        await TaskExtensions.WaitForBackgroundTasksAsync();
+        await server.DisposeAsync();
+
+        connection.Verify(_ => _.CloseAsync(), Times.Once);
+    }
+
     private MessageRouterServer CreateServer(IAccessTokenValidator? accessTokenValidator = null) =>
         new MessageRouterServer(new MessageRouterServerDependencies(accessTokenValidator));
 
@@ -354,7 +374,6 @@ public class MessageRouterServerTests
 
     private async Task<MockClientConnection> CreateAndConnectClient(MessageRouterServer server)
     {
-        var connectResponseReceived = new TaskCompletionSource<ConnectResponse>();
         var client = CreateClient();
         await server.ClientConnected(client.Object);
         await client.Connect();

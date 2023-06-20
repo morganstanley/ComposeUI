@@ -82,11 +82,16 @@ internal class WebSocketConnection : IClientConnection
         }
     }
 
-    public ValueTask DisposeAsync()
+    public ValueTask CloseAsync()
     {
         _stopTokenSource.Cancel();
 
-        return default;
+        return ValueTask.CompletedTask;
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        return CloseAsync();
     }
 
     public async Task HandleWebSocketRequest(

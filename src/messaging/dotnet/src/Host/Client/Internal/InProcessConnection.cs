@@ -35,12 +35,17 @@ internal sealed class InProcessConnection : IConnection, IClientConnection
         return _clientToServer.Reader.ReadAsync(cancellationToken);
     }
 
-    public ValueTask DisposeAsync()
+    public ValueTask CloseAsync()
     {
         _clientToServer.Writer.TryComplete();
         _serverToClient.Writer.TryComplete();
-        
+
         return ValueTask.CompletedTask;
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        return CloseAsync();
     }
 
     ValueTask IConnection.ConnectAsync(CancellationToken cancellationToken = default)

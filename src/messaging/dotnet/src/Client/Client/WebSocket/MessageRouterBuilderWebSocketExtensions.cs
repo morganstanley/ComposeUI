@@ -31,7 +31,7 @@ public static class MessageRouterBuilderWebSocketExtensions
         MessageRouterWebSocketOptions options)
     {
         builder.ServiceCollection.AddSingleton<IOptions<MessageRouterWebSocketOptions>>(options);
-        builder.ServiceCollection.AddTransient<IConnection, WebSocketConnection>();
+        builder.ServiceCollection.AddSingleton<IConnectionFactory, WebSocketConnectionFactory>();
         return builder;
     }
 }
