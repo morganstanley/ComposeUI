@@ -23,6 +23,7 @@ import { WebSocketConnection, WebSocketOptions } from "./client/websocket";
 import { MessageRouterClient, MessageRouterOptions } from "./client";
 
 export interface MessageRouter {
+    get clientId(): string | undefined;
     connect(): Promise<void>;
     subscribe(topic: string, subscriber: TopicSubscriber | ((message: TopicMessage) => void)): Promise<Unsubscribable>;
     publish(topic: string, payload?: MessageBuffer, options?: PublishOptions): Promise<void>;
