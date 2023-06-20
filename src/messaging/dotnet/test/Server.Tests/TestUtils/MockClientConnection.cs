@@ -26,7 +26,7 @@ public class MockClientConnection : Mock<IClientConnection>
         Setup(_ => _.ReceiveAsync(It.IsAny<CancellationToken>()))
             .Returns((CancellationToken ct) => _sendChannel.Reader.ReadAsync(ct));
 
-        Setup(_ => _.DisposeAsync())
+        Setup(_ => _.CloseAsync())
             .Callback(
                 () => { _sendChannel.Writer.TryComplete(); });
     }

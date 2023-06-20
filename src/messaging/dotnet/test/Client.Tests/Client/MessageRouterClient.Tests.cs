@@ -11,6 +11,7 @@
 // and limitations under the License.
 
 using System.Linq.Expressions;
+using MorganStanley.ComposeUI.Messaging.Client.Abstractions;
 using MorganStanley.ComposeUI.Messaging.Protocol;
 using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 using MorganStanley.ComposeUI.Messaging.TestUtils;
@@ -682,6 +683,9 @@ public class MessageRouterClientTests : IAsyncLifetime
 
     private MessageRouterClient CreateMessageRouter(MessageRouterOptions? options = null)
     {
-        return new MessageRouterClient(_connectionMock.Object, options ?? DefaultOptions);
+        var connectionFactory = new Mock<IConnectionFactory>();
+        connectionFactory.Setup(_ => _.CreateConnection()).Returns(_connectionMock.Object);
+
+        return new MessageRouterClient(connectionFactory.Object, options ?? DefaultOptions);
     }
 }
