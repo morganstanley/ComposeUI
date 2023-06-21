@@ -19,18 +19,31 @@ export class ComposeUITopic {
     private static readonly topicRoot = `$composeui/fdc3/${this.fdc3Version}`;
     private static readonly userChannels = '/userChannels/';
     private static readonly appChannels = '/appChannels/';
-    private static readonly privateChannels = '/privaterChannels/';
+    private static readonly privateChannels = '/privateChannels/';
     private static readonly broadcastSuffix = "/broadcast";
+    private static readonly getCurrentContextSuffix = "/getCurrentContext";
+
     //TODO: Remove default
-    static broadcast(topicId: string, channelType: ChannelType = "user") {
-        
+    static broadcast(topicId: string) {
+        return `${this.topicRoot}${this.broadcastSuffix}`
+    }
+
+    static getCurrentContext(topicId: string, channelType: ChannelType = "user") {
+        return `${this.getChannelsTopicRootWithTopicId(topicId, channelType)}${this.getCurrentContextSuffix}`;
+    }
+
+    private static getChannelsTopicRootWithTopicId(topicId: string, channelType: ChannelType = "user") {
+        return `${this.getChannelsTopicRoot(channelType)}${topicId}`;
+    }
+
+    private static getChannelsTopicRoot(channelType: ChannelType = "user") {
         switch(channelType) {
             case "user":
-                return `${this.topicRoot}${this.userChannels}${topicId}${this.broadcastSuffix}`;
+                return `${this.topicRoot}${this.userChannels}`;
             case "app":
-                return `${this.topicRoot}${this.appChannels}${topicId}${this.broadcastSuffix}`;
+                return `${this.topicRoot}${this.appChannels}`;
             case "private":
-                return `${this.topicRoot}${this.privateChannels}${topicId}${this.broadcastSuffix}`;
+                return `${this.topicRoot}${this.privateChannels}`;
         }
     }
 }

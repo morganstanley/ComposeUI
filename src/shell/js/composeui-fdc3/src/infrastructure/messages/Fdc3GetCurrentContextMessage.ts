@@ -11,10 +11,10 @@
  *  
  */
 
-export class Fdc3CurrentContextMessage {
-    contextType: string;
+export class Fdc3GetCurrentContextMessage {
+    public readonly contextType?: string | null;
 
-    constructor(contextType: string) {
+    constructor(contextType?: string | null) {
         this.contextType = contextType;
     }
 }

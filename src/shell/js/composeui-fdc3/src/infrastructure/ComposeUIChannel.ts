@@ -12,13 +12,15 @@
  */
 
 import { Channel, Context, ContextHandler, DisplayMetadata, Listener } from "@finos/fdc3";
-import { MessageRouter } from "@morgan-stanley/composeui-messaging-client";
+import { MessageBuffer, MessageRouter, TopicMessage } from "@morgan-stanley/composeui-messaging-client";
 import { ChannelType } from "./ChannelType";
 import { ComposeUIListener } from "./ComposeUIListener";
 import { Fdc3ChannelMessage } from "./messages/Fdc3ChannelMessage";
+import { Fdc3GetCurrentContextMessage } from "./messages/Fdc3GetCurrentContextMessage";
 import { ComposeUITopic } from "./ComposeUITopic";
+import { randomUUID } from "crypto";
 
-export class ComposeUIChannel implements Channel{
+export class ComposeUIChannel implements Channel {
     id: string;
     type: "user" | "app" | "private";
     displayMetadata?: DisplayMetadata;
@@ -27,58 +29,65 @@ export class ComposeUIChannel implements Channel{
     private lastContexts: Map<string, Context> = new Map<string, Context>();
     private lastContext?: Context;
 
-    constructor(id: string, type: ChannelType, messageRouterClient: MessageRouter){
-        this.id = id; 
+    constructor(id: string, type: ChannelType, messageRouterClient: MessageRouter) {
+        this.id = id;
         this.type = type;
         this.messageRouterClient = messageRouterClient;
     }
-    
-    //TODO: broadcast on both appchannels and userchannels they are subscribed.
+
     public async broadcast(context: Context): Promise<void> {
         //Setting the last published context message.
         this.lastContexts.set(context.type, context);
         this.lastContext = context;
-
-        //TODO: more topic message will be created
-        const message = JSON.stringify(new Fdc3ChannelMessage(this.id, context));
-        await this.messageRouterClient.publish(ComposeUITopic.broadcast(this.id), message);
+        const message = new Fdc3ChannelMessage(this.id, context);
+        const topic = ComposeUITopic.broadcast(this.id);
+        await this.messageRouterClient.publish(topic, JSON.stringify(message));
     }
 
+    //TODO add ChannelError
     public getCurrentContext(contextType?: string | undefined): Promise<Context | null> {
-        return new Promise<Context>(async (resolve, reject) => {
-            let context: Context | undefined;
-            if (contextType) {
-                context = this.lastContexts.get(contextType);
-                if (!context){
-                    reject(new Error(`The given contextType: ${contextType} was not found in the saved contexts.`));
-                }
-            } else {
-                context = this.lastContext;
-            }
-            resolve(context!);
+        return new Promise<Context | null>(async (resolve, reject) => {
+            const message = JSON.stringify(new Fdc3GetCurrentContextMessage(contextType ?? null));
+            await this.messageRouterClient.invoke(ComposeUITopic.getCurrentContext(this.id, this.type), message)
+                .then((response) => {
+                    if (response) {
+                        const topicMessage = JSON.parse(response) as TopicMessage;
+                        if(topicMessage.payload) {
+                            const context = JSON.parse(topicMessage.payload) as Context;
+                            if(context) {
+                                this.lastContext = context;
+                                this.lastContexts.set(context.type, context); //context type could be undefined?
+                            }
+                        }
+                    }
+                    resolve(this.retrieveCurrentContext(contextType))
+                });
         });
+    }
+
+    public retrieveCurrentContext(contextType?: string | undefined): Context | null {
+        let context: Context | undefined;
+        if (contextType) {
+            context = this.lastContexts.get(contextType);
+            if (!context) {
+                return null;
+            }
+        } else {
+            context = this.lastContext;
+        }
+
+        return context ?? null;
     }
 
     public addContextListener(contextType: string | null, handler: ContextHandler): Promise<Listener>;
     public addContextListener(handler: ContextHandler): Promise<Listener>;
     public async addContextListener(contextType: any, handler?: any): Promise<Listener> {
-        if(typeof contextType != 'string' && contextType != null){
+        if (typeof contextType != 'string' && contextType != null) {
             throw new Error("addContextListener with contextType as ContextHandler is deprecated, please use the newer version.");
         } else {
-            const listener = new ComposeUIListener(this.messageRouterClient, handler, this.id, contextType);
+            const listenerId = randomUUID();
+            const listener = new ComposeUIListener(listenerId, this.messageRouterClient, handler, this.id, contextType);
             await listener.subscribe();
-
-            await this.getCurrentContext(contextType)
-                .then(async (resultContext) => {
-                    listener.LatestContext = await this.getCurrentContext(contextType);
-                    if(resultContext != listener.LatestContext) {
-                        //TODO: test
-                        await listener.handleContextMessage();
-                    } else {
-                        await listener.handleContextMessage(resultContext);
-                    }
-                }); //TODO: what happens whe a broadcasted message arrives between 2 points,
-
             return listener;
         };
     }

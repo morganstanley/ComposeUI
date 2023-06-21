@@ -14,8 +14,8 @@
 import { Context } from "@finos/fdc3";
 
 export class Fdc3ChannelMessage {
-    public Id!: string;
-    public Context!: Context;
+    public readonly Id!: string;
+    public readonly Context!: Context;
 
     constructor(id: string, context: Context) {
         this.Id = id;

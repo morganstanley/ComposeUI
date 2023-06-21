@@ -21,13 +21,15 @@ export class ComposeUIListener implements Listener {
     private messageRouterClient: MessageRouter;
     private unsubscribable?: Unsubscribable;
     private handler: ContextHandler;
+    private listenerId: string;
     private channelId?: string;
     private contextType?: string;
     private isSubscribed: boolean = false;
 
-    public LatestContext: Context | null = null;
+    public LatestContext?: Context | null = null;
 
-    constructor(messageRouterClient: MessageRouter, handler: ContextHandler, channelId?: string, contextType?: string) {
+    constructor(listenerId: string, messageRouterClient: MessageRouter, handler: ContextHandler, channelId?: string, contextType?: string) {
+        this.listenerId = listenerId;
         this.messageRouterClient = messageRouterClient;
         this.handler = handler;
 
@@ -38,14 +40,13 @@ export class ComposeUIListener implements Listener {
         this.contextType = contextType;
     }
 
-    //TODO: more message types will be created
     public async subscribe(): Promise<void> { 
         const subscribeTopic = ComposeUITopic.broadcast(this.channelId!);
         this.unsubscribable = await this.messageRouterClient.subscribe(subscribeTopic, (topicMessage: TopicMessage) => {
             //TODO: integration test
             const fdc3Message = new Fdc3ChannelMessage(topicMessage.topic, JSON.parse(topicMessage.payload!));
-            //Ensure that the context messages broadcast by an application on a channel should not be delivered back to that sam application
-            if (this.channelId && ComposeUITopic.broadcast(this.channelId) != fdc3Message.Id 
+            //Ensure that the context messages broadcast by an application on a channel should not be delivered back to that same application
+            if (this.channelId && ComposeUITopic.broadcast(this.channelId) == fdc3Message.Id 
                 && !this.contextType || this.contextType == fdc3Message.Context.type) {
                 this.handler!(fdc3Message.Context);
             }
@@ -71,7 +72,7 @@ export class ComposeUIListener implements Listener {
         });
     }
 
-    public unsubscribe(): Boolean {
+    public async unsubscribe(): Promise<Boolean> {
         if (!this.unsubscribable || !this.isSubscribed) return false;
         this.unsubscribable.unsubscribe();
         this.isSubscribed = false;

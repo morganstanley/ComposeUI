@@ -11,26 +11,28 @@
  *  
  */
 
-import { 
-    AppIdentifier, 
-    AppIntent, 
-    AppMetadata, 
-    Channel, 
-    ChannelError, 
-    Context, 
-    ContextHandler, 
-    DesktopAgent, 
-    ImplementationMetadata, 
-    IntentHandler, 
-    IntentResolution, 
-    Listener, 
-    PrivateChannel} from '@finos/fdc3'
+import {
+    AppIdentifier,
+    AppIntent,
+    AppMetadata,
+    Channel,
+    ChannelError,
+    Context,
+    ContextHandler,
+    DesktopAgent,
+    ImplementationMetadata,
+    IntentHandler,
+    IntentResolution,
+    Listener,
+    PrivateChannel
+} from '@finos/fdc3'
 import { MessageRouter } from '@morgan-stanley/composeui-messaging-client';
 import { ComposeUIChannel } from './infrastructure/ComposeUIChannel';
 import { ChannelType } from './infrastructure/ChannelType';
 import { ComposeUIListener } from './infrastructure/ComposeUIListener';
 
 //TODO sweep for non-standard errors
+//TODO send clientId when create channel
 export class ComposeUIDesktopAgent implements DesktopAgent {
     private appChannels: ComposeUIChannel[] = [];
     private userChannels: ComposeUIChannel[] = [];
@@ -42,7 +44,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     constructor(name: string, messageRouterClient: MessageRouter) {
         this.messageRouterClient = messageRouterClient;
         var channel = new ComposeUIChannel(
-            name, 
+            name,
             "user",
             this.messageRouterClient);
         this.addChannel(channel);
@@ -70,7 +72,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
 
     public broadcast(context: Context): Promise<void> {
         return new Promise((resolve, reject) => {
-            if(!this.currentChannel){
+            if (!this.currentChannel) {
                 reject(new Error("The current channel have not been set."));
             } else {
                 resolve(this.currentChannel.broadcast(context));
@@ -94,18 +96,30 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     }
 
     public addContextListener(contextType?: string | null | ContextHandler, handler?: ContextHandler): Promise<Listener> {
-        return new Promise<ComposeUIListener>(async(resolve, reject) => {
-            if(!this.currentChannel) {
+        return new Promise<ComposeUIListener>(async (resolve, reject) => {
+            if (!this.currentChannel) {
                 reject(new Error("The current channel have not been set."));
                 return;
             }
-            if(typeof contextType == 'function') {
+            if (typeof contextType != 'string' || !contextType) {
                 reject(new Error("The contextType was type of ContextHandler, which would use a deprecated function, please use string or null for contextType!"));
                 return;
             }
-            contextType = contextType as string ?? null; 
-            
-            const listener = <ComposeUIListener>await this.currentChannel!.addContextListener(contextType, handler!);
+
+            const stringContextType = contextType as string ?? null;
+
+            const listener = <ComposeUIListener>await this.currentChannel!.addContextListener(stringContextType, handler!);
+            await this.currentChannel?.getCurrentContext(stringContextType)
+                .then(async (resultContext) => {
+                    listener.LatestContext = this.currentChannel?.retrieveCurrentContext(stringContextType);
+                    if (resultContext != listener.LatestContext) {
+                        //TODO: test
+                        await listener.handleContextMessage();
+                    } else {
+                        await listener.handleContextMessage(resultContext);
+                    }
+                }); //TODO: what happens whe a broadcasted message arrives between 2 points,
+
             this.currentChannelListeners.push(listener);
             resolve(listener);
         });
@@ -118,6 +132,12 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     //TODO: should return AccessDenied error when a channel object is denied?
     public joinUserChannel(channelId: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
+            if (channelId == null) {
+                reject(new Error(ChannelError.NoChannelFound));
+            }
+            if (this.currentChannel) {
+                reject(new Error(ChannelError.AccessDenied));
+            }
             let channel = this.userChannels.find(innerChannel => innerChannel.id == channelId);
             if (!channel) {
                 reject(new Error(ChannelError.NoChannelFound));
@@ -153,12 +173,19 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     public leaveCurrentChannel(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             this.currentChannel = undefined;
+            this.currentChannelListeners.forEach(async listener => {
+                const isUnsubscribed = await listener.unsubscribe();
+                if (!isUnsubscribed) {
+                    reject(new Error(`Listener couldn't unsubscribe. IsSubscribed: ${isUnsubscribed}, Listener: ${listener}`));
+                }
+            });
+            this.currentChannelListeners = [];
             resolve();
         });
     }
 
     public getInfo(): Promise<ImplementationMetadata> {
-        return new Promise<ImplementationMetadata>((resolve, reject) => {
+        return new Promise<ImplementationMetadata>((resolve) => {
             const metadata = {
                 fdc3Version: "2.0.0",
                 provider: "ComposeUI",
@@ -185,34 +212,33 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     //TODO: Revisit for private channels
     public joinChannel(channelId: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            if(this.currentChannel){
+            if (this.currentChannel) {
                 reject(new Error(ChannelError.CreationFailed));
                 return;
             }
 
             let channel = this.findChannel(channelId, "user");
-            if(channel){
+            if (channel) {
                 this.currentChannel = channel;
                 resolve();
                 return;
             }
 
             channel = this.findChannel(channelId, "app");
-            if(channel){
+            if (channel) {
                 this.currentChannel = channel;
                 resolve();
                 return;
             }
 
             channel = this.findChannel(channelId, "private");
-            if(channel){
+            if (channel) {
                 this.currentChannel = channel;
                 resolve();
                 return;
             }
 
-            if(!channel)
-            {
+            if (!channel) {
                 reject(new Error(`No channel is found with id: ${channelId}`));
                 return;
             }
@@ -223,7 +249,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         let channel: ComposeUIChannel | undefined;
         const predicate = (channel: Channel) => channel.id == channelId;
 
-        switch(channelType) {
+        switch (channelType) {
             case "app":
                 channel = this.appChannels.find(predicate);
                 break;
