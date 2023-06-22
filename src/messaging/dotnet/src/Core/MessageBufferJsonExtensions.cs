@@ -11,7 +11,6 @@
 // and limitations under the License.
 
 using System.Text.Json;
-using Microsoft.IO;
 
 namespace MorganStanley.ComposeUI.Messaging;
 

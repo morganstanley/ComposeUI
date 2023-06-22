@@ -15,9 +15,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipelines;
 using System.Net.WebSockets;
 using System.Threading.Channels;
+using CommunityToolkit.HighPerformance.Buffers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.IO;
 using MorganStanley.ComposeUI.Messaging.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Protocol.Json;
 using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
@@ -225,12 +225,11 @@ internal class WebSocketConnection : IClientConnection
                 if (webSocket.State != WebSocketState.Open || cancellationToken.IsCancellationRequested)
                     break;
 
-                // TODO: Instead of a pooled buffer, we could have an IBufferWriter that writes directly to the websocket
-                await using var stream = new RecyclableMemoryStream(MemoryStreamManager);
-                JsonMessageSerializer.SerializeMessage(message, stream);
+                using var bufferWriter = new ArrayPoolBufferWriter<byte>(ArrayPool<byte>.Shared);
+                JsonMessageSerializer.SerializeMessage(message, bufferWriter);
 
                 await webSocket.SendAsync(
-                    new ArraySegment<byte>(stream.GetBuffer(), 0, (int)stream.Length),
+                    bufferWriter.WrittenMemory,
                     WebSocketMessageType.Text,
                     WebSocketMessageFlags.EndOfMessage,
                     cancellationToken);
@@ -264,6 +263,4 @@ internal class WebSocketConnection : IClientConnection
             return false;
         }
     }
-
-    private static readonly RecyclableMemoryStreamManager MemoryStreamManager = new();
 }
