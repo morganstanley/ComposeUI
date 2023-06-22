@@ -22,14 +22,23 @@ export class ComposeUITopic {
     private static readonly privateChannels = '/privateChannels/';
     private static readonly broadcastSuffix = "/broadcast";
     private static readonly getCurrentContextSuffix = "/getCurrentContext";
+    private static readonly joinUserChannelSuffix = "/joinUserChannel";
+    private static readonly getOrCreateChannelSuffix = "/getOrCreateChannel";
 
-    //TODO: Remove default
-    static broadcast(topicId: string) {
-        return `${this.topicRoot}${this.broadcastSuffix}`
+    public static broadcast() {
+        return `${this.topicRoot}${this.broadcastSuffix}`;
     }
 
-    static getCurrentContext(topicId: string, channelType: ChannelType = "user") {
-        return `${this.getChannelsTopicRootWithTopicId(topicId, channelType)}${this.getCurrentContextSuffix}`;
+    public static getCurrentContext(channelId: string, channelType: ChannelType = "user") {
+        return `${this.getChannelsTopicRootWithTopicId(channelId, channelType)}${this.getCurrentContextSuffix}`;
+    }
+
+    public static joinUserChannel() {
+        return `${this.topicRoot}${this.joinUserChannelSuffix}`;
+    }
+
+    public static getOrCreateChannel() {
+        return `${this.topicRoot}${this.getOrCreateChannelSuffix}`;
     }
 
     private static getChannelsTopicRootWithTopicId(topicId: string, channelType: ChannelType = "user") {

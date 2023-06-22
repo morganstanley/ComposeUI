@@ -11,14 +11,10 @@
  *  
  */
 
-import { Context } from "@finos/fdc3";
+export class Fdc3ErrorResponse {
+    public Error: string | undefined;
 
-export class Fdc3ChannelMessage {
-    public readonly Id!: string;
-    public readonly Context!: Context;
-
-    constructor(id: string, context: Context) {
-        this.Id = id;
-        this.Context = context;
+    constructor(error?: string | undefined) {
+        this.Error = error;
     }
 }

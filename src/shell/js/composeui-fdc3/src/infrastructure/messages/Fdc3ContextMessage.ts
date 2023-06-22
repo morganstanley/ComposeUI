@@ -11,10 +11,14 @@
  *  
  */
 
-export class Fdc3GetCurrentContextMessage {
-    public readonly contextType?: string | null;
+import { Context } from "@finos/fdc3";
 
-    constructor(contextType?: string | null) {
-        this.contextType = contextType;
+export class Fdc3ContextMessage {
+    public readonly Id!: string;
+    public readonly Context!: Context;
+
+    constructor(id: string, context: Context) {
+        this.Id = id;
+        this.Context = context;
     }
 }

@@ -12,13 +12,12 @@
  */
 
 import { Channel, Context, ContextHandler, DisplayMetadata, Listener } from "@finos/fdc3";
-import { MessageBuffer, MessageRouter, TopicMessage } from "@morgan-stanley/composeui-messaging-client";
+import { MessageRouter, TopicMessage } from "@morgan-stanley/composeui-messaging-client";
 import { ChannelType } from "./ChannelType";
 import { ComposeUIListener } from "./ComposeUIListener";
-import { Fdc3ChannelMessage } from "./messages/Fdc3ChannelMessage";
-import { Fdc3GetCurrentContextMessage } from "./messages/Fdc3GetCurrentContextMessage";
+import { Fdc3ContextMessage } from "./messages/Fdc3ContextMessage";
+import { Fdc3GetCurrentContextRequest } from "./messages/Fdc3GetCurrentContextRequest";
 import { ComposeUITopic } from "./ComposeUITopic";
-import { randomUUID } from "crypto";
 
 export class ComposeUIChannel implements Channel {
     id: string;
@@ -35,19 +34,20 @@ export class ComposeUIChannel implements Channel {
         this.messageRouterClient = messageRouterClient;
     }
 
+    //Broadcasting on the composeui/fdc3/v2.0/broadcast topic
     public async broadcast(context: Context): Promise<void> {
         //Setting the last published context message.
         this.lastContexts.set(context.type, context);
         this.lastContext = context;
-        const message = new Fdc3ChannelMessage(this.id, context);
-        const topic = ComposeUITopic.broadcast(this.id);
+        const message = new Fdc3ContextMessage(this.id, context);
+        const topic = ComposeUITopic.broadcast();
         await this.messageRouterClient.publish(topic, JSON.stringify(message));
     }
 
-    //TODO add ChannelError
+    //TODO add error
     public getCurrentContext(contextType?: string | undefined): Promise<Context | null> {
         return new Promise<Context | null>(async (resolve, reject) => {
-            const message = JSON.stringify(new Fdc3GetCurrentContextMessage(contextType ?? null));
+            const message = JSON.stringify(new Fdc3GetCurrentContextRequest(contextType ?? null));
             await this.messageRouterClient.invoke(ComposeUITopic.getCurrentContext(this.id, this.type), message)
                 .then((response) => {
                     if (response) {
@@ -56,11 +56,11 @@ export class ComposeUIChannel implements Channel {
                             const context = JSON.parse(topicMessage.payload) as Context;
                             if(context) {
                                 this.lastContext = context;
-                                this.lastContexts.set(context.type, context); //context type could be undefined?
+                                this.lastContexts.set(context.type, context);
                             }
                         }
                     }
-                    resolve(this.retrieveCurrentContext(contextType))
+                    resolve(this.retrieveCurrentContext(contextType));
                 });
         });
     }
@@ -85,8 +85,7 @@ export class ComposeUIChannel implements Channel {
         if (typeof contextType != 'string' && contextType != null) {
             throw new Error("addContextListener with contextType as ContextHandler is deprecated, please use the newer version.");
         } else {
-            const listenerId = randomUUID();
-            const listener = new ComposeUIListener(listenerId, this.messageRouterClient, handler, this.id, contextType);
+            const listener = new ComposeUIListener(this.messageRouterClient, handler, this.id, contextType);
             await listener.subscribe();
             return listener;
         };

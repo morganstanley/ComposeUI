@@ -14,22 +14,20 @@
 import { Context, ContextHandler, Listener } from "@finos/fdc3";
 import { MessageRouter, TopicMessage } from "@morgan-stanley/composeui-messaging-client";
 import { Unsubscribable } from "rxjs";
-import { Fdc3ChannelMessage } from "./messages/Fdc3ChannelMessage";
+import { Fdc3ContextMessage } from "./messages/Fdc3ContextMessage";
 import { ComposeUITopic } from "./ComposeUITopic";
 
 export class ComposeUIListener implements Listener {
     private messageRouterClient: MessageRouter;
     private unsubscribable?: Unsubscribable;
     private handler: ContextHandler;
-    private listenerId: string;
     private channelId?: string;
     private contextType?: string;
     private isSubscribed: boolean = false;
 
     public LatestContext?: Context | null = null;
 
-    constructor(listenerId: string, messageRouterClient: MessageRouter, handler: ContextHandler, channelId?: string, contextType?: string) {
-        this.listenerId = listenerId;
+    constructor(messageRouterClient: MessageRouter, handler: ContextHandler, channelId?: string, contextType?: string) {
         this.messageRouterClient = messageRouterClient;
         this.handler = handler;
 
@@ -40,15 +38,16 @@ export class ComposeUIListener implements Listener {
         this.contextType = contextType;
     }
 
+    //Subscribing to the composeui/fdc3/v2.0/broadcasr topic
     public async subscribe(): Promise<void> { 
-        const subscribeTopic = ComposeUITopic.broadcast(this.channelId!);
+        const subscribeTopic = ComposeUITopic.broadcast();
         this.unsubscribable = await this.messageRouterClient.subscribe(subscribeTopic, (topicMessage: TopicMessage) => {
+            if(topicMessage.context.sourceId == this.messageRouterClient.clientId) return;
             //TODO: integration test
-            const fdc3Message = new Fdc3ChannelMessage(topicMessage.topic, JSON.parse(topicMessage.payload!));
-            //Ensure that the context messages broadcast by an application on a channel should not be delivered back to that same application
-            if (this.channelId && ComposeUITopic.broadcast(this.channelId) == fdc3Message.Id 
-                && !this.contextType || this.contextType == fdc3Message.Context.type) {
-                this.handler!(fdc3Message.Context);
+            const fdc3Message = new Fdc3ContextMessage(topicMessage.topic, JSON.parse(topicMessage.payload!));
+            if(this.channelId && ComposeUITopic.broadcast() == fdc3Message.Id 
+                && !this.contextType || this.contextType == fdc3Message.Context!.type) {
+                this.handler!(fdc3Message.Context!);
             }
         });
         this.isSubscribed = true;
@@ -72,7 +71,7 @@ export class ComposeUIListener implements Listener {
         });
     }
 
-    public async unsubscribe(): Promise<Boolean> {
+    public unsubscribe(): Boolean {
         if (!this.unsubscribable || !this.isSubscribed) return false;
         this.unsubscribable.unsubscribe();
         this.isSubscribed = false;

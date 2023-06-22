@@ -26,13 +26,15 @@ import {
     Listener,
     PrivateChannel
 } from '@finos/fdc3'
-import { MessageRouter } from '@morgan-stanley/composeui-messaging-client';
+import { MessageRouter, TopicMessage } from '@morgan-stanley/composeui-messaging-client';
 import { ComposeUIChannel } from './infrastructure/ComposeUIChannel';
 import { ChannelType } from './infrastructure/ChannelType';
 import { ComposeUIListener } from './infrastructure/ComposeUIListener';
+import { Fdc3FindChannelRequest } from './infrastructure/messages/Fdc3FindChannelRequest';
+import { Fdc3ErrorResponse } from './infrastructure/messages/Fdc3ErrorResponse';
+import { ComposeUITopic } from './infrastructure/ComposeUITopic';
 
 //TODO sweep for non-standard errors
-//TODO send clientId when create channel
 export class ComposeUIDesktopAgent implements DesktopAgent {
     private appChannels: ComposeUIChannel[] = [];
     private userChannels: ComposeUIChannel[] = [];
@@ -109,16 +111,16 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
             const stringContextType = contextType as string ?? null;
 
             const listener = <ComposeUIListener>await this.currentChannel!.addContextListener(stringContextType, handler!);
-            await this.currentChannel?.getCurrentContext(stringContextType)
+            await this.currentChannel!.getCurrentContext(stringContextType)
                 .then(async (resultContext) => {
-                    listener.LatestContext = this.currentChannel?.retrieveCurrentContext(stringContextType);
+                    listener.LatestContext = this.currentChannel!.retrieveCurrentContext(stringContextType);
                     if (resultContext != listener.LatestContext) {
-                        //TODO: test
+                        //TODO: integrationtest
                         await listener.handleContextMessage();
                     } else {
                         await listener.handleContextMessage(resultContext);
                     }
-                }); //TODO: what happens whe a broadcasted message arrives between 2 points,
+                });
 
             this.currentChannelListeners.push(listener);
             resolve(listener);
@@ -131,16 +133,19 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
 
     //TODO: should return AccessDenied error when a channel object is denied?
     public joinUserChannel(channelId: string): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            if (channelId == null) {
-                reject(new Error(ChannelError.NoChannelFound));
-            }
+        return new Promise<void>(async (resolve, reject) => {
             if (this.currentChannel) {
                 reject(new Error(ChannelError.AccessDenied));
             }
+
             let channel = this.userChannels.find(innerChannel => innerChannel.id == channelId);
             if (!channel) {
-                reject(new Error(ChannelError.NoChannelFound));
+                try{
+                    await this.invokeChannelCreationMessage(ComposeUITopic.joinUserChannel(), channelId, "user");
+                    resolve();
+                } catch(error) {
+                    reject(error);
+                }
             } else {
                 this.currentChannel = channel;
                 resolve();
@@ -151,14 +156,20 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     //TODO: should return AccessDenied error when a channel object is denied
     //TODO: should return a CreationFailed error when a channel cannot be created or retrieved (channelId failure)
     public getOrCreateChannel(channelId: string): Promise<Channel> {
-        return new Promise<Channel>((resolve, reject) => {
-            let channel = this.appChannels.find(innerChannel => innerChannel.id == channelId);
-            if (!channel) {
-                channel = new ComposeUIChannel(channelId, "app", this.messageRouterClient);
-                this.addChannel(channel);
-            }
-            resolve(channel);
-        });
+        // return new Promise<Channel>(async(resolve, reject) => {
+        //     let channel = this.appChannels.find(innerChannel => innerChannel.id == channelId);
+        //     if (!channel) {
+        //         try{
+        //             await this.invokeChannelCreationMessage(ComposeUITopic.getOrCreateChannel(), channelId, "app");
+        //         } catch(error) {
+        //             reject(error);
+        //         }
+        //         channel = new ComposeUIChannel(channelId, "app", this.messageRouterClient);
+        //         this.addChannel(channel);
+        //     }
+        //     resolve(channel);
+        // });
+        throw new Error("Not implemented.");
     }
 
     //TODO
@@ -170,11 +181,12 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         return Promise.resolve(this.currentChannel!);
     }
 
+    //TODO: add messageRouter message that we are leaving the current channel to notify the backend.
     public leaveCurrentChannel(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             this.currentChannel = undefined;
             this.currentChannelListeners.forEach(async listener => {
-                const isUnsubscribed = await listener.unsubscribe();
+                const isUnsubscribed = listener.unsubscribe();
                 if (!isUnsubscribed) {
                     reject(new Error(`Listener couldn't unsubscribe. IsSubscribed: ${isUnsubscribed}, Listener: ${listener}`));
                 }
@@ -189,7 +201,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
             const metadata = {
                 fdc3Version: "2.0.0",
                 provider: "ComposeUI",
-                providerVersion: "1.0.1.alpha", //TODO: version check
+                providerVersion: "0.1.0-alpha.1", //TODO: version check
                 optionalFeatures: {
                     OriginatingAppMetadata: false,
                     UserChannelMembershipAPIs: false
@@ -277,5 +289,24 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
                 this.privateChannels.push(channel);
                 break;
         }
+    }
+
+    private async invokeChannelCreationMessage(topic: string, channelId: string, channelType: ChannelType): Promise<void> {
+        const message = JSON.stringify(new Fdc3FindChannelRequest(channelId, channelType));
+        await this.messageRouterClient.invoke(topic, message)
+                    .then((response) => {
+                        if(response) {
+                            const message = JSON.parse(response) as TopicMessage;
+                            if(message.payload) {
+                                const fdc3Message = JSON.parse(message.payload) as Fdc3ErrorResponse;
+                                if(fdc3Message.Error) {
+                                    throw new Error(fdc3Message.Error); //Type of the message should be created.
+                                } else {
+                                    this.currentChannel = new ComposeUIChannel(channelId, channelType, this.messageRouterClient);
+                                    this.addChannel(this.currentChannel);
+                                }
+                            }
+                        }
+                    });
     }
 }
