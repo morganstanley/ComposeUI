@@ -15,10 +15,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipelines;
 using System.Net.WebSockets;
 using System.Threading.Channels;
+using CommunityToolkit.HighPerformance.Buffers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Microsoft.IO;
 using MorganStanley.ComposeUI.Messaging.Client.Abstractions;
 using MorganStanley.ComposeUI.Messaging.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Protocol.Json;
@@ -69,12 +69,11 @@ internal class WebSocketConnection : IConnection
     {
         try
         {
-            // TODO: Instead of a pooled buffer, we could have an IBufferWriter that writes directly to the websocket
-            await using var stream = new RecyclableMemoryStream(MemoryStreamManager);
-            JsonMessageSerializer.SerializeMessage(message, stream);
+            using var bufferWriter = new ArrayPoolBufferWriter<byte>(ArrayPool<byte>.Shared);
+            JsonMessageSerializer.SerializeMessage(message, bufferWriter);
 
             await _webSocket.SendAsync(
-                new ArraySegment<byte>(stream.GetBuffer(), 0, (int)stream.Length),
+                bufferWriter.WrittenMemory,
                 WebSocketMessageType.Text,
                 WebSocketMessageFlags.EndOfMessage,
                 _stopTokenSource.Token);
@@ -85,7 +84,10 @@ internal class WebSocketConnection : IConnection
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Exception thrown while trying to send a message over the WebSocket: {ExceptionMessage}", e.Message);
+            _logger.LogError(
+                e,
+                "Exception thrown while trying to send a message over the WebSocket: {ExceptionMessage}",
+                e.Message);
         }
     }
 
@@ -167,7 +169,10 @@ internal class WebSocketConnection : IConnection
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Exception thrown while trying to read a message from the WebSocket: {ExceptionMessage}", e.Message);
+            _logger.LogError(
+                e,
+                "Exception thrown while trying to read a message from the WebSocket: {ExceptionMessage}",
+                e.Message);
             _receiveChannel.Writer.TryComplete();
         }
     }
@@ -190,6 +195,4 @@ internal class WebSocketConnection : IConnection
             return false;
         }
     }
-
-    private static readonly RecyclableMemoryStreamManager MemoryStreamManager = new();
 }
