@@ -13,8 +13,10 @@
 
 export class Fdc3ErrorResponse {
     public Error: string | undefined;
+    public Found: boolean;
 
-    constructor(error?: string | undefined) {
+    constructor(error?: string | undefined, found: boolean = true) {
         this.Error = error;
+        this.Found = found;
     }
 }

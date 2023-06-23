@@ -301,7 +301,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
                                 const fdc3Message = JSON.parse(message.payload) as Fdc3ErrorResponse;
                                 if(fdc3Message.Error) {
                                     throw new Error(fdc3Message.Error); //Type of the message should be created.
-                                } else {
+                                } else if (fdc3Message.Found){
                                     this.currentChannel = new ComposeUIChannel(channelId, channelType, this.messageRouterClient);
                                     this.addChannel(this.currentChannel);
                                 }
