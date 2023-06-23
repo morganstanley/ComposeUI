@@ -35,6 +35,9 @@
 		<None Update="Manifest\exampleManifest.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="Preload\fdc3-iife-bundle.js">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 
 	<ItemGroup>
