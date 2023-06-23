@@ -13,6 +13,7 @@
 //  */
 
 using System;
+using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -122,6 +123,7 @@ public partial class App : Application
     private async Task OnHostInitializedAsync()
     {
         InjectMessageRouterConfig();
+        InjectFDC3();
     }
 
     private void OnAsyncStartupCompleted(StartupEventArgs e)
@@ -174,5 +176,16 @@ public partial class App : Application
                 };
                     
                 """);
+    }
+   
+    private async void InjectFDC3()
+    {
+        string bundle = @"fdc3-iife-bundle.js";
+        string processPath = Environment.ProcessPath;
+        string folder = Path.GetDirectoryName(processPath);
+        string path = Path.Combine(folder, @"Preload\", bundle);
+        string iife = File.ReadAllText(path);
+
+        WebWindow.AddPreloadScript(iife);
     }
 }
