@@ -178,7 +178,7 @@ public partial class App : Application
                 """);
     }
    
-    private async void InjectFDC3()
+    private void InjectFDC3()
     {
         string bundle = @"fdc3-iife-bundle.js";
         string processPath = Environment.ProcessPath;
