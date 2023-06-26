@@ -12,4 +12,8 @@
  */
 
 
-export * from "./ComposeUIDesktopAgent";
+import { ComposeUIDesktopAgent } from  "./ComposeUIDesktopAgent";
+
+let fdc3 = new ComposeUIDesktopAgent();
+
+export default fdc3;
