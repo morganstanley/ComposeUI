@@ -12,7 +12,14 @@
 
 	<ItemGroup>
 		<None Remove="MainWindow.xaml" />
+		<None Remove="Preload\fdc3-iife-bundle.js" />
 		<None Remove="WebWindow.xaml" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Include="Preload\fdc3-iife-bundle.js">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </EmbeddedResource>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -34,9 +41,6 @@
 		</None>
 		<None Update="Manifest\exampleManifest.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="Preload\fdc3-iife-bundle.js">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
 
