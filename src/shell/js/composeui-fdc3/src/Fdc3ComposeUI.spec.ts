@@ -21,7 +21,6 @@ import { Channel, ChannelError, Context } from '@finos/fdc3';
 import { Fdc3ContextMessage } from './infrastructure/messages/Fdc3ContextMessage';
 import { Fdc3GetCurrentContextRequest } from './infrastructure/messages/Fdc3GetCurrentContextRequest';
 import { Fdc3FindChannelRequest } from './infrastructure/messages/Fdc3FindChannelRequest';
-import { Fdc3ErrorResponse } from './infrastructure/messages/Fdc3ErrorResponse';
 
 const dummyContext = {type: "dummyContextType"};
 const dummyChannelId = "dummyId";
@@ -69,9 +68,9 @@ describe('Tests for ComposeUIChannel implementation API', () => {
         const resultContext = await testChannel.getCurrentContext();
         expect(messageRouterClient.publish).toHaveBeenCalledTimes(1);
         expect(messageRouterClient.invoke).toHaveBeenCalledTimes(1);
-        expect(messageRouterClient.invoke).toHaveBeenCalledWith(ComposeUITopic.getCurrentContext(dummyTopic, testChannel.type), JSON.stringify(new Fdc3GetCurrentContextRequest(null)));
+        expect(messageRouterClient.invoke).toHaveBeenCalledWith(ComposeUITopic.getCurrentContext(dummyTopic, testChannel.type), JSON.stringify(new Fdc3GetCurrentContextRequest(undefined)));
         expect(messageRouterClient.publish).toHaveBeenCalledWith(ComposeUITopic.broadcast(), JSON.stringify(new Fdc3ContextMessage(dummyTopic, testInstrument)));
-        expect(resultContext).toMatchObject<Partial<Context>>({Id: dummyChannelId, Context: dummyContext});
+        expect(resultContext).toMatchObject({id : dummyChannelId, context: dummyContext});
     });
 
     it('getCurrentContext will result the lastContext', async() => {
@@ -90,9 +89,9 @@ describe('Tests for ComposeUIChannel implementation API', () => {
         expect(messageRouterClient.publish).toBeCalledTimes(2);
         expect(messageRouterClient.publish).toHaveBeenCalledWith(ComposeUITopic.broadcast(), JSON.stringify(new Fdc3ContextMessage(dummyTopic, testInstrument)));
         expect(messageRouterClient.publish).toHaveBeenCalledWith(ComposeUITopic.broadcast(), JSON.stringify(new Fdc3ContextMessage(dummyTopic, testInstrument2)));
-        expect(messageRouterClient.invoke).toHaveBeenCalledWith(ComposeUITopic.getCurrentContext(dummyTopic, testChannel.type), JSON.stringify(new Fdc3GetCurrentContextRequest(null)));
+        expect(messageRouterClient.invoke).toHaveBeenCalledWith(ComposeUITopic.getCurrentContext(dummyTopic, testChannel.type), JSON.stringify(new Fdc3GetCurrentContextRequest(undefined)));
         expect(messageRouterClient.invoke).toHaveBeenCalledWith(ComposeUITopic.getCurrentContext(dummyTopic, testChannel.type), JSON.stringify(new Fdc3GetCurrentContextRequest(testInstrument2.type)));
-        expect(resultContext).toMatchObject<Partial<Context>>({Id: dummyChannelId, Context: dummyContext});
+        expect(resultContext).toMatchObject({id : dummyChannelId, context: dummyContext});
         expect(resultContextWithContextType).toMatchObject<Partial<Context>>(testInstrument2);
     });
 
@@ -225,7 +224,6 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
         const resultListener = await testDesktopAgent.addContextListener("fdc3.instrument", contextMessageHandlerMock);
         expect(resultListener).toBeInstanceOf(ComposeUIListener);
         expect(messageRouterClient.subscribe).toBeCalledTimes(1);
-        //expect(messageRouterClient.subscribe).toHaveBeenCalledWith({Id: "dummyPath", Context: {type: fdc3.instrument", id: { ticker: "AAPL"} }});
     });
 
     it('addContextListener will fail as per the current channel is not defined', async() => {
@@ -277,7 +275,7 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
             unregisterEndpoint: jest.fn(() => { return Promise.resolve() }),
             registerService: jest.fn(() => { return Promise.resolve() }),
             unregisterService: jest.fn(() => { return Promise.resolve() }),
-            invoke: jest.fn(() => { return Promise.resolve(JSON.stringify({context: "", payload: `${JSON.stringify(new Fdc3ErrorResponse("Error happens..."))}` })) })
+            invoke: jest.fn(() => { return Promise.resolve(JSON.stringify({context: "", payload: `${JSON.stringify({error: "Error happens..."})}` })) })
         };
         const testDesktopAgent = new ComposeUIDesktopAgent("dummyPath", messageRouterClientMock);
         await expect(testDesktopAgent.joinUserChannel("dummyPath2"))
@@ -305,7 +303,7 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
         await testDesktopAgent.joinUserChannel("dummyPath");
         await testDesktopAgent.leaveCurrentChannel();
         var result = await testDesktopAgent.getCurrentChannel();
-        expect(result).toBe(undefined);
+        expect(result).toBeFalsy();
     });
 
     it('leaveCurrentChannel will trigger the current channel listeners to unsubscribe', async() => {
@@ -318,7 +316,7 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
             .not
             .toThrow();
         var result = await testDesktopAgent.getCurrentChannel();
-        expect(result).toBe(undefined);
+        expect(result).toBeFalsy();
     });
 
     it('leaveCurrentChannel will fail as per the listener is already unsubscribed', async() => {
@@ -332,7 +330,7 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
             .toThrow(new Error(`Listener couldn't unsubscribe. IsSubscribed: false, Listener: ${listener}`));
 
         var result = await testDesktopAgent.getCurrentChannel();
-        expect(result).toBe(undefined);
+        expect(result).toBeFalsy();
     });
 
     it('getInfo will provide information of ComposeUI', async() => {

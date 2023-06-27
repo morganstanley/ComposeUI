@@ -12,9 +12,9 @@
  */
 
 export class Fdc3GetCurrentContextRequest {
-    public readonly contextType?: string | null;
+    public readonly contextType?: string;
 
-    constructor(contextType?: string | null) {
+    constructor(contextType?: string) {
         this.contextType = contextType;
     }
 }

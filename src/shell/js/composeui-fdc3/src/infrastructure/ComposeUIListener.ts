@@ -45,9 +45,9 @@ export class ComposeUIListener implements Listener {
             if(topicMessage.context.sourceId == this.messageRouterClient.clientId) return;
             //TODO: integration test
             const fdc3Message = new Fdc3ContextMessage(topicMessage.topic, JSON.parse(topicMessage.payload!));
-            if(this.channelId && ComposeUITopic.broadcast() == fdc3Message.Id 
-                && !this.contextType || this.contextType == fdc3Message.Context!.type) {
-                this.handler!(fdc3Message.Context!);
+            if(this.channelId && ComposeUITopic.broadcast() == fdc3Message.id 
+                && !this.contextType || this.contextType == fdc3Message.context!.type) {
+                this.handler!(fdc3Message.context!);
             }
         });
         this.isSubscribed = true;

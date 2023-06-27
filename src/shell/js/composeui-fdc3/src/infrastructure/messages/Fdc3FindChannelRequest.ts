@@ -14,11 +14,11 @@
 import { ChannelType } from "../ChannelType";
 
 export class Fdc3FindChannelRequest {
-    public readonly ChannelId: string;
-    public readonly ChannelType?: ChannelType;
+    public readonly channelId: string;
+    public readonly channelType?: ChannelType;
 
     constructor(channelId: string, channelType?: ChannelType) {
-        this.ChannelId = channelId;
-        this.ChannelType = channelType;
+        this.channelId = channelId;
+        this.channelType = channelType;
     }
 }

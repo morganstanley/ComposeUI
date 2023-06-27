@@ -14,11 +14,11 @@
 import { Context } from "@finos/fdc3";
 
 export class Fdc3ContextMessage {
-    public readonly Id!: string;
-    public readonly Context!: Context;
+    public readonly id!: string;
+    public readonly context!: Context;
 
     constructor(id: string, context: Context) {
-        this.Id = id;
-        this.Context = context;
+        this.id = id;
+        this.context = context;
     }
 }

@@ -31,21 +31,20 @@ import { ComposeUIChannel } from './infrastructure/ComposeUIChannel';
 import { ChannelType } from './infrastructure/ChannelType';
 import { ComposeUIListener } from './infrastructure/ComposeUIListener';
 import { Fdc3FindChannelRequest } from './infrastructure/messages/Fdc3FindChannelRequest';
-import { Fdc3ErrorResponse } from './infrastructure/messages/Fdc3ErrorResponse';
+import { Fdc3FindChannelResponse } from './infrastructure/messages/Fdc3FindChannelResponse';
 import { ComposeUITopic } from './infrastructure/ComposeUITopic';
 
-//TODO sweep for non-standard errors
 export class ComposeUIDesktopAgent implements DesktopAgent {
     private appChannels: ComposeUIChannel[] = [];
     private userChannels: ComposeUIChannel[] = [];
     private privateChannels: ComposeUIChannel[] = [];
-    private currentChannel?: ComposeUIChannel;
+    private currentChannel?: ComposeUIChannel | null;
     private messageRouterClient!: MessageRouter;
     private currentChannelListeners: ComposeUIListener[] = [];
 
     constructor(name: string, messageRouterClient: MessageRouter) {
         this.messageRouterClient = messageRouterClient;
-        var channel = new ComposeUIChannel(
+        const channel = new ComposeUIChannel(
             name,
             "user",
             this.messageRouterClient);
@@ -108,12 +107,10 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
                 return;
             }
 
-            const stringContextType = contextType as string ?? null;
-
-            const listener = <ComposeUIListener>await this.currentChannel!.addContextListener(stringContextType, handler!);
-            await this.currentChannel!.getCurrentContext(stringContextType)
+            const listener = <ComposeUIListener>await this.currentChannel!.addContextListener(contextType, handler!);
+            await this.currentChannel!.getCurrentContext(contextType)
                 .then(async (resultContext) => {
-                    listener.LatestContext = this.currentChannel!.retrieveCurrentContext(stringContextType);
+                    listener.LatestContext = this.currentChannel!.retrieveCurrentContext(contextType);
                     if (resultContext != listener.LatestContext) {
                         //TODO: integrationtest
                         await listener.handleContextMessage();
@@ -178,14 +175,14 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     }
 
     public getCurrentChannel(): Promise<Channel | null> {
-        return Promise.resolve(this.currentChannel!);
+        return Promise.resolve(this.currentChannel ?? null);
     }
 
     //TODO: add messageRouter message that we are leaving the current channel to notify the backend.
     public leaveCurrentChannel(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             this.currentChannel = undefined;
-            this.currentChannelListeners.forEach(async listener => {
+            this.currentChannelListeners.forEach(listener => {
                 const isUnsubscribed = listener.unsubscribe();
                 if (!isUnsubscribed) {
                     reject(new Error(`Listener couldn't unsubscribe. IsSubscribed: ${isUnsubscribed}, Listener: ${listener}`));
@@ -218,7 +215,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
 
     //TODO
     public getSystemChannels(): Promise<Channel[]> {
-        throw new Error("Not implemented");
+        return Promise.resolve(this.userChannels);
     }
 
     //TODO: Revisit for private channels
@@ -293,20 +290,19 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
 
     private async invokeChannelCreationMessage(topic: string, channelId: string, channelType: ChannelType): Promise<void> {
         const message = JSON.stringify(new Fdc3FindChannelRequest(channelId, channelType));
-        await this.messageRouterClient.invoke(topic, message)
-                    .then((response) => {
-                        if(response) {
-                            const message = JSON.parse(response) as TopicMessage;
-                            if(message.payload) {
-                                const fdc3Message = JSON.parse(message.payload) as Fdc3ErrorResponse;
-                                if(fdc3Message.Error) {
-                                    throw new Error(fdc3Message.Error); //Type of the message should be created.
-                                } else if (fdc3Message.Found){
-                                    this.currentChannel = new ComposeUIChannel(channelId, channelType, this.messageRouterClient);
-                                    this.addChannel(this.currentChannel);
-                                }
-                            }
-                        }
-                    });
+        const response = await this.messageRouterClient.invoke(topic, message);
+        if(response) {
+            const message = <TopicMessage>JSON.parse(response);
+            if(message.payload) {
+                const fdc3Message = <Fdc3FindChannelResponse>JSON.parse(message.payload);
+                if(fdc3Message.error) {
+                    throw new Error(fdc3Message.error); //Type of the message should be created.
+                } 
+                if (fdc3Message.found){
+                    this.currentChannel = new ComposeUIChannel(channelId, channelType, this.messageRouterClient);
+                    this.addChannel(this.currentChannel);
+                }
+            }
+        }
     }
 }

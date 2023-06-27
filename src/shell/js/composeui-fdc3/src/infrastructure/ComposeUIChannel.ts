@@ -47,13 +47,13 @@ export class ComposeUIChannel implements Channel {
     //TODO add error
     public getCurrentContext(contextType?: string | undefined): Promise<Context | null> {
         return new Promise<Context | null>(async (resolve, reject) => {
-            const message = JSON.stringify(new Fdc3GetCurrentContextRequest(contextType ?? null));
+            const message = JSON.stringify(new Fdc3GetCurrentContextRequest(contextType));
             await this.messageRouterClient.invoke(ComposeUITopic.getCurrentContext(this.id, this.type), message)
                 .then((response) => {
                     if (response) {
-                        const topicMessage = JSON.parse(response) as TopicMessage;
+                        const topicMessage = <TopicMessage>JSON.parse(response);
                         if(topicMessage.payload) {
-                            const context = JSON.parse(topicMessage.payload) as Context;
+                            const context = <Context>JSON.parse(topicMessage.payload);
                             if(context) {
                                 this.lastContext = context;
                                 this.lastContexts.set(context.type, context);
