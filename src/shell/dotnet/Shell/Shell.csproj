@@ -18,7 +18,7 @@
 
 	<ItemGroup>
 	  <EmbeddedResource Include="Preload\fdc3-iife-bundle.js">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </EmbeddedResource>
 	</ItemGroup>
 

@@ -14,7 +14,6 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using System.Threading;
@@ -190,9 +189,8 @@ public partial class App : Application
 
     public string ReadResource(string name)
     {
-        var assembly = Assembly.GetExecutingAssembly();    
-        string resourcePath = assembly.GetManifestResourceNames()
-            .Single(str => str.EndsWith(name));
+        var assembly = Assembly.GetExecutingAssembly();
+        string resourcePath = $$"""Shell.Preload.{{name}}""";
         
         using (Stream stream = assembly.GetManifestResourceStream(resourcePath))
         using (StreamReader reader = new StreamReader(stream))
