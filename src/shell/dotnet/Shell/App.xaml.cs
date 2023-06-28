@@ -14,6 +14,8 @@
 
 using System;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -181,11 +183,21 @@ public partial class App : Application
     private void InjectFDC3()
     {
         string bundle = @"fdc3-iife-bundle.js";
-        string processPath = Environment.ProcessPath;
-        string folder = Path.GetDirectoryName(processPath);
-        string path = Path.Combine(folder, @"Preload\", bundle);
-        string iife = File.ReadAllText(path);
+        string iife = ReadResource(bundle);
 
         WebWindow.AddPreloadScript(iife);
+    }
+
+    public string ReadResource(string name)
+    {
+        var assembly = Assembly.GetExecutingAssembly();    
+        string resourcePath = assembly.GetManifestResourceNames()
+            .Single(str => str.EndsWith(name));
+        
+        using (Stream stream = assembly.GetManifestResourceStream(resourcePath))
+        using (StreamReader reader = new StreamReader(stream))
+        {
+            return reader.ReadToEnd();
+        }
     }
 }
