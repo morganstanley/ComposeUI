@@ -48,7 +48,7 @@ export class ComposeUIChannel implements Channel {
     public getCurrentContext(contextType?: string | undefined): Promise<Context | null> {
         return new Promise<Context | null>(async (resolve, reject) => {
             const message = JSON.stringify(new Fdc3GetCurrentContextRequest(contextType));
-            const response = await this.messageRouterClient.invoke(ComposeUITopic.getCurrentContext(this.id, this.type), message)
+            const response = await this.messageRouterClient.invoke(ComposeUITopic.getCurrentContext(this.id, this.type), message);
             if (response) {
                 const topicMessage = <TopicMessage>JSON.parse(response);
                 if(topicMessage.payload) {

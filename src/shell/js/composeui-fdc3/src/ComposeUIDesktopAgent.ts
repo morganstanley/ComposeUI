@@ -108,17 +108,14 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
             }
 
             const listener = <ComposeUIListener>await this.currentChannel!.addContextListener(contextType, handler!);
-            await this.currentChannel!.getCurrentContext(contextType)
-                .then(async (resultContext) => {
-                    listener.latestContext = this.currentChannel!.retrieveCurrentContext(contextType);
-                    if (resultContext != listener.latestContext) {
-                        //TODO: integrationtest
-                        await listener.handleContextMessage();
-                    } else {
-                        await listener.handleContextMessage(resultContext);
-                    }
-                });
-
+            const resultContext = await this.currentChannel!.getCurrentContext(contextType)
+            listener.latestContext = this.currentChannel!.retrieveCurrentContext(contextType);
+            if (resultContext != listener.latestContext) {
+                //TODO: integrationtest
+                await listener.handleContextMessage();
+            } else {
+                await listener.handleContextMessage(resultContext);
+            }
             this.currentChannelListeners.push(listener);
             resolve(listener);
         });
