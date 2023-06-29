@@ -11,5 +11,4 @@
  *  
  */
 
-
-export * from "./ComposeUIDesktopAgent";
+export type ChannelType = "user" | "app" | "private"

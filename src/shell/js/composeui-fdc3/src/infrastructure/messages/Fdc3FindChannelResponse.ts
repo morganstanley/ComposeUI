@@ -11,5 +11,7 @@
  *  
  */
 
-
-export * from "./ComposeUIDesktopAgent";
+export interface Fdc3FindChannelResponse {
+    error?: string;
+    found: boolean;
+}

@@ -11,5 +11,10 @@
  *  
  */
 
+export class Fdc3GetCurrentContextRequest {
+    public readonly contextType?: string;
 
-export * from "./ComposeUIDesktopAgent";
+    constructor(contextType?: string) {
+        this.contextType = contextType;
+    }
+}

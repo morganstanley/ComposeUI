@@ -11,5 +11,14 @@
  *  
  */
 
+import { ChannelType } from "../ChannelType";
 
-export * from "./ComposeUIDesktopAgent";
+export class Fdc3FindChannelRequest {
+    public readonly channelId: string;
+    public readonly channelType: ChannelType;
+
+    constructor(channelId: string, channelType: ChannelType) {
+        this.channelId = channelId;
+        this.channelType = channelType;
+    }
+}
