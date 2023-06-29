@@ -12,6 +12,6 @@
  */
 
 export interface Fdc3FindChannelResponse {
-    error: string | undefined;
+    error?: string;
     found: boolean;
 }

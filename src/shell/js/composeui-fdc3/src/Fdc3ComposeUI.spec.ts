@@ -151,9 +151,9 @@ describe('Tests for ComposeUIListener implementation API', () => {
     it('handleContextMessage will resolve the LatestContext saved for ComposeUIListener', async() => {
         const testListener = new ComposeUIListener(messageRouterClient, contextMessageHandlerMock, undefined, "fdc3.instrument");
         await testListener.subscribe();
-        testListener.LatestContext = testInstrument;
+        testListener.latestContext = testInstrument;
         await testListener.handleContextMessage();
-        expect(contextMessageHandlerMock).toHaveBeenCalledWith(testListener.LatestContext);
+        expect(contextMessageHandlerMock).toHaveBeenCalledWith(testListener.latestContext);
     });
 
     it('handleContextMessage will resolve an empty context', async() => {

@@ -24,7 +24,7 @@ export class ComposeUIChannel implements Channel {
     type: "user" | "app" | "private";
     displayMetadata?: DisplayMetadata;
 
-    private messageRouterClient!: MessageRouter;
+    private messageRouterClient: MessageRouter;
     private lastContexts: Map<string, Context> = new Map<string, Context>();
     private lastContext?: Context;
 
@@ -48,25 +48,23 @@ export class ComposeUIChannel implements Channel {
     public getCurrentContext(contextType?: string | undefined): Promise<Context | null> {
         return new Promise<Context | null>(async (resolve, reject) => {
             const message = JSON.stringify(new Fdc3GetCurrentContextRequest(contextType));
-            await this.messageRouterClient.invoke(ComposeUITopic.getCurrentContext(this.id, this.type), message)
-                .then((response) => {
-                    if (response) {
-                        const topicMessage = <TopicMessage>JSON.parse(response);
-                        if(topicMessage.payload) {
-                            const context = <Context>JSON.parse(topicMessage.payload);
-                            if(context) {
-                                this.lastContext = context;
-                                this.lastContexts.set(context.type, context);
-                            }
-                        }
+            const response = await this.messageRouterClient.invoke(ComposeUITopic.getCurrentContext(this.id, this.type), message)
+            if (response) {
+                const topicMessage = <TopicMessage>JSON.parse(response);
+                if(topicMessage.payload) {
+                    const context = <Context>JSON.parse(topicMessage.payload);
+                    if(context) {
+                        this.lastContext = context;
+                        this.lastContexts.set(context.type, context);
                     }
-                    resolve(this.retrieveCurrentContext(contextType));
-                });
+                }
+            }
+            resolve(this.retrieveCurrentContext(contextType));
         });
     }
 
-    public retrieveCurrentContext(contextType?: string | undefined): Context | null {
-        let context: Context | undefined;
+    public retrieveCurrentContext(contextType?: string): Context | null {
+        let context;
         if (contextType) {
             context = this.lastContexts.get(contextType);
             if (!context) {

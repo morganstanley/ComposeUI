@@ -17,42 +17,42 @@ import { ChannelType } from "./ChannelType";
 export class ComposeUITopic {
     private static readonly fdc3Version = "v2.0";
     private static readonly topicRoot = `$composeui/fdc3/${this.fdc3Version}`;
-    private static readonly userChannels = '/userChannels/';
-    private static readonly appChannels = '/appChannels/';
-    private static readonly privateChannels = '/privateChannels/';
-    private static readonly broadcastSuffix = "/broadcast";
-    private static readonly getCurrentContextSuffix = "/getCurrentContext";
-    private static readonly joinUserChannelSuffix = "/joinUserChannel";
-    private static readonly getOrCreateChannelSuffix = "/getOrCreateChannel";
+    private static readonly userChannels = 'userChannels';
+    private static readonly appChannels = 'appChannels';
+    private static readonly privateChannels = 'privateChannels';
+    private static readonly broadcastSuffix = "broadcast";
+    private static readonly getCurrentContextSuffix = "getCurrentContext";
+    private static readonly joinUserChannelSuffix = "joinUserChannel";
+    private static readonly getOrCreateChannelSuffix = "getOrCreateChannel";
 
     public static broadcast() {
-        return `${this.topicRoot}${this.broadcastSuffix}`;
+        return `${this.topicRoot}/${this.broadcastSuffix}`;
     }
 
     public static getCurrentContext(channelId: string, channelType: ChannelType = "user") {
-        return `${this.getChannelsTopicRootWithTopicId(channelId, channelType)}${this.getCurrentContextSuffix}`;
+        return `${this.getChannelsTopicRootWithTopicId(channelId, channelType)}/${this.getCurrentContextSuffix}`;
     }
 
     public static joinUserChannel() {
-        return `${this.topicRoot}${this.joinUserChannelSuffix}`;
+        return `${this.topicRoot}/${this.joinUserChannelSuffix}`;
     }
 
     public static getOrCreateChannel() {
-        return `${this.topicRoot}${this.getOrCreateChannelSuffix}`;
+        return `${this.topicRoot}/${this.getOrCreateChannelSuffix}`;
     }
 
     private static getChannelsTopicRootWithTopicId(topicId: string, channelType: ChannelType = "user") {
-        return `${this.getChannelsTopicRoot(channelType)}${topicId}`;
+        return `${this.getChannelsTopicRoot(channelType)}/${topicId}`;
     }
 
     private static getChannelsTopicRoot(channelType: ChannelType = "user") {
         switch(channelType) {
             case "user":
-                return `${this.topicRoot}${this.userChannels}`;
+                return `${this.topicRoot}/${this.userChannels}`;
             case "app":
-                return `${this.topicRoot}${this.appChannels}`;
+                return `${this.topicRoot}/${this.appChannels}`;
             case "private":
-                return `${this.topicRoot}${this.privateChannels}`;
+                return `${this.topicRoot}/${this.privateChannels}`;
         }
     }
 }

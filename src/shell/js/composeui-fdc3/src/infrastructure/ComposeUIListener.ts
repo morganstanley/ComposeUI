@@ -24,8 +24,7 @@ export class ComposeUIListener implements Listener {
     private channelId?: string;
     private contextType?: string;
     private isSubscribed: boolean = false;
-
-    public LatestContext?: Context | null = null;
+    public latestContext: Context | null = null;
 
     constructor(messageRouterClient: MessageRouter, handler: ContextHandler, channelId?: string, contextType?: string) {
         this.messageRouterClient = messageRouterClient;
@@ -38,14 +37,13 @@ export class ComposeUIListener implements Listener {
         this.contextType = contextType;
     }
 
-    //Subscribing to the composeui/fdc3/v2.0/broadcasr topic
     public async subscribe(): Promise<void> { 
         const subscribeTopic = ComposeUITopic.broadcast();
         this.unsubscribable = await this.messageRouterClient.subscribe(subscribeTopic, (topicMessage: TopicMessage) => {
             if(topicMessage.context.sourceId == this.messageRouterClient.clientId) return;
             //TODO: integration test
             const fdc3Message = new Fdc3ContextMessage(topicMessage.topic, JSON.parse(topicMessage.payload!));
-            if(this.channelId && ComposeUITopic.broadcast() == fdc3Message.id 
+            if(this.channelId && this.channelId == fdc3Message.id 
                 && !this.contextType || this.contextType == fdc3Message.context!.type) {
                 this.handler!(fdc3Message.context!);
             }
@@ -61,8 +59,8 @@ export class ComposeUIListener implements Listener {
                 if(context) {
                     resolve(this.handler(context));
                 } else {
-                    if (this.LatestContext) {
-                        resolve(this.handler(this.LatestContext));
+                    if (this.latestContext) {
+                        resolve(this.handler(this.latestContext));
                     } else {
                         resolve(this.handler({type: ""}));
                     }

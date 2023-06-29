@@ -38,14 +38,14 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     private appChannels: ComposeUIChannel[] = [];
     private userChannels: ComposeUIChannel[] = [];
     private privateChannels: ComposeUIChannel[] = [];
-    private currentChannel?: ComposeUIChannel | null;
-    private messageRouterClient!: MessageRouter;
+    private currentChannel?: ComposeUIChannel;
+    private messageRouterClient: MessageRouter;
     private currentChannelListeners: ComposeUIListener[] = [];
 
-    constructor(name: string, messageRouterClient: MessageRouter) {
+    constructor(channelId: string, messageRouterClient: MessageRouter) {
         this.messageRouterClient = messageRouterClient;
         const channel = new ComposeUIChannel(
-            name,
+            channelId,
             "user",
             this.messageRouterClient);
         this.addChannel(channel);
@@ -110,8 +110,8 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
             const listener = <ComposeUIListener>await this.currentChannel!.addContextListener(contextType, handler!);
             await this.currentChannel!.getCurrentContext(contextType)
                 .then(async (resultContext) => {
-                    listener.LatestContext = this.currentChannel!.retrieveCurrentContext(contextType);
-                    if (resultContext != listener.LatestContext) {
+                    listener.latestContext = this.currentChannel!.retrieveCurrentContext(contextType);
+                    if (resultContext != listener.latestContext) {
                         //TODO: integrationtest
                         await listener.handleContextMessage();
                     } else {
@@ -203,8 +203,8 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
                     OriginatingAppMetadata: false,
                     UserChannelMembershipAPIs: false
                 }
-            } as ImplementationMetadata;
-            resolve(metadata);
+            };
+            resolve(<ImplementationMetadata>metadata);
         });
     }
 
@@ -255,7 +255,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     }
 
     private findChannel(channelId: string, channelType: ChannelType): ComposeUIChannel | undefined {
-        let channel: ComposeUIChannel | undefined;
+        let channel;
         const predicate = (channel: Channel) => channel.id == channelId;
 
         switch (channelType) {
