@@ -192,8 +192,8 @@ public partial class App : Application
         var assembly = Assembly.GetExecutingAssembly();
         string resourcePath = $$"""Shell.Preload.{{name}}""";
         
-        using (Stream stream = assembly.GetManifestResourceStream(resourcePath))
-        using (StreamReader reader = new StreamReader(stream))
+        using (var stream = assembly.GetManifestResourceStream(resourcePath))
+        using (var reader = new StreamReader(stream))
         {
             return reader.ReadToEnd();
         }
