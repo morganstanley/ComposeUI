@@ -14,7 +14,13 @@
 		<None Remove="MainWindow.xaml" />
 		<None Remove="WebWindow.xaml" />
 	</ItemGroup>
-
+	
+	<ItemGroup>
+	  <EmbeddedResource Include="Preload\fdc3-iife-bundle.js">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </EmbeddedResource>
+	</ItemGroup>
+	
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
 		<PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1462.37" />
