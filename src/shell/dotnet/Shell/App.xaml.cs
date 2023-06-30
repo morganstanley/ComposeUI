@@ -124,7 +124,7 @@ public partial class App : Application
     private async Task OnHostInitializedAsync()
     {
         InjectMessageRouterConfig();
-        InjectFDC3();
+        InjectFdc3();
     }
 
     private void OnAsyncStartupCompleted(StartupEventArgs e)
@@ -179,15 +179,15 @@ public partial class App : Application
                 """);
     }
    
-    private void InjectFDC3()
+    private void InjectFdc3()
     {
         string bundle = @"fdc3-iife-bundle.js";
-        string iife = ReadResource(bundle);
+        string iife = ReadPreloadResource(bundle);
 
         WebWindow.AddPreloadScript(iife);
     }
 
-    public string ReadResource(string name)
+    public string ReadPreloadResource(string name)
     {
         var assembly = Assembly.GetExecutingAssembly();
         string resourcePath = $$"""Shell.Preload.{{name}}""";
