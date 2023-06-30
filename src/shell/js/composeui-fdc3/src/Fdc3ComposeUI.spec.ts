@@ -15,7 +15,7 @@ import { jest } from '@jest/globals';
 import { ComposeUIChannel } from './infrastructure/ComposeUIChannel';
 import { MessageRouter } from '@morgan-stanley/composeui-messaging-client';
 import { ComposeUIListener } from './infrastructure/ComposeUIListener';
-import { ComposeUIDesktopAgent } from '.';
+import { ComposeUIDesktopAgent } from './ComposeUIDesktopAgent';
 import { ComposeUITopic } from './infrastructure/ComposeUITopic';
 import { Channel, ChannelError, Context } from '@finos/fdc3';
 import { Fdc3ContextMessage } from './infrastructure/messages/Fdc3ContextMessage';
