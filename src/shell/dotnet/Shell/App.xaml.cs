@@ -13,8 +13,6 @@
 //  */
 
 using System;
-using System.IO;
-using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -181,21 +179,9 @@ public partial class App : Application
    
     private void InjectFdc3()
     {
-        string bundle = @"fdc3-iife-bundle.js";
-        string iife = ReadPreloadResource(bundle);
+        string bundle = @"Shell.fdc3-iife-bundle.js";
+        string iife = ResourceReader.ReadResource(bundle);
 
         WebWindow.AddPreloadScript(iife);
-    }
-
-    public string ReadPreloadResource(string name)
-    {
-        var assembly = Assembly.GetExecutingAssembly();
-        string resourcePath = $$"""Shell.Preload.{{name}}""";
-        
-        using (var stream = assembly.GetManifestResourceStream(resourcePath))
-        using (var reader = new StreamReader(stream))
-        {
-            return reader.ReadToEnd();
-        }
     }
 }

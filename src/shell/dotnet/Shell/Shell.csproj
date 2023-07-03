@@ -14,11 +14,10 @@
 		<None Remove="MainWindow.xaml" />
 		<None Remove="WebWindow.xaml" />
 	</ItemGroup>
-	
+
 	<ItemGroup>
-	  <EmbeddedResource Include="Preload\fdc3-iife-bundle.js">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </EmbeddedResource>
+		<EmbeddedResource Include="..\..\js\composeui-fdc3\dist\fdc3-iife-bundle.js" >
+		</EmbeddedResource>
 	</ItemGroup>
 	
 	<ItemGroup>
@@ -44,7 +43,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Folder Include="Preload\" />
 		<Folder Include="Utilities\" />
 	</ItemGroup>
 
@@ -52,9 +50,5 @@
 		<ProjectReference Include="..\..\..\fdc3\dotnet\DesktopAgent\src\DesktopAgent\DesktopAgent.csproj" />
 		<ProjectReference Include="..\..\..\messaging\dotnet\src\Host\MorganStanley.ComposeUI.Messaging.Host.csproj" />
 	</ItemGroup>
-
-	<Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-	  <Exec Command="PowerShell cd ..\..\..\..\ ; .\src\shell\dotnet\copy-fdc3-iife-bundle.ps1" />
-	</Target>
 
 </Project>
