@@ -24,24 +24,21 @@ namespace Shell.Utilities
 {
     public static class ResourceReader
     {
-        public static string ReadResource(string name)
+        public static string ReadResource(string name) 
         {
             var assembly = Assembly.GetExecutingAssembly();
             string resourcePath = name;
-            try
+
+            var stream = assembly.GetManifestResourceStream(resourcePath);
+
+            if (stream == null)
             {
-                using (var stream = assembly.GetManifestResourceStream(resourcePath))
-                using (var reader = new StreamReader(stream))
-                {
-                    return reader.ReadToEnd();
-                }
+                throw new InvalidOperationException("Resource not found");
             }
-            catch
+            using (var reader = new StreamReader(stream))
             {
-                return null;
+                return reader.ReadToEnd();
             }
-            
-            
         }
     }
 }

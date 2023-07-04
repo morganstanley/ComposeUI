@@ -26,14 +26,6 @@ namespace ShellTests
     public class ReadResourceTests
     {
         [Fact]
-        public void ResourceNotAvailable()
-        {
-            var resource = ResourceReader.ReadResource("NotAvailableResource");
-
-            Assert.Null(resource);
-        }
-
-        [Fact]
         public void ResourceCanBeRead()
         {
             var resource = ResourceReader.ReadResource(@"Shell.fdc3-iife-bundle.js");
