@@ -20,6 +20,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Shell.Preload;
 
 namespace ShellTests
 {
@@ -28,7 +29,7 @@ namespace ShellTests
         [Fact]
         public void ResourceCanBeRead()
         {
-            var resource = ResourceReader.ReadResource(@"Shell.fdc3-iife-bundle.js");
+            var resource = ResourceReader.ReadResource(PreloadFdc3.Fdc3BundleResourceName);
 
             Assert.NotNull(resource);
         }

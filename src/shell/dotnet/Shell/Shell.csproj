@@ -51,7 +51,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<EmbeddedResource Include="$(Fdc3BundleOutput)" >
+		<EmbeddedResource Include="$(Fdc3BundleOutput)">
 		</EmbeddedResource>
 	</ItemGroup>
 
