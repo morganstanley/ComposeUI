@@ -32,5 +32,13 @@ namespace ShellTests
 
             Assert.Null(resource);
         }
+
+        [Fact]
+        public void ResourceCanBeRead()
+        {
+            var resource = ResourceReader.ReadResource(@"Shell.fdc3-iife-bundle.js");
+
+            Assert.NotNull(resource);
+        }
     }
 }
