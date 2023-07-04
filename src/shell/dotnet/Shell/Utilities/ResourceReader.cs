@@ -14,12 +14,20 @@ namespace Shell.Utilities
         {
             var assembly = Assembly.GetExecutingAssembly();
             string resourcePath = name;
-
-            using (var stream = assembly.GetManifestResourceStream(resourcePath))
-            using (var reader = new StreamReader(stream))
+            try
             {
-                return reader.ReadToEnd();
+                using (var stream = assembly.GetManifestResourceStream(resourcePath))
+                using (var reader = new StreamReader(stream))
+                {
+                    return reader.ReadToEnd();
+                }
             }
+            catch
+            {
+                return null;
+            }
+            
+            
         }
     }
 }
