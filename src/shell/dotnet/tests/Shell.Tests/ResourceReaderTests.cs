@@ -27,7 +27,7 @@ namespace ShellTests
     public class ReadResourceTests
     {
         [Fact]
-        public void ResourceCanBeRead()
+        public void TestFdc3BundleResourceIsFound()
         {
             var resource = ResourceReader.ReadResource(PreloadFdc3.Fdc3BundleResourceName);
 
