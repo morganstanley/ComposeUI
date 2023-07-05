@@ -1,4 +1,4 @@
-{
+﻿{
   "profiles": {
     "Shell": {
       "commandName": "Project"
@@ -6,6 +6,10 @@
     "Chart and grid": {
       "commandName": "Project",
       "commandLineArgs": "--url http://localhost:4200"
+    },
+    "FINOS FDC3 Workbench": {
+      "commandName": "Project",
+      "commandLineArgs": "--url https://fdc3.finos.org/toolbox/fdc3-workbench/"
     }
   }
 }

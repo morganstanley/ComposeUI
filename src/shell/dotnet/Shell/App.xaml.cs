@@ -25,6 +25,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 using Shell.Utilities;
+using Shell.Fdc3;
 
 namespace Shell;
 
@@ -122,6 +123,7 @@ public partial class App : Application
     private async Task OnHostInitializedAsync()
     {
         InjectMessageRouterConfig();
+        InjectFdc3();
     }
 
     private void OnAsyncStartupCompleted(StartupEventArgs e)
@@ -174,5 +176,12 @@ public partial class App : Application
                 };
                     
                 """);
+    }
+
+    private void InjectFdc3()
+    {
+        string iife = ResourceReader.ReadResource(PreloadFdc3.Fdc3BundleResourceName);
+
+        WebWindow.AddPreloadScript(iife);
     }
 }

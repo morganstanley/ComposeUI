@@ -15,7 +15,7 @@ import { jest } from '@jest/globals';
 import { ComposeUIChannel } from './infrastructure/ComposeUIChannel';
 import { MessageRouter } from '@morgan-stanley/composeui-messaging-client';
 import { ComposeUIListener } from './infrastructure/ComposeUIListener';
-import { ComposeUIDesktopAgent } from '.';
+import { ComposeUIDesktopAgent } from './ComposeUIDesktopAgent';
 import { ComposeUITopic } from './infrastructure/ComposeUITopic';
 import { Channel, ChannelError, Context } from '@finos/fdc3';
 import { Fdc3ContextMessage } from './infrastructure/messages/Fdc3ContextMessage';
@@ -336,7 +336,7 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
     it('getInfo will provide information of ComposeUI', async() => {
         const testDesktopAgent = new ComposeUIDesktopAgent("dummyPath", messageRouterClient);
         var result = await testDesktopAgent.getInfo();
-        expect(result.fdc3Version).toBe("2.0.0");
+        expect(result.fdc3Version).toBe("2.0");
         expect(result.provider).toBe("ComposeUI");
     });
 

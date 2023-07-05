@@ -14,7 +14,7 @@
 		<None Remove="MainWindow.xaml" />
 		<None Remove="WebWindow.xaml" />
 	</ItemGroup>
-
+	
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
 		<PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1462.37" />
@@ -46,4 +46,17 @@
 		<ProjectReference Include="..\..\..\messaging\dotnet\src\Host\MorganStanley.ComposeUI.Messaging.Host.csproj" />
 	</ItemGroup>
 
+	<PropertyGroup>
+		<Fdc3BundleOutput>$(ComposeUIRepositoryRoot)/src/shell/js/composeui-fdc3/dist/fdc3-iife-bundle.js</Fdc3BundleOutput>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="$(Fdc3BundleOutput)">
+		</EmbeddedResource>
+	</ItemGroup>
+
+	<Target Name="PreBuild" BeforeTargets="PrebuildEvent" Condition="!Exists('$(Fdc3BundleOutput)')">
+		<Exec Command="cd $(ComposeUIRepositoryRoot)" />
+		<Exec Command="npx lerna run build --scope @morgan-stanley/composeui-fdc3" />
+	</Target>
 </Project>

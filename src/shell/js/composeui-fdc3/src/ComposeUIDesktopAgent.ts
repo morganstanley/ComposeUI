@@ -193,7 +193,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     public getInfo(): Promise<ImplementationMetadata> {
         return new Promise<ImplementationMetadata>((resolve) => {
             const metadata = {
-                fdc3Version: "2.0.0",
+                fdc3Version: "2.0",
                 provider: "ComposeUI",
                 providerVersion: "0.1.0-alpha.1", //TODO: version check
                 optionalFeatures: {
