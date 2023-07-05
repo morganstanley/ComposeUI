@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Shell.Preload
+namespace Shell.Fdc3
 {
     public static class PreloadFdc3
     {
