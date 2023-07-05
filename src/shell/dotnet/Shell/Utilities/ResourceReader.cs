@@ -19,23 +19,19 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace Shell.Utilities
 {
     public static class ResourceReader
     {
-        public static string ReadResource(string name) 
+        public static string ReadResource(string name)
         {
             var assembly = Assembly.GetExecutingAssembly();
             string resourcePath = name;
 
-            var stream = assembly.GetManifestResourceStream(resourcePath);
-
-            if (stream == null)
-            {
-                throw new InvalidOperationException("Resource not found");
-            }
-            using (var reader = new StreamReader(stream))
+            using var stream = assembly.GetManifestResourceStream(resourcePath) ?? throw new InvalidOperationException("Resource not found");
+            using var reader = new StreamReader(stream);
             {
                 return reader.ReadToEnd();
             }
