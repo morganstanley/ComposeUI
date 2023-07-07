@@ -2,7 +2,7 @@
 
 # This workflow will do a clean install of node dependencies, build the source code and run tests
 
-name: Prototypes-CI
+name: CI
 
 on:
   push:
