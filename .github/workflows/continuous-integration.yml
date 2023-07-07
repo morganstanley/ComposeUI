@@ -2,34 +2,62 @@
 
 # This workflow will do a clean install of node dependencies, build the source code and run tests
 
-name: CI
+name: Prototypes-CI
 
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_call:
+
+permissions:
+  contents: read
 
 jobs:
   build:
-
+    env:
+      COMPOSEUI_SKIP_DOWNLOAD: 'true'
     runs-on: windows-latest
     strategy:
       matrix:
         dotnet-version: [ '6.0.x' ]
-
+        node-version: [ '18.x' ]
     steps:
     - uses: actions/checkout@v3
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        COMPOSEUI_SKIP_DOWNLOAD: ${{env.COMPOSEUI_SKIP_DOWNLOAD}}
+    - name: Install NPM dependencies
+      run: npm ci
+
+    - name: Build JavaScript
+      run: npx lerna run build
+    
+    - name: Test JavaScript
+      run: npx lerna run test
+
     - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: ${{ matrix.dotnet-version }}
-    - name: Install dependencies
+    - name: Install Nuget dependencies
       run: Get-ChildItem -Recurse -Include *.sln | ForEach-Object {dotnet restore $_} 
-      working-directory: src
-    - name: Build
-      run: Get-ChildItem -Recurse -Include *.sln | ForEach-Object {dotnet build $_ --configuration Release --no-restore; if ($LASTEXITCODE -ne 0 ) {throw "Build for $_ FAILED"; }}
-      working-directory: src
-    - name: Test
-      run: Get-ChildItem -Recurse -Include *.sln | ForEach-Object {dotnet test $_ --configuration Release --no-restore --verbosity normal}
-      working-directory: src
+
+    - name: Build .Net
+      run: Get-ChildItem -Recurse -Include *.sln | ForEach-Object {dotnet build $_ --configuration Release --no-restore; if ($LASTEXITCODE -ne 0 ) {throw "Build for $_ FAILED"; }} 
+
+    - name: Test .Net
+      run: Get-ChildItem -Recurse -Include *.sln | ForEach-Object {dotnet test $_ --configuration Release --no-restore --verbosity normal --collect:"XPlat Code Coverage"}  
+
+    - name: Codecov
+      uses: codecov/codecov-action@v3.0.0
+
+    # By uploading it's shared with the other workflows that are reusing this
+    - name: Upload Shell Binaries
+      uses: actions/upload-artifact@v3
+      with:
+        name: shell-binaries
+        path: ${{ github.workspace }}/src/shell/dotnet/Shell/bin/Release/net6.0-windows/
