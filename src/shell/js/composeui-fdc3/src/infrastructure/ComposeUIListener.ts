@@ -13,39 +13,38 @@
 
 import { Context, ContextHandler, Listener } from "@finos/fdc3";
 import { MessageRouter, TopicMessage } from "@morgan-stanley/composeui-messaging-client";
+import { ChannelType } from "./ChannelType";
 import { Unsubscribable } from "rxjs";
-import { Fdc3ContextMessage } from "./messages/Fdc3ContextMessage";
 import { ComposeUITopic } from "./ComposeUITopic";
 
 export class ComposeUIListener implements Listener {
     private messageRouterClient: MessageRouter;
     private unsubscribable?: Unsubscribable;
     private handler: ContextHandler;
-    private channelId?: string;
+    private channelId: string;
+    private channelType: ChannelType;
     private contextType?: string;
     private isSubscribed: boolean = false;
     public latestContext: Context | null = null;
 
-    constructor(messageRouterClient: MessageRouter, handler: ContextHandler, channelId?: string, contextType?: string) {
+    constructor(messageRouterClient: MessageRouter, handler: ContextHandler, channelId: string, channelType: ChannelType, contextType?: string) {
         this.messageRouterClient = messageRouterClient;
         this.handler = handler;
 
-        if (channelId) { 
-            this.channelId = channelId;
-        }
+        this.channelId = channelId;
+        this.channelType = channelType;
 
         this.contextType = contextType;
     }
 
     public async subscribe(): Promise<void> { 
-        const subscribeTopic = ComposeUITopic.broadcast();
+        const subscribeTopic = ComposeUITopic.broadcast(this.channelId, this.channelType);
         this.unsubscribable = await this.messageRouterClient.subscribe(subscribeTopic, (topicMessage: TopicMessage) => {
             if(topicMessage.context.sourceId == this.messageRouterClient.clientId) return;
             //TODO: integration test
-            const fdc3Message = new Fdc3ContextMessage(topicMessage.topic, JSON.parse(topicMessage.payload!));
-            if(this.channelId && this.channelId == fdc3Message.id 
-                && !this.contextType || this.contextType == fdc3Message.context!.type) {
-                this.handler!(fdc3Message.context!);
+            const context = JSON.parse(topicMessage.payload!) as Context;            
+            if(!this.contextType || this.contextType == context!.type) {                
+                this.handler!(context!);
             }
         });
         this.isSubscribed = true;

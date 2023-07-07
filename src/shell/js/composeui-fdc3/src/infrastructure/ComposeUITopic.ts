@@ -16,7 +16,7 @@ import { ChannelType } from "./ChannelType";
 //TODO: Add more methods which returns the topics for ComposeUI's right channel
 export class ComposeUITopic {
     private static readonly fdc3Version = "v2.0";
-    private static readonly topicRoot = `$composeui/fdc3/${this.fdc3Version}`;
+    private static readonly topicRoot = `ComposeUI/fdc3/${this.fdc3Version}`;
     private static readonly userChannels = 'userChannels';
     private static readonly appChannels = 'appChannels';
     private static readonly privateChannels = 'privateChannels';
@@ -25,8 +25,8 @@ export class ComposeUITopic {
     private static readonly joinUserChannelSuffix = "joinUserChannel";
     private static readonly getOrCreateChannelSuffix = "getOrCreateChannel";
 
-    public static broadcast() {
-        return `${this.topicRoot}/${this.broadcastSuffix}`;
+    public static broadcast(channelId: string, channelType: ChannelType = "user") {
+        return `${this.getChannelsTopicRootWithTopicId(channelId, channelType)}/${this.broadcastSuffix}`;
     }
 
     public static getCurrentContext(channelId: string, channelType: ChannelType = "user") {
