@@ -14,7 +14,7 @@ name: Release
 
 jobs:
   build:
-    uses: ./.github/workflows/continuous-integration-prototypes.yml
+    uses: ./.github/workflows/continuous-integration.yml
   upload:
     name: Upload Release Asset
     needs: build
