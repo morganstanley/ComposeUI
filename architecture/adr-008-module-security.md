@@ -2,6 +2,10 @@
 
 # Architecture Decision Record: Module Communication Security
 
+## Status
+
+Approved
+
 ## Context
 
 ComposeUI is modular, and although the core and loader are responsible for loading a module, the only
@@ -43,10 +47,6 @@ we reject the connection in this case.
 - The default is that we allow authenticated clients only
 - Provide an option for the application to opt-out of authentication
 - We mark modules/apps that are not identified with an "anonymous" flag
-
-## Status
-
-Approved
 
 ## Consequences
 - Modules need a token to connect to the central Message Router

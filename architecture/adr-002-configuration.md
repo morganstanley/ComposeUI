@@ -2,6 +2,11 @@
 
 # Architecture Decision Record: Configuration
 
+
+## Status
+
+Approved
+
 ## Context
 
 ComposeUI has to fulfill a number of different goals.
@@ -46,10 +51,6 @@ Each distinct module will have the ability to contribute to the schema
 and define entity types specific to its own domain. Modules may
 interact by referencing entity types and properties defined in other
 modules.
-
-## Status
-
-Approved
 
 ## Consequences
 

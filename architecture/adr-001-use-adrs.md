@@ -2,6 +2,10 @@
 
 # Architecture Decision Record: Use ADRs
 
+## Status
+
+Approved
+
 ## Context
 
 ComposeUI has several very explicit goals that make the practice and
@@ -50,10 +54,6 @@ The workflow will be:
    be updated to point to the new one. The old ADR should not be
    removed or otherwise modified except for the annotation pointing to
    the new ADR.
-
-## Status
-
-Approved
 
 ## Consequences
 

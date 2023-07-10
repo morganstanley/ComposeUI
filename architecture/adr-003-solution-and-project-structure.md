@@ -2,6 +2,10 @@
 
 # Architecture Decision Record: Solution and Project Structure
 
+## Status
+
+Approved
+
 ## Context
 
 When it comes to creating and maintaining projects, multiple parallel
@@ -19,10 +23,6 @@ technology and its capabilities or best practices.
 - We would depend on using an eng/Dependencies.props file instead of having the versions of Nuget files
 repeatedly entered into the csproj files
 - We would use automated tooling to achieve the maintenance of Dependencies.props file
-
-## Status
-
-Approved
 
 ## Consequences
 

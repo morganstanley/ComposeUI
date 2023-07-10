@@ -1,5 +1,9 @@
 # Architecture Decision Record: Built-in APIs should be built on top of the Message Router
 
+## Status
+
+Draft
+
 ## Context
 
 ComposeUI as a framework will provide a set of standard APIs to modules. 
@@ -24,10 +28,6 @@ Adding a new API will consist of defining a set of new request/response types.
 Adding a new protocol binding will only require us to implement communication within the Message Router server side and client library implementations.
 Supporting one more platform will require a new client library with at least one protocol binding, each supported protocol having a fixed number of endpoints (those that communicate
 with the Message Router).
-
-## Status
-
-Draft
 
 ## Consequences
 

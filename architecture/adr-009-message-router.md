@@ -2,6 +2,10 @@
 
 # Architecture Decision Record: Message Router requirements
 
+## Status
+
+Draft
+
 ## Context
 
 The Message Router is one of ComposeUI's core components. It serves as a generic communication layer that modules can
@@ -62,10 +66,6 @@ Messages should also be delivered in strict order at least within a topic or ser
 topic should receive messages in the order in which the publisher sent them;
 
 For cross-machine communication, no such guarantees are provided.
-
-## Status
-
-Draft
 
 ## Consequences
 

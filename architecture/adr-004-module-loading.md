@@ -1,6 +1,10 @@
 <!-- Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. -->
 # Architecture Decision Record: Module Structure & Loading
 
+## Status
+
+Approved
+
 ## Context
 
 ComposeUI needs to be as modular as possible. Not only do we want the community to be able to contribute new abilities and features that integrate well with the core and with each other, we want some of the basic functionality of ComposeUI to be swappable for alternatives as well.
@@ -26,10 +30,6 @@ Some of the general problems associated with plugin/module systems include:
 - Discovery and loading of modules would be separated
 - Communication would be based on the internal messaging bus between them
 - Smart defaults would be provided to enable easy startup and to avoid 22 catch problem
-
-## Status
-
-Approved
 
 ## Consequences
 

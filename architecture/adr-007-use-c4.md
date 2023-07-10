@@ -2,6 +2,10 @@
 
 # Architecture Decision Record: Use of C4
 
+## Status
+
+Approved
+
 ## Context
 
 We need a way to help the development team describe and communicate software architecture, both during up-front design sessions and ADRs and also when retrospectively documenting the codebase, including the ability to create maps of code, at various levels of details.
@@ -19,10 +23,6 @@ When it comes to actually to render C4, once you have the architecture models co
 Within ComposeUI, we are to position C4 as the preferred way to capture system architecture and how it is deployed, both as a means to creating consistent and easy to understand diagrams as code that can live in the source control, and also as a data model that can be used to feed static analysis systems thereby reducing the overhead for developers and improving accuracy of the decisions and suggestions of those systems.
 
 To describe the actual C4, we would use PlantUML extensions and rendering.
-
-## Status
-
-Approved
 
 ## Consequences
 
