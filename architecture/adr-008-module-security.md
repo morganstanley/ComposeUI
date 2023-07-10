@@ -9,7 +9,7 @@ Accepted
 ## Context
 
 ComposeUI is modular, and although the core and loader are responsible for loading a module, the only
-way for a module to interact with Compose modules is via the Message Router. Therefore the communication
+way for a module to interact with ComposeUI modules is via the Message Router. Therefore the communication
 needs to be secure so that the other modules can be sure that the messages are coming from a trusted source.
 
 The aim of this ADR is to establish what type of security measures are going to be implemented.
@@ -24,14 +24,14 @@ necessary.
 These are the scenarios that we account for:
 1. A .NET assembly is loaded by Compose
 	- We can verify it by using Authenticode
-2. A Web application is loaded into a Compose embedded browser
+2. A Web application is loaded into a ComposeUI embedded browser
 	- We will use WebView2 and verify the URL that is loaded
 	- We can intercept any navigation event and check the new URL against an allowed URL/domain list
 3. A Web application loaded into a desktop browser (i.e. Chrome)
 	- We can use OAuth to authenticate the web app 
 	
 We distribute a generated token offline to each client app developer team.
-They bundle the token into the application. The app sends this token to Compose when connecting.
+They bundle the token into the application. The app sends this token to ComposeUI when connecting.
 This token identifies the app and it can also be used to associate entitlements with the app.
 
 Once we verify that it is a valid token, we allow the app to connect to the Message Router.
