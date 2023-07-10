@@ -2,7 +2,7 @@
 
 ## Status
 
-Approved
+Accepted
 
 ## Context
 ComposeUI aims to support many different kind of modules and applications, offering the possibility to use different graphical shells for displaying them. One of the main features is the possibility to run these applications (even ones without any intended compose integration) in isolated processes. We wish to provide features for monitoring the state of the applications and the possibility to e.g. restart crashed processes. In this ADR we decide what components of Compose are responsible for starting and maintaining processes.

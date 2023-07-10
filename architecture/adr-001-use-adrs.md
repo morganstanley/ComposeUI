@@ -4,7 +4,7 @@
 
 ## Status
 
-Approved
+Accepted
 
 ## Context
 
