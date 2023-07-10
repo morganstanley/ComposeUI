@@ -1,8 +1,9 @@
+| Type          | ID            | Status        | Title         |
+| ------------- | ------------- | ------------- | ------------- |
+| ADR           | adr-010       | Proposed      | Built-in APIs should be built on top of the Message Router |
+
+
 # Architecture Decision Record: Built-in APIs should be built on top of the Message Router
-
-## Status
-
-Proposed
 
 ## Context
 
