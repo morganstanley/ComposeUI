@@ -5,7 +5,7 @@
 | ADR           | adr-011       | Accepted      | Process Ownership |
 
 
-# Architecture Decision Suggestion: Process Ownership
+# Architecture Decision Record: Process Ownership
 
 ## Context
 ComposeUI aims to support many different kind of modules and applications, offering the possibility to use different graphical shells for displaying them. One of the main features is the possibility to run these applications (even ones without any intended ComposeUI integration) in isolated processes. We wish to provide features for monitoring the state of the applications and the possibility to e.g. restart crashed processes. In this ADR we decide what components of ComposeUI are responsible for starting and maintaining processes.
