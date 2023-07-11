@@ -2,10 +2,10 @@
 
 | Type          | ID            | Status        | Title         |
 | ------------- | ------------- | ------------- | ------------- |
-| ADR           | adr-009       | Proposed      | Message Router requirements |
+| ADR           | adr-009       | Proposed      | Message Router Requirements |
 
 
-# Architecture Decision Record: Message Router requirements
+# Architecture Decision Record: Message Router Requirements
 
 ## Context
 
