@@ -102,14 +102,15 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
                 reject(new Error("The current channel have not been set."));
                 return;
             }
-            if (typeof contextType != 'string' || !contextType) {
-                reject(new Error("The contextType was type of ContextHandler, which would use a deprecated function, please use string or null for contextType!"));
-                return;
+            
+            if (contextType !=null && typeof contextType != 'string') {
+                handler = contextType;
+                contextType = null;                
             }
 
-            const listener = <ComposeUIListener>await this.currentChannel!.addContextListener(contextType, handler!);
-            const resultContext = await this.currentChannel!.getCurrentContext(contextType)
-            listener.latestContext = this.currentChannel!.retrieveCurrentContext(contextType);
+            const listener = <ComposeUIListener>await this.currentChannel!.addContextListener(contextType ?? null, handler!);
+            const resultContext = await this.currentChannel!.getCurrentContext(contextType ?? undefined)
+            listener.latestContext = this.currentChannel!.retrieveCurrentContext(contextType ?? undefined);
             if (resultContext != listener.latestContext) {
                 //TODO: integrationtest
                 await listener.handleContextMessage();
