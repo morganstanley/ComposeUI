@@ -1,5 +1,10 @@
 <!-- Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. -->
 
+| Type          | ID            | Status        | Title         |
+| ------------- | ------------- | ------------- | ------------- |
+| ADR           | adr-007       | Accepted      | Use of C4 |
+
+
 # Architecture Decision Record: Use of C4
 
 ## Context
@@ -19,10 +24,6 @@ When it comes to actually to render C4, once you have the architecture models co
 Within ComposeUI, we are to position C4 as the preferred way to capture system architecture and how it is deployed, both as a means to creating consistent and easy to understand diagrams as code that can live in the source control, and also as a data model that can be used to feed static analysis systems thereby reducing the overhead for developers and improving accuracy of the decisions and suggestions of those systems.
 
 To describe the actual C4, we would use PlantUML extensions and rendering.
-
-## Status
-
-Approved
 
 ## Consequences
 
