@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
@@ -13,7 +13,7 @@
 
 	<ItemGroup>
 	  <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.4.0" />
-	  <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+	  <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
 	  <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.3" />
 	  <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
 	  <PackageReference Include="Nito.AsyncEx" Version="5.1.2" />
