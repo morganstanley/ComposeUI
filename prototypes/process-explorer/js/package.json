@@ -43,7 +43,7 @@
     "@angular-eslint/template-parser": "^15.2.0",
     "@angular/cli": "15.2.4",
     "@angular/compiler-cli": "^15.1.0",
-    "@babel/runtime": "7.21.0",
+    "@babel/runtime": "7.22.6",
     "@igniteui/angular-schematics": "^15.0.1101",
     "@types/hammerjs": "^2.0.41",
     "@types/jasmine": "~4.3.0",
