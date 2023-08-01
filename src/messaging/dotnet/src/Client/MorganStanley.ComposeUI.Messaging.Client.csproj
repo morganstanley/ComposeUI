@@ -17,7 +17,7 @@
 	  <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.3" />
 	  <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
 	  <PackageReference Include="Nito.AsyncEx" Version="5.1.2" />
-	  <PackageReference Include="System.IO.Pipelines" Version="6.0.3" />
+	  <PackageReference Include="System.IO.Pipelines" Version="7.0.0" />
 	  <PackageReference Include="System.Reactive" Version="6.0.0" />
 	  <PackageReference Include="System.Reactive.Async" Version="6.0.0-alpha.18" />
 	</ItemGroup>
