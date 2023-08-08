@@ -19,18 +19,7 @@ export class ProcessesComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.mockProcessesData = this.mockProcessesService.getProcessServiceObjectsProcesses();
-    //depending on implementation, data subscriptions might need to be unsubbed later
-      const throttlingProcesses = this.mockProcessesService.getProcessServiceObject()
-                                      .subjectAddProcesses.pipe(throttleTime(1000));
-      const subscribingToProcesses = throttlingProcesses.subscribe((data) => {
-        this.mockProcessesData = data;
-        this.TreeGrid.markForCheck();
-      });
-  }
-
-  KillProcessById(pid: number){
-    this.mockProcessesService.KillProcessByID(pid);
+    this.mockProcessesService.getData('Processes').subscribe(data => this.mockProcessesData = data);
   }
 }
 
