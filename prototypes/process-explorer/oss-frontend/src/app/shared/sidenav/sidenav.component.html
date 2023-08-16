@@ -1,0 +1,20 @@
+<mat-toolbar color="primary">
+    <button mat-icon-button (click)="sidenav.toggle()" matTooltip="Menu">
+        <mat-icon>menu</mat-icon>
+    </button>
+    <span>Process Explorer</span>
+  </mat-toolbar>
+  
+  <mat-sidenav-container class="app-container">
+    <mat-sidenav #sidenav mode="side" [class.mat-elevation-z4]="true" class="app-sidenav" opened>
+        <mat-nav-list>
+            <mat-list-item  [routerLink]="'/processes'">
+               <div style="display: inline-block;"><mat-icon>home</mat-icon><span style="font-weight: 550;">Processes</span></div> 
+            </mat-list-item>
+        </mat-nav-list>
+    </mat-sidenav>
+    <mat-sidenav-content>
+        <router-outlet></router-outlet>
+    </mat-sidenav-content>
+  </mat-sidenav-container> 
+  
