@@ -3,7 +3,7 @@
   "version": "0.1.0-alpha.1",
   "private": true,
   "description": "Example Web Application",
-  "main": "chat.js",
+  "main": "chart.js",
   "type": "module",
   "scripts": {
     "clean": "rimraf dist",
@@ -12,9 +12,9 @@
     "start": "http-server"
   },
   "dependencies": {
-    "@morgan-stanley/composeui-messaging-client": "*",
+    "@finos/fdc3": "^2.0.3",
     "bootstrap": "5.2.3",
-    "highcharts": "11.0.1",
+    "highcharts": "11.1.0",
     "jquery": "3.6.3",
     "tslib": "2.5.0"
   },
