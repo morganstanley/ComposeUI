@@ -18,7 +18,6 @@ import { ComposeUIListener } from './infrastructure/ComposeUIListener';
 import { ComposeUIDesktopAgent } from './ComposeUIDesktopAgent';
 import { ComposeUITopic } from './infrastructure/ComposeUITopic';
 import { Channel, ChannelError, Context } from '@finos/fdc3';
-import { Fdc3GetCurrentContextRequest } from './infrastructure/messages/Fdc3GetCurrentContextRequest';
 import { Fdc3FindChannelRequest } from './infrastructure/messages/Fdc3FindChannelRequest';
 
 const dummyContext = {type: "dummyContextType"};

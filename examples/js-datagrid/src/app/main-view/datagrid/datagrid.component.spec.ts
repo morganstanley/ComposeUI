@@ -4,8 +4,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MessageRouter } from '@morgan-stanley/composeui-messaging-client';
-import { MESSAGE_ROUTER } from 'src/app/app.module';
 
 import { DatagridComponent } from './datagrid.component';
 
@@ -14,29 +12,9 @@ describe('DatagridComponent', () => {
   let fixture: ComponentFixture<DatagridComponent>;
 
   beforeEach(async () => {
-
-    const messageRouterMock = jasmine.createSpyObj<MessageRouter>(
-      "MessageRouter",
-      [
-        "connect",
-        "subscribe",
-        "publish",
-        "invoke",
-        "registerService",
-        "unregisterService",
-        "registerEndpoint",
-        "unregisterEndpoint"
-      ]
-    );
-
     await TestBed.configureTestingModule({
       declarations: [ DatagridComponent ],
-      providers: [
-        {
-          provide: MESSAGE_ROUTER,
-          useValue: messageRouterMock
-        }
-      ],
+      providers: [  ],
       imports: [
         MatTableModule,
         MatPaginatorModule,
