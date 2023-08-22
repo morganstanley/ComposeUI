@@ -16,26 +16,25 @@ using System;
 using System.IO;
 using System.Text.Json;
 
-namespace Manifest
+namespace Manifest;
+
+internal static class  ManifestParser
 {
-    internal static class  ManifestParser
+    internal static ManifestModel Manifest { get; set; }
+
+    public static  ManifestModel OpenManifestFile(string fileName)
     {
-        internal static ManifestModel Manifest { get; set; }
+        string processPath = Environment.ProcessPath;
+        string folder = Path.GetDirectoryName(processPath);
+        string path = Path.Combine(folder, @"Manifest\", fileName);
 
-        public static  ManifestModel OpenManifestFile(string fileName)
+        using (FileStream stream = File.Open(path, FileMode.Open))
         {
-            string processPath = Environment.ProcessPath;
-            string folder = Path.GetDirectoryName(processPath);
-            string path = Path.Combine(folder, @"Manifest\", fileName);
+             Manifest = JsonSerializer.Deserialize<ManifestModel>(stream, ManifestModel.JsonSerializerOptions);
 
-            using (FileStream stream = File.Open(path, FileMode.Open))
-            {
-                 Manifest = JsonSerializer.Deserialize<ManifestModel>(stream, ManifestModel.JsonSerializerOptions);
-
-                 stream.Close();
-            }
-
-            return Manifest;
+             stream.Close();
         }
+
+        return Manifest;
     }
 }

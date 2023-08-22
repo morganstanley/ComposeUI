@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
@@ -47,16 +47,27 @@
 	</ItemGroup>
 
 	<PropertyGroup>
-		<Fdc3BundleOutput>$(ComposeUIRepositoryRoot)/src/shell/js/composeui-fdc3/dist/fdc3-iife-bundle.js</Fdc3BundleOutput>
+		<Fdc3BundleOutput>$(ComposeUIRepositoryRoot)\src\shell\js\composeui-fdc3\dist\fdc3-iife-bundle.js</Fdc3BundleOutput>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<EmbeddedResource Include="$(Fdc3BundleOutput)">
-		</EmbeddedResource>
+		<EmbeddedResource Include="$(Fdc3BundleOutput)" />
 	</ItemGroup>
 
-	<Target Name="PreBuild" BeforeTargets="PrebuildEvent" Condition="!Exists('$(Fdc3BundleOutput)')">
-		<Exec Command="cd $(ComposeUIRepositoryRoot)" />
-		<Exec Command="npx lerna run build --scope @morgan-stanley/composeui-fdc3" />
+	<Target Name="InstallMonoRepoDependencies"
+		Condition="!Exists('$(ComposeUIRepositoryRoot)\node_modules')">
+		<Message Importance="high" Text="Installing node_modules..." />
+		<Exec Command="cd $(ComposeUIRepositoryRoot) &amp;&amp; npm install" />
+		<Message Importance="normal" Text="Finished command: npm install." />
 	</Target>
+
+	<Target
+		Name="BuildComposeUIFdc3Bundle"
+		BeforeTargets="PrebuildEvent"
+		Condition="!Exists('$(Fdc3BundleOutput)')">
+		<CallTarget Targets="InstallMonoRepoDependencies" />
+		<Exec Command="cd $(ComposeUIRepositoryRoot) &amp;&amp; npx lerna run build --scope @morgan-stanley/composeui-fdc3" />
+		<Message Importance="normal" Text="Finished building the fdc3 bundle." />
+	</Target>
+	
 </Project>

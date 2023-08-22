@@ -15,68 +15,55 @@
 using Manifest;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Controls.Ribbon;
 
-namespace Shell
+namespace Shell;
+
+/// <summary>
+/// Interaction logic for MainWindow.xaml
+/// </summary>
+public partial class MainWindow : RibbonWindow
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : RibbonWindow
+    internal List<WebWindow> WebWindows { get; set; } = new List<WebWindow>();
+    private ManifestModel _config;
+    private ModuleModel[]? _modules;
+
+    public MainWindow()
     {
-        internal List<WebWindow> webWindows { get; set; } = new List<WebWindow>();
-        private ManifestModel config;
-        private ModuleModel[]? modules;
+        InitializeComponent();
 
-        public MainWindow()
+        _config = ManifestParser.OpenManifestFile("exampleManifest.json");
+        _modules = _config.Modules;
+        DataContext = _modules;
+    }
+
+    private void CreateWebWindow(ModuleModel item)
+    {
+        var options = new WebWindowOptions
         {
-            InitializeComponent();
+            Title = item.AppName,
+            Url = item.Url,
+            IconUrl = item.IconUrl
+        };
 
-            config = ManifestParser.OpenManifestFile("exampleManifest.json");
-            modules = config.Modules;
-            DataContext = modules;
-        }
+        var webWindow = new WebWindow(options);
+        webWindow.Owner = this;
+        webWindow.Closed += WebWindowClosed;
+        WebWindows.Add(webWindow);
+        webWindow.Show();
+    }
 
-        private void CreateWebWindow(ModuleModel item)
-        {
-            var options = new WebWindowOptions
-            {
-                Title = item.AppName,
-                Url = item.Url,
-                IconUrl = item.IconUrl
-            };
-
-            var webWindow = new WebWindow(options);
-            webWindow.Owner = this;
-            webWindow.Closed += WebWindowClosed;
-            webWindows.Add(webWindow);
-            webWindow.Show();
-        }
-
-        private void WebWindowClosed(object? sender, EventArgs e)
-        {
-            webWindows.Remove((WebWindow)sender!);
-        }
+    private void WebWindowClosed(object? sender, EventArgs e)
+    {
+        WebWindows.Remove((WebWindow)sender!);
+    }
+    
+    private void ShowChild_Click(object sender, RoutedEventArgs e)
+    {
+        var context = ((Button)sender).DataContext;
         
-        private void ShowChild_Click(object sender, RoutedEventArgs e)
-        {
-            var context = ((Button)sender).DataContext;
-            
-            CreateWebWindow((ModuleModel)context);
-        }
+        CreateWebWindow((ModuleModel)context);
     }
 }
