@@ -1,9 +1,8 @@
 ﻿using System;
 
-namespace Shell.ImageSource
+namespace Shell.ImageSource;
+
+public interface IImageSourcePolicy
 {
-    public interface IImageSourcePolicy
-    {
-        bool IsAllowed(Uri uri, Uri appUri);
-    }
+    bool IsAllowed(Uri uri, Uri appUri);
 }

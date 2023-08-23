@@ -14,17 +14,16 @@
 
 using System.Text.Json;
 
-namespace Manifest
-{
-    internal sealed class ManifestModel
-    {
-        public ModuleModel[]? Modules { get; set; }
+namespace Manifest;
 
-        public static JsonSerializerOptions JsonSerializerOptions = new()
-        {
-            PropertyNameCaseInsensitive = true
-        };
-    }
+internal sealed class ManifestModel
+{
+    public ModuleModel[]? Modules { get; set; }
+
+    public static JsonSerializerOptions JsonSerializerOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
 }
 
 

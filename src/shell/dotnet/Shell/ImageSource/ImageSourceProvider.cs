@@ -1,28 +1,27 @@
 ﻿using System;
 using System.Windows.Media.Imaging;
 
-namespace Shell.ImageSource
+namespace Shell.ImageSource;
+
+public class ImageSourceProvider
 {
-    public class ImageSourceProvider
+    private readonly IImageSourcePolicy _imageSourcePolicy;
+    public ImageSourceProvider(IImageSourcePolicy imageSourcePolicy)
     {
-        IImageSourcePolicy _imageSourcePolicy;
-        public ImageSourceProvider(IImageSourcePolicy imageSourcePolicy)
+        _imageSourcePolicy = imageSourcePolicy;
+    }
+
+    public System.Windows.Media.ImageSource? GetImageSource(Uri uri, Uri appUri)
+    {
+        if (!uri.IsAbsoluteUri)
         {
-            _imageSourcePolicy = imageSourcePolicy;
+            uri = new Uri(appUri, uri);
         }
 
-        public System.Windows.Media.ImageSource? GetImageSource(Uri uri, Uri appUri)
+        if (_imageSourcePolicy.IsAllowed(uri, appUri))
         {
-            if (!uri.IsAbsoluteUri)
-            {
-                uri = new Uri(appUri, uri);
-            }
-
-            if (_imageSourcePolicy.IsAllowed(uri, appUri))
-            {
-                return BitmapFrame.Create(uri);
-            }
-            return null;
+            return BitmapFrame.Create(uri);
         }
+        return null;
     }
 }

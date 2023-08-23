@@ -14,13 +14,12 @@
 
 using System;
 
-namespace Manifest
+namespace Manifest;
+
+[Serializable]
+internal sealed class ModuleModel
 {
-    [Serializable]
-    internal sealed class ModuleModel
-    {
-        public string AppName { get; set; } = string.Empty;
-        public string Url { get; set; } = string.Empty;
-        public string IconUrl { get; set; } = string.Empty;
-    }
+    public string AppName { get; set; } = string.Empty;
+    public string Url { get; set; } = string.Empty;
+    public string IconUrl { get; set; } = string.Empty;
 }
