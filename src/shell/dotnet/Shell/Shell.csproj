@@ -7,7 +7,8 @@
 		<UseWPF>true</UseWPF>
 		<EnableDefaultPageItems>false</EnableDefaultPageItems>
 		<LangVersion>preview</LangVersion>
-		<AssemblyName>ComposeUI-Shell</AssemblyName>
+		<AssemblyName>MorganStanley.ComposeUI.Shell</AssemblyName>
+		<RootNamespace>MorganStanley.ComposeUI.Shell</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -38,35 +39,27 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Folder Include="Utilities\" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<ProjectReference Include="..\..\..\fdc3\dotnet\DesktopAgent\src\DesktopAgent\DesktopAgent.csproj" />
 		<ProjectReference Include="..\..\..\messaging\dotnet\src\Host\MorganStanley.ComposeUI.Messaging.Host.csproj" />
 	</ItemGroup>
 
 	<PropertyGroup>
-		<Fdc3BundleOutput>$(ComposeUIRepositoryRoot)\src\shell\js\composeui-fdc3\dist\fdc3-iife-bundle.js</Fdc3BundleOutput>
+		<Fdc3BundleOutput>$(ComposeUIRepositoryRoot)\src\fdc3\js\composeui-fdc3\dist\fdc3-iife-bundle.js</Fdc3BundleOutput>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<EmbeddedResource Include="$(Fdc3BundleOutput)" />
 	</ItemGroup>
 
-	<Target Name="InstallMonoRepoDependencies"
-		Condition="!Exists('$(ComposeUIRepositoryRoot)\node_modules')">
+	<Target Name="InstallMonoRepoDependencies" Condition="!Exists('$(ComposeUIRepositoryRoot)\node_modules')">
 		<Message Importance="high" Text="Installing node_modules..." />
 		<Exec Command="cd $(ComposeUIRepositoryRoot) &amp;&amp; npm install" />
 		<Message Importance="normal" Text="Finished command: npm install." />
 	</Target>
 
-	<Target
-		Name="BuildComposeUIFdc3Bundle"
-		BeforeTargets="PrebuildEvent"
-		Condition="!Exists('$(Fdc3BundleOutput)')">
+	<Target Name="BuildComposeUIFdc3Bundle" BeforeTargets="PrebuildEvent" Condition="!Exists('$(Fdc3BundleOutput)')">
 		<CallTarget Targets="InstallMonoRepoDependencies" />
-		<Exec Command="cd $(ComposeUIRepositoryRoot) &amp;&amp; npx lerna run build --scope @morgan-stanley/composeui-fdc3" />
+		<Exec Command="cd $(ComposeUIRepositoryRoot) &amp;&amp; npx lerna run build --scope={@morgan-stanley/composeui-messaging-client,@morgan-stanley/composeui-fdc3}" />
 		<Message Importance="normal" Text="Finished building the fdc3 bundle." />
 	</Target>
 	

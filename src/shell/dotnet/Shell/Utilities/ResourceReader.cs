@@ -16,8 +16,9 @@ using System;
 using System.IO;
 using System.Reflection;
 
-namespace Shell.Utilities;
+namespace MorganStanley.ComposeUI.Shell.Utilities;
 
+//TODO: Later we should move this under a new project //`src/shared/dotnet`
 public static class ResourceReader
 {
     public static string ReadResource(string resourcePath)
@@ -26,6 +27,6 @@ public static class ResourceReader
 
         using var stream = assembly.GetManifestResourceStream(resourcePath) ?? throw new InvalidOperationException("Resource not found");
         using var reader = new StreamReader(stream);
-            return reader.ReadToEnd();
+        return reader.ReadToEnd();
     }
 }

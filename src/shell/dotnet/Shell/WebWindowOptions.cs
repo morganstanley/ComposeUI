@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Shell;
+namespace MorganStanley.ComposeUI.Shell;
 
 public sealed class WebWindowOptions
 {

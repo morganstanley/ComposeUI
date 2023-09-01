@@ -45,7 +45,11 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                         opt.Port = _webSocketUri.Port;
                     }));
                     services.AddMessageRouter(mr => mr.UseServer());
-                    services.AddFdc3DesktopAgent(fdc3 => fdc3.WithUserChannel(TestChannel));
+                    services.AddFdc3DesktopAgent(fdc3 => fdc3.Configure(builder =>
+                    {
+                        builder.EnableFdc3 = true; //no impact here
+                        builder.ChannelId = TestChannel; //DesktopAgent will call the `AddUserChannel` method, as this property is set for the `_options` field;
+                    }));
                 });
             _host = builder.Build();
             await _host.StartAsync();

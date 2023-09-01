@@ -22,13 +22,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
-using Shell.Utilities;
-using System.Reflection;
-using System.Diagnostics;
-using Shell.Fdc3;
+using MorganStanley.ComposeUI.Shell.Utilities;
 
-namespace Shell;
+namespace MorganStanley.ComposeUI.Shell;
 
 /// <summary>
 ///     Interaction logic for App.xaml
@@ -86,6 +85,7 @@ public partial class App : Application
             .Build();
 
         await host.StartAsync();
+
         _host = host;
         _logger = _host.Services.GetRequiredService<ILogger<App>>();
 
@@ -113,8 +113,16 @@ public partial class App : Application
                 .UseServer()
                 .UseAccessToken(_messageRouterAccessToken));
 
+        //This can be replaced by the `InjectFdc3BackendServiceIfEnabledFromConfig` extension method
+        ///* services.InjectFdc3BackendServiceIfEnabledFromConfig(context.Configuration.GetSection(Fdc3Options.Fdc3OptionsName));
+        var fdc3Options = context.Configuration.GetSection(Fdc3Options.Fdc3OptionsName).Get<Fdc3Options>();
 
-        services.AddFdc3DesktopAgent(fdc3 => fdc3.WithUserChannel("default"));
+        //TODO: This should be feature toggle, once we have feature toggles - instead of having `EnableFdc3` inside Fdc3Options.
+        if (fdc3Options != null && fdc3Options.EnableFdc3)
+        {
+            services.AddFdc3DesktopAgent(builder => builder.Configure<Fdc3Options>(context.Configuration));
+        }
+        //*/
 
         services.Configure<LoggerFactoryOptions>(context.Configuration.GetSection("Logging"));
     }
@@ -124,7 +132,10 @@ public partial class App : Application
     private async Task OnHostInitializedAsync()
     {
         InjectMessageRouterConfig();
-        InjectFdc3();
+        
+        var fdc3Options = Host.Services.GetRequiredService<IOptions<Fdc3Options>>();
+
+        if (fdc3Options.Value.EnableFdc3) InjectFdc3();
     }
 
     private void OnAsyncStartupCompleted(StartupEventArgs e)
@@ -181,7 +192,7 @@ public partial class App : Application
 
     private void InjectFdc3()
     {
-        var iife = ResourceReader.ReadResource(PreloadFdc3.Fdc3BundleResourceName);
+        var iife = ResourceReader.ReadResource(ResourceNames.Fdc3Bundle);
         WebWindow.AddPreloadScript(iife);
     }
 }

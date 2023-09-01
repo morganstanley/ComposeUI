@@ -12,24 +12,16 @@
  * and limitations under the License.
  */
 
-using Shell.Utilities;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using Shell.Fdc3;
+using MorganStanley.ComposeUI.Shell.Utilities;
 
-namespace ShellTests
+namespace MorganStanley.ComposeUI.Shell.Tests
 {
     public class ReadResourceTests
     {
         [Fact]
         public void TestFdc3BundleResourceIsFound()
         {
-            var resource = ResourceReader.ReadResource(PreloadFdc3.Fdc3BundleResourceName);
+            var resource = ResourceReader.ReadResource(ResourceNames.Fdc3Bundle);
 
             Assert.NotNull(resource);
         }
