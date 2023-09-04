@@ -5,9 +5,10 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build --configuration production",
-    "build-dev": "ng build --configuration development",
+    "build:dev": "ng build --configuration development",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test --watch=false",
+    "test:dev": "ng test"
   },
   "private": true,
   "dependencies": {
