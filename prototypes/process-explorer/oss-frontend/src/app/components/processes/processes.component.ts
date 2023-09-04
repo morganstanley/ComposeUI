@@ -23,7 +23,7 @@ export class ProcessesComponent implements AfterViewInit {
   processesData: Array<ProcessTable>;
   dataSource = new MatTableDataSource<ProcessTable>()
 
-  displayedColumns = [{ key: 'ProcessName', header: 'Process name' }, { key: 'PID', header: 'PID' }, { key: 'ProcessStatus', header: 'Process status' }, { key: 'StartTime', header: 'Start time' }, { key: 'ProcessorUsage', header: 'Processor usage' }, { key: 'PhysicalMemoryUsageBit', header: 'Physical mem usage' }, { key: 'PriorityLevel', header: 'Priority level' }, { key: 'VirtualMemorySize', header: 'Virtual memory size' }];
+  displayedColumns = [{ key: 'ProcessName', header: 'Process Name' }, { key: 'PID', header: 'PID' }, { key: 'ProcessStatus', header: 'Process Status' }, { key: 'StartTime', header: 'Start Time' }, { key: 'ProcessorUsage', header: 'Processor Usage' }, { key: 'PhysicalMemoryUsageBit', header: 'Physical Mem Usage' }, { key: 'PriorityLevel', header: 'Priority Level' }, { key: 'VirtualMemorySize', header: 'Virtual Memory Size' }];
   displayedColumnsKeys: string[];
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
