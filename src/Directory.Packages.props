@@ -1,0 +1,32 @@
+﻿<Project>
+	<ItemGroup>
+		<PackageVersion Include="CommunityToolkit.HighPerformance" Version="8.2.1" />
+		<PackageVersion Include="coverlet.collector" Version="3.1.2" />
+		<PackageVersion Include="FluentAssertions.Json" Version="6.1.0" />
+		<PackageVersion Include="FluentAssertions" Version="6.11.0" />
+		<PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.4.0" />
+		<PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.4.0" />
+		<PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+		<PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="6.0.1" />
+		<PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
+		<PackageVersion Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
+		<PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.4" />
+		<PackageVersion Include="Microsoft.Extensions.Options" Version="6.0.0" />
+		<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
+		<PackageVersion Include="Microsoft.Web.WebView2" Version="1.0.1901.177" />
+		<PackageVersion Include="Moq" Version="4.18.4" />
+		<PackageVersion Include="MorganStanley.Fdc3" Version="2.0.0-alpha.5" />
+		<PackageVersion Include="Newtonsoft.Json" Version="13.0.1" />
+		<PackageVersion Include="Nito.AsyncEx.Coordination" Version="5.1.2" />
+		<PackageVersion Include="Nito.AsyncEx" Version="5.1.2" />
+		<PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+		<PackageVersion Include="System.IO.Pipelines" Version="6.0.3" />
+		<PackageVersion Include="System.Net.Http" Version="4.3.4" />
+		<PackageVersion Include="System.Reactive.Async" Version="6.0.0-alpha.18" />
+		<PackageVersion Include="System.Reactive" Version="6.0.0" />
+		<PackageVersion Include="System.Text.Json" Version="6.0.8" />
+		<PackageVersion Include="Xunit.Combinatorial" Version="1.5.25" />
+		<PackageVersion Include="xunit.runner.visualstudio" Version="2.4.5" />
+		<PackageVersion Include="xunit" Version="2.4.2" />
+	</ItemGroup>
+</Project>

@@ -11,5 +11,5 @@ foreach ($sln in GetSolutions) {
 }
 
 if ($failedSolutions.count -gt 0) {
-    throw "Build FAILED for solutions $failedSolutions"
+    throw "Tests FAILED for solutions $failedSolutions"
 }

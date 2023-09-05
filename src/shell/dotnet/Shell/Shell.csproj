@@ -16,9 +16,9 @@
 	</ItemGroup>
 	
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
-		<PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1901.177" />
-		<PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" />
+		<PackageReference Include="Microsoft.Web.WebView2" />
+		<PackageReference Include="System.CommandLine" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -54,17 +54,13 @@
 		<EmbeddedResource Include="$(Fdc3BundleOutput)" />
 	</ItemGroup>
 
-	<Target Name="InstallMonoRepoDependencies"
-		Condition="!Exists('$(ComposeUIRepositoryRoot)\node_modules')">
+	<Target Name="InstallMonoRepoDependencies" Condition="!Exists('$(ComposeUIRepositoryRoot)\node_modules')">
 		<Message Importance="high" Text="Installing node_modules..." />
 		<Exec Command="cd $(ComposeUIRepositoryRoot) &amp;&amp; npm install" />
 		<Message Importance="normal" Text="Finished command: npm install." />
 	</Target>
 
-	<Target
-		Name="BuildComposeUIFdc3Bundle"
-		BeforeTargets="PrebuildEvent"
-		Condition="!Exists('$(Fdc3BundleOutput)')">
+	<Target Name="BuildComposeUIFdc3Bundle" BeforeTargets="PrebuildEvent" Condition="!Exists('$(Fdc3BundleOutput)')">
 		<CallTarget Targets="InstallMonoRepoDependencies" />
 		<Exec Command="cd $(ComposeUIRepositoryRoot) &amp;&amp; npx lerna run build --scope @morgan-stanley/composeui-fdc3" />
 		<Message Importance="normal" Text="Finished building the fdc3 bundle." />
