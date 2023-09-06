@@ -2,7 +2,7 @@
 <h1 class="header">Processes</h1>
 <div class="table-all mat-elevation-z8" >
 
-    <table mat-table [dataSource]="dataSource" multiTemplateDataRows>
+    <mat-table #table [dataSource]="dataSource" multiTemplateDataRows>
     <ng-container *ngFor="let column of displayedColumns" matColumnDef="{{column.key}}" >
       <th mat-header-cell *matHeaderCellDef> {{column.header}} </th>
       <td mat-cell *matCellDef="let element"> {{element[column.key]}} </td>
@@ -36,7 +36,7 @@
      (click)="expandedElement = expandedElement === element ? null : element">
     </tr>
     <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row"></tr>
-  </table>
+  </mat-table>
   
     <mat-paginator [pageSizeOptions]="[10, 20, 50, 100, 200]"
                    showFirstLastButtons
