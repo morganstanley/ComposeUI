@@ -7,9 +7,10 @@
 }
 
 .table-all {
-    height: calc(90vh - 12em);
+    height:fit-content;
     margin-left: 4em;
     margin-right: 4em;
+    width: fit-content;
   }
   
   tr.detail-row {
