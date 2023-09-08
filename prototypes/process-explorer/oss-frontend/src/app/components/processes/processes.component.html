@@ -1,0 +1,45 @@
+<!-- Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. -->
+<h1 class="header">Processes</h1>
+<div class="table-all mat-elevation-z8" >
+
+    <mat-table #table [dataSource]="dataSource" multiTemplateDataRows>
+    <ng-container *ngFor="let column of displayedColumns" matColumnDef="{{column.key}}" >
+      <th mat-header-cell *matHeaderCellDef> {{column.header}} </th>
+      <td mat-cell *matCellDef="let element"> {{element[column.key]}} </td>
+    </ng-container>
+  
+    <ng-container matColumnDef="expandedDetail">
+      <td mat-cell *matCellDef="let element" [attr.colspan]="displayedColumns.length">
+        <div class="element-detail" [@detailExpand]="element == expandedElement ? 'expanded' : 'collapsed'">
+      <div class="element-descriptions">
+        <div *ngIf="element['Children'] && element['Children']?.length > 0">
+          
+          <div class="element-description">
+            <div class="element-description__header">
+              <div class="element-description__cell" *ngFor="let key of displayedColumns">{{key.header}}</div>
+            </div>
+            <div *ngFor="let Children of element['Children']; let idx = index"    
+                class="element-description__content"
+                (click)=onItemSelected(idx)>
+              <div class="element-description__cell" *ngFor="let key of getKeys(Children)">{{Children[key]}}</div>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="element['info.dependent'] === 'no_parent'" class="element-description">no parent</div>
+      </div>
+        </div>
+      </td>
+    </ng-container>
+  
+    <tr mat-header-row *matHeaderRowDef="displayedColumnsKeys"></tr>
+    <tr mat-row *matRowDef="let element; columns: displayedColumnsKeys;" class="element-row" [class.expanded-row]="expandedElement === element"
+     (click)="expandedElement = expandedElement === element ? null : element">
+    </tr>
+    <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row"></tr>
+  </mat-table>
+  
+    <mat-paginator [pageSizeOptions]="[10, 20, 50, 100, 200]"
+                   showFirstLastButtons
+                   aria-label="Select page of periodic elements">
+    </mat-paginator>
+  </div>
