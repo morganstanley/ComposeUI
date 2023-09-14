@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Web.WebView2.Core;
-using Shell.ImageSource;
+using MorganStanley.ComposeUI.Shell.ImageSource;
 
-namespace Shell;
+namespace MorganStanley.ComposeUI.Shell;
 
 /// <summary>
 ///     Interaction logic for WebWindow.xaml

@@ -16,23 +16,23 @@ using System;
 using System.IO;
 using System.Text.Json;
 
-namespace Manifest;
+namespace MorganStanley.ComposeUI.Shell.Manifest;
 
-internal static class  ManifestParser
+internal static class ManifestParser
 {
     internal static ManifestModel Manifest { get; set; }
 
-    public static  ManifestModel OpenManifestFile(string fileName)
+    public static ManifestModel OpenManifestFile(string fileName)
     {
-        string processPath = Environment.ProcessPath;
-        string folder = Path.GetDirectoryName(processPath);
-        string path = Path.Combine(folder, @"Manifest\", fileName);
+        var processPath = Environment.ProcessPath;
+        var folder = Path.GetDirectoryName(processPath);
+        var path = Path.Combine(folder, @"Manifest\", fileName);
 
-        using (FileStream stream = File.Open(path, FileMode.Open))
+        using (var stream = File.Open(path, FileMode.Open))
         {
-             Manifest = JsonSerializer.Deserialize<ManifestModel>(stream, ManifestModel.JsonSerializerOptions);
+            Manifest = JsonSerializer.Deserialize<ManifestModel>(stream, ManifestModel.JsonSerializerOptions);
 
-             stream.Close();
+            stream.Close();
         }
 
         return Manifest;

@@ -12,19 +12,12 @@
 //  * and limitations under the License.
 //  */
 
-using System.Text.Json;
+using System.Reflection;
 
-namespace MorganStanley.ComposeUI.Shell.Manifest;
+namespace MorganStanley.ComposeUI.Shell.Utilities;
 
-internal sealed class ManifestModel
+public static class ResourceNames
 {
-    public ModuleModel[]? Modules { get; set; }
-
-    public static JsonSerializerOptions JsonSerializerOptions = new()
-    {
-        PropertyNameCaseInsensitive = true
-    };
+    public static readonly string Fdc3Bundle = @$"{Assembly.GetExecutingAssembly().ManifestModule.Assembly.GetName()?.Name}.fdc3-iife-bundle.js";
+    public static readonly string MessageRouter = $"{nameof(MessageRouter)}";
 }
-
-
-

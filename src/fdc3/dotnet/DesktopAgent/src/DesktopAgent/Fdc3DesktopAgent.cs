@@ -15,6 +15,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 using MorganStanley.ComposeUI.Messaging;
@@ -27,14 +28,17 @@ public class Fdc3DesktopAgent : IHostedService
     private readonly List<UserChannel> _userChannels = new();
 
     private readonly ILoggerFactory _loggerFactory;
+    private readonly Fdc3Options _options;
     private readonly IMessageRouter _messageRouter;
-    private Fdc3DesktopAgentConfig? _config;
 
-    public Fdc3DesktopAgent(IMessageRouter messageRouter, ILoggerFactory? loggerFactory, Fdc3DesktopAgentConfig? config)
+    public Fdc3DesktopAgent(
+        IOptions<Fdc3Options> options, 
+        IMessageRouter messageRouter, 
+        ILoggerFactory? loggerFactory = null)
     {
+        _options = options.Value;
         _messageRouter = messageRouter;
         _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
-        _config = config;
     }
 
     public async ValueTask AddUserChannel(string id)
@@ -61,19 +65,9 @@ public class Fdc3DesktopAgent : IHostedService
     {
         await _messageRouter.RegisterServiceAsync(Fdc3Topic.FindChannel, FindChannel);
 
-        if (_config == null)
-        {
-            return;
-        }
+        if (_options.ChannelId == null) return;
 
-        // There are no dependencies among possible actions at the moment.
-        // Future features may introduce dependencies, in that case this solution needs to change
-        foreach (var task in _config.BuilderActions.Select(x => x(this)).ToArray())
-        {
-            await (task);
-        }
-
-        _config = null;        
+        await AddUserChannel(_options.ChannelId);
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)

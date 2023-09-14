@@ -14,7 +14,7 @@
 
 using System;
 
-namespace Manifest;
+namespace MorganStanley.ComposeUI.Shell.Manifest;
 
 [Serializable]
 internal sealed class ModuleModel

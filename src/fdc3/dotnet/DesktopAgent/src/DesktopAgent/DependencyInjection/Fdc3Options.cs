@@ -12,15 +12,23 @@
  * and limitations under the License.
  */
 
+using Microsoft.Extensions.Options;
+
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 
-public class Fdc3DesktopAgentConfig
+public sealed class Fdc3Options : IOptions<Fdc3Options>
 {
-    internal List<Func<Fdc3DesktopAgent, ValueTask>> BuilderActions { get; } = new();
+    public static readonly string Fdc3OptionsName = "Fdc3Options";
 
-    public Fdc3DesktopAgentConfig WithUserChannel(string channelId)
-    {
-        BuilderActions.Add(fdc3 => fdc3.AddUserChannel(channelId));
-        return this;
-    }
+    /// <summary>
+    /// When set to <value>true</value>, it will enable Fdc3 backend service.
+    /// </summary>
+    public bool EnableFdc3 { get; set; }
+
+    /// <summary>
+    /// When set to any value, it will start the DesktopAgent with passing the value to the `WithUserChannel` builder action.
+    /// </summary>
+    public string? ChannelId { get; set; }
+
+    Fdc3Options IOptions<Fdc3Options>.Value => this;
 }

@@ -12,14 +12,14 @@
 //  * and limitations under the License.
 //  */
 
-using Manifest;
+using MorganStanley.ComposeUI.Shell.Manifest;
 using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Ribbon;
 
-namespace Shell;
+namespace MorganStanley.ComposeUI.Shell;
 
 /// <summary>
 /// Interaction logic for MainWindow.xaml
