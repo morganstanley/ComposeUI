@@ -40,7 +40,7 @@
     "@angular-eslint/eslint-plugin": "^16.0.3",
     "@angular-eslint/eslint-plugin-template": "^15.2.0",
     "@angular-eslint/schematics": "^15.2.0",
-    "@angular-eslint/template-parser": "^15.2.0",
+    "@angular-eslint/template-parser": "^16.1.2",
     "@angular/cli": "15.2.4",
     "@angular/compiler-cli": "^15.1.0",
     "@babel/runtime": "7.22.6",
