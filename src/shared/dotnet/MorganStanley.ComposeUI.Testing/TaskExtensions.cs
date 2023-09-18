@@ -10,6 +10,7 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+// ReSharper disable UnusedMember.Global
 namespace MorganStanley.ComposeUI.Testing;
 
 public static class TaskExtensions
@@ -17,14 +18,21 @@ public static class TaskExtensions
     public static Task WaitForBackgroundTasksAsync(CancellationToken cancellationToken = default)
     {
         // Quick and dirty method of waiting for background tasks to finish.
-        var taskCount = ThreadPool.ThreadCount * 2;
+        // We try to schedule enough tasks so that the thread pool is fully utilized.
+        ThreadPool.GetMaxThreads(out var workerThreads, out var completionPortThreads);
+        var taskCount = workerThreads + completionPortThreads;
         var gate = new SemaphoreSlim(0);
 
+        // Schedule a batch of blocking tasks
         var task = Task.WhenAll(
             Enumerable.Range(0, taskCount)
                 .Select(_ => gate.WaitAsync(cancellationToken)));
 
-        Task.Delay(1, cancellationToken).ContinueWith(_ => gate.Release(taskCount), cancellationToken);
+        // Let the tasks complete
+        Task.Delay(1, cancellationToken)
+            .ContinueWith(
+                _ => gate.Release(taskCount),
+                TaskContinuationOptions.RunContinuationsAsynchronously);
 
         return task;
     }
