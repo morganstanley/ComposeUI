@@ -42,6 +42,6 @@ public struct ProcessInfo
     ///  - Window: ProcessID of the process owning the main window
     /// </summary>
     public string? uiHint;
-
+    
     public int? pid;
 }

@@ -1,4 +1,18 @@
-﻿using System;
+﻿// /*
+//  * Morgan Stanley makes this available to you under the Apache License,
+//  * Version 2.0 (the "License"). You may obtain a copy of the License at
+//  *
+//  *      http://www.apache.org/licenses/LICENSE-2.0.
+//  *
+//  * See the NOTICE file distributed with this work for additional information
+//  * regarding copyright ownership. Unless required by applicable law or agreed
+//  * to in writing, software distributed under the License is distributed on an
+//  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+//  * or implied. See the License for the specific language governing permissions
+//  * and limitations under the License.
+//  */
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -19,6 +33,7 @@ namespace MorganStanley.ComposeUI.Shell;
 /// <summary>
 ///     Interaction logic for WebWindow.xaml
 /// </summary>
+
 public partial class WebWindow : Window
 {
     public WebWindow(
@@ -202,7 +217,7 @@ public partial class WebWindow : Window
         using var deferral = e.GetDeferral();
         e.Handled = true;
 
-        var windowOptions = new WebWindowOptions {Url = e.Uri};
+        var windowOptions = new WebWindowOptions { Url = e.Uri };
 
         if (e.WindowFeatures.HasSize)
         {
@@ -210,7 +225,7 @@ public partial class WebWindow : Window
             windowOptions.Height = e.WindowFeatures.Height;
         }
 
-        var constructorArgs = new List<object> {windowOptions};
+        var constructorArgs = new List<object> { windowOptions };
 
         // For now, we only inject the module-specific information when the window was created 
         // in response to a start request. Later we might allow the page to open a new window

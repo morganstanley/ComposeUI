@@ -23,8 +23,22 @@ internal sealed class Fdc3StartupAction : IStartupAction
     {
         if (startupContext.ModuleInstance.Manifest.ModuleType == ModuleType.Web)
         {
-            startupContext.GetOrAddProperty<WebStartupProperties>()
+            var webProperties = startupContext.GetOrAddProperty<WebStartupProperties>();
+            webProperties
                 .ScriptProviders.Add(_ => new ValueTask<string>(ResourceReader.ReadResource(ResourceNames.Fdc3Bundle)));
+
+            webProperties
+                .ScriptProviders.Add(_ =>
+                    new ValueTask<string>(
+                        $$"""
+                        window.composeui = {
+                            ...window.composeui,
+                            instanceConfig: {
+                                appId: "{{startupContext.StartRequest.ModuleId}}",
+                                instanceId: "{{startupContext.ModuleInstance.InstanceId}}"
+                            }
+                        };
+                        """));
         }
 
         return next();

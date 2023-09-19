@@ -17,7 +17,7 @@ import { ChannelType } from "./ChannelType";
 import { Unsubscribable } from "rxjs";
 import { ComposeUITopic } from "./ComposeUITopic";
 
-export class ComposeUIListener implements Listener {
+export class ComposeUIContextListener implements Listener {
     private messageRouterClient: MessageRouter;
     private unsubscribable?: Unsubscribable;
     private handler: ContextHandler;
@@ -42,7 +42,7 @@ export class ComposeUIListener implements Listener {
         this.unsubscribable = await this.messageRouterClient.subscribe(subscribeTopic, (topicMessage: TopicMessage) => {
             if(topicMessage.context.sourceId == this.messageRouterClient.clientId) return;
             //TODO: integration test
-            const context = JSON.parse(topicMessage.payload!) as Context;            
+            const context = <Context>JSON.parse(topicMessage.payload!);            
             if(!this.contextType || this.contextType == context!.type) {                
                 this.handler!(context!);
             }

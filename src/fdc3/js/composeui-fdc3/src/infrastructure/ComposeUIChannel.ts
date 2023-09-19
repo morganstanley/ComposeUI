@@ -14,7 +14,7 @@
 import { Channel, Context, ContextHandler, DisplayMetadata, Listener } from "@finos/fdc3";
 import { MessageRouter, TopicMessage } from "@morgan-stanley/composeui-messaging-client";
 import { ChannelType } from "./ChannelType";
-import { ComposeUIListener } from "./ComposeUIListener";
+import { ComposeUIContextListener } from "./ComposeUIContextListener";
 import { Fdc3GetCurrentContextRequest } from "./messages/Fdc3GetCurrentContextRequest";
 import { ComposeUITopic } from "./ComposeUITopic";
 
@@ -80,7 +80,7 @@ export class ComposeUIChannel implements Channel {
             contextType = null;
         }
         
-        const listener = new ComposeUIListener(this.messageRouterClient, handler, this.id, this.type, contextType);
+        const listener = new ComposeUIContextListener(this.messageRouterClient, handler, this.id, this.type, contextType);
         await listener.subscribe();
         return listener;
     }
