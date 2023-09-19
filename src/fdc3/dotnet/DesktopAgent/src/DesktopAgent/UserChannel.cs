@@ -56,7 +56,6 @@ internal class UserChannel : IAsyncDisposable
 
         var broadcastSubscribing = _messageRouter.SubscribeAsync(_topics.Broadcast, broadcastObserver);
 
-        //await _messageRouter.RegisterEndpointAsync(_topics.GetCurrentContext, GetCurrentContext);
         await _messageRouter.RegisterServiceAsync(_topics.GetCurrentContext, GetCurrentContext);
         _broadcastSubscription = await broadcastSubscribing;
 
@@ -102,7 +101,7 @@ internal class UserChannel : IAsyncDisposable
         return ValueTask.CompletedTask;
     }
 
-    internal async ValueTask<MessageBuffer?> GetCurrentContext(string endpoint, MessageBuffer? payloadBuffer, MessageContext? _)
+    internal async ValueTask<MessageBuffer?> GetCurrentContext(string endpoint, MessageBuffer? payloadBuffer, MessageContext? messageContext)
     {
         if (payloadBuffer == null)
         {            

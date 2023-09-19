@@ -12,12 +12,35 @@
  * and limitations under the License.
  */
 
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
+
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
 internal static class Fdc3Topic
 {
     internal static string TopicRoot => "ComposeUI/fdc3/v2.0/";
     internal static string FindChannel => TopicRoot + "findChannel";
+    internal static string FindIntent => TopicRoot + "findIntent";
+    internal static string FindIntentsByContext => TopicRoot + "findIntentsByContext";
+    internal static string RaiseIntent => TopicRoot + "raiseIntent";
+    internal static string GetIntentResult => TopicRoot + "getIntentResult";
+    internal static string SendIntentResult => TopicRoot + "sendIntentResult";
+
+    //This endpoint serves the case when user should choose an app through the ResolverUI
+    internal static string RaiseIntentResolution(string? originInstanceId)
+    {
+        if (string.IsNullOrEmpty(originInstanceId))
+            throw ThrowHelper.MissingRaiseIntentIdException($"Originating instance id is not defined, so couldn't register service for raising the intent.");
+        
+        return $"{RaiseIntent}/{originInstanceId}";
+    }
+
+    //IntentListeners will be listening at this endpoint
+    internal static string RaiseIntentResolution(string intent, string instanceId)
+    {
+        return $"{RaiseIntent}/{intent}/{instanceId}";
+    }
+
     internal static UserChannelTopics UserChannel(string id) => new UserChannelTopics(id);
 }
 

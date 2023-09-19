@@ -22,7 +22,7 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService.Hosts
         {
             _moduleRunner = moduleRunner;
             _moduleRunner.StoppedUnexpectedly += HandleUnexpectedStop;
-            _processInfo = new ProcessInfo(name: Name, instanceId: InstanceId,uiType: UIType.Window,uiHint: _moduleRunner.MainWindowHandle.ToString(),pid: 0);
+            _processInfo = new ProcessInfo(name: Name, instanceId: InstanceId,uiType: UIType.Window,uiHint: _moduleRunner.MainWindowHandle.ToString(), pid: 0);
         }
 
         public override ProcessInfo ProcessInfo => _processInfo;

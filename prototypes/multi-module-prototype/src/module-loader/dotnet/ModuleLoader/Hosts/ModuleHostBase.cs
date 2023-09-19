@@ -25,7 +25,6 @@ internal abstract class ModuleHostBase : IModuleHost
     public string Name { get; }
 
     public Guid InstanceId { get; }
-
     public abstract ProcessInfo ProcessInfo { get; }
 
     protected readonly Subject<LifecycleEvent> _lifecycleEvents = new Subject<LifecycleEvent>();

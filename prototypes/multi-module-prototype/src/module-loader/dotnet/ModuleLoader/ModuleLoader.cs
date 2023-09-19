@@ -23,7 +23,6 @@ internal class ModuleLoader : IModuleLoader
     private readonly IModuleHostFactory _moduleHostFactory;
     private readonly IModuleCatalogue _moduleCatalogue;
 
-
     public ModuleLoader(IModuleCatalogue moduleCatalogue, IModuleHostFactory moduleHostFactory)
     {
         _moduleCatalogue = moduleCatalogue;

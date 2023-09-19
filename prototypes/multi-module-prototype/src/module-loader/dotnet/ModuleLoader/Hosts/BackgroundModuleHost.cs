@@ -20,7 +20,7 @@ namespace MorganStanley.ComposeUI.Tryouts.Core.Services.ModulesService.Hosts
         public BackgroundModuleHost(string name, Guid instanceId, IModuleRunner runner) : base(name, instanceId)
         {
             _runner = runner;
-            _processInfo = new ProcessInfo(base.Name, base.InstanceId, UIType.None, null, 0);
+            _processInfo = new ProcessInfo(base.Name, base.InstanceId, UIType.None, null, 0); 
         }
 
         public override ProcessInfo ProcessInfo => _processInfo;

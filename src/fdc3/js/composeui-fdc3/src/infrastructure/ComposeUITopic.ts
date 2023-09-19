@@ -24,28 +24,61 @@ export class ComposeUITopic {
     private static readonly getCurrentContextSuffix = "getCurrentContext";
     private static readonly joinUserChannelSuffix = "joinUserChannel";
     private static readonly getOrCreateChannelSuffix = "getOrCreateChannel";
+    private static readonly raiseIntentSuffix = "raiseIntent";
+    private static readonly getIntentSuffix = "getIntentResult";
+    private static readonly findIntentSuffix = "findIntent";
+    private static readonly findIntentsByContextSuffix = "findIntentsByContext";
+    private static readonly sendIntentResultSuffix = "sendIntentResult";
 
-    public static broadcast(channelId: string, channelType: ChannelType = "user") {
+    public static broadcast(channelId: string, channelType: ChannelType = "user") : string {
         return `${this.getChannelsTopicRootWithTopicId(channelId, channelType)}/${this.broadcastSuffix}`;
     }
 
-    public static getCurrentContext(channelId: string, channelType: ChannelType = "user") {
+    public static getCurrentContext(channelId: string, channelType: ChannelType = "user") : string {
         return `${this.getChannelsTopicRootWithTopicId(channelId, channelType)}/${this.getCurrentContextSuffix}`;
     }
 
-    public static joinUserChannel() {
+    public static joinUserChannel() : string {
         return `${this.topicRoot}/${this.joinUserChannelSuffix}`;
     }
 
-    public static getOrCreateChannel() {
+    public static getOrCreateChannel() : string {
         return `${this.topicRoot}/${this.getOrCreateChannelSuffix}`;
     }
 
-    private static getChannelsTopicRootWithTopicId(topicId: string, channelType: ChannelType = "user") {
+    public static raiseIntent() : string {
+        return `${this.topicRoot}/${this.raiseIntentSuffix}`;
+    }
+
+    public static raiseIntentWithId(instanceId: string) : string {
+        return `${this.topicRoot}/${this.raiseIntentSuffix}/${instanceId}`;
+    }
+
+    public static getIntentResult() : string {
+        return `${this.topicRoot}/${this.getIntentSuffix}`;
+    }
+
+    public static sendIntentResult() : string {
+        return `${this.topicRoot}/${this.sendIntentResultSuffix}`;
+    }
+
+    public static findIntent(): string {
+        return `${this.topicRoot}/${this.findIntentSuffix}`;
+    }
+
+    public static findIntentsByContext(): string {
+        return `${this.topicRoot}/${this.findIntentsByContextSuffix}`;
+    }
+
+    public static addIntentListener(intent: string, instanceId: string) : string {
+        return `${this.topicRoot}/${this.raiseIntentSuffix}/${intent}/${instanceId}`;
+    }
+
+    private static getChannelsTopicRootWithTopicId(topicId: string, channelType: ChannelType) : string {
         return `${this.getChannelsTopicRoot(channelType)}/${topicId}`;
     }
 
-    private static getChannelsTopicRoot(channelType: ChannelType = "user") {
+    private static getChannelsTopicRoot(channelType: ChannelType) : string {
         switch(channelType) {
             case "user":
                 return `${this.topicRoot}/${this.userChannels}`;

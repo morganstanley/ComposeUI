@@ -24,8 +24,6 @@ internal class WebpageModuleHost : ModuleHostBase
         _runner = runner;
     }
 
-
-
     public override ProcessInfo ProcessInfo => new ProcessInfo(
         name: Name,
         instanceId: InstanceId,
@@ -41,7 +39,6 @@ internal class WebpageModuleHost : ModuleHostBase
         {
             pid = await _runner.Launch();
         }
-
         _lifecycleEvents.OnNext(LifecycleEvent.Started(new ProcessInfo(Name, InstanceId, UIType.Web, _url, pid)));
     }
 
