@@ -10,8 +10,8 @@ public partial class AppDirectoryTests
     public async Task GetApp_returns_the_app_with_the_specified_appId_ignoring_case(string appId)
     {
         var fileSystem = TestUtils.SetUpFileSystemWithSingleFile(
-            "/apps.json",
-            """
+            path: "/apps.json",
+            contents: """
             [
               {
                 "appId": "app1",
@@ -40,8 +40,8 @@ public partial class AppDirectoryTests
     public async Task GetApp_throws_AppNotFoundException_if_the_app_is_not_found()
     {
         var fileSystem = TestUtils.SetUpFileSystemWithSingleFile(
-            "/apps.json",
-            """
+            path: "/apps.json",
+            contents: """
             [
               {
                 "appId": "app1",

@@ -16,18 +16,19 @@ using MorganStanley.Fdc3.AppDirectory;
 namespace MorganStanley.ComposeUI.Fdc3.AppDirectory;
 
 /// <summary>
-/// Configuration options for <see cref="AppDirectory"/>
+///     Configuration options for <see cref="AppDirectory" />
 /// </summary>
 public sealed class AppDirectoryOptions : IOptions<AppDirectoryOptions>
 {
     /// <summary>
-    /// Gets or sets the source URL of a static JSON file.
+    ///     Gets or sets the source URL of a static JSON file.
     /// </summary>
     /// <remarks>
-    /// Supported schemes are <c>file</c>, <c>http</c> and <c>https</c>.
-    /// The static file must contain a single array of <see cref="Fdc3App"/> objects,
-    /// using the schema defined by the FDC3 AppDirectory API specification (https://fdc3.finos.org/schemas/2.0/app-directory.html#tag/Application/paths/~1v2~1apps~1%7BappId%7D/get)
-    /// UTF8 encoding is assumed unless a byte order mark or encoding header is present.
+    ///     Supported schemes are <c>file</c>, <c>http</c> and <c>https</c>.
+    ///     The static file must contain a single array of <see cref="Fdc3App" /> objects,
+    ///     using the schema defined by the FDC3 AppDirectory API specification
+    ///     (https://fdc3.finos.org/schemas/2.0/app-directory.html#tag/Application/paths/~1v2~1apps~1%7BappId%7D/get)
+    ///     UTF8 encoding is assumed unless a byte order mark or encoding header is present.
     /// </remarks>
     public Uri? Source { get; set; }
 
@@ -43,6 +44,6 @@ public sealed class AppDirectoryOptions : IOptions<AppDirectoryOptions>
     ///// </remarks>
     //public string? HttpClientName { get; set; }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public AppDirectoryOptions Value => this;
 }

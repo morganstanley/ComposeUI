@@ -13,7 +13,6 @@
 using System.Collections.Concurrent;
 using System.IO.Abstractions;
 using System.Reactive.Disposables;
-using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -46,11 +45,10 @@ public class AppDirectory : IAppDirectory
 
     public async Task<Fdc3App?> GetApp(string appId)
     {
-        if (!(await GetAppsCore()).TryGetValue(appId, out var app)) 
+        if (!(await GetAppsCore()).TryGetValue(appId, out var app))
             throw new AppNotFoundException(appId);
 
         return app;
-
     }
 
     private readonly IFileSystem _fileSystem;
@@ -72,7 +70,7 @@ public class AppDirectory : IAppDirectory
                 // Assuming that appIds are case-insensitive (not specified by the standard)
                 return result.Apps.ToDictionary(
                     app => app.AppId,
-                    StringComparer.OrdinalIgnoreCase); 
+                    StringComparer.OrdinalIgnoreCase);
             });
     }
 
@@ -138,6 +136,9 @@ public class AppDirectory : IAppDirectory
             fileSystemWatcher.EnableRaisingEvents = true;
         }
 
+        public bool HasChanged { get; private set; }
+        public bool ActiveChangeCallbacks => true;
+
         public IDisposable RegisterChangeCallback(Action<object> callback, object state)
         {
             if (HasChanged)
@@ -154,20 +155,18 @@ public class AppDirectory : IAppDirectory
             return Disposable.Create(() => _callbacks.Remove(action, out _));
         }
 
-        public bool HasChanged { get; private set; }
-        public bool ActiveChangeCallbacks => true;
         private readonly ConcurrentDictionary<object, Action> _callbacks = new();
     }
 
     private sealed class NullChangeToken : IChangeToken
     {
+        public bool HasChanged => false;
+        public bool ActiveChangeCallbacks => true;
+
         public IDisposable RegisterChangeCallback(Action<object> callback, object state)
         {
             return Disposable.Empty;
         }
-
-        public bool HasChanged => false;
-        public bool ActiveChangeCallbacks => true;
 
         public static readonly NullChangeToken Singleton = new();
     }

@@ -12,6 +12,7 @@
 
 // ReSharper disable CheckNamespace
 // ReSharper disable UnusedMember.Global
+
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using MorganStanley.ComposeUI.Fdc3.AppDirectory;
 using MorganStanley.Fdc3.AppDirectory;

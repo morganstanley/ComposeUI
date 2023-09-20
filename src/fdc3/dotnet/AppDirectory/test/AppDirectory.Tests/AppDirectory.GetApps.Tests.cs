@@ -21,8 +21,8 @@ public partial class AppDirectoryTests
     public async Task GetApps_loads_the_data_from_a_file()
     {
         var fileSystem = TestUtils.SetUpFileSystemWithSingleFile(
-            "/apps.json",
-            """
+            path: "/apps.json",
+            contents: """
             [
               {
                 "appId": "webApp",
@@ -69,8 +69,8 @@ public partial class AppDirectoryTests
     public async Task GetApps_reloads_the_data_if_the_source_file_has_changed()
     {
         var fileSystem = TestUtils.SetUpFileSystemWithSingleFile(
-            "/apps.json",
-            """
+            path: "/apps.json",
+            contents: """
             [
               {
                 "appId": "app1",
@@ -82,7 +82,7 @@ public partial class AppDirectoryTests
             """);
 
         var appDirectory = new AppDirectory(
-            new AppDirectoryOptions { Source = new Uri("file:///apps.json") },
+            new AppDirectoryOptions {Source = new Uri("file:///apps.json")},
             fileSystem: fileSystem);
 
         var apps = await appDirectory.GetApps();

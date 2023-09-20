@@ -14,7 +14,7 @@ namespace MorganStanley.ComposeUI.Fdc3.AppDirectory;
 
 public class AppNotFoundException : Exception
 {
-    public AppNotFoundException(string appId): base($"Could not find app with id '{appId}'")
+    public AppNotFoundException(string appId) : base($"Could not find app with id '{appId}'")
     {
     }
 }
