@@ -38,7 +38,7 @@ public abstract class EndToEndTestsBase : IAsyncLifetime
         observerMock.Setup(x => x.OnNext(Capture.In(receivedMessages)));
 
         await subscriber.SubscribeAsync(topic: "test-topic", observerMock.Object);
-        await TaskExtensions.WaitForBackgroundTasksAsync(DefaultTestTimeout);
+        await TaskExtensions.WaitForBackgroundTasksAsync();
 
         var publishedPayload = new TestPayload
         {
@@ -50,8 +50,8 @@ public abstract class EndToEndTestsBase : IAsyncLifetime
             topic: "test-topic",
             MessageBuffer.Create(JsonSerializer.SerializeToUtf8Bytes(publishedPayload)));
 
-        await Task.Delay(
-            10); // TODO: Investigate why WaitForBackgroundTasksAsync is unreliable in this particular scenario
+        // TODO: Investigate why WaitForBackgroundTasksAsync is unreliable in this particular scenario
+        await TaskExtensions.WaitForBackgroundTasksAsync(TimeSpan.FromMilliseconds(100));
 
         var receivedPayload = JsonSerializer.Deserialize<TestPayload>(receivedMessages.Single().Payload!.GetSpan());
 
@@ -176,7 +176,7 @@ public abstract class EndToEndTestsBase : IAsyncLifetime
                 {
                     using (await semaphore.LockAsync(new CancellationTokenSource(TimeSpan.Zero).Token))
                     {
-                        await TaskExtensions.WaitForBackgroundTasksAsync(DefaultTestTimeout);
+                        await TaskExtensions.WaitForBackgroundTasksAsync();
                     }
 
                     if (msg.Payload?.GetString() == "done")
@@ -301,8 +301,6 @@ public abstract class EndToEndTestsBase : IAsyncLifetime
         await _host.StopAsync();
         _host.Dispose();
     }
-
-    public static readonly TimeSpan DefaultTestTimeout = TimeSpan.FromSeconds(1);
 
     protected IHost Host => _host ?? throw new InvalidOperationException("Host is not initialized yet.");
 

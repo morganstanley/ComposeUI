@@ -28,10 +28,12 @@ public class AppDirectory : IAppDirectory
 {
     public AppDirectory(
         IOptions<AppDirectoryOptions> options,
+        IHttpClientFactory? httpClientFactory = null,
         IMemoryCache? cache = null,
         IFileSystem? fileSystem = null,
         ILogger<AppDirectory>? logger = null)
     {
+        _httpClientFactory = httpClientFactory;
         _options = options.Value;
         _cache = cache ?? new MemoryCache(new MemoryCacheOptions());
         _fileSystem = fileSystem ?? new FileSystem();
@@ -51,6 +53,8 @@ public class AppDirectory : IAppDirectory
         return app;
     }
 
+    private readonly IHttpClientFactory? _httpClientFactory;
+    private HttpClient? _httpClient;
     private readonly IFileSystem _fileSystem;
     private readonly ILogger<AppDirectory> _logger;
     private readonly AppDirectoryOptions _options;
@@ -65,7 +69,14 @@ public class AppDirectory : IAppDirectory
             async entry =>
             {
                 var result = await LoadApps();
-                entry.ExpirationTokens.Add(result.ChangeToken);
+                if (result.ChangeToken != null)
+                {
+                    entry.ExpirationTokens.Add(result.ChangeToken);
+                }
+                else
+                {
+                    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(_options.CacheExpirationInSeconds);
+                }
 
                 // Assuming that appIds are case-insensitive (not specified by the standard)
                 return result.Apps.ToDictionary(
@@ -74,30 +85,70 @@ public class AppDirectory : IAppDirectory
             });
     }
 
-    private Task<(IEnumerable<Fdc3App> Apps, IChangeToken ChangeToken)> LoadApps()
+    private Task<(IEnumerable<Fdc3App> Apps, IChangeToken? ChangeToken)> LoadApps()
     {
-        if (_fileSystem.File.Exists(_options.Source?.LocalPath))
+        if (_options.Source != null)
         {
-            return LoadAppsFromFile(_options.Source.LocalPath);
+            if (_options.Source.IsFile && _fileSystem.File.Exists(_options.Source.LocalPath))
+            {
+                return LoadAppsFromFile(_options.Source.LocalPath);
+            }
+
+            if (_options.Source.Scheme == Uri.UriSchemeHttp || _options.Source.Scheme == Uri.UriSchemeHttps)
+            {
+                return LoadAppsFromHttp(_options.Source.ToString());
+            }
         }
-        // TODO: add provider for online static files and FDC3 AppD API
 
-        _logger.LogWarning("The configured source is empty or not supported");
+        if (!string.IsNullOrEmpty(_options.HttpClientName))
+        {
+            return LoadAppsFromHttp("apps/");
+        }
 
-        return Task.FromResult<(IEnumerable<Fdc3App>, IChangeToken)>(
+        _logger.LogError("The configured source is empty or not supported");
+
+        return Task.FromResult<(IEnumerable<Fdc3App>, IChangeToken?)>(
             (
                 Enumerable.Empty<Fdc3App>(),
-                NullChangeToken.Singleton));
+                null));
     }
 
-    private Task<(IEnumerable<Fdc3App>, IChangeToken)> LoadAppsFromFile(string fileName)
+    private Task<(IEnumerable<Fdc3App>, IChangeToken?)> LoadAppsFromFile(string fileName)
     {
         using var stream = _fileSystem.File.OpenRead(fileName);
 
-        return Task.FromResult<(IEnumerable<Fdc3App>, IChangeToken)>(
+        return Task.FromResult<(IEnumerable<Fdc3App>, IChangeToken?)>(
             (
                 LoadAppsFromStream(stream),
                 new FileSystemChangeToken(fileName, _fileSystem)));
+    }
+
+    private async Task<(IEnumerable<Fdc3App>, IChangeToken?)> LoadAppsFromHttp(string relativeUri)
+    {
+        var httpClient = GetHttpClient();
+        var response = await httpClient.GetAsync(relativeUri);
+        var stream = await response.Content.ReadAsStreamAsync();
+
+        return (LoadAppsFromStream(stream), null);
+    }
+
+    private HttpClient GetHttpClient()
+    {
+        if (_httpClient != null)
+            return _httpClient;
+
+        if (!string.IsNullOrEmpty(_options.HttpClientName))
+        {
+            // Let configuration changes propagate. The factory manages the lifetime of underlying resources.
+            return _httpClientFactory?.CreateClient(_options.HttpClientName)
+                   ?? throw new InvalidOperationException(
+                       $"{nameof(AppDirectoryOptions)} is configured with {nameof(AppDirectoryOptions.HttpClientName)}, but a suitable {nameof(IHttpClientFactory)} was not provided");
+        }
+
+        if (_httpClientFactory != null)
+            return _httpClientFactory.CreateClient();
+
+        return _httpClient = new HttpClient();
     }
 
     private static IEnumerable<Fdc3App> LoadAppsFromStream(Stream stream)
@@ -105,8 +156,11 @@ public class AppDirectory : IAppDirectory
         var serializer = JsonSerializer.Create(new Fdc3JsonSerializerSettings());
         using var textReader = new StreamReader(stream, leaveOpen: true);
         using var jsonReader = new JsonTextReader(textReader);
+        jsonReader.Read();
 
-        return serializer.Deserialize<IEnumerable<Fdc3App>>(jsonReader) ?? Enumerable.Empty<Fdc3App>();
+        return jsonReader.TokenType == JsonToken.StartArray
+            ? serializer.Deserialize<IEnumerable<Fdc3App>>(jsonReader) ?? Enumerable.Empty<Fdc3App>()
+            : serializer.Deserialize<GetAppsJsonResponse>(jsonReader)?.Applications ?? Enumerable.Empty<Fdc3App>();
     }
 
     private sealed class FileSystemChangeToken : IChangeToken
@@ -158,16 +212,12 @@ public class AppDirectory : IAppDirectory
         private readonly ConcurrentDictionary<object, Action> _callbacks = new();
     }
 
-    private sealed class NullChangeToken : IChangeToken
+    /// <summary>
+    /// Wrapper type for the /v2/apps response
+    /// </summary>
+    private sealed class GetAppsJsonResponse
     {
-        public bool HasChanged => false;
-        public bool ActiveChangeCallbacks => true;
-
-        public IDisposable RegisterChangeCallback(Action<object> callback, object state)
-        {
-            return Disposable.Empty;
-        }
-
-        public static readonly NullChangeToken Singleton = new();
+        [JsonProperty("applications")]
+        public IEnumerable<Fdc3App>? Applications { get; set; }
     }
 }
