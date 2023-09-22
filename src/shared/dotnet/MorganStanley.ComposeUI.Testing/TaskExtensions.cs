@@ -11,6 +11,9 @@
 // and limitations under the License.
 
 // ReSharper disable UnusedMember.Global
+
+using System.Diagnostics;
+
 namespace MorganStanley.ComposeUI.Testing;
 
 public static class TaskExtensions
@@ -26,7 +29,7 @@ public static class TaskExtensions
         // Schedule a batch of blocking tasks
         var task = Task.WhenAll(
             Enumerable.Range(0, taskCount)
-                .Select(_ => gate.WaitAsync(cancellationToken)));
+                .Select(async _ => await gate.WaitAsync(cancellationToken)));
 
         // Let the tasks complete
         Task.Delay(1, cancellationToken)
@@ -37,9 +40,14 @@ public static class TaskExtensions
         return task;
     }
 
-    public static Task WaitForBackgroundTasksAsync(TimeSpan timeout)
+    public static async Task WaitForBackgroundTasksAsync(TimeSpan minimumWaitTime, CancellationToken cancellationToken = default)
     {
-        var cts = new CancellationTokenSource(timeout);
-        return WaitForBackgroundTasksAsync(cts.Token);
+        var stopwatch = Stopwatch.StartNew();
+        await WaitForBackgroundTasksAsync(cancellationToken);
+        minimumWaitTime -= stopwatch.Elapsed;
+        if (minimumWaitTime > TimeSpan.Zero)
+        {
+            await Task.Delay(minimumWaitTime, cancellationToken);
+        }
     }
 }

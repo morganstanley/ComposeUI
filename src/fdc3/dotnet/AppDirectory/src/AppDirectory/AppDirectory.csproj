@@ -11,6 +11,7 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.1" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
 		<PackageReference Include="MorganStanley.Fdc3.AppDirectory" Version="2.0.0-alpha.6" />
 		<PackageReference Include="MorganStanley.Fdc3.NewtonsoftJson" Version="2.0.0-alpha.6" />
