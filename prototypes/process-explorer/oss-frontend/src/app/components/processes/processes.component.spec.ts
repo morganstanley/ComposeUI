@@ -15,7 +15,11 @@ describe('ProcessesComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       declarations: [ProcessesComponent],
-      imports: [MatPaginatorModule, MatToolbarModule, MatTableModule, BrowserAnimationsModule]
+      imports: [
+        MatPaginatorModule, 
+        MatToolbarModule, 
+        MatTableModule, 
+        BrowserAnimationsModule]
     });
     fixture = TestBed.createComponent(ProcessesComponent);
     component = fixture.componentInstance;
