@@ -22,9 +22,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging.Configuration;
 using Microsoft.Extensions.Options;
+using MorganStanley.ComposeUI.Fdc3.AppDirectory;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
+using MorganStanley.ComposeUI.Shell.Fdc3;
 using MorganStanley.ComposeUI.Shell.Utilities;
 
 namespace MorganStanley.ComposeUI.Shell;
@@ -40,7 +43,7 @@ public partial class App : Application
         _host
         ?? throw new InvalidOperationException(
             "Attempted to access the Host object before async startup has completed");
-    
+
     /// <summary>
     /// Creates a new window of the specified type. Constructor arguments that are not registered in DI can be provided.
     /// </summary>
@@ -96,35 +99,49 @@ public partial class App : Application
 
     private void ConfigureServices(HostBuilderContext context, IServiceCollection services)
     {
-        // TODO: Extensibility: plugins should be able to configure the service collection.
-        services.AddMessageRouterServer(
-            mr => mr
-                .UseWebSockets()
-                .UseAccessTokenValidator(
-                    (clientId, token) =>
-                    {
-                        // TODO: Assign a separate token for each client and only allow a single connection with each token
-                        if (_messageRouterAccessToken != token)
-                            throw new InvalidOperationException("The provided access token is invalid");
-                    }));
-
-        services.AddMessageRouter(
-            mr => mr
-                .UseServer()
-                .UseAccessToken(_messageRouterAccessToken));
-
-        //This can be replaced by the `InjectFdc3BackendServiceIfEnabledFromConfig` extension method
-        ///* services.InjectFdc3BackendServiceIfEnabledFromConfig(context.Configuration.GetSection(Fdc3Options.Fdc3OptionsName));
-        var fdc3Options = context.Configuration.GetSection(Fdc3Options.Fdc3OptionsName).Get<Fdc3Options>();
-
-        //TODO: This should be feature toggle, once we have feature toggles - instead of having `EnableFdc3` inside Fdc3Options.
-        if (fdc3Options != null && fdc3Options.EnableFdc3)
-        {
-            services.AddFdc3DesktopAgent(builder => builder.Configure<Fdc3Options>(context.Configuration));
-        }
-        //*/
-
+        services.AddHttpClient();
         services.Configure<LoggerFactoryOptions>(context.Configuration.GetSection("Logging"));
+        ConfigureMessageRouter();
+
+        ConfigureFdc3();
+
+
+        void ConfigureMessageRouter()
+        {
+            // TODO: Extensibility: plugins should be able to configure the service collection.
+            services.AddMessageRouterServer(
+                mr => mr
+                    .UseWebSockets()
+                    .UseAccessTokenValidator(
+                        (clientId, token) =>
+                        {
+                            // TODO: Assign a separate token for each client and only allow a single connection with each token
+                            if (_messageRouterAccessToken != token)
+                                throw new InvalidOperationException("The provided access token is invalid");
+                        }));
+
+            services.AddMessageRouter(
+                mr => mr
+                    .UseServer()
+                    .UseAccessToken(_messageRouterAccessToken));
+        }
+
+        void ConfigureFdc3()
+        {
+            var fdc3ConfigurationSection = context.Configuration.GetSection("FDC3");
+            var fdc3Options = fdc3ConfigurationSection.Get<Fdc3Options>();
+
+            // TODO: Use feature flag instead
+            if (fdc3Options is {EnableFdc3: true})
+            {
+                services.AddFdc3DesktopAgent();
+                services.AddFdc3AppDirectory();
+
+                services.Configure<Fdc3Options>(fdc3ConfigurationSection);
+                services.Configure<Fdc3DesktopAgentOptions>(fdc3ConfigurationSection.GetSection(nameof(fdc3Options.DesktopAgent)));
+                services.Configure<AppDirectoryOptions>(fdc3ConfigurationSection.GetSection(nameof(fdc3Options.AppDirectory)));
+            }
+        }
     }
 
     // TODO: Extensibility: Plugins should be notified here.
@@ -132,7 +149,7 @@ public partial class App : Application
     private async Task OnHostInitializedAsync()
     {
         InjectMessageRouterConfig();
-        
+
         var fdc3Options = Host.Services.GetRequiredService<IOptions<Fdc3Options>>();
 
         if (fdc3Options.Value.EnableFdc3) InjectFdc3();

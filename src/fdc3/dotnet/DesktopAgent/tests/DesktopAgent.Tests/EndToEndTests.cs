@@ -39,24 +39,29 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             builder.ConfigureServices(
                 services =>
                 {
-                    services.AddMessageRouterServer(s => s.UseWebSockets(opt =>
-                    {
-                        opt.RootPath = _webSocketUri.AbsolutePath;
-                        opt.Port = _webSocketUri.Port;
-                    }));
+                    services.AddMessageRouterServer(
+                        s => s.UseWebSockets(
+                            opt =>
+                            {
+                                opt.RootPath = _webSocketUri.AbsolutePath;
+                                opt.Port = _webSocketUri.Port;
+                            }));
                     services.AddMessageRouter(mr => mr.UseServer());
-                    services.AddFdc3DesktopAgent(fdc3 => fdc3.Configure(builder =>
-                    {
-                        builder.EnableFdc3 = true; //no impact here
-                        builder.ChannelId = TestChannel; //DesktopAgent will call the `AddUserChannel` method, as this property is set for the `_options` field;
-                    }));
+                    services.AddFdc3DesktopAgent(
+                        fdc3 => fdc3.Configure(
+                            builder =>
+                            {
+                                builder.ChannelId =
+                                    TestChannel; //DesktopAgent will call the `AddUserChannel` method, as this property is set for the `_options` field;
+                            }));
                 });
             _host = builder.Build();
             await _host.StartAsync();
 
             // Create a client acting in place of an application
             _clientServices = new ServiceCollection()
-                .AddMessageRouter(mr => mr.UseWebSocket(
+                .AddMessageRouter(
+                    mr => mr.UseWebSocket(
                         new MessageRouterWebSocketOptions
                         {
                             Uri = _webSocketUri
@@ -145,11 +150,22 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
         private int _counter = 0;
 
         private MessageBuffer EmptyContextType => MessageBuffer.Factory.CreateJson(new GetCurrentContextRequest());
-        private MessageBuffer ContextType => MessageBuffer.Factory.CreateJson(new GetCurrentContextRequest { ContextType = new Contact().Type });
-        private MessageBuffer OtherContextType => MessageBuffer.Factory.CreateJson(new GetCurrentContextRequest { ContextType = new Email(null).Type });
-        private MessageBuffer GetContext() => MessageBuffer.Factory.CreateJson(new Contact(new ContactID() { Email = $"test{_counter}@test.org", FdsId = $"test{_counter++}" }, "Testy Tester"));
 
-        private MessageBuffer FindRequest => MessageBuffer.Factory.CreateJson(new FindChannelRequest { ChannelId = TestChannel, ChannelType = ChannelType.User });
-        private MessageBuffer FindNonExistingRequest => MessageBuffer.Factory.CreateJson(new FindChannelRequest { ChannelId = "nonexisting", ChannelType = ChannelType.User });
+        private MessageBuffer ContextType =>
+            MessageBuffer.Factory.CreateJson(new GetCurrentContextRequest {ContextType = new Contact().Type});
+
+        private MessageBuffer OtherContextType =>
+            MessageBuffer.Factory.CreateJson(new GetCurrentContextRequest {ContextType = new Email(null).Type});
+
+        private MessageBuffer GetContext() => MessageBuffer.Factory.CreateJson(
+            new Contact(
+                new ContactID() {Email = $"test{_counter}@test.org", FdsId = $"test{_counter++}"},
+                "Testy Tester"));
+
+        private MessageBuffer FindRequest => MessageBuffer.Factory.CreateJson(
+            new FindChannelRequest {ChannelId = TestChannel, ChannelType = ChannelType.User});
+
+        private MessageBuffer FindNonExistingRequest => MessageBuffer.Factory.CreateJson(
+            new FindChannelRequest {ChannelId = "nonexisting", ChannelType = ChannelType.User});
     }
 }

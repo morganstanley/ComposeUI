@@ -16,19 +16,12 @@ using Microsoft.Extensions.Options;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 
-public sealed class Fdc3Options : IOptions<Fdc3Options>
+public sealed class Fdc3DesktopAgentOptions : IOptions<Fdc3DesktopAgentOptions>
 {
-    public static readonly string Fdc3OptionsName = "Fdc3Options";
-
     /// <summary>
-    /// When set to <value>true</value>, it will enable Fdc3 backend service.
-    /// </summary>
-    public bool EnableFdc3 { get; set; }
-
-    /// <summary>
-    /// When set to any value, it will start the DesktopAgent with passing the value to the `WithUserChannel` builder action.
+    /// When set to any value, the Desktop Agent will create the specified user channel on startup.
     /// </summary>
     public string? ChannelId { get; set; }
 
-    Fdc3Options IOptions<Fdc3Options>.Value => this;
+    Fdc3DesktopAgentOptions IOptions<Fdc3DesktopAgentOptions>.Value => this;
 }

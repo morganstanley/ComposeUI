@@ -28,11 +28,11 @@ public class Fdc3DesktopAgent : IHostedService
     private readonly List<UserChannel> _userChannels = new();
 
     private readonly ILoggerFactory _loggerFactory;
-    private readonly Fdc3Options _options;
+    private readonly Fdc3DesktopAgentOptions _options;
     private readonly IMessageRouter _messageRouter;
 
     public Fdc3DesktopAgent(
-        IOptions<Fdc3Options> options, 
+        IOptions<Fdc3DesktopAgentOptions> options, 
         IMessageRouter messageRouter, 
         ILoggerFactory? loggerFactory = null)
     {
