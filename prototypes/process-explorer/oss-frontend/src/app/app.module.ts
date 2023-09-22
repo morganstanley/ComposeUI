@@ -12,7 +12,7 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatMenuModule } from '@angular/material/menu';
-
+import { MatSortModule } from '@angular/material/sort';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -38,7 +38,8 @@ import { ProcessesComponent } from './components/processes/processes.component';
     MatPaginatorModule,
     MatTableModule,
     MatExpansionModule,
-    MatMenuModule
+    MatMenuModule,
+    MatSortModule
   ],
   providers: [],
   bootstrap: [AppComponent]

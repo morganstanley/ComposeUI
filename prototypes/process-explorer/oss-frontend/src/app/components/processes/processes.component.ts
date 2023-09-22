@@ -5,6 +5,8 @@ import { MatTableDataSource } from '@angular/material/table';
 import { ProcessInfo, ProcessTable } from 'src/app/DTOs/ProcessInfo';
 import { ProcessesService } from 'src/app/services/processes.service';
 import { animate, state, style, transition, trigger } from '@angular/animations';
+import { MatSort, Sort } from '@angular/material/sort';
+import {LiveAnnouncer} from '@angular/cdk/a11y';
 
 
 @Component({
@@ -28,8 +30,9 @@ export class ProcessesComponent implements AfterViewInit {
   displayedColumnsKeys: string[];
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
+  @ViewChild(MatSort) sort: MatSort;
 
-  constructor(private processService: ProcessesService) {
+  constructor(private processService: ProcessesService, private liveAnnouncer: LiveAnnouncer) {
     this.processService.getProcesses('Processes').subscribe(process => this.processesData = process);
     this.displayedColumnsKeys = this.displayedColumns.map(column => column.key);
     this.dataSource = new MatTableDataSource<ProcessTable>(this.processesData);
@@ -37,6 +40,7 @@ export class ProcessesComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
   }
   ngOnInit() {
   }
@@ -47,6 +51,14 @@ export class ProcessesComponent implements AfterViewInit {
 
   onItemSelected(idx: number) {
     console.log(idx);
+  }
+
+  announceSortChange(sortState: Sort) {
+    if (sortState.direction) {
+      this.liveAnnouncer.announce(`Sorted ${sortState.direction}ending`);
+    } else {
+      this.liveAnnouncer.announce('Sorting cleared');
+    }
   }
 }
 
