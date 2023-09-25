@@ -82,7 +82,9 @@ public partial class App : Application
     {
         var host = new HostBuilder()
             .ConfigureAppConfiguration(
-                config => config.AddJsonFile("appsettings.json", optional: true))
+                config => config
+                    .AddJsonFile("appsettings.json", optional: true)
+                    .AddCommandLine(e.Args))
             .ConfigureLogging(l => l.AddDebug().SetMinimumLevel(LogLevel.Debug))
             .ConfigureServices(ConfigureServices)
             .Build();
@@ -100,11 +102,12 @@ public partial class App : Application
     private void ConfigureServices(HostBuilderContext context, IServiceCollection services)
     {
         services.AddHttpClient();
+
         services.Configure<LoggerFactoryOptions>(context.Configuration.GetSection("Logging"));
+
         ConfigureMessageRouter();
 
         ConfigureFdc3();
-
 
         void ConfigureMessageRouter()
         {
