@@ -48,11 +48,11 @@ public sealed class AppDirectoryOptions : IOptions<AppDirectoryOptions>
     /// </summary>
     public int CacheExpirationInSeconds { get; set; } = (int)DefaultCacheExpiration.TotalSeconds;
 
-    /// <inheritdoc />
-    public AppDirectoryOptions Value => this;
-
     /// <summary>
     /// Gets the default cache expiration time
     /// </summary>
     public static readonly TimeSpan DefaultCacheExpiration = TimeSpan.FromHours(1);
+
+    /// <inheritdoc />
+    public AppDirectoryOptions Value => this;
 }

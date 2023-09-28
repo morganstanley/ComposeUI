@@ -18,6 +18,7 @@
 	
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1901.177" />
 		<PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
 	</ItemGroup>
@@ -39,6 +40,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\..\fdc3\dotnet\AppDirectory\src\AppDirectory\AppDirectory.csproj" />
 		<ProjectReference Include="..\..\..\fdc3\dotnet\DesktopAgent\src\DesktopAgent\DesktopAgent.csproj" />
 		<ProjectReference Include="..\..\..\messaging\dotnet\src\Host\MorganStanley.ComposeUI.Messaging.Host.csproj" />
 	</ItemGroup>

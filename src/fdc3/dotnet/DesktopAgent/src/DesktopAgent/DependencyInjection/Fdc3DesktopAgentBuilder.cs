@@ -12,9 +12,7 @@
  * and limitations under the License.
  */
 
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 
@@ -28,27 +26,13 @@ public class Fdc3DesktopAgentBuilder
     }
 
     /// <summary>
-    /// Method, for configuring `Fdc3Options` from full `IConfiguration` by searching for section `Fdc3Options.Fdc3OptionsName`.
-    /// </summary>
-    /// <typeparam name="TOptions">Must be Fdc3Options reference type.</typeparam>
-    /// <param name="configuration">Full IConfigration passed from the Application.</param>
-    /// <returns></returns>
-    public Fdc3DesktopAgentBuilder Configure<TOptions>(IConfiguration configuration) 
-        where TOptions : class, IOptions<Fdc3Options>
-    {
-        ServiceCollection.Configure<TOptions>(configuration.GetSection(Fdc3Options.Fdc3OptionsName));
-
-        return this;
-    }
-
-    /// <summary>
-    /// Extension method, for configuring the `Fdc3Options` by `Action`.
+    /// Extension method, for configuring the <see cref="Fdc3DesktopAgentOptions"/> by a delegate.
     /// </summary>
     /// <param name="configureOptions"></param>
     /// <returns></returns>
-    public Fdc3DesktopAgentBuilder Configure(Action<Fdc3Options> configureOptions)
+    public Fdc3DesktopAgentBuilder Configure(Action<Fdc3DesktopAgentOptions> configureOptions)
     {
-        ServiceCollection.AddOptions<Fdc3Options>()
+        ServiceCollection.AddOptions<Fdc3DesktopAgentOptions>()
             .Configure(configureOptions);
 
         return this;

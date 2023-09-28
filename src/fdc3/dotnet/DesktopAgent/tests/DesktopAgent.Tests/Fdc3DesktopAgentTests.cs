@@ -22,7 +22,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
 public class Fdc3DesktopAgentTests
 {
     private Fdc3DesktopAgent _fdc3 = new Fdc3DesktopAgent(
-        new Fdc3Options(), 
+        new Fdc3DesktopAgentOptions(), 
         new Mock<IMessageRouter>().Object, 
         NullLoggerFactory.Instance);
     private const string TestChannel = "testChannel";

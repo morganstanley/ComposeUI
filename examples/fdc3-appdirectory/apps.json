@@ -1,0 +1,22 @@
+{
+    "applications": [
+        {
+            "appId": "js-chart",
+            "name": "js-chart",
+            "title": "JS Chart",
+            "type": "web",
+            "details": {
+                "url": "http://localhost:8080/"
+            }
+        },
+        {
+            "appId": "js-grid",
+            "name": "js-grid",
+            "title": "JS Grid",
+            "type": "web",
+            "details": {
+                "url": "http://localhost:4200/"
+            }
+        }
+    ]
+}
