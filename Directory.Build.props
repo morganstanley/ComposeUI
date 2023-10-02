@@ -1,5 +1,9 @@
 <Project>
-    <Import Project="../Directory.Build.props" Condition="Exists('../Directory.Build.props')" />
+    <Import Project="$([MSBuild]::GetPathOfFileAbove(Directory.Build.props, $(MSBuildThisFileDirectory)..))" Condition="Exists($([MSBuild]::GetPathOfFileAbove(Directory.Build.props, $(MSBuildThisFileDirectory)..)))"/>
+
+    <PropertyGroup>
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    </PropertyGroup>
 
     <PropertyGroup>
         <ComposeUIRepositoryRoot>$(MSBuildThisFileDirectory.TrimEnd('/').TrimEnd('\'))</ComposeUIRepositoryRoot>
