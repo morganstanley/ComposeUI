@@ -32,7 +32,7 @@
         <PackageVersion Include="Microsoft.Extensions.Logging" Version="6.0.0" />
         <PackageVersion Include="Microsoft.Extensions.Options" Version="6.0.0" />
         <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
-        <PackageVersion Include="Microsoft.Web.WebView2" Version="1.0.1901.177" />
+        <PackageVersion Include="Microsoft.Web.WebView2" Version="1.0.2045.28" />
         <PackageVersion Include="Moq.Contrib.HttpClient" Version="1.4.0" />
         <PackageVersion Include="Moq" Version="4.20.69" />
         <PackageVersion Include="MorganStanley.Fdc3.AppDirectory" Version="2.0.0-alpha.6" />
