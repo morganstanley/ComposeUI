@@ -4,7 +4,7 @@
         <PackageVersion Include="FluentAssertions.Json" Version="6.1.0" />
         <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.4.0" />
         <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
-        <PackageVersion Include="Moq" Version="4.18.1" />
+        <PackageVersion Include="Moq" Version="4.20.69" />
         <PackageVersion Include="Xunit.Combinatorial" Version="1.5.25" />
         <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.5" />
         <PackageVersion Include="xunit" Version="2.4.2" />
@@ -34,7 +34,7 @@
         <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
         <PackageVersion Include="Microsoft.Web.WebView2" Version="1.0.1901.177" />
         <PackageVersion Include="Moq.Contrib.HttpClient" Version="1.4.0" />
-        <PackageVersion Include="Moq" Version="4.18.4" />
+        <PackageVersion Include="Moq" Version="4.20.69" />
         <PackageVersion Include="MorganStanley.Fdc3.AppDirectory" Version="2.0.0-alpha.6" />
         <PackageVersion Include="MorganStanley.Fdc3.NewtonsoftJson" Version="2.0.0-alpha.6" />
         <PackageVersion Include="MorganStanley.Fdc3" Version="2.0.0-alpha.6" />
