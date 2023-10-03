@@ -6,10 +6,12 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
 import { MatListModule } from '@angular/material/list'
 import { AppRoutingModule } from '../../app-routing.module';
-
+import { HttpClientModule } from '@angular/common/http';
+import { MatMenuModule } from '@angular/material/menu';
 
 
 import { SidenavComponent } from './sidenav.component';
+import {ThemeSelectorComponent} from '../theme-selector/theme-selector.component'
 
 describe('SidenavComponent', () => {
   let component: SidenavComponent;
@@ -17,14 +19,16 @@ describe('SidenavComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [SidenavComponent],
+      declarations: [SidenavComponent, ThemeSelectorComponent],
       imports: [
         MatToolbarModule, 
+        HttpClientModule,
         MatIconModule, 
         MatSidenavModule, 
         BrowserAnimationsModule,
         MatListModule,
-        AppRoutingModule
+        AppRoutingModule,
+        MatMenuModule
       ]
     });
     fixture = TestBed.createComponent(SidenavComponent);
