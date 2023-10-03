@@ -30,8 +30,27 @@
               "src/assets"
             ],
             "styles": [
-              "@angular/material/prebuilt-themes/indigo-pink.css",
-              "src/styles.scss"
+              "src/styles.scss",
+              {
+                "inject": false,
+                "input": "src/custom-themes/pink-bluegrey.scss",
+                "bundleName": "pink-bluegrey"
+              },
+              {
+                "inject": false,
+                "input": "src/custom-themes/deeppurple-amber.scss",
+                "bundleName": "deeppurple-amber"
+              },
+              {
+                "inject": false,
+                "input": "src/custom-themes/indigo-pink.scss",
+                "bundleName": "indigo-pink"
+              },
+              {
+                "inject": false,
+                "input": "src/custom-themes/purple-green.scss",
+                "bundleName": "purple-green"
+              }
             ],
             "scripts": []
           },
@@ -100,8 +119,27 @@
               "src/assets"
             ],
             "styles": [
-              "@angular/material/prebuilt-themes/indigo-pink.css",
-              "src/styles.scss"
+              "src/styles.scss",
+              {
+                "inject": false,
+                "input": "src/custom-themes/pink-bluegrey.scss",
+                "bundleName": "pink-bluegrey"
+              },
+              {
+                "inject": false,
+                "input": "src/custom-themes/deeppurple-amber.scss",
+                "bundleName": "deeppurple-amber"
+              },
+              {
+                "inject": false,
+                "input": "src/custom-themes/indigo-pink.scss",
+                "bundleName": "indigo-pink"
+              },
+              {
+                "inject": false,
+                "input": "src/custom-themes/purple-green.scss",
+                "bundleName": "purple-green"
+              }
             ],
             "scripts": []
           }

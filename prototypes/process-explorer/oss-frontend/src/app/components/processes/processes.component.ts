@@ -3,7 +3,7 @@ import { AfterViewInit, ViewChild, Component } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { ProcessInfo, ProcessTable } from 'src/app/DTOs/ProcessInfo';
-import { ProcessesService } from 'src/app/services/processes.service';
+import { ProcessesService } from 'src/app/services/processes-service/processes.service';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { MatSort, Sort } from '@angular/material/sort';
 import {LiveAnnouncer} from '@angular/cdk/a11y';

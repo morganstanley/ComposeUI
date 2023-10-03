@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output } from "@angular/core";
 
 import { Option } from "../../DTOs/Option";
-import { ThemeService } from "../../services/theme.service";
+import { ThemeService } from "../../services/theme-services/theme.service";
 
 @Component({
   selector: 'app-theme-selector',

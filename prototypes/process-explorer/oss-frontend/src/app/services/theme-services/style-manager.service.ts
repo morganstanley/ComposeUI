@@ -5,23 +5,8 @@ import { Injectable } from '@angular/core';
 })
 export class StyleManagerService {
 
-  constructor() { }
-
-  /**
-   * Set the stylesheet with the specified key.
-   */
   setStyle(key: string, href: string) {
     getLinkElementForKey(key).setAttribute("href", href);
-  }
-
-  /**
-   * Remove the stylesheet with the specified key.
-   */
-  removeStyle(key: string) {
-    const existingLinkElement = getExistingLinkElementByKey(key);
-    if (existingLinkElement) {
-      document.head.removeChild(existingLinkElement);
-    }
   }
 }
 
@@ -46,4 +31,3 @@ function createLinkElementWithKey(key: string) {
 function getClassNameForKey(key: string) {
   return `app-${key}`;
 }
-

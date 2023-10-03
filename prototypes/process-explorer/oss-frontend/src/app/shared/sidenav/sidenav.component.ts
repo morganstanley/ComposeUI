@@ -4,7 +4,7 @@ import { Observable } from "rxjs";
 
 
 import { Option } from "../../DTOs/Option";
-import { ThemeService } from "../../services/theme.service";
+import { ThemeService } from "../../services/theme-services/theme.service";
 
 @Component({
   selector: 'app-sidenav',
@@ -13,15 +13,15 @@ import { ThemeService } from "../../services/theme.service";
 })
 export class SidenavComponent {
   options$: Observable<Array<Option>> = this.themeService.getThemeOptions();
+  storedTheme = localStorage.getItem('selectedTheme')
 
   constructor(private readonly themeService: ThemeService) {}
 
   ngOnInit() {
-    this.themeService.setTheme("deeppurple-amber");
+    this.storedTheme ? this.themeChangeHandler(this.storedTheme) : this.themeChangeHandler('indigo-pink')
   }
 
   themeChangeHandler(themeToSet:any) {
     this.themeService.setTheme(themeToSet);
   }
-  
 }
