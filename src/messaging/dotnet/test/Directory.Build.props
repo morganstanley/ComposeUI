@@ -1,21 +1,21 @@
 <Project>
-	<Import Project="../Directory.Build.props" Condition="Exists('../Directory.Build.props')" />
+	<Import Project="$([MSBuild]::GetPathOfFileAbove(Directory.Build.props, $(MSBuildThisFileDirectory)..))" />
 
 	<ItemGroup>
-		<PackageReference Include="FluentAssertions" Version="6.7.0" />
-		<PackageReference Include="FluentAssertions.Json" Version="6.1.0" />
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.4.0" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
-		<PackageReference Include="xunit" Version="2.4.2" />
-		<PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
+		<PackageReference Include="FluentAssertions" />
+		<PackageReference Include="FluentAssertions.Json" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" />
+		<PackageReference Include="xunit" />
+		<PackageReference Include="xunit.runner.visualstudio">
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
-		<PackageReference Include="Moq" Version="4.18.1" />
-		<PackageReference Include="coverlet.collector" Version="3.1.2">
+		<PackageReference Include="Moq" />
+		<PackageReference Include="coverlet.collector">
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
-		<PackageReference Include="Xunit.Combinatorial" Version="1.5.25" />
+		<PackageReference Include="Xunit.Combinatorial" />
 	</ItemGroup>
 </Project>
