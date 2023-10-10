@@ -7,7 +7,7 @@
     <span>Process Explorer</span>
     <span class="toolbar-item-spacer"></span>
         <app-theme-selector
-          [options]="options$ | async"
+          [options]="options | async"
           (themeChange)="themeChangeHandler($event)">
         </app-theme-selector>
         

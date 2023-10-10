@@ -33,22 +33,22 @@
               "src/styles.scss",
               {
                 "inject": false,
-                "input": "src/custom-themes/pink-bluegrey.scss",
+                "input": "@angular/material/prebuilt-themes/pink-bluegrey.css",
                 "bundleName": "pink-bluegrey"
               },
               {
                 "inject": false,
-                "input": "src/custom-themes/deeppurple-amber.scss",
+                "input": "@angular/material/prebuilt-themes/deeppurple-amber.css",
                 "bundleName": "deeppurple-amber"
               },
               {
                 "inject": false,
-                "input": "src/custom-themes/indigo-pink.scss",
+                "input": "@angular/material/prebuilt-themes/indigo-pink.css",
                 "bundleName": "indigo-pink"
               },
               {
                 "inject": false,
-                "input": "src/custom-themes/purple-green.scss",
+                "input": "@angular/material/prebuilt-themes/purple-green.css",
                 "bundleName": "purple-green"
               }
             ],
@@ -122,22 +122,22 @@
               "src/styles.scss",
               {
                 "inject": false,
-                "input": "src/custom-themes/pink-bluegrey.scss",
+                "input": "@angular/material/prebuilt-themes/pink-bluegrey.css",
                 "bundleName": "pink-bluegrey"
               },
               {
                 "inject": false,
-                "input": "src/custom-themes/deeppurple-amber.scss",
+                "input": "@angular/material/prebuilt-themes/deeppurple-amber.css",
                 "bundleName": "deeppurple-amber"
               },
               {
                 "inject": false,
-                "input": "src/custom-themes/indigo-pink.scss",
+                "input": "@angular/material/prebuilt-themes/indigo-pink.css",
                 "bundleName": "indigo-pink"
               },
               {
                 "inject": false,
-                "input": "src/custom-themes/purple-green.scss",
+                "input": "@angular/material/prebuilt-themes/purple-green.css",
                 "bundleName": "purple-green"
               }
             ],

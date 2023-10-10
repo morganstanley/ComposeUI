@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 import { Observable } from "rxjs";
 
 
-import { Option } from "../../DTOs/Option";
+import { ThemeOption } from "../../DTOs/ThemeOption";
 import { ThemeService } from "../../services/theme-services/theme.service";
 
 @Component({
@@ -12,7 +12,7 @@ import { ThemeService } from "../../services/theme-services/theme.service";
   styleUrls: ['./sidenav.component.scss']
 })
 export class SidenavComponent {
-  options$: Observable<Array<Option>> = this.themeService.getThemeOptions();
+  options: Observable<Array<ThemeOption>> = this.themeService.getThemeOptions();
   storedTheme = localStorage.getItem('selectedTheme')
 
   constructor(private readonly themeService: ThemeService) {}
