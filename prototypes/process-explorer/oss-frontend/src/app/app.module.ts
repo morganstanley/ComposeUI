@@ -21,6 +21,7 @@ import { AppComponent } from './app.component';
 import { SidenavComponent } from './shared/sidenav/sidenav.component';
 import { ProcessesComponent } from './components/processes/processes.component';
 import { ThemeSelectorComponent } from './shared/theme-selector/theme-selector.component';
+import { SubsystemsComponent } from './components/subsystems/subsystems.component';
 
 @NgModule({
   declarations: [
@@ -28,6 +29,7 @@ import { ThemeSelectorComponent } from './shared/theme-selector/theme-selector.c
     SidenavComponent,
     ProcessesComponent,
     ThemeSelectorComponent,
+    SubsystemsComponent,
   ],
   imports: [
     BrowserModule,

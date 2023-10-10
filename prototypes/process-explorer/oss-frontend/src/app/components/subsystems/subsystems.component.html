@@ -1,0 +1,35 @@
+<h1 class="header">Subsystems</h1>
+<div class="table-all mat-elevation-z8">
+    <table mat-table [dataSource]="dataSource">
+  
+      <!-- Position Column -->
+      <ng-container matColumnDef="Name">
+        <th mat-header-cell *matHeaderCellDef> Name </th>
+        <td mat-cell *matCellDef="let element"> {{element.Name}} </td>
+      </ng-container>
+  
+      <ng-container matColumnDef="Path">
+        <th mat-header-cell *matHeaderCellDef> Path </th>
+        <td mat-cell *matCellDef="let element"> {{element.Path}} </td>
+      </ng-container>
+  
+      <ng-container matColumnDef="AutomatedStart">
+        <th mat-header-cell *matHeaderCellDef> AutomatedStart </th>
+        <td mat-cell *matCellDef="let element"> {{element.AutomatedStart}} </td>
+      </ng-container>
+  
+      <ng-container matColumnDef="State">
+        <th mat-header-cell *matHeaderCellDef> State </th>
+        <td mat-cell *matCellDef="let element"> {{element.State}} </td>
+      </ng-container>
+  
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  
+    <mat-paginator [pageSizeOptions]="[10, 20]"
+                   showFirstLastButtons
+                   aria-label=" Select page ">
+    </mat-paginator>
+  </div>
+  

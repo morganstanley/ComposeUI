@@ -2,11 +2,12 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { ProcessesComponent } from './components/processes/processes.component';
+import { SubsystemsComponent } from './components/subsystems/subsystems.component';
 
 const routes: Routes = [
   {path: '', component: ProcessesComponent},
-  {path: 'processes', component: ProcessesComponent}
-
+  {path: 'processes', component: ProcessesComponent},
+  {path: 'subsystems', component: SubsystemsComponent}
 ];
 
 @NgModule({
