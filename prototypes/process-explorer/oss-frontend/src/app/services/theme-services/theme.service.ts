@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs";
 
-import { ThemeOption } from "../../DTOs/ThemeOption";
+import { ThemeOption } from "./ThemeOption";
 import { StyleManagerService } from './style-manager.service';
 
 @Injectable({

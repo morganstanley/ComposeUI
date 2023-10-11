@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 import { Observable } from "rxjs";
 
 
-import { ThemeOption } from "../../DTOs/ThemeOption";
+import { ThemeOption } from "../../services/theme-services/ThemeOption";
 import { ThemeService } from "../../services/theme-services/theme.service";
 
 @Component({
