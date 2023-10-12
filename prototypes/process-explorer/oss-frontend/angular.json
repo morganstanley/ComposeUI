@@ -30,8 +30,27 @@
               "src/assets"
             ],
             "styles": [
-              "@angular/material/prebuilt-themes/indigo-pink.css",
-              "src/styles.scss"
+              "src/styles.scss",
+              {
+                "inject": false,
+                "input": "@angular/material/prebuilt-themes/pink-bluegrey.css",
+                "bundleName": "pink-bluegrey"
+              },
+              {
+                "inject": false,
+                "input": "@angular/material/prebuilt-themes/deeppurple-amber.css",
+                "bundleName": "deeppurple-amber"
+              },
+              {
+                "inject": false,
+                "input": "@angular/material/prebuilt-themes/indigo-pink.css",
+                "bundleName": "indigo-pink"
+              },
+              {
+                "inject": false,
+                "input": "@angular/material/prebuilt-themes/purple-green.css",
+                "bundleName": "purple-green"
+              }
             ],
             "scripts": []
           },
@@ -100,8 +119,27 @@
               "src/assets"
             ],
             "styles": [
-              "@angular/material/prebuilt-themes/indigo-pink.css",
-              "src/styles.scss"
+              "src/styles.scss",
+              {
+                "inject": false,
+                "input": "@angular/material/prebuilt-themes/pink-bluegrey.css",
+                "bundleName": "pink-bluegrey"
+              },
+              {
+                "inject": false,
+                "input": "@angular/material/prebuilt-themes/deeppurple-amber.css",
+                "bundleName": "deeppurple-amber"
+              },
+              {
+                "inject": false,
+                "input": "@angular/material/prebuilt-themes/indigo-pink.css",
+                "bundleName": "indigo-pink"
+              },
+              {
+                "inject": false,
+                "input": "@angular/material/prebuilt-themes/purple-green.css",
+                "bundleName": "purple-green"
+              }
             ],
             "scripts": []
           }

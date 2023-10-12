@@ -13,17 +13,21 @@ import { MatTableModule } from '@angular/material/table';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSortModule } from '@angular/material/sort';
+import { HttpClientModule } from '@angular/common/http';
+
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { SidenavComponent } from './shared/sidenav/sidenav.component';
 import { ProcessesComponent } from './components/processes/processes.component';
+import { ThemeSelectorComponent } from './shared/theme-selector/theme-selector.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     SidenavComponent,
     ProcessesComponent,
+    ThemeSelectorComponent,
   ],
   imports: [
     BrowserModule,
@@ -39,7 +43,8 @@ import { ProcessesComponent } from './components/processes/processes.component';
     MatTableModule,
     MatExpansionModule,
     MatMenuModule,
-    MatSortModule
+    MatSortModule,
+    HttpClientModule
   ],
   providers: [],
   bootstrap: [AppComponent]
