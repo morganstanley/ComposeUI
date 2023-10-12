@@ -1,11 +1,9 @@
 <Project>
     <ItemGroup>
-        <PackageVersion Include="coverlet.collector" Version="3.1.2" />
         <PackageVersion Include="FluentAssertions.Json" Version="6.1.0" />
         <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.4.0" />
         <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
         <PackageVersion Include="Moq" Version="4.20.69" />
-        <PackageVersion Include="Xunit.Combinatorial" Version="1.5.25" />
         <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.5" />
         <PackageVersion Include="xunit" Version="2.4.2" />
         <PackageVersion Include="CommunityToolkit.HighPerformance" Version="8.2.1" />
@@ -31,10 +29,8 @@
         <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="6.0.0" />
         <PackageVersion Include="Microsoft.Extensions.Logging" Version="6.0.0" />
         <PackageVersion Include="Microsoft.Extensions.Options" Version="6.0.0" />
-        <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
         <PackageVersion Include="Microsoft.Web.WebView2" Version="1.0.2045.28" />
         <PackageVersion Include="Moq.Contrib.HttpClient" Version="1.4.0" />
-        <PackageVersion Include="Moq" Version="4.20.69" />
         <PackageVersion Include="MorganStanley.Fdc3.AppDirectory" Version="2.0.0-alpha.6" />
         <PackageVersion Include="MorganStanley.Fdc3.NewtonsoftJson" Version="2.0.0-alpha.6" />
         <PackageVersion Include="MorganStanley.Fdc3" Version="2.0.0-alpha.6" />
@@ -58,7 +54,5 @@
         <PackageVersion Include="TestableIO.System.IO.Abstractions" Version="19.2.69" />
         <PackageVersion Include="Testably.Abstractions.Testing" Version="2.4.1" />
         <PackageVersion Include="Xunit.Combinatorial" Version="1.6.24" />
-        <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.5" />
-        <PackageVersion Include="xunit" Version="2.4.2" />
     </ItemGroup>
 </Project>
