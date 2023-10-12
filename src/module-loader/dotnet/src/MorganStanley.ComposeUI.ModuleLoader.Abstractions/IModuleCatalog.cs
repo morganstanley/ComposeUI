@@ -12,9 +12,21 @@
 
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
+/// <summary>
+/// Represents a collection of modules that can be started in the scope of the application.
+/// </summary>
 public interface IModuleCatalog
 {
+    /// <summary>
+    /// Gets a module's manifest by its module ID.
+    /// </summary>
+    /// <param name="moduleId"></param>
+    /// <returns></returns>
     IModuleManifest GetManifest(string moduleId);
 
+    /// <summary>
+    /// Gets the IDs of the modules in the catalog.
+    /// </summary>
+    /// <returns></returns>
     IEnumerable<string> GetModuleIds();
 }

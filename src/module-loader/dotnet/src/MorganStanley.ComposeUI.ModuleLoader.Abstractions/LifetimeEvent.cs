@@ -14,63 +14,55 @@ namespace MorganStanley.ComposeUI.ModuleLoader;
 
 public abstract class LifetimeEvent
 {
-    protected LifetimeEvent(Guid instanceId)
+    protected LifetimeEvent(IModuleInstance instance)
     {
-        InstanceId = instanceId;
+        Instance = instance;
     }
 
-    public Guid InstanceId { get; }
-
+    public IModuleInstance Instance { get; }
     public abstract LifetimeEventType EventType { get; }
 
     public sealed class Starting : LifetimeEvent
     {
-        internal Starting(Guid instanceId)
-            : base(instanceId)
-        { }
+        public Starting(IModuleInstance instance) : base(instance)
+        {
+        }
 
         public override LifetimeEventType EventType => LifetimeEventType.Starting;
     }
 
     public sealed class Started : LifetimeEvent
     {
-        internal Started(Guid instanceId)
-            : base(instanceId)
-        { }
+        public Started(IModuleInstance instance) : base(instance)
+        {
+        }
 
         public override LifetimeEventType EventType => LifetimeEventType.Started;
     }
 
     public sealed class Stopping : LifetimeEvent
     {
-        internal Stopping(Guid instanceId)
-            : base(instanceId)
-        { }
+        public Stopping(IModuleInstance instance) : base(instance)
+        {
+        }
 
         public override LifetimeEventType EventType => LifetimeEventType.Stopping;
     }
 
     public sealed class Stopped : LifetimeEvent
     {
-        internal Stopped(Guid instanceId, bool isExpected = true)
-            : base(instanceId)
+        public Stopped(
+            IModuleInstance instance,
+            bool isExpected = true) : base(instance)
         {
             IsExpected = isExpected;
         }
 
         public override LifetimeEventType EventType => LifetimeEventType.Stopped;
 
-        public bool IsExpected { get; set; }
+        public bool IsExpected { get; }
     }
 }
-
-
-
-
-
-
-
-
 
 public enum LifetimeEventType
 {

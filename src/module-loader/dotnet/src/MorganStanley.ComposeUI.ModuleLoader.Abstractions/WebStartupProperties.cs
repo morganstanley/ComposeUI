@@ -12,11 +12,12 @@
 
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
-public interface IModuleLoader
+/// <summary>
+/// Contains the necessary properties to start a web module.
+/// This type is injected to <see cref="StartupContext"/>.
+/// </summary>
+public sealed class WebStartupProperties
 {
-    void RequestStart(StartRequest startRequest);
-
-    void RequestStop(StopRequest stopRequest);
-
-    IObservable<LifetimeEvent> LifetimeEvents { get; }
+    public Uri Url { get; set; }
+    public Uri? IconUrl { get; set; }
 }
