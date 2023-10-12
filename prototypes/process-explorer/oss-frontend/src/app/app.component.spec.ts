@@ -7,10 +7,12 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
 import { MatListModule } from '@angular/material/list'
 import { AppRoutingModule } from './app-routing.module';
-
+import { HttpClientModule } from '@angular/common/http';
+import { MatMenuModule } from '@angular/material/menu';
 
 import { SidenavComponent } from './shared/sidenav/sidenav.component';
 import { AppComponent } from './app.component';
+import { ThemeSelectorComponent } from './shared/theme-selector/theme-selector.component';
 
 describe('AppComponent', () => {
   beforeEach(() => TestBed.configureTestingModule({
@@ -21,9 +23,11 @@ describe('AppComponent', () => {
       MatSidenavModule, 
       BrowserAnimationsModule,
       MatListModule,
-      AppRoutingModule
+      AppRoutingModule,
+      HttpClientModule,
+      MatMenuModule
     ],
-    declarations: [AppComponent, SidenavComponent]
+    declarations: [AppComponent, SidenavComponent, ThemeSelectorComponent]
   }));
 
   it('should create the app', () => {
