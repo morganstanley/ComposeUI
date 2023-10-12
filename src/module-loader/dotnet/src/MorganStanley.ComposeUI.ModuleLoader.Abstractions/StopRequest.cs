@@ -12,7 +12,12 @@
 
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
-public struct StopRequest
+public sealed class StopRequest
 {
-    public Guid InstanceId;
+    public StopRequest(Guid instanceId)
+    {
+        InstanceId = instanceId;
+    }
+
+    public Guid InstanceId { get; }
 }

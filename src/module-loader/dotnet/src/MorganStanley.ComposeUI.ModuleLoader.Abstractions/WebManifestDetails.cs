@@ -12,11 +12,21 @@
 
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
-public interface IModuleLoader
+/// <summary>
+/// Contains the manifest details for web modules.
+/// </summary>
+/// <remarks>
+/// Web modules should have <see cref="ModuleType.Web"/> as their <see cref="IModuleManifest.ModuleType"/>
+/// </remarks>
+public sealed class WebManifestDetails
 {
-    void RequestStart(StartRequest startRequest);
+    /// <summary>
+    /// The URL to open when this module is started.
+    /// </summary>
+    public Uri Url { get; init; }
 
-    void RequestStop(StopRequest stopRequest);
-
-    IObservable<LifetimeEvent> LifetimeEvents { get; }
+    /// <summary>
+    /// The URL of the window icon, if any.
+    /// </summary>
+    public Uri? IconUrl { get; init; }
 }
