@@ -12,11 +12,11 @@
 
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
-public interface IModuleLoader
+/// <summary>
+/// Contains the predefined module types.
+/// </summary>
+public static class ModuleType
 {
-    void RequestStart(StartRequest startRequest);
-
-    void RequestStop(StopRequest stopRequest);
-
-    IObservable<LifetimeEvent> LifetimeEvents { get; }
+    public const string Native = "native";
+    public const string Web = "web";
 }

@@ -14,13 +14,15 @@ namespace MorganStanley.ComposeUI.ModuleLoader;
 
 public sealed class StartRequest
 {
-    public StartRequest(string moduleId)
+    public StartRequest(
+        string moduleId, 
+        IEnumerable<KeyValuePair<string, string>>? parameters = null)
     {
         ModuleId = moduleId;
-        InstanceId = Guid.NewGuid();
+        Parameters = parameters?.ToArray() ?? Array.Empty<KeyValuePair<string, string>>();
     }
 
-    public Guid InstanceId { get; }
-
     public string ModuleId { get; }
+
+    public KeyValuePair<string, string>[] Parameters { get; }
 }
