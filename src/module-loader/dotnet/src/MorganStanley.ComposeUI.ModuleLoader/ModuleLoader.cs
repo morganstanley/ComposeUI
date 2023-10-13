@@ -30,6 +30,7 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(moduleCatalog);
         ArgumentNullException.ThrowIfNull(moduleRunners);
+        ArgumentNullException.ThrowIfNull(startupActions);
 
         _moduleCatalog = moduleCatalog;
         _moduleRunners = moduleRunners;
@@ -38,31 +39,7 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
 
     public IObservable<LifetimeEvent> LifetimeEvents => _lifetimeEvents;
 
-    public Task<IModuleInstance> StartModule(StartRequest request)
-    {
-        return StartProcess(request);
-    }
-
-    public async Task StopModule(StopRequest request)
-    {
-        if (!_modules.TryGetValue(request.InstanceId, out var module))
-        {
-            return;
-        }
-
-        await module.Stop();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        _lifetimeEvents.Dispose();
-        foreach (var item in _modules.Values)
-        {
-            await item.Stop();
-        }
-    }
-
-    private async Task<IModuleInstance> StartProcess(StartRequest request)
+    public async Task<IModuleInstance> StartModule(StartRequest request)
     {
         var manifest = _moduleCatalog.GetManifest(request.ModuleId);
         if (manifest == null)
@@ -97,5 +74,24 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
         _lifetimeEvents.OnNext(new LifetimeEvent.Started(moduleInstance));
 
         return moduleInstance;
+    }
+
+    public async Task StopModule(StopRequest request)
+    {
+        if (!_modules.TryGetValue(request.InstanceId, out var module))
+        {
+            return;
+        }
+
+        await module.Stop();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _lifetimeEvents.Dispose();
+        foreach (var item in _modules.Values)
+        {
+            await item.Stop();
+        }
     }
 }
