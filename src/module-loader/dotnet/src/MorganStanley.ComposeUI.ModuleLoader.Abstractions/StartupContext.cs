@@ -35,6 +35,11 @@ public sealed class StartupContext
             (_, list) => list.Add(value));
     }
 
+    public IEnumerable<object> GetProperties()
+    {
+        return _properties.Values.SelectMany(values => values).ToImmutableList();
+    }
+
     public IEnumerable<T> GetProperties<T>()
     {
         if (!_properties.TryGetValue(typeof(T), out var list))

@@ -11,7 +11,6 @@
 // and limitations under the License.
 
 using MorganStanley.ComposeUI.ModuleLoader;
-using MorganStanley.ComposeUI.ModuleLoader.Modules;
 using MorganStanley.ComposeUI.ModuleLoader.Runners;
 
 namespace Microsoft.Extensions.DependencyInjection;

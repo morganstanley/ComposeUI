@@ -10,10 +10,14 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.ModuleLoader.Modules;
+using System.Collections.Immutable;
+
+namespace MorganStanley.ComposeUI.ModuleLoader;
 
 internal class ModuleInstance : IModuleInstance
 {
+    private ImmutableList<object> _properties = ImmutableList<object>.Empty;
+
     public ModuleInstance(Guid instanceId, IModuleManifest moduleManifest, StartRequest startRequest)
     {
         ArgumentNullException.ThrowIfNull(moduleManifest);
@@ -32,6 +36,11 @@ internal class ModuleInstance : IModuleInstance
 
     public IEnumerable<T> GetProperties<T>()
     {
-        throw new NotImplementedException();
+        return _properties.OfType<T>();
+    }
+
+    internal void SetProperties(IEnumerable<object> properties)
+    {
+        _properties = _properties.AddRange(properties);
     }
 }

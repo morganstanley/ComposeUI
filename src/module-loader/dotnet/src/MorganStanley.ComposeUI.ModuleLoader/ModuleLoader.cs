@@ -12,7 +12,6 @@
 
 using System.Collections.Concurrent;
 using System.Reactive.Subjects;
-using MorganStanley.ComposeUI.ModuleLoader.Modules;
 
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
@@ -94,6 +93,7 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
         };
 
         await moduleRunner.Start(moduleInstance, startupContext, nextAction);
+        moduleInstance.SetProperties(startupContext.GetProperties());
         _lifetimeEvents.OnNext(new LifetimeEvent.Started(moduleInstance));
 
         return moduleInstance;

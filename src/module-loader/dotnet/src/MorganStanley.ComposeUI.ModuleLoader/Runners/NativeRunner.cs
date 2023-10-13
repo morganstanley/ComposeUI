@@ -10,9 +10,6 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-
-using MorganStanley.ComposeUI.ModuleLoader.Modules;
-
 namespace MorganStanley.ComposeUI.ModuleLoader.Runners;
 
 internal class NativeRunner : IModuleRunner
