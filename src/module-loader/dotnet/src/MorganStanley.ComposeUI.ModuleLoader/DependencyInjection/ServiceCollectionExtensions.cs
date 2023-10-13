@@ -21,7 +21,7 @@ public static class ServiceCollectionExtensions
     {
         serviceCollection.AddSingleton<IModuleLoader, ModuleLoader>();
         serviceCollection.AddSingleton<IModuleRunner, WebModuleRunner>();
-        serviceCollection.AddSingleton<IModuleRunner, NativeRunner>();
+        serviceCollection.AddSingleton<IModuleRunner, NativeModuleRunner>();
 
         return serviceCollection;
     }

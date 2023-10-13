@@ -60,7 +60,7 @@ namespace MorganStanley.ComposeUI.ModuleLoader.Tests
 
         public string Name => "Google";
 
-        public string ModuleType => ModuleLoader.ModuleType.Web;
+        public string ModuleType => ComposeUI.ModuleLoader.ModuleType.Web;
     }
 
     public class MockStartupAction : IStartupAction

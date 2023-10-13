@@ -24,4 +24,8 @@ See the License for the specific language governing permissions and limitations 
   <ItemGroup>
     <ProjectReference Include="..\MorganStanley.ComposeUI.ModuleLoader.Abstractions\MorganStanley.ComposeUI.ModuleLoader.Abstractions.csproj" />
   </ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="MorganStanley.ComposeUI.ModuleLoader.Tests" />
+	</ItemGroup>
 </Project>

@@ -12,7 +12,7 @@
 
 namespace MorganStanley.ComposeUI.ModuleLoader.Runners;
 
-internal class NativeRunner : IModuleRunner
+internal class NativeModuleRunner : IModuleRunner
 {
     public string ModuleType => ComposeUI.ModuleLoader.ModuleType.Native;
 

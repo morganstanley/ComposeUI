@@ -93,7 +93,7 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
         };
 
         await moduleRunner.Start(moduleInstance, startupContext, nextAction);
-        moduleInstance.SetProperties(startupContext.GetProperties());
+        moduleInstance.AddProperties(startupContext.GetProperties());
         _lifetimeEvents.OnNext(new LifetimeEvent.Started(moduleInstance));
 
         return moduleInstance;

@@ -27,7 +27,7 @@ public class StartupContextTests
         context.AddProperty(expected[0]);
         context.AddProperty(expected[1]);
 
-        var result = context.GetProperties<MyContextInfo>();
+        var result = context.GetProperties();
         Assert.NotNull(result);
         Assert.Equal(expected, result);
     }
@@ -37,15 +37,6 @@ public class StartupContextTests
     {
         StartupContext context = new StartupContext(new StartRequest("test"));
         Assert.Throws<ArgumentNullException>(() => context.AddProperty<object>(null!));
-    }
-
-    [Fact]
-    public void WhenGet_UnknownType_EmptyEnumerableIsReturned()
-    {
-        StartupContext context = new StartupContext(new StartRequest("test"));
-        var result = context.GetProperties<MyContextInfo>();
-
-        Assert.Equal(Enumerable.Empty<MyContextInfo>(), result);
     }
 
     private class MyContextInfo

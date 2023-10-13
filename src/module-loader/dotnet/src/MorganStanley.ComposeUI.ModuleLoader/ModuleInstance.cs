@@ -34,12 +34,12 @@ internal class ModuleInstance : IModuleInstance
 
     public StartRequest StartRequest { get; }
 
-    public IEnumerable<T> GetProperties<T>()
+    public IEnumerable<object> GetProperties()
     {
-        return _properties.OfType<T>();
+        return _properties;
     }
 
-    internal void SetProperties(IEnumerable<object> properties)
+    internal void AddProperties(IEnumerable<object> properties)
     {
         _properties = _properties.AddRange(properties);
     }

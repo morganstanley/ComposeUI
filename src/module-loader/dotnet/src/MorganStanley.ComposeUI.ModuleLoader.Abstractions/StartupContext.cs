@@ -10,14 +10,13 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using System.Collections.Concurrent;
 using System.Collections.Immutable;
 
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
 public sealed class StartupContext
 {
-    private readonly ConcurrentDictionary<Type, ImmutableList<object>> _properties = new();
+    private ImmutableList<object> _properties = ImmutableList<object>.Empty;
 
     public StartupContext(StartRequest startRequest)
     {
@@ -30,23 +29,11 @@ public sealed class StartupContext
     {
         ArgumentNullException.ThrowIfNull(value, nameof(value));
 
-        _properties.AddOrUpdate(typeof(T),
-            (_) => ImmutableList<object>.Empty.Add(value),
-            (_, list) => list.Add(value));
+        _properties = _properties.Add(value);
     }
 
     public IEnumerable<object> GetProperties()
     {
-        return _properties.Values.SelectMany(values => values).ToImmutableList();
-    }
-
-    public IEnumerable<T> GetProperties<T>()
-    {
-        if (!_properties.TryGetValue(typeof(T), out var list))
-        {
-            return Enumerable.Empty<T>();
-        }
-
-        return list.OfType<T>();
+        return _properties;
     }
 }

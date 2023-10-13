@@ -33,9 +33,8 @@ public interface IModuleInstance
     StartRequest StartRequest { get; }
 
     /// <summary>
-    /// Gets the properties of type <typeparamref name="T"/> attached to the module instance.
+    /// Gets the properties attached to the module instance.
     /// </summary>
-    /// <typeparam name="T">The type of the properties to get</typeparam>
-    /// <returns>The collection of properties of the specified type, in the order they were added to the <see cref="StartupContext"/></returns>
-    IEnumerable<T> GetProperties<T>();
+    /// <returns>The collection of properties in the order they were added to the <see cref="StartupContext"/></returns>
+    IEnumerable<object> GetProperties();
 }
