@@ -50,6 +50,6 @@ public class StartupContextTests
 
     private class MyContextInfo
     {
-        public string Name { get; set; }
+        public string? Name { get; set; }
     }
 }

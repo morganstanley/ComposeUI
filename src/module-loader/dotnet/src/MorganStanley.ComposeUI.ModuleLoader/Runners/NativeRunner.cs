@@ -10,13 +10,22 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.ModuleLoader;
 
-public interface IModuleLoader
+using MorganStanley.ComposeUI.ModuleLoader.Modules;
+
+namespace MorganStanley.ComposeUI.ModuleLoader.Runners;
+
+internal class NativeRunner : IModuleRunner
 {
-    Task<IModuleInstance> StartModule(StartRequest startRequest);
+    public string ModuleType => ComposeUI.ModuleLoader.ModuleType.Native;
 
-    Task StopModule(StopRequest stopRequest);
+    public Task Start(IModuleInstance moduleInstance, StartupContext startupContext, Func<Task> pipeline)
+    {
+        throw new NotImplementedException();
+    }
 
-    IObservable<LifetimeEvent> LifetimeEvents { get; }
+    public Task Stop(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 }

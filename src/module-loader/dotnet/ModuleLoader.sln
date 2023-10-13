@@ -7,9 +7,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{0991543E-FA5
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{95B79432-5E5D-4889-8719-D610D6CCC35E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MorganStanley.ComposeUI.ModuleLoader.Abstractions", "src\MorganStanley.ComposeUI.ModuleLoader.Abstractions\MorganStanley.ComposeUI.ModuleLoader.Abstractions.csproj", "{841D9BAC-DEE6-4E1A-A577-25B20633B110}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ModuleLoader.Abstractions", "src\MorganStanley.ComposeUI.ModuleLoader.Abstractions\MorganStanley.ComposeUI.ModuleLoader.Abstractions.csproj", "{841D9BAC-DEE6-4E1A-A577-25B20633B110}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MorganStanley.ComposeUI.ModuleLoader.Abstractions.Tests", "tests\MorganStanley.ComposeUI.ModuleLoader.Abstractions.Tests\MorganStanley.ComposeUI.ModuleLoader.Abstractions.Tests.csproj", "{81B6905B-EE74-4387-A5EB-11271A4458A4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ModuleLoader.Abstractions.Tests", "tests\MorganStanley.ComposeUI.ModuleLoader.Abstractions.Tests\MorganStanley.ComposeUI.ModuleLoader.Abstractions.Tests.csproj", "{81B6905B-EE74-4387-A5EB-11271A4458A4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ModuleLoader", "src\MorganStanley.ComposeUI.ModuleLoader\MorganStanley.ComposeUI.ModuleLoader.csproj", "{103C5D4D-CAC2-4D8A-85A3-0C0DA285AD11}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ModuleLoader.Tests", "tests\MorganStanley.ComposeUI.ModuleLoader.Tests\MorganStanley.ComposeUI.ModuleLoader.Tests.csproj", "{9A9FEE99-9602-4954-BDE5-BD4922AA2CD9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,6 +29,14 @@ Global
 		{81B6905B-EE74-4387-A5EB-11271A4458A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{81B6905B-EE74-4387-A5EB-11271A4458A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{81B6905B-EE74-4387-A5EB-11271A4458A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{103C5D4D-CAC2-4D8A-85A3-0C0DA285AD11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{103C5D4D-CAC2-4D8A-85A3-0C0DA285AD11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{103C5D4D-CAC2-4D8A-85A3-0C0DA285AD11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{103C5D4D-CAC2-4D8A-85A3-0C0DA285AD11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A9FEE99-9602-4954-BDE5-BD4922AA2CD9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A9FEE99-9602-4954-BDE5-BD4922AA2CD9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A9FEE99-9602-4954-BDE5-BD4922AA2CD9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A9FEE99-9602-4954-BDE5-BD4922AA2CD9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -32,6 +44,8 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{841D9BAC-DEE6-4E1A-A577-25B20633B110} = {0991543E-FA51-4D1C-8756-F6D6FD64C612}
 		{81B6905B-EE74-4387-A5EB-11271A4458A4} = {95B79432-5E5D-4889-8719-D610D6CCC35E}
+		{103C5D4D-CAC2-4D8A-85A3-0C0DA285AD11} = {0991543E-FA51-4D1C-8756-F6D6FD64C612}
+		{9A9FEE99-9602-4954-BDE5-BD4922AA2CD9} = {95B79432-5E5D-4889-8719-D610D6CCC35E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {147A1BDA-77DE-4D1A-B8D5-6E8803E11F47}

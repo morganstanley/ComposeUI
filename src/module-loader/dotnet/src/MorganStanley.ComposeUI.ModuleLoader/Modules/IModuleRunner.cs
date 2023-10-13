@@ -10,13 +10,13 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.ModuleLoader;
+namespace MorganStanley.ComposeUI.ModuleLoader.Modules;
 
-public interface IModuleLoader
+public interface IModuleRunner
 {
-    Task<IModuleInstance> StartModule(StartRequest startRequest);
+    string ModuleType { get; }
 
-    Task StopModule(StopRequest stopRequest);
+    Task Start(IModuleInstance moduleInstance, StartupContext startupContext, Func<Task> pipeline);
 
-    IObservable<LifetimeEvent> LifetimeEvents { get; }
+    Task Stop(CancellationToken cancellationToken = default);
 }
