@@ -59,17 +59,13 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
         _lifetimeEvents.OnNext(new LifetimeEvent.Starting(moduleInstance));
         var startupContext = new StartupContext(request);
 
-        int index = -1;
-        Func<Task> nextAction = null!;
-        nextAction = () =>
-        {
-            index++;
-            return index < _startupActions.Count
-                ? _startupActions[index].InvokeAsync(startupContext, nextAction)
-                : Task.CompletedTask;
-        };
+        var pipeline = _startupActions
+            .Reverse()
+            .Aggregate(
+                () => Task.CompletedTask,
+                (next, action) => () => action.InvokeAsync(startupContext, next));
 
-        await moduleRunner.Start(moduleInstance, startupContext, nextAction);
+        await moduleRunner.Start(moduleInstance, startupContext, pipeline);
         moduleInstance.AddProperties(startupContext.GetProperties());
         _lifetimeEvents.OnNext(new LifetimeEvent.Started(moduleInstance));
 

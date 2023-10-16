@@ -21,7 +21,7 @@ internal class NativeModuleRunner : IModuleRunner
         throw new NotImplementedException();
     }
 
-    public Task Stop(IModuleInstance moduleInstance, CancellationToken cancellationToken = default)
+    public Task Stop(IModuleInstance moduleInstance)
     {
         throw new NotImplementedException();
     }
