@@ -18,8 +18,8 @@ namespace MorganStanley.ComposeUI.ModuleLoader;
 internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
 {
     private readonly Subject<LifetimeEvent> _lifetimeEvents = new();
-    private readonly ConcurrentDictionary<Guid, IModuleRunner> _modules = new();
-    private readonly IEnumerable<IModuleRunner> _moduleRunners;
+    private readonly ConcurrentDictionary<Guid, IModuleInstance> _modules = new();
+    private readonly Dictionary<string, IModuleRunner> _moduleRunners;
     private readonly IModuleCatalog _moduleCatalog;
     private readonly IReadOnlyList<IStartupAction> _startupActions;
 
@@ -33,7 +33,7 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(startupActions);
 
         _moduleCatalog = moduleCatalog;
-        _moduleRunners = moduleRunners;
+        _moduleRunners = moduleRunners.GroupBy(runner => runner.ModuleType).ToDictionary(g => g.Key, g => g.First());
         _startupActions = new List<IStartupAction>(startupActions);
     }
 
@@ -47,14 +47,14 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
             throw new Exception($"Unknown Module id: {request.ModuleId}");
         }
 
-        var moduleRunner = _moduleRunners.FirstOrDefault(runner => runner.ModuleType == manifest.ModuleType);
-        if (moduleRunner == null)
+        if (!_moduleRunners.TryGetValue(request.ModuleId, out var moduleRunner))
         {
             throw new Exception($"No module runner available for {manifest.ModuleType} module type");
         }
 
         Guid instanceId = Guid.NewGuid();
         var moduleInstance = new ModuleInstance(instanceId, manifest, request);
+        _modules.TryAdd(instanceId, moduleInstance);
 
         _lifetimeEvents.OnNext(new LifetimeEvent.Starting(moduleInstance));
         var startupContext = new StartupContext(request);
@@ -83,15 +83,24 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
             return;
         }
 
-        await module.Stop();
+        await StopModuleInternal(module);
     }
 
     public async ValueTask DisposeAsync()
     {
         _lifetimeEvents.Dispose();
-        foreach (var item in _modules.Values)
+        foreach (var module in _modules.Values)
         {
-            await item.Stop();
+            await StopModuleInternal(module);
         }
+    }
+
+    private async Task StopModuleInternal(IModuleInstance moduleInstance)
+    {
+        _lifetimeEvents.OnNext(new LifetimeEvent.Stopping(moduleInstance));
+
+        await _moduleRunners[moduleInstance.Manifest.ModuleType].Stop(moduleInstance);
+
+        _lifetimeEvents.OnNext(new LifetimeEvent.Stopped(moduleInstance));
     }
 }

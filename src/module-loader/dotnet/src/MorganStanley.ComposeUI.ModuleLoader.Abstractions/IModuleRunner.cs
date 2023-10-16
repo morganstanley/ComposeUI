@@ -18,5 +18,5 @@ public interface IModuleRunner
 
     Task Start(IModuleInstance moduleInstance, StartupContext startupContext, Func<Task> pipeline);
 
-    Task Stop(CancellationToken cancellationToken = default);
+    Task Stop(IModuleInstance moduleInstance, CancellationToken cancellationToken = default);
 }

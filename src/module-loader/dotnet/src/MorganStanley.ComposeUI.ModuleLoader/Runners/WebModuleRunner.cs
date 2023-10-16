@@ -26,8 +26,8 @@ internal class WebModuleRunner : IModuleRunner
         await pipeline();
     }
 
-    public Task Stop(CancellationToken cancellationToken = default)
+    public Task Stop(IModuleInstance moduleInstance, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        return Task.CompletedTask;
     }
 }
