@@ -16,8 +16,15 @@ using MorganStanley.ComposeUI.ModuleLoader.Runners;
 
 namespace MorganStanley.ComposeUI.ModuleLoader.Tests.Runners;
 
-public class WebModuleLoaderTests
+public class WebModuleRunnerTests
 {
+    [Fact]
+    public void ModuleType_Is_Web()
+    {
+        var runner = new WebModuleRunner();
+        Assert.Equal(ModuleType.Web, runner.ModuleType);
+    }
+
     [Fact]
     public async Task WhenStart_WebStartupPropertiesAreAddedToStartupContext()
     {
