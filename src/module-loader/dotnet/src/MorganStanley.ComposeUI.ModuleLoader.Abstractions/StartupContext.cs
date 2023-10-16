@@ -10,13 +10,12 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using System.Collections.Immutable;
-
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
 public sealed class StartupContext
 {
-    private ImmutableList<object> _properties = ImmutableList<object>.Empty;
+    private readonly object _lock = new();
+    private readonly List<object> _properties = new();
 
     public StartupContext(StartRequest startRequest)
     {
@@ -29,11 +28,17 @@ public sealed class StartupContext
     {
         ArgumentNullException.ThrowIfNull(value, nameof(value));
 
-        _properties = _properties.Add(value);
+        lock (_lock)
+        {
+            _properties.Add(value);
+        }
     }
 
     public IEnumerable<object> GetProperties()
     {
-        return _properties;
+        lock (_lock)
+        {
+            return _properties.ToList().AsReadOnly();
+        }
     }
 }
