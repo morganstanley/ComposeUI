@@ -627,7 +627,7 @@ describe("MessageRouterClient", () => {
             connection.raiseClose();
             await new Promise(process.nextTick);
 
-            expect(subscriber.error).toHaveBeenCalledOnceWith(expect.any(Error));
+            expect(subscriber.error).toHaveBeenCalledExactlyOnceWith(expect.any(Error));
         });
 
         it("fails pending requests", async () => {
@@ -657,7 +657,7 @@ describe("MessageRouterClient", () => {
             connection.raiseError(err);
             await new Promise(process.nextTick);
 
-            expect(subscriber.error).toHaveBeenCalledOnceWith(err);
+            expect(subscriber.error).toHaveBeenCalledExactlyOnceWith(err);
         });
 
         it("fails pending requests", async () => {
