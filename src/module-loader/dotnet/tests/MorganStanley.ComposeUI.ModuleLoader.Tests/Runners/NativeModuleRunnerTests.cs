@@ -10,13 +10,16 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.ModuleLoader;
+using MorganStanley.ComposeUI.ModuleLoader.Runners;
 
-public interface IModuleLoader
+namespace MorganStanley.ComposeUI.ModuleLoader.Tests.Runners;
+
+public class NativeModuleRunnerTests
 {
-    Task<IModuleInstance> StartModule(StartRequest startRequest);
-
-    Task StopModule(StopRequest stopRequest);
-
-    IObservable<LifetimeEvent> LifetimeEvents { get; }
+    [Fact]
+    public void ModuleType_is_Native()
+    {
+        var runner = new NativeModuleRunner();
+        Assert.Equal(ModuleType.Native, runner.ModuleType);
+    }
 }

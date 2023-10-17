@@ -10,35 +10,19 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.ModuleLoader;
+namespace MorganStanley.ComposeUI.ModuleLoader.Runners;
 
-public sealed class StartupContext
+internal class NativeModuleRunner : IModuleRunner
 {
-    private readonly object _lock = new();
-    private readonly List<object> _properties = new();
+    public string ModuleType => ComposeUI.ModuleLoader.ModuleType.Native;
 
-    public StartupContext(StartRequest startRequest)
+    public Task Start(IModuleInstance moduleInstance, StartupContext startupContext, Func<Task> pipeline)
     {
-        StartRequest = startRequest;
+        throw new NotImplementedException();
     }
 
-    public StartRequest StartRequest { get; }
-
-    public void AddProperty<T>(T value)
+    public Task Stop(IModuleInstance moduleInstance)
     {
-        ArgumentNullException.ThrowIfNull(value, nameof(value));
-
-        lock (_lock)
-        {
-            _properties.Add(value);
-        }
-    }
-
-    public IEnumerable<object> GetProperties()
-    {
-        lock (_lock)
-        {
-            return _properties.ToList().AsReadOnly();
-        }
+        throw new NotImplementedException();
     }
 }

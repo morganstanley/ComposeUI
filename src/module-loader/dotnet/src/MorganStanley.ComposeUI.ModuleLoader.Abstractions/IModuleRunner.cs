@@ -12,33 +12,11 @@
 
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
-public sealed class StartupContext
+public interface IModuleRunner
 {
-    private readonly object _lock = new();
-    private readonly List<object> _properties = new();
+    string ModuleType { get; }
 
-    public StartupContext(StartRequest startRequest)
-    {
-        StartRequest = startRequest;
-    }
+    Task Start(IModuleInstance moduleInstance, StartupContext startupContext, Func<Task> pipeline);
 
-    public StartRequest StartRequest { get; }
-
-    public void AddProperty<T>(T value)
-    {
-        ArgumentNullException.ThrowIfNull(value, nameof(value));
-
-        lock (_lock)
-        {
-            _properties.Add(value);
-        }
-    }
-
-    public IEnumerable<object> GetProperties()
-    {
-        lock (_lock)
-        {
-            return _properties.ToList().AsReadOnly();
-        }
-    }
+    Task Stop(IModuleInstance moduleInstance);
 }

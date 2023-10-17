@@ -10,13 +10,4 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.ModuleLoader;
-
-public interface IModuleLoader
-{
-    Task<IModuleInstance> StartModule(StartRequest startRequest);
-
-    Task StopModule(StopRequest stopRequest);
-
-    IObservable<LifetimeEvent> LifetimeEvents { get; }
-}
+global using Xunit;

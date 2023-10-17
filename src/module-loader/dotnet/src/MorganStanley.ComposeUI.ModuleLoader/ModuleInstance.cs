@@ -10,35 +10,37 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using System.Collections.Immutable;
+
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
-public sealed class StartupContext
+internal class ModuleInstance : IModuleInstance
 {
-    private readonly object _lock = new();
-    private readonly List<object> _properties = new();
+    private ImmutableList<object> _properties = ImmutableList<object>.Empty;
 
-    public StartupContext(StartRequest startRequest)
+    public ModuleInstance(Guid instanceId, IModuleManifest moduleManifest, StartRequest startRequest)
     {
+        ArgumentNullException.ThrowIfNull(moduleManifest);
+        ArgumentNullException.ThrowIfNull(startRequest);
+
+        InstanceId = instanceId;
+        Manifest = moduleManifest;
         StartRequest = startRequest;
     }
 
+    public Guid InstanceId { get; }
+
+    public IModuleManifest Manifest { get; }
+
     public StartRequest StartRequest { get; }
-
-    public void AddProperty<T>(T value)
-    {
-        ArgumentNullException.ThrowIfNull(value, nameof(value));
-
-        lock (_lock)
-        {
-            _properties.Add(value);
-        }
-    }
 
     public IEnumerable<object> GetProperties()
     {
-        lock (_lock)
-        {
-            return _properties.ToList().AsReadOnly();
-        }
+        return _properties;
+    }
+
+    internal void AddProperties(IEnumerable<object> properties)
+    {
+        _properties = _properties.AddRange(properties);
     }
 }

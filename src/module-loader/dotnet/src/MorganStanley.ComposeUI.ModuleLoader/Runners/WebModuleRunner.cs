@@ -10,35 +10,24 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.ModuleLoader;
+namespace MorganStanley.ComposeUI.ModuleLoader.Runners;
 
-public sealed class StartupContext
+internal class WebModuleRunner : IModuleRunner
 {
-    private readonly object _lock = new();
-    private readonly List<object> _properties = new();
+    public string ModuleType => ComposeUI.ModuleLoader.ModuleType.Web;
 
-    public StartupContext(StartRequest startRequest)
+    public async Task Start(IModuleInstance moduleInstance, StartupContext startupContext, Func<Task> pipeline)
     {
-        StartRequest = startRequest;
+        if (moduleInstance.Manifest.TryGetDetails(out WebManifestDetails details))
+        {
+            startupContext.AddProperty(new WebStartupProperties { IconUrl = details.IconUrl, Url = details.Url });
+        }
+
+        await pipeline();
     }
 
-    public StartRequest StartRequest { get; }
-
-    public void AddProperty<T>(T value)
+    public Task Stop(IModuleInstance moduleInstance)
     {
-        ArgumentNullException.ThrowIfNull(value, nameof(value));
-
-        lock (_lock)
-        {
-            _properties.Add(value);
-        }
-    }
-
-    public IEnumerable<object> GetProperties()
-    {
-        lock (_lock)
-        {
-            return _properties.ToList().AsReadOnly();
-        }
+        return Task.CompletedTask;
     }
 }

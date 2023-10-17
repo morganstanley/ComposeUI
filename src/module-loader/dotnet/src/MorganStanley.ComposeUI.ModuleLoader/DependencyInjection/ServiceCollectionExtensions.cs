@@ -10,13 +10,19 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.ModuleLoader;
+using MorganStanley.ComposeUI.ModuleLoader;
+using MorganStanley.ComposeUI.ModuleLoader.Runners;
 
-public interface IModuleLoader
+namespace Microsoft.Extensions.DependencyInjection;
+
+public static class ServiceCollectionExtensions
 {
-    Task<IModuleInstance> StartModule(StartRequest startRequest);
+    public static IServiceCollection AddModuleLoader(this IServiceCollection serviceCollection)
+    {
+        serviceCollection.AddSingleton<IModuleLoader, ModuleLoader>();
+        serviceCollection.AddSingleton<IModuleRunner, WebModuleRunner>();
+        serviceCollection.AddSingleton<IModuleRunner, NativeModuleRunner>();
 
-    Task StopModule(StopRequest stopRequest);
-
-    IObservable<LifetimeEvent> LifetimeEvents { get; }
+        return serviceCollection;
+    }
 }
