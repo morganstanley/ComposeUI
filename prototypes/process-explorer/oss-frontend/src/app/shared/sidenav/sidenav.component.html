@@ -21,6 +21,11 @@
             <div class="app-sidenav-content">Processes</div> 
             </mat-list-item>
         </mat-nav-list>
+        <mat-nav-list>
+            <mat-list-item  [routerLink]="'/subsystems'">
+            <div class="app-sidenav-content">Subsystems</div> 
+            </mat-list-item>
+        </mat-nav-list>
     </mat-sidenav>
     <mat-sidenav-content>
         <router-outlet></router-outlet>
