@@ -5,7 +5,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { SubsystemInfo } from 'src/app/DTOs/SubsystemInfo';
 import { SubsystemsService } from 'src/app/services/subsystems-service/subsystems.service';
 import { MatSort, Sort } from '@angular/material/sort';
-import {LiveAnnouncer} from '@angular/cdk/a11y';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 @Component({
   selector: 'app-subsystems',
