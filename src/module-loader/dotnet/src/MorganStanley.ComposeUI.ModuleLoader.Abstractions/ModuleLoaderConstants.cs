@@ -10,19 +10,9 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.ModuleLoader.Runners;
+namespace MorganStanley.ComposeUI.ModuleLoader;
 
-internal class NativeModuleRunner : IModuleRunner
+public static class ModuleLoaderConstants
 {
-    public string ModuleType => ComposeUI.ModuleLoader.ModuleType.Native;
-
-    public Task Start(StartupContext startupContext, Func<Task> pipeline)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task Stop(IModuleInstance moduleInstance)
-    {
-        throw new NotImplementedException();
-    }
+    public static readonly Uri DefaultUri = new("about:blank");
 }

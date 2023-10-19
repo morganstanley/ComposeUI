@@ -16,9 +16,9 @@ internal class WebModuleRunner : IModuleRunner
 {
     public string ModuleType => ComposeUI.ModuleLoader.ModuleType.Web;
 
-    public async Task Start(IModuleInstance moduleInstance, StartupContext startupContext, Func<Task> pipeline)
+    public async Task Start(StartupContext startupContext, Func<Task> pipeline)
     {
-        if (moduleInstance.Manifest.TryGetDetails(out WebManifestDetails details))
+        if (startupContext.ModuleInstance.Manifest.TryGetDetails(out WebManifestDetails details))
         {
             startupContext.AddProperty(new WebStartupProperties { IconUrl = details.IconUrl, Url = details.Url });
         }

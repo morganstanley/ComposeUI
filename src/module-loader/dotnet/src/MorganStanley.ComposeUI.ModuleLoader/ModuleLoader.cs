@@ -47,7 +47,7 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
             throw new Exception($"Unknown Module id: {request.ModuleId}");
         }
 
-        if (!_moduleRunners.TryGetValue(request.ModuleId, out var moduleRunner))
+        if (!_moduleRunners.TryGetValue(manifest.ModuleType, out var moduleRunner))
         {
             throw new Exception($"No module runner available for {manifest.ModuleType} module type");
         }
@@ -57,7 +57,7 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
         _modules.TryAdd(instanceId, moduleInstance);
 
         _lifetimeEvents.OnNext(new LifetimeEvent.Starting(moduleInstance));
-        var startupContext = new StartupContext(request);
+        var startupContext = new StartupContext(request, moduleInstance);
 
         var pipeline = _startupActions
             .Reverse()
@@ -65,7 +65,7 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
                 () => Task.CompletedTask,
                 (next, action) => () => action.InvokeAsync(startupContext, next));
 
-        await moduleRunner.Start(moduleInstance, startupContext, pipeline);
+        await moduleRunner.Start(startupContext, pipeline);
         moduleInstance.AddProperties(startupContext.GetProperties());
         _lifetimeEvents.OnNext(new LifetimeEvent.Started(moduleInstance));
 
@@ -84,11 +84,12 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        _lifetimeEvents.Dispose();
         foreach (var module in _modules.Values)
         {
             await StopModuleInternal(module);
         }
+        _modules.Clear();
+        _lifetimeEvents.Dispose();
     }
 
     private async Task StopModuleInternal(IModuleInstance moduleInstance)

@@ -10,19 +10,16 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.ModuleLoader.Runners;
+using System;
+using Microsoft.Extensions.Options;
 
-internal class NativeModuleRunner : IModuleRunner
+namespace MorganStanley.ComposeUI.Shell.Modules;
+
+internal sealed class ModuleCatalogOptions : IOptions<ModuleCatalogOptions>
 {
-    public string ModuleType => ComposeUI.ModuleLoader.ModuleType.Native;
+    public Uri? CatalogUrl { get; set; }
 
-    public Task Start(StartupContext startupContext, Func<Task> pipeline)
-    {
-        throw new NotImplementedException();
-    }
+    public ModuleCatalogOptions Value => this;
 
-    public Task Stop(IModuleInstance moduleInstance)
-    {
-        throw new NotImplementedException();
-    }
+    public static readonly string ConfigurationPath = "ModuleCatalog";
 }

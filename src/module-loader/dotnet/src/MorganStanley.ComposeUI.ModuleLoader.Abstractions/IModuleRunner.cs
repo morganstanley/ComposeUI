@@ -16,7 +16,7 @@ public interface IModuleRunner
 {
     string ModuleType { get; }
 
-    Task Start(IModuleInstance moduleInstance, StartupContext startupContext, Func<Task> pipeline);
+    Task Start(StartupContext startupContext, Func<Task> pipeline);
 
     Task Stop(IModuleInstance moduleInstance);
 }

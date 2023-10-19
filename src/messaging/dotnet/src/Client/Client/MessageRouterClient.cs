@@ -11,6 +11,7 @@
 // and limitations under the License.
 
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -436,6 +437,8 @@ internal sealed class MessageRouterClient : IMessageRouter
         CancellationToken cancellationToken)
         where TResponse : AbstractResponse
     {
+        CheckNotOnMainThread();
+
         var tcs = new TaskCompletionSource<AbstractResponse>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         if (!_pendingRequests.TryAdd(request.RequestId, tcs))
@@ -725,6 +728,17 @@ internal sealed class MessageRouterClient : IMessageRouter
         return topic.CanUnsubscribe
             ? SendMessageAsync(new UnsubscribeMessage {Topic = topic.Name}, CancellationToken.None)
             : default;
+    }
+
+    [DebuggerStepThrough]
+    private static void CheckNotOnMainThread()
+    {
+#if DEBUG
+        if (Thread.CurrentThread.GetApartmentState() == ApartmentState.STA)
+        {
+            throw new InvalidOperationException("The current thread is the main thread. Awaiting the resulting Task can cause a deadlock.");
+        }
+#endif
     }
 
     private enum ConnectionState

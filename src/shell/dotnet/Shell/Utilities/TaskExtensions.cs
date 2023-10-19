@@ -10,23 +10,32 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.ModuleLoader;
+using System.Threading.Tasks;
+using System.Windows.Threading;
 
-/// <summary>
-/// Contains the manifest details for web modules.
-/// </summary>
-/// <remarks>
-/// Web modules should have <see cref="ModuleType.Web"/> as their <see cref="IModuleManifest.ModuleType"/>
-/// </remarks>
-public sealed class WebManifestDetails
+namespace MorganStanley.ComposeUI.Shell.Utilities;
+
+public static class TaskExtensions
 {
     /// <summary>
-    /// The URL to open when this module is started.
+    /// Synchronously waits for the task to complete, while keeping the UI thread responsive.
     /// </summary>
-    public Uri Url { get; init; } = ModuleLoaderConstants.DefaultUri;
+    /// <param name="task"></param>
+    public static void WaitOnDispatcher(this Task task)
+    {
+        if (task.IsCompleted)
+        {
+            task.Wait();
+            
+            return;
+        }
 
-    /// <summary>
-    /// The URL of the window icon, if any.
-    /// </summary>
-    public Uri? IconUrl { get; init; }
+        var frame = new DispatcherFrame(exitWhenRequested: true);
+
+        _ = task.ContinueWith(_ => frame.Continue = false);
+        
+        Dispatcher.PushFrame(frame);
+
+        task.Wait(); // Propagate exceptions
+    }
 }

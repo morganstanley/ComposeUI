@@ -17,12 +17,15 @@ public sealed class StartupContext
     private readonly object _lock = new();
     private readonly List<object> _properties = new();
 
-    public StartupContext(StartRequest startRequest)
+    public StartupContext(StartRequest startRequest, IModuleInstance moduleInstance)
     {
         StartRequest = startRequest;
+        ModuleInstance = moduleInstance;
     }
 
     public StartRequest StartRequest { get; }
+
+    public IModuleInstance ModuleInstance { get; }
 
     public void AddProperty<T>(T value)
     {
@@ -40,5 +43,36 @@ public sealed class StartupContext
         {
             return _properties.ToList().AsReadOnly();
         }
+    }
+}
+
+public static class StartupContextExtensions
+{
+    public static IEnumerable<T> GetProperties<T>(this StartupContext startupContext)
+    {
+        return startupContext.GetProperties().OfType<T>();
+    }
+
+    public static T GetOrAddProperty<T>(this StartupContext startupContext, Func<StartupContext, T> newValueFactory)
+    {
+        var property = startupContext.GetProperties<T>().FirstOrDefault();
+
+        if (property == null)
+        {
+            property = newValueFactory(startupContext);
+            startupContext.AddProperty(property);
+        }
+
+        return property;
+    }
+
+    public static T GetOrAddProperty<T>(this StartupContext startupContext, Func<T> newValueFactory)
+    {
+        return GetOrAddProperty<T>(startupContext, _ => newValueFactory());
+    }
+
+    public static T GetOrAddProperty<T>(this StartupContext startupContext) where T : class, new()
+    {
+        return GetOrAddProperty<T>(startupContext, _ => new T());
     }
 }

@@ -33,11 +33,11 @@ public class WebModuleRunnerTests
         var moduleManifestMock = new MockModuleManifest(details);
         moduleInstanceMock.Setup(m => m.Manifest).Returns(moduleManifestMock);
         var startRequest = new StartRequest("test");
-        var startupContext = new StartupContext(startRequest);
+        var startupContext = new StartupContext(startRequest, moduleInstanceMock.Object);
         static Task MockPipeline() => Task.CompletedTask;
 
         var runner = new WebModuleRunner();
-        await runner.Start(moduleInstanceMock.Object, startupContext, MockPipeline);
+        await runner.Start(startupContext, MockPipeline);
 
         var result = startupContext.GetProperties();
         Assert.NotNull(result);

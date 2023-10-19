@@ -18,6 +18,9 @@ namespace MorganStanley.ComposeUI.ModuleLoader;
 /// </summary>
 public sealed class WebStartupProperties
 {
-    public Uri Url { get; set; }
+    public Uri Url { get; set; } = ModuleLoaderConstants.DefaultUri;
     public Uri? IconUrl { get; set; }
+    public List<WebModuleScriptProvider> ScriptProviders { get; } = new();
 }
+
+public delegate ValueTask<string> WebModuleScriptProvider(IModuleInstance moduleInstance);
