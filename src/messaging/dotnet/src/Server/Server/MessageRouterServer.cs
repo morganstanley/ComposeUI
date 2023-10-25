@@ -21,7 +21,6 @@ using MorganStanley.ComposeUI.Messaging.Server.Abstractions;
 
 namespace MorganStanley.ComposeUI.Messaging.Server;
 
-// TODO: Also implement IMessageRouter to speed up in-process messaging
 internal class MessageRouterServer : IMessageRouterServer
 {
     public MessageRouterServer(

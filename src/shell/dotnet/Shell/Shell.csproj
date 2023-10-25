@@ -17,6 +17,7 @@
 	</ItemGroup>
 	
 	<ItemGroup>
+		<PackageReference Include="CommunityToolkit.Mvvm" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" />
 		<PackageReference Include="Microsoft.Extensions.Http" />
 		<PackageReference Include="Microsoft.Web.WebView2" />
@@ -34,15 +35,14 @@
 		<None Update="appsettings.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="Manifest\exampleManifest.json">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\fdc3\dotnet\AppDirectory\src\AppDirectory\AppDirectory.csproj" />
 		<ProjectReference Include="..\..\..\fdc3\dotnet\DesktopAgent\src\DesktopAgent\DesktopAgent.csproj" />
 		<ProjectReference Include="..\..\..\messaging\dotnet\src\Host\MorganStanley.ComposeUI.Messaging.Host.csproj" />
+		<ProjectReference Include="..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader.Abstractions\MorganStanley.ComposeUI.ModuleLoader.Abstractions.csproj" />
+		<ProjectReference Include="..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader\MorganStanley.ComposeUI.ModuleLoader.csproj" />
 	</ItemGroup>
 
 	<PropertyGroup>
@@ -51,6 +51,10 @@
 
 	<ItemGroup>
 		<EmbeddedResource Include="$(Fdc3BundleOutput)" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Messaging\" />
 	</ItemGroup>
 
 	<Target Name="InstallMonoRepoDependencies" Condition="!Exists('$(ComposeUIRepositoryRoot)\node_modules')">
@@ -65,4 +69,6 @@
 		<Message Importance="normal" Text="Finished building the fdc3 bundle." />
 	</Target>
 	
+	
+
 </Project>

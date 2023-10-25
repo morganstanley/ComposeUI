@@ -10,9 +10,7 @@
         >
     <Grid>
         <DockPanel>
-            <wv2:WebView2 Name = "webView"
-                          Source = ""
-            />
+            <wv2:WebView2 Name = "WebView" Source = ""/>
         </DockPanel>
     </Grid>
 </Window>

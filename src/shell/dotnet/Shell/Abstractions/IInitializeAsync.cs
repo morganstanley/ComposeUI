@@ -10,19 +10,11 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.ModuleLoader.Runners;
+using System.Threading.Tasks;
 
-internal class NativeModuleRunner : IModuleRunner
+namespace MorganStanley.ComposeUI.Shell.Abstractions;
+
+public interface IInitializeAsync
 {
-    public string ModuleType => ComposeUI.ModuleLoader.ModuleType.Native;
-
-    public Task Start(StartupContext startupContext, Func<Task> pipeline)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task Stop(IModuleInstance moduleInstance)
-    {
-        throw new NotImplementedException();
-    }
+    Task InitializeAsync();
 }

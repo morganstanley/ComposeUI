@@ -13,8 +13,8 @@
 //  */
 
 using System;
-using System.Text.Json;
-using System.Threading;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Extensions.Configuration;
@@ -22,12 +22,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Logging.Configuration;
-using Microsoft.Extensions.Options;
 using MorganStanley.ComposeUI.Fdc3.AppDirectory;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
-using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
+using MorganStanley.ComposeUI.ModuleLoader;
+using MorganStanley.ComposeUI.Shell.Abstractions;
 using MorganStanley.ComposeUI.Shell.Fdc3;
+using MorganStanley.ComposeUI.Shell.Messaging;
+using MorganStanley.ComposeUI.Shell.Modules;
 using MorganStanley.ComposeUI.Shell.Utilities;
 
 namespace MorganStanley.ComposeUI.Shell;
@@ -55,7 +56,22 @@ public partial class App : Application
     {
         Dispatcher.VerifyAccess();
 
-        return ActivatorUtilities.CreateInstance<TWindow>(Host.Services, parameters);
+        return CreateInstance<TWindow>(parameters);
+    }
+
+    public T? GetService<T>()
+    {
+        return Host.Services.GetService<T>();
+    }
+
+    public T GetRequiredService<T>() where T : notnull
+    {
+        return Host.Services.GetRequiredService<T>();
+    }
+
+    public T CreateInstance<T>(params object[] parameters)
+    {
+        return ActivatorUtilities.CreateInstance<T>(Host.Services, parameters);
     }
 
     protected override void OnStartup(StartupEventArgs e)
@@ -67,16 +83,17 @@ public partial class App : Application
     protected override void OnExit(ExitEventArgs e)
     {
         base.OnExit(e);
-        var stopCompletedEvent = new ManualResetEventSlim();
-        _ = Task.Run(() => StopAsync(stopCompletedEvent));
-        _logger.LogDebug("Waiting for async shutdown");
-        stopCompletedEvent.Wait();
-        _logger.LogDebug("Async shutdown completed, application will now exit");
+        Debug.WriteLine("Waiting for async shutdown");
+        Task.Run(StopAsync).WaitOnDispatcher();
+        Debug.WriteLine("Async shutdown completed, the application will now exit");
     }
 
     private IHost? _host;
+
     private ILogger _logger = NullLogger<App>.Instance;
-    private string _messageRouterAccessToken = Guid.NewGuid().ToString("N");
+
+    // TODO: Assign a unique token for each module
+    internal readonly string MessageRouterAccessToken = Guid.NewGuid().ToString("N");
 
     private async Task StartAsync(StartupEventArgs e)
     {
@@ -101,11 +118,15 @@ public partial class App : Application
 
     private void ConfigureServices(HostBuilderContext context, IServiceCollection services)
     {
+        services.AddSingleton(this);
+
         services.AddHttpClient();
 
         services.Configure<LoggerFactoryOptions>(context.Configuration.GetSection("Logging"));
 
         ConfigureMessageRouter();
+
+        ConfigureModules();
 
         ConfigureFdc3();
 
@@ -118,15 +139,27 @@ public partial class App : Application
                     .UseAccessTokenValidator(
                         (clientId, token) =>
                         {
-                            // TODO: Assign a separate token for each client and only allow a single connection with each token
-                            if (_messageRouterAccessToken != token)
+                            if (MessageRouterAccessToken != token)
                                 throw new InvalidOperationException("The provided access token is invalid");
                         }));
 
             services.AddMessageRouter(
                 mr => mr
                     .UseServer()
-                    .UseAccessToken(_messageRouterAccessToken));
+                    .UseAccessToken(MessageRouterAccessToken));
+
+            services.AddTransient<IStartupAction, MessageRouterStartupAction>();
+        }
+
+        void ConfigureModules()
+        {
+            services.AddModuleLoader();
+            services.AddSingleton<ModuleCatalog>();
+            services.AddSingleton<IModuleCatalog>(p => p.GetRequiredService<ModuleCatalog>());
+            services.AddSingleton<IInitializeAsync>(p => p.GetRequiredService<ModuleCatalog>());
+            services.Configure<ModuleCatalogOptions>(
+                context.Configuration.GetSection(ModuleCatalogOptions.ConfigurationPath));
+            services.AddHostedService<ModuleService>();
         }
 
         void ConfigureFdc3()
@@ -141,21 +174,25 @@ public partial class App : Application
                 services.AddFdc3AppDirectory();
 
                 services.Configure<Fdc3Options>(fdc3ConfigurationSection);
-                services.Configure<Fdc3DesktopAgentOptions>(fdc3ConfigurationSection.GetSection(nameof(fdc3Options.DesktopAgent)));
-                services.Configure<AppDirectoryOptions>(fdc3ConfigurationSection.GetSection(nameof(fdc3Options.AppDirectory)));
+                services.Configure<Fdc3DesktopAgentOptions>(
+                    fdc3ConfigurationSection.GetSection(nameof(fdc3Options.DesktopAgent)));
+                services.Configure<AppDirectoryOptions>(
+                    fdc3ConfigurationSection.GetSection(nameof(fdc3Options.AppDirectory)));
+
+                services.AddTransient<IStartupAction, Fdc3StartupAction>();
             }
         }
     }
 
-    // TODO: Extensibility: Plugins should be notified here.
     // Add any feature-specific async init code that depends on a running Host to this method 
     private async Task OnHostInitializedAsync()
     {
-        InjectMessageRouterConfig();
-
-        var fdc3Options = Host.Services.GetRequiredService<IOptions<Fdc3Options>>();
-
-        if (fdc3Options.Value.EnableFdc3) InjectFdc3();
+        await Task.WhenAll(
+            Host.Services.GetServices<IInitializeAsync>()
+                .Select(
+                    i => i.InitializeAsync()));
+        // TODO: Not sure how to deal with exceptions here.
+        // The safest is probably to log and crash the whole app, since we cannot know which component just went defunct.
     }
 
     private void OnAsyncStartupCompleted(StartupEventArgs e)
@@ -173,46 +210,37 @@ public partial class App : Application
         CreateWindow<MainWindow>().Show();
     }
 
-    private async Task StopAsync(ManualResetEventSlim stopCompletedEvent)
+    private async Task StopAsync()
     {
-        if (_host != null)
+        try
         {
-            await _host.StopAsync();
-            _host.Dispose();
+            if (_host != null)
+            {
+                await _host.StopAsync();
+                _host.Dispose();
+            }
         }
-
-        stopCompletedEvent.Set();
+        catch (Exception e)
+        {
+            try
+            {
+                _logger.LogError(
+                    e,
+                    "Exception thrown while stopping the generic host: {ExceptionType}",
+                    e.GetType().FullName);
+            }
+            catch
+            {
+                // In case the logger is already disposed at this point
+                Debug.WriteLine(
+                    $"Exception thrown while stopping the generic host: {e.GetType().FullName}: {e.Message}");
+            }
+        }
     }
 
     private void StartWithWebWindowOptions(WebWindowOptions options)
     {
         ShutdownMode = ShutdownMode.OnLastWindowClose;
         CreateWindow<WebWindow>(options).Show();
-    }
-
-    private void InjectMessageRouterConfig()
-    {
-        var server = Host.Services.GetRequiredService<IMessageRouterWebSocketServer>();
-        _logger.LogInformation($"Message Router server listening at {server.WebSocketUrl}");
-
-        WebWindow.AddPreloadScript(
-            $$"""
-                window.composeui = {
-                    ...window.composeui,
-                    messageRouterConfig: {
-                        accessToken: "{{JsonEncodedText.Encode(_messageRouterAccessToken)}}",
-                        webSocket: {
-                            url: "{{server.WebSocketUrl}}"
-                        }
-                    }
-                };
-                    
-                """);
-    }
-
-    private void InjectFdc3()
-    {
-        var iife = ResourceReader.ReadResource(ResourceNames.Fdc3Bundle);
-        WebWindow.AddPreloadScript(iife);
     }
 }

@@ -15,7 +15,11 @@ See the License for the specific language governing permissions and limitations 
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MorganStanley.ComposeUI.Shell"
         mc:Ignorable="d"
-        Title="Compose" Height="450" Width="600">
+        Title="ComposeUI Shell" 
+        Height="450" 
+        Width="600" 
+        Background="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"
+        WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -28,17 +32,15 @@ See the License for the specific language governing permissions and limitations 
             </Ribbon.ApplicationMenu>
             <!-- Ribbon Tab #1: Modules -->
             <RibbonTab Header="Modules" HorizontalAlignment="Left" Height="Auto" VerticalAlignment="Top">
-                <RibbonGroup x:Name="Modules" Header="Modules" Height="Auto" ItemsSource="{Binding}">
+                <RibbonGroup x:Name="Modules" Header="Modules" Height="Auto" ItemsSource="{Binding Modules}">
                     <RibbonGroup.ItemTemplate>
                         <DataTemplate>
                             <RibbonButton 
                                 VerticalAlignment="Top"
                                 HorizontalAlignment="Right"
-                                Click="ShowChild_Click"
-                                Label="{Binding AppName}"
-                                Padding="5" 
-                                Margin="5" 
-                                Height="40"
+                                Click="StartModule_Click"
+                                Label="{Binding Manifest.Name}"
+                                LargeImageSource="{Binding ImageSource}"
                             />
                         </DataTemplate>
                     </RibbonGroup.ItemTemplate>

@@ -1,8 +1,5 @@
 {
   "profiles": {
-    "Shell": {
-      "commandName": "Project"
-    },
     "Chart and grid": {
       "commandName": "Project",
       "commandLineArgs": "--url http://localhost:4200\r\n--FDC3:AppDirectory:Source $(ComposeUIRepositoryRoot)/examples/fdc3-appdirectory/apps.json"
@@ -10,6 +7,10 @@
     "FINOS FDC3 Workbench": {
       "commandName": "Project",
       "commandLineArgs": "--url https://fdc3.finos.org/toolbox/fdc3-workbench/"
+    },
+    "Shell": {
+      "commandName": "Project",
+      "commandLineArgs": "--ModuleCatalog:CatalogUrl \"file:///$(ProjectDir)..\\examples\\module-catalog.json\""
     }
   }
 }

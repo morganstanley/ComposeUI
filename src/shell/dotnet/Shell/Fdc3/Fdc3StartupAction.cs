@@ -10,19 +10,23 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.ModuleLoader.Runners;
+using System;
+using System.Threading.Tasks;
+using MorganStanley.ComposeUI.ModuleLoader;
+using MorganStanley.ComposeUI.Shell.Utilities;
 
-internal class NativeModuleRunner : IModuleRunner
+namespace MorganStanley.ComposeUI.Shell.Fdc3;
+
+internal sealed class Fdc3StartupAction : IStartupAction
 {
-    public string ModuleType => ComposeUI.ModuleLoader.ModuleType.Native;
-
-    public Task Start(StartupContext startupContext, Func<Task> pipeline)
+    public Task InvokeAsync(StartupContext startupContext, Func<Task> next)
     {
-        throw new NotImplementedException();
-    }
+        if (startupContext.ModuleInstance.Manifest.ModuleType == ModuleType.Web)
+        {
+            startupContext.GetOrAddProperty<WebStartupProperties>()
+                .ScriptProviders.Add(_ => new ValueTask<string>(ResourceReader.ReadResource(ResourceNames.Fdc3Bundle)));
+        }
 
-    public Task Stop(IModuleInstance moduleInstance)
-    {
-        throw new NotImplementedException();
+        return next();
     }
 }
