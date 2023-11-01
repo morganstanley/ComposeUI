@@ -48,7 +48,7 @@
     <PackageVersion Include="System.Reactive.Async" Version="6.0.0-alpha.18" />
     <PackageVersion Include="System.Reactive" Version="6.0.0" />
     <PackageVersion Include="System.ServiceModel.Primitives" Version="6.0.0" />
-    <PackageVersion Include="System.Text.Json" Version="6.0.8" />
+    <PackageVersion Include="System.Text.Json" Version="7.0.3" />
     <PackageVersion Include="TestableIO.System.IO.Abstractions.Wrappers" Version="19.2.69" />
     <PackageVersion Include="TestableIO.System.IO.Abstractions" Version="19.2.69" />
     <PackageVersion Include="Testably.Abstractions.Testing" Version="2.4.1" />
