@@ -10,7 +10,7 @@
     "test": "ng test --watch=false"
   },
   "dependencies": {
-    "@angular/animations": "^15.1.0",
+    "@angular/animations": "^16.2.11",
     "@angular/cdk": "~15.1.4",
     "@angular/common": "^15.1.0",
     "@angular/compiler": "^15.1.0",
