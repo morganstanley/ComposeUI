@@ -31,7 +31,7 @@
     <PackageVersion Include="Moq.Contrib.HttpClient" Version="1.4.0" />
     <PackageVersion Include="Moq" Version="4.20.69" />
     <PackageVersion Include="MorganStanley.Fdc3.AppDirectory" Version="2.0.0-alpha.7" />
-    <PackageVersion Include="MorganStanley.Fdc3.NewtonsoftJson" Version="2.0.0-alpha.6" />
+    <PackageVersion Include="MorganStanley.Fdc3.NewtonsoftJson" Version="2.0.0-alpha.7" />
     <PackageVersion Include="MorganStanley.Fdc3" Version="2.0.0-alpha.6" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="Nito.AsyncEx.Coordination" Version="5.1.2" />
