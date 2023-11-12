@@ -22,22 +22,14 @@ public class StoreIntentResultResponse
     /// <summary>
     /// Indicates that the IntentResult is successfully stored or not.
     /// </summary>
-    public bool Stored { get; set; } = false;
+    public bool Stored { get; init; } = false;
 
     /// <summary>
     /// Error, which indicates that an error might have occured while handling the request.
     /// </summary>
-    public string? Error { get; set; }
+    public string? Error { get; init; }
 
-    public static StoreIntentResultResponse Success()
-    {
-        var response = new StoreIntentResultResponse()
-        {
-            Stored = true
-        };
-
-        return response;
-    }
+    public static StoreIntentResultResponse Success() => new() { Stored = true };
 
     public static GetIntentResultResponse Failure(string error) => new() { Error = error };
 }

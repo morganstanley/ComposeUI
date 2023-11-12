@@ -31,6 +31,7 @@ using MorganStanley.ComposeUI.Shell.Messaging;
 using MorganStanley.ComposeUI.Shell.Modules;
 using MorganStanley.ComposeUI.Shell.ToRemove;
 using MorganStanley.ComposeUI.Shell.Utilities;
+using MorganStanley.ComposeUI.Utilities;
 using MorganStanley.Fdc3.AppDirectory;
 
 namespace MorganStanley.ComposeUI.Shell;
@@ -181,8 +182,6 @@ public partial class App : Application
                     fdc3ConfigurationSection.GetSection(nameof(fdc3Options.DesktopAgent)));
                 services.Configure<AppDirectoryOptions>(
                     fdc3ConfigurationSection.GetSection(nameof(fdc3Options.AppDirectory)));
-
-                services.AddTransient<IStartupAction, Fdc3StartupAction>();
             }
         }
     }

@@ -12,6 +12,7 @@
  * and limitations under the License.
  */
 
+using System.Text.Json.Serialization;
 using MorganStanley.Fdc3;
 using MorganStanley.Fdc3.Context;
 
@@ -22,13 +23,20 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 /// </summary>
 public class RaiseIntentResolutionRequest
 {
+    [JsonConstructor]
+    public RaiseIntentResolutionRequest(Context context, ContextMetadata contextMetadata)
+    {
+        Context = context;
+        ContextMetadata = contextMetadata;
+    }
+
     /// <summary>
     /// Context, which should be sent to the selected app via raiseIntent by the FDC3 client.
     /// </summary>
-    public Context? Context { get; set; }
+    public Context Context { get; }
 
     /// <summary>
     /// ContextMetadata, which contains information about the source app, that raised the request.
     /// </summary>
-    public ContextMetadata? ContextMetadata { get; set; }
+    public ContextMetadata ContextMetadata { get; }
 }

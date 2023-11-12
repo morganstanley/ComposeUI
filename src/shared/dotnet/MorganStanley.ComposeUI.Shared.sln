@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32616.157
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8E838164-6370-4320-ACD5-CD1E6631C09C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{51355F98-9BDE-42CA-B284-296AAE6B6B38}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Utilities", "src\MorganStanley.ComposeUI.Utilities\MorganStanley.ComposeUI.Utilities.csproj", "{13B9FB01-144E-4BBE-9920-1C69B44FB711}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Utilities.Tests", "tests\MorganStanley.ComposeUI.Utilities.Tests\MorganStanley.ComposeUI.Utilities.Tests.csproj", "{ED668A15-0186-41CD-B79D-2D9F18A6F15B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{13B9FB01-144E-4BBE-9920-1C69B44FB711}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{13B9FB01-144E-4BBE-9920-1C69B44FB711}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{13B9FB01-144E-4BBE-9920-1C69B44FB711}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{13B9FB01-144E-4BBE-9920-1C69B44FB711}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED668A15-0186-41CD-B79D-2D9F18A6F15B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED668A15-0186-41CD-B79D-2D9F18A6F15B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED668A15-0186-41CD-B79D-2D9F18A6F15B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED668A15-0186-41CD-B79D-2D9F18A6F15B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{13B9FB01-144E-4BBE-9920-1C69B44FB711} = {8E838164-6370-4320-ACD5-CD1E6631C09C}
+		{ED668A15-0186-41CD-B79D-2D9F18A6F15B} = {51355F98-9BDE-42CA-B284-296AAE6B6B38}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EF62D6D0-E133-4C3A-A1AF-79C44BAD39C4}
+	EndGlobalSection
+EndGlobal

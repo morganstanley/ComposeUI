@@ -24,46 +24,19 @@ public class RaiseIntentResponse
     /// <summary>
     /// Intent, for which the raiseIntent was executed.
     /// </summary>
-    public string Intent { get; set; }
+    public string? Intent { get; set; }
 
     /// <summary>
     /// Apps, that could handle the raiseIntent.
     /// </summary>
-    public IEnumerable<AppMetadata>? AppMetadatas { get; set; }
+    public IEnumerable<AppMetadata>? AppMetadata { get; set; }
 
     /// <summary>
     /// Error, which indicates that some error has happened during the raiseIntent's execution.
     /// </summary>
     public string? Error { get; set; }
 
-    public static RaiseIntentResponse Success(string intent, IEnumerable<IAppMetadata>? appMetadatas = null)
-    {
-        var raiseIntentResponse = new RaiseIntentResponse()
-        {
-            Intent = intent
-        };
-
-        if (appMetadatas == null) return raiseIntentResponse;
-        
-        //Could not handle the IAppMetadata interface when deserializing/serializing, that's why we would need a casting. 
-        var castedAppMetadata = appMetadatas.Select(
-                appMetadata => new AppMetadata(
-                    appId: appMetadata.AppId,
-                    instanceId: appMetadata.InstanceId,
-                    name: appMetadata.Name,
-                    version: appMetadata.Version,
-                    title: appMetadata.Title,
-                    tooltip: appMetadata.Tooltip,
-                    description: appMetadata.Description,
-                    icons: appMetadata.Icons,
-                    images: appMetadata.Screenshots,
-                    resultType: appMetadata.ResultType))
-            .ToList();
-
-        raiseIntentResponse.AppMetadatas = castedAppMetadata;
-
-        return raiseIntentResponse;
-    }
-
+    public static RaiseIntentResponse Success(AppIntent appIntent) => new() { Intent = appIntent.Intent.Name, AppMetadata = appIntent.Apps.Select(appMetadata => (AppMetadata)appMetadata) };
+    public static RaiseIntentResponse Success(string intent, AppMetadata appMetadata) => new() { Intent = intent, AppMetadata = new[] { appMetadata } };
     public static RaiseIntentResponse Failure(string error) => new() { Error = error };
 }

@@ -41,8 +41,8 @@ public class MockModuleLoader : IModuleLoader
         {
             instance = new MockModuleInstance(startRequest, new MockModuleManifest() { Id = startRequest.ModuleId });
             _startRequests.Add(instance);
-            _subject.OnNext(new MockLifetimeEvent(LifetimeEventType.Starting, instance));
-            _subject.OnNext(new MockLifetimeEvent(LifetimeEventType.Started, instance));
+            _subject.OnNext(new LifetimeEvent.Starting(instance));
+            _subject.OnNext(new LifetimeEvent.Started(instance));
         }
         return Task.FromResult(instance);
     }
@@ -55,21 +55,25 @@ public class MockModuleLoader : IModuleLoader
             if (instance != null)
             {
                 _startRequests = _startRequests.Where(request => request.InstanceId != stopRequest.InstanceId).ToList();
-                _subject.OnNext(new MockLifetimeEvent(LifetimeEventType.Stopping, instance));
-                _subject.OnNext(new MockLifetimeEvent(LifetimeEventType.Stopped, instance));
+                _subject.OnNext(new LifetimeEvent.Stopping(instance));
+                _subject.OnNext(new LifetimeEvent.Stopped(instance));
             }
         }
 
         return Task.CompletedTask;
     }
 
-    private class MockLifetimeEvent : LifetimeEvent
+    public void StopAllModules()
     {
-        public override LifetimeEventType EventType => _eventType;
-        private readonly LifetimeEventType _eventType;
-        public MockLifetimeEvent(LifetimeEventType eventType, IModuleInstance instance) : base(instance)
+        lock (_lock)
         {
-            _eventType = eventType;
+            var modules = _startRequests.AsEnumerable().Reverse().ToArray();
+            _startRequests.Clear();
+            foreach (var module in modules)
+            {
+                _subject.OnNext(new LifetimeEvent.Stopping(module));
+                _subject.OnNext(new LifetimeEvent.Stopped(module));
+            }
         }
     }
 

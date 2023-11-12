@@ -21,7 +21,6 @@
 		<PackageReference Include="Microsoft.Extensions.Hosting" />
 		<PackageReference Include="Microsoft.Extensions.Http" />
 		<PackageReference Include="Microsoft.Web.WebView2" />
-		<PackageReference Include="System.CommandLine" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -43,32 +42,11 @@
 		<ProjectReference Include="..\..\..\messaging\dotnet\src\Host\MorganStanley.ComposeUI.Messaging.Host.csproj" />
 		<ProjectReference Include="..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader.Abstractions\MorganStanley.ComposeUI.ModuleLoader.Abstractions.csproj" />
 		<ProjectReference Include="..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader\MorganStanley.ComposeUI.ModuleLoader.csproj" />
-	</ItemGroup>
-
-	<PropertyGroup>
-		<Fdc3BundleOutput>$(ComposeUIRepositoryRoot)\src\fdc3\js\composeui-fdc3\dist\fdc3-iife-bundle.js</Fdc3BundleOutput>
-	</PropertyGroup>
-
-	<ItemGroup>
-		<EmbeddedResource Include="$(Fdc3BundleOutput)" />
+		<ProjectReference Include="..\..\..\shared\dotnet\src\MorganStanley.ComposeUI.Utilities\MorganStanley.ComposeUI.Utilities.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <Folder Include="Messaging\" />
 	</ItemGroup>
-
-	<Target Name="InstallMonoRepoDependencies" Condition="!Exists('$(ComposeUIRepositoryRoot)\node_modules')">
-		<Message Importance="high" Text="Installing node_modules..." />
-		<Exec Command="cd $(ComposeUIRepositoryRoot) &amp;&amp; npm install" />
-		<Message Importance="normal" Text="Finished command: npm install." />
-	</Target>
-
-	<Target Name="BuildComposeUIFdc3Bundle" BeforeTargets="PrebuildEvent" Condition="!Exists('$(Fdc3BundleOutput)')">
-		<CallTarget Targets="InstallMonoRepoDependencies" />
-		<Exec Command="cd $(ComposeUIRepositoryRoot) &amp;&amp; npx lerna run build --scope={@morgan-stanley/composeui-messaging-client,@morgan-stanley/composeui-fdc3}" />
-		<Message Importance="normal" Text="Finished building the fdc3 bundle." />
-	</Target>
-	
-	
 
 </Project>

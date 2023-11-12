@@ -31,21 +31,7 @@ public class FindIntentsByContextResponse
     /// </summary>
     public string? Error { get; set; }
 
-    public static FindIntentsByContextResponse Success(IEnumerable<IAppIntent> appIntents)
-    {
-        var response = new FindIntentsByContextResponse()
-        {
-            AppIntents = new List<AppIntent>()
-        };
-
-        foreach (var appIntent in appIntents)
-        {
-            response.AppIntents = response.AppIntents.Append(
-                new AppIntent(intent: appIntent.Intent, apps: appIntent.Apps));
-        }
-
-        return response;
-    }
+    public static FindIntentsByContextResponse Success(IEnumerable<AppIntent> appIntents) => new() { AppIntents = appIntents };
 
     public static FindIntentsByContextResponse Failure(string error) => new() { Error = error };
 }

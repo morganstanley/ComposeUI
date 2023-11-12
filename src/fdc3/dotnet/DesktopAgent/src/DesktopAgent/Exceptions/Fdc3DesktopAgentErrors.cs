@@ -20,4 +20,24 @@ public static class Fdc3DesktopAgentErrors
     /// Indicates that the instanceId of the app that was raising the request is missing.
     /// </summary>
     public const string MissingId = $"{nameof(MissingId)}";
+
+    /// <summary>
+    /// Given payload from <seealso cref="MorganStanley.ComposeUI.Messaging.IMessageRouter"/> is null.
+    /// </summary>
+    public const string PayloadNull = $"{nameof(PayloadNull)}";
+
+    /// <summary>
+    /// Indicates that multiple matching were registered to an IntentResolver.
+    /// </summary>
+    public const string MultipleIntent = $"{nameof(MultipleIntent)}";
+
+    /// <summary>
+    /// Indicates that getting the IntentResult from the backend, has no appropriate attribute.
+    /// </summary>
+    public const string ResponseHasNoAttribute = $"{nameof(ResponseHasNoAttribute)}";
+
+    /// <summary>
+    /// Indicates that <seealso cref="MorganStanley.ComposeUI.ModuleLoader.IModuleLoader"/> could not start a module via raiseIntent, etc.
+    /// </summary>
+    public const string StartModuleFailure = $"{nameof(StartModuleFailure)}";
 }

@@ -14,5 +14,7 @@
 export enum ComposeUIErrors {
     NoAnswerWasProvided = 'No answer was provided by the DesktopAgent backend.',
     InstanceIdNotFound = 'InstanceId was not found on window object. To run Fdc3\'s ComposeUI implementation instance config should be set on window config.',
-    CurrentChannelNotSet = 'The current channel have not been set.'
+    CurrentChannelNotSet = 'The current channel have not been set.',
+    UnsubscribeFailure = 'The IntentListener could not unsubscribe.',
+    SubscribeFailure = 'The IntentListener could not subscribe.'
 }

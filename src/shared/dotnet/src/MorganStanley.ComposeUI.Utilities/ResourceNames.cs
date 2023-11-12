@@ -14,10 +14,10 @@
 
 using System.Reflection;
 
-namespace MorganStanley.ComposeUI.Shell.Utilities;
+namespace MorganStanley.ComposeUI.Utilities;
 
 public static class ResourceNames
 {
-    public static readonly string Fdc3Bundle = @$"{Assembly.GetExecutingAssembly().ManifestModule.Assembly.GetName()?.Name}.fdc3-iife-bundle.js";
+    public static readonly string Fdc3Bundle = @$"{Assembly.GetCallingAssembly().ManifestModule.Assembly.GetName()?.Name}.fdc3-iife-bundle.js";
     public static readonly string MessageRouter = $"{nameof(MessageRouter)}";
 }

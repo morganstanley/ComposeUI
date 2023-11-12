@@ -12,7 +12,9 @@
  * and limitations under the License.
  */
 
+using System.Text.Json.Serialization;
 using MorganStanley.Fdc3;
+using MorganStanley.Fdc3.Context;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
@@ -21,18 +23,57 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 /// </summary>
 public class StoreIntentResultRequest
 {
+    [JsonConstructor]
+    public StoreIntentResultRequest(
+        string intent,
+        string originFdc3InstanceId,
+        string targetFdc3InstanceId,
+        string? channelId = null,
+        ChannelType? channelType = null,
+        Context? context = null,
+        string? errorResult = null)
+    {
+        Intent = intent;
+        OriginFdc3InstanceId = originFdc3InstanceId;
+        TargetFdc3InstanceId = targetFdc3InstanceId;
+        ChannelId = channelId;
+        ChannelType = channelType;
+        Context = context;
+        ErrorResult = errorResult;
+    }
+
     /// <summary>
     /// Intent from IntentResolution by IntentHandler of FDC3 clients.
     /// </summary>
-    public string? Intent { get; set; }
+    public string Intent { get; }
+
+    /// <summary>
+    /// Source app instance id, which had handled the raised intent.
+    /// </summary>
+    public string OriginFdc3InstanceId { get; }
 
     /// <summary>
     /// Target app instance id, which should receive the IntentResult, that have raised the intent.
     /// </summary>
-    public string? TargetInstanceId { get; set; }
+    public string TargetFdc3InstanceId { get; }
 
     /// <summary>
-    /// IntentResult, which either can be Context or IChannel type.
+    /// ChannelId, indicating the result of the IntentListener was a channel.
     /// </summary>
-    public IIntentResult? IntentResult { get; set; }
+    public string? ChannelId {  get; }
+
+    /// <summary>
+    /// ChannelType, indicating the result of the IntentListener was a channel.
+    /// </summary>
+    public ChannelType? ChannelType { get; }
+
+    /// <summary>
+    /// Context, indicating the result of the IntentListener was a context;
+    /// </summary>
+    public Context? Context { get; }
+
+    /// <summary>
+    /// Indicates ResultError happened during the execution of IntentHandler.
+    /// </summary>
+    public string? ErrorResult { get; }
 }

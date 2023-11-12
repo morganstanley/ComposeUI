@@ -16,15 +16,13 @@ using System;
 using System.IO;
 using System.Reflection;
 
-namespace MorganStanley.ComposeUI.Shell.Utilities;
+namespace MorganStanley.ComposeUI.Utilities;
 
-//TODO: Later we should move this under a new project //`src/shared/dotnet`
 public static class ResourceReader
 {
     public static string ReadResource(string resourcePath)
     {
-        var assembly = Assembly.GetExecutingAssembly();
-
+        var assembly = Assembly.GetCallingAssembly();
         using var stream = assembly.GetManifestResourceStream(resourcePath) ?? throw new InvalidOperationException("Resource not found");
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd();

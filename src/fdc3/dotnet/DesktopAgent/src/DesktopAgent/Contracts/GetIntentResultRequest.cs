@@ -12,6 +12,7 @@
  * and limitations under the License.
  */
 
+using System.Text.Json.Serialization;
 using MorganStanley.Fdc3;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
@@ -21,15 +22,26 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 /// </summary>
 public class GetIntentResultRequest
 {
+    [JsonConstructor]
+    public GetIntentResultRequest(
+        string intent,
+        AppIdentifier targetAppIdentifier,
+        string? version = null)
+    {
+        Intent = intent;
+        TargetAppIdentifier = targetAppIdentifier;
+        Version = version;
+    }
+
     /// <summary>
-    /// The intent that was raised. May be used to determine which intent the user chose in response to `fdc3.raiseIntentForContext()`.
+    /// The intent that was raised.
     /// </summary>
-    public string? Intent { get; set; }
+    public string Intent { get; }
 
     /// <summary>
     /// <seealso cref="AppIdentifier"/> for the app instance that was selected (or started) to resolve the intent.
     /// </summary>
-    public AppIdentifier? Source { get; set; }
+    public AppIdentifier TargetAppIdentifier { get; }
 
     /// <summary>
     /// The version number of the Intents schema, that is being used.

@@ -16,10 +16,13 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using MorganStanley.Fdc3;
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Helpers;
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Converters;
 
-internal class AppMetadataJsonConverter : JsonConverter<AppMetadata>
+//TODO: remove this class, when no longer is neccessary
+public class AppMetadataJsonConverter : JsonConverter<AppMetadata>
 {
+    //This is needed as JsonConstructors are missing and wrongly set attributes are in the AppMetadata (in fdc3-dotnet repo)
+    //Could not deserialize into AppMetadata type as could not find screenshots attribute, and no JsonConstructor is applied to the ctor
     public override AppMetadata? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         var result = JsonSerializer.Deserialize<JsonElement>(ref reader, options);
@@ -61,9 +64,8 @@ internal class AppMetadataJsonConverter : JsonConverter<AppMetadata>
             if (!string.IsNullOrEmpty(descriptionElement.ToString())) description = descriptionElement.ToString();
         }
 
-        //TODO: implement IIcon and IImages JsonConverters
         result.TryGetProperty("icons", out var icons);
-        result.TryGetProperty("screenshots", out var screenshots);
+        result.TryGetProperty("screenshots", out var screenshots); //it has "images" property name in the created JSON 
 
         if (result.TryGetProperty("resultType", out var resultTypeElement))
         {
@@ -78,69 +80,13 @@ internal class AppMetadataJsonConverter : JsonConverter<AppMetadata>
             title,
             tooltip,
             description,
-            icons.Deserialize<IEnumerable<IIcon>>(options),
-            screenshots.Deserialize<IEnumerable<IImage>>(options),
+            icons.Deserialize<IEnumerable<Icon>>(options),
+            screenshots.Deserialize<IEnumerable<Image>>(options),
             resultType);
     }
 
     public override void Write(Utf8JsonWriter writer, AppMetadata value, JsonSerializerOptions options)
     {
-        var stringConverter = (JsonConverter<string>) options.GetConverter(typeof(string));
-        writer.WriteStartObject();
-
-        writer.WritePropertyName(
-            (options.PropertyNamingPolicy?.ConvertName(nameof(value.AppId))) ?? nameof(value.AppId));
-
-        stringConverter.Write(writer, value.AppId, options);
-
-        writer.WritePropertyName(
-            (options.PropertyNamingPolicy?.ConvertName(nameof(value.InstanceId))) ?? nameof(value.InstanceId));
-
-        stringConverter.Write(writer, value.InstanceId, options);
-
-        writer.WritePropertyName(
-            (options.PropertyNamingPolicy?.ConvertName(nameof(value.Name))) ?? nameof(value.Name));
-
-        stringConverter.Write(writer, value.Name, options);
-
-        writer.WritePropertyName(
-            (options.PropertyNamingPolicy?.ConvertName(nameof(value.Version))) ?? nameof(value.Version));
-
-        stringConverter.Write(writer, value.Version, options);
-
-        writer.WritePropertyName(
-            (options.PropertyNamingPolicy?.ConvertName(nameof(value.Title))) ?? nameof(value.Title));
-
-        stringConverter.Write(writer, value.Title, options);
-
-        writer.WritePropertyName(
-            (options.PropertyNamingPolicy?.ConvertName(nameof(value.Tooltip))) ?? nameof(value.Tooltip));
-
-        stringConverter.Write(writer, value.Tooltip, options);
-
-        writer.WritePropertyName(
-            (options.PropertyNamingPolicy?.ConvertName(nameof(value.Description))) ?? nameof(value.Description));
-
-        stringConverter.Write(writer, value.Description, options);
-
-
-        //TODO(Lilla): check output, need to implement IIcon and IImage jsonconverters as well
-        writer.WritePropertyName(
-            (options.PropertyNamingPolicy?.ConvertName(nameof(value.Icons))) ?? nameof(value.Icons));
-
-        ((JsonConverter<IEnumerable<IIcon>>) options.GetConverter(typeof(IEnumerable<IIcon>))).Write(writer, value.Icons, options);
-
-        writer.WritePropertyName(
-            (options.PropertyNamingPolicy?.ConvertName(nameof(value.Screenshots))) ?? nameof(value.Screenshots));
-
-        ((JsonConverter<IEnumerable<IImage>>) options.GetConverter(typeof(IEnumerable<IImage>))).Write(writer, value.Screenshots, options);
-
-
-        writer.WritePropertyName(
-            (options.PropertyNamingPolicy?.ConvertName(nameof(value.ResultType))) ?? nameof(value.ResultType));
-
-        stringConverter.Write(writer, value.ResultType, options);
-
-        writer.WriteEndObject();
+        throw new NotImplementedException();
     }
 }

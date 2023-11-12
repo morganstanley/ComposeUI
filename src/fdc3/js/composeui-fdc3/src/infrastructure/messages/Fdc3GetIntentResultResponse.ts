@@ -11,9 +11,13 @@
  *  
  */
 
-import { IntentResult } from "@finos/fdc3";
+import { Context } from "@finos/fdc3";
+import { ChannelType } from "../ChannelType";
 
 export class Fdc3GetIntentResultResponse {
-    public intentResult?: IntentResult;
+    public channelId?: string;
+    public channelType?: ChannelType;
+    public context?: Context;
     public error?: string;
+    public errorResult?: string;
 }

@@ -12,6 +12,7 @@
  * and limitations under the License.
  */
 
+using System.Text.Json.Serialization;
 using MorganStanley.Fdc3.Context;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
@@ -21,16 +22,27 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 /// </summary>
 public class FindIntentsByContextRequest
 {
+    [JsonConstructor]
+    public FindIntentsByContextRequest(
+        string fdc3InstanceId,
+        Context context,
+        string? resultType = null)
+    {
+        Fdc3InstanceId = fdc3InstanceId;
+        Context = context;
+        ResultType = resultType;
+    }
+
     /// <summary>
-    /// Unique identifier from the application which sent the RaiseIntentRequest type of message.
+    /// Unique identifier from the application which sent the FindIntentsByContextRequest type of message.
     /// Probably the instanceId of the application which can be queried from the window.object, etc.
     /// </summary>
-    public string? InstanceId { get; set; }
+    public string Fdc3InstanceId { get; }
 
     /// <summary>
     /// <see cref="MorganStanley.Fdc3.Context.Context"/>
     /// </summary>
-    public Context? Context { get; set; }
+    public Context Context { get; }
 
     /// <summary>
     /// ResultType, indicating what resultType the requesting app is expecting.

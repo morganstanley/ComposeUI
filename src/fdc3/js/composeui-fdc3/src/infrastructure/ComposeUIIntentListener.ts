@@ -11,13 +11,16 @@
  *  
  */
 
-import { IntentHandler, Listener } from "@finos/fdc3";
+import { IntentHandler, Listener, Context, Channel, IntentResult, ResultError } from "@finos/fdc3";
 import { MessageRouter, TopicMessage } from "@morgan-stanley/composeui-messaging-client";
 import { Unsubscribable } from "rxjs";
 import { ComposeUITopic } from "./ComposeUITopic";
 import { Fdc3RaiseIntentResolutionRequest } from "./messages/Fdc3RaiseIntentResolutionRequest";
 import { Fdc3StoreIntentResultRequest } from "./messages/Fdc3StoreIntentResultRequest";
 import { Fdc3StoreIntentResultResponse } from "./messages/Fdc3StoreIntentResultResponse";
+import { Fdc3AddIntentListenerRequest } from "./messages/Fdc3AddIntentListenerRequest";
+import { Fdc3AddIntentListenerResponse } from "./messages/Fdc3AddIntentListenerResponse";
+import { ComposeUIErrors } from "./ComposeUIErrors";
 
 export class ComposeUIIntentListener implements Listener {
     private unsubscribable?: Unsubscribable;
@@ -25,32 +28,71 @@ export class ComposeUIIntentListener implements Listener {
 
     constructor(
         private messageRouterClient: MessageRouter, 
-        private intent: string, 
+        private intent: string,
+        private instanceId: string,
         private intentHandler: IntentHandler) {
     }
 
-    public async registerIntentHandler(instanceId: string): Promise<void> {
+    public async registerIntentHandler(): Promise<void> {
+        const topic = ComposeUITopic.raiseIntent(this.intent, this.instanceId);
         //Applications register the intents and context data combinations they support in the App Directory.
         //https://fdc3.finos.org/docs/intents/spec
         this.unsubscribable = await this.messageRouterClient.subscribe(
-            ComposeUITopic.addIntentListener(this.intent, instanceId),
+            topic,
             async (topicMessage: TopicMessage) => {
-                const message = <Fdc3RaiseIntentResolutionRequest> JSON.parse(topicMessage.payload!);
+                const message = <Fdc3RaiseIntentResolutionRequest>(JSON.parse(topicMessage.payload!));
                 //TODO: integrationtest
-                let intentResult = await this.intentHandler(message.context, message.metadata);
-                const request = new Fdc3StoreIntentResultRequest(this.intent, message.metadata?.source.instanceId!, intentResult);
-                const response = <Fdc3StoreIntentResultResponse>await this.messageRouterClient.invoke(ComposeUITopic.sendIntentResult(), JSON.stringify(request));
-                if (response.error || !response.stored) {
-                    console.log("Error while resolving the intent.", response.error);
+                //TODO: test
+                let request: Fdc3StoreIntentResultRequest;
+                try {
+                    const intentResult = <object>await this.intentHandler(message.context, message.contextMetadata);
+
+                    if ('id' in intentResult) {
+                        const channel = <Channel>intentResult;
+                        request = new Fdc3StoreIntentResultRequest(this.intent, this.instanceId, message.contextMetadata.source.instanceId!, channel.id, channel.type);
+                    } else if ('type' in intentResult) {
+                        const context = <Context>intentResult;
+                        request = new Fdc3StoreIntentResultRequest(this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, context);
+                    } else { //its a void
+                        request = new Fdc3StoreIntentResultRequest(this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, undefined, ResultError.NoResultReturned);
+                    }
+                } catch(error) {
+                    request = new Fdc3StoreIntentResultRequest(this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, undefined, ResultError.IntentHandlerRejected);
+                }
+
+                const result = await this.messageRouterClient.invoke(ComposeUITopic.sendIntentResult(), JSON.stringify(request));
+                if (!result) {
+                    return;
+                } else {
+                    const response = <Fdc3StoreIntentResultResponse>(JSON.parse(result));
+                    if (response.error || !response.stored) {
+                        console.log("Error while resolving the intent.", response.error);
+                    }
                 }
             });
 
         this.isSubscribed = true;
     }
 
-    public unsubscribe(): void {
-        if (!this.isSubscribed) return;
-        this.unsubscribable?.unsubscribe();
-        this.isSubscribed = false;
+    public unsubscribe(): Promise<void> {
+        return new Promise<void>(async(resolve, reject) => {
+            if (!this.isSubscribed) return;
+            const message = new Fdc3AddIntentListenerRequest(this.intent, this.instanceId, "Unsubscribe");
+            const response = await this.messageRouterClient.invoke(ComposeUITopic.addIntentListener(), JSON.stringify(message));
+            if (!response) {
+                return reject(ComposeUIErrors.NoAnswerWasProvided);
+            } else {
+                const result = <Fdc3AddIntentListenerResponse>JSON.parse(response);
+                if (result.error) {
+                    return reject(result.error);
+                } else if (result.stored) {
+                    return reject(ComposeUIErrors.UnsubscribeFailure);
+                } else {
+                    this.unsubscribable?.unsubscribe();
+                    this.isSubscribed = false;
+                    return resolve();
+                }
+            }
+        });
     }
 }
