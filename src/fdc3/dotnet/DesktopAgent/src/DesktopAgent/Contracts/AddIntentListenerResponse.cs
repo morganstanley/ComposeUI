@@ -12,18 +12,14 @@
  * and limitations under the License.
  */
 
-using MorganStanley.ComposeUI.Shell.Utilities;
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
-namespace MorganStanley.ComposeUI.Shell.Tests
+public class AddIntentListenerResponse
 {
-    public class ReadResourceTests
-    {
-        [Fact]
-        public void TestFdc3BundleResourceIsFound()
-        {
-            var resource = ResourceReader.ReadResource(ResourceNames.Fdc3Bundle);
+    public bool Stored { get; init; } = false;
+    public string? Error { get; init; }
 
-            Assert.NotNull(resource);
-        }
-    }
+    public static AddIntentListenerResponse Failure(string error) => new() { Error = error };
+    public static AddIntentListenerResponse SubscribeSuccess() => new() { Stored = true };
+    public static AddIntentListenerResponse UnsubscribeSuccess() => new() { Stored = false };
 }

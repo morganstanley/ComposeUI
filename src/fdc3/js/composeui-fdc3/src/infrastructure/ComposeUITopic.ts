@@ -25,10 +25,12 @@ export class ComposeUITopic {
     private static readonly joinUserChannelSuffix = "joinUserChannel";
     private static readonly getOrCreateChannelSuffix = "getOrCreateChannel";
     private static readonly raiseIntentSuffix = "raiseIntent";
+    private static readonly addIntentListenerSuffix = "addIntentListener";
     private static readonly getIntentSuffix = "getIntentResult";
     private static readonly findIntentSuffix = "findIntent";
     private static readonly findIntentsByContextSuffix = "findIntentsByContext";
     private static readonly sendIntentResultSuffix = "sendIntentResult";
+    private static readonly findChannelSuffix = "findChannel";
 
     public static broadcast(channelId: string, channelType: ChannelType = "user") : string {
         return `${this.getChannelsTopicRootWithTopicId(channelId, channelType)}/${this.broadcastSuffix}`;
@@ -38,27 +40,31 @@ export class ComposeUITopic {
         return `${this.getChannelsTopicRootWithTopicId(channelId, channelType)}/${this.getCurrentContextSuffix}`;
     }
 
-    public static joinUserChannel() : string {
+    public static joinUserChannel(): string {
         return `${this.topicRoot}/${this.joinUserChannelSuffix}`;
     }
 
-    public static getOrCreateChannel() : string {
+    public static getOrCreateChannel(): string {
         return `${this.topicRoot}/${this.getOrCreateChannelSuffix}`;
     }
 
-    public static raiseIntent() : string {
-        return `${this.topicRoot}/${this.raiseIntentSuffix}`;
+    public static raiseIntent(intent?: string, instanceId?: string): string {
+        if (intent && instanceId) {
+            return `${this.topicRoot}/${this.raiseIntentSuffix}/${intent}/${instanceId}`;
+        } else {
+            return `${this.topicRoot}/${this.raiseIntentSuffix}`;
+        }
     }
 
-    public static raiseIntentWithId(instanceId: string) : string {
-        return `${this.topicRoot}/${this.raiseIntentSuffix}/${instanceId}`;
+    public static addIntentListener(): string {
+        return `${this.topicRoot}/${this.addIntentListenerSuffix}`;
     }
 
-    public static getIntentResult() : string {
+    public static getIntentResult(): string {
         return `${this.topicRoot}/${this.getIntentSuffix}`;
     }
 
-    public static sendIntentResult() : string {
+    public static sendIntentResult(): string {
         return `${this.topicRoot}/${this.sendIntentResultSuffix}`;
     }
 
@@ -70,15 +76,15 @@ export class ComposeUITopic {
         return `${this.topicRoot}/${this.findIntentsByContextSuffix}`;
     }
 
-    public static addIntentListener(intent: string, instanceId: string) : string {
-        return `${this.topicRoot}/${this.raiseIntentSuffix}/${intent}/${instanceId}`;
+    public static findChannel(): string {
+        return `${this.topicRoot}/${this.findChannelSuffix}`;
     }
 
     private static getChannelsTopicRootWithTopicId(topicId: string, channelType: ChannelType) : string {
         return `${this.getChannelsTopicRoot(channelType)}/${topicId}`;
     }
 
-    private static getChannelsTopicRoot(channelType: ChannelType) : string {
+    private static getChannelsTopicRoot(channelType: ChannelType): string {
         switch(channelType) {
             case "user":
                 return `${this.topicRoot}/${this.userChannels}`;

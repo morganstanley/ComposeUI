@@ -12,7 +12,11 @@
  */
 import { AppMetadata, IntentResolution, IntentResult } from "@finos/fdc3";
 import { MessageRouter } from "@morgan-stanley/composeui-messaging-client";
+import { ComposeUIChannel } from "./ComposeUIChannel";
+import { ComposeUIErrors } from "./ComposeUIErrors";
 import { ComposeUITopic } from "./ComposeUITopic";
+import { Fdc3FindChannelRequest } from "./messages/Fdc3FindChannelRequest";
+import { Fdc3FindChannelResponse } from "./messages/Fdc3FindChannelResponse";
 import { Fdc3GetIntentResultRequest } from "./messages/Fdc3GetIntentResultRequest";
 import { Fdc3GetIntentResultResponse } from "./messages/Fdc3GetIntentResultResponse";
 
@@ -30,17 +34,34 @@ export class ComposeUIIntentResolution implements IntentResolution {
     getResult(): Promise<IntentResult> {
         return new Promise(async(resolve, reject) => {
             const intentResolutionRequest = new Fdc3GetIntentResultRequest(this.intent, this.source, this.source.version);
-            const response = <Fdc3GetIntentResultResponse>await this.messageRouterClient.invoke(ComposeUITopic.getIntentResult(), JSON.stringify(intentResolutionRequest));
+            console.log(intentResolutionRequest);
+            const response = await this.messageRouterClient.invoke(ComposeUITopic.getIntentResult(), JSON.stringify(intentResolutionRequest));
             if (!response) {
-                reject("No answer came from the server whe resolving intent");
-            } else if (response.error) {
-                reject(response.error);
+                return reject(ComposeUIErrors.NoAnswerWasProvided);
             } else {
-                //TODO(Lilla): context? channel?
-                //TODO(Lilla): we should return just when the intentHandler resolved the intent.
-                //TODO(Lilla): mesage should be defined as some error might happens and we need to rejct the promise in that case.
-                resolve(response.intentResult);
-            }           
+                const result = <Fdc3GetIntentResultResponse>(JSON.parse(response));
+                if (result.error) {
+                    return reject(result.error);
+                } else {
+                    if (result.channelId && result.channelType) {
+                        const message = JSON.stringify(new Fdc3FindChannelRequest(result.channelId, result.channelType));
+                        const response = await this.messageRouterClient.invoke(ComposeUITopic.findChannel(), message);
+                        if(response) {
+                            const fdc3Message = <Fdc3FindChannelResponse>JSON.parse(response);
+                            if(fdc3Message.error) {
+                                return reject(fdc3Message.error);
+                            } 
+                            if (fdc3Message.found){
+                                const channel = new ComposeUIChannel(result.channelId, result.channelType, this.messageRouterClient);
+                                return resolve(channel);
+                            }
+                        }
+                    } else if (result.context) {
+                        return resolve(result.context);
+                    }
+                    return reject(ComposeUIErrors.NoAnswerWasProvided);
+                }           
+            }
         });
     }
 }

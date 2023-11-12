@@ -12,10 +12,24 @@
  * and limitations under the License.
  */
 
+using MorganStanley.Fdc3;
+
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
 
 public static class ThrowHelper
 {
-    public static Fdc3DesktopAgentException MissingRaiseIntentIdException(string message) =>
-        new(Fdc3DesktopAgentErrors.MissingId, message);
+    public static Fdc3DesktopAgentException MissingFdc3InstanceIdException(string moduleId) =>
+        new(Fdc3DesktopAgentErrors.MissingId, $"Missing Fdc3InstanceId for module: {moduleId}, when module is started and FDC3 is enabled by the application.");
+
+    public static Fdc3DesktopAgentException MissingAppFromRaisedIntentInvocationsException(string instanceId) =>
+        new(Fdc3DesktopAgentErrors.MissingId, $"Missing Fdc3InstanceId: {instanceId}, when module is added its intent listener and FDC3 is enabled by the application.");
+
+    public static Fdc3DesktopAgentException MultipleIntentRegisteredToAnAppInstance(string intent) =>
+        new(Fdc3DesktopAgentErrors.MultipleIntent, $"Multiplpe intent were registered to the running instance. Intent: {intent}.");
+
+    public static Fdc3DesktopAgentException TargetInstanceUnavailable() =>
+        new(ResolveError.TargetAppUnavailable, $"Target app is unavailable when intent was raised.");
+
+    public static Fdc3DesktopAgentException StartModuleFailure(Exception exception) =>
+        new(Fdc3DesktopAgentErrors.StartModuleFailure, $"Could not start module when intent was raised.", exception);
 }

@@ -101,24 +101,25 @@ internal class UserChannel : IAsyncDisposable
         return ValueTask.CompletedTask;
     }
 
-    internal async ValueTask<MessageBuffer?> GetCurrentContext(string endpoint, MessageBuffer? payloadBuffer, MessageContext? messageContext)
+    internal ValueTask<MessageBuffer?> GetCurrentContext(string endpoint, MessageBuffer? payloadBuffer, MessageContext? messageContext)
     {
         if (payloadBuffer == null)
         {            
-            return _lastContext;
+            return ValueTask.FromResult<MessageBuffer?>(_lastContext);
         }
 
         var payload = payloadBuffer.ReadJson<GetCurrentContextRequest>();
         if (payload?.ContextType == null)
         {
-            return _lastContext;
+            return ValueTask.FromResult<MessageBuffer?>(_lastContext);
         }
 
         if (_contexts.TryGetValue(payload.ContextType, out MessageBuffer? context))
         {
-            return context;
+            return ValueTask.FromResult<MessageBuffer?>(context);
         }
-        return null;
+
+        return ValueTask.FromResult<MessageBuffer?>(null);
     }
 
     public async ValueTask DisposeAsync()

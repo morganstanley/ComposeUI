@@ -12,7 +12,19 @@ namespace MorganStanley.ComposeUI.Shell.ToRemove
         private readonly IEnumerable<Fdc3App> _apps = new List<Fdc3App>()
         {
             new Fdc3App("Morgan Stanley", "Morgan Stanley", AppType.Web, new WebAppDetails("http://www.morganstanley.com")),
-            new Fdc3App("Microsoft", "Microsoft", AppType.Web, new WebAppDetails("http://www.microsoft.com")),
+            new Fdc3App("Microsoft", "Microsoft", AppType.Web, new WebAppDetails("http://www.microsoft.com"))
+            {
+                Interop = new()
+                {
+                    Intents = new()
+                    {
+                        ListensFor = new()
+                        {
+                            { "StartCall", new IntentMetadata("StartCall", "Call ME", new[] { "fdc3.nothing" }) }
+                        }
+                    }
+                }
+            },
             new Fdc3App("Google", "Google", AppType.Web, new WebAppDetails("http://www.google.com"))
             {
                 Interop = new()
@@ -26,7 +38,7 @@ namespace MorganStanley.ComposeUI.Shell.ToRemove
                     }
                 }
             },
-            new Fdc3App("FINOS FDC3 Workbenchid", "FINOS FDC3 Workbench", AppType.Web, new WebAppDetails("https://fdc3.finos.org/toolbox/fdc3-workbench/")),
+            new Fdc3App("FINOS FDC3 Workbench", "FINOS FDC3 Workbench", AppType.Web, new WebAppDetails("https://fdc3.finos.org/toolbox/fdc3-workbench/")),
         };
         public Task<Fdc3App?> GetApp(string appId)
         {

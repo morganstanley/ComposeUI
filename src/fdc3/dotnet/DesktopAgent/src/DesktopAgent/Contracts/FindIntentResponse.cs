@@ -24,17 +24,13 @@ public class FindIntentResponse
     /// <summary>
     /// <see cref="MorganStanley.Fdc3.AppIntent"/>, as result of executing the fdc3.findIntent.
     /// </summary>
-    public AppIntent? AppIntent { get; set; }
+    public AppIntent? AppIntent { get; init; }
 
     /// <summary>
     /// Error, which indicates that some error happened during the execution of fdc3.findIntent.
     /// </summary>
-    public string? Error { get; set; }
+    public string? Error { get; init; }
 
-    public static FindIntentResponse Success(IAppIntent appIntent)
-    {
-        var converted = new AppIntent(appIntent.Intent, appIntent.Apps);
-        return new FindIntentResponse { AppIntent = converted };
-    }
-    public static FindIntentResponse Failure(string error) => new FindIntentResponse { Error = error };
+    public static FindIntentResponse Success(AppIntent appIntent) => new() { AppIntent = appIntent };
+    public static FindIntentResponse Failure(string error) => new() { Error = error };
 }

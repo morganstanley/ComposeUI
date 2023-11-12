@@ -15,7 +15,7 @@ import { Context, Channel } from "@finos/fdc3";
 
 export class Fdc3FindIntentRequest {
     constructor(
-        public readonly instanceId: string,
+        public readonly fdc3InstanceId: string,
         public readonly intent: string,
         public readonly context?: Context,
         public readonly resultType?: string) {

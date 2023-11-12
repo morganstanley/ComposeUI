@@ -12,8 +12,6 @@
  * and limitations under the License.
  */
 
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
-
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
 internal static class Fdc3Topic
@@ -25,15 +23,7 @@ internal static class Fdc3Topic
     internal static string RaiseIntent => TopicRoot + "raiseIntent";
     internal static string GetIntentResult => TopicRoot + "getIntentResult";
     internal static string SendIntentResult => TopicRoot + "sendIntentResult";
-
-    //This endpoint serves the case when user should choose an app through the ResolverUI
-    internal static string RaiseIntentResolution(string? originInstanceId)
-    {
-        if (string.IsNullOrEmpty(originInstanceId))
-            throw ThrowHelper.MissingRaiseIntentIdException($"Originating instance id is not defined, so couldn't register service for raising the intent.");
-        
-        return $"{RaiseIntent}/{originInstanceId}";
-    }
+    internal static string AddIntentListener => TopicRoot + "addIntentListener";
 
     //IntentListeners will be listening at this endpoint
     internal static string RaiseIntentResolution(string intent, string instanceId)

@@ -15,7 +15,7 @@ import { Context } from "@finos/fdc3";
 
 export class Fdc3FindIntentsByContextRequest {
     constructor(
-        public readonly instanceId: string,
+        public readonly fdc3InstanceId: string,
         public readonly context?: Context,
         public readonly resultType?: string) {
 

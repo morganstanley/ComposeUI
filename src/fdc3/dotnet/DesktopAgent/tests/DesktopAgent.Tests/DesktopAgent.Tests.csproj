@@ -32,7 +32,14 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\messaging\dotnet\src\Client\MorganStanley.ComposeUI.Messaging.Client.csproj" />
     <ProjectReference Include="..\..\..\..\..\messaging\dotnet\src\Host\MorganStanley.ComposeUI.Messaging.Host.csproj" />
+    <ProjectReference Include="..\..\..\AppDirectory\src\AppDirectory\AppDirectory.csproj" />
     <ProjectReference Include="..\..\src\DesktopAgent\DesktopAgent.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="TestUtils\appDirectorySample.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

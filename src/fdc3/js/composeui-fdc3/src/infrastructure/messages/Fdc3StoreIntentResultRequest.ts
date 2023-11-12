@@ -11,12 +11,17 @@
  *  
  */
 
-import { IntentResult } from "@finos/fdc3";
+import { Context } from "@finos/fdc3";
+import { ChannelType } from "../ChannelType";
 
 export class Fdc3StoreIntentResultRequest {
     constructor(
         public intent: string,
-        public targetInstanceId: string,
-        public intentResult: IntentResult
+        public originFdc3InstanceId: string,
+        public targetFdc3InstanceId: string,
+        public channelId?: string,
+        public channelType?: ChannelType,
+        public context?: Context,
+        public errorResult?: string
     ) {}
 }

@@ -12,7 +12,9 @@
  * and limitations under the License.
  */
 
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
 using MorganStanley.Fdc3;
+using MorganStanley.Fdc3.Context;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
@@ -22,21 +24,54 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 public class GetIntentResultResponse
 {
     /// <summary>
-    /// Describes result that an Intent handler may return that should be communicated back to the app that raised the intent, via the IntentResolution.
+    /// Indicates that the IntentResult is a typeof Context.
     /// </summary>
-    public IIntentResult? IntentResult { get; set; }
+    public Context? Context { get; set; }
+
+    /// <summary>
+    /// Indicates that the IntentResult is a typeof Channel.
+    /// </summary>
+    public string? ChannelId { get; set; }
+
+    /// <summary>
+    /// Indicates that the IntentResult is a typeof Channel.
+    /// </summary>
+    public ChannelType? ChannelType { get; set; }
 
     /// <summary>
     /// Indicates that an error happened during retrieving the IntentResult.
     /// </summary>
     public string? Error { get; set; }
 
-    public static GetIntentResultResponse Success(IIntentResult intentResult)
+    /// <summary>
+    /// Indicates that the IntentHandler returned error during its execution.
+    /// </summary>
+    public string? ErrorResult { get; set; }
+
+    public static GetIntentResultResponse Success(
+        string? channelId = null,
+        ChannelType? channelType = null,
+        Context? context = null,
+        string? errorResult = null)
     {
-        var response = new GetIntentResultResponse()
+        var response = new GetIntentResultResponse();
+        if (channelId != null && channelType != null)
         {
-            IntentResult = intentResult
-        };
+            response.ChannelId = channelId;
+            response.ChannelType = channelType;
+        }
+        else if (context != null)
+        {
+            response.Context = context;
+        }
+        else if (errorResult != null)
+        {
+            response.ErrorResult = errorResult;
+        }
+        else
+        {
+            return Failure(Fdc3DesktopAgentErrors.ResponseHasNoAttribute);
+        }
 
         return response;
     }

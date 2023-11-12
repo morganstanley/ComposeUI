@@ -21,7 +21,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
 
-namespace MorganStanley.ComposeUI.Shell.Utilities;
+namespace MorganStanley.ComposeUI.Utilities;
 
 /// <summary>
 /// Simple helper class that parses strongly typed objects from command line arguments.
