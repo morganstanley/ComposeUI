@@ -15,6 +15,7 @@
 
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using MorganStanley.ComposeUI.Fdc3.AppDirectory;
+using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.Fdc3.AppDirectory;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -24,7 +25,7 @@ public static class ServiceCollectionAppDirectoryExtensions
     public static IServiceCollection AddFdc3AppDirectory(this IServiceCollection serviceCollection)
     {
         serviceCollection.TryAddSingleton<IAppDirectory, AppDirectory>();
-
+        serviceCollection.TryAddSingleton<IModuleCatalog, Fdc3ModuleCatalog>();
         return serviceCollection;
     }
 
@@ -33,7 +34,7 @@ public static class ServiceCollectionAppDirectoryExtensions
         Action<AppDirectoryOptions> configureOptions)
     {
         serviceCollection.AddFdc3AppDirectory();
-        serviceCollection.AddOptions().Configure(configureOptions);
+        serviceCollection.AddOptions().Configure(configureOptions);        
 
         return serviceCollection;
     }
