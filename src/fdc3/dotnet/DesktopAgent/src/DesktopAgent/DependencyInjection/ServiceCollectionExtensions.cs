@@ -15,6 +15,7 @@
 using Microsoft.Extensions.Hosting;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
+using MorganStanley.ComposeUI.ModuleLoader;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -34,4 +35,12 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddSingleton<IHostedService, Fdc3DesktopAgent>();
         return serviceCollection;
     }
+
+    public static IServiceCollection AddFdc3ModuleCatalog(
+        this IServiceCollection serviceCollection)
+    {
+        serviceCollection.AddSingleton<IModuleCatalog, Fdc3ModuleCatalog>();
+        return serviceCollection;
+    }
+
 }
