@@ -10,13 +10,16 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls.Ribbon;
+using System.Windows.Documents;
 using CommunityToolkit.Mvvm.ComponentModel;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.ImageSource;
+using MorganStanley.ComposeUI.Shell.Modules;
 
 namespace MorganStanley.ComposeUI.Shell;
 
@@ -25,20 +28,36 @@ namespace MorganStanley.ComposeUI.Shell;
 /// </summary>
 public partial class MainWindow : RibbonWindow
 {
+    private readonly IModuleLoader _moduleLoader;
+    private readonly IModuleCatalog _moduleCatalog;
+    private readonly ImageSourceProvider _iconProvider;
+
     public MainWindow(
         IModuleCatalog moduleCatalog,
         IModuleLoader moduleLoader,
         IImageSourcePolicy? imageSourcePolicy = null)
     {
-        InitializeComponent();
+        _moduleCatalog = moduleCatalog;
         _moduleLoader = moduleLoader;
-        var iconProvider = new ImageSourceProvider(imageSourcePolicy ?? new DefaultImageSourcePolicy());
-        
+        _iconProvider = new ImageSourceProvider(imageSourcePolicy ?? new DefaultImageSourcePolicy());
+
+        InitializeComponent();
+    }
+
+    private async void RibbonWindow_Initialized(object sender, System.EventArgs e)
+    {
+        var moduleIds = await _moduleCatalog.GetModuleIds();
+
+        var modules = new List<ModuleViewModel>();
+        foreach (var moduleId in moduleIds)
+        {
+            var manifest = await _moduleCatalog.GetManifest(moduleId);
+            modules.Add(new ModuleViewModel(manifest, _iconProvider));
+        }
+
         ViewModel = new MainWindowViewModel
         {
-            Modules = new ObservableCollection<ModuleViewModel>(
-                moduleCatalog.GetModuleIds()
-                    .Select(id => new ModuleViewModel(moduleCatalog.GetManifest(id), iconProvider)))
+            Modules = new ObservableCollection<ModuleViewModel>(modules)
         };
     }
 
@@ -48,7 +67,7 @@ public partial class MainWindow : RibbonWindow
         private set => DataContext = value;
     }
 
-    private readonly IModuleLoader _moduleLoader;
+
 
     private async void StartModule_Click(object sender, RoutedEventArgs e)
     {

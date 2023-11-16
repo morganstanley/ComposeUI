@@ -22,11 +22,11 @@ public interface IModuleCatalog
     /// </summary>
     /// <param name="moduleId"></param>
     /// <returns></returns>
-    IModuleManifest GetManifest(string moduleId);
+    Task<IModuleManifest> GetManifest(string moduleId);
 
     /// <summary>
     /// Gets the IDs of the modules in the catalog.
     /// </summary>
     /// <returns></returns>
-    IEnumerable<string> GetModuleIds();
+    Task<IEnumerable<string>> GetModuleIds();
 }

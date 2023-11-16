@@ -41,7 +41,7 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
 
     public async Task<IModuleInstance> StartModule(StartRequest request)
     {
-        var manifest = _moduleCatalog.GetManifest(request.ModuleId);
+        var manifest = await _moduleCatalog.GetManifest(request.ModuleId);
         if (manifest == null)
         {
             throw new Exception($"Unknown Module id: {request.ModuleId}");

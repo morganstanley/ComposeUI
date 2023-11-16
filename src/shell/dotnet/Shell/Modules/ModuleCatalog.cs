@@ -43,14 +43,14 @@ internal sealed class ModuleCatalog : IModuleCatalog, IInitializeAsync
         await LoadFromFile(_options.CatalogUrl.LocalPath);
     }
 
-    public IModuleManifest GetManifest(string moduleId)
+    public Task<IModuleManifest> GetManifest(string moduleId)
     {
-        return _modules[moduleId];
+        return Task.FromResult<IModuleManifest>(_modules[moduleId]);
     }
 
-    public IEnumerable<string> GetModuleIds()
+    public Task<IEnumerable<string>> GetModuleIds()
     {
-        return _modules.Keys;
+        return Task.FromResult<IEnumerable<string>>(_modules.Keys);
     }
 
     private readonly IFileSystem _fileSystem;
@@ -73,7 +73,7 @@ internal sealed class ModuleCatalog : IModuleCatalog, IInitializeAsync
     }
 
     private static readonly JsonSerializerOptions JsonSerializerOptions =
-        new() {Converters = {new ModuleManifestConverter()}};
+        new() { Converters = { new ModuleManifestConverter() } };
 
     private class ModuleManifest : IModuleManifest
     {

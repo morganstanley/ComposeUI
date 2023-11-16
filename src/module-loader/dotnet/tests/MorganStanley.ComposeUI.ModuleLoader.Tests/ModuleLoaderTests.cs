@@ -29,7 +29,7 @@ namespace MorganStanley.ComposeUI.ModuleLoader.Tests
         public void GivenUnknownModuleId_WhenStart_ThrowsException()
         {
             var moduleCatalogMock = new Mock<IModuleCatalog>();
-            moduleCatalogMock.Setup(c => c.GetManifest(It.IsAny<string>())).Returns((IModuleManifest?) null!);
+            moduleCatalogMock.Setup(c => c.GetManifest(It.IsAny<string>())).Returns(Task.FromResult<IModuleManifest?>(null));
 
             var moduleLoader = new ModuleLoader(moduleCatalogMock.Object, Enumerable.Empty<IModuleRunner>(), Enumerable.Empty<IStartupAction>());
             Assert.ThrowsAsync<Exception>(async () => await moduleLoader.StartModule(new StartRequest("invalid")));
@@ -41,7 +41,7 @@ namespace MorganStanley.ComposeUI.ModuleLoader.Tests
             var moduleManifestMock = new Mock<IModuleManifest>();
             moduleManifestMock.Setup(m => m.ModuleType).Returns("test");
             var moduleCatalogMock = new Mock<IModuleCatalog>();
-            moduleCatalogMock.Setup(c => c.GetManifest(It.IsAny<string>())).Returns(moduleManifestMock.Object);
+            moduleCatalogMock.Setup(c => c.GetManifest(It.IsAny<string>())).Returns(Task.FromResult<IModuleManifest>(moduleManifestMock.Object));
             var testModuleRunnerMock = new Mock<IModuleRunner>();
             testModuleRunnerMock.Setup(r => r.ModuleType).Returns("other");
 
@@ -66,7 +66,7 @@ namespace MorganStanley.ComposeUI.ModuleLoader.Tests
 
             moduleManifestMock.Setup(m => m.ModuleType).Returns(ModuleType.Web);
             moduleManifestMock.Setup(m => m.Details).Returns(webManifestDetails);
-            moduleCatalogMock.Setup(c => c.GetManifest(moduleId)).Returns(moduleManifestMock.Object);
+            moduleCatalogMock.Setup(c => c.GetManifest(moduleId)).Returns(Task.FromResult<IModuleManifest>(moduleManifestMock.Object));
             startupActionMock.Setup(s => s.InvokeAsync(It.IsAny<StartupContext>(), It.IsAny<Func<Task>>()))
                 .Callback<StartupContext, Func<Task>>((startupContext, next) =>
                 {
