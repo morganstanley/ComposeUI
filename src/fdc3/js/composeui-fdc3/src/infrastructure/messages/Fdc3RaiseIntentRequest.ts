@@ -16,12 +16,12 @@ import { Context } from "vm";
 
 export class Fdc3RaiseIntentRequest {
     constructor(
-        public readonly raiseIntentMessageId: number,
+        public readonly messageId: number,
         public readonly fdc3InstanceId: string,
         public readonly intent: string,
         public readonly selected: boolean,
         public readonly context: Context,
-        public readonly appIdentifier?: AppIdentifier,
+        public readonly targetAppIdentifier?: AppIdentifier,
         public readonly error?: string) {
     }
 }

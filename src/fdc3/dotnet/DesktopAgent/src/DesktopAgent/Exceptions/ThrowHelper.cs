@@ -32,4 +32,7 @@ public static class ThrowHelper
 
     public static Fdc3DesktopAgentException StartModuleFailure(Exception exception) =>
         new(Fdc3DesktopAgentErrors.StartModuleFailure, $"Could not start module when intent was raised.", exception);
+
+    public static Fdc3DesktopAgentException MissingIntentForMessage(string messageId, string intent) =>
+        new(Fdc3DesktopAgentErrors.MissingIntent, $"Could not found raised intent invocations for message: {messageId} with intent: {intent}");    
 }

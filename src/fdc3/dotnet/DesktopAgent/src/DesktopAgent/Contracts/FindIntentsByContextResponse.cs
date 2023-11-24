@@ -19,7 +19,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 /// <summary>
 /// Response, for calling the fdc3.findIntentsByContext by the clients with <see cref="FindIntentsByContextRequest"/>.
 /// </summary>
-public class FindIntentsByContextResponse
+internal sealed class FindIntentsByContextResponse
 {
     /// <summary>
     /// AppIntents, that might be returned as result of executing the fdc3.findIntentsByContext.

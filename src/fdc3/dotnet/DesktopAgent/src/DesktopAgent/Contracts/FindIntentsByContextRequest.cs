@@ -20,7 +20,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 /// <summary>
 /// Request by calling the fdc3.findIntentsByContext.
 /// </summary>
-public class FindIntentsByContextRequest
+internal sealed class FindIntentsByContextRequest
 {
     [JsonConstructor]
     public FindIntentsByContextRequest(

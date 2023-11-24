@@ -14,6 +14,7 @@
 
 using System.Reactive.Subjects;
 using MorganStanley.ComposeUI.ModuleLoader;
+using MorganStanley.ComposeUI.Shell.Fdc3;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.TestUtils;
 
@@ -84,14 +85,17 @@ public class MockModuleLoader : IModuleLoader
 
         public Guid InstanceId => _instanceId;
         private readonly Guid _instanceId = Guid.NewGuid();
-
+        private readonly string _fdc3InstanceId = Guid.NewGuid().ToString();
         public IModuleManifest Manifest => _moduleManifest;
 
         public StartRequest StartRequest => _startRequest;
 
         public IEnumerable<object> GetProperties()
         {
-            return Enumerable.Empty<object>();
+            return new object[]
+            {
+                new Fdc3StartupProperties() { InstanceId = _fdc3InstanceId },
+            };
         }
 
         public MockModuleInstance(StartRequest startRequest, IModuleManifest moduleManifest)

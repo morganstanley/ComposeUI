@@ -15,6 +15,7 @@ import { AppIdentifier } from "@finos/fdc3";
 
 export class Fdc3GetIntentResultRequest {
     constructor(
+        public readonly messageId: string,
         public readonly intent: string,
         public readonly targetAppIdentifier: AppIdentifier,
         public readonly version?: string) {

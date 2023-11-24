@@ -24,8 +24,10 @@ export class ComposeUIIntentResolution implements IntentResolution {
     private messageRouterClient: MessageRouter;
     public source: AppMetadata;
     public intent: string
+    public messageId: string;
 
-    constructor(messageRouterClient: MessageRouter, intent: string, source: AppMetadata) {
+    constructor(messageId: string, messageRouterClient: MessageRouter, intent: string, source: AppMetadata) {
+        this.messageId = messageId;
         this.intent = intent;
         this.source = source;
         this.messageRouterClient = messageRouterClient;
@@ -33,15 +35,14 @@ export class ComposeUIIntentResolution implements IntentResolution {
 
     getResult(): Promise<IntentResult> {
         return new Promise(async(resolve, reject) => {
-            const intentResolutionRequest = new Fdc3GetIntentResultRequest(this.intent, this.source, this.source.version);
-            console.log(intentResolutionRequest);
+            const intentResolutionRequest = new Fdc3GetIntentResultRequest(this.messageId, this.intent, this.source, this.source.version);
             const response = await this.messageRouterClient.invoke(ComposeUITopic.getIntentResult(), JSON.stringify(intentResolutionRequest));
             if (!response) {
-                return reject(ComposeUIErrors.NoAnswerWasProvided);
+                return reject(new Error(ComposeUIErrors.NoAnswerWasProvided));
             } else {
                 const result = <Fdc3GetIntentResultResponse>(JSON.parse(response));
                 if (result.error) {
-                    return reject(result.error);
+                    return reject(new Error(result.error));
                 } else {
                     if (result.channelId && result.channelType) {
                         const message = JSON.stringify(new Fdc3FindChannelRequest(result.channelId, result.channelType));
@@ -49,7 +50,7 @@ export class ComposeUIIntentResolution implements IntentResolution {
                         if(response) {
                             const fdc3Message = <Fdc3FindChannelResponse>JSON.parse(response);
                             if(fdc3Message.error) {
-                                return reject(fdc3Message.error);
+                                return reject(new Error(fdc3Message.error));
                             } 
                             if (fdc3Message.found){
                                 const channel = new ComposeUIChannel(result.channelId, result.channelType, this.messageRouterClient);
@@ -58,8 +59,11 @@ export class ComposeUIIntentResolution implements IntentResolution {
                         }
                     } else if (result.context) {
                         return resolve(result.context);
+                    } else if (result.errorResult) {
+                        console.log("Backend suspects that the IntentListener returned void. ", result.errorResult);
+                        return resolve();
                     }
-                    return reject(ComposeUIErrors.NoAnswerWasProvided);
+                    return reject(new Error(ComposeUIErrors.NoAnswerWasProvided));
                 }           
             }
         });

@@ -45,19 +45,25 @@ export class ComposeUIIntentListener implements Listener {
                 //TODO: test
                 let request: Fdc3StoreIntentResultRequest;
                 try {
-                    const intentResult = <object>await this.intentHandler(message.context, message.contextMetadata);
+                    const result = this.intentHandler(message.context, message.contextMetadata);
+                    if (result && (typeof result === 'object' || typeof result === 'function') && typeof result.then === 'function') {
+                        const intentResult = <object>await result;
 
-                    if ('id' in intentResult) {
-                        const channel = <Channel>intentResult;
-                        request = new Fdc3StoreIntentResultRequest(this.intent, this.instanceId, message.contextMetadata.source.instanceId!, channel.id, channel.type);
-                    } else if ('type' in intentResult) {
-                        const context = <Context>intentResult;
-                        request = new Fdc3StoreIntentResultRequest(this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, context);
+                        if ('id' in intentResult) {
+                            const channel = <Channel>intentResult;
+                            request = new Fdc3StoreIntentResultRequest(message.messageId, this.intent, this.instanceId, message.contextMetadata.source.instanceId!, channel.id, channel.type);
+                        } else if ('type' in intentResult) {
+                            const context = <Context>intentResult;
+                            request = new Fdc3StoreIntentResultRequest(message.messageId, this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, context);
+                        } else {
+                            throw new Error("Cannot detect return type of the IntentHandler.");
+                        }
                     } else { //its a void
-                        request = new Fdc3StoreIntentResultRequest(this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, undefined, ResultError.NoResultReturned);
+                        request = new Fdc3StoreIntentResultRequest(message.messageId, this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, undefined, ResultError.NoResultReturned);
                     }
+                    
                 } catch(error) {
-                    request = new Fdc3StoreIntentResultRequest(this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, undefined, ResultError.IntentHandlerRejected);
+                    request = new Fdc3StoreIntentResultRequest(message.messageId, this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, undefined, ResultError.IntentHandlerRejected);
                 }
 
                 const result = await this.messageRouterClient.invoke(ComposeUITopic.sendIntentResult(), JSON.stringify(request));

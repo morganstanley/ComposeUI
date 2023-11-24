@@ -569,6 +569,7 @@ describe ('Tests for ComposeUIDesktopAgent\'s intent handling', () => {
 
     it('raiseIntent will throw exception, due error was defined by the DesktopAgent service', async() => {
         const fdc3IntentResponse : Fdc3RaiseIntentResponse = {
+            messageId: "1",
             error: "Error happens..."
         };
         const messageRouterClientMock = {
@@ -594,6 +595,7 @@ describe ('Tests for ComposeUIDesktopAgent\'s intent handling', () => {
 
     it('raiseIntent will resolve the first item, due the DesktopAgent service sent just one application', async() => {
         const fdc3IntentResponse : Fdc3RaiseIntentResponse = {
+            messageId: "1",
             intent: "test",
             appMetadata: [
                 {appId: "test1"}
@@ -615,11 +617,12 @@ describe ('Tests for ComposeUIDesktopAgent\'s intent handling', () => {
         const testDesktopAgent = new ComposeUIDesktopAgent("dummyPath", messageRouterClientMock);
         var result = await testDesktopAgent.raiseIntent("test", { type: "test"} );
         expect(messageRouterClientMock.invoke).toHaveBeenCalledTimes(1);
-        expect(result).toMatchObject(new ComposeUIIntentResolution(messageRouterClientMock, "test", fdc3IntentResponse.appMetadata?.at(0)!));
+        expect(result).toMatchObject(new ComposeUIIntentResolution("1", messageRouterClientMock, "test", fdc3IntentResponse.appMetadata?.at(0)!));
     });
 
     it('raiseIntent will call invoke of the messageRouter once again, due the DesktopAgent service sent multiple possible solution', async() => {
         const fdc3IntentResponse : Fdc3RaiseIntentResponse = {
+            messageId: "1",
             intent: "test",
             appMetadata: [
                 {appId: "test1"},
@@ -642,7 +645,7 @@ describe ('Tests for ComposeUIDesktopAgent\'s intent handling', () => {
         const testDesktopAgent = new ComposeUIDesktopAgent("dummyPath", messageRouterClientMock);
         var result = await testDesktopAgent.raiseIntent("test", { type: "test"} );
         expect(messageRouterClientMock.invoke).toHaveBeenCalledTimes(2);
-        expect(result).toMatchObject(new ComposeUIIntentResolution(messageRouterClientMock, "test", fdc3IntentResponse.appMetadata?.at(0)!));
+        expect(result).toMatchObject(new ComposeUIIntentResolution("1", messageRouterClientMock, "test", fdc3IntentResponse.appMetadata?.at(0)!));
     });
 
     it('addIntentListener will resolve an intentListener', async () => {

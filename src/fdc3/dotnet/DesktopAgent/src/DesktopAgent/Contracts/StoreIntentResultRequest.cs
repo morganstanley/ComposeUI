@@ -21,10 +21,11 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 /// <summary>
 /// Request for the backend, indicating that the IntentHandler of the FDC3 client has executed the raised Intent, handled appropriately, and the backend should store and send back to the originating client if the client calls the IntentResolution.getResult().
 /// </summary>
-public class StoreIntentResultRequest
+internal sealed class StoreIntentResultRequest
 {
     [JsonConstructor]
     public StoreIntentResultRequest(
+        string messageId,
         string intent,
         string originFdc3InstanceId,
         string targetFdc3InstanceId,
@@ -33,6 +34,7 @@ public class StoreIntentResultRequest
         Context? context = null,
         string? errorResult = null)
     {
+        MessageId = messageId;
         Intent = intent;
         OriginFdc3InstanceId = originFdc3InstanceId;
         TargetFdc3InstanceId = targetFdc3InstanceId;
@@ -41,6 +43,11 @@ public class StoreIntentResultRequest
         Context = context;
         ErrorResult = errorResult;
     }
+
+    /// <summary>
+    /// Unique identifier for the raised intent message, which was generated from the gotten MessageId as int from the client and a <seealso cref="Guid"/>.
+    /// </summary>
+    public string MessageId { get; }
 
     /// <summary>
     /// Intent from IntentResolution by IntentHandler of FDC3 clients.

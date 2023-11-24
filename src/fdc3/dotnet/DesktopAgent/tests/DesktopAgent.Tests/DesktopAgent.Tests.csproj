@@ -32,6 +32,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\messaging\dotnet\src\Client\MorganStanley.ComposeUI.Messaging.Client.csproj" />
     <ProjectReference Include="..\..\..\..\..\messaging\dotnet\src\Host\MorganStanley.ComposeUI.Messaging.Host.csproj" />
+    <ProjectReference Include="..\..\..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader\MorganStanley.ComposeUI.ModuleLoader.csproj" />
     <ProjectReference Include="..\..\..\AppDirectory\src\AppDirectory\AppDirectory.csproj" />
     <ProjectReference Include="..\..\src\DesktopAgent\DesktopAgent.csproj" />
   </ItemGroup>

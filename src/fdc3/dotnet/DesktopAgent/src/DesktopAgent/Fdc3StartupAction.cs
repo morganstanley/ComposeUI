@@ -35,7 +35,7 @@ internal sealed class Fdc3StartupAction : IStartupAction
             //TODO: should add some identifier to the query => "fdc3:" + startupContext.StartRequest.ModuleId
             var appId = await _appDirectory.GetApp(startupContext.StartRequest.ModuleId);
 
-            var fdc3InstanceId = startupContext.StartRequest.Parameters.FirstOrDefault(parameter => parameter.Key == Fdc3StartupProperties.Fdc3InstanceId).Value;
+            var fdc3InstanceId = startupContext.StartRequest.Parameters.FirstOrDefault(parameter => parameter.Key == Fdc3StartupParameters.Fdc3InstanceId).Value;
             if (string.IsNullOrEmpty(fdc3InstanceId))
             {
                 var fdc3StartupProperties = new Fdc3StartupProperties() { InstanceId = Guid.NewGuid().ToString() };
@@ -54,7 +54,7 @@ internal sealed class Fdc3StartupAction : IStartupAction
                             ...window.composeui.fdc3, 
                             config: {
                                 appId: "{{appId}}",
-                                instanceId: "{{fdc3InstanceId ?? Guid.NewGuid().ToString()}}"
+                                instanceId: "{{fdc3InstanceId}}"
                             }
                         };
                         """));

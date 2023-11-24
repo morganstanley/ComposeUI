@@ -21,14 +21,20 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 /// <summary>
 /// Request, originated from fdc3.raiseIntent, to publish the raiseIntent request to the selected app.
 /// </summary>
-public class RaiseIntentResolutionRequest
+internal sealed class RaiseIntentResolutionRequest
 {
     [JsonConstructor]
-    public RaiseIntentResolutionRequest(Context context, ContextMetadata contextMetadata)
+    public RaiseIntentResolutionRequest(string messageId, Context context, ContextMetadata contextMetadata)
     {
+        MessageId = messageId;
         Context = context;
         ContextMetadata = contextMetadata;
     }
+
+    /// <summary>
+    /// Unique identifier for the raised intent message, which was generated from the gotten MessageId as int from the client and a <seealso cref="Guid"/>.
+    /// </summary>
+    public string MessageId { get; }
 
     /// <summary>
     /// Context, which should be sent to the selected app via raiseIntent by the FDC3 client.

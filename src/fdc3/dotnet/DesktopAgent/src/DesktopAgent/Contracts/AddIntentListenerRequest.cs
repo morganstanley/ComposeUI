@@ -16,7 +16,7 @@ using System.Text.Json.Serialization;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
-public class AddIntentListenerRequest
+internal sealed class AddIntentListenerRequest
 {
     [JsonConstructor]
     public AddIntentListenerRequest(
