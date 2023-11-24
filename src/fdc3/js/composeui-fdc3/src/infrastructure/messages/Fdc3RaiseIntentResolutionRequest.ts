@@ -14,6 +14,7 @@
 import { Context, ContextMetadata } from "@finos/fdc3";
 
 export interface Fdc3RaiseIntentResolutionRequest {
+    messageId: string;
     context: Context;
     contextMetadata: ContextMetadata;
 }

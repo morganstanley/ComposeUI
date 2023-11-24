@@ -16,7 +16,7 @@ using MorganStanley.Fdc3;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
-internal class FindChannelRequest
+internal sealed class FindChannelRequest
 {
     public string ChannelId { get; set; }
     public ChannelType ChannelType { get; set; }

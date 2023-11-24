@@ -27,6 +27,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Uti
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppDirectory", "..\AppDirectory\src\AppDirectory\AppDirectory.csproj", "{50BD1318-FC44-4582-B333-3033076164E7}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ModuleLoader", "..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader\MorganStanley.ComposeUI.ModuleLoader.csproj", "{4207C810-55CC-433E-BD5B-B9B4D639C7A2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,10 @@ Global
 		{50BD1318-FC44-4582-B333-3033076164E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{50BD1318-FC44-4582-B333-3033076164E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{50BD1318-FC44-4582-B333-3033076164E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4207C810-55CC-433E-BD5B-B9B4D639C7A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4207C810-55CC-433E-BD5B-B9B4D639C7A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4207C810-55CC-433E-BD5B-B9B4D639C7A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4207C810-55CC-433E-BD5B-B9B4D639C7A2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -83,6 +89,7 @@ Global
 		{94E84562-211E-4BA7-A45F-9ADC3D402B74} = {2CE54671-6C98-455E-B2A0-52F8564DDA5D}
 		{2C25BA40-0103-4EB5-B181-98362F563B0F} = {2CE54671-6C98-455E-B2A0-52F8564DDA5D}
 		{50BD1318-FC44-4582-B333-3033076164E7} = {2CE54671-6C98-455E-B2A0-52F8564DDA5D}
+		{4207C810-55CC-433E-BD5B-B9B4D639C7A2} = {2CE54671-6C98-455E-B2A0-52F8564DDA5D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {70FE103D-26D8-42D8-88BA-1BECB1F73A18}

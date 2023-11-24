@@ -21,31 +21,31 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 /// <summary>
 /// Request, originated via fdc.raiseIntent by the client.
 /// </summary>
-public class RaiseIntentRequest
+internal sealed class RaiseIntentRequest
 {
     [JsonConstructor]
     public RaiseIntentRequest(
-        int raiseIntentMessageId,
+        int messageId,
         string fdc3InstanceId,
         string intent,
         bool selected,
-        Context? context = null,
-        AppIdentifier? appIdentifier = null,
+        Context context,
+        AppIdentifier? targetAppIdentifier = null,
         string? error = null)
     {
-        RaiseIntentMessageId = raiseIntentMessageId;
+        MessageId = messageId;
         Fdc3InstanceId = fdc3InstanceId;
         Intent = intent;
         Selected = selected;
-        Context = context ?? new Context("fdc3.nothing");
-        AppIdentifier = appIdentifier;
+        Context = context;
+        TargetAppIdentifier = targetAppIdentifier;
         Error = error;
     }
 
     /// <summary>
-    /// Unique identifier for the message.
+    /// An identifier for the message.
     /// </summary>
-    public int RaiseIntentMessageId { get; }
+    public int MessageId { get; }
 
     /// <summary>
     /// Unique identifier from the application which sent the RaiseIntentRequest type of message.
@@ -71,7 +71,7 @@ public class RaiseIntentRequest
     /// <summary>
     /// Information about the app, that should resolve the raised intent.
     /// </summary>
-    public AppIdentifier? AppIdentifier { get; }
+    public AppIdentifier? TargetAppIdentifier { get; }
 
     /// <summary>
     /// Error, which indicates, that some error happened during executing the raiseIntent method.

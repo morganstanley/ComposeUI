@@ -5,7 +5,7 @@
       "name": "app1",
       "type": 1,
       "details": {
-        "url": "customurl"
+        "url": "http://customurl.com"
       },
       "interop": {
         "intents": {
@@ -26,7 +26,7 @@
       "name": "app2",
       "type": 1,
       "details": {
-        "url": "customurl"
+        "url": "http://customurl.com"
       },
       "interop": {
         "intents": {
@@ -47,7 +47,7 @@
       "name": "app3",
       "type": 1,
       "details": {
-        "url": "customurl"
+        "url": "http://customurl.com"
       },
       "interop": {
         "intents": {}
@@ -58,7 +58,7 @@
       "name": "app4",
       "type": 1,
       "details": {
-        "url": "customurl"
+        "url": "http://customurl.com"
       },
       "interop": {
         "intents": {
@@ -86,7 +86,7 @@
       "name": "app5",
       "type": 1,
       "details": {
-        "url": "customurl"
+        "url": "http://customurl.com"
       },
       "interop": {
         "intents": {
@@ -109,7 +109,7 @@
       "name": "app6",
       "type": 1,
       "details": {
-        "url": "customurl"
+        "url": "http://customurl.com"
       },
       "interop": {
         "intents": {
@@ -139,7 +139,7 @@
       "name": "app7",
       "type": 1,
       "details": {
-        "url": "customurl"
+        "url": "http://customurl.com"
       },
       "interop": {
         "intents": {
@@ -169,7 +169,7 @@
       "name": "app8",
       "type": 1,
       "details": {
-        "url": "customurl"
+        "url": "http://customurl.com"
       },
       "interop": {
         "intents": {
@@ -191,7 +191,7 @@
       "name": "app9",
       "type": 1,
       "details": {
-        "url": "customurl"
+        "url": "http://customurl.com"
       },
       "interop": {
         "intents": {
@@ -213,7 +213,7 @@
       "name": "app11",
       "type": 1,
       "details": {
-        "url": "customurl"
+        "url": "http://customurl.com"
       },
       "interop": {
         "intents": {
@@ -235,7 +235,7 @@
       "name": "app12",
       "type": 1,
       "details": {
-        "url": "customurl2"
+        "url": "http://customurl.com"
       },
       "interop": {
         "intents": {

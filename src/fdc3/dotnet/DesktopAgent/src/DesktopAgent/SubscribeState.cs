@@ -17,7 +17,7 @@ using System.Runtime.Serialization;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
-public enum SubscribeState
+internal enum SubscribeState
 {
     [EnumMember(Value = "Subscribe")]
     Subscribe,

@@ -152,7 +152,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
                 } 
                 
                 if (response.appMetadata!.length <= 1) {
-                    const intentResolution = new ComposeUIIntentResolution(this.messageRouterClient, response.intent!, response.appMetadata![0]);
+                    const intentResolution = new ComposeUIIntentResolution(response.messageId, this.messageRouterClient, response.intent!, response.appMetadata![0]);
                     return resolve(intentResolution); 
                 } else if (response.appMetadata!.length > 1) {
                     //TODO: integrationtest
@@ -170,7 +170,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
                         return reject(new Error(result.error));
                     }
 
-                    const intentResolution = new ComposeUIIntentResolution(this.messageRouterClient, result.intent!, result.appMetadata![0]);
+                    const intentResolution = new ComposeUIIntentResolution(result.messageId, this.messageRouterClient, result.intent!, result.appMetadata![0]);
                     return resolve(intentResolution); 
                 }
             }

@@ -12,14 +12,12 @@
  * and limitations under the License.
  */
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
-internal sealed class AddIntentListenerResponse
+/// <summary>
+/// This class is for setting internally the Fdc3InstanceId via the Fdc3DesktopAgent client's raiseIntent call.
+/// </summary>
+internal class Fdc3StartupParameters
 {
-    public bool Stored { get; init; } = false;
-    public string? Error { get; init; }
-
-    public static AddIntentListenerResponse Failure(string error) => new() { Error = error };
-    public static AddIntentListenerResponse SubscribeSuccess() => new() { Stored = true };
-    public static AddIntentListenerResponse UnsubscribeSuccess() => new() { Stored = false };
+    public static string Fdc3InstanceId = nameof(Fdc3InstanceId);
 }

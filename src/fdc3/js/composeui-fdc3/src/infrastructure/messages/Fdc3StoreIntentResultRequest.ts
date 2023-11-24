@@ -16,6 +16,7 @@ import { ChannelType } from "../ChannelType";
 
 export class Fdc3StoreIntentResultRequest {
     constructor(
+        public messageId: string,
         public intent: string,
         public originFdc3InstanceId: string,
         public targetFdc3InstanceId: string,

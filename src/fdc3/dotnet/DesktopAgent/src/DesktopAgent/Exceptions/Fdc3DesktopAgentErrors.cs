@@ -40,4 +40,9 @@ public static class Fdc3DesktopAgentErrors
     /// Indicates that <seealso cref="MorganStanley.ComposeUI.ModuleLoader.IModuleLoader"/> could not start a module via raiseIntent, etc.
     /// </summary>
     public const string StartModuleFailure = $"{nameof(StartModuleFailure)}";
+
+    /// <summary>
+    /// Indicates that querying raised intent invocations does not contain an element for the intent.
+    /// </summary>
+    public const string MissingIntent = $"{nameof(MissingIntent)}";
 }

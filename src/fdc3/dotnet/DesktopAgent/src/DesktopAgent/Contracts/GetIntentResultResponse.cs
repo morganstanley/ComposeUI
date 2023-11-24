@@ -21,7 +21,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 /// <summary>
 /// Response for the <see cref="GetIntentResultRequest"/>, originated by the clients by calling the IntentResolution.getResult().
 /// </summary>
-public class GetIntentResultResponse
+internal sealed class GetIntentResultResponse
 {
     /// <summary>
     /// Indicates that the IntentResult is a typeof Context.

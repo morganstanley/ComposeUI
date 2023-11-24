@@ -19,8 +19,12 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 /// <summary>
 /// Response, for handling <see cref="RaiseIntentRequest"/> originated via fdc.raiseIntent by clients.
 /// </summary>
-public class RaiseIntentResponse
+internal sealed class RaiseIntentResponse
 {
+    /// <summary>
+    /// Unique identifier for the raised intent message, which was generated from the gotten MessageId as int from the client and a <seealso cref="Guid"/>.
+    /// </summary>
+    public string? MessageId { get; set; }
     /// <summary>
     /// Intent, for which the raiseIntent was executed.
     /// </summary>
@@ -36,7 +40,8 @@ public class RaiseIntentResponse
     /// </summary>
     public string? Error { get; set; }
 
-    public static RaiseIntentResponse Success(AppIntent appIntent) => new() { Intent = appIntent.Intent.Name, AppMetadata = appIntent.Apps.Select(appMetadata => (AppMetadata)appMetadata) };
-    public static RaiseIntentResponse Success(string intent, AppMetadata appMetadata) => new() { Intent = intent, AppMetadata = new[] { appMetadata } };
+    public static RaiseIntentResponse Success(string messageId, AppIntent appIntent) => new() { MessageId = messageId, Intent = appIntent.Intent.Name, AppMetadata = appIntent.Apps.Select(appMetadata => (AppMetadata)appMetadata) };
+    public static RaiseIntentResponse Success(string messageId, string intent, IAppMetadata appMetadata) => new() { MessageId = messageId, Intent = intent, AppMetadata = new[] { (AppMetadata)appMetadata } };
+    public static RaiseIntentResponse Success(string messageId, string intent, AppMetadata appMetadata) => new() {MessageId = messageId, Intent = intent, AppMetadata = new[] { appMetadata } };
     public static RaiseIntentResponse Failure(string error) => new() { Error = error };
 }

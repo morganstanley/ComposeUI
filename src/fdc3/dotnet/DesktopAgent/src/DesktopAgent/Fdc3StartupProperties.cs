@@ -16,6 +16,5 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
 internal class Fdc3StartupProperties
 {
-    public static string Fdc3InstanceId = nameof(Fdc3InstanceId);
     public string InstanceId { get; init; }
 }

@@ -20,18 +20,25 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 /// <summary>
 /// Request, originated from the client via calling the IntentResolution.getResult().
 /// </summary>
-public class GetIntentResultRequest
+internal sealed class GetIntentResultRequest
 {
     [JsonConstructor]
     public GetIntentResultRequest(
+        string messageId,
         string intent,
         AppIdentifier targetAppIdentifier,
         string? version = null)
     {
+        MessageId = messageId;
         Intent = intent;
         TargetAppIdentifier = targetAppIdentifier;
         Version = version;
     }
+
+    /// <summary>
+    /// IntentResolution's stored MessageId gotten by <seealso cref="RaiseIntentResponse"/>.
+    /// </summary>
+    public string MessageId { get; }
 
     /// <summary>
     /// The intent that was raised.

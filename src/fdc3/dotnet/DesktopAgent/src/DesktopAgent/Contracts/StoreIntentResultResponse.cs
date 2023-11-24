@@ -17,7 +17,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 /// <summary>
 /// Response for the client, which handled the intent, if the request <see cref="StoreIntentResultRequest"/> was successfully stored.
 /// </summary>
-public class StoreIntentResultResponse
+internal sealed class StoreIntentResultResponse
 {
     /// <summary>
     /// Indicates that the IntentResult is successfully stored or not.

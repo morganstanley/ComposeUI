@@ -14,7 +14,7 @@
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
-internal class GetCurrentContextRequest
+internal sealed class GetCurrentContextRequest
 {
     public string? ContextType { get; set; }
 }
