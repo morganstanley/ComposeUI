@@ -29,7 +29,7 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
     <PackageVersion Include="Microsoft.Web.WebView2" Version="1.0.2045.28" />
     <PackageVersion Include="Moq.Contrib.HttpClient" Version="1.4.0" />
-    <PackageVersion Include="Moq" Version="4.20.69" />
+    <PackageVersion Include="Moq" Version="4.18.4" />
     <PackageVersion Include="MorganStanley.Fdc3.AppDirectory" Version="2.0.0-alpha.7" />
     <PackageVersion Include="MorganStanley.Fdc3.NewtonsoftJson" Version="2.0.0-alpha.7" />
     <PackageVersion Include="MorganStanley.Fdc3" Version="2.0.0-alpha.7" />
