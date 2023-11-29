@@ -15,6 +15,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging.Abstractions;
+using MorganStanley.ComposeUI.Fdc3.AppDirectory;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
@@ -26,18 +27,23 @@ using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.Fdc3;
 using MorganStanley.Fdc3.AppDirectory;
 using MorganStanley.Fdc3.Context;
+using IntentMetadata = MorganStanley.Fdc3.AppDirectory.IntentMetadata;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
 
 public class Fdc3DesktopAgentTests
 {
     private static readonly Mock<IMessageRouter> MockMessageRouter = new();
-    private static readonly MockAppDirectory MockAppDirectory = new();
     private static readonly MockModuleLoader MockModuleLoader = new();
+    private static readonly IAppDirectory AppDirectory = new AppDirectory.AppDirectory(
+        new AppDirectoryOptions()
+        {
+            Source = new Uri($"file:\\\\{Directory.GetCurrentDirectory()}\\TestUtils\\appDirectorySample.json")
+        });
 
     private Fdc3DesktopAgent _fdc3 = new(
-        MockAppDirectory,
-        MockModuleLoader,
+        AppDirectory,
+        MockModuleLoader.Object,
         new Fdc3DesktopAgentOptions(),
         MockMessageRouter.Object,
         NullLoggerFactory.Instance);
@@ -48,11 +54,10 @@ public class Fdc3DesktopAgentTests
     {
         WriteIndented = true,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Converters = 
-        { 
-            new IIntentMetadataJsonConverter(), 
-            new IAppMetadataJsonConverter(), 
-            new IAppIdentifierJsonConverter(), 
+        Converters =
+        {
+            new IIntentMetadataJsonConverter(),
+            new IAppMetadataJsonConverter(),
             new AppMetadataJsonConverter(), //TODO: remove converter when no longer is necessary
         }
     };
@@ -71,19 +76,14 @@ public class Fdc3DesktopAgentTests
     [Fact]
     public async Task RaiseIntent_returns_one_app_by_AppIdentifier()
     {
-        var apps = await MockAppDirectory.GetApps();
-
-        var app = apps.ElementAt(3); //appId4
-        var intentMetadata = app.Interop!.Intents!.ListensFor!.Values.First(); //intentMetadata4
-
         var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
             new RaiseIntentRequest(
                 messageId: 1,
                 fdc3InstanceId: Guid.NewGuid().ToString(),
-                intent: intentMetadata.Name,
+                intent: "intentMetadata4",
                 selected: false,
-                context: new Context(intentMetadata.Contexts.First()),
-                targetAppIdentifier: new AppIdentifier(app.AppId)));
+                context: new Context("context2"),
+                targetAppIdentifier: new AppIdentifier("appId4")));
 
         var result = await _fdc3.HandleRaiseIntent(
             Fdc3Topic.RaiseIntent,
@@ -92,9 +92,8 @@ public class Fdc3DesktopAgentTests
 
         result.Should().NotBeNull();
         result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata.Should().HaveCount(1);
-        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.AppId.Should().Be(app.AppId);
-
-        MockModuleLoader.StopAllModules();
+        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.AppId.Should().Be("appId4");
+        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.InstanceId.Should().NotBeNull();
     }
 
     [Fact]
@@ -112,17 +111,12 @@ public class Fdc3DesktopAgentTests
     [Fact]
     public async Task RaiseIntent_returns_one_app_by_Context()
     {
-        var apps = await MockAppDirectory.GetApps();
-
-        var app = apps.ElementAt(3);
-        var intentMetadata = app.Interop!.Intents!.ListensFor!.Values.ElementAt(1);
-
         var request = new RaiseIntentRequest(
             messageId: 1,
             fdc3InstanceId: Guid.NewGuid().ToString(),
-            intent: intentMetadata.Name,
+            intent: "intentMetadataCustom",
             selected: false,
-            context: new Context(intentMetadata.Contexts.First()));
+            context: new Context("contextCustom"));
 
         var raiseIntentRequest = MessageBuffer.Factory.CreateJson(request);
 
@@ -133,9 +127,8 @@ public class Fdc3DesktopAgentTests
 
         result.Should().NotBeNull();
         result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata.Should().HaveCount(1);
-        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.AppId.Should().Be(app.AppId);
-
-        MockModuleLoader.StopAllModules();
+        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.AppId.Should().Be("appId4");
+        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.InstanceId.Should().NotBeNull();
     }
 
     [Fact]
@@ -143,18 +136,15 @@ public class Fdc3DesktopAgentTests
     {
         await _fdc3.SubscribeAsync();
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var instance = await MockModuleLoader.StartModule(new StartRequest("appId4"));
+        var instance = await MockModuleLoader.Object.StartModule(new StartRequest("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
-
-        var app = await MockAppDirectory.GetApp("appId4");
-        var intentMetadata = app!.Interop!.Intents!.ListensFor!.Values.ElementAt(1);
 
         var request = new RaiseIntentRequest(
             messageId: 1,
             fdc3InstanceId: Guid.NewGuid().ToString(),
-            intent: intentMetadata.Name,
+            intent: "intentMetadataCustom",
             selected: false,
-            context: new Context(intentMetadata.Contexts.First()),
+            context: new Context("contextCustom"),
             targetAppIdentifier: new AppIdentifier("appId4", targetFdc3InstanceId));
 
         var raiseIntentRequest = MessageBuffer.Factory.CreateJson(request);
@@ -166,15 +156,16 @@ public class Fdc3DesktopAgentTests
 
         result.Should().NotBeNull();
         result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata.Should().HaveCount(1);
-        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.AppId.Should().Be(app.AppId);
+        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.AppId.Should().Be("appId4");
+        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.InstanceId.Should().Be(targetFdc3InstanceId);
 
         MockMessageRouter.Verify(
             _ => _.InvokeAsync(Fdc3Topic.AddIntentListener, It.IsAny<MessageBuffer>(), It.IsAny<InvokeOptions>(), It.IsAny<CancellationToken>()), Times.Never);
 
         MockMessageRouter.Verify(
-            _ => _.InvokeAsync(Fdc3Topic.RaiseIntentResolution(intentMetadata.Name, targetFdc3InstanceId), It.IsAny<MessageBuffer>(), It.IsAny<InvokeOptions>(), It.IsAny<CancellationToken>()), Times.Never);
+            _ => _.InvokeAsync(Fdc3Topic.RaiseIntentResolution("intentMetadataCustom", targetFdc3InstanceId), It.IsAny<MessageBuffer>(), It.IsAny<InvokeOptions>(), It.IsAny<CancellationToken>()), Times.Never);
 
-        MockModuleLoader.StopAllModules();
+        await MockModuleLoader.Object.StopModule(new(instance.InstanceId));
     }
 
     [Fact]
@@ -183,19 +174,16 @@ public class Fdc3DesktopAgentTests
         await _fdc3.SubscribeAsync();
 
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await MockModuleLoader.StartModule(new StartRequest("appId1"));
+        var origin = await MockModuleLoader.Object.StartModule(new StartRequest("appId1"));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var target = await MockModuleLoader.StartModule(new StartRequest("appId4"));
+        var target = await MockModuleLoader.Object.StartModule(new StartRequest("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
-
-        var app = await MockAppDirectory.GetApp("appId4");
-        var intentMetadata = app!.Interop!.Intents!.ListensFor!.Values.ElementAt(1);
 
         var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
             new AddIntentListenerRequest(
-                intent: intentMetadata.Name,
+                intent: "intentMetadataCustom",
                 fdc3InstanceId: targetFdc3InstanceId,
                 state: SubscribeState.Subscribe));
 
@@ -208,9 +196,9 @@ public class Fdc3DesktopAgentTests
         var request = new RaiseIntentRequest(
             messageId: 1,
             fdc3InstanceId: originFdc3InstanceId,
-            intent: intentMetadata.Name,
+            intent: "intentMetadataCustom",
             selected: false,
-            context: new Context(intentMetadata.Contexts.First()),
+            context: new Context("contextCustom"),
             targetAppIdentifier: new AppIdentifier("appId4", targetFdc3InstanceId));
 
         var raiseIntentRequest = MessageBuffer.Factory.CreateJson(request);
@@ -222,29 +210,28 @@ public class Fdc3DesktopAgentTests
 
         result.Should().NotBeNull();
         result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata.Should().HaveCount(1);
-        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.AppId.Should().Be(app.AppId);
+        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.AppId.Should().Be("appId4");
+        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.InstanceId.Should().Be(targetFdc3InstanceId);
 
         MockMessageRouter.Verify(
-            _ => _.PublishAsync(Fdc3Topic.RaiseIntentResolution(intentMetadata.Name, targetFdc3InstanceId), It.IsAny<MessageBuffer>(), It.IsAny<PublishOptions>(), It.IsAny<CancellationToken>()), Times.Once);
+            _ => _.PublishAsync(Fdc3Topic.RaiseIntentResolution("intentMetadataCustom", targetFdc3InstanceId), It.IsAny<MessageBuffer>(), It.IsAny<PublishOptions>(), It.IsAny<CancellationToken>()), Times.Once);
 
-        MockModuleLoader.StopAllModules();
+        await MockModuleLoader.Object.StopModule(new(origin.InstanceId));
+        await MockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
 
 
     [Fact]
     public async Task RaiseIntent_returns_multiple_apps_by_Context()
     {
-        var apps = await MockAppDirectory.GetApps();
-        var app = apps.ElementAt(3); //appId4
-        var intentMetadata = app.Interop!.Intents!.ListensFor!.Values.First(); //intentMetadata4
         var instanceId = Guid.NewGuid().ToString();
         var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
             new RaiseIntentRequest(
                 messageId: 1,
                 fdc3InstanceId: instanceId,
-                intent: intentMetadata.Name, //intentMetadata4
+                intent: "intentMetadata4",
                 selected: false,
-                context: new Context(intentMetadata.Contexts.First()),
+                context: new Context("context2"),
                 null,
                 null));
 
@@ -258,24 +245,21 @@ public class Fdc3DesktopAgentTests
         result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata.Should().BeEquivalentTo(
             new List<AppMetadata>()
             {
-                new(app.AppId, name: app.Name, resultType: intentMetadata.ResultType),
-                new(apps.ElementAt(4).AppId, name: apps.ElementAt(4).Name, resultType: apps.ElementAt(4).Interop!.Intents!.ListensFor!.First().Value.ResultType),
-                new(apps.ElementAt(5).AppId, name: apps.ElementAt(5).Name, resultType: apps.ElementAt(5).Interop!.Intents!.ListensFor!.ElementAt(1).Value.ResultType)
+                new("appId4", name: "app4", resultType: null),
+                new("appId5", name: "app5", resultType: "resultType<specified>"),
+                new("appId6", name: "app6", resultType: "resultType")
             });
     }
 
     [Fact]
     public async Task RaiseIntent_returns_multiple_apps_by_Context_if_fdc3_nothing()
     {
-        var apps = await MockAppDirectory.GetApps();
-        var app = apps.ElementAt(3); //appId4
-        var intentMetadata = app.Interop!.Intents!.ListensFor!.Values.First(); //intentMetadata4
         var instanceId = Guid.NewGuid().ToString();
         var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
             new RaiseIntentRequest(
                 messageId: 1,
                 fdc3InstanceId: instanceId,
-                intent: intentMetadata.Name, //intentMetadata4
+                intent: "intentMetadata4",
                 selected: false,
                 context: new Context("fdc3.nothing"),
                 null,
@@ -291,9 +275,9 @@ public class Fdc3DesktopAgentTests
         result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata.Should().BeEquivalentTo(
             new List<AppMetadata>()
             {
-                new(app.AppId, name: app.Name, resultType: intentMetadata.ResultType),
-                new(apps.ElementAt(4).AppId, name: apps.ElementAt(4).Name, resultType: apps.ElementAt(4).Interop!.Intents!.ListensFor!.First().Value.ResultType),
-                new(apps.ElementAt(5).AppId, name: apps.ElementAt(5).Name, resultType: apps.ElementAt(5).Interop!.Intents!.ListensFor!.ElementAt(1).Value.ResultType)
+                new("appId4", name: "app4", resultType: null),
+                new("appId5", name: "app5", resultType: "resultType<specified>"),
+                new("appId6", name: "app6", resultType: "resultType")
             });
     }
 
@@ -322,14 +306,11 @@ public class Fdc3DesktopAgentTests
     [Fact]
     public async Task RaiseIntent_fails_as_no_apps_found_by_Context()
     {
-        var app = await MockAppDirectory.GetApp("appId4");
-        var intentMetadata = app!.Interop!.Intents!.ListensFor!.Values.First();
-
         var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
             new RaiseIntentRequest(
                 messageId: 1,
                 fdc3InstanceId: Guid.NewGuid().ToString(),
-                intent: intentMetadata.Name,
+                intent: "intentMetadata4",
                 selected: false,
                 context: new Context("noAppShouldReturn"),
                 null,
@@ -347,16 +328,13 @@ public class Fdc3DesktopAgentTests
     [Fact]
     public async Task RaiseIntent_fails_as_no_apps_found_by_Intent()
     {
-        var app = await MockAppDirectory.GetApp("appId4");
-        var intentMetadata = app!.Interop!.Intents!.ListensFor!.Values.First(); //context2
-
         var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
             new RaiseIntentRequest(
                 messageId: 1,
                 fdc3InstanceId: Guid.NewGuid().ToString(),
                 intent: "noAppShouldReturn",
                 selected: false,
-                context: new Context(intentMetadata.Contexts!.First()),
+                context: new Context("context2"),
                 null,
                 null));
 
@@ -372,16 +350,13 @@ public class Fdc3DesktopAgentTests
     [Fact]
     public async Task RaiseIntent_fails_as_multiple_IAppIntents_found()
     {
-        var app = await MockAppDirectory.GetApp("appId7");
-        var intentMetadata = app!.Interop!.Intents!.ListensFor!.Values.ElementAt(1); //intentMetadata8
-
         var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
             new RaiseIntentRequest(
                 messageId: 1,
                 fdc3InstanceId: Guid.NewGuid().ToString(),
-                intent: intentMetadata.Name,
+                intent: "intentMetadata8",
                 selected: false,
-                context: new Context(intentMetadata.Contexts!.First()),
+                context: new Context("context7"),
                 null,
                 null));
 
@@ -426,17 +401,14 @@ public class Fdc3DesktopAgentTests
     [Fact]
     public async Task StoreIntentResult_fails_due_the_request_contains_no_information()
     {
-        var app = await MockAppDirectory.GetApp("appId4"); 
-        var intentMetadata = app!.Interop!.Intents!.ListensFor!.Values.First(); //intentMetadata4
-
         var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
             new RaiseIntentRequest(
                 messageId: int.MaxValue,
                 fdc3InstanceId: Guid.NewGuid().ToString(),
-                intent: intentMetadata.Name,
+                intent: "intentMetadata4",
                 selected: false,
-                context: new Context(intentMetadata.Contexts.First()),
-                targetAppIdentifier: new AppIdentifier(app.AppId)));
+                context: new Context("context2"),
+                targetAppIdentifier: new AppIdentifier("appId4")));
 
         var raiseIntentResult = await _fdc3.HandleRaiseIntent(
             Fdc3Topic.RaiseIntent,
@@ -465,8 +437,6 @@ public class Fdc3DesktopAgentTests
     [Fact]
     public async Task StoreIntentResult_fails_due_the_previosly_no_saved_raiseIntent_could_handle()
     {
-        var app = await MockAppDirectory.GetApp("appId4");
-        var intentMetadata = app!.Interop!.Intents!.ListensFor!.Values.First(); //intentMetadata4
         var originFdc3InstanceId = Guid.NewGuid().ToString();
         var storeIntentRequest = new StoreIntentResultRequest(
             messageId: "dummy",
@@ -477,8 +447,8 @@ public class Fdc3DesktopAgentTests
             channelType: ChannelType.User,
             null);
 
-        var action = async() => await _fdc3.HandleStoreIntentResult("dummy", MessageBuffer.Factory.CreateJson(storeIntentRequest, _options), new MessageContext());
-        
+        var action = async () => await _fdc3.HandleStoreIntentResult("dummy", MessageBuffer.Factory.CreateJson(storeIntentRequest, _options), new MessageContext());
+
         await action.Should()
             .ThrowAsync<Fdc3DesktopAgentException>();
     }
@@ -487,19 +457,17 @@ public class Fdc3DesktopAgentTests
     [Fact]
     public async Task StoreIntentResult_succeeds_with_channel()
     {
-        var apps = await MockAppDirectory.GetApps();
-
-        var app = apps.ElementAt(3); //appId4
-        var intentMetadata = app.Interop!.Intents!.ListensFor!.Values.First(); //intentMetadata4
-
+        await _fdc3.SubscribeAsync();
+        var target = await MockModuleLoader.Object.StartModule(new("appId4"));
+        var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
         var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
             new RaiseIntentRequest(
                 messageId: int.MaxValue,
                 fdc3InstanceId: Guid.NewGuid().ToString(),
-                intent: intentMetadata.Name,
+                intent: "intentMetadata4",
                 selected: false,
-                context: new Context(intentMetadata.Contexts.First()),
-                targetAppIdentifier: new AppIdentifier(app.AppId)));
+                context: new Context("context2"),
+                targetAppIdentifier: new AppIdentifier("appId4", targetFdc3InstanceId)));
 
         var raiseIntentResult = await _fdc3.HandleRaiseIntent(
             Fdc3Topic.RaiseIntent,
@@ -513,7 +481,7 @@ public class Fdc3DesktopAgentTests
 
         var storeIntentRequest = new StoreIntentResultRequest(
             messageId: raiseIntentResponse!.MessageId!,
-            intent: intentMetadata.Name,
+            intent: "intentMetadata4",
             originFdc3InstanceId: raiseIntentResponse.AppMetadata!.First().InstanceId!,
             targetFdc3InstanceId: Guid.NewGuid().ToString(),
             channelId: "dummyChannelId",
@@ -524,25 +492,20 @@ public class Fdc3DesktopAgentTests
         result.Should().NotBeNull();
         result!.ReadJson<StoreIntentResultResponse>(_options).Should().BeEquivalentTo(new StoreIntentResultResponse() { Stored = true });
 
-        MockModuleLoader.StopAllModules();
+        await MockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
 
     [Fact]
     public async Task StoreIntentResult_succeeds_with_context()
     {
-        var apps = await MockAppDirectory.GetApps();
-
-        var app = apps.ElementAt(3); //appId4
-        var intentMetadata = app.Interop!.Intents!.ListensFor!.Values.First(); //intentMetadata4
-
         var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
             new RaiseIntentRequest(
                 messageId: int.MaxValue,
                 fdc3InstanceId: Guid.NewGuid().ToString(),
-                intent: intentMetadata.Name,
-                selected: false,
-                context: new Context(intentMetadata.Contexts.First()),
-                targetAppIdentifier: new AppIdentifier(app.AppId)));
+                intent: "intentMetadata4",
+                selected: true,
+                context: new Context("context2"),
+                targetAppIdentifier: new AppIdentifier("appId4")));
 
         var raiseIntentResult = await _fdc3.HandleRaiseIntent(
             Fdc3Topic.RaiseIntent,
@@ -556,7 +519,7 @@ public class Fdc3DesktopAgentTests
 
         var storeIntentRequest = new StoreIntentResultRequest(
             messageId: raiseIntentResponse.MessageId!,
-            intent: intentMetadata.Name,
+            intent: "intentMetadata4",
             originFdc3InstanceId: raiseIntentResponse.AppMetadata!.First().InstanceId!,
             targetFdc3InstanceId: Guid.NewGuid().ToString(),
             channelId: null,
@@ -566,26 +529,23 @@ public class Fdc3DesktopAgentTests
         var result = await _fdc3.HandleStoreIntentResult(Fdc3Topic.SendIntentResult, MessageBuffer.Factory.CreateJson(storeIntentRequest, _options), new MessageContext());
         result.Should().NotBeNull();
         result!.ReadJson<StoreIntentResultResponse>(_options).Should().BeEquivalentTo(new StoreIntentResultResponse() { Stored = true });
-
-        MockModuleLoader.StopAllModules();
     }
 
     [Fact]
-    public async Task StoreIntentResult_succeeds_with_errorResult()
+    public async Task StoreIntentResult_succeeds_with_voidResult()
     {
-        var apps = await MockAppDirectory.GetApps();
-
-        var app = apps.ElementAt(3); //appId4
-        var intentMetadata = app.Interop!.Intents!.ListensFor!.Values.First(); //intentMetadata4
+        await _fdc3.SubscribeAsync();
+        var target = await MockModuleLoader.Object.StartModule(new("appId4"));
+        var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
         var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
             new RaiseIntentRequest(
                 messageId: int.MaxValue,
                 fdc3InstanceId: Guid.NewGuid().ToString(),
-                intent: intentMetadata.Name,
+                intent: "intentMetadata4",
                 selected: false,
-                context: new Context(intentMetadata.Contexts.First()),
-                targetAppIdentifier: new AppIdentifier(app.AppId)));
+                context: new Context("context2"),
+                targetAppIdentifier: new AppIdentifier("appId4", targetFdc3InstanceId)));
 
         var raiseIntentResult = await _fdc3.HandleRaiseIntent(
             Fdc3Topic.RaiseIntent,
@@ -599,19 +559,19 @@ public class Fdc3DesktopAgentTests
 
         var storeIntentRequest = new StoreIntentResultRequest(
             messageId: raiseIntentResponse.MessageId!,
-            intent: intentMetadata.Name,
+            intent: "intentMetadata4",
             originFdc3InstanceId: raiseIntentResponse.AppMetadata!.First().InstanceId!,
             targetFdc3InstanceId: Guid.NewGuid().ToString(),
             channelId: null,
             channelType: null,
             context: null,
-            errorResult: "dummy error happened during Promise");
+            voidResult: "dummy error happened during Promise");
 
         var result = await _fdc3.HandleStoreIntentResult(Fdc3Topic.SendIntentResult, MessageBuffer.Factory.CreateJson(storeIntentRequest, _options), new MessageContext());
         result.Should().NotBeNull();
         result!.ReadJson<StoreIntentResultResponse>(_options).Should().BeEquivalentTo(new StoreIntentResultResponse() { Stored = true });
 
-        MockModuleLoader.StopAllModules();
+        await MockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
 
     [Fact]
@@ -623,14 +583,14 @@ public class Fdc3DesktopAgentTests
     }
 
     [Fact]
-    public async Task GetIntentResult_fails_due_Source_is_null()
+    public async Task GetIntentResult_fails_intent_not_found()
     {
         //Version should be the Intent's schema version
         var getIntentResultRequest = new GetIntentResultRequest(
              messageId: "dummy",
-             intent: "dummy", 
+             intent: "dummy",
              targetAppIdentifier: new AppIdentifier("dummy", Guid.NewGuid().ToString()),
-             version: "1.0"); 
+             version: "1.0");
 
         var result = await _fdc3.HandleGetIntentResult(Fdc3Topic.GetIntentResult, MessageBuffer.Factory.CreateJson(getIntentResultRequest, _options), new MessageContext());
         result.Should().NotBeNull();
@@ -654,20 +614,21 @@ public class Fdc3DesktopAgentTests
     [Fact]
     public async Task GetIntentResult_fails_due_no_intent_found()
     {
-        var targetFdc3InstanceId = Guid.NewGuid().ToString();
-        var context = new Context("test");
+        await _fdc3.SubscribeAsync();
+        var originFdc3InstanceId = Guid.NewGuid().ToString();
+        var target = await MockModuleLoader.Object.StartModule(new("appId4"));
+        var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
-        var app = await MockAppDirectory.GetApp("appId4");
-        var intentMetadata = app!.Interop!.Intents!.ListensFor!.Values.First(); //intentMetadata4
+        var context = new Context("test");
 
         var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
             new RaiseIntentRequest(
                 messageId: int.MaxValue,
                 fdc3InstanceId: Guid.NewGuid().ToString(),
-                intent: intentMetadata.Name,
+                intent: "intentMetadata4",
                 selected: false,
-                context: new Context(intentMetadata.Contexts.First()),
-                targetAppIdentifier: new AppIdentifier(app.AppId)));
+                context: new Context("context2"),
+                targetAppIdentifier: new AppIdentifier("appId4", targetFdc3InstanceId)));
 
         var raiseIntentResult = await _fdc3.HandleRaiseIntent(
             Fdc3Topic.RaiseIntent,
@@ -681,62 +642,9 @@ public class Fdc3DesktopAgentTests
 
         var storeIntentRequest = MessageBuffer.Factory.CreateJson(new StoreIntentResultRequest(
             messageId: raiseIntentResponse.MessageId!,
-            intent: intentMetadata.Name,
+            intent: "intentMetadata4",
             originFdc3InstanceId: raiseIntentResponse.AppMetadata!.First().InstanceId!,
-            targetFdc3InstanceId: targetFdc3InstanceId,
-            context: context), _options);
-
-        var storeResult = await _fdc3.HandleStoreIntentResult(
-            Fdc3Topic.SendIntentResult,
-            storeIntentRequest,
-            new MessageContext());
-
-        storeResult.Should().NotBeNull();
-        storeResult!.ReadJson<StoreIntentResultResponse>(_options).Should().BeEquivalentTo(StoreIntentResultResponse.Success());
-
-        var getIntentResultRequest = new GetIntentResultRequest(
-             messageId: raiseIntentResponse.MessageId,
-             intent: "dummy",
-             targetAppIdentifier: new AppIdentifier("appId1", raiseIntentResponse.AppMetadata!.First().InstanceId!),
-             version: "1.0");
-
-        var result = await _fdc3.HandleGetIntentResult(Fdc3Topic.GetIntentResult, MessageBuffer.Factory.CreateJson(getIntentResultRequest, _options), new MessageContext());
-        result.Should().NotBeNull();
-        result!.ReadJson<GetIntentResultResponse>(_options).Should().BeEquivalentTo(new GetIntentResultResponse() { Error = ResolveError.IntentDeliveryFailed });
-    }
-
-    [Fact]
-    public async Task GetIntentResult_succeeds_with_context()
-    {
-        var targetFdc3InstanceId = Guid.NewGuid().ToString();
-        var context = new Context("test");
-        var app = await MockAppDirectory.GetApp("appId4"); 
-        var intentMetadata = app!.Interop!.Intents!.ListensFor!.Values.First(); //intentMetadata4
-
-        var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
-            new RaiseIntentRequest(
-                messageId: int.MaxValue,
-                fdc3InstanceId: Guid.NewGuid().ToString(),
-                intent: intentMetadata.Name,
-                selected: false,
-                context: new Context(intentMetadata.Contexts.First()),
-                targetAppIdentifier: new AppIdentifier(app.AppId)));
-
-        var raiseIntentResult = await _fdc3.HandleRaiseIntent(
-            Fdc3Topic.RaiseIntent,
-            raiseIntentRequest,
-            new MessageContext());
-
-        raiseIntentResult.Should().NotBeNull();
-        var raiseIntentResponse = raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options);
-        raiseIntentResponse.Should().NotBeNull();
-        raiseIntentResponse!.AppMetadata.Should().HaveCount(1);
-
-        var storeIntentRequest = MessageBuffer.Factory.CreateJson(new StoreIntentResultRequest(
-            messageId: raiseIntentResponse.MessageId!,
-            intent: intentMetadata.Name,
-            originFdc3InstanceId: raiseIntentResponse.AppMetadata!.First().InstanceId!,
-            targetFdc3InstanceId: targetFdc3InstanceId,
+            targetFdc3InstanceId: originFdc3InstanceId,
             context: context), _options);
 
         var storeResult = await _fdc3.HandleStoreIntentResult(
@@ -749,34 +657,33 @@ public class Fdc3DesktopAgentTests
 
         var getIntentResultRequest = new GetIntentResultRequest(
              messageId: raiseIntentResponse.MessageId!,
-             intent: intentMetadata.Name,
-             targetAppIdentifier: new AppIdentifier("appId1", raiseIntentResponse.AppMetadata!.First().InstanceId!));
+             intent: "dummy",
+             targetAppIdentifier: new AppIdentifier("appId1", raiseIntentResponse.AppMetadata!.First().InstanceId!),
+             version: "1.0");
 
         var result = await _fdc3.HandleGetIntentResult(Fdc3Topic.GetIntentResult, MessageBuffer.Factory.CreateJson(getIntentResultRequest, _options), new MessageContext());
         result.Should().NotBeNull();
-        result!.ReadJson<GetIntentResultResponse>(_options).Should().BeEquivalentTo(GetIntentResultResponse.Success(context: context));
-
-        MockModuleLoader.StopAllModules();
+        result!.ReadJson<GetIntentResultResponse>(_options).Should().BeEquivalentTo(new GetIntentResultResponse() { Error = ResolveError.IntentDeliveryFailed });
+        await MockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
 
     [Fact]
-    public async Task GetIntentResult_succeeds_with_channel()
+    public async Task GetIntentResult_succeeds_with_context()
     {
-        var targetFdc3InstanceId = Guid.NewGuid().ToString();
-        var channelType = ChannelType.User;
-        var channelId = "dummyChannelId";
-
-        var app = await MockAppDirectory.GetApp("appId4");
-        var intentMetadata = app!.Interop!.Intents!.ListensFor!.Values.First(); //intentMetadata4
+        await _fdc3.SubscribeAsync();
+        var originFdc3InstanceId = Guid.NewGuid().ToString();
+        var context = new Context("test");
+        var target = await MockModuleLoader.Object.StartModule(new("appId4"));
+        var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
         var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
             new RaiseIntentRequest(
                 messageId: int.MaxValue,
                 fdc3InstanceId: Guid.NewGuid().ToString(),
-                intent: intentMetadata.Name,
+                intent: "intentMetadata4",
                 selected: false,
-                context: new Context(intentMetadata.Contexts.First()),
-                targetAppIdentifier: new AppIdentifier(app.AppId)));
+                context: new Context("context2"),
+                targetAppIdentifier: new AppIdentifier("appId4", targetFdc3InstanceId)));
 
         var raiseIntentResult = await _fdc3.HandleRaiseIntent(
             Fdc3Topic.RaiseIntent,
@@ -790,9 +697,66 @@ public class Fdc3DesktopAgentTests
 
         var storeIntentRequest = MessageBuffer.Factory.CreateJson(new StoreIntentResultRequest(
             messageId: raiseIntentResponse.MessageId!,
-            intent: intentMetadata.Name,
+            intent: "intentMetadata4",
             originFdc3InstanceId: raiseIntentResponse.AppMetadata!.First().InstanceId!,
-            targetFdc3InstanceId: targetFdc3InstanceId,
+            targetFdc3InstanceId: originFdc3InstanceId,
+            context: context), _options);
+
+        var storeResult = await _fdc3.HandleStoreIntentResult(
+            Fdc3Topic.SendIntentResult,
+            storeIntentRequest,
+            new MessageContext());
+
+        storeResult.Should().NotBeNull();
+        storeResult!.ReadJson<StoreIntentResultResponse>(_options).Should().BeEquivalentTo(StoreIntentResultResponse.Success());
+
+        var getIntentResultRequest = new GetIntentResultRequest(
+             messageId: raiseIntentResponse.MessageId!,
+             intent: "intentMetadata4",
+             targetAppIdentifier: new AppIdentifier("appId1", raiseIntentResponse.AppMetadata!.First().InstanceId!));
+
+        var result = await _fdc3.HandleGetIntentResult(Fdc3Topic.GetIntentResult, MessageBuffer.Factory.CreateJson(getIntentResultRequest, _options), new MessageContext());
+        result.Should().NotBeNull();
+        result!.ReadJson<GetIntentResultResponse>(_options).Should().BeEquivalentTo(GetIntentResultResponse.Success(context: context));
+
+        await MockModuleLoader.Object.StopModule(new(target.InstanceId));
+    }
+
+    [Fact]
+    public async Task GetIntentResult_succeeds_with_channel()
+    {
+        await _fdc3.SubscribeAsync();
+        var originFdc3InstanceId = Guid.NewGuid().ToString();
+        var channelType = ChannelType.User;
+        var channelId = "dummyChannelId";
+
+        var target = await MockModuleLoader.Object.StartModule(new("appId4"));
+        var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
+
+        var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
+            new RaiseIntentRequest(
+                messageId: int.MaxValue,
+                fdc3InstanceId: Guid.NewGuid().ToString(),
+                intent: "intentMetadata4",
+                selected: false,
+                context: new Context("context2"),
+                targetAppIdentifier: new AppIdentifier("appId4", targetFdc3InstanceId)));
+
+        var raiseIntentResult = await _fdc3.HandleRaiseIntent(
+            Fdc3Topic.RaiseIntent,
+            raiseIntentRequest,
+            new MessageContext());
+
+        raiseIntentResult.Should().NotBeNull();
+        var raiseIntentResponse = raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options);
+        raiseIntentResponse.Should().NotBeNull();
+        raiseIntentResponse!.AppMetadata.Should().HaveCount(1);
+
+        var storeIntentRequest = MessageBuffer.Factory.CreateJson(new StoreIntentResultRequest(
+            messageId: raiseIntentResponse.MessageId!,
+            intent: "intentMetadata4",
+            originFdc3InstanceId: raiseIntentResponse.AppMetadata!.First().InstanceId!,
+            targetFdc3InstanceId: originFdc3InstanceId,
             channelType: channelType,
             channelId: channelId), _options);
 
@@ -806,33 +770,34 @@ public class Fdc3DesktopAgentTests
 
         var getIntentResultRequest = new GetIntentResultRequest(
              messageId: raiseIntentResponse.MessageId!,
-             intent: intentMetadata.Name,
+             intent: "intentMetadata4",
              targetAppIdentifier: new AppIdentifier("appId1", raiseIntentResponse.AppMetadata!.First().InstanceId!));
 
         var result = await _fdc3.HandleGetIntentResult(Fdc3Topic.GetIntentResult, MessageBuffer.Factory.CreateJson(getIntentResultRequest, _options), new MessageContext());
         result.Should().NotBeNull();
         result!.ReadJson<GetIntentResultResponse>(_options).Should().BeEquivalentTo(GetIntentResultResponse.Success(channelType: channelType, channelId: channelId));
 
-        MockModuleLoader.StopAllModules();
+        await MockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
 
     [Fact]
-    public async Task GetIntentResult_succeeds_with_errorResult()
+    public async Task GetIntentResult_succeeds_with_voidResult()
     {
-        var targetFdc3InstanceId = Guid.NewGuid().ToString();
-        var errorResult = "dummy error happened during Promise";
+        await _fdc3.SubscribeAsync();
+        var originFdc3InstanceId = Guid.NewGuid().ToString();
+        var voidResult = "dummy error happened during Promise";
 
-        var app = await MockAppDirectory.GetApp("appId4");
-        var intentMetadata = app!.Interop!.Intents!.ListensFor!.Values.First(); //intentMetadata4
+        var target = await MockModuleLoader.Object.StartModule(new("appId4"));
+        var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
         var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
             new RaiseIntentRequest(
                 messageId: int.MaxValue,
                 fdc3InstanceId: Guid.NewGuid().ToString(),
-                intent: intentMetadata.Name,
+                intent: "intentMetadata4",
                 selected: false,
-                context: new Context(intentMetadata.Contexts.First()),
-                targetAppIdentifier: new AppIdentifier(app.AppId)));
+                context: new Context("context2"),
+                targetAppIdentifier: new AppIdentifier("appId4", targetFdc3InstanceId)));
 
         var raiseIntentResult = await _fdc3.HandleRaiseIntent(
             Fdc3Topic.RaiseIntent,
@@ -846,10 +811,10 @@ public class Fdc3DesktopAgentTests
 
         var storeIntentRequest = MessageBuffer.Factory.CreateJson(new StoreIntentResultRequest(
             messageId: raiseIntentResponse.MessageId!,
-            intent: intentMetadata.Name,
+            intent: "intentMetadata4",
             originFdc3InstanceId: raiseIntentResponse.AppMetadata!.First().InstanceId!,
-            targetFdc3InstanceId: targetFdc3InstanceId,
-            errorResult: errorResult), _options);
+            targetFdc3InstanceId: originFdc3InstanceId,
+            voidResult: voidResult), _options);
 
         var storeResult = await _fdc3.HandleStoreIntentResult(
             Fdc3Topic.SendIntentResult,
@@ -861,14 +826,14 @@ public class Fdc3DesktopAgentTests
 
         var getIntentResultRequest = new GetIntentResultRequest(
              messageId: raiseIntentResponse.MessageId!,
-             intent: intentMetadata.Name,
+             intent: "intentMetadata4",
              targetAppIdentifier: new AppIdentifier("appId1", raiseIntentResponse.AppMetadata!.First().InstanceId!));
 
         var result = await _fdc3.HandleGetIntentResult(Fdc3Topic.GetIntentResult, MessageBuffer.Factory.CreateJson(getIntentResultRequest, _options), new MessageContext());
         result.Should().NotBeNull();
-        result!.ReadJson<GetIntentResultResponse>(_options).Should().BeEquivalentTo(GetIntentResultResponse.Success(errorResult: errorResult));
+        result!.ReadJson<GetIntentResultResponse>(_options).Should().BeEquivalentTo(GetIntentResultResponse.Success(voidResult: voidResult));
 
-        MockModuleLoader.StopAllModules();
+        await MockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
 
     [Fact]
@@ -894,23 +859,20 @@ public class Fdc3DesktopAgentTests
         await _fdc3.SubscribeAsync();
 
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await MockModuleLoader.StartModule(new StartRequest("appId1"));
+        var origin = await MockModuleLoader.Object.StartModule(new StartRequest("appId1"));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var target = await MockModuleLoader.StartModule(new StartRequest("appId4"));
+        var target = await MockModuleLoader.Object.StartModule(new StartRequest("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
-
-        var app = await MockAppDirectory.GetApp("appId4");
-        var intentMetadata = app!.Interop!.Intents!.ListensFor!.Values.ElementAt(1);
 
         var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
             new RaiseIntentRequest(
                 messageId: 1,
                 fdc3InstanceId: originFdc3InstanceId,
-                intent: intentMetadata.Name,
+                intent: "intentMetadataCustom",
                 selected: false,
-                context: new Context(intentMetadata.Contexts.First()),
+                context: new Context("contextCustom"),
                 targetAppIdentifier: new AppIdentifier("appId4", targetFdc3InstanceId)));
 
         var raiseIntentResult = await _fdc3.HandleRaiseIntent(
@@ -920,11 +882,12 @@ public class Fdc3DesktopAgentTests
 
         raiseIntentResult.Should().NotBeNull();
         raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata.Should().HaveCount(1);
-        raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.AppId.Should().Be(app.AppId);
+        raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.AppId.Should().Be("appId4");
+        raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.InstanceId.Should().Be(targetFdc3InstanceId);
 
         var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
             new AddIntentListenerRequest(
-                intent: intentMetadata.Name,
+                intent: "intentMetadataCustom",
                 fdc3InstanceId: targetFdc3InstanceId,
                 state: SubscribeState.Subscribe));
 
@@ -935,8 +898,10 @@ public class Fdc3DesktopAgentTests
         addIntentListnerResponse!.Stored.Should().BeTrue();
 
         MockMessageRouter.Verify(
-            _ => _.PublishAsync(Fdc3Topic.RaiseIntentResolution(intentMetadata.Name, targetFdc3InstanceId), It.IsAny<MessageBuffer>(), It.IsAny<PublishOptions>(), It.IsAny<CancellationToken>()));
-        MockModuleLoader.StopAllModules();
+            _ => _.PublishAsync(Fdc3Topic.RaiseIntentResolution("intentMetadataCustom", targetFdc3InstanceId), It.IsAny<MessageBuffer>(), It.IsAny<PublishOptions>(), It.IsAny<CancellationToken>()));
+
+        await MockModuleLoader.Object.StopModule(new(origin.InstanceId));
+        await MockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
 
     [Fact]
@@ -945,19 +910,16 @@ public class Fdc3DesktopAgentTests
         await _fdc3.SubscribeAsync();
 
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await MockModuleLoader.StartModule(new StartRequest("appId1"));
+        var origin = await MockModuleLoader.Object.StartModule(new StartRequest("appId1"));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var target = await MockModuleLoader.StartModule(new StartRequest("appId4"));
+        var target = await MockModuleLoader.Object.StartModule(new StartRequest("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
-
-        var app = await MockAppDirectory.GetApp("appId4");
-        var intentMetadata = app!.Interop!.Intents!.ListensFor!.Values.ElementAt(1);
 
         var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
             new AddIntentListenerRequest(
-                intent: intentMetadata.Name,
+                intent: "intentMetadataCustom",
                 fdc3InstanceId: targetFdc3InstanceId,
                 state: SubscribeState.Subscribe));
 
@@ -971,9 +933,9 @@ public class Fdc3DesktopAgentTests
             new RaiseIntentRequest(
                 messageId: 1,
                 fdc3InstanceId: originFdc3InstanceId,
-                intent: intentMetadata.Name,
+                intent: "intentMetadataCustom",
                 selected: false,
-                context: new Context(intentMetadata.Contexts.First()),
+                context: new Context("contextCustom"),
                 targetAppIdentifier: new AppIdentifier("appId4", targetFdc3InstanceId)));
 
         var raiseIntentResult = await _fdc3.HandleRaiseIntent(
@@ -983,11 +945,14 @@ public class Fdc3DesktopAgentTests
 
         raiseIntentResult.Should().NotBeNull();
         raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata.Should().HaveCount(1);
-        raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.AppId.Should().Be(app.AppId);
+        raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.AppId.Should().Be("appId4");
+        raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.InstanceId.Should().Be(targetFdc3InstanceId);
 
         MockMessageRouter.Verify(
-            _ => _.PublishAsync(Fdc3Topic.RaiseIntentResolution(intentMetadata.Name, targetFdc3InstanceId), It.IsAny<MessageBuffer>(), It.IsAny<PublishOptions>(), It.IsAny<CancellationToken>()));
-        MockModuleLoader.StopAllModules();
+            _ => _.PublishAsync(Fdc3Topic.RaiseIntentResolution("intentMetadataCustom", targetFdc3InstanceId), It.IsAny<MessageBuffer>(), It.IsAny<PublishOptions>(), It.IsAny<CancellationToken>()));
+
+        await MockModuleLoader.Object.StopModule(new(origin.InstanceId));
+        await MockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
 
     [Fact]
@@ -996,19 +961,16 @@ public class Fdc3DesktopAgentTests
         await _fdc3.SubscribeAsync();
 
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await MockModuleLoader.StartModule(new StartRequest("appId1"));
+        var origin = await MockModuleLoader.Object.StartModule(new StartRequest("appId1"));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var target = await MockModuleLoader.StartModule(new StartRequest("appId4"));
+        var target = await MockModuleLoader.Object.StartModule(new StartRequest("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
-
-        var app = await MockAppDirectory.GetApp("appId4");
-        var intentMetadata = app!.Interop!.Intents!.ListensFor!.Values.ElementAt(1);
 
         var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
             new AddIntentListenerRequest(
-                intent: intentMetadata.Name,
+                intent: "intentMetadataCustom",
                 fdc3InstanceId: targetFdc3InstanceId,
                 state: SubscribeState.Subscribe));
 
@@ -1020,7 +982,7 @@ public class Fdc3DesktopAgentTests
 
         addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
             new AddIntentListenerRequest(
-                intent: intentMetadata.Name,
+                intent: "intentMetadataCustom",
                 fdc3InstanceId: targetFdc3InstanceId,
                 state: SubscribeState.Unsubscribe));
 
@@ -1031,7 +993,8 @@ public class Fdc3DesktopAgentTests
         addIntentListnerResponse!.Stored.Should().BeFalse();
         addIntentListnerResponse!.Error.Should().BeNull();
 
-        MockModuleLoader.StopAllModules();
+        await MockModuleLoader.Object.StopModule(new(origin.InstanceId));
+        await MockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
 
     private MessageBuffer FindTestChannel => MessageBuffer.Factory.CreateJson(new FindChannelRequest() { ChannelId = "testChannel", ChannelType = ChannelType.User });
@@ -1073,11 +1036,8 @@ public class Fdc3DesktopAgentTests
 
     public class FindIntentsByContextTheoryData : TheoryData
     {
-        private readonly IEnumerable<Fdc3App> _apps;
         public FindIntentsByContextTheoryData()
         {
-            _apps = MockAppDirectory.Apps;
-
             // Returning one AppIntent with one app by just passing Context
             AddRow(new FindIntentsByContextTestCase()
             {
@@ -1089,10 +1049,10 @@ public class Fdc3DesktopAgentTests
                     AppIntents = new[]
                     {
                         new AppIntent(
-                            _apps.ElementAt(3)!.Interop!.Intents!.ListensFor!.Values.ElementAt(1),
+                            new IntentMetadata("intentMetadataCustom", "intentMetadataCustom", new [] { "contextCustom" }),
                             new []
                             {
-                                new AppMetadata(appId: _apps.ElementAt(3).AppId, name: _apps.ElementAt(3).Name, resultType: _apps.ElementAt(3)!.Interop!.Intents!.ListensFor!.Values.ElementAt(1).ResultType)
+                                new AppMetadata(appId:"appId4", name: "app4", resultType: null)
                             })
                     }
                 },
@@ -1110,12 +1070,12 @@ public class Fdc3DesktopAgentTests
                     AppIntents = new[]
                     {
                         new AppIntent(
-                            _apps.ElementAt(3)!.Interop!.Intents!.ListensFor!.Values.First(), //it should be the same for all app - the IntentMetadata
+                            new IntentMetadata("intentMetadata4", "displayName4", new [] { "context2" }),
                             new []
                             {
-                                new AppMetadata(_apps.ElementAt(3).AppId, name: _apps.ElementAt(3).Name, resultType: _apps.ElementAt(3)!.Interop!.Intents!.ListensFor!.Values.First().ResultType),
-                                new AppMetadata(_apps.ElementAt(4).AppId, name: _apps.ElementAt(4).Name, resultType: _apps.ElementAt(4)!.Interop!.Intents!.ListensFor!.Values.First().ResultType),
-                                new AppMetadata(_apps.ElementAt(5).AppId, name: _apps.ElementAt(5).Name, resultType: _apps.ElementAt(5)!.Interop!.Intents!.ListensFor!.Values.ElementAt(1).ResultType)
+                                new AppMetadata(appId:"appId4", name: "app4", resultType: null),
+                                new AppMetadata(appId:"appId5", name: "app5", resultType: "resultType<specified>"),
+                                new AppMetadata(appId:"appId6", name: "app6", resultType: "resultType")
                             })
                     }
                 },
@@ -1133,21 +1093,26 @@ public class Fdc3DesktopAgentTests
                     AppIntents = new[]
                     {
                         new AppIntent(
-                            _apps.ElementAt(8)!.Interop!.Intents!.ListensFor!.Values.First(),
+                            new IntentMetadata("intentMetadata9", "displayName9", new [] { "context9" }),
                             new []
                             {
-                                new AppMetadata(_apps.ElementAt(8).AppId, name: _apps.ElementAt(8).Name, resultType: _apps.ElementAt(8)!.Interop!.Intents!.ListensFor!.Values.First().ResultType), //wrongAppId9
+                                new AppMetadata("wrongappId9", name: "app9", resultType: "resultWrongApp"),
                             }),
                         new AppIntent(
-                            _apps.ElementAt(9)!.Interop!.Intents!.ListensFor!.Values.First(),
+                            new IntentMetadata("intentMetadata10", "displayName10", new [] { "context9" }),
                             new []
                             {
-                                new AppMetadata(_apps.ElementAt(9).AppId, name: _apps.ElementAt(9).Name, resultType: _apps.ElementAt(9)!.Interop!.Intents!.ListensFor!.Values.First().ResultType), //wrongAppId9
-                                new AppMetadata(_apps.ElementAt(10).AppId, name: _apps.ElementAt(10).Name, resultType: _apps.ElementAt(10)!.Interop!.Intents!.ListensFor!.Values.First().ResultType) //appId11
+                                new AppMetadata("appId11", name: "app11", resultType: "channel<specified>"),
+                            }),
+                        new AppIntent(
+                            new IntentMetadata("intentMetadata11", "displayName11", new [] { "context9" }),
+                            new []
+                            {
+                                new AppMetadata("appId12", name: "app12", resultType: "resultWrongApp"),
                             })
                     }
                 },
-                ExpectedAppIntentsCount = 2
+                ExpectedAppIntentsCount = 3
             });
 
             // Returning error no apps found by just passing Context
@@ -1175,10 +1140,10 @@ public class Fdc3DesktopAgentTests
                     AppIntents = new[]
                     {
                         new AppIntent(
-                            _apps.ElementAt(4)!.Interop!.Intents!.ListensFor!.Values.First(), // it should just return appId5
+                            new IntentMetadata("intentMetadata4", "displayName4", new [] {"context2", "context5"}), // it should just return appId5
                             new []
                             {
-                                new AppMetadata(_apps.ElementAt(4).AppId, name: _apps.ElementAt(4).Name, resultType: _apps.ElementAt(4)!.Interop!.Intents!.ListensFor!.Values.First().ResultType)
+                                new AppMetadata("appId5", name: "app5", resultType: "resultType<specified>")
                             })
                     }
                 },
@@ -1197,12 +1162,12 @@ public class Fdc3DesktopAgentTests
                     AppIntents = new[]
                     {
                         new AppIntent(
-                            _apps.ElementAt(4)!.Interop!.Intents!.ListensFor!.Values.First(), 
-                            new []
-                            {
-                                new AppMetadata(_apps.ElementAt(4).AppId, name: _apps.ElementAt(4).Name, resultType: _apps.ElementAt(4)!.Interop!.Intents!.ListensFor!.Values.First().ResultType), //appId5
-                                new AppMetadata(_apps.ElementAt(5).AppId, name: _apps.ElementAt(5).Name, resultType: _apps.ElementAt(5)!.Interop!.Intents!.ListensFor!.Values.ElementAt(1).ResultType) //appId6
-                            })
+                            new IntentMetadata("intentMetadata4", "displayName4", new[] { "context2", "context5" }),
+                            new[]
+                            {   
+                                new AppMetadata(appId:"appId5", name: "app5", resultType: "resultType<specified>"),
+                                new AppMetadata(appId:"appId6", name: "app6", resultType: "resultType")
+                            }),
                     }
                 },
                 ExpectedAppIntentsCount = 1
@@ -1220,16 +1185,16 @@ public class Fdc3DesktopAgentTests
                     AppIntents = new[]
                     {
                         new AppIntent(
-                            _apps.ElementAt(8)!.Interop!.Intents!.ListensFor!.Values.First(), 
+                            new IntentMetadata("intentMetadata9", "displayName9", new [] { "context9" }),
                             new []
                             {
-                                new AppMetadata(_apps.ElementAt(8).AppId, name: _apps.ElementAt(8).Name, resultType: _apps.ElementAt(8)!.Interop!.Intents!.ListensFor!.Values.First().ResultType), //wrongAppId9
+                                new AppMetadata("wrongappId9", name: "app9", resultType: "resultWrongApp"),
                             }),
                         new AppIntent(
-                            _apps.ElementAt(9)!.Interop!.Intents!.ListensFor!.Values.First(), 
+                            new IntentMetadata("intentMetadata11", "displayName11", new [] { "context9" }),
                             new []
                             {
-                                new AppMetadata(_apps.ElementAt(9).AppId, name: _apps.ElementAt(9).Name, resultType: _apps.ElementAt(9)!.Interop!.Intents!.ListensFor!.Values.First().ResultType), //wrongAppId9
+                                new AppMetadata("appId12", name: "app12", resultType: "resultWrongApp")
                             })
                     }
                 },
@@ -1273,26 +1238,21 @@ public class Fdc3DesktopAgentTests
                     AppIntents = new[]
                     {
                         new AppIntent(
-                            _apps.ElementAt(8)!.Interop!.Intents!.ListensFor!.Values.First(),
+                            new IntentMetadata("intentMetadata9", "displayName9", new [] { "context9" }),
                             new []
                             {
-                                new AppMetadata(_apps.ElementAt(8).AppId, name: _apps.ElementAt(8).Name, resultType: _apps.ElementAt(8)!.Interop!.Intents!.ListensFor!.Values.First().ResultType), //wrongAppId9
+                                new AppMetadata("wrongappId9", name: "app9", resultType: "resultWrongApp"),
                             }),
+
                         new AppIntent(
-                            _apps.ElementAt(9)!.Interop!.Intents!.ListensFor!.Values.First(),
+                            new IntentMetadata("intentMetadata11", "displayName11", new [] { "context9" }),
                             new []
                             {
-                                new AppMetadata(_apps.ElementAt(9).AppId, name: _apps.ElementAt(9).Name, resultType: _apps.ElementAt(9)!.Interop!.Intents!.ListensFor!.Values.First().ResultType), //wrongAppId9
-                            }),
-                        new AppIntent(
-                            _apps.ElementAt(9)!.Interop!.Intents!.ListensFor!.Values.ElementAt(1),
-                            new []
-                            {
-                                new AppMetadata(_apps.ElementAt(9).AppId, name: _apps.ElementAt(9).Name, resultType: _apps.ElementAt(9)!.Interop!.Intents!.ListensFor!.Values.ElementAt(1).ResultType), //wrongAppId9
+                                new AppMetadata("appId12", name: "app12", resultType: "resultWrongApp")
                             }),
                     }
                 },
-                ExpectedAppIntentsCount = 3
+                ExpectedAppIntentsCount = 2
             });
         }
     }
@@ -1306,359 +1266,200 @@ public class Fdc3DesktopAgentTests
 
     private class FindIntentTheoryData : TheoryData
     {
-        private readonly IEnumerable<Fdc3App> _apps;
         public FindIntentTheoryData()
-        {
-            _apps = MockAppDirectory.Apps;
-            AddRow(GenerateTestCase(FindIntentTestCaseType.Context, true));
-            AddRow(GenerateTestCase(FindIntentTestCaseType.Context, false));
-            AddRow(GenerateTestCase(FindIntentTestCaseType.Intent, true));
-            AddRow(GenerateTestCase(FindIntentTestCaseType.Intent, false));
-            AddRow(GenerateTestCase(FindIntentTestCaseType.ResultType, true));
-            AddRow(GenerateTestCase(FindIntentTestCaseType.ResultType, false));
-            AddRow(GenerateTestCase(FindIntentTestCaseType.ContextResultType, true));
-            AddRow(GenerateTestCase(FindIntentTestCaseType.ContextResultType, false));
-            AddRow(GenerateTestCase(FindIntentTestCaseType.NoAppsFound));
-            AddRow(GenerateTestCase(FindIntentTestCaseType.RequestError));
-            AddRow(GenerateTestCase(FindIntentTestCaseType.MultipleAppIntents));
-        }
-
-        private FindIntentTestCase GenerateTestCase(
-            FindIntentTestCaseType findIntentTestCaseType,
-            bool multipleResult = false)
-        {
-            return findIntentTestCaseType switch
-            {
-                FindIntentTestCaseType.Intent => SelectTestCaseForIntent(multipleResult),
-                FindIntentTestCaseType.Context => SelectTestCaseForContext(multipleResult),
-                FindIntentTestCaseType.ResultType => SelectTestCaseForResultType(multipleResult),
-                FindIntentTestCaseType.ContextResultType => SelectTestCaseForContextAndResultType(multipleResult),
-                FindIntentTestCaseType.RequestError => SelectTestCaseForRequestError(),
-                FindIntentTestCaseType.NoAppsFound => SelectTestCaseForNoAppsFoundError(),
-                FindIntentTestCaseType.MultipleAppIntents => SelectTestCaseForMultipleAppIntentsError(),
-                _ => throw new NotImplementedException(),
-            };
-        }
-        
-        private FindIntentTestCase SelectTestCaseForMultipleAppIntentsError()
         {
             //As per the documentation : https://github.com/morganstanley/fdc3-dotnet/blob/main/src/Fdc3/IIntentMetadata.cs
             //name is unique for the intents, so it should be unique for every app, or the app should have the same intentMetadata?
             //if so we should return multiple appIntents and do not return error message for the client.
             //We have setup a test case for wrongappId9 which contains wrongly setted up intentMetadata.
-            var app = _apps.ElementAt(6); //appId7
-            var intentMetadata = app.Interop!.Intents!.ListensFor!.ElementAt(1); //intentMetadata8
-
-            var findIntentRequest = new FindIntentRequest(
-                fdc3InstanceId: Guid.NewGuid().ToString(),
-                intent: intentMetadata.Key);
-
-            var findIntentResponse = new FindIntentResponse()
-            {
-                Error = ResolveError.IntentDeliveryFailed
-            };
-
-            var result = new FindIntentTestCase()
-            {
-                ExpectedAppCount = 0,
-                ExpectedResponse = findIntentResponse,
-                Request = findIntentRequest
-            };
-
-            return result;
-        }
-
-        private FindIntentTestCase SelectTestCaseForNoAppsFoundError()
-        {
-            var app = _apps.ElementAt(1);
-            var intentMetadata = app.Interop!.Intents!.ListensFor!.First();
-
-            var findIntentRequest = new FindIntentRequest(
-                fdc3InstanceId: Guid.NewGuid().ToString(),
-                intent: intentMetadata.Key,
-                context: new Context("noAppShouldBeReturned"));
-
-            var findIntentResponse = new FindIntentResponse()
-            {
-                Error = ResolveError.NoAppsFound
-            };
-
-            var result = new FindIntentTestCase()
-            {
-                ExpectedAppCount = 0,
-                ExpectedResponse = findIntentResponse,
-                Request = findIntentRequest
-            };
-
-            return result;
-        }
-
-        private FindIntentTestCase SelectTestCaseForRequestError()
-        {
-            var findIntentResponse = new FindIntentResponse()
-            {
-                Error = ResolveError.IntentDeliveryFailed
-            };
-
-            var result = new FindIntentTestCase()
-            {
-                ExpectedAppCount = 0,
-                ExpectedResponse = findIntentResponse,
-                Request = null
-            };
-
-            return result;
-        }
-
-        private FindIntentTestCase SelectTestCaseForContextAndResultType(bool multipleResult)
-        {
-            FindIntentTestCase result;
-
-            if (!multipleResult)
-            {
-                var app = _apps.ElementAt(6); //appId7
-                var intentMetadata = app.Interop!.Intents!.ListensFor!.First();
-
-                var findIntentRequest = new FindIntentRequest(
-                    fdc3InstanceId: Guid.NewGuid().ToString(),
-                    intent: intentMetadata.Key, //"intentMetadata7"
-                    context: new Context(intentMetadata.Value.Contexts.First()), //"context8"
-                    resultType: intentMetadata.Value.ResultType);//"resultType2<specified2>"
-
-                var findIntentResponse = new FindIntentResponse()
+            AddRow(
+                new FindIntentTestCase()
                 {
-                    AppIntent = new AppIntent(intentMetadata.Value, new[]
+                    ExpectedAppCount = 0,
+                    ExpectedResponse = new FindIntentResponse()
                     {
-                        new AppMetadata(app.AppId, name: app.Name, resultType: intentMetadata.Value.ResultType)
-                    })
-                };
+                        Error = ResolveError.IntentDeliveryFailed
+                    },
+                    Request = new FindIntentRequest(
+                        fdc3InstanceId: Guid.NewGuid().ToString(),
+                        intent: "intentMetadata8")
+                });
 
-                result = new()
+            AddRow(
+                new FindIntentTestCase()
                 {
-                    Request = findIntentRequest,
-                    ExpectedResponse = findIntentResponse,
-                    ExpectedAppCount = 1
-                };
-            }
-            else
-            {
-                var app = _apps.ElementAt(5); //appId6
-                var intentMetadata = app.Interop!.Intents!.ListensFor!.ElementAt(1);
-
-                var findIntentRequest = new FindIntentRequest(
-                    fdc3InstanceId: Guid.NewGuid().ToString(),
-                    intent: intentMetadata.Key, //intentMetadata4
-                    context: new Context(intentMetadata.Value.Contexts.First()), //"context2"
-                    resultType: intentMetadata.Value.ResultType);//"resultType"
-
-                var findIntentResponse = new FindIntentResponse()
-                {
-                    AppIntent = new AppIntent(intentMetadata.Value, new[]
+                    ExpectedAppCount = 0,
+                    ExpectedResponse = new FindIntentResponse()
                     {
-                        new AppMetadata(_apps.ElementAt(4).AppId, name: _apps.ElementAt(4).Name, resultType: _apps.ElementAt(4).Interop!.Intents!.ListensFor!.Values.First().ResultType), //appId5
-                        new AppMetadata(app.AppId, name: app.Name, resultType: intentMetadata.Value.ResultType),
+                        Error = ResolveError.NoAppsFound
+                    },
+                    Request = new FindIntentRequest(
+                        fdc3InstanceId: Guid.NewGuid().ToString(),
+                        intent: "intentMetadata2",
+                        context: new Context("noAppShouldBeReturned"))
+                });
 
-                    })
-                };
-
-                result = new()
+            AddRow(
+                new FindIntentTestCase()
                 {
-                    Request = findIntentRequest,
-                    ExpectedResponse = findIntentResponse,
-                    ExpectedAppCount = 2
-                };
-            }
+                    ExpectedAppCount = 0,
+                    ExpectedResponse = new FindIntentResponse()
+                    {
+                        Error = ResolveError.IntentDeliveryFailed
+                    },
+                    Request = null
+                });
 
-            return result!;
-        }
-
-        private FindIntentTestCase SelectTestCaseForResultType(bool multipleResult)
-        {
-            FindIntentTestCase result;
-
-            if (!multipleResult)
+            AddRow(new FindIntentTestCase()
             {
-                var app = _apps.ElementAt(6); //appId7
-                var intentMetadata = app.Interop!.Intents!.ListensFor!.First();
-
-                var findIntentRequest = new FindIntentRequest(
+                Request = new FindIntentRequest(
                     fdc3InstanceId: Guid.NewGuid().ToString(),
-                    intent: intentMetadata.Key,
-                    resultType: intentMetadata.Value.ResultType); //"resultType2<specified2>"
-
-                var findIntentResponse = new FindIntentResponse()
+                    intent: "intentMetadata7",
+                    context: new Context("context8"),
+                    resultType: "resultType2<specified2>"),
+                ExpectedResponse = new FindIntentResponse()
                 {
                     AppIntent = new AppIntent(
-                        intentMetadata.Value,
+                        new IntentMetadata("intentMetadat7", "displayName7", new[] { "context8" }),
                         new[]
                         {
-                            new AppMetadata(app.AppId, name: app.Name, resultType: intentMetadata.Value.ResultType)
+                            new AppMetadata("appId7", name: "app7", resultType: "resultType2<specified2>")
                         })
-                };
+                },
+                ExpectedAppCount = 1
+            });
 
-                result = new()
-                {
-                    Request = findIntentRequest,
-                    ExpectedResponse = findIntentResponse,
-                    ExpectedAppCount = 1
-                };
-            }
-            else
+            AddRow(new FindIntentTestCase()
             {
-                var app = _apps.ElementAt(5); //appId6
-                var intentMetadata = app.Interop!.Intents!.ListensFor!.ElementAt(1);
-
-                var findIntentRequest = new FindIntentRequest(
+                Request = new FindIntentRequest(
                     fdc3InstanceId: Guid.NewGuid().ToString(),
-                    intent: intentMetadata.Key, //intentMetadata4
-                    resultType: intentMetadata.Value.ResultType); //"resultType"
-
-                var findIntentResponse = new FindIntentResponse()
+                    intent: "intentMetadata4",
+                    context: new Context("context2"),
+                    resultType: "resultType"),
+                ExpectedResponse = new FindIntentResponse()
                 {
-                    AppIntent = new AppIntent(intentMetadata.Value, new[]
-                    {
-                        new AppMetadata(_apps.ElementAt(4).AppId, name: _apps.ElementAt(4).Name, resultType: _apps.ElementAt(4).Interop!.Intents!.ListensFor!.Values.First().ResultType), //appId5
-                        new AppMetadata(app.AppId, name: app.Name, resultType: intentMetadata.Value.ResultType),
+                    AppIntent = new AppIntent(
+                        new IntentMetadata("intentMetadata4", "displayName4", new[] { "context2", "context5" }),
+                        new[]
+                        {
+                            new AppMetadata("appId5", name: "app5", resultType: "resultType<specified>"),
+                            new AppMetadata("appId6", name: "app6", resultType: "resultType"),
 
-                    })
-                };
+                        })
+                },
+                ExpectedAppCount = 2
+            });
 
-                result = new()
-                {
-                    Request = findIntentRequest,
-                    ExpectedResponse = findIntentResponse,
-                    ExpectedAppCount = 2
-                };
-            }
-
-            return result!;
-        }
-
-        private FindIntentTestCase SelectTestCaseForContext(bool multipleResult)
-        {
-            FindIntentTestCase result;
-            if (!multipleResult)
+            AddRow(new FindIntentTestCase()
             {
-                var app = _apps.ElementAt(1);
-                var intentMetadata = app.Interop!.Intents!.ListensFor!.First();
-
-                var findIntentRequest = new FindIntentRequest(
+                Request = new FindIntentRequest(
                     fdc3InstanceId: Guid.NewGuid().ToString(),
-                    intent: intentMetadata.Key,
-                    context: new Context(intentMetadata.Value.Contexts.First())); //"context1"
-
-                var findIntentResponse = new FindIntentResponse()
+                    intent: "intentMetadata7",
+                    resultType: "resultType2<specified2>"),
+                ExpectedResponse = new FindIntentResponse()
                 {
-                    AppIntent = new AppIntent(intentMetadata.Value, new[]
-                    {
-                        new AppMetadata(app.AppId, name: app.Name, resultType: intentMetadata.Value.ResultType)
-                    })
-                };
+                    AppIntent = new AppIntent(
+                        new IntentMetadata("intentMetadat7", "displayName7", new[] { "context8" }),
+                        new[]
+                        {
+                            new AppMetadata("appId7", name: "app7", resultType: "resultType2<specified2>")
+                        })
+                },
+                ExpectedAppCount = 1
+            });
 
-                result = new()
-                {
-                    Request = findIntentRequest,
-                    ExpectedResponse = findIntentResponse,
-                    ExpectedAppCount = 1
-                };
-            }
-            else
+            AddRow(new FindIntentTestCase()
             {
-                var app = _apps.ElementAt(3);
-                var intentMetadata = app.Interop!.Intents!.ListensFor!.First();
-
-                var findIntentRequest = new FindIntentRequest(
+                Request = new FindIntentRequest(
                     fdc3InstanceId: Guid.NewGuid().ToString(),
-                    intent: intentMetadata.Key,
-                    context: new Context(intentMetadata.Value.Contexts.First()));//"context2"
-
-                var findIntentResponse = new FindIntentResponse()
+                    intent: "intentMetadata4",
+                    resultType: "resultType"),
+                ExpectedResponse = new FindIntentResponse()
                 {
-                    AppIntent = new AppIntent(intentMetadata.Value, new[]
-                    {
-                        new AppMetadata(app.AppId, name: app.Name, resultType: intentMetadata.Value.ResultType),
-                        new AppMetadata(_apps.ElementAt(4).AppId, name: _apps.ElementAt(4).Name, resultType: _apps.ElementAt(4).Interop!.Intents!.ListensFor!.Values.First().ResultType), //appId5
-                        new AppMetadata(_apps.ElementAt(5).AppId, name: _apps.ElementAt(5).Name, resultType: _apps.ElementAt(5).Interop!.Intents!.ListensFor!.Values.ElementAt(1).ResultType), //appId6
-                    })
-                };
+                    AppIntent = new AppIntent(
+                        new IntentMetadata("intentMetadata4", "displayName4", new[] { "context2" }),
+                        new[]
+                        {
+                            new AppMetadata("appId5", name: "app5", resultType: "resultType<specified>"),
+                            new AppMetadata("appId6", name: "app6", resultType: "resultType"),
+                        })
+                },
+                ExpectedAppCount = 2
+            });
 
-                result = new()
-                {
-                    Request = findIntentRequest,
-                    ExpectedResponse = findIntentResponse,
-                    ExpectedAppCount = 3
-                };
-            }
-
-            return result!;
-        }
-
-        private FindIntentTestCase SelectTestCaseForIntent(bool multipleResult)
-        {
-            FindIntentTestCase result;
-            if (!multipleResult)
+            AddRow(new FindIntentTestCase()
             {
-                var app = _apps.ElementAt(1); //appId2
-                var intentMetadata = app.Interop!.Intents!.ListensFor!.First();
-
-                var findIntentRequest = new FindIntentRequest(
+                Request = new FindIntentRequest(
                     fdc3InstanceId: Guid.NewGuid().ToString(),
-                    intent: intentMetadata.Key);//"intentMetadata2"
-
-                var findIntentResponse = new FindIntentResponse()
+                    intent: "intentMetadata1",
+                    context: new Context("context1")),
+                ExpectedResponse = new FindIntentResponse()
                 {
-                    AppIntent = new AppIntent(intentMetadata.Value, new[]
-                    {
-                        new AppMetadata(app.AppId, name: app.Name, resultType: intentMetadata.Value.ResultType)
-                    })
-                };
+                    AppIntent = new AppIntent(
+                        new IntentMetadata("intentMetadata1", "displayName1", new[] { "context1" }),
+                        new[]
+                        {
+                            new AppMetadata("appId1", name: "app1", resultType: null)
+                        })
+                },
+                ExpectedAppCount = 1
+            });
 
-                result = new()
-                {
-                    Request = findIntentRequest,
-                    ExpectedResponse = findIntentResponse,
-                    ExpectedAppCount = 1
-                };
-            }
-            else
+            AddRow(new FindIntentTestCase()
             {
-                var app = _apps.ElementAt(3); //appId4
-                var intentMetadata = app.Interop!.Intents!.ListensFor!.First();
-
-                var findIntentRequest = new FindIntentRequest(
+                Request = new FindIntentRequest(
                     fdc3InstanceId: Guid.NewGuid().ToString(),
-                    intent: intentMetadata.Key);
-
-                var findIntentResponse = new FindIntentResponse()
+                    intent: "intentMetadata4",
+                    context: new Context("context2")),
+                ExpectedResponse = new FindIntentResponse()
                 {
-                    AppIntent = new AppIntent(intentMetadata.Value, new[]
-                    {
-                        new AppMetadata(app.AppId, name: app.Name, resultType: intentMetadata.Value.ResultType),
-                        new AppMetadata(_apps.ElementAt(4).AppId, name: _apps.ElementAt(4).Name, resultType: _apps.ElementAt(4).Interop!.Intents!.ListensFor!.Values.First().ResultType), //appId5
-                        new AppMetadata(_apps.ElementAt(5).AppId, name: _apps.ElementAt(5).Name, resultType: _apps.ElementAt(5).Interop!.Intents!.ListensFor!.Values.ElementAt(1).ResultType), //appId6
-                    })
-                };
+                    AppIntent = new AppIntent(
+                        new IntentMetadata("intentMetadata4", "displayName4", new[] { "context2" }),
+                        new[]
+                        {
+                            new AppMetadata(appId:"appId4", name: "app4", resultType: null),
+                            new AppMetadata(appId:"appId5", name: "app5", resultType: "resultType<specified>"),
+                            new AppMetadata(appId:"appId6", name: "app6", resultType: "resultType")
+                        })
+                },
+                ExpectedAppCount = 3
+            });
 
-                result = new()
+            AddRow(new FindIntentTestCase()
+            {
+                Request = new FindIntentRequest(
+                    fdc3InstanceId: Guid.NewGuid().ToString(),
+                    intent: "intentMetadata2"),
+                ExpectedResponse = new FindIntentResponse()
                 {
-                    Request = findIntentRequest,
-                    ExpectedResponse = findIntentResponse,
-                    ExpectedAppCount = 3
-                };
-            }
+                    AppIntent = new AppIntent(
+                        new IntentMetadata("intentMetadata2", "displayName2", new[] { "dummyContext" }),
+                        new[]
+                        {
+                            new AppMetadata("appId2", name: "app2", resultType: null)
+                        })
+                },
+                ExpectedAppCount = 1
+            });
 
-            return result!;
-        }
-
-        private enum FindIntentTestCaseType
-        {
-            Context,
-            ResultType,
-            Intent,
-            ContextResultType,
-            RequestError,
-            NoAppsFound,
-            MultipleAppIntents,
+            AddRow(new FindIntentTestCase()
+            {
+                Request = new FindIntentRequest(
+                    fdc3InstanceId: Guid.NewGuid().ToString(),
+                    intent: "intentMetadata4"),
+                ExpectedResponse = new FindIntentResponse()
+                {
+                    AppIntent = new AppIntent(
+                        new IntentMetadata("intentMetadata4", "displayName4", new[] { "context2" }),
+                        new[]
+                        {
+                                new AppMetadata(appId:"appId4", name: "app4", resultType: null),
+                                new AppMetadata(appId:"appId5", name: "app5", resultType: "resultType<specified>"),
+                                new AppMetadata(appId:"appId6", name: "app6", resultType: "resultType")
+                        })
+                },
+                ExpectedAppCount = 3
+            });
         }
     }
 

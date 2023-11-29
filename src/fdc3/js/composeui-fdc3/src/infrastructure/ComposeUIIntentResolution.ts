@@ -59,8 +59,8 @@ export class ComposeUIIntentResolution implements IntentResolution {
                         }
                     } else if (result.context) {
                         return resolve(result.context);
-                    } else if (result.errorResult) {
-                        console.log("Backend suspects that the IntentListener returned void. ", result.errorResult);
+                    } else if (result.voidResult) {
+                        console.log("Backend suspects that the IntentListener returned void. ", result.voidResult);
                         return resolve();
                     }
                     return reject(new Error(ComposeUIErrors.NoAnswerWasProvided));

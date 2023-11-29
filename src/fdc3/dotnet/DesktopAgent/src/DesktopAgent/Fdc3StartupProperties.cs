@@ -16,5 +16,8 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
 internal class Fdc3StartupProperties
 {
+    /// <summary>
+    /// Fdc3 DesktopAgent's specific identifier for the created application instance.
+    /// </summary>
     public string InstanceId { get; init; }
 }

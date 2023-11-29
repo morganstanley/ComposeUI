@@ -14,68 +14,59 @@
 
 using System.Reactive.Subjects;
 using MorganStanley.ComposeUI.ModuleLoader;
-using MorganStanley.ComposeUI.Shell.Fdc3;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.TestUtils;
 
-public class MockModuleLoader : IModuleLoader
+public class MockModuleLoader : Mock<IModuleLoader>
 {
-    public IObservable<LifetimeEvent> LifetimeEvents => _subject;
-    public IEnumerable<IModuleInstance> StartRequests { 
-        get
-        {
-            lock (_lock)
-            {
-                return new List<IModuleInstance>(_startRequests);
-            }
-        }
+    public MockModuleLoader()
+    {
+        Setup(_ => _.StartModule(It.IsAny<StartRequest>()))
+            .Returns(async(StartRequest startRequest) => await HandleStartRequest(startRequest));
+
+        Setup(_ => _.StopModule(It.IsAny<StopRequest>()))
+            .Callback(async (StopRequest stopRequest) => await HandleStopRequest(stopRequest));
+
+        Setup(_ => _.LifetimeEvents)
+            .Returns(() => LifetimeEvents);
     }
 
+    public IObservable<LifetimeEvent> LifetimeEvents => _subject;
     private List<IModuleInstance> _startRequests = new();
     private readonly object _lock = new();
     private Subject<LifetimeEvent> _subject = new();
 
-    public Task<IModuleInstance> StartModule(StartRequest startRequest)
+    private Task<IModuleInstance> HandleStartRequest(StartRequest startRequest)
     {
-        IModuleInstance instance;
+        IModuleInstance instance = new MockModuleInstance(
+            startRequest,
+            new MockModuleManifest() { Id = startRequest.ModuleId });
+
         lock (_lock)
         {
-            instance = new MockModuleInstance(startRequest, new MockModuleManifest() { Id = startRequest.ModuleId });
             _startRequests.Add(instance);
             _subject.OnNext(new LifetimeEvent.Starting(instance));
             _subject.OnNext(new LifetimeEvent.Started(instance));
         }
+
         return Task.FromResult(instance);
+
     }
 
-    public Task StopModule(StopRequest stopRequest)
+    private Task HandleStopRequest(StopRequest stopRequest)
     {
         lock (_lock)
         {
-            var instance = _startRequests.FirstOrDefault(instance => instance.InstanceId == stopRequest.InstanceId);
+            var instance = _startRequests.FirstOrDefault(inst => inst.InstanceId == stopRequest.InstanceId);
             if (instance != null)
             {
-                _startRequests = _startRequests.Where(request => request.InstanceId != stopRequest.InstanceId).ToList();
+                _startRequests.Remove(instance);
                 _subject.OnNext(new LifetimeEvent.Stopping(instance));
                 _subject.OnNext(new LifetimeEvent.Stopped(instance));
             }
         }
 
         return Task.CompletedTask;
-    }
-
-    public void StopAllModules()
-    {
-        lock (_lock)
-        {
-            var modules = _startRequests.AsEnumerable().Reverse().ToArray();
-            _startRequests.Clear();
-            foreach (var module in modules)
-            {
-                _subject.OnNext(new LifetimeEvent.Stopping(module));
-                _subject.OnNext(new LifetimeEvent.Stopped(module));
-            }
-        }
     }
 
     private class MockModuleInstance : IModuleInstance

@@ -44,15 +44,15 @@ internal sealed class GetIntentResultResponse
     public string? Error { get; set; }
 
     /// <summary>
-    /// Indicates that the IntentHandler returned error during its execution.
+    /// Indicates that the IntentHandler returned without result during its execution.
     /// </summary>
-    public string? ErrorResult { get; set; }
+    public string? VoidResult { get; set; }
 
     public static GetIntentResultResponse Success(
         string? channelId = null,
         ChannelType? channelType = null,
         Context? context = null,
-        string? errorResult = null)
+        string? voidResult = null)
     {
         var response = new GetIntentResultResponse();
         if (channelId != null && channelType != null)
@@ -64,9 +64,9 @@ internal sealed class GetIntentResultResponse
         {
             response.Context = context;
         }
-        else if (errorResult != null)
+        else if (voidResult != null)
         {
-            response.ErrorResult = errorResult;
+            response.VoidResult = voidResult;
         }
         else
         {

@@ -20,7 +20,6 @@ namespace MorganStanley.ComposeUI.Shell.Fdc3;
 
 internal sealed class Fdc3StartupAction : IStartupAction
 {
-    private const string Fdc3InstanceId = nameof(Fdc3InstanceId);
     private readonly IAppDirectory _appDirectory;
 
     public Fdc3StartupAction(IAppDirectory appDirectory)
@@ -33,18 +32,14 @@ internal sealed class Fdc3StartupAction : IStartupAction
         if (startupContext.ModuleInstance.Manifest.ModuleType == ModuleType.Web)
         {
             //TODO: should add some identifier to the query => "fdc3:" + startupContext.StartRequest.ModuleId
-            var appId = await _appDirectory.GetApp(startupContext.StartRequest.ModuleId);
+            var appId = (await _appDirectory.GetApp(startupContext.StartRequest.ModuleId)).AppId;
 
-            var fdc3InstanceId = startupContext.StartRequest.Parameters.FirstOrDefault(parameter => parameter.Key == Fdc3StartupParameters.Fdc3InstanceId).Value;
-            if (string.IsNullOrEmpty(fdc3InstanceId))
-            {
-                var fdc3StartupProperties = new Fdc3StartupProperties() { InstanceId = Guid.NewGuid().ToString() };
-                fdc3InstanceId = startupContext.GetOrAddProperty<Fdc3StartupProperties>(_ => fdc3StartupProperties).InstanceId;
-            }
+            var fdc3InstanceId = startupContext.StartRequest.Parameters.FirstOrDefault(parameter => parameter.Key == Fdc3StartupParameters.Fdc3InstanceId).Value ?? Guid.NewGuid().ToString();
+
+            var fdc3StartupProperties = new Fdc3StartupProperties() { InstanceId = fdc3InstanceId};
+            fdc3InstanceId = startupContext.GetOrAddProperty<Fdc3StartupProperties>(_ => fdc3StartupProperties).InstanceId;
 
             var webProperties = startupContext.GetOrAddProperty<WebStartupProperties>();
-            webProperties
-                .ScriptProviders.Add(_ => new ValueTask<string>(ResourceReader.ReadResource(ResourceNames.Fdc3Bundle)));
 
             webProperties
                 .ScriptProviders.Add(_ =>
@@ -58,8 +53,11 @@ internal sealed class Fdc3StartupAction : IStartupAction
                             }
                         };
                         """));
+
+            webProperties
+                .ScriptProviders.Add(_ => new ValueTask<string>(ResourceReader.ReadResource(ResourceNames.Fdc3Bundle)));
         }
 
-        await next();
+        await (next.Invoke());
     }
 }

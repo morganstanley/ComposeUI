@@ -23,6 +23,6 @@ export class Fdc3StoreIntentResultRequest {
         public channelId?: string,
         public channelType?: ChannelType,
         public context?: Context,
-        public errorResult?: string
+        public voidResult?: string
     ) {}
 }

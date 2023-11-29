@@ -57,7 +57,6 @@ internal class Fdc3DesktopAgent : IHostedService
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         Converters =
         {
-            new IAppIdentifierJsonConverter(),
             new IAppMetadataJsonConverter(),
             new IIntentMetadataJsonConverter(),
         }
@@ -89,7 +88,9 @@ internal class Fdc3DesktopAgent : IHostedService
     {
         var request = payload?.ReadJson<FindChannelRequest>();
         if (request?.ChannelType != ChannelType.User) return ValueTask.FromResult<MessageBuffer?>(MessageBuffer.Factory.CreateJson(FindChannelResponse.Failure(ChannelError.NoChannelFound)));
-        return ValueTask.FromResult<MessageBuffer?>(MessageBuffer.Factory.CreateJson(_userChannels.Any(x => x.Id == request.ChannelId) ? FindChannelResponse.Success : FindChannelResponse.Failure(ChannelError.NoChannelFound)));
+        return ValueTask.FromResult<MessageBuffer?>(MessageBuffer.Factory.CreateJson(_userChannels.Any(x => x.Id == request.ChannelId)
+            ? FindChannelResponse.Success
+            : FindChannelResponse.Failure(ChannelError.NoChannelFound)));
     }
 
     internal async ValueTask<MessageBuffer?> HandleFindIntent(string endpoint, MessageBuffer? payload, MessageContext context)
@@ -190,11 +191,8 @@ internal class Fdc3DesktopAgent : IHostedService
         if (request == null) return MessageBuffer.Factory.CreateJson(GetIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed), _jsonSerializerOptions);
         if (request.TargetAppIdentifier?.InstanceId == null || request.Intent == null || request.MessageId == null) return MessageBuffer.Factory.CreateJson(GetIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed), _jsonSerializerOptions);
 
-        using (await _mutex.LockAsync())
-        {
-            var response = await GetIntentResult(request);
-            return MessageBuffer.Factory.CreateJson(response, _jsonSerializerOptions);
-        }
+        var response = await GetIntentResult(request);
+        return MessageBuffer.Factory.CreateJson(response, _jsonSerializerOptions);
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -297,20 +295,24 @@ internal class Fdc3DesktopAgent : IHostedService
             : FindIntentsByContextResponse.Success(appIntents);
     }
 
-    private ValueTask<GetIntentResultResponse> GetIntentResult(GetIntentResultRequest request)
+    private async ValueTask<GetIntentResultResponse> GetIntentResult(GetIntentResultRequest request)
     {
+        var cancellationTokenSource = new CancellationTokenSource();
         try
         {
-            if (_raisedIntentResolutions.TryGetValue(new Guid(request.TargetAppIdentifier.InstanceId!), out var registeredFdc3App))
+            var task = Task.Delay(_options.Timeout, cancellationTokenSource.Token);
+
+            if (await Task.WhenAny(
+                IsIntentResolved(request), 
+                task) != task)
             {
-                if (registeredFdc3App.TryGetRaisedIntentResult(request.MessageId, request.Intent, out var raiseIntentInvocation))
-                {
-                    return ValueTask.FromResult(GetIntentResultResponse.Success(
-                            raiseIntentInvocation.ResultChannelId,
-                            raiseIntentInvocation.ResultChannelType,
-                            raiseIntentInvocation.ResultContext,
-                            raiseIntentInvocation.ErrorResult));
-                }
+                cancellationTokenSource.Cancel();
+                var resolvedIntent = await IsIntentResolved(request);
+                return GetIntentResultResponse.Success(
+                            resolvedIntent!.ResultChannelId,
+                            resolvedIntent!.ResultChannelType,
+                            resolvedIntent!.ResultContext,
+                            resolvedIntent!.ResultVoid);
             }
         }
         catch (Fdc3DesktopAgentException exception)
@@ -318,7 +320,21 @@ internal class Fdc3DesktopAgent : IHostedService
             _logger.LogError(exception, "Error occurred while getResult() was called from the client.");
         }
 
-        return ValueTask.FromResult(GetIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed));
+        return GetIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed);
+    }
+
+    private async Task<RaiseIntentResolutionInvocation?> IsIntentResolved(GetIntentResultRequest request)
+    {
+        RaiseIntentResolutionInvocation? resolution = null;
+        while (
+                !_raisedIntentResolutions.TryGetValue(new Guid(request.TargetAppIdentifier.InstanceId!), out var resolver)
+                || !resolver.TryGetRaisedIntentResult(request.MessageId, request.Intent, out resolution)
+                || (resolution.ResultChannelId == null && resolution.ResultChannelType == null && resolution.ResultContext == null && resolution.ResultVoid == null))
+        {
+            await Task.Delay(1);
+        }
+
+        return resolution;
     }
 
     private ValueTask<StoreIntentResultResponse> StoreIntentResult(StoreIntentResultRequest request)
@@ -332,7 +348,7 @@ internal class Fdc3DesktopAgent : IHostedService
                     channelId: request.ChannelId,
                     channelType: request.ChannelType,
                     context: request.Context,
-                    errorResult: request.ErrorResult));
+                    voidResult: request.VoidResult));
 
         return ValueTask.FromResult(StoreIntentResultResponse.Success());
     }
@@ -703,7 +719,8 @@ internal class Fdc3DesktopAgent : IHostedService
             Context contextToHandle,
             Context? resultContext = null,
             string? resultChannelId = null,
-            ChannelType? resultChannelType = null)
+            ChannelType? resultChannelType = null,
+            string? resultVoid = null)
         {
             RaiseIntentMessageId = $"{raiseIntentMessageId}-{Guid.NewGuid()}";
             Intent = intent;
@@ -712,6 +729,7 @@ internal class Fdc3DesktopAgent : IHostedService
             ResultContext = resultContext;
             ResultChannelId = resultChannelId;
             ResultChannelType = resultChannelType;
+            ResultVoid = resultVoid;
         }
 
         public string RaiseIntentMessageId { get; }
@@ -721,7 +739,7 @@ internal class Fdc3DesktopAgent : IHostedService
         public Context? ResultContext { get; set; }
         public string? ResultChannelId { get; set; }
         public ChannelType? ResultChannelType { get; set; }
-        public string? ErrorResult { get; set; }
+        public string? ResultVoid { get; set; }
     }
 
     private class RaisedIntentResolver
@@ -768,22 +786,13 @@ internal class Fdc3DesktopAgent : IHostedService
             }
         }
 
-        public RaisedIntentResolver RemoveRaisedIntent(RaiseIntentResolutionInvocation raiseIntentInvocation)
-        {
-            lock (_raiseIntentInvocationsLock)
-            {
-                _raiseIntentResolutions.Remove(raiseIntentInvocation);
-                return this;
-            }
-        }
-
         public RaisedIntentResolver AddIntentResult(
             string messageId,
             string intent,
             string? channelId = null,
             ChannelType? channelType = null,
             Context? context = null,
-            string? errorResult = null)
+            string? voidResult = null)
         {
             lock (_raiseIntentInvocationsLock)
             {
@@ -796,7 +805,7 @@ internal class Fdc3DesktopAgent : IHostedService
                     raisedIntentInvocation.ResultChannelId = channelId;
                     raisedIntentInvocation.ResultChannelType = channelType;
                     raisedIntentInvocation.ResultContext = context;
-                    raisedIntentInvocation.ErrorResult = errorResult;
+                    raisedIntentInvocation.ResultVoid = voidResult;
                 }
                 else if (raisedIntentInvocations.Count() > 1) throw ThrowHelper.MultipleIntentRegisteredToAnAppInstance(intent);
 
