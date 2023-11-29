@@ -32,7 +32,7 @@ internal sealed class StoreIntentResultRequest
         string? channelId = null,
         ChannelType? channelType = null,
         Context? context = null,
-        string? errorResult = null)
+        string? voidResult = null)
     {
         MessageId = messageId;
         Intent = intent;
@@ -41,7 +41,7 @@ internal sealed class StoreIntentResultRequest
         ChannelId = channelId;
         ChannelType = channelType;
         Context = context;
-        ErrorResult = errorResult;
+        VoidResult = voidResult;
     }
 
     /// <summary>
@@ -80,7 +80,7 @@ internal sealed class StoreIntentResultRequest
     public Context? Context { get; }
 
     /// <summary>
-    /// Indicates ResultError happened during the execution of IntentHandler.
+    /// Indicates that the result of the IntentHandler is void type.
     /// </summary>
-    public string? ErrorResult { get; }
+    public string? VoidResult { get; }
 }

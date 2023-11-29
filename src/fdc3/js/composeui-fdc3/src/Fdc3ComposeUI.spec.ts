@@ -207,6 +207,12 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
         };
     });
 
+    it('ComposeUIDesktoAgent could not be created as no instanceId found on window object', async() => {
+        window.composeui.fdc3.config = undefined;
+        expect(() => new ComposeUIDesktopAgent("dummyPath", messageRouterClient))
+        .toThrowError(ComposeUIErrors.InstanceIdNotFound);
+    });
+
     it('broadcast will trigger publish method of the messageRouter', async() => {
         const testDesktopAgent = new ComposeUIDesktopAgent(dummyChannelId, messageRouterClient);
         await testDesktopAgent.joinUserChannel(dummyChannelId);
@@ -359,14 +365,6 @@ describe ('Tests for ComposeUIDesktopAgent\'s intent handling', () => {
         };
     });
 
-    it('findIntent will throw error as no instanceId found on window object', async() => {
-        window.composeui.fdc3.config = undefined;
-        const testDesktopAgent = new ComposeUIDesktopAgent("dummyPath", messageRouterClient);
-        await expect(testDesktopAgent.findIntent("testIntent"))
-        .rejects
-        .toThrow(ComposeUIErrors.InstanceIdNotFound);
-    });
-
     it('findIntent will throw error as no answer was provided by the DesktopAgent backend', async() => {
         const messageRouterClientMock = {
             clientId: "dummy",
@@ -432,14 +430,6 @@ describe ('Tests for ComposeUIDesktopAgent\'s intent handling', () => {
         var resultAppIntent = await testDesktopAgent.findIntent("dummyIntent");
         expect(messageRouterClientMock.invoke).toHaveBeenCalledWith(ComposeUITopic.findIntent(), JSON.stringify({fdc3InstanceId: window?.composeui?.fdc3.config?.instanceId, intent: "dummyIntent"}));
         expect(resultAppIntent).toMatchObject({itent: "dummyIntent", apps: [{appId: "appId1"}, {appId: "appdId2"}]});
-    });
-
-    it('findIntentsByContext throws error as instanceId not set', async() => {
-        window.composeui.fdc3.config = undefined;
-        const testDesktopAgent = new ComposeUIDesktopAgent("dummyPath", messageRouterClient);
-        await expect(testDesktopAgent.findIntentsByContext({ type: "fdc3.Instrument" }))
-        .rejects
-        .toThrow(ComposeUIErrors.InstanceIdNotFound);
     });
 
     it('findIntentsByContext throws error no response came from the DesktopAgent service, undefined message', async() => {
@@ -534,14 +524,6 @@ describe ('Tests for ComposeUIDesktopAgent\'s intent handling', () => {
 
         expect(messageRouterClientMock.invoke).toHaveBeenCalledWith(ComposeUITopic.findIntentsByContext(), JSON.stringify(request));
         expect(resultAppIntent).toMatchObject(response.appIntents!);
-    });
-
-    it('raiseIntent will throw exception, due no instanceId found on window object', async() => {
-        window.composeui.fdc3.config = undefined;
-        const testDesktopAgent = new ComposeUIDesktopAgent("dummyPath", messageRouterClient);
-        await expect(testDesktopAgent.raiseIntent("testIntent", { type: "fdc3.Instrument" }))
-        .rejects
-        .toThrow(ComposeUIErrors.InstanceIdNotFound);
     });
 
     it('raiseIntent will throw exception, due no answer came from the DesktopAgent service', async() => {
@@ -670,14 +652,6 @@ describe ('Tests for ComposeUIDesktopAgent\'s intent handling', () => {
 
         expect(messageRouterClientMock.subscribe).toHaveBeenCalledTimes(1);
         expect(result).toBeInstanceOf(ComposeUIIntentListener);
-    });
-
-    it('addIntentListener will reject as no config defined on window object', async() => {
-        window.composeui.fdc3.config = undefined;
-        const testDesktopAgent = new ComposeUIDesktopAgent("dummyPath", messageRouterClient);
-        await expect(testDesktopAgent.addIntentListener("testIntent", (context, metadata) => {}))
-        .rejects
-        .toThrow(ComposeUIErrors.InstanceIdNotFound);
     });
 
     it('addIntentListener will fail as no answer provided', async () => {
