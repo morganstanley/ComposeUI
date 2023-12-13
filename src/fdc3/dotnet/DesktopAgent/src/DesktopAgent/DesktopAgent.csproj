@@ -23,6 +23,11 @@
 		<ProjectReference Include="..\..\..\..\..\shared\dotnet\src\MorganStanley.ComposeUI.Utilities\MorganStanley.ComposeUI.Utilities.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<InternalsVisibleTo Include="$(AssemblyName).Tests" />
+		<InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+	</ItemGroup>
+	
 	<PropertyGroup>
 		<Fdc3BundleOutput>$(ComposeUIRepositoryRoot)\src\fdc3\js\composeui-fdc3\dist\fdc3-iife-bundle.js</Fdc3BundleOutput>
 	</PropertyGroup>

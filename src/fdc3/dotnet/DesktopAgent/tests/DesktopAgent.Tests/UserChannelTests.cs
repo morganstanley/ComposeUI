@@ -12,7 +12,10 @@
  * and limitations under the License.
  */
 
+using System.Text;
+using System.Text.Json;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure;
 using MorganStanley.Fdc3.Context;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
@@ -20,7 +23,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
 public class UserChannelTests
 {
     private const string TestChannel = "testChannel";
-    UserChannel _channel = new UserChannel(TestChannel, new Mock<IMessageRouter>().Object, null);
+    UserChannel _channel = new UserChannel(TestChannel, new Mock<IMessagingService>().Object, null);
     UserChannelTopics _topics = new UserChannelTopics(TestChannel);
 
     [Theory]
@@ -29,7 +32,7 @@ public class UserChannelTests
     public async void CallingGetCurrentContextOnNewUserChannelReturnsNull(string? contextType)
     {
         var request = new GetCurrentContextRequest() { ContextType = contextType };
-        var ctx = await _channel.GetCurrentContext(_topics.GetCurrentContext, MessageBuffer.Factory.CreateJson(request), null);
+        var ctx = await _channel.GetCurrentContext(request);
         ctx.Should().BeNull();
     }
 
@@ -37,31 +40,32 @@ public class UserChannelTests
     public void NewUserChannelCanHandleContext()
     {
         var context = GetContext();
-        new Action(() => _channel.HandleBroadcast(context)).Should().NotThrow();
+        new Action(() => _channel.HandleBroadcast(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(context)))).Should().NotThrow();
     }
 
     [Fact]
     public async void BroadcastedChannelCanReturnLatestBroadcast()
     {
         var context = await PreBroadcastContext();
-
-        var ctx = await _channel.GetCurrentContext(_topics.GetCurrentContext, null, null);
-        ctx.Should().BeEquivalentTo(context);
+        var ctx = await _channel.GetCurrentContext(null);
+        var result = JsonSerializer.Deserialize<Contact>(Encoding.UTF8.GetString(ctx));
+        result.Should().BeEquivalentTo(context);
     }
 
     [Fact]
     public async void BroadcastedUserChannelCanReturnLatestBroadcastForType()
     {
         var context = await PreBroadcastContext();
-        var ctx = await _channel.GetCurrentContext(_topics.GetCurrentContext, ContextType, null);
-        ctx.Should().BeEquivalentTo(context);
+        var ctx = await _channel.GetCurrentContext(ContextType);
+        var result = JsonSerializer.Deserialize<Contact>(Encoding.UTF8.GetString(ctx));
+        result.Should().BeEquivalentTo(context);
     }
 
     [Fact]
     public async void BroadcastedUserChannelReturnsNullForDifferentType()
     {
         await PreBroadcastContext();
-        var ctx = await _channel.GetCurrentContext(_topics.GetCurrentContext, OtherContextType, null);
+        var ctx = await _channel.GetCurrentContext(OtherContextType);
         ctx.Should().BeNull();
     }
 
@@ -70,38 +74,42 @@ public class UserChannelTests
     {
         await PreBroadcastContext();
         var context = GetContext();
-        new Action(() => _channel.HandleBroadcast(context)).Should().NotThrow();
+        new Action(() => _channel.HandleBroadcast(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(context)))).Should().NotThrow();
     }
 
     [Fact]
     public async void BroadcastedUserChannelUpdatesLatestBroadcast()
     {
         var context = await DoubleBroadcastContext();
-        var ctx = await _channel.GetCurrentContext(_topics.GetCurrentContext, null, null);
-        ctx.Should().BeEquivalentTo(context);
+        var ctx = await _channel.GetCurrentContext(null);
+        var result = JsonSerializer.Deserialize<Contact>(Encoding.UTF8.GetString(ctx));
+        result.Should().BeEquivalentTo(context);
     }
 
     [Fact]
     public async void BroadcastedUserChannelUpdatesLatestBroadcastForType()
     {
         var context = await DoubleBroadcastContext();
-        var ctx = await _channel.GetCurrentContext(_topics.GetCurrentContext, ContextType, null);
-        ctx.Should().BeEquivalentTo(context);
+        var ctx = await _channel.GetCurrentContext(ContextType);
+        var result = JsonSerializer.Deserialize<Contact>(Encoding.UTF8.GetString(ctx));
+        result.Should().BeEquivalentTo(context);
     }
 
     [Fact]
     public async void BroadcastedUserChannelCanHandleDifferentBroadcast()
     {
         await PreBroadcastContext();
-        new Action(() => _channel.HandleBroadcast(GetDifferentContext())).Should().NotThrow();
+        new Action(() => _channel.HandleBroadcast(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(GetDifferentContext())))).Should().NotThrow();
     }
 
     [Fact]
     public async void ChannelWithDifferentBroadcastsUpdatesLatestBroadcast()
     {
         var (_, second) = await BroadcastDifferentContexts();
-        var ctx = await _channel.GetCurrentContext(_topics.GetCurrentContext, null, null);
-        ctx.Should().BeEquivalentTo(second);
+        var ctx = await _channel.GetCurrentContext(null);
+        var result = JsonSerializer.Deserialize<Currency>(Encoding.UTF8.GetString(ctx));
+
+        result.Should().BeEquivalentTo(second);
     }
 
     [Fact]
@@ -109,42 +117,45 @@ public class UserChannelTests
     {
         var (first, second) = await BroadcastDifferentContexts();
 
-        var ctx1 = await _channel.GetCurrentContext(_topics.GetCurrentContext, ContextType, null);
-        var ctx2 = await _channel.GetCurrentContext(_topics.GetCurrentContext, DifferentContextType, null);
+        var ctx1 = await _channel.GetCurrentContext(ContextType);
+        var ctx2 = await _channel.GetCurrentContext(DifferentContextType);
 
-        ctx1.Should().BeEquivalentTo(first);
-        ctx2.Should().BeEquivalentTo(second);
+        var context1 = JsonSerializer.Deserialize<Contact>(Encoding.UTF8.GetString(ctx1));
+        var context2 = JsonSerializer.Deserialize<Currency>(Encoding.UTF8.GetString(ctx2));
+
+        context1.Should().BeEquivalentTo(first);
+        context2.Should().BeEquivalentTo(second);
     }
 
     private int _counter;
 
-    private MessageBuffer ContextType => MessageBuffer.Factory.CreateJson(new GetCurrentContextRequest { ContextType = new Contact().Type });
-    private MessageBuffer OtherContextType => MessageBuffer.Factory.CreateJson(new GetCurrentContextRequest { ContextType = new Email(null).Type });
-    private MessageBuffer GetContext() => MessageBuffer.Factory.CreateJson(new Contact(new ContactID() { Email = $"test{_counter}@test.org", FdsId = $"test{_counter++}" }, "Testy Tester"));
-    private MessageBuffer DifferentContextType => MessageBuffer.Factory.CreateJson(new GetCurrentContextRequest { ContextType = new Currency().Type });
-    private MessageBuffer GetDifferentContext() => MessageBuffer.Factory.CreateJson(new Currency(new CurrencyID() { CURRENCY_ISOCODE = "HUF" }));
+    private GetCurrentContextRequest ContextType => new GetCurrentContextRequest { ContextType = new Contact().Type };
+    private GetCurrentContextRequest OtherContextType => new GetCurrentContextRequest { ContextType = new Email(null).Type };
+    private Contact GetContext() => new Contact(new ContactID() { Email = $"test{_counter}@test.org", FdsId = $"test{_counter++}" }, "Testy Tester");
+    private GetCurrentContextRequest DifferentContextType => new GetCurrentContextRequest { ContextType = new Currency().Type };
+    private Currency GetDifferentContext() => new Currency(new CurrencyID() { CURRENCY_ISOCODE = "HUF" });
 
-    private async ValueTask<MessageBuffer> PreBroadcastContext()
+    private async ValueTask<Contact> PreBroadcastContext()
     {
         var context = GetContext();
-        await _channel.HandleBroadcast(context);
+        await _channel.HandleBroadcast(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(context)));
         return context;
     }
 
-    private async ValueTask<MessageBuffer> DoubleBroadcastContext()
+    private async ValueTask<Contact> DoubleBroadcastContext()
     {
-        await _channel.HandleBroadcast(GetContext());
+        await _channel.HandleBroadcast(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(GetContext())));
         var context = GetContext();
-        await _channel.HandleBroadcast(context);
+        await _channel.HandleBroadcast(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(context)));
         return context;
     }
 
-    private async ValueTask<(MessageBuffer first, MessageBuffer second)> BroadcastDifferentContexts()
+    private async ValueTask<(Contact first, Currency second)> BroadcastDifferentContexts()
     {
         var first = GetContext();
         var second = GetDifferentContext();
-        await _channel.HandleBroadcast(first);
-        await _channel.HandleBroadcast(second);
+        await _channel.HandleBroadcast(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(first)));
+        await _channel.HandleBroadcast(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(second)));
         return (first, second);
     }
 }

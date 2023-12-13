@@ -21,36 +21,24 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 /// </summary>
 internal sealed class FindIntentRequest 
 {
-    public FindIntentRequest(
-        string fdc3InstanceId, 
-        string intent, 
-        Context? context = null, 
-        string? resultType = null)
-    {
-        Fdc3InstanceId = fdc3InstanceId;
-        Intent = intent;
-        Context = context;
-        ResultType = resultType;
-    }
-
     /// <summary>
     /// Unique identifier from the application which sent the RaiseIntentRequest type of message.
     /// Probably the instanceId of the application which can be queried from the window.object, etc.
     /// </summary>
-    public string Fdc3InstanceId { get; }
+    public string Fdc3InstanceId { get; set; }
 
     /// <summary>
     /// Intent, that has been raised via fdc3.findIntent.
     /// </summary>
-    public string Intent { get; }
+    public string Intent { get; set; }
 
     /// <summary>
     /// <inheritdoc cref="MorganStanley.Fdc3.Context.Context"/>
     /// </summary>
-    public Context? Context { get; }
+    public Context? Context { get; set; }
 
     /// <summary>
     /// ResultType, indicating what resultType the requesting app is expecting.
     /// </summary>
-    public string? ResultType { get; }
+    public string? ResultType { get; set; }
 }

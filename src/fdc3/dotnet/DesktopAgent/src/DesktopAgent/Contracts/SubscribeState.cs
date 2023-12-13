@@ -12,28 +12,19 @@
  * and limitations under the License.
  */
 
-using MorganStanley.Fdc3.Context;
+
+using System.Runtime.Serialization;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
 /// <summary>
-/// Request by calling the fdc3.findIntentsByContext.
+/// Indicates the state of the IntentListener, which was sent to the DesktopAgent backend.
 /// </summary>
-internal sealed class FindIntentsByContextRequest
+internal enum SubscribeState
 {
-    /// <summary>
-    /// Unique identifier from the application which sent the FindIntentsByContextRequest type of message.
-    /// Probably the instanceId of the application which can be queried from the window.object, etc.
-    /// </summary>
-    public string Fdc3InstanceId { get; set; }
+    [EnumMember(Value = "Subscribe")]
+    Subscribe,
 
-    /// <summary>
-    /// <see cref="MorganStanley.Fdc3.Context.Context"/>
-    /// </summary>
-    public Context Context { get; set; }
-
-    /// <summary>
-    /// ResultType, indicating what resultType the requesting app is expecting.
-    /// </summary>
-    public string? ResultType { get; set; }
+    [EnumMember(Value = "Unsubscribe")]
+    Unsubscribe
 }

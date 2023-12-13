@@ -12,7 +12,9 @@
  * and limitations under the License.
  */
 
+using System.Text;
 using Microsoft.Extensions.Logging;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
 
@@ -51,14 +53,14 @@ public class UserChannelErrorsAndDiagnosticsTests
     public UserChannelErrorsAndDiagnosticsTests()
     {
         _logger = new TestLogger();
-        _channel = new UserChannel(TestChannel, new Mock<IMessageRouter>().Object, _logger);
+        _channel = new UserChannel(TestChannel, new Mock<IMessagingService>().Object, _logger);
     }
 
     [Fact]
     public async void EmptyPayloadBroadcastedIsLoggedAndIgnored()
     {
         await _channel.HandleBroadcast(EmptyBuffer);
-        var ctx = await _channel.GetCurrentContext(_topics.GetCurrentContext, null, null);
+        var ctx = await _channel.GetCurrentContext(new());
 
         ctx.Should().BeNull();
         VerifySingleWarning();
@@ -68,7 +70,7 @@ public class UserChannelErrorsAndDiagnosticsTests
     public async void NullPayloadBroadcastedIsLoggedAndIgnored()
     {
         await _channel.HandleBroadcast(EmptyBuffer);
-        var ctx = await _channel.GetCurrentContext(_topics.GetCurrentContext, null, null);
+        var ctx = await _channel.GetCurrentContext(new());
         ctx.Should().BeNull();
         VerifySingleWarning();
     }
@@ -77,7 +79,7 @@ public class UserChannelErrorsAndDiagnosticsTests
     public async void NonJsonBroadcastedIsLoggedAndIgnored()
     {
         await _channel.HandleBroadcast(PlainTextBuffer);
-        var ctx = await _channel.GetCurrentContext(_topics.GetCurrentContext, null, null);
+        var ctx = await _channel.GetCurrentContext(new());
         ctx.Should().BeNull();
         VerifyDebugAndWarning();
     }
@@ -86,14 +88,14 @@ public class UserChannelErrorsAndDiagnosticsTests
     public async void MissingContextTypeBroadcastedIsLoggedAndIgnored()
     {
         await _channel.HandleBroadcast(InvalidJsonBuffer);
-        var ctx = await _channel.GetCurrentContext(_topics.GetCurrentContext, null, null);
+        var ctx = await _channel.GetCurrentContext(new());
         ctx.Should().BeNull();
         VerifyDebugAndWarning();
     }
 
-    private MessageBuffer EmptyBuffer => MessageBuffer.Create(string.Empty);
-    private MessageBuffer PlainTextBuffer => MessageBuffer.Create("Plain Text Payload");
-    private MessageBuffer InvalidJsonBuffer => MessageBuffer.Create("{\"randomField\":\"random text\"}");
+    private byte[] EmptyBuffer => Encoding.UTF8.GetBytes(string.Empty);
+    private byte[] PlainTextBuffer => Encoding.UTF8.GetBytes("Plain Text Payload");
+    private byte[] InvalidJsonBuffer => Encoding.UTF8.GetBytes("{\"randomField\":\"random text\"}");
 
     private void VerifyDebugAndWarning()
     {
