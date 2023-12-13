@@ -16,22 +16,25 @@ using System.Text.Json.Serialization;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
+/// <summary>
+/// Request originated by the client, which indicates that it would like to add or remove its IntentListener.
+/// </summary>
 internal sealed class AddIntentListenerRequest
 {
-    [JsonConstructor]
-    public AddIntentListenerRequest(
-        string intent,
-        string fdc3InstanceId,
-        SubscribeState state)
-    {
-        Intent = intent;
-        Fdc3InstanceId = fdc3InstanceId;
-        State = state;
-    }
-
+    /// <summary>
+    /// State, that indicates the action, that the client;s listener would like to take, lik subscribe or unsubscribe from an intent.
+    /// </summary>
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public SubscribeState State { get; } 
-    public string Intent { get; }
-    public string Fdc3InstanceId { get; }
+    public SubscribeState State { get; set; } 
+
+    /// <summary>
+    /// Intent, for the listener, which would like to (un)subscribe.
+    /// </summary>
+    public string Intent { get; set; }
+
+    /// <summary>
+    /// Fdc3 specific insatnce id from the client, which would like to add/renive its intent listener.
+    /// </summary>
+    public string Fdc3InstanceId { get; set; }
 
 }

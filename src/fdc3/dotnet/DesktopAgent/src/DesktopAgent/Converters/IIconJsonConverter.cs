@@ -12,19 +12,22 @@
  * and limitations under the License.
  */
 
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using MorganStanley.Fdc3;
+using Icon = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Icon;
 
-using System.Runtime.Serialization;
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
-
-/// <summary>
-/// Indicates the state of the IntentListener, which was sent to the DesktopAgent backend.
-/// </summary>
-internal enum SubscribeState
+public class IIconJsonConverter : JsonConverter<IIcon>
 {
-    [EnumMember(Value = "Subscribe")]
-    Subscribe,
+    public override IIcon? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        return JsonSerializer.Deserialize<Icon>(ref reader, options);
+    }
 
-    [EnumMember(Value = "Unsubscribe")]
-    Unsubscribe 
+    public override void Write(Utf8JsonWriter writer, IIcon value, JsonSerializerOptions options)
+    {
+        JsonSerializer.Serialize(writer, (Icon)value, options);
+    }
 }

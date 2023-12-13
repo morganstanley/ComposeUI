@@ -14,10 +14,20 @@
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
+/// <summary>
+/// Response, from the server, that it successfully registered the IntentListener of the client, originated by the client via <seealso cref="AddIntentListenerRequest"/>.
+/// </summary>
 internal sealed class AddIntentListenerResponse
 {
-    public bool Stored { get; init; } = false;
-    public string? Error { get; init; }
+    /// <summary>
+    /// Indicates, that if the server successfully stored the IntentListener.
+    /// </summary>
+    public bool Stored { get; set; } = false;
+
+    /// <summary>
+    /// Indicates that error happened during the registration.
+    /// </summary>
+    public string? Error { get; set; }
 
     public static AddIntentListenerResponse Failure(string error) => new() { Error = error };
     public static AddIntentListenerResponse SubscribeSuccess() => new() { Stored = true };

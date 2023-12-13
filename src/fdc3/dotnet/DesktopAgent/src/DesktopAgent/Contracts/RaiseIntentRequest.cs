@@ -12,9 +12,8 @@
  * and limitations under the License.
  */
 
-using System.Text.Json.Serialization;
-using MorganStanley.Fdc3;
 using MorganStanley.Fdc3.Context;
+using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIdentifier;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
@@ -23,58 +22,39 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 /// </summary>
 internal sealed class RaiseIntentRequest
 {
-    [JsonConstructor]
-    public RaiseIntentRequest(
-        int messageId,
-        string fdc3InstanceId,
-        string intent,
-        bool selected,
-        Context context,
-        AppIdentifier? targetAppIdentifier = null,
-        string? error = null)
-    {
-        MessageId = messageId;
-        Fdc3InstanceId = fdc3InstanceId;
-        Intent = intent;
-        Selected = selected;
-        Context = context;
-        TargetAppIdentifier = targetAppIdentifier;
-        Error = error;
-    }
-
     /// <summary>
     /// An identifier for the message.
     /// </summary>
-    public int MessageId { get; }
+    public int MessageId { get; set; }
 
     /// <summary>
     /// Unique identifier from the application which sent the RaiseIntentRequest type of message.
     /// Probably the instanceId of the application which can be queried from the window.object, etc.
     /// </summary>
-    public string Fdc3InstanceId { get; }
+    public string Fdc3InstanceId { get; set; }
 
     /// <summary>
     /// Intent, that has been raised.
     /// </summary>
-    public string Intent { get; }
+    public string Intent { get; set; }
 
     /// <summary>
     /// Indicates that the client selected an instance or an app to start and resolve the raised intent.
     /// </summary>
-    public bool Selected { get; }
+    public bool Selected { get; set; }
 
     /// <summary>
     /// Context, for identifying more the specific app that should handle the raised intent.
     /// </summary>
-    public Context Context { get; }
+    public Context Context { get; set; }
 
     /// <summary>
     /// Information about the app, that should resolve the raised intent.
     /// </summary>
-    public AppIdentifier? TargetAppIdentifier { get; }
+    public AppIdentifier? TargetAppIdentifier { get; set; }
 
     /// <summary>
     /// Error, which indicates, that some error happened during executing the raiseIntent method.
     /// </summary>
-    public string? Error { get; }
+    public string? Error { get; set; }
 }

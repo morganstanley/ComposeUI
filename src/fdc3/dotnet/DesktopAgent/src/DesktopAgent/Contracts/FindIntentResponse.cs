@@ -12,7 +12,7 @@
  * and limitations under the License.
  */
 
-using MorganStanley.Fdc3;
+using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 

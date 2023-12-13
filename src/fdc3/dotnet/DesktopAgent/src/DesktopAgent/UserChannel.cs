@@ -14,32 +14,35 @@
 
 using System.Collections.Concurrent;
 using System.Reactive.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
-using MorganStanley.ComposeUI.Messaging;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
 internal class UserChannel : IAsyncDisposable
 {
     public string Id { get; }
-    private readonly ConcurrentDictionary<string, MessageBuffer> _contexts = new ConcurrentDictionary<string, MessageBuffer>();
-    private MessageBuffer? _lastContext = null;
+    private readonly ConcurrentDictionary<string, byte[]> _contexts = new();
+    private byte[]? _lastContext = null;
     private readonly UserChannelTopics _topics;
-    private readonly IMessageRouter _messageRouter;
+    private readonly IMessagingService _desktopAgentService;
     private IAsyncDisposable? _broadcastSubscription;
     private bool _disposed = false;
     private readonly ILogger _logger;
 
-
-    public UserChannel(string id, IMessageRouter messageRouter, ILogger<UserChannel>? logger)
+    public UserChannel(
+        string id, 
+        IMessagingService desktopAgentService,
+        ILogger<UserChannel>? logger)
     {
         Id = id;
         _topics = Fdc3Topic.UserChannel(id);
-        _messageRouter = messageRouter;
+        _desktopAgentService = desktopAgentService;
         _logger = (ILogger?) logger ?? NullLogger.Instance;
     }
 
@@ -50,33 +53,27 @@ internal class UserChannel : IAsyncDisposable
             throw new ObjectDisposedException(nameof(UserChannel));
         }
 
-        await _messageRouter.ConnectAsync();
+        await _desktopAgentService.ConnectAsync(CancellationToken.None);
 
-        var broadcastObserver = AsyncObserver.Create<TopicMessage>(x => HandleBroadcast(x.Payload));
+        var broadcastSubscribing = _desktopAgentService.SubscribeAsync(_topics.Broadcast, HandleBroadcast, CancellationToken.None);
 
-        var broadcastSubscribing = _messageRouter.SubscribeAsync(_topics.Broadcast, broadcastObserver);
-
-        await _messageRouter.RegisterServiceAsync(_topics.GetCurrentContext, GetCurrentContext);
+        await _desktopAgentService.RegisterServiceAsync<GetCurrentContextRequest>(_topics.GetCurrentContext, GetCurrentContext);
+        
         _broadcastSubscription = await broadcastSubscribing;
 
         LogConnected();
     }
 
-    internal ValueTask HandleBroadcast(MessageBuffer? payloadBuffer)
+    internal ValueTask HandleBroadcast(ReadOnlySpan<byte> payload)
     {
-        if (payloadBuffer == null)
-        {
-            LogNullOrEmptyBroadcast();
-            return ValueTask.CompletedTask;
-        }
-
-        var payload = payloadBuffer.GetSpan();
         if (payload == null || payload.Length == 0)
         {
             LogNullOrEmptyBroadcast();
             return ValueTask.CompletedTask;
         }
-        LogPayload(payloadBuffer);
+
+        LogPayload(payload);
+
         JsonNode ctx;
         try
         {
@@ -95,31 +92,25 @@ internal class UserChannel : IAsyncDisposable
             return ValueTask.CompletedTask;
         }
 
-        _contexts[contextType] = payloadBuffer;
-        _lastContext = payloadBuffer;
+        _contexts[contextType] = payload.ToArray();
+        _lastContext = payload.ToArray();
 
         return ValueTask.CompletedTask;
     }
 
-    internal ValueTask<MessageBuffer?> GetCurrentContext(string endpoint, MessageBuffer? payloadBuffer, MessageContext? messageContext)
+    internal ValueTask<byte[]?> GetCurrentContext(GetCurrentContextRequest? request)
     {
-        if (payloadBuffer == null)
-        {            
-            return ValueTask.FromResult<MessageBuffer?>(_lastContext);
-        }
-
-        var payload = payloadBuffer.ReadJson<GetCurrentContextRequest>();
-        if (payload?.ContextType == null)
+        if (request == null || request.ContextType == null)
         {
-            return ValueTask.FromResult<MessageBuffer?>(_lastContext);
+            return ValueTask.FromResult<byte[]?>(_lastContext);
         }
 
-        if (_contexts.TryGetValue(payload.ContextType, out MessageBuffer? context))
+        if (_contexts.TryGetValue(request.ContextType, out var context))
         {
-            return ValueTask.FromResult<MessageBuffer?>(context);
+            return ValueTask.FromResult<byte[]?>(context);
         }
 
-        return ValueTask.FromResult<MessageBuffer?>(null);
+        return ValueTask.FromResult<byte[]?>(null);
     }
 
     public async ValueTask DisposeAsync()
@@ -131,7 +122,7 @@ internal class UserChannel : IAsyncDisposable
         
         _broadcastSubscription = null;
 
-        await _messageRouter.UnregisterServiceAsync(_topics.GetCurrentContext);
+        await _desktopAgentService.UnregisterServiceAsync(_topics.GetCurrentContext, CancellationToken.None);
 
         _disposed = true;
     }
@@ -140,7 +131,7 @@ internal class UserChannel : IAsyncDisposable
     {
         if (_logger.IsEnabled(LogLevel.Debug))
         {
-            _logger.LogDebug($"UserChannel {Id} connected to messagerouter with client id {_messageRouter.ClientId}");
+            _logger.LogDebug($"UserChannel {Id} connected to messagerouter with client id {_desktopAgentService.Id}");
         }
     }
 
@@ -160,19 +151,19 @@ internal class UserChannel : IAsyncDisposable
         }
     }
 
-    private void LogPayload(MessageBuffer payload)
-    {
-        if (_logger.IsEnabled(LogLevel.Debug))
-        {
-            _logger.LogDebug($"UserChannel {Id} received broadcasted payload: {payload.GetString()}");
-        }
-    }
-
     private void LogMissingContextType()
     {
         if (_logger.IsEnabled(LogLevel.Warning))
         {
             _logger.LogWarning($"UserChannel {Id} received broadcasted payload with no context type specified. This broadcast will be ignored.");
+        }
+    }
+
+    private void LogPayload(ReadOnlySpan<byte> payload)
+    {
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug($"UserChannel {Id} received broadcasted payload: {Encoding.UTF8.GetString(payload)}");
         }
     }
 }

@@ -12,7 +12,8 @@
  * and limitations under the License.
  */
 
-using MorganStanley.Fdc3;
+
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 

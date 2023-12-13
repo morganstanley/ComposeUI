@@ -23,64 +23,43 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 /// </summary>
 internal sealed class StoreIntentResultRequest
 {
-    [JsonConstructor]
-    public StoreIntentResultRequest(
-        string messageId,
-        string intent,
-        string originFdc3InstanceId,
-        string targetFdc3InstanceId,
-        string? channelId = null,
-        ChannelType? channelType = null,
-        Context? context = null,
-        string? voidResult = null)
-    {
-        MessageId = messageId;
-        Intent = intent;
-        OriginFdc3InstanceId = originFdc3InstanceId;
-        TargetFdc3InstanceId = targetFdc3InstanceId;
-        ChannelId = channelId;
-        ChannelType = channelType;
-        Context = context;
-        VoidResult = voidResult;
-    }
-
     /// <summary>
     /// Unique identifier for the raised intent message, which was generated from the gotten MessageId as int from the client and a <seealso cref="Guid"/>.
     /// </summary>
-    public string MessageId { get; }
+    public string MessageId { get; set; }
 
     /// <summary>
     /// Intent from IntentResolution by IntentHandler of FDC3 clients.
     /// </summary>
-    public string Intent { get; }
+    public string Intent { get; set; }
 
     /// <summary>
     /// Source app instance id, which had handled the raised intent.
     /// </summary>
-    public string OriginFdc3InstanceId { get; }
+    public string OriginFdc3InstanceId { get; set; }
 
     /// <summary>
     /// Target app instance id, which should receive the IntentResult, that have raised the intent.
     /// </summary>
-    public string TargetFdc3InstanceId { get; }
+    public string TargetFdc3InstanceId { get; set; }
 
     /// <summary>
     /// ChannelId, indicating the result of the IntentListener was a channel.
     /// </summary>
-    public string? ChannelId {  get; }
+    public string? ChannelId {  get; set; }
 
     /// <summary>
     /// ChannelType, indicating the result of the IntentListener was a channel.
     /// </summary>
-    public ChannelType? ChannelType { get; }
+    public ChannelType? ChannelType { get; set; }
 
     /// <summary>
     /// Context, indicating the result of the IntentListener was a context;
     /// </summary>
-    public Context? Context { get; }
+    public Context? Context { get; set; }
 
     /// <summary>
     /// Indicates that the result of the IntentHandler is void type.
     /// </summary>
-    public string? VoidResult { get; }
+    public string? VoidResult { get; set; }
 }

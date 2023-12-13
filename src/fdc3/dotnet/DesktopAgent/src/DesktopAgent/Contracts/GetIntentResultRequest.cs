@@ -12,8 +12,8 @@
  * and limitations under the License.
  */
 
-using System.Text.Json.Serialization;
-using MorganStanley.Fdc3;
+
+using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIdentifier;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
@@ -22,33 +22,20 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 /// </summary>
 internal sealed class GetIntentResultRequest
 {
-    [JsonConstructor]
-    public GetIntentResultRequest(
-        string messageId,
-        string intent,
-        AppIdentifier targetAppIdentifier,
-        string? version = null)
-    {
-        MessageId = messageId;
-        Intent = intent;
-        TargetAppIdentifier = targetAppIdentifier;
-        Version = version;
-    }
-
     /// <summary>
     /// IntentResolution's stored MessageId gotten by <seealso cref="RaiseIntentResponse"/>.
     /// </summary>
-    public string MessageId { get; }
+    public string MessageId { get; set; }
 
     /// <summary>
     /// The intent that was raised.
     /// </summary>
-    public string Intent { get; }
+    public string Intent { get; set; }
 
     /// <summary>
     /// <seealso cref="AppIdentifier"/> for the app instance that was selected (or started) to resolve the intent.
     /// </summary>
-    public AppIdentifier TargetAppIdentifier { get; }
+    public AppIdentifier TargetAppIdentifier { get; set; }
 
     /// <summary>
     /// The version number of the Intents schema, that is being used.

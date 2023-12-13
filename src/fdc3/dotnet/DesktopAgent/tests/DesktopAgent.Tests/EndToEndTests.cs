@@ -19,13 +19,15 @@ using Microsoft.Extensions.Hosting;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Converters;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Helpers;
 using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.Fdc3;
 using MorganStanley.Fdc3.Context;
 using IntentMetadata = MorganStanley.Fdc3.AppDirectory.IntentMetadata;
+using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
+using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
+using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIdentifier;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
 {
@@ -40,7 +42,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
         private const string AccessToken = "token";
         private readonly JsonSerializerOptions _options = new(JsonSerializerDefaults.Web)
         {
-            Converters = { new IIntentMetadataJsonConverter(), new IAppMetadataJsonConverter(), new AppMetadataJsonConverter() }
+            Converters = { new IIntentMetadataJsonConverter(), new IAppMetadataJsonConverter() }
         };
         private IModuleLoader _moduleLoader;
         private readonly object _runningAppsLock = new();
@@ -173,7 +175,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
         {
             var resultBuffer = await _messageRouter.InvokeAsync(Fdc3Topic.FindChannel, FindRequest);
             resultBuffer.Should().NotBeNull();
-            var result = resultBuffer!.ReadJson<FindChannelResponse>();
+            var result = resultBuffer!.ReadJson<FindChannelResponse>(_options);
             result.Should().BeEquivalentTo(FindChannelResponse.Success);
         }
 
@@ -182,7 +184,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
         {
             var resultBuffer = await _messageRouter.InvokeAsync(Fdc3Topic.FindChannel, FindNonExistingRequest);
             resultBuffer.Should().NotBeNull();
-            var result = resultBuffer!.ReadJson<FindChannelResponse>();
+            var result = resultBuffer!.ReadJson<FindChannelResponse>(_options);
             result.Should().BeEquivalentTo(FindChannelResponse.Failure(ChannelError.NoChannelFound));
         }
 
@@ -190,26 +192,29 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
         public async Task FindIntentReturnsAppIntent()
         {
             //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-            var instance = await _moduleLoader.StartModule(
-                new StartRequest("appId1"));
+            var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
             var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
 
             var appId4IntentMetadata = new IntentMetadata("intentMetadata4", "displayName4", new[] { "context2" });
 
-            var request = new FindIntentRequest(
-                fdc3InstanceId: originFdc3InstanceId,
-                intent: "intentMetadata4",
-                null,
-                null);
+            var request = new FindIntentRequest()
+            {
+                Fdc3InstanceId = originFdc3InstanceId,
+                Intent = "intentMetadata4"
+            };
 
             var response = new FindIntentResponse()
             {
-                AppIntent = new AppIntent(appId4IntentMetadata, new[]
-                    {
-                        new AppMetadata("appId4", name: "app4", resultType: null),
-                        new AppMetadata("appId5", name: "app5", resultType: "resultType<specified>"), 
-                        new AppMetadata("appId6", name: "app6", resultType: "resultType"),
-                    })
+                AppIntent = new AppIntent()
+                {
+                    Intent = appId4IntentMetadata, 
+                    Apps = new AppMetadata[]
+                        {
+                            new() { AppId = "appId4", Name = "app4", ResultType = null },
+                            new() { AppId = "appId5", Name = "app5", ResultType = "resultType<specified>" },
+                            new() { AppId = "appId6", Name = "app6", ResultType = "resultType" }
+                        }
+                }
             };
 
             var resultBuffer = await _messageRouter.InvokeAsync(Fdc3Topic.FindIntent, MessageBuffer.Factory.CreateJson(request, _options));
@@ -242,11 +247,11 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
             var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
 
-            var request = new FindIntentRequest(
-                fdc3InstanceId: originFdc3InstanceId,
-                intent: "noAppShouldReturnIntent",
-                context: null,
-                resultType: null);
+            var request = new FindIntentRequest()
+            {
+                Fdc3InstanceId = originFdc3InstanceId,
+                Intent = "noAppShouldReturnIntent",
+            };
 
             var response = new FindIntentResponse()
             {
@@ -268,11 +273,11 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
             var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
 
-            var request = new FindIntentRequest(
-                fdc3InstanceId: originFdc3InstanceId,
-                intent: "intentMetadata8",
-                null,
-                null);
+            var request = new FindIntentRequest()
+            {
+                Fdc3InstanceId = originFdc3InstanceId,
+                Intent = "intentMetadata8"
+            };
 
             var response = new FindIntentResponse()
             {
@@ -293,25 +298,29 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
             var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
 
-            var request = new FindIntentsByContextRequest(
-                fdc3InstanceId: originFdc3InstanceId,
-                context: new Context("context2"),
-                resultType: "resultType");
+            var request = new FindIntentsByContextRequest()
+            {
+                Fdc3InstanceId = originFdc3InstanceId,
+                Context = new Context("context2"),
+                ResultType = "resultType"
+            };
 
             var appId5IntentMetadata = new IntentMetadata("intentMetadata4", "displayName4", new[] { "context2", "context5" });
 
             var response = new FindIntentsByContextResponse()
             {
-                AppIntents = new[]
+                AppIntents = new AppIntent[]
+                {
+                    new()
                     {
-                        new AppIntent(
-                            appId5IntentMetadata,
-                            new []
-                            {
-                                new AppMetadata("appId5", name: "app5", resultType:"resultType<specified>"),
-                                new AppMetadata("appId6", name: "app6", resultType: "resultType")
-                            })
+                        Intent = appId5IntentMetadata,
+                        Apps = new AppMetadata[]
+                        {
+                            new() { AppId = "appId5", Name = "app5", ResultType = "resultType<specified>" },
+                            new() { AppId = "appId6", Name = "app6", ResultType = "resultType" }
+                        }
                     }
+                }
             };
 
             var resultBuffer = await _messageRouter.InvokeAsync(Fdc3Topic.FindIntentsByContext, MessageBuffer.Factory.CreateJson(request, _options));
@@ -328,10 +337,12 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
             var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
 
-            var request = new FindIntentsByContextRequest(
-                fdc3InstanceId: originFdc3InstanceId,
-                context: new Context("context9"),
-                resultType: "resultWrongApp");
+            var request = new FindIntentsByContextRequest()
+            {
+                Fdc3InstanceId = originFdc3InstanceId,
+                Context = new Context("context9"),
+                ResultType = "resultWrongApp"
+            };
 
             var appId9IntentMetadata = new IntentMetadata("intentMetadata9", "displayName9", new[] { "context9" });
             var appId12IntentMetadata = new IntentMetadata("intentMetadata11", "displayName11", new[] { "context9" });
@@ -339,18 +350,22 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             {
                 AppIntents = new[]
                     {
-                        new AppIntent(
-                            appId9IntentMetadata,
-                            new []
+                        new AppIntent()
+                        {
+                            Intent = appId9IntentMetadata,
+                            Apps = new []
                             {
-                                new AppMetadata("wrongappId9", name: "app9", resultType: "resultWrongApp"), 
-                            }),
-                        new AppIntent(
-                            appId12IntentMetadata,
-                            new []
+                                new AppMetadata() { AppId = "wrongappId9", Name = "app9", ResultType = "resultWrongApp" },
+                            }
+                        },
+                        new AppIntent()
+                        {
+                            Intent = appId12IntentMetadata,
+                            Apps = new []
                             {
-                                new AppMetadata("appId12", name: "app12", resultType: "resultWrongApp"), 
-                            })
+                                new AppMetadata(){ AppId = "appId12", Name = "app12", ResultType = "resultWrongApp" },
+                            }
+                        }
                     }
             };
 
@@ -383,10 +398,12 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
             var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
 
-            var request = new FindIntentsByContextRequest(
-                fdc3InstanceId: originFdc3InstanceId,
-                context: new Context("context2"),
-                resultType: "noAppShouldReturn");
+            var request = new FindIntentsByContextRequest()
+            {
+                Fdc3InstanceId = originFdc3InstanceId,
+                Context = new Context("context2"),
+                ResultType = "noAppShouldReturn"
+            };
 
             var response = new FindIntentsByContextResponse()
             {
@@ -422,13 +439,14 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
             var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
 
-            var request = new RaiseIntentRequest(
-                messageId: 1,
-                fdc3InstanceId: originFdc3InstanceId,
-                intent: "dummy",
-                selected: false,
-                context: new Context("fdc3.nothing"),
-                error: "dummyError");
+            var request = new RaiseIntentRequest()
+            {
+                MessageId = 1,
+                Fdc3InstanceId = originFdc3InstanceId,
+                Intent = "dummy",
+                Selected = false,
+                Context = new Context("fdc3.nothing"),
+                Error =  "dummyError"};
 
             var response = new RaiseIntentResponse()
             {
@@ -449,12 +467,14 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
             var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
 
-            var request = new RaiseIntentRequest(
-                messageId: 2,
-                fdc3InstanceId: originFdc3InstanceId,
-                intent: "noIntentShouldHandle",
-                selected: false,
-                context: new Context("fdc3.nothing"));
+            var request = new RaiseIntentRequest()
+            {
+                MessageId = 2,
+                Fdc3InstanceId = originFdc3InstanceId,
+                Intent = "noIntentShouldHandle",
+                Selected = false,
+                Context = new Context("fdc3.nothing")
+            };
 
             var response = new RaiseIntentResponse()
             {
@@ -475,12 +495,14 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
             var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
 
-            var request = new RaiseIntentRequest(
-                messageId: 2,
-                fdc3InstanceId: originFdc3InstanceId,
-                intent: "intentMetadata8", //wrongly set up AppDirectory on purpose
-                selected: false,
-                context: new Context("fdc3.nothing"));
+            var request = new RaiseIntentRequest()
+            {
+                MessageId = 2,
+                Fdc3InstanceId = originFdc3InstanceId,
+                Intent = "intentMetadata8", //wrongly set up AppDirectory on purpose
+                Selected = false,
+                Context = new Context("fdc3.nothing")
+            };
 
             var response = new RaiseIntentResponse()
             {
@@ -501,12 +523,14 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var instance = await _moduleLoader.StartModule(new StartRequest("appId1")); 
             var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
 
-            var request = new RaiseIntentRequest(
-                messageId: 2,
-                fdc3InstanceId: originFdc3InstanceId,
-                intent: "intentMetadataCustom",
-                selected: false,
-                context: new Context("contextCustom"));
+            var request = new RaiseIntentRequest()
+            {
+                MessageId = 2,
+                Fdc3InstanceId = originFdc3InstanceId,
+                Intent = "intentMetadataCustom",
+                Selected = false,
+                Context = new Context("contextCustom")
+            };
 
             var resultBuffer = await _messageRouter.InvokeAsync(Fdc3Topic.RaiseIntent, MessageBuffer.Factory.CreateJson(request, _options));
             var app4 = _runningApps.First(application => application.Manifest.Id == "appId4");
@@ -524,7 +548,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 Intent = "intentMetadataCustom",
                 AppMetadata = new AppMetadata[]
                 {
-                    new("appId4", instanceId:app4Fdc3InstanceId, name: "app4", resultType: null)
+                    new(){ AppId = "appId4", InstanceId = app4Fdc3InstanceId, Name = "app4", ResultType = null }
                 }
             };
 
@@ -544,23 +568,27 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
 
             var addIntentListenerRequest =
                 MessageBuffer.Factory.CreateJson(
-                    new AddIntentListenerRequest(
-                        intent: "intentMetadataCustom",
-                        fdc3InstanceId: targetFdc3InstanceId,
-                        state: SubscribeState.Subscribe),
+                    new AddIntentListenerRequest()
+                    {
+                        Intent = "intentMetadataCustom",
+                        Fdc3InstanceId = targetFdc3InstanceId,
+                        State = SubscribeState.Subscribe
+                    },
                     _options);
 
             var addIntentListenerResult = await _messageRouter.InvokeAsync(Fdc3Topic.AddIntentListener, addIntentListenerRequest);
             addIntentListenerResult.Should().NotBeNull();
             addIntentListenerResult!.ReadJson<AddIntentListenerResponse>(_options).Should().BeEquivalentTo(AddIntentListenerResponse.SubscribeSuccess());
 
-            var request = new RaiseIntentRequest(
-                messageId: 2,
-                fdc3InstanceId: originFdc3InstanceId,
-                intent: "intentMetadataCustom",
-                selected: false,
-                context: new Context("contextCustom"),
-                targetAppIdentifier: new AppIdentifier("appId4", targetFdc3InstanceId));
+            var request = new RaiseIntentRequest()
+            {
+                MessageId = 2,
+                Fdc3InstanceId = originFdc3InstanceId,
+                Intent = "intentMetadataCustom",
+                Selected = false,
+                Context = new Context("contextCustom"),
+                TargetAppIdentifier = new AppIdentifier() { AppId = "appId4", InstanceId = targetFdc3InstanceId }
+            };
 
             var resultBuffer = await _messageRouter.InvokeAsync(Fdc3Topic.RaiseIntent, MessageBuffer.Factory.CreateJson(request, _options));
 
@@ -574,7 +602,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 Intent = "intentMetadataCustom",
                 AppMetadata = new AppMetadata[]
                 {
-                    new("appId4", instanceId : targetFdc3InstanceId, name : "app4", resultType: null)
+                    new() { AppId = "appId4", InstanceId = targetFdc3InstanceId, Name = "app4", ResultType = null }
                 }
             };
 
@@ -589,12 +617,14 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
             var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
 
-            var request = new RaiseIntentRequest(
-                messageId: 2,
-                fdc3InstanceId: originFdc3InstanceId,
-                intent: "intentMetadata4",
-                selected: false,
-                context: new Context("context2"));
+            var request = new RaiseIntentRequest()
+            {
+                MessageId = 2,
+                Fdc3InstanceId = originFdc3InstanceId,
+                Intent = "intentMetadata4",
+                Selected = false,
+                Context = new Context("context2")
+            };
 
             var response = new RaiseIntentResponse()
             {
@@ -602,9 +632,9 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 Intent = "intentMetadata4",
                 AppMetadata = new AppMetadata[]
                 {
-                    new("appId4", name: "app4", resultType: null),
-                    new("appId5", name: "app5", resultType: "resultType<specified>"),
-                    new("appId6", name: "app6", resultType: "resultType")
+                    new() { AppId = "appId4", Name = "app4", ResultType = null },
+                    new() { AppId = "appId5", Name = "app5", ResultType = "resultType<specified>" },
+                    new() { AppId = "appId6", Name = "app6", ResultType = "resultType" }
                 }
             };
 
@@ -636,11 +666,13 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
             var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
 
-            var request = new StoreIntentResultRequest(
-                messageId: string.Empty,
-                intent: "dummyIntent", 
-                originFdc3InstanceId: originFdc3InstanceId,
-                targetFdc3InstanceId: null);
+            var request = new StoreIntentResultRequest()
+            {
+                MessageId = string.Empty,
+                Intent = "dummyIntent",
+                OriginFdc3InstanceId = originFdc3InstanceId,
+                TargetFdc3InstanceId = null
+            };
 
             var response = new StoreIntentResultResponse()
             {
@@ -660,12 +692,14 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
             var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
 
-            var raiseIntentRequest = new RaiseIntentRequest(
-                messageId: 2,
-                fdc3InstanceId: originFdc3InstanceId,
-                intent: "intentMetadataCustom",
-                selected: false,
-                context: new Context("contextCustom"));
+            var raiseIntentRequest = new RaiseIntentRequest()
+            {
+                MessageId = 2,
+                Fdc3InstanceId = originFdc3InstanceId,
+                Intent = "intentMetadataCustom",
+                Selected = false,
+                Context = new Context("contextCustom")
+            };
             
             var raiseIntentResultBuffer = await _messageRouter.InvokeAsync(Fdc3Topic.RaiseIntent, MessageBuffer.Factory.CreateJson(raiseIntentRequest, _options));
             raiseIntentResultBuffer.Should().NotBeNull();
@@ -675,12 +709,14 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
 
             var testContext = new Context("testContextType");
 
-            var request = new StoreIntentResultRequest(
-                messageId: raiseIntentResult.MessageId!,
-                intent: "intentMetadataCustom",
-                originFdc3InstanceId: raiseIntentResult.AppMetadata!.First().InstanceId!,
-                targetFdc3InstanceId: originFdc3InstanceId,
-                context: testContext);
+            var request = new StoreIntentResultRequest()
+            {
+                MessageId = raiseIntentResult.MessageId!,
+                Intent = "intentMetadataCustom",
+                OriginFdc3InstanceId = raiseIntentResult.AppMetadata!.First().InstanceId!,
+                TargetFdc3InstanceId = originFdc3InstanceId,
+                Context = testContext
+            };
 
             var response = new StoreIntentResultResponse()
             {
@@ -717,10 +753,12 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
         [Fact]
         public async Task GetIntentResultReturnsIntentDeliveryFailureAsRequestNotContainsInformation()
         {
-            var request = new GetIntentResultRequest(
-                messageId: "dummy",
-                intent: "dummy",
-                targetAppIdentifier: new AppIdentifier("appId1"));
+            var request = new GetIntentResultRequest()
+            {
+                MessageId = "dummy",
+                Intent = "dummy",
+                TargetAppIdentifier = new AppIdentifier() { AppId = "appId1" }
+            };
 
             var response = new GetIntentResultResponse()
             {
@@ -739,10 +777,12 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
             var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
 
-            var request = new GetIntentResultRequest(
-                messageId: "dummy",
-                intent: "testIntent",
-                targetAppIdentifier: new AppIdentifier("appId1", originFdc3InstanceId));
+            var request = new GetIntentResultRequest()
+            {
+                MessageId = "dummy",
+                Intent = "testIntent",
+                TargetAppIdentifier = new AppIdentifier() { AppId = "appId1", InstanceId = originFdc3InstanceId }
+            };
 
             var response = new GetIntentResultResponse()
             {
@@ -762,31 +802,37 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
             var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
 
-            var raiseIntentRequest = new RaiseIntentRequest(
-                messageId: 2,
-                fdc3InstanceId: originFdc3InstanceId,
-                intent: "intentMetadataCustom",
-                selected: false,
-                context: new Context("contextCustom"));
+            var raiseIntentRequest = new RaiseIntentRequest()
+            {
+                MessageId = 2,
+                Fdc3InstanceId = originFdc3InstanceId,
+                Intent = "intentMetadataCustom",
+                Selected = false,
+                Context = new Context("contextCustom")
+            };
 
             var resultRaiseIntentBuffer = await _messageRouter.InvokeAsync(Fdc3Topic.RaiseIntent, MessageBuffer.Factory.CreateJson(raiseIntentRequest, _options));
             var raiseIntentResult = resultRaiseIntentBuffer!.ReadJson<RaiseIntentResponse>(_options);
 
             var testContext = new Context("testContextType");
 
-            var storeIntentRequest = new StoreIntentResultRequest(
-                messageId: raiseIntentResult!.MessageId!,
-                intent: "intentMetadataCustom",
-                originFdc3InstanceId: raiseIntentResult!.AppMetadata!.First().InstanceId!,
-                targetFdc3InstanceId: originFdc3InstanceId,
-                context: testContext);
+            var storeIntentRequest = new StoreIntentResultRequest()
+            {
+                MessageId = raiseIntentResult!.MessageId!,
+                Intent = "intentMetadataCustom",
+                OriginFdc3InstanceId = raiseIntentResult!.AppMetadata!.First().InstanceId!,
+                TargetFdc3InstanceId = originFdc3InstanceId,
+                Context = testContext
+            };
 
             await _messageRouter.InvokeAsync(Fdc3Topic.SendIntentResult, MessageBuffer.Factory.CreateJson(storeIntentRequest, _options));
 
-            var request = new GetIntentResultRequest(
-                messageId: raiseIntentResult!.MessageId!,
-                intent: "intentMetadataCustom",
-                targetAppIdentifier: new AppIdentifier("appId4", raiseIntentResult!.AppMetadata!.First().InstanceId!));
+            var request = new GetIntentResultRequest()
+            {
+                MessageId = raiseIntentResult!.MessageId!,
+                Intent = "intentMetadataCustom",
+                TargetAppIdentifier = new AppIdentifier() { AppId = "appId4", InstanceId = raiseIntentResult!.AppMetadata!.First().InstanceId! }
+            };
 
             var response = new GetIntentResultResponse()
             {
@@ -819,7 +865,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
         {
             var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
             var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
-            var request = new AddIntentListenerRequest("dummy", originFdc3InstanceId, SubscribeState.Unsubscribe);
+            var request = new AddIntentListenerRequest() { Intent = "dummy", Fdc3InstanceId = originFdc3InstanceId, State = SubscribeState.Unsubscribe };
             var result = await _messageRouter.InvokeAsync(Fdc3Topic.AddIntentListener, MessageBuffer.Factory.CreateJson(request, _options));
             result.Should().NotBeNull();
             result!.ReadJson<AddIntentListenerResponse>(_options).Should().BeEquivalentTo(AddIntentListenerResponse.Failure(Fdc3DesktopAgentErrors.MissingId));
@@ -838,13 +884,15 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
             var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
-                new RaiseIntentRequest(
-                    messageId: 1,
-                    fdc3InstanceId: originFdc3InstanceId,
-                    intent: "intentMetadataCustom",
-                    selected: false,
-                    context: new Context("contextCustom"),
-                    targetAppIdentifier: new AppIdentifier("appId4", targetFdc3InstanceId)));
+                new RaiseIntentRequest()
+                {
+                    MessageId = 1,
+                    Fdc3InstanceId = originFdc3InstanceId,
+                    Intent = "intentMetadataCustom",
+                    Selected = false,
+                    Context = new Context("contextCustom"),
+                    TargetAppIdentifier = new AppIdentifier() { AppId = "appId4", InstanceId = targetFdc3InstanceId }
+                }, _options);
 
             var raiseIntentResult = await _messageRouter.InvokeAsync(Fdc3Topic.RaiseIntent, raiseIntentRequest);
 
@@ -853,10 +901,12 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.AppId.Should().Be("appId4");
 
             var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
-                new AddIntentListenerRequest(
-                    intent: "intentMetadataCustom",
-                    fdc3InstanceId: targetFdc3InstanceId,
-                    state: SubscribeState.Subscribe));
+                new AddIntentListenerRequest()
+                {
+                    Intent = "intentMetadataCustom",
+                    Fdc3InstanceId = targetFdc3InstanceId,
+                    State = SubscribeState.Subscribe
+                }, _options);
 
             var addIntentListenerResult = await _messageRouter.InvokeAsync(Fdc3Topic.AddIntentListener, addIntentListenerRequest);
             addIntentListenerResult.Should().NotBeNull();
@@ -881,16 +931,18 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
             var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
-                new AddIntentListenerRequest(
-                    intent: "intentMetadataCustom",
-                    fdc3InstanceId: targetFdc3InstanceId,
-                    state: SubscribeState.Subscribe));
+                new AddIntentListenerRequest()
+                {
+                    Intent = "intentMetadataCustom",
+                    Fdc3InstanceId = targetFdc3InstanceId,
+                    State = SubscribeState.Subscribe
+                }, _options);
 
             var addIntentListenerResult = await _messageRouter.InvokeAsync(Fdc3Topic.AddIntentListener, addIntentListenerRequest);
             addIntentListenerResult.Should().NotBeNull();
 
-            var addIntentListnerResponse = addIntentListenerResult!.ReadJson<AddIntentListenerResponse>(_options);
-            addIntentListnerResponse!.Stored.Should().BeTrue();
+            var addIntentListenerResponse = addIntentListenerResult!.ReadJson<AddIntentListenerResponse>(_options);
+            addIntentListenerResponse!.Stored.Should().BeTrue();
 
             await _moduleLoader.StopModule(new StopRequest(target.InstanceId));
         }
@@ -903,10 +955,12 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
             var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
-                new AddIntentListenerRequest(
-                    intent: "intentMetadataCustom",
-                    fdc3InstanceId: targetFdc3InstanceId,
-                    state: SubscribeState.Subscribe));
+                new AddIntentListenerRequest()
+                {
+                    Intent = "intentMetadataCustom",
+                    Fdc3InstanceId = targetFdc3InstanceId,
+                    State = SubscribeState.Subscribe
+                }, _options);
 
             var addIntentListenerResult = await _messageRouter.InvokeAsync(Fdc3Topic.AddIntentListener, addIntentListenerRequest);
             addIntentListenerResult.Should().NotBeNull();
@@ -915,10 +969,12 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             addIntentListnerResponse!.Stored.Should().BeTrue();
 
             addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
-                new AddIntentListenerRequest(
-                    intent: "intentMetadataCustom",
-                    fdc3InstanceId: targetFdc3InstanceId,
-                    state: SubscribeState.Unsubscribe));
+                new AddIntentListenerRequest()
+                {
+                    Intent = "intentMetadataCustom",
+                    Fdc3InstanceId = targetFdc3InstanceId,
+                    State = SubscribeState.Unsubscribe
+                }, _options);
 
             addIntentListenerResult = await _messageRouter.InvokeAsync(Fdc3Topic.AddIntentListener, addIntentListenerRequest);
             addIntentListenerResult.Should().NotBeNull();

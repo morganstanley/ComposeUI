@@ -12,8 +12,8 @@
  * and limitations under the License.
  */
 
-using System.Text.Json.Serialization;
-using MorganStanley.Fdc3;
+
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
 using MorganStanley.Fdc3.Context;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
@@ -23,26 +23,18 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 /// </summary>
 internal sealed class RaiseIntentResolutionRequest
 {
-    [JsonConstructor]
-    public RaiseIntentResolutionRequest(string messageId, Context context, ContextMetadata contextMetadata)
-    {
-        MessageId = messageId;
-        Context = context;
-        ContextMetadata = contextMetadata;
-    }
-
     /// <summary>
     /// Unique identifier for the raised intent message, which was generated from the gotten MessageId as int from the client and a <seealso cref="Guid"/>.
     /// </summary>
-    public string MessageId { get; }
+    public string MessageId { get; set; }
 
     /// <summary>
     /// Context, which should be sent to the selected app via raiseIntent by the FDC3 client.
     /// </summary>
-    public Context Context { get; }
+    public Context Context { get; set; }
 
     /// <summary>
     /// ContextMetadata, which contains information about the source app, that raised the request.
     /// </summary>
-    public ContextMetadata ContextMetadata { get; }
+    public ContextMetadata ContextMetadata { get; set; }
 }
