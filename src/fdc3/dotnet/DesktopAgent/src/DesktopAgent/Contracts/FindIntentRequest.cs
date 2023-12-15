@@ -23,12 +23,12 @@ internal sealed class FindIntentRequest
 {
     /// <summary>
     /// Unique identifier from the application which sent the RaiseIntentRequest type of message.
-    /// Probably the instanceId of the application which can be queried from the window.object, etc.
+    /// eg.: the instanceId of the application which can be queried from the window.object.composeui.fdc3.config, if it's a webapplication.
     /// </summary>
     public string Fdc3InstanceId { get; set; }
 
     /// <summary>
-    /// Intent, that has been raised via fdc3.findIntent.
+    /// Intent that has been raised via fdc3.findIntent.
     /// </summary>
     public string Intent { get; set; }
 
@@ -38,7 +38,7 @@ internal sealed class FindIntentRequest
     public Context? Context { get; set; }
 
     /// <summary>
-    /// ResultType, indicating what resultType the requesting app is expecting.
+    /// ResultType indicating what resultType the requesting app is expecting.
     /// </summary>
     public string? ResultType { get; set; }
 }

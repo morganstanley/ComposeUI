@@ -15,7 +15,7 @@
 using Microsoft.Extensions.Hosting;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.Fdc3;
 
@@ -35,7 +35,7 @@ public static class ServiceCollectionExtensions
         }
 
         serviceCollection.AddSingleton<IFdc3DesktopAgentBridge, Fdc3DesktopAgent>();
-        serviceCollection.AddSingleton<IHostedService, Fdc3DesktopAgentMessageRouterService>();
+        serviceCollection.AddHostedService<Fdc3DesktopAgentMessageRouterService>();
         serviceCollection.AddTransient<IStartupAction, Fdc3StartupAction>();
 
         return serviceCollection;

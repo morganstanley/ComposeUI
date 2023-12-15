@@ -18,7 +18,7 @@ using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIden
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
 /// <summary>
-/// Request, originated via fdc.raiseIntent by the client.
+/// Request raised by the client via fdc.raiseIntent.
 /// </summary>
 internal sealed class RaiseIntentRequest
 {
@@ -29,12 +29,12 @@ internal sealed class RaiseIntentRequest
 
     /// <summary>
     /// Unique identifier from the application which sent the RaiseIntentRequest type of message.
-    /// Probably the instanceId of the application which can be queried from the window.object, etc.
+    /// eg.: the instanceId of the application which can be queried from the window.object.composeui.fdc3.config, if it's a webapplication.
     /// </summary>
     public string Fdc3InstanceId { get; set; }
 
     /// <summary>
-    /// Intent, that has been raised.
+    /// Intent that has been raised.
     /// </summary>
     public string Intent { get; set; }
 
@@ -44,17 +44,17 @@ internal sealed class RaiseIntentRequest
     public bool Selected { get; set; }
 
     /// <summary>
-    /// Context, for identifying more the specific app that should handle the raised intent.
+    /// Context for identifying more the specific app that should handle the raised intent.
     /// </summary>
     public Context Context { get; set; }
 
     /// <summary>
-    /// Information about the app, that should resolve the raised intent.
+    /// Information about the app that should resolve the raised intent.
     /// </summary>
     public AppIdentifier? TargetAppIdentifier { get; set; }
 
     /// <summary>
-    /// Error, which indicates, that some error happened during executing the raiseIntent method.
+    /// Contains error text if an error happened during executing the raiseIntent method.
     /// </summary>
     public string? Error { get; set; }
 }

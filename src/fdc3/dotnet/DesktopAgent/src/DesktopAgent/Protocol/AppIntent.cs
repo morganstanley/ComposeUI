@@ -16,7 +16,9 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
 
 public class AppIntent : IAppIntent
 {
-    public IIntentMetadata Intent { get; set; }
+    public IntentMetadata Intent { get; set; }
+    IIntentMetadata IAppIntent.Intent => Intent;
 
-    public IEnumerable<IAppMetadata> Apps { get; set; }
+    public IEnumerable<AppMetadata> Apps { get; set; }
+    IEnumerable<IAppMetadata> IAppIntent.Apps => Apps;
 }

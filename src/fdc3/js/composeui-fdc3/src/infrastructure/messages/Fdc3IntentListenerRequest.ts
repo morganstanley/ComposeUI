@@ -11,7 +11,12 @@
  *  
  */
 
-export interface Fdc3AddIntentListenerResponse {
-    stored: boolean;
-    error?: string;
+export class Fdc3IntentListenerRequest {
+    constructor(
+        public readonly intent: string,
+        public readonly fdc3InstanceId: string,
+        public readonly state: SubscribeState) {
+    }
 }
+
+export type SubscribeState = "Subscribe" | "Unsubscribe";

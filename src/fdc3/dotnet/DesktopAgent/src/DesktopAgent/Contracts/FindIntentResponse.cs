@@ -27,7 +27,7 @@ internal sealed class FindIntentResponse
     public AppIntent? AppIntent { get; init; }
 
     /// <summary>
-    /// Error, which indicates that some error happened during the execution of fdc3.findIntent.
+    /// Contains error text if an error happened during the execution of fdc3.findIntent.
     /// </summary>
     public string? Error { get; init; }
 

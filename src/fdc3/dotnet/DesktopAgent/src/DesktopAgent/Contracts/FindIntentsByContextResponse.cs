@@ -18,17 +18,17 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
 /// <summary>
-/// Response, for calling the fdc3.findIntentsByContext by the clients with <see cref="FindIntentsByContextRequest"/>.
+/// Response for the raised fdc3.findIntentsByContext call by the clients with <see cref="FindIntentsByContextRequest"/>.
 /// </summary>
 internal sealed class FindIntentsByContextResponse
 {
     /// <summary>
-    /// AppIntents, that might be returned as result of executing the fdc3.findIntentsByContext.
+    /// AppIntents that might be returned as result of executing the fdc3.findIntentsByContext.
     /// </summary>
     public IEnumerable<AppIntent>? AppIntents { get; set; }
 
     /// <summary>
-    /// Error, which indicates that some error happened during execution of the fdc3.findIntentsByContext.
+    /// Contains error text if an error happened during execution of the fdc3.findIntentsByContext.
     /// </summary>
     public string? Error { get; set; }
 

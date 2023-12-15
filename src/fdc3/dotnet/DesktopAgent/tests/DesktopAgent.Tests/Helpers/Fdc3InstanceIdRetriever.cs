@@ -23,11 +23,19 @@ internal static class Fdc3InstanceIdRetriever
     {
         var fdc3InstanceId = instance.StartRequest.Parameters.FirstOrDefault(parameter => parameter.Key == Fdc3StartupParameters.Fdc3InstanceId);
         if (string.IsNullOrEmpty(fdc3InstanceId.Value))
+        {
             if (instance.GetProperties().FirstOrDefault(property => property is Fdc3StartupProperties) is not Fdc3StartupProperties fdc3StartupProperties)
+            {
                 throw ThrowHelper.MissingFdc3InstanceIdException(instance.Manifest.Id);
+            }
             else
+            {
                 return fdc3StartupProperties.InstanceId;
+            }
+        }
         else
+        {
             return fdc3InstanceId.Value;
+        }
     }
 }

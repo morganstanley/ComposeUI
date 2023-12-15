@@ -14,7 +14,6 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
 		<PackageReference Include="MorganStanley.Fdc3" />
 		<PackageReference Include="MorganStanley.Fdc3.AppDirectory" />
-		<PackageReference Include="Nito.AsyncEx" />
 	</ItemGroup>
 
 	<ItemGroup>

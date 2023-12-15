@@ -26,9 +26,9 @@ public sealed class Fdc3DesktopAgentOptions : IOptions<Fdc3DesktopAgentOptions>
     /// <summary>
     /// Indicates a timeout value for getting the IntentResult from the backend in milliseconds.
     /// When set to any value, it sets the timeout for the getResult() client calls, which should wait either for this timeout or the task which gets the appropriate resolved IntentResolution.
-    /// Timeout by default is 10 milliseconds. 
+    /// Timeout by default is 1000 milliseconds. 
     /// </summary>
-    public int Timeout { get; set; } = 10;
+    public int IntentResultTimeout { get; set; } = 1000;
 
     Fdc3DesktopAgentOptions IOptions<Fdc3DesktopAgentOptions>.Value => this;
 }

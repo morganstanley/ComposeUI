@@ -11,10 +11,12 @@
 // and limitations under the License.
 
 using MorganStanley.Fdc3;
+using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIdentifier;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
 
 public class ContextMetadata : IContextMetadata
 {
-    public IAppIdentifier? Source { get; set; }
+    public AppIdentifier? Source { get; set; }
+    IAppIdentifier? IContextMetadata.Source => Source;
 }

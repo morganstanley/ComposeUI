@@ -19,26 +19,27 @@ using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
 /// <summary>
-/// Response, for handling <see cref="RaiseIntentRequest"/> originated via fdc.raiseIntent by clients.
+/// Response for handling <see cref="RaiseIntentRequest"/> raised via fdc.raiseIntent by client.
 /// </summary>
 internal sealed class RaiseIntentResponse
 {
     /// <summary>
-    /// Unique identifier for the raised intent message, which was generated from the gotten MessageId as int from the client and a <seealso cref="Guid"/>.
+    /// Unique identifier for the raised intent message which was generated from the received MessageId as type int from the client and a <seealso cref="Guid"/>.
     /// </summary>
     public string? MessageId { get; set; }
+
     /// <summary>
-    /// Intent, for which the raiseIntent was executed.
+    /// Intent that have been raised.
     /// </summary>
     public string? Intent { get; set; }
 
     /// <summary>
-    /// Apps, that could handle the raiseIntent.
+    /// Apps that could handle the raiseIntent.
     /// </summary>
     public IEnumerable<AppMetadata>? AppMetadata { get; set; }
 
     /// <summary>
-    /// Error, which indicates that some error has happened during the raiseIntent's execution.
+    /// Contains error text if an error happened during the raiseIntent's execution.
     /// </summary>
     public string? Error { get; set; }
 

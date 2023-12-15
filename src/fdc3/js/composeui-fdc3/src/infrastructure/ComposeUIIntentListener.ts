@@ -18,8 +18,8 @@ import { ComposeUITopic } from "./ComposeUITopic";
 import { Fdc3RaiseIntentResolutionRequest } from "./messages/Fdc3RaiseIntentResolutionRequest";
 import { Fdc3StoreIntentResultRequest } from "./messages/Fdc3StoreIntentResultRequest";
 import { Fdc3StoreIntentResultResponse } from "./messages/Fdc3StoreIntentResultResponse";
-import { Fdc3AddIntentListenerRequest } from "./messages/Fdc3AddIntentListenerRequest";
-import { Fdc3AddIntentListenerResponse } from "./messages/Fdc3AddIntentListenerResponse";
+import { Fdc3IntentListenerRequest } from "./messages/Fdc3IntentListenerRequest";
+import { Fdc3IntentListenerResponse } from "./messages/Fdc3IntentListenerResponse";
 import { ComposeUIErrors } from "./ComposeUIErrors";
 
 export class ComposeUIIntentListener implements Listener {
@@ -48,7 +48,6 @@ export class ComposeUIIntentListener implements Listener {
                     const result = this.intentHandler(message.context, message.contextMetadata);
                     if (result && (typeof result === 'object' || typeof result === 'function') && typeof result.then === 'function') {
                         const intentResult = <object>await result;
-
                         if ('id' in intentResult) {
                             const channel = <Channel>intentResult;
                             request = new Fdc3StoreIntentResultRequest(message.messageId, this.intent, this.instanceId, message.contextMetadata.source.instanceId!, channel.id, channel.type);
@@ -59,11 +58,11 @@ export class ComposeUIIntentListener implements Listener {
                             throw new Error("Cannot detect return type of the IntentHandler.");
                         }
                     } else { //its a void
-                        request = new Fdc3StoreIntentResultRequest(message.messageId, this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, undefined, ResultError.NoResultReturned);
+                        request = new Fdc3StoreIntentResultRequest(message.messageId, this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, undefined, true);
                     }
                     
                 } catch(error) {
-                    request = new Fdc3StoreIntentResultRequest(message.messageId, this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, undefined, ResultError.IntentHandlerRejected);
+                    request = new Fdc3StoreIntentResultRequest(message.messageId, this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, undefined, undefined, ResultError.IntentHandlerRejected);
                 }
 
                 const result = await this.messageRouterClient.invoke(ComposeUITopic.sendIntentResult(), JSON.stringify(request));
@@ -83,12 +82,12 @@ export class ComposeUIIntentListener implements Listener {
     public unsubscribe(): Promise<void> {
         return new Promise<void>(async(resolve, reject) => {
             if (!this.isSubscribed) return;
-            const message = new Fdc3AddIntentListenerRequest(this.intent, this.instanceId, "Unsubscribe");
+            const message = new Fdc3IntentListenerRequest(this.intent, this.instanceId, "Unsubscribe");
             const response = await this.messageRouterClient.invoke(ComposeUITopic.addIntentListener(), JSON.stringify(message));
             if (!response) {
                 return reject(ComposeUIErrors.NoAnswerWasProvided);
             } else {
-                const result = <Fdc3AddIntentListenerResponse>JSON.parse(response);
+                const result = <Fdc3IntentListenerResponse>JSON.parse(response);
                 if (result.error) {
                     return reject(result.error);
                 } else if (result.stored) {

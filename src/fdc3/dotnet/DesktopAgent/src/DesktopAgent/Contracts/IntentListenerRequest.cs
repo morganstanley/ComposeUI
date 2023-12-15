@@ -12,24 +12,29 @@
  * and limitations under the License.
  */
 
+using System.Text.Json.Serialization;
+
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
 /// <summary>
-/// Response, from the server, that it successfully registered the IntentListener of the client, originated by the client via <seealso cref="AddIntentListenerRequest"/>.
+/// Request originated by the client which indicates that it would like to add or remove its IntentListener.
 /// </summary>
-internal sealed class AddIntentListenerResponse
+internal sealed class IntentListenerRequest
 {
     /// <summary>
-    /// Indicates, that if the server successfully stored the IntentListener.
+    /// State that indicates the action that the client's listener would like to take, like subscribe or unsubscribe from an intent.
     /// </summary>
-    public bool Stored { get; set; } = false;
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public SubscribeState State { get; set; } 
 
     /// <summary>
-    /// Indicates that error happened during the registration.
+    /// Intent for the listener which would like to (un)subscribe.
     /// </summary>
-    public string? Error { get; set; }
+    public string Intent { get; set; }
 
-    public static AddIntentListenerResponse Failure(string error) => new() { Error = error };
-    public static AddIntentListenerResponse SubscribeSuccess() => new() { Stored = true };
-    public static AddIntentListenerResponse UnsubscribeSuccess() => new() { Stored = false };
+    /// <summary>
+    /// Fdc3 specific instance id from the client which would like to add/remove its intent listener.
+    /// </summary>
+    public string Fdc3InstanceId { get; set; }
+
 }

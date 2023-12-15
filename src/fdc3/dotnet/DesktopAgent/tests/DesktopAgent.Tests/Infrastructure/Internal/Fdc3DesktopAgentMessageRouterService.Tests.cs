@@ -30,9 +30,9 @@ using IntentMetadata = MorganStanley.Fdc3.AppDirectory.IntentMetadata;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
 using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIdentifier;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Infrastructure;
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Infrastructure.Internal;
 
 public class Fdc3DesktopAgentMessageRouterServiceTests
 {
@@ -189,7 +189,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
         var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
-            new AddIntentListenerRequest()
+            new IntentListenerRequest()
             {
                 Intent = "intentMetadataCustom",
                 Fdc3InstanceId = targetFdc3InstanceId,
@@ -199,7 +199,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var addIntentListenerResult = await _fdc3.HandleAddIntentListener(Fdc3Topic.AddIntentListener, addIntentListenerRequest, new MessageContext());
         addIntentListenerResult.Should().NotBeNull();
 
-        var addIntentListnerResponse = addIntentListenerResult!.ReadJson<AddIntentListenerResponse>(_options);
+        var addIntentListnerResponse = addIntentListenerResult!.ReadJson<IntentListenerResponse>(_options);
         addIntentListnerResponse!.Stored.Should().BeTrue();
 
         var request = new RaiseIntentRequest()
@@ -589,7 +589,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
             ChannelId = null,
             ChannelType = null,
             Context = null,
-            VoidResult = "dummy error happened during Promise"
+            VoidResult = true
         };
 
         var result = await _fdc3.HandleStoreIntentResult(Fdc3Topic.SendIntentResult, MessageBuffer.Factory.CreateJson(storeIntentRequest, _options), new MessageContext());
@@ -832,7 +832,6 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
     {
         await _fdc3.StartAsync(CancellationToken.None);
         var originFdc3InstanceId = Guid.NewGuid().ToString();
-        var voidResult = "dummy error happened during Promise";
 
         var target = await MockModuleLoader.Object.StartModule(new("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
@@ -864,7 +863,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
             Intent = "intentMetadata4",
             OriginFdc3InstanceId = raiseIntentResponse.AppMetadata!.First().InstanceId!,
             TargetFdc3InstanceId = originFdc3InstanceId,
-            VoidResult = voidResult
+            VoidResult = true
         }, _options);
 
         var storeResult = await _fdc3.HandleStoreIntentResult(
@@ -884,7 +883,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
 
         var result = await _fdc3.HandleGetIntentResult(Fdc3Topic.GetIntentResult, MessageBuffer.Factory.CreateJson(getIntentResultRequest, _options), new MessageContext());
         result.Should().NotBeNull();
-        result!.ReadJson<GetIntentResultResponse>(_options).Should().BeEquivalentTo(GetIntentResultResponse.Success(voidResult: voidResult));
+        result!.ReadJson<GetIntentResultResponse>(_options).Should().BeEquivalentTo(GetIntentResultResponse.Success(voidResult: true));
 
         await MockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
@@ -894,13 +893,13 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
     {
         var result = await _fdc3.HandleAddIntentListener(Fdc3Topic.AddIntentListener, null, new());
         result.Should().NotBeNull();
-        result!.ReadJson<AddIntentListenerResponse>(_options).Should().BeEquivalentTo(AddIntentListenerResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull));
+        result!.ReadJson<IntentListenerResponse>(_options).Should().BeEquivalentTo(IntentListenerResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull));
     }
 
     [Fact]
     public async Task AddIntentListener_fails_due_missing_id()
     {
-        var request = new AddIntentListenerRequest()
+        var request = new IntentListenerRequest()
         {
             Intent = "dummy",
             Fdc3InstanceId = Guid.NewGuid().ToString(),
@@ -908,7 +907,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         };
         var result = await _fdc3.HandleAddIntentListener(Fdc3Topic.AddIntentListener, MessageBuffer.Factory.CreateJson(request, _options), new());
         result.Should().NotBeNull();
-        result!.ReadJson<AddIntentListenerResponse>(_options).Should().BeEquivalentTo(AddIntentListenerResponse.Failure(Fdc3DesktopAgentErrors.MissingId));
+        result!.ReadJson<IntentListenerResponse>(_options).Should().BeEquivalentTo(IntentListenerResponse.Failure(Fdc3DesktopAgentErrors.MissingId));
     }
 
     [Fact]
@@ -946,7 +945,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.InstanceId.Should().Be(targetFdc3InstanceId);
 
         var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
-            new AddIntentListenerRequest()
+            new IntentListenerRequest()
             {
                 Intent = "intentMetadataCustom",
                 Fdc3InstanceId = targetFdc3InstanceId,
@@ -956,11 +955,11 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var addIntentListenerResult = await _fdc3.HandleAddIntentListener(Fdc3Topic.AddIntentListener, addIntentListenerRequest, new MessageContext());
         addIntentListenerResult.Should().NotBeNull();
 
-        var addIntentListnerResponse = addIntentListenerResult!.ReadJson<AddIntentListenerResponse>(_options);
+        var addIntentListnerResponse = addIntentListenerResult!.ReadJson<IntentListenerResponse>(_options);
         addIntentListnerResponse!.Stored.Should().BeTrue();
 
         MockMessageRouter.Verify(
-            _ => _.PublishAsync(Fdc3Topic.RaiseIntentResolution("intentMetadataCustom", targetFdc3InstanceId), It.IsAny<MessageBuffer>(),It.IsAny<PublishOptions>(), It.IsAny<CancellationToken>()));
+            _ => _.PublishAsync(Fdc3Topic.RaiseIntentResolution("intentMetadataCustom", targetFdc3InstanceId), It.IsAny<MessageBuffer>(), It.IsAny<PublishOptions>(), It.IsAny<CancellationToken>()));
 
         await MockModuleLoader.Object.StopModule(new(origin.InstanceId));
         await MockModuleLoader.Object.StopModule(new(target.InstanceId));
@@ -980,7 +979,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
         var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
-            new AddIntentListenerRequest()
+            new IntentListenerRequest()
             {
                 Intent = "intentMetadataCustom",
                 Fdc3InstanceId = targetFdc3InstanceId,
@@ -990,7 +989,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var addIntentListenerResult = await _fdc3.HandleAddIntentListener(Fdc3Topic.AddIntentListener, addIntentListenerRequest, new MessageContext());
         addIntentListenerResult.Should().NotBeNull();
 
-        var addIntentListnerResponse = addIntentListenerResult!.ReadJson<AddIntentListenerResponse>(_options);
+        var addIntentListnerResponse = addIntentListenerResult!.ReadJson<IntentListenerResponse>(_options);
         addIntentListnerResponse!.Stored.Should().BeTrue();
 
         var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
@@ -1034,7 +1033,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
         var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
-            new AddIntentListenerRequest()
+            new IntentListenerRequest()
             {
                 Intent = "intentMetadataCustom",
                 Fdc3InstanceId = targetFdc3InstanceId,
@@ -1044,11 +1043,11 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var addIntentListenerResult = await _fdc3.HandleAddIntentListener(Fdc3Topic.AddIntentListener, addIntentListenerRequest, new MessageContext());
         addIntentListenerResult.Should().NotBeNull();
 
-        var addIntentListnerResponse = addIntentListenerResult!.ReadJson<AddIntentListenerResponse>(_options);
+        var addIntentListnerResponse = addIntentListenerResult!.ReadJson<IntentListenerResponse>(_options);
         addIntentListnerResponse!.Stored.Should().BeTrue();
 
         addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
-            new AddIntentListenerRequest()
+            new IntentListenerRequest()
             {
                 Intent = "intentMetadataCustom",
                 Fdc3InstanceId = targetFdc3InstanceId,
@@ -1058,7 +1057,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         addIntentListenerResult = await _fdc3.HandleAddIntentListener(Fdc3Topic.AddIntentListener, addIntentListenerRequest, new MessageContext());
         addIntentListenerResult.Should().NotBeNull();
 
-        addIntentListnerResponse = addIntentListenerResult!.ReadJson<AddIntentListenerResponse>(_options);
+        addIntentListnerResponse = addIntentListenerResult!.ReadJson<IntentListenerResponse>(_options);
         addIntentListnerResponse!.Stored.Should().BeFalse();
         addIntentListnerResponse!.Error.Should().BeNull();
 
@@ -1121,7 +1120,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                     {
                         new AppIntent()
                         {
-                            Intent = new IntentMetadata("intentMetadataCustom", "intentMetadataCustom", new [] { "contextCustom" }),
+                            Intent = new Protocol.IntentMetadata () { Name = "intentMetadataCustom", DisplayName = "intentMetadataCustom" },
                             Apps = new []
                             {
                                 new AppMetadata(){ AppId ="appId4", Name = "app4", ResultType = null }
@@ -1146,7 +1145,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                     {
                         new AppIntent()
                         {
-                            Intent = new IntentMetadata("intentMetadata4", "displayName4", new [] { "context2" }),
+                            Intent = new Protocol.IntentMetadata () { Name = "intentMetadata4", DisplayName = "displayName4" },
                             Apps = new AppMetadata[]
                             {
                                 new() { AppId = "appId4", Name = "app4", ResultType = null },
@@ -1173,7 +1172,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                     {
                         new AppIntent()
                         {
-                            Intent = new IntentMetadata("intentMetadata9", "displayName9", new [] { "context9" }),
+                            Intent = new Protocol.IntentMetadata () { Name = "intentMetadata9", DisplayName = "displayName9" },
                             Apps = new []
                             {
                                 new AppMetadata()
@@ -1184,7 +1183,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                         },
                         new AppIntent()
                         {
-                            Intent = new IntentMetadata("intentMetadata10", "displayName10", new [] { "context9" }),
+                            Intent = new Protocol.IntentMetadata () { Name = "intentMetadata10", DisplayName = "displayName10" },
                             Apps = new []
                             {
                                 new AppMetadata(){ AppId = "appId11", Name = "app11", ResultType = "channel<specified>" },
@@ -1192,7 +1191,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                         },
                         new AppIntent()
                         {
-                            Intent = new IntentMetadata("intentMetadata11", "displayName11", new [] { "context9" }),
+                            Intent = new Protocol.IntentMetadata () { Name = "intentMetadata11", DisplayName = "displayName11" },
                             Apps = new []
                             {
                                 new AppMetadata() { AppId = "appId12", Name = "app12", ResultType = "resultWrongApp"},
@@ -1232,7 +1231,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                     AppIntents = new[]
                     {
                         new AppIntent(){
-                            Intent = new IntentMetadata("intentMetadata4", "displayName4", new [] {"context2", "context5"}), // it should just return appId5
+                            Intent = new Protocol.IntentMetadata () { Name = "intentMetadata4", DisplayName = "displayName4" }, // it should just return appId5
                             Apps = new []
                             {
                                 new AppMetadata(){ AppId = "appId5", Name = "app5", ResultType = "resultType<specified>" }
@@ -1258,7 +1257,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                     {
                         new AppIntent()
                         {
-                            Intent = new IntentMetadata("intentMetadata4", "displayName4", new[] { "context2", "context5" }),
+                            Intent = new Protocol.IntentMetadata () { Name = "intentMetadata4", DisplayName = "displayName4" },
                             Apps = new[]
                             {
                                 new AppMetadata(){ AppId ="appId5", Name = "app5", ResultType = "resultType<specified>" },
@@ -1285,7 +1284,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                     {
                         new AppIntent()
                         {
-                            Intent = new IntentMetadata("intentMetadata9", "displayName9", new [] { "context9" }),
+                            Intent = new Protocol.IntentMetadata () { Name = "intentMetadata9", DisplayName = "displayName9" },
                             Apps = new []
                             {
                                 new AppMetadata() { AppId = "wrongappId9", Name = "app9", ResultType = "resultWrongApp" },
@@ -1293,7 +1292,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                         },
                         new AppIntent()
                         {
-                            Intent = new IntentMetadata("intentMetadata11", "displayName11", new [] { "context9" }),
+                            Intent = new Protocol.IntentMetadata () { Name = "intentMetadata11", DisplayName = "displayName11" },
                             Apps = new []
                             {
                                 new AppMetadata() { AppId = "appId12", Name = "app12", ResultType = "resultWrongApp" }
@@ -1346,7 +1345,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                     {
                         new AppIntent()
                         {
-                            Intent = new IntentMetadata("intentMetadata9", "displayName9", new [] { "context9" }),
+                            Intent = new Protocol.IntentMetadata () { Name = "intentMetadata9", DisplayName = "displayName9" },
                             Apps = new []
                             {
                                 new AppMetadata() { AppId = "wrongappId9", Name = "app9", ResultType = "resultWrongApp" },
@@ -1355,7 +1354,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
 
                         new AppIntent()
                         {
-                            Intent = new IntentMetadata("intentMetadata11", "displayName11", new [] { "context9" }),
+                            Intent = new Protocol.IntentMetadata () { Name = "intentMetadata11", DisplayName = "displayName11" },
                             Apps = new []
                             {
                                 new AppMetadata() { AppId = "appId12", Name = "app12", ResultType = "resultWrongApp" }
@@ -1438,7 +1437,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 {
                     AppIntent = new AppIntent()
                     {
-                        Intent = new IntentMetadata("intentMetadat7", "displayName7", new[] { "context8" }),
+                        Intent = new Protocol.IntentMetadata() { Name = "intentMetadat7", DisplayName = "displayName7" },
                         Apps = new[]
                         {
                             new AppMetadata(){ AppId = "appId7", Name = "app7", ResultType = "resultType2<specified2>" }
@@ -1461,7 +1460,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 {
                     AppIntent = new AppIntent()
                     {
-                        Intent = new IntentMetadata("intentMetadata4", "displayName4", new[] { "context2", "context5" }),
+                        Intent = new Protocol.IntentMetadata() { Name = "intentMetadata4", DisplayName = "displayName4" },
                         Apps = new[]
                         {
                             new AppMetadata() { AppId = "appId5", Name = "app5", ResultType = "resultType<specified>" },
@@ -1485,7 +1484,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 {
                     AppIntent = new AppIntent()
                     {
-                        Intent = new IntentMetadata("intentMetadat7", "displayName7", new[] { "context8" }),
+                        Intent = new Protocol.IntentMetadata() { Name = "intentMetadat7", DisplayName = "displayName7" },
                         Apps = new[]
                         {
                             new AppMetadata() { AppId = "appId7", Name = "app7", ResultType = "resultType2<specified2>"}
@@ -1507,7 +1506,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 {
                     AppIntent = new AppIntent()
                     {
-                        Intent = new IntentMetadata("intentMetadata4", "displayName4", new[] { "context2" }),
+                        Intent = new Protocol.IntentMetadata() { Name = "intentMetadata4", DisplayName = "displayName4" },
                         Apps = new[]
                         {
                             new AppMetadata() { AppId = "appId5", Name = "app5", ResultType = "resultType<specified>" },
@@ -1530,7 +1529,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 {
                     AppIntent = new AppIntent()
                     {
-                        Intent = new IntentMetadata("intentMetadata1", "displayName1", new[] { "context1" }),
+                        Intent = new Protocol.IntentMetadata() { Name = "intentMetadata1", DisplayName = "displayName1" },
                         Apps = new[]
                         {
                             new AppMetadata() { AppId = "appId1", Name = "app1", ResultType = null }
@@ -1552,7 +1551,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 {
                     AppIntent = new AppIntent()
                     {
-                        Intent = new IntentMetadata("intentMetadata4", "displayName4", new[] { "context2" }),
+                        Intent = new Protocol.IntentMetadata() { Name = "intentMetadata4", DisplayName = "displayName4" },
                         Apps = new AppMetadata[]
                             {
                                 new() { AppId = "appId4", Name = "app4", ResultType = null },
@@ -1575,7 +1574,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 {
                     AppIntent = new AppIntent()
                     {
-                        Intent = new IntentMetadata("intentMetadata2", "displayName2", new[] { "dummyContext" }),
+                        Intent = new Protocol.IntentMetadata() { Name = "intentMetadata2", DisplayName = "displayName2" },
                         Apps = new[]
                         {
                             new AppMetadata() { AppId = "appId2", Name = "app2", ResultType = null }
@@ -1596,7 +1595,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 {
                     AppIntent = new AppIntent()
                     {
-                        Intent = new IntentMetadata("intentMetadata4", "displayName4", new[] { "context2" }),
+                        Intent = new Protocol.IntentMetadata() { Name = "intentMetadata4", DisplayName = "displayName4" },
                         Apps = new AppMetadata[]
                             {
                                 new() { AppId = "appId4", Name = "app4", ResultType = null },

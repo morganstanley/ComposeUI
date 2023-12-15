@@ -11,12 +11,7 @@
  *  
  */
 
-export class Fdc3AddIntentListenerRequest {
-    constructor(
-        public readonly intent: string,
-        public readonly fdc3InstanceId: string,
-        public readonly state: SubscribeState) {
-    }
+export interface Fdc3IntentListenerResponse {
+    stored: boolean;
+    error?: string;
 }
-
-export type SubscribeState = "Subscribe" | "Unsubscribe";

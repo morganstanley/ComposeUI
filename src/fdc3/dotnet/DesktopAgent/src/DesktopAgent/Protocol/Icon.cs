@@ -21,4 +21,14 @@ public class Icon : IIcon
     public string? Size { get; set; }
 
     public string? Type { get; set; }
+
+    public static Icon GetIcon(IIcon icon)
+    {
+        return new()
+        {
+            Src = icon.Src,
+            Size = icon.Size,
+            Type = icon.Type,
+        };
+    }
 }
