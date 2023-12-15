@@ -16,19 +16,18 @@
 using MorganStanley.ComposeUI.Fdc3.AppDirectory;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.TestUtils;
 using MorganStanley.Fdc3.AppDirectory;
-using IntentMetadata = MorganStanley.Fdc3.AppDirectory.IntentMetadata;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
 using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIdentifier;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure;
 using MorganStanley.Fdc3;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.Fdc3.Context;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Helpers;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
 using MorganStanley.ComposeUI.ModuleLoader;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
 
@@ -43,9 +42,9 @@ public class Fdc3DesktopAgentTests
     private readonly IFdc3DesktopAgentBridge _fdc3 = new Fdc3DesktopAgent(AppDirectory, MockModuleLoader.Object, new Fdc3DesktopAgentOptions(), NullLoggerFactory.Instance);
 
     [Fact]
-    public async Task AddUserChannel_wont_throw()
+    public async Task AddUserChannel_wont_throw_and_adds_channel()
     {
-        var mockMessageService = new Mock<IMessagingService>();
+        var mockMessageService = new Mock<IMessageRouter>();
         mockMessageService.Setup(_ => _.ConnectAsync(It.IsAny<CancellationToken>()))
             .Returns((CancellationToken cancellationToken) => ValueTask.CompletedTask);
 
@@ -54,8 +53,7 @@ public class Fdc3DesktopAgentTests
             mockMessageService.Object,
             NullLogger<UserChannel>.Instance);
 
-        var action = async () => await _fdc3.AddUserChannel(mockUserChannel.Object);
-        await action.Should().NotThrowAsync();
+        new Action(() => _fdc3.AddUserChannel(mockUserChannel.Object)).Should().NotThrow();
     }
 
     [Fact]
@@ -68,7 +66,7 @@ public class Fdc3DesktopAgentTests
     [Fact]
     public async Task FindChannel_returns_true()
     {
-        var mockMessageService = new Mock<IMessagingService>();
+        var mockMessageService = new Mock<IMessageRouter>();
         mockMessageService.Setup(_ => _.ConnectAsync(It.IsAny<CancellationToken>()))
             .Returns((CancellationToken cancellationToken) => ValueTask.CompletedTask);
 
@@ -126,7 +124,7 @@ public class Fdc3DesktopAgentTests
         result.AppIntent.Should().BeEquivalentTo(
             new AppIntent()
             {
-                Intent = new IntentMetadata("intentMetadata4", "displayName4", new[] { "context2", "context5" }),
+                Intent = new Protocol.IntentMetadata() { Name = "intentMetadata4", DisplayName = "displayName4" },
                 Apps = new[]
                         {
                             new AppMetadata() { AppId = "appId5", Name = "app5", ResultType = "resultType<specified>" },
@@ -159,14 +157,16 @@ public class Fdc3DesktopAgentTests
             Context = new Context("fdc3.nothing"),
             ResultType = "resultWrongApp"
         };
+
         var result = await _fdc3.FindIntentsByContext(request);
         result.Should().NotBeNull();
+        
         result.AppIntents.Should().BeEquivalentTo(
             new[]
                     {
                         new AppIntent()
                         {
-                            Intent = new IntentMetadata("intentMetadata9", "displayName9", new [] { "context9" }),
+                            Intent = new Protocol.IntentMetadata() { Name = "intentMetadata9", DisplayName = "displayName9" },
                             Apps = new []
                             {
                                 new AppMetadata() { AppId = "wrongappId9", Name = "app9", ResultType = "resultWrongApp" },
@@ -175,7 +175,7 @@ public class Fdc3DesktopAgentTests
 
                         new AppIntent()
                         {
-                            Intent = new IntentMetadata("intentMetadata11", "displayName11", new [] { "context9" }),
+                            Intent = new Protocol.IntentMetadata () { Name = "intentMetadata11", DisplayName = "displayName11" },
                             Apps = new []
                             {
                                 new AppMetadata() { AppId = "appId12", Name = "app12", ResultType = "resultWrongApp" }
@@ -208,13 +208,13 @@ public class Fdc3DesktopAgentTests
         var raiseIntentResponse = await _fdc3.RaiseIntent(raiseIntentRequest);
 
         raiseIntentResponse.Should().NotBeNull();
-        raiseIntentResponse!.Key.AppMetadata.Should().HaveCount(1);
+        raiseIntentResponse!.Response.AppMetadata.Should().HaveCount(1);
 
         var storeIntentRequest = new StoreIntentResultRequest()
         {
-            MessageId = raiseIntentResponse.Key.MessageId!,
+            MessageId = raiseIntentResponse.Response.MessageId!,
             Intent = "intentMetadata4",
-            OriginFdc3InstanceId = raiseIntentResponse.Key.AppMetadata!.First().InstanceId!,
+            OriginFdc3InstanceId = raiseIntentResponse.Response.AppMetadata!.First().InstanceId!,
             TargetFdc3InstanceId = originFdc3InstanceId,
             Context = context
         };
@@ -224,9 +224,9 @@ public class Fdc3DesktopAgentTests
 
         var getIntentResultRequest = new GetIntentResultRequest()
         {
-            MessageId = raiseIntentResponse.Key.MessageId!,
+            MessageId = raiseIntentResponse.Response.MessageId!,
             Intent = "intentMetadata4",
-            TargetAppIdentifier = new AppIdentifier() { AppId = "appId1", InstanceId = raiseIntentResponse.Key.AppMetadata!.First().InstanceId! }
+            TargetAppIdentifier = new AppIdentifier() { AppId = "appId1", InstanceId = raiseIntentResponse.Response.AppMetadata!.First().InstanceId! }
         };
 
         var result = await _fdc3.GetIntentResult(getIntentResultRequest);
@@ -257,13 +257,13 @@ public class Fdc3DesktopAgentTests
             };
 
         var raiseIntentResponse = await _fdc3.RaiseIntent(raiseIntentRequest);
-        raiseIntentResponse!.Key.AppMetadata.Should().HaveCount(1);
+        raiseIntentResponse!.Response.AppMetadata.Should().HaveCount(1);
 
         var storeIntentRequest = new StoreIntentResultRequest()
         {
-            MessageId = raiseIntentResponse.Key.MessageId!,
+            MessageId = raiseIntentResponse.Response.MessageId!,
             Intent = "intentMetadata4",
-            OriginFdc3InstanceId = raiseIntentResponse.Key.AppMetadata!.First().InstanceId!,
+            OriginFdc3InstanceId = raiseIntentResponse.Response.AppMetadata!.First().InstanceId!,
             TargetFdc3InstanceId = originFdc3InstanceId,
             Context = context
         };
@@ -273,9 +273,9 @@ public class Fdc3DesktopAgentTests
 
         var getIntentResultRequest = new GetIntentResultRequest()
         {
-            MessageId = raiseIntentResponse.Key.MessageId!,
+            MessageId = raiseIntentResponse.Response.MessageId!,
             Intent = "dummy",
-            TargetAppIdentifier = new AppIdentifier() { AppId = "appId1", InstanceId = raiseIntentResponse.Key.AppMetadata!.First().InstanceId! },
+            TargetAppIdentifier = new AppIdentifier() { AppId = "appId1", InstanceId = raiseIntentResponse.Response.AppMetadata!.First().InstanceId! },
             Version = "1.0"
         };
 
@@ -320,13 +320,13 @@ public class Fdc3DesktopAgentTests
             };
 
         var raiseIntentResponse = await _fdc3.RaiseIntent(raiseIntentRequest);
-        raiseIntentResponse!.Key.AppMetadata.Should().HaveCount(1);
+        raiseIntentResponse!.Response.AppMetadata.Should().HaveCount(1);
 
         var storeIntentRequest = new StoreIntentResultRequest()
         {
-            MessageId = raiseIntentResponse!.Key.MessageId!,
+            MessageId = raiseIntentResponse!.Response.MessageId!,
             Intent = "intentMetadata4",
-            OriginFdc3InstanceId = raiseIntentResponse.Key.AppMetadata!.First().InstanceId!,
+            OriginFdc3InstanceId = raiseIntentResponse.Response.AppMetadata!.First().InstanceId!,
             TargetFdc3InstanceId = Guid.NewGuid().ToString(),
             ChannelId = "dummyChannelId",
             ChannelType = ChannelType.User
@@ -364,12 +364,12 @@ public class Fdc3DesktopAgentTests
 
         var raiseIntentResponse = await _fdc3.RaiseIntent(raiseIntentRequest);
         raiseIntentResponse.Should().NotBeNull();
-        raiseIntentResponse!.Key.AppMetadata.Should().HaveCount(1);
-        raiseIntentResponse!.Key.AppMetadata!.First()!.AppId.Should().Be("appId4");
-        raiseIntentResponse!.Key.AppMetadata!.First()!.InstanceId.Should().Be(targetFdc3InstanceId);
-        raiseIntentResponse!.Value.Should().BeNull();
+        raiseIntentResponse!.Response.AppMetadata.Should().HaveCount(1);
+        raiseIntentResponse!.Response.AppMetadata!.First()!.AppId.Should().Be("appId4");
+        raiseIntentResponse!.Response.AppMetadata!.First()!.InstanceId.Should().Be(targetFdc3InstanceId);
+        raiseIntentResponse!.RaiseIntentResolutionMessages.Should().BeEmpty();
 
-        var addIntentListenerRequest = new AddIntentListenerRequest()
+        var addIntentListenerRequest = new IntentListenerRequest()
             {
                 Intent = "intentMetadataCustom",
                 Fdc3InstanceId = targetFdc3InstanceId,
@@ -379,8 +379,8 @@ public class Fdc3DesktopAgentTests
         var addIntentListenerResponse = await _fdc3.AddIntentListener(addIntentListenerRequest);
         addIntentListenerResponse.Should().NotBeNull();
 
-        addIntentListenerResponse!.Key.Stored.Should().BeTrue();
-        addIntentListenerResponse!.Value.Should().NotBeNull();
+        addIntentListenerResponse!.Response.Stored.Should().BeTrue();
+        addIntentListenerResponse!.RaiseIntentResolutionMessages.Should().NotBeEmpty();
 
         await MockModuleLoader.Object.StopModule(new(origin.InstanceId));
         await MockModuleLoader.Object.StopModule(new(target.InstanceId));
@@ -411,12 +411,12 @@ public class Fdc3DesktopAgentTests
 
         var raiseIntentResponse = await _fdc3.RaiseIntent(raiseIntentRequest);
         raiseIntentResponse.Should().NotBeNull();
-        raiseIntentResponse!.Key.AppMetadata.Should().HaveCount(1);
-        raiseIntentResponse!.Key.AppMetadata!.First()!.AppId.Should().Be("appId4");
-        raiseIntentResponse!.Key.AppMetadata!.First()!.InstanceId.Should().Be(targetFdc3InstanceId);
-        raiseIntentResponse!.Value.Should().BeNull();
+        raiseIntentResponse!.Response.AppMetadata.Should().HaveCount(1);
+        raiseIntentResponse!.Response.AppMetadata!.First()!.AppId.Should().Be("appId4");
+        raiseIntentResponse!.Response.AppMetadata!.First()!.InstanceId.Should().Be(targetFdc3InstanceId);
+        raiseIntentResponse!.RaiseIntentResolutionMessages.Should().BeEmpty();
 
-        var addIntentListenerRequest1 = new AddIntentListenerRequest()
+        var addIntentListenerRequest1 = new IntentListenerRequest()
         {
             Intent = "intentMetadataCustom",
             Fdc3InstanceId = targetFdc3InstanceId,
@@ -425,10 +425,10 @@ public class Fdc3DesktopAgentTests
 
         var addIntentListenerResponse1 = await _fdc3.AddIntentListener(addIntentListenerRequest1);
         addIntentListenerResponse1.Should().NotBeNull();
-        addIntentListenerResponse1!.Key.Stored.Should().BeTrue();
-        addIntentListenerResponse1!.Value.Should().NotBeNull();
+        addIntentListenerResponse1!.Response.Stored.Should().BeTrue();
+        addIntentListenerResponse1!.RaiseIntentResolutionMessages.Should().NotBeEmpty();
 
-        var addIntentListenerRequest2 = new AddIntentListenerRequest()
+        var addIntentListenerRequest2 = new IntentListenerRequest()
         {
             Intent = "intentMetadataCustom",
             Fdc3InstanceId = targetFdc3InstanceId,
@@ -437,8 +437,8 @@ public class Fdc3DesktopAgentTests
 
         var addIntentListenerResponse2 = await _fdc3.AddIntentListener(addIntentListenerRequest2);
         addIntentListenerResponse2.Should().NotBeNull();
-        addIntentListenerResponse2!.Key.Stored.Should().BeFalse();
-        addIntentListenerResponse2!.Value.Should().BeNull();
+        addIntentListenerResponse2!.Response.Stored.Should().BeFalse();
+        addIntentListenerResponse2!.RaiseIntentResolutionMessages.Should().BeEmpty();
 
         await MockModuleLoader.Object.StopModule(new(origin.InstanceId));
         await MockModuleLoader.Object.StopModule(new(target.InstanceId));
@@ -447,7 +447,7 @@ public class Fdc3DesktopAgentTests
     [Fact]
     public async Task AddIntentListener_unsubscribe_fails()
     {
-        var addIntentListenerRequest = new AddIntentListenerRequest()
+        var addIntentListenerRequest = new IntentListenerRequest()
         {
             Intent = "intentMetadataCustom",
             Fdc3InstanceId = Guid.NewGuid().ToString(),
@@ -456,9 +456,9 @@ public class Fdc3DesktopAgentTests
 
         var addIntentListenerResponse = await _fdc3.AddIntentListener(addIntentListenerRequest);
         addIntentListenerResponse.Should().NotBeNull();
-        addIntentListenerResponse!.Key.Stored.Should().BeFalse();
-        addIntentListenerResponse!.Value.Should().BeNull();
-        addIntentListenerResponse!.Key.Error.Should().Be(Fdc3DesktopAgentErrors.MissingId);
+        addIntentListenerResponse!.Response.Stored.Should().BeFalse();
+        addIntentListenerResponse!.RaiseIntentResolutionMessages.Should().BeEmpty();
+        addIntentListenerResponse!.Response.Error.Should().Be(Fdc3DesktopAgentErrors.MissingId);
     }
 
     [Fact]
@@ -475,7 +475,7 @@ public class Fdc3DesktopAgentTests
 
         var result = await _fdc3.RaiseIntent(request);
         result.Should().NotBeNull();
-        result!.Key.Error.Should().Be(ResolveError.NoAppsFound);
+        result!.Response.Error.Should().Be(ResolveError.NoAppsFound);
     }
 
     [Fact]
@@ -492,7 +492,7 @@ public class Fdc3DesktopAgentTests
 
         var result = await _fdc3.RaiseIntent(request);
         result.Should().NotBeNull();
-        result!.Key.Error.Should().Be(ResolveError.IntentDeliveryFailed);
+        result!.Response.Error.Should().Be(ResolveError.IntentDeliveryFailed);
     }
 
     [Fact]
@@ -509,7 +509,7 @@ public class Fdc3DesktopAgentTests
 
         var result = await _fdc3.RaiseIntent(request);
 
-        result!.Key.Error.Should().Be("Some weird error");
+        result!.Response.Error.Should().Be("Some weird error");
     }
 
     [Fact]
@@ -526,9 +526,9 @@ public class Fdc3DesktopAgentTests
 
         var result = await _fdc3.RaiseIntent(request);
         result.Should().NotBeNull();
-        result!.Value.Should().BeNull();
-        result!.Key!.AppMetadata.Should().HaveCount(3);
-        result!.Key.AppMetadata.Should().BeEquivalentTo(
+        result!.RaiseIntentResolutionMessages.Should().BeEmpty();
+        result!.Response!.AppMetadata.Should().HaveCount(3);
+        result!.Response.AppMetadata.Should().BeEquivalentTo(
             new List<AppMetadata>()
             {
                 new() { AppId = "appId4", Name = "app4", ResultType = null },
@@ -551,7 +551,7 @@ public class Fdc3DesktopAgentTests
 
         var result = await _fdc3.RaiseIntent(request);
         result.Should().NotBeNull();
-        result!.Key.Error.Should().Be(ResolveError.IntentDeliveryFailed);
+        result!.Response.Error.Should().Be(ResolveError.IntentDeliveryFailed);
     }
 
     [Fact]
@@ -567,7 +567,7 @@ public class Fdc3DesktopAgentTests
         var target = await MockModuleLoader.Object.StartModule(new StartRequest("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
-        var addIntentListenerRequest = new AddIntentListenerRequest()
+        var addIntentListenerRequest = new IntentListenerRequest()
             {
                 Intent = "intentMetadataCustom",
                 Fdc3InstanceId = targetFdc3InstanceId,
@@ -576,8 +576,8 @@ public class Fdc3DesktopAgentTests
 
         var addIntentListnerResponse = await _fdc3.AddIntentListener(addIntentListenerRequest);
         addIntentListnerResponse.Should().NotBeNull();
-        addIntentListnerResponse!.Key.Stored.Should().BeTrue();
-        addIntentListnerResponse.Value.Should().BeNull();
+        addIntentListnerResponse!.Response.Stored.Should().BeTrue();
+        addIntentListnerResponse.RaiseIntentResolutionMessages.Should().BeEmpty();
 
         var request = new RaiseIntentRequest()
         {
@@ -592,12 +592,13 @@ public class Fdc3DesktopAgentTests
         var result = await _fdc3.RaiseIntent(request);
 
         result.Should().NotBeNull();
-        result!.Key.AppMetadata.Should().HaveCount(1);
-        result!.Key.AppMetadata!.First()!.AppId.Should().Be("appId4");
-        result!.Key.AppMetadata!.First()!.InstanceId.Should().Be(targetFdc3InstanceId);
-        result.Value.Should().NotBeNull();
-        result!.Value!.Intent.Should().Be("intentMetadataCustom");
-        result!.Value!.TargetModuleInstanceId.Should().Be(targetFdc3InstanceId);
+        result!.Response.AppMetadata.Should().HaveCount(1);
+        result!.Response.AppMetadata!.First()!.AppId.Should().Be("appId4");
+        result!.Response.AppMetadata!.First()!.InstanceId.Should().Be(targetFdc3InstanceId);
+        result.RaiseIntentResolutionMessages.Should().NotBeEmpty();
+        result!.Response!.Intent.Should().Be("intentMetadataCustom");
+        result!.RaiseIntentResolutionMessages!.Should().HaveCount(1);
+        result!.RaiseIntentResolutionMessages!.First().TargetModuleInstanceId.Should().Be(targetFdc3InstanceId);
 
         await MockModuleLoader.Object.StopModule(new(origin.InstanceId));
         await MockModuleLoader.Object.StopModule(new(target.InstanceId));

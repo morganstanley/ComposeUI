@@ -19,22 +19,22 @@ using MorganStanley.Fdc3.Context;
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
 /// <summary>
-/// Request, originated from fdc3.raiseIntent, to publish the raiseIntent request to the selected app.
+/// Request raised via fdc3.raiseIntent to publish the raiseIntent request to the selected app.
 /// </summary>
 internal sealed class RaiseIntentResolutionRequest
 {
     /// <summary>
-    /// Unique identifier for the raised intent message, which was generated from the gotten MessageId as int from the client and a <seealso cref="Guid"/>.
+    /// Unique identifier for the raised intent message which was generated from the received MessageId as int from the client and a <seealso cref="Guid"/>.
     /// </summary>
     public string MessageId { get; set; }
 
     /// <summary>
-    /// Context, which should be sent to the selected app via raiseIntent by the FDC3 client.
+    /// Context which should be sent to the selected app via raiseIntent by the FDC3 client.
     /// </summary>
     public Context Context { get; set; }
 
     /// <summary>
-    /// ContextMetadata, which contains information about the source app, that raised the request.
+    /// ContextMetadata which contains information about the source app, that raised the request.
     /// </summary>
     public ContextMetadata ContextMetadata { get; set; }
 }

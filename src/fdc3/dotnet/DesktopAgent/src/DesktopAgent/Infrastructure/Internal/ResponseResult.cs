@@ -10,21 +10,17 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using MorganStanley.Fdc3;
-using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
-
-public class ImplementationMetadata : IImplementationMetadata
+internal partial class ResponseResult<TResponse>
 {
-    public string Fdc3Version { get; set; }
+    /// <summary>
+    /// Response for the <seealso cref="IFdc3DesktopAgentBridge"/> call.
+    /// </summary>
+    public TResponse Response { get; set; }
 
-    public string Provider { get; set; }
-
-    public string ProviderVersion { get; set; }
-
-    public OptionalDesktopAgentFeatures OptionalFeatures { get; set; }
-
-    public AppMetadata AppMetadata {  get; set; }
-    IAppMetadata IImplementationMetadata.AppMetadata => AppMetadata;
+    /// <summary>
+    /// RaiseIntentResolution messages to forward to the registered IntentListeners to resolve with their registered IntentListener.
+    /// </summary>
+    public IEnumerable<RaiseIntentResolutionMessage> RaiseIntentResolutionMessages { get; set; } = Enumerable.Empty<RaiseIntentResolutionMessage>();
 }

@@ -18,12 +18,12 @@ using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIden
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
 /// <summary>
-/// Request, originated from the client via calling the IntentResolution.getResult().
+/// Request raised by the client via calling the IntentResolution.getResult().
 /// </summary>
 internal sealed class GetIntentResultRequest
 {
     /// <summary>
-    /// IntentResolution's stored MessageId gotten by <seealso cref="RaiseIntentResponse"/>.
+    /// IntentResolution's stored MessageId received via <seealso cref="RaiseIntentResponse"/>.
     /// </summary>
     public string MessageId { get; set; }
 

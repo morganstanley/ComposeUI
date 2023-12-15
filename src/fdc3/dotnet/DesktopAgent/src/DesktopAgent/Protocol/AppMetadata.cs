@@ -10,7 +10,10 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+
 using MorganStanley.Fdc3;
+using Icon = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Icon;
+using Screenshot = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Screenshot;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
 
@@ -26,9 +29,11 @@ public class AppMetadata : IAppMetadata
 
     public string? Description { get; set; }
 
-    public IEnumerable<IIcon> Icons { get; set; } = Enumerable.Empty<IIcon>();
+    public IEnumerable<Icon> Icons { get; set; } = Enumerable.Empty<Icon>();
+    IEnumerable<IIcon> IAppMetadata.Icons => Icons;
 
-    public IEnumerable<IImage> Screenshots { get; set; } = Enumerable.Empty<IImage>();
+    public IEnumerable<Screenshot> Screenshots { get; set; } = Enumerable.Empty<Screenshot>();
+    IEnumerable<IImage> IAppMetadata.Screenshots => Screenshots;
 
     public string? ResultType { get; set; }
 

@@ -195,7 +195,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
             var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
 
-            var appId4IntentMetadata = new IntentMetadata("intentMetadata4", "displayName4", new[] { "context2" });
+            var appId4IntentMetadata = new Protocol.IntentMetadata() { Name = "intentMetadata4", DisplayName = "displayName4" };
 
             var request = new FindIntentRequest()
             {
@@ -203,7 +203,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 Intent = "intentMetadata4"
             };
 
-            var response = new FindIntentResponse()
+            var expectedResponse = new FindIntentResponse()
             {
                 AppIntent = new AppIntent()
                 {
@@ -221,7 +221,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             resultBuffer.Should().NotBeNull();
             var result = resultBuffer!.ReadJson<FindIntentResponse>(_options);
             result.Should().NotBeNull();
-            result.Should().BeEquivalentTo(response);
+            result.Should().BeEquivalentTo(expectedResponse);
 
             await _moduleLoader.StopModule(new StopRequest(instance.InstanceId));
         }
@@ -229,7 +229,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
         [Fact]
         public async Task FindIntentReturnsIntentDeliveryFailureBecauseOfTheRequest()
         {
-            var response = new FindIntentResponse()
+            var expectedResponse = new FindIntentResponse()
             {
                 Error = ResolveError.IntentDeliveryFailed
             };
@@ -238,7 +238,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             resultBuffer.Should().NotBeNull();
             var result = resultBuffer!.ReadJson<FindIntentResponse>(_options);
             result.Should().NotBeNull();
-            result.Should().BeEquivalentTo(response);
+            result.Should().BeEquivalentTo(expectedResponse);
         }
 
         [Fact]
@@ -253,7 +253,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 Intent = "noAppShouldReturnIntent",
             };
 
-            var response = new FindIntentResponse()
+            var expectedResponse = new FindIntentResponse()
             {
                 Error = ResolveError.NoAppsFound
             };
@@ -262,13 +262,13 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             resultBuffer.Should().NotBeNull();
             var result = resultBuffer!.ReadJson<FindIntentResponse>(_options);
             result.Should().NotBeNull();
-            result.Should().BeEquivalentTo(response);
+            result.Should().BeEquivalentTo(expectedResponse);
 
             await _moduleLoader.StopModule(new StopRequest(instance.InstanceId));
         }
 
         [Fact]
-        public async Task FindIntentReturnsIntentDeliveryFailureBecauseOfItFoundMultipleAppIntent()
+        public async Task FindIntentReturnsIntentDeliveryFailureBecauseOfMultipleAppIntentFound()
         {
             var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
             var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
@@ -279,7 +279,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 Intent = "intentMetadata8"
             };
 
-            var response = new FindIntentResponse()
+            var expectedResponse = new FindIntentResponse()
             {
                 Error = ResolveError.IntentDeliveryFailed
             };
@@ -288,7 +288,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             resultBuffer.Should().NotBeNull();
             var result = resultBuffer!.ReadJson<FindIntentResponse>(_options);
             result.Should().NotBeNull();
-            result.Should().BeEquivalentTo(response);
+            result.Should().BeEquivalentTo(expectedResponse);
             await _moduleLoader.StopModule(new StopRequest(instance.InstanceId));
         }
 
@@ -305,9 +305,9 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 ResultType = "resultType"
             };
 
-            var appId5IntentMetadata = new IntentMetadata("intentMetadata4", "displayName4", new[] { "context2", "context5" });
+            var appId5IntentMetadata = new Protocol.IntentMetadata() { Name = "intentMetadata4", DisplayName = "displayName4" };
 
-            var response = new FindIntentsByContextResponse()
+            var expectedResponse = new FindIntentsByContextResponse()
             {
                 AppIntents = new AppIntent[]
                 {
@@ -327,7 +327,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             resultBuffer.Should().NotBeNull();
             var result = resultBuffer!.ReadJson<FindIntentsByContextResponse>(_options);
             result.Should().NotBeNull();
-            result.Should().BeEquivalentTo(response);
+            result.Should().BeEquivalentTo(expectedResponse);
             await _moduleLoader.StopModule(new StopRequest(instance.InstanceId));
         }
 
@@ -344,9 +344,9 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 ResultType = "resultWrongApp"
             };
 
-            var appId9IntentMetadata = new IntentMetadata("intentMetadata9", "displayName9", new[] { "context9" });
-            var appId12IntentMetadata = new IntentMetadata("intentMetadata11", "displayName11", new[] { "context9" });
-            var response = new FindIntentsByContextResponse()
+            var appId9IntentMetadata = new Protocol.IntentMetadata() { Name = "intentMetadata9", DisplayName = "displayName9" };
+            var appId12IntentMetadata = new Protocol.IntentMetadata() { Name = "intentMetadata11", DisplayName = "displayName11" };
+            var expectedResponse = new FindIntentsByContextResponse()
             {
                 AppIntents = new[]
                     {
@@ -373,14 +373,14 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             resultBuffer.Should().NotBeNull();
             var result = resultBuffer!.ReadJson<FindIntentsByContextResponse>(_options);
             result.Should().NotBeNull();
-            result.Should().BeEquivalentTo(response);
+            result.Should().BeEquivalentTo(expectedResponse);
             await _moduleLoader.StopModule(new StopRequest(instance.InstanceId));
         }
 
         [Fact]
         public async Task FindIntentsByContextReturnsIntentDeliveryFailureBecauseOfTheRequest()
         {
-            var response = new FindIntentsByContextResponse()
+            var expectedResponse = new FindIntentsByContextResponse()
             {
                 Error = ResolveError.IntentDeliveryFailed
             };
@@ -389,7 +389,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             resultBuffer.Should().NotBeNull();
             var result = resultBuffer!.ReadJson<FindIntentsByContextResponse>(_options);
             result.Should().NotBeNull();
-            result.Should().BeEquivalentTo(response);
+            result.Should().BeEquivalentTo(expectedResponse);
         }
 
         [Fact]
@@ -405,7 +405,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 ResultType = "noAppShouldReturn"
             };
 
-            var response = new FindIntentsByContextResponse()
+            var expectedResponse = new FindIntentsByContextResponse()
             {
                 Error = ResolveError.NoAppsFound
             };
@@ -414,14 +414,14 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             resultBuffer.Should().NotBeNull();
             var result = resultBuffer!.ReadJson<FindIntentsByContextResponse>(_options);
             result.Should().NotBeNull();
-            result.Should().BeEquivalentTo(response);
+            result.Should().BeEquivalentTo(expectedResponse);
             await _moduleLoader.StopModule(new StopRequest(instance.InstanceId));
         }
 
         [Fact]
         public async Task RaiseIntentReturnsIntentDeliveryFailureBecauseOfTheRequest()
         {
-            var response = new RaiseIntentResponse()
+            var expectedResponse = new RaiseIntentResponse()
             {
                 Error = ResolveError.IntentDeliveryFailed
             };
@@ -430,7 +430,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             resultBuffer.Should().NotBeNull();
             var result = resultBuffer!.ReadJson<RaiseIntentResponse>(_options);
             result.Should().NotBeNull();
-            result.Should().BeEquivalentTo(response);
+            result.Should().BeEquivalentTo(expectedResponse);
         }
 
         [Fact]
@@ -448,7 +448,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 Context = new Context("fdc3.nothing"),
                 Error =  "dummyError"};
 
-            var response = new RaiseIntentResponse()
+            var expectedResponse = new RaiseIntentResponse()
             {
                 Error = "dummyError"
             };
@@ -457,7 +457,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             resultBuffer.Should().NotBeNull();
             var result = resultBuffer!.ReadJson<RaiseIntentResponse>(_options);
             result.Should().NotBeNull();
-            result.Should().BeEquivalentTo(response);
+            result.Should().BeEquivalentTo(expectedResponse);
             await _moduleLoader.StopModule(new StopRequest(instance.InstanceId));
         }
 
@@ -476,7 +476,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 Context = new Context("fdc3.nothing")
             };
 
-            var response = new RaiseIntentResponse()
+            var expectedResponse = new RaiseIntentResponse()
             {
                 Error = ResolveError.NoAppsFound
             };
@@ -485,7 +485,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             resultBuffer.Should().NotBeNull();
             var result = resultBuffer!.ReadJson<RaiseIntentResponse>(_options);
             result.Should().NotBeNull();
-            result.Should().BeEquivalentTo(response);
+            result.Should().BeEquivalentTo(expectedResponse);
             await _moduleLoader.StopModule(new StopRequest(instance.InstanceId));
         }
 
@@ -504,7 +504,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 Context = new Context("fdc3.nothing")
             };
 
-            var response = new RaiseIntentResponse()
+            var expectedResponse = new RaiseIntentResponse()
             {
                 Error = ResolveError.IntentDeliveryFailed
             };
@@ -513,7 +513,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             resultBuffer.Should().NotBeNull();
             var result = resultBuffer!.ReadJson<RaiseIntentResponse>(_options);
             result.Should().NotBeNull();
-            result.Should().BeEquivalentTo(response);
+            result.Should().BeEquivalentTo(expectedResponse);
             await _moduleLoader.StopModule(new StopRequest(instance.InstanceId));
         }
 
@@ -542,7 +542,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var result = resultBuffer!.ReadJson<RaiseIntentResponse>(_options);
             result.Should().NotBeNull();
 
-            var response = new RaiseIntentResponse()
+            var expectedResponse = new RaiseIntentResponse()
             {
                 MessageId = result!.MessageId,
                 Intent = "intentMetadataCustom",
@@ -552,7 +552,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 }
             };
 
-            result.Should().BeEquivalentTo(response);
+            result.Should().BeEquivalentTo(expectedResponse);
 
             await _moduleLoader.StopModule(new StopRequest(app4.InstanceId));
             await _moduleLoader.StopModule(new StopRequest(instance.InstanceId));
@@ -568,7 +568,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
 
             var addIntentListenerRequest =
                 MessageBuffer.Factory.CreateJson(
-                    new AddIntentListenerRequest()
+                    new IntentListenerRequest()
                     {
                         Intent = "intentMetadataCustom",
                         Fdc3InstanceId = targetFdc3InstanceId,
@@ -578,7 +578,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
 
             var addIntentListenerResult = await _messageRouter.InvokeAsync(Fdc3Topic.AddIntentListener, addIntentListenerRequest);
             addIntentListenerResult.Should().NotBeNull();
-            addIntentListenerResult!.ReadJson<AddIntentListenerResponse>(_options).Should().BeEquivalentTo(AddIntentListenerResponse.SubscribeSuccess());
+            addIntentListenerResult!.ReadJson<IntentListenerResponse>(_options).Should().BeEquivalentTo(IntentListenerResponse.SubscribeSuccess());
 
             var request = new RaiseIntentRequest()
             {
@@ -596,7 +596,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var result = resultBuffer!.ReadJson<RaiseIntentResponse>(_options);
             result.Should().NotBeNull();
 
-            var response = new RaiseIntentResponse()
+            var expectedResponse = new RaiseIntentResponse()
             {
                 MessageId = result!.MessageId,
                 Intent = "intentMetadataCustom",
@@ -606,7 +606,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 }
             };
 
-            result.Should().BeEquivalentTo(response);
+            result.Should().BeEquivalentTo(expectedResponse);
             await _moduleLoader.StopModule(new StopRequest(origin.InstanceId));
             await _moduleLoader.StopModule(new StopRequest(target.InstanceId));
         }
@@ -626,7 +626,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 Context = new Context("context2")
             };
 
-            var response = new RaiseIntentResponse()
+            var expectedResponse = new RaiseIntentResponse()
             {
                 MessageId = "2",
                 Intent = "intentMetadata4",
@@ -642,14 +642,14 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             resultBuffer.Should().NotBeNull();
             var result = resultBuffer!.ReadJson<RaiseIntentResponse>(_options);
             result.Should().NotBeNull();
-            result.Should().BeEquivalentTo(response);
+            result.Should().BeEquivalentTo(expectedResponse);
             await _moduleLoader.StopModule(new StopRequest(instance.InstanceId));
         }
 
         [Fact]
-        public async Task StoreIntentResultReturnsIntentDeliveryFailureAsRequestNull()
+        public async Task StoreIntentResultReturnsIntentDeliveryFailureAsRequestIsNull()
         {
-            var response = new StoreIntentResultResponse()
+            var expectedResponse = new StoreIntentResultResponse()
             {
                 Error = ResolveError.IntentDeliveryFailed
             };
@@ -657,7 +657,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var resultBuffer = await _messageRouter.InvokeAsync(Fdc3Topic.SendIntentResult, null);
             resultBuffer.Should().NotBeNull();
             var result = resultBuffer!.ReadJson<StoreIntentResultResponse>(_options);
-            result!.Should().BeEquivalentTo(response);
+            result!.Should().BeEquivalentTo(expectedResponse);
         }
 
         [Fact]
@@ -674,7 +674,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 TargetFdc3InstanceId = null
             };
 
-            var response = new StoreIntentResultResponse()
+            var expectedResponse = new StoreIntentResultResponse()
             {
                 Error = ResolveError.IntentDeliveryFailed
             };
@@ -682,12 +682,12 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var resultBuffer = await _messageRouter.InvokeAsync(Fdc3Topic.SendIntentResult, MessageBuffer.Factory.CreateJson(request, _options));
             resultBuffer.Should().NotBeNull();
             var result = resultBuffer!.ReadJson<StoreIntentResultResponse>(_options);
-            result!.Should().BeEquivalentTo(response);
+            result!.Should().BeEquivalentTo(expectedResponse);
             await _moduleLoader.StopModule(new StopRequest(instance.InstanceId));
         }
 
         [Fact]
-        public async Task StoreIntentResultReturnsSuccessFully()
+        public async Task StoreIntentResultReturnsSuccessfully()
         {
             var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
             var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
@@ -718,7 +718,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 Context = testContext
             };
 
-            var response = new StoreIntentResultResponse()
+            var expectedResponse = new StoreIntentResultResponse()
             {
                 Stored = true
             };
@@ -730,16 +730,16 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var resultBuffer = await _messageRouter.InvokeAsync(Fdc3Topic.SendIntentResult, MessageBuffer.Factory.CreateJson(request, _options));
             resultBuffer.Should().NotBeNull();
             var result = resultBuffer!.ReadJson<StoreIntentResultResponse>(_options);
-            result!.Should().BeEquivalentTo(response);
+            result!.Should().BeEquivalentTo(expectedResponse);
 
             await _moduleLoader.StopModule(new StopRequest(app4.InstanceId));
             await _moduleLoader.StopModule(new StopRequest(instance.InstanceId));
         }
 
         [Fact]
-        public async Task GetIntentResultReturnsIntentDeliveryFailureAsRequestNull()
+        public async Task GetIntentResultReturnsIntentDeliveryFailureAsRequestIsNull()
         {
-            var response = new GetIntentResultResponse()
+            var expectedResponse = new GetIntentResultResponse()
             {
                 Error = ResolveError.IntentDeliveryFailed
             };
@@ -747,11 +747,11 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var resultBuffer = await _messageRouter.InvokeAsync(Fdc3Topic.GetIntentResult, null);
             resultBuffer.Should().NotBeNull();
             var result = resultBuffer!.ReadJson<GetIntentResultResponse>(_options);
-            result!.Should().BeEquivalentTo(response);
+            result!.Should().BeEquivalentTo(expectedResponse);
         }
 
         [Fact]
-        public async Task GetIntentResultReturnsIntentDeliveryFailureAsRequestNotContainsInformation()
+        public async Task GetIntentResultReturnsIntentDeliveryFailureAsRequestDoesNotContainInformation()
         {
             var request = new GetIntentResultRequest()
             {
@@ -760,7 +760,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 TargetAppIdentifier = new AppIdentifier() { AppId = "appId1" }
             };
 
-            var response = new GetIntentResultResponse()
+            var expectedResponse = new GetIntentResultResponse()
             {
                 Error = ResolveError.IntentDeliveryFailed
             };
@@ -768,7 +768,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var resultBuffer = await _messageRouter.InvokeAsync(Fdc3Topic.GetIntentResult, MessageBuffer.Factory.CreateJson(request, _options));
             resultBuffer.Should().NotBeNull();
             var result = resultBuffer!.ReadJson<GetIntentResultResponse>(_options);
-            result!.Should().BeEquivalentTo(response);
+            result!.Should().BeEquivalentTo(expectedResponse);
         }
 
         [Fact]
@@ -784,7 +784,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 TargetAppIdentifier = new AppIdentifier() { AppId = "appId1", InstanceId = originFdc3InstanceId }
             };
 
-            var response = new GetIntentResultResponse()
+            var expectedResponse = new GetIntentResultResponse()
             {
                 Error = ResolveError.IntentDeliveryFailed
             };
@@ -792,12 +792,12 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var resultBuffer = await _messageRouter.InvokeAsync(Fdc3Topic.GetIntentResult, MessageBuffer.Factory.CreateJson(request, _options));
             resultBuffer.Should().NotBeNull();
             var result = resultBuffer!.ReadJson<GetIntentResultResponse>(_options);
-            result!.Should().BeEquivalentTo(response);
+            result!.Should().BeEquivalentTo(expectedResponse);
             await _moduleLoader.StopModule(new StopRequest(instance.InstanceId));
         }
 
         [Fact]
-        public async Task GetIntentResultReturnsSuccessFully()
+        public async Task GetIntentResultReturnsSuccessfully()
         {
             var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
             var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
@@ -834,7 +834,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 TargetAppIdentifier = new AppIdentifier() { AppId = "appId4", InstanceId = raiseIntentResult!.AppMetadata!.First().InstanceId! }
             };
 
-            var response = new GetIntentResultResponse()
+            var expectedResponse = new GetIntentResultResponse()
             {
                 Context = testContext
             };
@@ -846,7 +846,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var resultBuffer = await _messageRouter.InvokeAsync(Fdc3Topic.GetIntentResult, MessageBuffer.Factory.CreateJson(request, _options));
             resultBuffer.Should().NotBeNull();
             var result = resultBuffer!.ReadJson<GetIntentResultResponse>(_options);
-            result!.Should().BeEquivalentTo(response);
+            result!.Should().BeEquivalentTo(expectedResponse);
 
             await _moduleLoader.StopModule(new StopRequest(app4.InstanceId));
             await _moduleLoader.StopModule(new StopRequest(instance.InstanceId));
@@ -857,7 +857,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
         {
             var result = await _messageRouter.InvokeAsync(Fdc3Topic.AddIntentListener, null, new());
             result.Should().NotBeNull();
-            result!.ReadJson<AddIntentListenerResponse>(_options).Should().BeEquivalentTo(AddIntentListenerResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull));
+            result!.ReadJson<IntentListenerResponse>(_options).Should().BeEquivalentTo(IntentListenerResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull));
         }
 
         [Fact]
@@ -865,10 +865,10 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
         {
             var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
             var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
-            var request = new AddIntentListenerRequest() { Intent = "dummy", Fdc3InstanceId = originFdc3InstanceId, State = SubscribeState.Unsubscribe };
-            var result = await _messageRouter.InvokeAsync(Fdc3Topic.AddIntentListener, MessageBuffer.Factory.CreateJson(request, _options));
-            result.Should().NotBeNull();
-            result!.ReadJson<AddIntentListenerResponse>(_options).Should().BeEquivalentTo(AddIntentListenerResponse.Failure(Fdc3DesktopAgentErrors.MissingId));
+            var request = new IntentListenerRequest() { Intent = "dummy", Fdc3InstanceId = originFdc3InstanceId, State = SubscribeState.Unsubscribe };
+            var expectedResponse = await _messageRouter.InvokeAsync(Fdc3Topic.AddIntentListener, MessageBuffer.Factory.CreateJson(request, _options));
+            expectedResponse.Should().NotBeNull();
+            expectedResponse!.ReadJson<IntentListenerResponse>(_options).Should().BeEquivalentTo(IntentListenerResponse.Failure(Fdc3DesktopAgentErrors.MissingId));
             await _moduleLoader.StopModule(new StopRequest(instance.InstanceId));
         }
 
@@ -901,7 +901,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.AppId.Should().Be("appId4");
 
             var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
-                new AddIntentListenerRequest()
+                new IntentListenerRequest()
                 {
                     Intent = "intentMetadataCustom",
                     Fdc3InstanceId = targetFdc3InstanceId,
@@ -911,8 +911,8 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var addIntentListenerResult = await _messageRouter.InvokeAsync(Fdc3Topic.AddIntentListener, addIntentListenerRequest);
             addIntentListenerResult.Should().NotBeNull();
 
-            var addIntentListnerResponse = addIntentListenerResult!.ReadJson<AddIntentListenerResponse>(_options);
-            addIntentListnerResponse!.Stored.Should().BeTrue();
+            var addIntentListenerResponse = addIntentListenerResult!.ReadJson<IntentListenerResponse>(_options);
+            addIntentListenerResponse!.Stored.Should().BeTrue();
 
             var app4 = _runningApps.First(application => application.Manifest.Id == "appId4");
             var app4Fdc3InstanceId = Fdc3InstanceIdRetriever.Get(app4);
@@ -931,7 +931,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
             var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
-                new AddIntentListenerRequest()
+                new IntentListenerRequest()
                 {
                     Intent = "intentMetadataCustom",
                     Fdc3InstanceId = targetFdc3InstanceId,
@@ -941,7 +941,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var addIntentListenerResult = await _messageRouter.InvokeAsync(Fdc3Topic.AddIntentListener, addIntentListenerRequest);
             addIntentListenerResult.Should().NotBeNull();
 
-            var addIntentListenerResponse = addIntentListenerResult!.ReadJson<AddIntentListenerResponse>(_options);
+            var addIntentListenerResponse = addIntentListenerResult!.ReadJson<IntentListenerResponse>(_options);
             addIntentListenerResponse!.Stored.Should().BeTrue();
 
             await _moduleLoader.StopModule(new StopRequest(target.InstanceId));
@@ -955,7 +955,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
             var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
-                new AddIntentListenerRequest()
+                new IntentListenerRequest()
                 {
                     Intent = "intentMetadataCustom",
                     Fdc3InstanceId = targetFdc3InstanceId,
@@ -965,11 +965,11 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var addIntentListenerResult = await _messageRouter.InvokeAsync(Fdc3Topic.AddIntentListener, addIntentListenerRequest);
             addIntentListenerResult.Should().NotBeNull();
 
-            var addIntentListnerResponse = addIntentListenerResult!.ReadJson<AddIntentListenerResponse>(_options);
+            var addIntentListnerResponse = addIntentListenerResult!.ReadJson<IntentListenerResponse>(_options);
             addIntentListnerResponse!.Stored.Should().BeTrue();
 
             addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
-                new AddIntentListenerRequest()
+                new IntentListenerRequest()
                 {
                     Intent = "intentMetadataCustom",
                     Fdc3InstanceId = targetFdc3InstanceId,
@@ -979,7 +979,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             addIntentListenerResult = await _messageRouter.InvokeAsync(Fdc3Topic.AddIntentListener, addIntentListenerRequest);
             addIntentListenerResult.Should().NotBeNull();
 
-            addIntentListnerResponse = addIntentListenerResult!.ReadJson<AddIntentListenerResponse>(_options);
+            addIntentListnerResponse = addIntentListenerResult!.ReadJson<IntentListenerResponse>(_options);
             addIntentListnerResponse!.Stored.Should().BeFalse();
             addIntentListnerResponse!.Error.Should().BeNull();
 

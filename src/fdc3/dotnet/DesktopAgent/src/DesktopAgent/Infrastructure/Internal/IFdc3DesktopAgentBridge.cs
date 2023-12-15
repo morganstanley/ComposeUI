@@ -13,10 +13,9 @@
  */
 
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure;
 using MorganStanley.Fdc3;
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
 internal interface IFdc3DesktopAgentBridge
 {
@@ -28,17 +27,11 @@ internal interface IFdc3DesktopAgentBridge
     public Task StartAsync(CancellationToken cancellationToken);
 
     /// <summary>
-    /// Disposes the disposabel resources.
+    /// Disposes the disposable resources.
     /// </summary>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public Task StopAsync(CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Moves the started modules from the queue to the running modules collection after the RaiseIntent call is finished.
-    /// </summary>
-    /// <returns></returns>
-    public ValueTask AddModuleAsync();
 
     /// <summary>
     /// Handles the AddUserChannel call in the bridge.
@@ -77,18 +70,18 @@ internal interface IFdc3DesktopAgentBridge
     public ValueTask<GetIntentResultResponse> GetIntentResult(GetIntentResultRequest request);
 
     /// <summary>
-    /// 
+    /// Handles the RaiseIntent call in the bridge.
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    public ValueTask<KeyValuePair<RaiseIntentResponse, RaiseIntentResolutionMessage?>> RaiseIntent(RaiseIntentRequest request);
+    public ValueTask<ResponseResult<RaiseIntentResponse>> RaiseIntent(RaiseIntentRequest request);
 
     /// <summary>
     /// Handles the AddIntentListener call in the bridge.
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    public ValueTask<KeyValuePair<AddIntentListenerResponse, IEnumerable<RaiseIntentResolutionMessage>?>> AddIntentListener(AddIntentListenerRequest request);
+    public ValueTask<ResponseResult<IntentListenerResponse>> AddIntentListener(IntentListenerRequest request);
 
     /// <summary>
     /// Handles the StoreIntentResult call in the bridge.

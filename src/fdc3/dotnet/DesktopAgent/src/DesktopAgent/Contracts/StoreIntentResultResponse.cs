@@ -15,7 +15,7 @@
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
 /// <summary>
-/// Response for the client, which handled the intent, if the request <see cref="StoreIntentResultRequest"/> was successfully stored.
+/// Response for the client which handled the intent, if the request <see cref="StoreIntentResultRequest"/> was successfully stored.
 /// </summary>
 internal sealed class StoreIntentResultResponse
 {
@@ -25,7 +25,7 @@ internal sealed class StoreIntentResultResponse
     public bool Stored { get; init; } = false;
 
     /// <summary>
-    /// Error, which indicates that an error might have occured while handling the request.
+    /// Contains error text if an error happened while handling the request.
     /// </summary>
     public string? Error { get; init; }
 

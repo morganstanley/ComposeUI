@@ -12,22 +12,22 @@
 
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure;
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
-internal class RaiseIntentResolutionMessage
+internal partial class RaiseIntentResolutionMessage
 {
     /// <summary>
-    /// Intent, for identifying the endpoint.
+    /// Intent for identifying the endpoint.
     /// </summary>
     public string Intent { get; init; }
 
     /// <summary>
-    /// InstanceId, to identify the target application's endpoint.
+    /// InstanceId to identify the target application.
     /// </summary>
     public string TargetModuleInstanceId { get; init; }
 
     /// <summary>
-    /// Request, that should be sent to the target module.
+    /// Request that should be sent to the target module.
     /// </summary>
     public RaiseIntentResolutionRequest Request { get; init; }
 }

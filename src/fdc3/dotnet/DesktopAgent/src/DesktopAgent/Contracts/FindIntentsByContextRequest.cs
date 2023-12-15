@@ -23,7 +23,7 @@ internal sealed class FindIntentsByContextRequest
 {
     /// <summary>
     /// Unique identifier from the application which sent the FindIntentsByContextRequest type of message.
-    /// Probably the instanceId of the application which can be queried from the window.object, etc.
+    /// eg.: the instanceId of the application which can be queried from the window.object.composeui.fdc3.config, if it's a webapplication.
     /// </summary>
     public string Fdc3InstanceId { get; set; }
 
@@ -33,7 +33,7 @@ internal sealed class FindIntentsByContextRequest
     public Context Context { get; set; }
 
     /// <summary>
-    /// ResultType, indicating what resultType the requesting app is expecting.
+    /// ResultType indicating what resultType the requesting app is expecting.
     /// </summary>
     public string? ResultType { get; set; }
 }

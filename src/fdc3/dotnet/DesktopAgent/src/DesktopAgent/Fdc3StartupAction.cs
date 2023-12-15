@@ -12,7 +12,6 @@
 
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 using MorganStanley.ComposeUI.ModuleLoader;
-using MorganStanley.ComposeUI.Utilities;
 using MorganStanley.Fdc3.AppDirectory;
 using ResourceReader = MorganStanley.ComposeUI.Utilities.ResourceReader;
 
@@ -33,9 +32,7 @@ internal sealed class Fdc3StartupAction : IStartupAction
         {
             //TODO: should add some identifier to the query => "fdc3:" + startupContext.StartRequest.ModuleId
             var appId = (await _appDirectory.GetApp(startupContext.StartRequest.ModuleId)).AppId;
-
-            var fdc3InstanceId = startupContext.StartRequest.Parameters.FirstOrDefault(parameter => parameter.Key == Fdc3StartupParameters.Fdc3InstanceId).Value ?? Guid.NewGuid().ToString();
-
+            var fdc3InstanceId = startupContext.StartRequest.Parameters.FirstOrDefault(parameter => parameter.Key == Fdc3StartupParameters.Fdc3InstanceId).Value ?? Guid.NewGuid().ToString();        
             var fdc3StartupProperties = new Fdc3StartupProperties() { InstanceId = fdc3InstanceId};
             fdc3InstanceId = startupContext.GetOrAddProperty<Fdc3StartupProperties>(_ => fdc3StartupProperties).InstanceId;
 

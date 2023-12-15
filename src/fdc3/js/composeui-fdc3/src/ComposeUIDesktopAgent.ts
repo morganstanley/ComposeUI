@@ -44,8 +44,8 @@ import { Fdc3FindIntentResponse } from './infrastructure/messages/Fdc3FindIntent
 import { Fdc3FindIntentsByContextRequest } from './infrastructure/messages/Fdc3FindIntentsByContextRequest';
 import { Fdc3FindIntentsByContextResponse } from './infrastructure/messages/Fdc3FindIntentsByContextResponse';
 import { ComposeUIErrors } from './infrastructure/ComposeUIErrors';
-import { Fdc3AddIntentListenerRequest } from './infrastructure/messages/Fdc3AddIntentListenerRequest';
-import { Fdc3AddIntentListenerResponse } from './infrastructure/messages/Fdc3AddIntentListenerResponse';
+import { Fdc3IntentListenerRequest } from './infrastructure/messages/Fdc3IntentListenerRequest';
+import { Fdc3IntentListenerResponse } from './infrastructure/messages/Fdc3IntentListenerResponse';
 
 declare global {
     interface Window {
@@ -184,12 +184,12 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
             const listener = new ComposeUIIntentListener(this.messageRouterClient, intent, window.composeui.fdc3.config!.instanceId!, handler);
             await listener.registerIntentHandler();
             
-            const message = new Fdc3AddIntentListenerRequest(intent, window.composeui.fdc3.config!.instanceId!, "Subscribe");
+            const message = new Fdc3IntentListenerRequest(intent, window.composeui.fdc3.config!.instanceId!, "Subscribe");
             const response = await this.messageRouterClient.invoke(ComposeUITopic.addIntentListener(), JSON.stringify(message));
             if (!response) {
                 return reject(new Error(ComposeUIErrors.NoAnswerWasProvided)); 
             } else {
-                const result = <Fdc3AddIntentListenerResponse>JSON.parse(response);
+                const result = <Fdc3IntentListenerResponse>JSON.parse(response);
                 if (result.error) {
                     await this.unsubscribe(listener);
                     return reject(new Error(result.error));

@@ -15,7 +15,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using MorganStanley.Fdc3;
-using IntentMetadata = MorganStanley.Fdc3.AppDirectory.IntentMetadata;
+using IntentMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.IntentMetadata;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
 

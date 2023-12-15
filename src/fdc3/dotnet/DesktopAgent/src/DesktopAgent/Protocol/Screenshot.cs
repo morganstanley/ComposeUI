@@ -23,4 +23,15 @@ public class Screenshot : IImage
     public string? Type { get; set; }
 
     public string? Label { get; set; }
+
+    public static Screenshot GetScreenshot(IImage screenshot)
+    {
+        return new()
+        {
+            Src = screenshot.Src,
+            Size = screenshot.Size,
+            Type = screenshot.Type,
+            Label = screenshot.Label,
+        };
+    }
 }

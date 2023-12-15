@@ -19,5 +19,5 @@ export class Fdc3GetIntentResultResponse {
     public channelType?: ChannelType;
     public context?: Context;
     public error?: string;
-    public voidResult?: string;
+    public voidResult?: boolean;
 }

@@ -19,7 +19,7 @@ using MorganStanley.Fdc3.Context;
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
 /// <summary>
-/// Response for the <see cref="GetIntentResultRequest"/>, originated by the clients by calling the IntentResolution.getResult().
+/// Response for the <see cref="GetIntentResultRequest"/>, raised by the clients by calling the IntentResolution.getResult().
 /// </summary>
 internal sealed class GetIntentResultResponse
 {
@@ -34,25 +34,25 @@ internal sealed class GetIntentResultResponse
     public string? ChannelId { get; set; }
 
     /// <summary>
-    /// Indicates that the IntentResult is a typeof Channel.
+    /// Indicates that the IntentResult is a typeof Channel. Identifies the type of the Channel.
     /// </summary>
     public ChannelType? ChannelType { get; set; }
 
     /// <summary>
-    /// Indicates that an error happened during retrieving the IntentResult.
+    /// Contains error text if an error happened during retrieving the IntentResult.
     /// </summary>
     public string? Error { get; set; }
 
     /// <summary>
     /// Indicates that the IntentHandler returned without result during its execution.
     /// </summary>
-    public string? VoidResult { get; set; }
+    public bool? VoidResult { get; set; }
 
     public static GetIntentResultResponse Success(
         string? channelId = null,
         ChannelType? channelType = null,
         Context? context = null,
-        string? voidResult = null)
+        bool? voidResult = null)
     {
         var response = new GetIntentResultResponse();
         if (channelId != null && channelType != null)
