@@ -15,19 +15,19 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using MorganStanley.Fdc3;
-using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
+using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
 
-public class IAppMetadataJsonConverter : JsonConverter<IAppMetadata>
+public class AppIntentJsonConverter : JsonConverter<IAppIntent>
 {
-    public override IAppMetadata? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override IAppIntent? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        return JsonSerializer.Deserialize<AppMetadata>(ref reader, options);
+        return JsonSerializer.Deserialize<AppIntent>(ref reader, options);
     }
 
-    public override void Write(Utf8JsonWriter writer, IAppMetadata value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, IAppIntent value, JsonSerializerOptions options)
     {
-        JsonSerializer.Serialize(writer, (AppMetadata)value, options);
+        JsonSerializer.Serialize(writer, (AppIntent)value, options);
     }
 }

@@ -15,19 +15,19 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using MorganStanley.Fdc3;
-using Icon = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Icon;
+using Screenshot = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Screenshot;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
 
-public class IIconJsonConverter : JsonConverter<IIcon>
+public class ImageJsonConverter : JsonConverter<IImage>
 {
-    public override IIcon? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override IImage? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        return JsonSerializer.Deserialize<Icon>(ref reader, options);
+        return JsonSerializer.Deserialize<Screenshot>(ref reader, options);
     }
 
-    public override void Write(Utf8JsonWriter writer, IIcon value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, IImage value, JsonSerializerOptions options)
     {
-        JsonSerializer.Serialize(writer, (Icon)value, options);
+        JsonSerializer.Serialize(writer, (Screenshot) value, options);
     }
 }

@@ -49,11 +49,15 @@ public class Fdc3DesktopAgentTests
             .Returns((CancellationToken cancellationToken) => ValueTask.CompletedTask);
 
         var mockUserChannel = new Mock<UserChannel>(
-            It.IsAny<string>(),
+            "test",
             mockMessageService.Object,
             NullLogger<UserChannel>.Instance);
 
-        new Action(() => _fdc3.AddUserChannel(mockUserChannel.Object)).Should().NotThrow();
+        var action = async() => await _fdc3.AddUserChannel(mockUserChannel.Object);
+        await action.Should().NotThrowAsync();
+
+        var channelExists = _fdc3.FindChannel("test", ChannelType.User);
+        channelExists.Should().BeTrue();
     }
 
     [Fact]
