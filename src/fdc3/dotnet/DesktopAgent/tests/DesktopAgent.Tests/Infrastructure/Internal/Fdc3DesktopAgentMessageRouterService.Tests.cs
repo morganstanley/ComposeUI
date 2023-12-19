@@ -58,8 +58,8 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         Converters =
         {
-            new IIntentMetadataJsonConverter(),
-            new IAppMetadataJsonConverter(),
+            new IntentMetadataJsonConverter(),
+            new AppMetadataJsonConverter(),
         }
     };
 

@@ -15,19 +15,19 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using MorganStanley.Fdc3;
-using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
+using Icon = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Icon;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
 
-public class IAppIntentJsonConverter : JsonConverter<IAppIntent>
+public class IconJsonConverter : JsonConverter<IIcon>
 {
-    public override IAppIntent? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override IIcon? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        return JsonSerializer.Deserialize<AppIntent>(ref reader, options);
+        return JsonSerializer.Deserialize<Icon>(ref reader, options);
     }
 
-    public override void Write(Utf8JsonWriter writer, IAppIntent value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, IIcon value, JsonSerializerOptions options)
     {
-        JsonSerializer.Serialize(writer, (AppIntent)value, options);
+        JsonSerializer.Serialize(writer, (Icon)value, options);
     }
 }

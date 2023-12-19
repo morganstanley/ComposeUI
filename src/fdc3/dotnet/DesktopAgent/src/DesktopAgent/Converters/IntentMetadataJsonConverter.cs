@@ -15,19 +15,19 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using MorganStanley.Fdc3;
-using Screenshot = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Screenshot;
+using IntentMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.IntentMetadata;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
 
-public class IImageJsonConverter : JsonConverter<IImage>
+public class IntentMetadataJsonConverter : JsonConverter<IIntentMetadata>
 {
-    public override IImage? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override IIntentMetadata? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        return JsonSerializer.Deserialize<Screenshot>(ref reader, options);
+        return JsonSerializer.Deserialize<IntentMetadata>(ref reader, options);
     }
 
-    public override void Write(Utf8JsonWriter writer, IImage value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, IIntentMetadata value, JsonSerializerOptions options)
     {
-        JsonSerializer.Serialize(writer, (Screenshot) value, options);
+        JsonSerializer.Serialize(writer, (IntentMetadata)value, options);
     }
 }

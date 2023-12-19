@@ -39,12 +39,12 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         Converters =
         {
-            new IAppMetadataJsonConverter(),
-            new IIntentMetadataJsonConverter(),
-            new IAppIntentJsonConverter(),
-            new IIconJsonConverter(),
-            new IImageJsonConverter(),
-            new IIntentMetadataJsonConverter(),
+            new AppMetadataJsonConverter(),
+            new IntentMetadataJsonConverter(),
+            new AppIntentJsonConverter(),
+            new IconJsonConverter(),
+            new ImageJsonConverter(),
+            new IntentMetadataJsonConverter(),
         }
     };
 

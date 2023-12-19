@@ -42,7 +42,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
         private const string AccessToken = "token";
         private readonly JsonSerializerOptions _options = new(JsonSerializerDefaults.Web)
         {
-            Converters = { new IIntentMetadataJsonConverter(), new IAppMetadataJsonConverter() }
+            Converters = { new IntentMetadataJsonConverter(), new AppMetadataJsonConverter() }
         };
         private IModuleLoader _moduleLoader;
         private readonly object _runningAppsLock = new();
