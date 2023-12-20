@@ -62,7 +62,7 @@ export class ComposeUIIntentListener implements Listener {
                     }
                     
                 } catch(error) {
-                    request = new Fdc3StoreIntentResultRequest(message.messageId, this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, undefined, undefined, ResultError.IntentHandlerRejected);
+                    request = new Fdc3StoreIntentResultRequest(message.messageId, this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, undefined, false, ResultError.IntentHandlerRejected);
                 }
 
                 const result = await this.messageRouterClient.invoke(ComposeUITopic.sendIntentResult(), JSON.stringify(request));

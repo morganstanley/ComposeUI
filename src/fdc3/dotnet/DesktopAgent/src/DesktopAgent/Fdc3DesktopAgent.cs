@@ -224,7 +224,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
                     resolver.AddIntentListener(request.Intent);
 
                     var resolutions = new List<RaiseIntentResolutionMessage>();
-                    foreach (var raisedIntent in resolver.RaiseIntentResolutions)
+                    foreach (var raisedIntent in resolver.RaiseIntentResolutions.Where(invocation => invocation.Intent == request.Intent))
                     {
                         var resolution = await RaiseIntentResolution(
                             raisedIntent.RaiseIntentMessageId,
