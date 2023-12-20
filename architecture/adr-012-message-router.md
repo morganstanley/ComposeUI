@@ -2,7 +2,7 @@
 
 | Type          | ID            | Status        | Title          |
 | ------------- | ------------- | ------------- | -------------- |
-| ADR           | adr-012       | Draft         | Message Router |
+| ADR           | adr-012       | Approved      | Message Router |
 
 
 # Architecture Decision Record: Message Router
