@@ -17,7 +17,7 @@ using MorganStanley.Fdc3;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
-internal partial class RaiseIntentResolutionInvocation
+internal class RaiseIntentResolutionInvocation
 {
     public RaiseIntentResolutionInvocation(
         int raiseIntentMessageId,
