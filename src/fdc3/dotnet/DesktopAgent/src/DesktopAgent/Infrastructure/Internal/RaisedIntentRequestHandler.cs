@@ -18,7 +18,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
-internal partial class RaisedIntentRequestHandler
+internal class RaisedIntentRequestHandler
 {
     private readonly object _intentListenersLock = new();
     private readonly object _raiseIntentInvocationsLock = new();
