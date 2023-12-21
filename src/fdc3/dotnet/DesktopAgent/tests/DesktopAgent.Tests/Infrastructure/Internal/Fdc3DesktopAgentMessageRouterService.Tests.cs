@@ -36,19 +36,15 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Infrastructure.Interna
 
 public class Fdc3DesktopAgentMessageRouterServiceTests
 {
-    private static readonly Mock<IMessageRouter> MockMessageRouter = new();
-    private static readonly MockModuleLoader MockModuleLoader = new();
-    private static readonly IAppDirectory AppDirectory = new AppDirectory.AppDirectory(
+    private readonly Mock<IMessageRouter> _mockMessageRouter = new();
+    private readonly MockModuleLoader _mockModuleLoader = new();
+    private readonly IAppDirectory _appDirectory = new AppDirectory.AppDirectory(
         new AppDirectoryOptions()
         {
             Source = new Uri($"file:\\\\{Directory.GetCurrentDirectory()}\\TestUtils\\appDirectorySample.json")
         });
 
-    private Fdc3DesktopAgentMessageRouterService _fdc3 = new(
-        MockMessageRouter.Object,
-        new Fdc3DesktopAgent(AppDirectory, MockModuleLoader.Object, new Fdc3DesktopAgentOptions(), NullLoggerFactory.Instance),
-        new Fdc3DesktopAgentOptions(),
-        NullLoggerFactory.Instance);
+    private Fdc3DesktopAgentMessageRouterService _fdc3;
 
     private const string TestChannel = "testChannel";
 
@@ -62,6 +58,15 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
             new AppMetadataJsonConverter(),
         }
     };
+
+    public Fdc3DesktopAgentMessageRouterServiceTests()
+    {
+        _fdc3 = new(
+            _mockMessageRouter.Object,
+            new Fdc3DesktopAgent(_appDirectory, _mockModuleLoader.Object, new Fdc3DesktopAgentOptions(), NullLoggerFactory.Instance),
+            new Fdc3DesktopAgentOptions(),
+            NullLoggerFactory.Instance);
+    }
 
     [Fact]
     public async void UserChannelAddedCanBeFound()
@@ -141,7 +146,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
     {
         await _fdc3.StartAsync(CancellationToken.None);
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var instance = await MockModuleLoader.Object.StartModule(new StartRequest("appId4"));
+        var instance = await _mockModuleLoader.Object.StartModule(new StartRequest("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
 
         var request = new RaiseIntentRequest()
@@ -166,13 +171,11 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.AppId.Should().Be("appId4");
         result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.InstanceId.Should().Be(targetFdc3InstanceId);
 
-        MockMessageRouter.Verify(
+        _mockMessageRouter.Verify(
             _ => _.InvokeAsync(Fdc3Topic.AddIntentListener, It.IsAny<MessageBuffer>(), It.IsAny<InvokeOptions>(), It.IsAny<CancellationToken>()), Times.Never);
 
-        MockMessageRouter.Verify(
+        _mockMessageRouter.Verify(
             _ => _.InvokeAsync(Fdc3Topic.RaiseIntentResolution("intentMetadataCustom", targetFdc3InstanceId), It.IsAny<MessageBuffer>(), It.IsAny<InvokeOptions>(), It.IsAny<CancellationToken>()), Times.Never);
-
-        await MockModuleLoader.Object.StopModule(new(instance.InstanceId));
     }
 
     [Fact]
@@ -181,11 +184,11 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         await _fdc3.StartAsync(CancellationToken.None);
 
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await MockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var target = await MockModuleLoader.Object.StartModule(new StartRequest("appId4"));
+        var target = await _mockModuleLoader.Object.StartModule(new StartRequest("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
         var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
@@ -224,11 +227,8 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.AppId.Should().Be("appId4");
         result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.InstanceId.Should().Be(targetFdc3InstanceId);
 
-        MockMessageRouter.Verify(
+        _mockMessageRouter.Verify(
             _ => _.PublishAsync(Fdc3Topic.RaiseIntentResolution("intentMetadataCustom", targetFdc3InstanceId), It.IsAny<MessageBuffer>(), It.IsAny<PublishOptions>(), It.IsAny<CancellationToken>()), Times.Once);
-
-        await MockModuleLoader.Object.StopModule(new(origin.InstanceId));
-        await MockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
 
     [Fact]
@@ -472,7 +472,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
     public async Task StoreIntentResult_succeeds_with_channel()
     {
         await _fdc3.StartAsync(CancellationToken.None);
-        var target = await MockModuleLoader.Object.StartModule(new("appId4"));
+        var target = await _mockModuleLoader.Object.StartModule(new("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
         var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
             new RaiseIntentRequest()
@@ -508,8 +508,6 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var result = await _fdc3.HandleStoreIntentResult(Fdc3Topic.SendIntentResult, MessageBuffer.Factory.CreateJson(storeIntentRequest, _options), new MessageContext());
         result.Should().NotBeNull();
         result!.ReadJson<StoreIntentResultResponse>(_options).Should().BeEquivalentTo(new StoreIntentResultResponse() { Stored = true });
-
-        await MockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
 
     [Fact]
@@ -556,7 +554,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
     public async Task StoreIntentResult_succeeds_with_voidResult()
     {
         await _fdc3.StartAsync(CancellationToken.None);
-        var target = await MockModuleLoader.Object.StartModule(new("appId4"));
+        var target = await _mockModuleLoader.Object.StartModule(new("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
         var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
@@ -595,8 +593,6 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var result = await _fdc3.HandleStoreIntentResult(Fdc3Topic.SendIntentResult, MessageBuffer.Factory.CreateJson(storeIntentRequest, _options), new MessageContext());
         result.Should().NotBeNull();
         result!.ReadJson<StoreIntentResultResponse>(_options).Should().BeEquivalentTo(new StoreIntentResultResponse() { Stored = true });
-
-        await MockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
 
     [Fact]
@@ -645,7 +641,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
     {
         await _fdc3.StartAsync(CancellationToken.None);
         var originFdc3InstanceId = Guid.NewGuid().ToString();
-        var target = await MockModuleLoader.Object.StartModule(new("appId4"));
+        var target = await _mockModuleLoader.Object.StartModule(new("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
         var context = new Context("test");
@@ -699,7 +695,6 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var result = await _fdc3.HandleGetIntentResult(Fdc3Topic.GetIntentResult, MessageBuffer.Factory.CreateJson(getIntentResultRequest, _options), new MessageContext());
         result.Should().NotBeNull();
         result!.ReadJson<GetIntentResultResponse>(_options).Should().BeEquivalentTo(new GetIntentResultResponse() { Error = ResolveError.IntentDeliveryFailed });
-        await MockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
 
     [Fact]
@@ -708,7 +703,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         await _fdc3.StartAsync(CancellationToken.None);
         var originFdc3InstanceId = Guid.NewGuid().ToString();
         var context = new Context("test");
-        var target = await MockModuleLoader.Object.StartModule(new("appId4"));
+        var target = await _mockModuleLoader.Object.StartModule(new("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
         var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
@@ -759,8 +754,6 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var result = await _fdc3.HandleGetIntentResult(Fdc3Topic.GetIntentResult, MessageBuffer.Factory.CreateJson(getIntentResultRequest, _options), new MessageContext());
         result.Should().NotBeNull();
         result!.ReadJson<GetIntentResultResponse>(_options).Should().BeEquivalentTo(GetIntentResultResponse.Success(context: context));
-
-        await MockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
 
     [Fact]
@@ -771,7 +764,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var channelType = ChannelType.User;
         var channelId = "dummyChannelId";
 
-        var target = await MockModuleLoader.Object.StartModule(new("appId4"));
+        var target = await _mockModuleLoader.Object.StartModule(new("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
         var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
@@ -823,8 +816,6 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var result = await _fdc3.HandleGetIntentResult(Fdc3Topic.GetIntentResult, MessageBuffer.Factory.CreateJson(getIntentResultRequest, _options), new MessageContext());
         result.Should().NotBeNull();
         result!.ReadJson<GetIntentResultResponse>(_options).Should().BeEquivalentTo(GetIntentResultResponse.Success(channelType: channelType, channelId: channelId));
-
-        await MockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
 
     [Fact]
@@ -833,7 +824,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         await _fdc3.StartAsync(CancellationToken.None);
         var originFdc3InstanceId = Guid.NewGuid().ToString();
 
-        var target = await MockModuleLoader.Object.StartModule(new("appId4"));
+        var target = await _mockModuleLoader.Object.StartModule(new("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
         var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
@@ -884,8 +875,6 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var result = await _fdc3.HandleGetIntentResult(Fdc3Topic.GetIntentResult, MessageBuffer.Factory.CreateJson(getIntentResultRequest, _options), new MessageContext());
         result.Should().NotBeNull();
         result!.ReadJson<GetIntentResultResponse>(_options).Should().BeEquivalentTo(GetIntentResultResponse.Success(voidResult: true));
-
-        await MockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
 
     [Fact]
@@ -916,11 +905,11 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         await _fdc3.StartAsync(CancellationToken.None);
 
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await MockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var target = await MockModuleLoader.Object.StartModule(new StartRequest("appId4"));
+        var target = await _mockModuleLoader.Object.StartModule(new StartRequest("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
         var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
@@ -958,11 +947,8 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var addIntentListnerResponse = addIntentListenerResult!.ReadJson<IntentListenerResponse>(_options);
         addIntentListnerResponse!.Stored.Should().BeTrue();
 
-        MockMessageRouter.Verify(
+        _mockMessageRouter.Verify(
             _ => _.PublishAsync(Fdc3Topic.RaiseIntentResolution("intentMetadataCustom", targetFdc3InstanceId), It.IsAny<MessageBuffer>(), It.IsAny<PublishOptions>(), It.IsAny<CancellationToken>()));
-
-        await MockModuleLoader.Object.StopModule(new(origin.InstanceId));
-        await MockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
 
     [Fact]
@@ -971,11 +957,11 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         await _fdc3.StartAsync(CancellationToken.None);
 
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await MockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var target = await MockModuleLoader.Object.StartModule(new StartRequest("appId4"));
+        var target = await _mockModuleLoader.Object.StartModule(new StartRequest("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
         var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
@@ -1013,11 +999,8 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.AppId.Should().Be("appId4");
         raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.InstanceId.Should().Be(targetFdc3InstanceId);
 
-        MockMessageRouter.Verify(
+        _mockMessageRouter.Verify(
             _ => _.PublishAsync(Fdc3Topic.RaiseIntentResolution("intentMetadataCustom", targetFdc3InstanceId), It.IsAny<MessageBuffer>(), It.IsAny<PublishOptions>(), It.IsAny<CancellationToken>()));
-
-        await MockModuleLoader.Object.StopModule(new(origin.InstanceId));
-        await MockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
 
     [Fact]
@@ -1026,10 +1009,10 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         await _fdc3.StartAsync(CancellationToken.None);
 
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await MockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
 
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var target = await MockModuleLoader.Object.StartModule(new StartRequest("appId4"));
+        var target = await _mockModuleLoader.Object.StartModule(new StartRequest("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
         var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
@@ -1060,9 +1043,6 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         addIntentListnerResponse = addIntentListenerResult!.ReadJson<IntentListenerResponse>(_options);
         addIntentListnerResponse!.Stored.Should().BeFalse();
         addIntentListnerResponse!.Error.Should().BeNull();
-
-        await MockModuleLoader.Object.StopModule(new(origin.InstanceId));
-        await MockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
 
     private MessageBuffer FindTestChannel => MessageBuffer.Factory.CreateJson(new FindChannelRequest() { ChannelId = "testChannel", ChannelType = ChannelType.User });
