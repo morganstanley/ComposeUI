@@ -10,9 +10,9 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Messaging;
+namespace MorganStanley.ComposeUI.Messaging.Client.WebSocket;
 
-public static class EnvironmentVariableNames
+public static class WebSocketEnvironmentVariableNames
 {
-    public const string AccessToken = "COMPOSEUI_MESSAGEROUTER_ACCESS_TOKEN";
+    public const string Uri = "COMPOSEUI_MESSAGEROUTER_WEBSOCKET_URI";
 }

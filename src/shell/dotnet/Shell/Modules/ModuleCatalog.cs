@@ -92,6 +92,16 @@ internal sealed class ModuleCatalog : IModuleCatalog, IInitializeAsync
         public WebManifestDetails Details { get; set; }
     }
 
+    private class NativeModuleManifest : ModuleManifest, IModuleManifest<NativeManifestDetails>
+    {
+        public NativeManifestDetails GetDetails()
+        {
+            return Details;
+        }
+
+        public NativeManifestDetails Details { get; set; }
+    }
+
     private class ModuleManifestConverter : JsonConverter<ModuleManifest>
     {
         public override bool CanConvert(Type objectType)
@@ -111,9 +121,11 @@ internal sealed class ModuleCatalog : IModuleCatalog, IInitializeAsync
             {
                 case ModuleType.Web:
                     return JsonSerializer.Deserialize<WebModuleManifest>(ref reader, options);
+                case ModuleType.Native:
+                    return JsonSerializer.Deserialize<NativeModuleManifest>(ref reader, options);
+                default:
+                    throw new InvalidOperationException("Unsupported module type: " + header.ModuleType);
             }
-
-            throw new InvalidOperationException("Unsupported module type: " + header.ModuleType);
         }
 
         public override void Write(Utf8JsonWriter writer, ModuleManifest value, JsonSerializerOptions options)

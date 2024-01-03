@@ -58,6 +58,7 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
 
         _lifetimeEvents.OnNext(new LifetimeEvent.Starting(moduleInstance));
         var startupContext = new StartupContext(request, moduleInstance);
+        startupContext.AddProperty(new UnexpectedStopCallback(moduleInstance, HandleUnexpectedStop));
 
         var pipeline = _startupActions
             .Reverse()
@@ -70,6 +71,11 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
         _lifetimeEvents.OnNext(new LifetimeEvent.Started(moduleInstance));
 
         return moduleInstance;
+    }
+
+    private void HandleUnexpectedStop(IModuleInstance instance)
+    {
+        _lifetimeEvents.OnNext(new LifetimeEvent.Stopped(instance, false));
     }
 
     public async Task StopModule(StopRequest request)

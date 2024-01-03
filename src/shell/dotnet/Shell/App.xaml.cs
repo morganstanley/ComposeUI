@@ -16,6 +16,8 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Extensions.Configuration;
@@ -25,6 +27,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Fdc3.AppDirectory;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
+using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.Abstractions;
 using MorganStanley.ComposeUI.Shell.Fdc3;
@@ -113,6 +116,16 @@ public partial class App : Application
         _host = host;
         _logger = _host.Services.GetRequiredService<ILogger<App>>();
 
+        var startupTime = DateTime.Now;
+        var diagnostics = new DiagnosticInfo
+        {
+            StartupTime = DateTime.Now,
+            ShellVersion = Assembly.GetExecutingAssembly().FullName
+        };
+
+        await _host.Services.GetRequiredService<IMessageRouter>().RegisterServiceAsync("Diagnostics", (e, m, t) =>
+        ValueTask.FromResult(MessageBuffer.Factory.CreateJson(diagnostics))!);
+
         await OnHostInitializedAsync();
 
         Dispatcher.Invoke(() => OnAsyncStartupCompleted(e));
@@ -170,7 +183,7 @@ public partial class App : Application
             var fdc3Options = fdc3ConfigurationSection.Get<Fdc3Options>();
 
             // TODO: Use feature flag instead
-            if (fdc3Options is {EnableFdc3: true})
+            if (fdc3Options is { EnableFdc3: true })
             {
                 services.AddFdc3DesktopAgent();
                 services.AddFdc3AppDirectory();
