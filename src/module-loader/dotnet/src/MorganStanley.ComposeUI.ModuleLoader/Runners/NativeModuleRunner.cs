@@ -10,19 +10,88 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using System.Diagnostics;
+
 namespace MorganStanley.ComposeUI.ModuleLoader.Runners;
 
 internal class NativeModuleRunner : IModuleRunner
 {
     public string ModuleType => ComposeUI.ModuleLoader.ModuleType.Native;
 
-    public Task Start(StartupContext startupContext, Func<Task> pipeline)
+    public async Task Start(StartupContext startupContext, Func<Task> pipeline)
     {
-        throw new NotImplementedException();
+        if (!startupContext.ModuleInstance.Manifest.TryGetDetails(out NativeManifestDetails details))
+        {
+            throw new Exception("Unable to get native maifest details");
+        }
+
+        startupContext.AddProperty(new EnvironmentVariables(details.EnvironmentVariables));
+
+
+        var mainProcess = new Process();
+        var processInfo = new MainProcessInfo(mainProcess);
+
+        var filename = details.Path.IsAbsoluteUri ? details.Path.AbsolutePath : details.Path.ToString();
+
+        mainProcess.StartInfo.FileName = Path.GetFullPath(filename);
+        startupContext.AddProperty(processInfo);
+
+        await pipeline();
+
+        foreach (var argument in details.Arguments)
+        {
+            mainProcess.StartInfo.ArgumentList.Add(argument);
+        }
+
+        foreach (var envVar in startupContext.GetProperties<EnvironmentVariables>().SelectMany(x => x.Variables))
+        {
+            // TODO: what to do with duplicate envvars?
+            if (!mainProcess.StartInfo.EnvironmentVariables.ContainsKey(envVar.Key))
+            {
+                mainProcess.StartInfo.EnvironmentVariables.Add(envVar.Key, envVar.Value);
+            }
+        }
+
+        var unexpectedStopHandlers = startupContext.GetProperties<UnexpectedStopCallback>();
+
+        foreach (var handler in unexpectedStopHandlers)
+        {
+            mainProcess.Exited += handler.ProcessStoppedUnexpectedly;
+        }
+
+        mainProcess.Start();
+
+        
     }
 
-    public Task Stop(IModuleInstance moduleInstance)
+    public async Task Stop(IModuleInstance moduleInstance)
     {
-        throw new NotImplementedException();
+        MainProcessInfo? mainProcessInfo;
+
+        if ((mainProcessInfo = (MainProcessInfo?) moduleInstance.GetProperties().FirstOrDefault(x => x is MainProcessInfo)) == null) { return; }
+
+        var mainProcess = mainProcessInfo.MainProcess;
+
+        // Detach unexpected stop callbacks
+        foreach (var handler in moduleInstance.GetProperties<UnexpectedStopCallback>())
+        {
+            mainProcess.Exited -= handler.ProcessStoppedUnexpectedly;
+        }
+        var killNecessary = true;
+
+        if (mainProcess.CloseMainWindow())
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(500));
+            if (mainProcess.HasExited)
+            {
+                killNecessary = false;
+            }
+        }
+
+        if (killNecessary)
+        {
+            mainProcess.Kill();
+            await Task.Delay(TimeSpan.FromMilliseconds(500));
+        }
     }
 }

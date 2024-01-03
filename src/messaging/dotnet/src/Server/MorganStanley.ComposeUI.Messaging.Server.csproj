@@ -22,6 +22,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="../Core/MorganStanley.ComposeUI.Messaging.Core.csproj" />
+	  <ProjectReference Include="..\..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader.Abstractions\MorganStanley.ComposeUI.ModuleLoader.Abstractions.csproj" />
 	</ItemGroup>
 
 </Project>

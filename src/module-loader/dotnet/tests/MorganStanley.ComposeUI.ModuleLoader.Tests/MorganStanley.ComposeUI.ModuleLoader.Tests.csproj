@@ -27,6 +27,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\MorganStanley.ComposeUI.ModuleLoader\MorganStanley.ComposeUI.ModuleLoader.csproj" />
+		<ProjectReference Include="..\NativeRunnerTestApp\NativeRunnerTestApp.csproj" />
 	</ItemGroup>
 
 </Project>

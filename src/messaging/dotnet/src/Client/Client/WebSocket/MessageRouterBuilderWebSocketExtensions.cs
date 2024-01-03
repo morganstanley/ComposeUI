@@ -37,10 +37,10 @@ public static class MessageRouterBuilderWebSocketExtensions
 
     public static MessageRouterBuilder UseWebSocketFromEnvironment(this MessageRouterBuilder builder)
     {
-        var messageRouterUri = Environment.GetEnvironmentVariable(WebSocketEnvironmentVariables.UriEnvironmentVariableName);
+        var messageRouterUri = Environment.GetEnvironmentVariable(WebSocketEnvironmentVariableNames.Uri);
         if (string.IsNullOrEmpty(messageRouterUri))
         {
-            throw new Exception($"{WebSocketEnvironmentVariables.UriEnvironmentVariableName} environment variable is not set or empty");
+            throw new Exception($"{WebSocketEnvironmentVariableNames.Uri} environment variable is not set or empty");
         }
 
         var opt = new MessageRouterWebSocketOptions { Uri = new Uri(messageRouterUri) };

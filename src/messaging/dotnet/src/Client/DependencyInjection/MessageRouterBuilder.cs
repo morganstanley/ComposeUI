@@ -25,7 +25,7 @@ public sealed class MessageRouterBuilder
 
     public MessageRouterBuilder UseAccessTokenFromEnvironment()
     {
-        AccessToken = Environment.GetEnvironmentVariable(EnvironmentVariables.AccessTokenEnvironmentVariableName);
+        AccessToken = Environment.GetEnvironmentVariable(EnvironmentVariableNames.AccessToken);
         return this;
     }
 

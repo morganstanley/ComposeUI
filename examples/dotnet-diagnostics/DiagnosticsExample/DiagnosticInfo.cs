@@ -10,9 +10,12 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Messaging.Client.WebSocket;
+using System;
 
-public static class WebSocketEnvironmentVariables
+namespace DiagnosticsExample;
+
+internal class DiagnosticInfo
 {
-    public const string UriEnvironmentVariableName = "COMPOSEUI_MESSAGEROUTER_WEBSOCKET_URI";
+    public DateTime StartupTime { get; set; }
+    public string ShellVersion { get; set; }
 }
