@@ -1,4 +1,16 @@
-﻿using System;
+﻿// Morgan Stanley makes this available to you under the Apache License,
+// Version 2.0 (the "License"). You may obtain a copy of the License at
+// 
+//      http://www.apache.org/licenses/LICENSE-2.0.
+// 
+// See the NOTICE file distributed with this work for additional information
+// regarding copyright ownership. Unless required by applicable law or agreed
+// to in writing, software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+// or implied. See the License for the specific language governing permissions
+// and limitations under the License.
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -12,7 +24,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Web.WebView2.Core;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.ImageSource;
-using MorganStanley.ComposeUI.Shell.Utilities;
+using MorganStanley.ComposeUI.Shell.Preloading;
 
 namespace MorganStanley.ComposeUI.Shell;
 
@@ -26,12 +38,14 @@ public partial class WebWindow : Window
         IModuleLoader moduleLoader,
         IModuleInstance? moduleInstance = null,
         ILogger<WebWindow>? logger = null,
-        IImageSourcePolicy? imageSourcePolicy = null)
+        IImageSourcePolicy? imageSourcePolicy = null,
+        IPreloadScriptPolicy? preloadScriptPolicy = null)
     {
         _moduleLoader = moduleLoader;
         _moduleInstance = moduleInstance;
         _iconProvider = new ImageSourceProvider(imageSourcePolicy ?? new DefaultImageSourcePolicy());
         _options = options;
+        _preloadScriptPolicy = preloadScriptPolicy ?? new DefaultPreloadScriptPolicy(moduleInstance);
         _logger = logger ?? NullLogger<WebWindow>.Instance;
         InitializeComponent();
 
@@ -106,6 +120,7 @@ public partial class WebWindow : Window
     private readonly IModuleLoader _moduleLoader;
     private readonly IModuleInstance? _moduleInstance;
     private readonly WebWindowOptions _options;
+    private readonly IPreloadScriptPolicy _preloadScriptPolicy;
     private readonly ILogger<WebWindow> _logger;
     private readonly ImageSourceProvider _iconProvider;
     private bool _scriptsInjected;
@@ -162,7 +177,17 @@ public partial class WebWindow : Window
         Dispatcher.InvokeAsync(
             async () =>
             {
-                await InjectScriptsAsync(WebView.CoreWebView2);
+                var webProperties = _moduleInstance?.GetProperties().OfType<WebStartupProperties>().FirstOrDefault();
+                if (webProperties?.Url != null 
+                    && await _preloadScriptPolicy.IsPreloadingScriptsAllowedAsync(webProperties.Url, new Uri(args.Uri)))
+                {
+                    await InjectScriptsAsync(WebView.CoreWebView2);
+                }
+                else
+                {
+                    _scriptsInjected = true;
+                    _scriptInjectionCompleted.SetResult();
+                }
 
                 WebView.CoreWebView2.Navigate(args.Uri);
             });
@@ -202,7 +227,7 @@ public partial class WebWindow : Window
         using var deferral = e.GetDeferral();
         e.Handled = true;
 
-        var windowOptions = new WebWindowOptions {Url = e.Uri};
+        var windowOptions = new WebWindowOptions { Url = e.Uri };
 
         if (e.WindowFeatures.HasSize)
         {
@@ -210,7 +235,7 @@ public partial class WebWindow : Window
             windowOptions.Height = e.WindowFeatures.Height;
         }
 
-        var constructorArgs = new List<object> {windowOptions};
+        var constructorArgs = new List<object> { windowOptions };
 
         // For now, we only inject the module-specific information when the window was created 
         // in response to a start request. Later we might allow the page to open a new window

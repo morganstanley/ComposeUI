@@ -10,25 +10,18 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.ModuleLoader;
+using System;
+using System.Threading.Tasks;
 
-/// <summary>
-/// Contains the manifest details for web modules.
-/// </summary>
-/// <remarks>
-/// Web modules should have <see cref="ModuleType.Web"/> as their <see cref="IModuleManifest.ModuleType"/>
-/// </remarks>
-public sealed class WebManifestDetails
+namespace MorganStanley.ComposeUI.Shell.Preloading;
+
+public interface IPreloadScriptPolicy
 {
     /// <summary>
-    /// The URL to open when this module is started.
+    /// Validates if the url is allowed for preloading scripts by checking the base <seealso cref="WebWindow"/>'s url with the url where it should be navigated.
     /// </summary>
-    public Uri Url { get; init; } = ModuleLoaderConstants.DefaultUri;
-
-    /// <summary>
-    /// The URL of the window icon, if any.
-    /// </summary>
-    public Uri? IconUrl { get; init; }
-
-    public List<Uri>? AllowedOrigins { get; init; }
+    /// <param name="uri"><seealso cref="Uri"/> of the base <seealso cref="WebWindow"/>.</param>
+    /// <param name="appUri"><seealso cref="Uri"/> of the <seealso cref="WebWindow"/> where the app should be navigated.</param>
+    /// <returns></returns>
+    Task<bool> IsPreloadingScriptsAllowedAsync(Uri uri, Uri appUri);
 }

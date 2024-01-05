@@ -15,6 +15,10 @@
 		<None Remove="MainWindow.xaml" />
 		<None Remove="WebWindow.xaml" />
 	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="Shell.Tests" />	
+	</ItemGroup>
 	
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Mvvm" />

@@ -12,14 +12,11 @@
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls.Ribbon;
-using System.Windows.Documents;
 using CommunityToolkit.Mvvm.ComponentModel;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.ImageSource;
-using MorganStanley.ComposeUI.Shell.Modules;
 
 namespace MorganStanley.ComposeUI.Shell;
 
@@ -66,8 +63,6 @@ public partial class MainWindow : RibbonWindow
         get => (MainWindowViewModel) DataContext;
         private set => DataContext = value;
     }
-
-
 
     private async void StartModule_Click(object sender, RoutedEventArgs e)
     {

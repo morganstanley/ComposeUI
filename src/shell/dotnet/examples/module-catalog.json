@@ -32,7 +32,10 @@
         "ModuleType": "web",
         "Details": {
             "Url": "https://fdc3.finos.org/toolbox/fdc3-workbench/",
-            "IconUrl": "https://fdc3.finos.org/toolbox/fdc3-workbench/favicon.ico"
+            "IconUrl": "https://fdc3.finos.org/toolbox/fdc3-workbench/favicon.ico",
+            "AllowedOrigins": [
+                "https://www.google.com"
+            ]
         }
     }
 ]

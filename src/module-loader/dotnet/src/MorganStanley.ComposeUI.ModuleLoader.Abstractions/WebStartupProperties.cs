@@ -20,6 +20,7 @@ public sealed class WebStartupProperties
 {
     public Uri Url { get; set; } = ModuleLoaderConstants.DefaultUri;
     public Uri? IconUrl { get; set; }
+    public List<Uri>? AllowedOrigins { get; set; }
     public List<WebModuleScriptProvider> ScriptProviders { get; } = new();
 }
 
