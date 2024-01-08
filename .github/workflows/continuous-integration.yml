@@ -18,6 +18,7 @@ jobs:
   build:
     env:
       COMPOSEUI_SKIP_DOWNLOAD: 'true'
+      DOTNET_CONSOLE_ANSI_COLOR: 'true'
     runs-on: windows-latest
     strategy:
       matrix:
@@ -25,11 +26,13 @@ jobs:
         node-version: [ '18.x' ]
     steps:
     - uses: actions/checkout@v3
+
     - name: Setup Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
         COMPOSEUI_SKIP_DOWNLOAD: ${{env.COMPOSEUI_SKIP_DOWNLOAD}}
+
     - name: Install NPM dependencies
       run: npm ci
 
@@ -43,14 +46,51 @@ jobs:
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: ${{ matrix.dotnet-version }}
-    - name: Install Nuget dependencies
-      run: Get-ChildItem -Recurse -Include *.sln | ForEach-Object {dotnet restore $_} 
 
-    - name: Build .Net
-      run: Get-ChildItem -Recurse -Include *.sln | ForEach-Object {dotnet build $_ --configuration Release --no-restore; if ($LASTEXITCODE -ne 0 ) {throw "Build for $_ FAILED"; }} 
+    - name: Install NuGet dependencies
+      run: |
+        $failedSolutions = @()
+        
+        Get-ChildItem -Recurse -Include *.sln `
+        | ForEach-Object {
+            dotnet restore $_;
+            if ($LASTEXITCODE -ne 0) {$failedSolutions += Split-Path $_ -leaf; }
+          }
+        
+        if ($failedSolutions.count -gt 0) {
+            throw "Restore FAILED for solutions $failedSolutions"
+        }
 
-    - name: Test .Net
-      run: Get-ChildItem -Recurse -Include *.sln | ForEach-Object {dotnet test $_ --configuration Release --no-restore --verbosity normal --collect:"XPlat Code Coverage"; if ($LASTEXITCODE -ne 0 ) {throw "Test for $_ FAILED"; }}  
+
+    - name: Build .NET
+      run: |
+        $failedSolutions = @()
+        
+        Get-ChildItem -Recurse -Include *.sln `
+        | ForEach-Object {
+            dotnet build $_ --configuration Release --no-restore; 
+            if ($LASTEXITCODE -ne 0) {$failedSolutions += Split-Path $_ -leaf; }
+          }
+        
+        if ($failedSolutions.count -gt 0) {
+            throw "Build FAILED for solutions $failedSolutions"
+        }
+
+
+    - name: Test .NET
+      run: |
+        $failedSolutions = @()
+        
+        Get-ChildItem -Recurse -Include *.sln `
+        | ForEach-Object {
+            dotnet test $_ --configuration Release --no-build; 
+            if ($LASTEXITCODE -ne 0) { $failedSolutions += Split-Path $_ -leaf; }
+        }
+        
+        if ($failedSolutions.count -gt 0) {
+            throw "Test FAILED for solutions $failedSolutions"
+        }
+
 
     - name: Codecov
       uses: codecov/codecov-action@v3.0.0
