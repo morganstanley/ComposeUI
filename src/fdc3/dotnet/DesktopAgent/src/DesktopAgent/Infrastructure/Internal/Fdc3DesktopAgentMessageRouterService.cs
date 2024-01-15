@@ -48,6 +48,8 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         }
     };
 
+    public JsonSerializerOptions JsonMessageSerializerOptions => new(_jsonSerializerOptions);
+
     public Fdc3DesktopAgentMessageRouterService(
         IMessageRouter messageRouter,
         IFdc3DesktopAgentBridge desktopAgent,
@@ -69,51 +71,46 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         return userChannel;
     }
 
-    internal ValueTask<MessageBuffer?> HandleFindChannel(string endpoint, MessageBuffer? payload, MessageContext context)
+    internal ValueTask<FindChannelResponse?> HandleFindChannel(FindChannelRequest? request, MessageContext context)
     {
-        var request = payload?.ReadJson<FindChannelRequest>();
         if (request?.ChannelType != ChannelType.User)
         {
-            return ValueTask.FromResult<MessageBuffer?>(MessageBuffer.Factory.CreateJson(FindChannelResponse.Failure(ChannelError.NoChannelFound), _jsonSerializerOptions));
+            return ValueTask.FromResult<FindChannelResponse?>(FindChannelResponse.Failure(ChannelError.NoChannelFound));
         }
 
-        return ValueTask.FromResult<MessageBuffer?>(
-            MessageBuffer.Factory.CreateJson(
+        return ValueTask.FromResult<FindChannelResponse?>(
                 _desktopAgent.FindChannel(request.ChannelId, request.ChannelType)
                     ? FindChannelResponse.Success
-                    : FindChannelResponse.Failure(ChannelError.NoChannelFound), _jsonSerializerOptions));
+                    : FindChannelResponse.Failure(ChannelError.NoChannelFound));
     }
 
-    internal async ValueTask<MessageBuffer?> HandleFindIntent(string endpoint, MessageBuffer? payload, MessageContext context)
+    internal async ValueTask<FindIntentResponse?> HandleFindIntent(FindIntentRequest? request, MessageContext context)
     {
-        var request = payload?.ReadJson<FindIntentRequest>(_jsonSerializerOptions);
         if (request == null)
         {
-            return MessageBuffer.Factory.CreateJson(FindIntentResponse.Failure(ResolveError.IntentDeliveryFailed), _jsonSerializerOptions);
+            return FindIntentResponse.Failure(ResolveError.IntentDeliveryFailed);
         }
 
         var response = await _desktopAgent.FindIntent(request);
-        return MessageBuffer.Factory.CreateJson(response, _jsonSerializerOptions);
+        return response;
     }
 
-    internal async ValueTask<MessageBuffer?> HandleFindIntentsByContext(string endpoint, MessageBuffer? payload, MessageContext context)
+    internal async ValueTask<FindIntentsByContextResponse?> HandleFindIntentsByContext(FindIntentsByContextRequest? request, MessageContext context)
     {
-        var request = payload?.ReadJson<FindIntentsByContextRequest>(_jsonSerializerOptions);
         if (request == null)
         {
-            return MessageBuffer.Factory.CreateJson(FindIntentResponse.Failure(ResolveError.IntentDeliveryFailed), _jsonSerializerOptions);
+            return FindIntentsByContextResponse.Failure(ResolveError.IntentDeliveryFailed);
         }
 
         var response = await _desktopAgent.FindIntentsByContext(request);
-        return MessageBuffer.Factory.CreateJson(response, _jsonSerializerOptions);
+        return response;
     }
 
-    internal async ValueTask<MessageBuffer?> HandleRaiseIntent(string endpoint, MessageBuffer? payload, MessageContext context)
+    internal async ValueTask<RaiseIntentResponse?> HandleRaiseIntent(RaiseIntentRequest? request, MessageContext context)
     {
-        var request = payload?.ReadJson<RaiseIntentRequest>(_jsonSerializerOptions);
         if (request == null)
         {
-            return MessageBuffer.Factory.CreateJson(RaiseIntentResponse.Failure(ResolveError.IntentDeliveryFailed), _jsonSerializerOptions);
+            return RaiseIntentResponse.Failure(ResolveError.IntentDeliveryFailed);
         }
 
         try
@@ -129,7 +126,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
                 }
             }
 
-            return MessageBuffer.Factory.CreateJson(result.Response, _jsonSerializerOptions);
+            return result.Response;
         }
         catch (Fdc3DesktopAgentException)
         {
@@ -137,19 +134,14 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         }
     }
 
-    internal async ValueTask<MessageBuffer?> HandleAddIntentListener(string endpoint, MessageBuffer? payload, MessageContext context)
+    internal async ValueTask<IntentListenerResponse?> HandleAddIntentListener(IntentListenerRequest? request, MessageContext context)
     {
-        var request = payload?.ReadJson<IntentListenerRequest>(_jsonSerializerOptions);
         if (request == null)
         {
-            return MessageBuffer.Factory.CreateJson(IntentListenerResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull), _jsonSerializerOptions);
+            return IntentListenerResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull);
         }
 
         var result = await _desktopAgent.AddIntentListener(request);
-        if (!string.IsNullOrEmpty(result.Response.Error))
-        {
-            return MessageBuffer.Factory.CreateJson(result.Response, _jsonSerializerOptions);
-        }
 
         if (result.RaiseIntentResolutionMessages.Any())
         {
@@ -161,44 +153,42 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
             }
         }
 
-        return MessageBuffer.Factory.CreateJson(result.Response, _jsonSerializerOptions);
+        return result.Response;
     }
 
-    internal async ValueTask<MessageBuffer?> HandleStoreIntentResult(string endpoint, MessageBuffer? payload, MessageContext context)
+    internal async ValueTask<StoreIntentResultResponse?> HandleStoreIntentResult(StoreIntentResultRequest? request, MessageContext context)
     {
-        var request = payload?.ReadJson<StoreIntentResultRequest>(_jsonSerializerOptions);
         if (request == null)
         {
-            return MessageBuffer.Factory.CreateJson(StoreIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed), _jsonSerializerOptions);
+            return StoreIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed);
         }
 
         if (request.TargetFdc3InstanceId == null || request.Intent == null)
         {
-            return MessageBuffer.Factory.CreateJson(StoreIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed), _jsonSerializerOptions);
+            return StoreIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed);
         }
 
         var response = await _desktopAgent.StoreIntentResult(request);
-        return MessageBuffer.Factory.CreateJson(response, _jsonSerializerOptions);
+        return response;
     }
 
-    internal async ValueTask<MessageBuffer?> HandleGetIntentResult(string endpoint, MessageBuffer? payload, MessageContext context)
+    internal async ValueTask<GetIntentResultResponse?> HandleGetIntentResult(GetIntentResultRequest? request, MessageContext context)
     {
-        var request = payload?.ReadJson<GetIntentResultRequest>(_jsonSerializerOptions);
         if (request == null)
         {
-            return MessageBuffer.Factory.CreateJson(GetIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed), _jsonSerializerOptions);
+            return GetIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed);
         }
 
         if (request.TargetAppIdentifier?.InstanceId == null || request.Intent == null || request.MessageId == null)
         {
-            return MessageBuffer.Factory.CreateJson(GetIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed), _jsonSerializerOptions);
+            return GetIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed);
         }
 
         var response = await _desktopAgent.GetIntentResult(request);
-        return MessageBuffer.Factory.CreateJson(response, _jsonSerializerOptions);
+        return response;
     }
 
-    private async ValueTask DisposeSafeAsync(IEnumerable<ValueTask> tasks)
+    private async ValueTask SafeWaitAsync(IEnumerable<ValueTask> tasks)
     {
         foreach (var task in tasks)
         {
@@ -208,20 +198,31 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
             }
             catch (Exception exception)
             {
-                _logger.LogWarning($"Could not dispose task: {task.IsCompleted}. Exception: {exception}");
+                _logger.LogError($"An exception was thrown while waiting for a teask to finish. Exception: {exception}");
             }
         }
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        await _messageRouter.RegisterServiceAsync(Fdc3Topic.FindChannel, HandleFindChannel, cancellationToken: cancellationToken);
-        await _messageRouter.RegisterServiceAsync(Fdc3Topic.FindIntent, HandleFindIntent, cancellationToken: cancellationToken);
-        await _messageRouter.RegisterServiceAsync(Fdc3Topic.FindIntentsByContext, HandleFindIntentsByContext, cancellationToken: cancellationToken);
-        await _messageRouter.RegisterServiceAsync(Fdc3Topic.RaiseIntent, HandleRaiseIntent, cancellationToken: cancellationToken);
-        await _messageRouter.RegisterServiceAsync(Fdc3Topic.GetIntentResult, HandleGetIntentResult, cancellationToken: cancellationToken);
-        await _messageRouter.RegisterServiceAsync(Fdc3Topic.SendIntentResult, HandleStoreIntentResult, cancellationToken: cancellationToken);
-        await _messageRouter.RegisterServiceAsync(Fdc3Topic.AddIntentListener, HandleAddIntentListener, cancellationToken: cancellationToken);
+        async Task RegisterHandler<TRequest, TResponse>(string topic, Func<TRequest?, MessageContext, ValueTask<TResponse?>> handler) where TRequest : class
+        {
+            await _messageRouter.RegisterServiceAsync(topic,
+                async (endpoint, payload, context) =>
+                {
+                    var request = payload?.ReadJson<TRequest>(_jsonSerializerOptions);
+                    var response = await handler(request, context);
+                    return response is null ? null : MessageBuffer.Factory.CreateJson(response, _jsonSerializerOptions);
+                }, cancellationToken: cancellationToken);
+        }
+
+        await RegisterHandler<FindChannelRequest, FindChannelResponse>(Fdc3Topic.FindChannel, HandleFindChannel);
+        await RegisterHandler<FindIntentRequest, FindIntentResponse>(Fdc3Topic.FindIntent, HandleFindIntent);
+        await RegisterHandler<FindIntentsByContextRequest, FindIntentsByContextResponse>(Fdc3Topic.FindIntentsByContext, HandleFindIntentsByContext);
+        await RegisterHandler<RaiseIntentRequest, RaiseIntentResponse>(Fdc3Topic.RaiseIntent, HandleRaiseIntent);
+        await RegisterHandler<GetIntentResultRequest, GetIntentResultResponse>(Fdc3Topic.GetIntentResult, HandleGetIntentResult);
+        await RegisterHandler<StoreIntentResultRequest, StoreIntentResultResponse>(Fdc3Topic.SendIntentResult, HandleStoreIntentResult);
+        await RegisterHandler<IntentListenerRequest, IntentListenerResponse>(Fdc3Topic.AddIntentListener, HandleAddIntentListener);
 
         await _desktopAgent.StartAsync(cancellationToken);
 
@@ -244,7 +245,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
                 _messageRouter.UnregisterServiceAsync(Fdc3Topic.AddIntentListener, cancellationToken)
         };
 
-        await DisposeSafeAsync(unregisteringTasks);
+        await SafeWaitAsync(unregisteringTasks);
         await _desktopAgent.StopAsync(cancellationToken);
     }
 }

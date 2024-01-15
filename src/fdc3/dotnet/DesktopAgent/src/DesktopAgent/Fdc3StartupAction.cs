@@ -10,6 +10,8 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.Fdc3.AppDirectory;
@@ -20,10 +22,14 @@ namespace MorganStanley.ComposeUI.Shell.Fdc3;
 internal sealed class Fdc3StartupAction : IStartupAction
 {
     private readonly IAppDirectory _appDirectory;
+    private readonly ILogger<Fdc3StartupAction> _logger;
 
-    public Fdc3StartupAction(IAppDirectory appDirectory)
+    public Fdc3StartupAction(
+        IAppDirectory appDirectory,
+        ILogger<Fdc3StartupAction>? logger = null)
     {
         _appDirectory = appDirectory;
+        _logger = logger ?? NullLogger<Fdc3StartupAction>.Instance;
     }
 
     public async Task InvokeAsync(StartupContext startupContext, Func<Task> next)
@@ -31,17 +37,19 @@ internal sealed class Fdc3StartupAction : IStartupAction
         if (startupContext.ModuleInstance.Manifest.ModuleType == ModuleType.Web)
         {
             //TODO: should add some identifier to the query => "fdc3:" + startupContext.StartRequest.ModuleId
-            var appId = (await _appDirectory.GetApp(startupContext.StartRequest.ModuleId)).AppId;
-            var fdc3InstanceId = startupContext.StartRequest.Parameters.FirstOrDefault(parameter => parameter.Key == Fdc3StartupParameters.Fdc3InstanceId).Value ?? Guid.NewGuid().ToString();        
-            var fdc3StartupProperties = new Fdc3StartupProperties() { InstanceId = fdc3InstanceId};
-            fdc3InstanceId = startupContext.GetOrAddProperty<Fdc3StartupProperties>(_ => fdc3StartupProperties).InstanceId;
+            try
+            {
+                var appId = (await _appDirectory.GetApp(startupContext.StartRequest.ModuleId)).AppId;
+                var fdc3InstanceId = startupContext.StartRequest.Parameters.FirstOrDefault(parameter => parameter.Key == Fdc3StartupParameters.Fdc3InstanceId).Value ?? Guid.NewGuid().ToString();
+                var fdc3StartupProperties = new Fdc3StartupProperties() { InstanceId = fdc3InstanceId };
+                fdc3InstanceId = startupContext.GetOrAddProperty<Fdc3StartupProperties>(_ => fdc3StartupProperties).InstanceId;
 
-            var webProperties = startupContext.GetOrAddProperty<WebStartupProperties>();
+                var webProperties = startupContext.GetOrAddProperty<WebStartupProperties>();
 
-            webProperties
-                .ScriptProviders.Add(_ =>
-                    new ValueTask<string>(
-                        $$"""
+                webProperties
+                    .ScriptProviders.Add(_ =>
+                        new ValueTask<string>(
+                            $$"""
                         window.composeui.fdc3 = {
                             ...window.composeui.fdc3, 
                             config: {
@@ -51,8 +59,13 @@ internal sealed class Fdc3StartupAction : IStartupAction
                         };
                         """));
 
-            webProperties
-                .ScriptProviders.Add(_ => new ValueTask<string>(ResourceReader.ReadResource(ResourceNames.Fdc3Bundle)));
+                webProperties
+                    .ScriptProviders.Add(_ => new ValueTask<string>(ResourceReader.ReadResource(ResourceNames.Fdc3Bundle)));
+            }
+            catch (AppNotFoundException exception)
+            {
+                _logger.LogError(exception, $"Fdc3 bundle js could be not added to the {startupContext.StartRequest.ModuleId}.");
+            }
         }
 
         await (next.Invoke());

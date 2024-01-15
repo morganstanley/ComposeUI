@@ -12,7 +12,11 @@
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
-internal partial class ResponseResult<TResponse>
+/// <summary>
+/// This message type is used to check if an IntentResult could be sent to the client(s).
+/// </summary>
+/// <typeparam name="TResponse">This is either IntentListenerResponse or RaiseIntentResponse</typeparam>
+internal partial class RaiseIntentResult<TResponse>
 {
     /// <summary>
     /// Response for the <seealso cref="IFdc3DesktopAgentBridge"/> call.

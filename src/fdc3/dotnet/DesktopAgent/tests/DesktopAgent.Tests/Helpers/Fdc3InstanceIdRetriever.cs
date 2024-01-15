@@ -26,7 +26,7 @@ internal static class Fdc3InstanceIdRetriever
         {
             if (instance.GetProperties().FirstOrDefault(property => property is Fdc3StartupProperties) is not Fdc3StartupProperties fdc3StartupProperties)
             {
-                throw ThrowHelper.MissingFdc3InstanceIdException(instance.Manifest.Id);
+                throw ThrowHelper.MissingFdc3InstanceId(instance.Manifest.Id);
             }
             else
             {

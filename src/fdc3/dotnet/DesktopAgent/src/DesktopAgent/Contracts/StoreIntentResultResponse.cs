@@ -31,5 +31,5 @@ internal sealed class StoreIntentResultResponse
 
     public static StoreIntentResultResponse Success() => new() { Stored = true };
 
-    public static GetIntentResultResponse Failure(string error) => new() { Error = error };
+    public static StoreIntentResultResponse Failure(string error) => new() { Error = error };
 }

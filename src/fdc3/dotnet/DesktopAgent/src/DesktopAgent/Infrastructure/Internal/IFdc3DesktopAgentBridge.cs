@@ -74,14 +74,14 @@ internal interface IFdc3DesktopAgentBridge
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    public ValueTask<ResponseResult<RaiseIntentResponse>> RaiseIntent(RaiseIntentRequest request);
+    public ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntent(RaiseIntentRequest request);
 
     /// <summary>
     /// Handles the AddIntentListener call in the bridge.
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    public ValueTask<ResponseResult<IntentListenerResponse>> AddIntentListener(IntentListenerRequest request);
+    public ValueTask<RaiseIntentResult<IntentListenerResponse>> AddIntentListener(IntentListenerRequest request);
 
     /// <summary>
     /// Handles the StoreIntentResult call in the bridge.

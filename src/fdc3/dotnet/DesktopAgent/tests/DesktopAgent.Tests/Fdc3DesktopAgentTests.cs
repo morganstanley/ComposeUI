@@ -163,7 +163,7 @@ public class Fdc3DesktopAgentTests
         var request = new FindIntentsByContextRequest()
         {
             Fdc3InstanceId = Guid.NewGuid().ToString(),
-            Context = new Context("fdc3.nothing"),
+            Context = new Context(ContextTypes.Nothing),
             ResultType = "resultWrongApp"
         };
 
@@ -519,7 +519,7 @@ public class Fdc3DesktopAgentTests
             Fdc3InstanceId = Guid.NewGuid().ToString(),
             Intent = "intentMetadata4",
             Selected = false,
-            Context = new Context("fdc3.nothing")
+            Context = new Context(ContextTypes.Nothing)
         };
 
         var result = await _fdc3.RaiseIntent(request);

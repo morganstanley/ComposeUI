@@ -18,11 +18,11 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
 
 public static class ThrowHelper
 {
-    public static Fdc3DesktopAgentException MissingFdc3InstanceIdException(string moduleId) =>
+    public static Fdc3DesktopAgentException MissingFdc3InstanceId(string moduleId) =>
         new(Fdc3DesktopAgentErrors.MissingId, $"Missing Fdc3InstanceId for module: {moduleId}, when module is started and FDC3 is enabled by the application.");
 
-    public static Fdc3DesktopAgentException MissingAppFromRaisedIntentInvocationsException(string instanceId) =>
-        new(Fdc3DesktopAgentErrors.MissingId, $"Missing Fdc3InstanceId: {instanceId}, when module is added its intent listener and FDC3 is enabled by the application.");
+    public static Fdc3DesktopAgentException MissingAppFromRaisedIntentInvocations(string instanceId) =>
+        new(Fdc3DesktopAgentErrors.MissingId, $"Missing Fdc3InstanceId: {instanceId}, when module has added its intent listener and FDC3 is enabled by the application.");
 
     public static Fdc3DesktopAgentException MultipleIntentRegisteredToAnAppInstance(string intent) =>
         new(Fdc3DesktopAgentErrors.MultipleIntent, $"Multiplpe intent were registered to the running instance. Intent: {intent}.");

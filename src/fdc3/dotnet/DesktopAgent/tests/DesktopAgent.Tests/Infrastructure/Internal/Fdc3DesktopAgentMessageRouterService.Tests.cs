@@ -44,20 +44,8 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
             Source = new Uri($"file:\\\\{Directory.GetCurrentDirectory()}\\TestUtils\\appDirectorySample.json")
         });
 
-    private Fdc3DesktopAgentMessageRouterService _fdc3;
-
+    private readonly Fdc3DesktopAgentMessageRouterService _fdc3;
     private const string TestChannel = "testChannel";
-
-    private JsonSerializerOptions _options = new(JsonSerializerDefaults.Web)
-    {
-        WriteIndented = true,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Converters =
-        {
-            new IntentMetadataJsonConverter(),
-            new AppMetadataJsonConverter(),
-        }
-    };
 
     public Fdc3DesktopAgentMessageRouterServiceTests()
     {
@@ -73,17 +61,16 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
     {
         await _fdc3.HandleAddUserChannel(TestChannel);
 
-        var result = await _fdc3.HandleFindChannel(Fdc3Topic.FindChannel, FindTestChannel, new MessageContext());
+        var result = await _fdc3.HandleFindChannel(FindTestChannel, new MessageContext());
 
         result.Should().NotBeNull();
-        result!.ReadJson<FindChannelResponse>(_options).Should().BeEquivalentTo(FindChannelResponse.Success);
+        result!.Should().BeEquivalentTo(FindChannelResponse.Success);
     }
 
     [Fact]
     public async Task RaiseIntent_returns_one_app_by_AppIdentifier()
     {
-        var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
-            new RaiseIntentRequest()
+        var raiseIntentRequest = new RaiseIntentRequest()
             {
                 MessageId = 1,
                 Fdc3InstanceId = Guid.NewGuid().ToString(),
@@ -91,29 +78,23 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 Selected = false,
                 Context = new Context("context2"),
                 TargetAppIdentifier = new AppIdentifier() { AppId = "appId4" }
-            }, _options);
+            };
 
-        var result = await _fdc3.HandleRaiseIntent(
-            Fdc3Topic.RaiseIntent,
-            raiseIntentRequest,
-            new MessageContext());
-
+        var result = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
         result.Should().NotBeNull();
-        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata.Should().HaveCount(1);
-        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.AppId.Should().Be("appId4");
-        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.InstanceId.Should().NotBeNull();
+
+        result!.AppMetadata.Should().HaveCount(1);
+        result!.AppMetadata!.First()!.AppId.Should().Be("appId4");
+        result!.AppMetadata!.First()!.InstanceId.Should().NotBeNull();
     }
 
     [Fact]
     public async Task RaiseIntent_fails_by_request_delivery_error()
     {
-        var result = await _fdc3.HandleRaiseIntent(
-            Fdc3Topic.RaiseIntent,
-            null,
-            new MessageContext());
+        var result = await _fdc3.HandleRaiseIntent(null, new MessageContext());
 
         result.Should().NotBeNull();
-        result!.ReadJson<RaiseIntentResponse>(_options)!.Error.Should().Be(ResolveError.IntentDeliveryFailed);
+        result!.Error.Should().Be(ResolveError.IntentDeliveryFailed);
     }
 
     [Fact]
@@ -128,17 +109,13 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
             Context = new Context("contextCustom")
         };
 
-        var raiseIntentRequest = MessageBuffer.Factory.CreateJson(request, _options);
-
-        var result = await _fdc3.HandleRaiseIntent(
-            Fdc3Topic.RaiseIntent,
-            raiseIntentRequest,
-            new MessageContext());
+        var result = await _fdc3.HandleRaiseIntent(request, new MessageContext());
 
         result.Should().NotBeNull();
-        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata.Should().HaveCount(1);
-        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.AppId.Should().Be("appId4");
-        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.InstanceId.Should().NotBeNull();
+
+        result!.AppMetadata.Should().HaveCount(1);
+        result!.AppMetadata!.First()!.AppId.Should().Be("appId4");
+        result!.AppMetadata!.First()!.InstanceId.Should().NotBeNull();
     }
 
     [Fact]
@@ -159,17 +136,13 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
             TargetAppIdentifier = new AppIdentifier() { AppId = "appId4", InstanceId = targetFdc3InstanceId }
         };
 
-        var raiseIntentRequest = MessageBuffer.Factory.CreateJson(request, _options);
-
-        var result = await _fdc3.HandleRaiseIntent(
-            Fdc3Topic.RaiseIntent,
-            raiseIntentRequest,
-            new MessageContext());
+        var result = await _fdc3.HandleRaiseIntent(request, new MessageContext());
 
         result.Should().NotBeNull();
-        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata.Should().HaveCount(1);
-        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.AppId.Should().Be("appId4");
-        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.InstanceId.Should().Be(targetFdc3InstanceId);
+
+        result!.AppMetadata.Should().HaveCount(1);
+        result!.AppMetadata!.First()!.AppId.Should().Be("appId4");
+        result!.AppMetadata!.First()!.InstanceId.Should().Be(targetFdc3InstanceId);
 
         _mockMessageRouter.Verify(
             _ => _.InvokeAsync(Fdc3Topic.AddIntentListener, It.IsAny<MessageBuffer>(), It.IsAny<InvokeOptions>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -191,19 +164,17 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var target = await _mockModuleLoader.Object.StartModule(new StartRequest("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
-        var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
-            new IntentListenerRequest()
+        var addIntentListenerRequest = new IntentListenerRequest()
             {
                 Intent = "intentMetadataCustom",
                 Fdc3InstanceId = targetFdc3InstanceId,
                 State = SubscribeState.Subscribe
-            }, _options);
+            };
 
-        var addIntentListenerResult = await _fdc3.HandleAddIntentListener(Fdc3Topic.AddIntentListener, addIntentListenerRequest, new MessageContext());
+        var addIntentListenerResult = await _fdc3.HandleAddIntentListener(addIntentListenerRequest, new MessageContext());
         addIntentListenerResult.Should().NotBeNull();
 
-        var addIntentListnerResponse = addIntentListenerResult!.ReadJson<IntentListenerResponse>(_options);
-        addIntentListnerResponse!.Stored.Should().BeTrue();
+        addIntentListenerResult!.Stored.Should().BeTrue();
 
         var request = new RaiseIntentRequest()
         {
@@ -215,17 +186,12 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
             TargetAppIdentifier = new AppIdentifier() { AppId = "appId4", InstanceId = targetFdc3InstanceId }
         };
 
-        var raiseIntentRequest = MessageBuffer.Factory.CreateJson(request);
-
-        var result = await _fdc3.HandleRaiseIntent(
-            Fdc3Topic.RaiseIntent,
-            raiseIntentRequest,
-            new MessageContext());
-
+        var result = await _fdc3.HandleRaiseIntent(request, new MessageContext());
         result.Should().NotBeNull();
-        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata.Should().HaveCount(1);
-        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.AppId.Should().Be("appId4");
-        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.InstanceId.Should().Be(targetFdc3InstanceId);
+
+        result!.AppMetadata.Should().HaveCount(1);
+        result!.AppMetadata!.First()!.AppId.Should().Be("appId4");
+        result!.AppMetadata!.First()!.InstanceId.Should().Be(targetFdc3InstanceId);
 
         _mockMessageRouter.Verify(
             _ => _.PublishAsync(Fdc3Topic.RaiseIntentResolution("intentMetadataCustom", targetFdc3InstanceId), It.IsAny<MessageBuffer>(), It.IsAny<PublishOptions>(), It.IsAny<CancellationToken>()), Times.Once);
@@ -235,24 +201,20 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
     public async Task RaiseIntent_returns_multiple_apps_by_Context()
     {
         var instanceId = Guid.NewGuid().ToString();
-        var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
-            new RaiseIntentRequest()
+        var raiseIntentRequest = new RaiseIntentRequest()
             {
                 MessageId = 1,
                 Fdc3InstanceId = instanceId,
                 Intent = "intentMetadata4",
                 Selected = false,
                 Context = new Context("context2")
-            }, _options);
+            };
 
-        var result = await _fdc3.HandleRaiseIntent(
-            Fdc3Topic.RaiseIntent,
-            raiseIntentRequest,
-            new MessageContext());
-
+        var result = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
         result.Should().NotBeNull();
-        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata.Should().HaveCount(3);
-        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata.Should().BeEquivalentTo(
+
+        result!.AppMetadata.Should().HaveCount(3);
+        result!.AppMetadata.Should().BeEquivalentTo(
             new List<AppMetadata>()
             {
                 new() { AppId = "appId4", Name = "app4", ResultType = null },
@@ -265,24 +227,20 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
     public async Task RaiseIntent_returns_multiple_apps_by_Context_if_fdc3_nothing()
     {
         var instanceId = Guid.NewGuid().ToString();
-        var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
-            new RaiseIntentRequest()
+        var raiseIntentRequest = new RaiseIntentRequest()
             {
                 MessageId = 1,
                 Fdc3InstanceId = instanceId,
                 Intent = "intentMetadata4",
                 Selected = false,
-                Context = new Context("fdc3.nothing")
-            }, _options);
+                Context = new Context(ContextTypes.Nothing)
+            };
 
-        var result = await _fdc3.HandleRaiseIntent(
-            Fdc3Topic.RaiseIntent,
-            raiseIntentRequest,
-            new MessageContext());
-
+        var result = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
         result.Should().NotBeNull();
-        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata.Should().HaveCount(3);
-        result!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata.Should().BeEquivalentTo(
+
+        result!.AppMetadata.Should().HaveCount(3);
+        result!.AppMetadata.Should().BeEquivalentTo(
             new List<AppMetadata>()
             {
                 new() { AppId = "appId4", Name = "app4", ResultType = null },
@@ -294,8 +252,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
     [Fact]
     public async Task RaiseIntent_fails_as_no_apps_found_by_AppIdentifier()
     {
-        var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
-            new RaiseIntentRequest()
+        var raiseIntentRequest = new RaiseIntentRequest()
             {
                 MessageId = 1,
                 Fdc3InstanceId = Guid.NewGuid().ToString(),
@@ -303,117 +260,96 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 Selected = false,
                 Context = new Context("contextType"),
                 TargetAppIdentifier = new AppIdentifier() { AppId = "noAppShouldReturn" }
-            }, _options);
+            };
 
-        var result = await _fdc3.HandleRaiseIntent(
-            Fdc3Topic.RaiseIntent,
-            raiseIntentRequest,
-            new MessageContext());
-
+        var result = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
         result.Should().NotBeNull();
-        result!.ReadJson<RaiseIntentResponse>(_options)!.Error.Should().Be(ResolveError.NoAppsFound);
+        result!.Error.Should().Be(ResolveError.NoAppsFound);
     }
 
     [Fact]
     public async Task RaiseIntent_fails_as_no_apps_found_by_Context()
     {
-        var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
-            new RaiseIntentRequest()
+        var raiseIntentRequest = new RaiseIntentRequest()
             {
                 MessageId = 1,
                 Fdc3InstanceId = Guid.NewGuid().ToString(),
                 Intent = "intentMetadata4",
                 Selected = false,
                 Context = new Context("noAppShouldReturn")
-            }, _options);
+            };
 
-        var result = await _fdc3.HandleRaiseIntent(
-            Fdc3Topic.RaiseIntent,
-            raiseIntentRequest,
-            new MessageContext());
+        var result = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
 
         result.Should().NotBeNull();
-        result!.ReadJson<RaiseIntentResponse>(_options)!.Error.Should().Be(ResolveError.NoAppsFound);
+        result!.Error.Should().Be(ResolveError.NoAppsFound);
     }
 
     [Fact]
     public async Task RaiseIntent_fails_as_no_apps_found_by_Intent()
     {
-        var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
-            new RaiseIntentRequest()
+        var raiseIntentRequest = new RaiseIntentRequest()
             {
                 MessageId = 1,
                 Fdc3InstanceId = Guid.NewGuid().ToString(),
                 Intent = "noAppShouldReturn",
                 Selected = false,
                 Context = new Context("context2")
-            }, _options);
+            };
 
-        var result = await _fdc3.HandleRaiseIntent(
-            Fdc3Topic.RaiseIntent,
-            raiseIntentRequest,
-            new MessageContext());
+        var result = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
 
         result.Should().NotBeNull();
-        result!.ReadJson<RaiseIntentResponse>(_options)!.Error.Should().Be(ResolveError.NoAppsFound);
+        result!.Error.Should().Be(ResolveError.NoAppsFound);
     }
 
     [Fact]
     public async Task RaiseIntent_fails_as_multiple_IAppIntents_found()
     {
-        var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
-            new RaiseIntentRequest()
+        var raiseIntentRequest = new RaiseIntentRequest()
             {
                 MessageId = 1,
                 Fdc3InstanceId = Guid.NewGuid().ToString(),
                 Intent = "intentMetadata8",
                 Selected = false,
                 Context = new Context("context7")
-            }, _options);
+            };
 
-        var result = await _fdc3.HandleRaiseIntent(
-            Fdc3Topic.RaiseIntent,
-            raiseIntentRequest,
-            new MessageContext());
+        var result = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
 
         result.Should().NotBeNull();
-        result!.ReadJson<RaiseIntentResponse>(_options)!.Error.Should().Be(ResolveError.IntentDeliveryFailed);
+        result!.Error.Should().Be(ResolveError.IntentDeliveryFailed);
     }
 
     [Fact]
     public async Task RaiseIntent_fails_as_request_specifies_error()
     {
-        var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
-            new RaiseIntentRequest()
+        var raiseIntentRequest = new RaiseIntentRequest()
             {
                 MessageId = 1,
                 Fdc3InstanceId = Guid.NewGuid().ToString(),
                 Intent = "someIntent",
                 Selected = false,
                 Error = "Some weird error"
-            }, _options);
+            };
 
-        var result = await _fdc3.HandleRaiseIntent(
-            Fdc3Topic.RaiseIntent,
-            raiseIntentRequest,
-            new MessageContext());
+        var result = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
 
-        result!.ReadJson<RaiseIntentResponse>(_options)!.Error.Should().Be("Some weird error");
+        result!.Error.Should().Be("Some weird error");
     }
 
     [Fact]
     public async Task StoreIntentResult_fails_due_the_request()
     {
-        var result = await _fdc3.HandleStoreIntentResult("dummy", null, new MessageContext());
+        var result = await _fdc3.HandleStoreIntentResult(null, new MessageContext());
         result.Should().NotBeNull();
-        result!.ReadJson<StoreIntentResultResponse>(_options).Should().BeEquivalentTo(new StoreIntentResultResponse() { Error = ResolveError.IntentDeliveryFailed, Stored = false });
+        result!.Should().BeEquivalentTo(new StoreIntentResultResponse() { Error = ResolveError.IntentDeliveryFailed, Stored = false });
     }
 
     [Fact]
     public async Task StoreIntentResult_fails_due_the_request_contains_no_information()
     {
-        var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
-            new RaiseIntentRequest()
+        var raiseIntentRequest = new RaiseIntentRequest()
             {
                 MessageId = int.MaxValue,
                 Fdc3InstanceId = Guid.NewGuid().ToString(),
@@ -421,31 +357,25 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 Selected = false,
                 Context = new Context("context2"),
                 TargetAppIdentifier = new AppIdentifier() { AppId = "appId4" }
-            }, _options);
+            };
 
-        var raiseIntentResult = await _fdc3.HandleRaiseIntent(
-            Fdc3Topic.RaiseIntent,
-            raiseIntentRequest,
-            new MessageContext());
-
+        var raiseIntentResult = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
         raiseIntentResult.Should().NotBeNull();
-        var raiseIntentResponse = raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options);
-        raiseIntentResponse.Should().NotBeNull();
-        raiseIntentResponse!.AppMetadata.Should().HaveCount(1);
+        raiseIntentResult!.AppMetadata.Should().HaveCount(1);
 
         var storeIntentRequest = new StoreIntentResultRequest()
         {
-            MessageId = raiseIntentResponse.MessageId!,
+            MessageId = raiseIntentResult.MessageId!,
             Intent = "dummy",
-            OriginFdc3InstanceId = raiseIntentResponse.AppMetadata!.First().InstanceId!,
+            OriginFdc3InstanceId = raiseIntentResult.AppMetadata!.First().InstanceId!,
             TargetFdc3InstanceId = null,
             ChannelId = "dummyChannelId",
             ChannelType = ChannelType.User,
         };
 
-        var result = await _fdc3.HandleStoreIntentResult("dummy", MessageBuffer.Factory.CreateJson(storeIntentRequest, _options), new MessageContext());
+        var result = await _fdc3.HandleStoreIntentResult(storeIntentRequest, new MessageContext());
         result.Should().NotBeNull();
-        result!.ReadJson<StoreIntentResultResponse>(_options).Should().BeEquivalentTo(new StoreIntentResultResponse() { Error = ResolveError.IntentDeliveryFailed, Stored = false });
+        result!.Should().BeEquivalentTo(new StoreIntentResultResponse() { Error = ResolveError.IntentDeliveryFailed, Stored = false });
     }
 
     [Fact]
@@ -462,7 +392,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
             ChannelType = ChannelType.User
         };
 
-        var action = async () => await _fdc3.HandleStoreIntentResult("dummy", MessageBuffer.Factory.CreateJson(storeIntentRequest, _options), new MessageContext());
+        var action = async () => await _fdc3.HandleStoreIntentResult(storeIntentRequest, new MessageContext());
 
         await action.Should()
             .ThrowAsync<Fdc3DesktopAgentException>();
@@ -474,8 +404,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         await _fdc3.StartAsync(CancellationToken.None);
         var target = await _mockModuleLoader.Object.StartModule(new("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
-        var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
-            new RaiseIntentRequest()
+        var raiseIntentRequest = new RaiseIntentRequest()
             {
                 MessageId = int.MaxValue,
                 Fdc3InstanceId = Guid.NewGuid().ToString(),
@@ -483,38 +412,33 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 Selected = false,
                 Context = new Context("context2"),
                 TargetAppIdentifier = new AppIdentifier() { AppId = "appId4", InstanceId = targetFdc3InstanceId }
-            }, _options);
+            };
 
-        var raiseIntentResult = await _fdc3.HandleRaiseIntent(
-            Fdc3Topic.RaiseIntent,
-            raiseIntentRequest,
-            new MessageContext());
+        var raiseIntentResult = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
+        raiseIntentResult.Should().NotBeNull();
 
         raiseIntentResult.Should().NotBeNull();
-        var raiseIntentResponse = raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options);
-        raiseIntentResponse.Should().NotBeNull();
-        raiseIntentResponse!.AppMetadata.Should().HaveCount(1);
+        raiseIntentResult!.AppMetadata.Should().HaveCount(1);
 
         var storeIntentRequest = new StoreIntentResultRequest()
         {
-            MessageId = raiseIntentResponse!.MessageId!,
+            MessageId = raiseIntentResult!.MessageId!,
             Intent = "intentMetadata4",
-            OriginFdc3InstanceId = raiseIntentResponse.AppMetadata!.First().InstanceId!,
+            OriginFdc3InstanceId = raiseIntentResult.AppMetadata!.First().InstanceId!,
             TargetFdc3InstanceId = Guid.NewGuid().ToString(),
             ChannelId = "dummyChannelId",
             ChannelType = ChannelType.User
         };
 
-        var result = await _fdc3.HandleStoreIntentResult(Fdc3Topic.SendIntentResult, MessageBuffer.Factory.CreateJson(storeIntentRequest, _options), new MessageContext());
+        var result = await _fdc3.HandleStoreIntentResult(storeIntentRequest, new MessageContext());
         result.Should().NotBeNull();
-        result!.ReadJson<StoreIntentResultResponse>(_options).Should().BeEquivalentTo(new StoreIntentResultResponse() { Stored = true });
+        result!.Should().BeEquivalentTo(new StoreIntentResultResponse() { Stored = true });
     }
 
     [Fact]
     public async Task StoreIntentResult_succeeds_with_context()
     {
-        var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
-            new RaiseIntentRequest()
+        var raiseIntentRequest = new RaiseIntentRequest()
             {
                 MessageId = int.MaxValue,
                 Fdc3InstanceId = Guid.NewGuid().ToString(),
@@ -522,32 +446,26 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 Selected = true,
                 Context = new Context("context2"),
                 TargetAppIdentifier = new AppIdentifier() { AppId = "appId4" }
-            }, _options);
+            };
 
-        var raiseIntentResult = await _fdc3.HandleRaiseIntent(
-            Fdc3Topic.RaiseIntent,
-            raiseIntentRequest,
-            new MessageContext());
-
+        var raiseIntentResult = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
         raiseIntentResult.Should().NotBeNull();
-        var raiseIntentResponse = raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options);
-        raiseIntentResponse.Should().NotBeNull();
-        raiseIntentResponse!.AppMetadata.Should().HaveCount(1);
+        raiseIntentResult!.AppMetadata.Should().HaveCount(1);
 
         var storeIntentRequest = new StoreIntentResultRequest()
         {
-            MessageId = raiseIntentResponse.MessageId!,
+            MessageId = raiseIntentResult.MessageId!,
             Intent = "intentMetadata4",
-            OriginFdc3InstanceId = raiseIntentResponse.AppMetadata!.First().InstanceId!,
+            OriginFdc3InstanceId = raiseIntentResult.AppMetadata!.First().InstanceId!,
             TargetFdc3InstanceId = Guid.NewGuid().ToString(),
             ChannelId = null,
             ChannelType = null,
             Context = new Context("test")
         };
 
-        var result = await _fdc3.HandleStoreIntentResult(Fdc3Topic.SendIntentResult, MessageBuffer.Factory.CreateJson(storeIntentRequest, _options), new MessageContext());
+        var result = await _fdc3.HandleStoreIntentResult(storeIntentRequest, new MessageContext());
         result.Should().NotBeNull();
-        result!.ReadJson<StoreIntentResultResponse>(_options).Should().BeEquivalentTo(new StoreIntentResultResponse() { Stored = true });
+        result!.Should().BeEquivalentTo(new StoreIntentResultResponse() { Stored = true });
     }
 
     [Fact]
@@ -557,8 +475,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var target = await _mockModuleLoader.Object.StartModule(new("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
-        var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
-            new RaiseIntentRequest()
+        var raiseIntentRequest = new RaiseIntentRequest()
             {
                 MessageId = int.MaxValue,
                 Fdc3InstanceId = Guid.NewGuid().ToString(),
@@ -566,23 +483,17 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 Selected = false,
                 Context = new Context("context2"),
                 TargetAppIdentifier = new AppIdentifier() { AppId = "appId4", InstanceId = targetFdc3InstanceId }
-            }, _options);
+            };
 
-        var raiseIntentResult = await _fdc3.HandleRaiseIntent(
-            Fdc3Topic.RaiseIntent,
-            raiseIntentRequest,
-            new MessageContext());
-
+        var raiseIntentResult = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
         raiseIntentResult.Should().NotBeNull();
-        var raiseIntentResponse = raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options);
-        raiseIntentResponse.Should().NotBeNull();
-        raiseIntentResponse!.AppMetadata.Should().HaveCount(1);
+        raiseIntentResult!.AppMetadata.Should().HaveCount(1);
 
         var storeIntentRequest = new StoreIntentResultRequest()
         {
-            MessageId = raiseIntentResponse.MessageId!,
+            MessageId = raiseIntentResult.MessageId!,
             Intent = "intentMetadata4",
-            OriginFdc3InstanceId = raiseIntentResponse.AppMetadata!.First().InstanceId!,
+            OriginFdc3InstanceId = raiseIntentResult.AppMetadata!.First().InstanceId!,
             TargetFdc3InstanceId = Guid.NewGuid().ToString(),
             ChannelId = null,
             ChannelType = null,
@@ -590,17 +501,17 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
             VoidResult = true
         };
 
-        var result = await _fdc3.HandleStoreIntentResult(Fdc3Topic.SendIntentResult, MessageBuffer.Factory.CreateJson(storeIntentRequest, _options), new MessageContext());
+        var result = await _fdc3.HandleStoreIntentResult(storeIntentRequest, new MessageContext());
         result.Should().NotBeNull();
-        result!.ReadJson<StoreIntentResultResponse>(_options).Should().BeEquivalentTo(new StoreIntentResultResponse() { Stored = true });
+        result!.Should().BeEquivalentTo(new StoreIntentResultResponse() { Stored = true });
     }
 
     [Fact]
     public async Task GetIntentResult_fails_due_the_request()
     {
-        var result = await _fdc3.HandleGetIntentResult(Fdc3Topic.GetIntentResult, null, new MessageContext());
+        var result = await _fdc3.HandleGetIntentResult(null, new MessageContext());
         result.Should().NotBeNull();
-        result!.ReadJson<GetIntentResultResponse>(_options).Should().BeEquivalentTo(new GetIntentResultResponse() { Error = ResolveError.IntentDeliveryFailed });
+        result!.Should().BeEquivalentTo(new GetIntentResultResponse() { Error = ResolveError.IntentDeliveryFailed });
     }
 
     [Fact]
@@ -615,9 +526,9 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
             Version = "1.0"
         };
 
-        var result = await _fdc3.HandleGetIntentResult(Fdc3Topic.GetIntentResult, MessageBuffer.Factory.CreateJson(getIntentResultRequest, _options), new MessageContext());
+        var result = await _fdc3.HandleGetIntentResult(getIntentResultRequest, new MessageContext());
         result.Should().NotBeNull();
-        result!.ReadJson<GetIntentResultResponse>(_options).Should().BeEquivalentTo(new GetIntentResultResponse() { Error = ResolveError.IntentDeliveryFailed });
+        result!.Should().BeEquivalentTo(new GetIntentResultResponse() { Error = ResolveError.IntentDeliveryFailed });
     }
 
     [Fact]
@@ -631,9 +542,9 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
             Version = "1.0"
         };
 
-        var result = await _fdc3.HandleGetIntentResult(Fdc3Topic.GetIntentResult, MessageBuffer.Factory.CreateJson(getIntentResultRequest, _options), new MessageContext());
+        var result = await _fdc3.HandleGetIntentResult(getIntentResultRequest, new MessageContext());
         result.Should().NotBeNull();
-        result!.ReadJson<GetIntentResultResponse>(_options).Should().BeEquivalentTo(new GetIntentResultResponse() { Error = ResolveError.IntentDeliveryFailed });
+        result!.Should().BeEquivalentTo(new GetIntentResultResponse() { Error = ResolveError.IntentDeliveryFailed });
     }
 
     [Fact]
@@ -646,8 +557,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
 
         var context = new Context("test");
 
-        var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
-            new RaiseIntentRequest()
+        var raiseIntentRequest = new RaiseIntentRequest()
             {
                 MessageId = int.MaxValue,
                 Fdc3InstanceId = Guid.NewGuid().ToString(),
@@ -655,46 +565,36 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 Selected = false,
                 Context = new Context("context2"),
                 TargetAppIdentifier = new AppIdentifier() { AppId = "appId4", InstanceId = targetFdc3InstanceId }
-            }, _options);
+            };
 
-        var raiseIntentResult = await _fdc3.HandleRaiseIntent(
-            Fdc3Topic.RaiseIntent,
-            raiseIntentRequest,
-            new MessageContext());
-
+        var raiseIntentResult = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
         raiseIntentResult.Should().NotBeNull();
-        var raiseIntentResponse = raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options);
-        raiseIntentResponse.Should().NotBeNull();
-        raiseIntentResponse!.AppMetadata.Should().HaveCount(1);
+        raiseIntentResult!.AppMetadata.Should().HaveCount(1);
 
-        var storeIntentRequest = MessageBuffer.Factory.CreateJson(new StoreIntentResultRequest()
+        var storeIntentRequest = new StoreIntentResultRequest()
         {
-            MessageId = raiseIntentResponse.MessageId!,
+            MessageId = raiseIntentResult.MessageId!,
             Intent = "intentMetadata4",
-            OriginFdc3InstanceId = raiseIntentResponse.AppMetadata!.First().InstanceId!,
+            OriginFdc3InstanceId = raiseIntentResult.AppMetadata!.First().InstanceId!,
             TargetFdc3InstanceId = originFdc3InstanceId,
             Context = context
-        }, _options);
+        };
 
-        var storeResult = await _fdc3.HandleStoreIntentResult(
-            Fdc3Topic.SendIntentResult,
-            storeIntentRequest,
-            new MessageContext());
-
+        var storeResult = await _fdc3.HandleStoreIntentResult(storeIntentRequest, new MessageContext());
         storeResult.Should().NotBeNull();
-        storeResult!.ReadJson<StoreIntentResultResponse>(_options).Should().BeEquivalentTo(StoreIntentResultResponse.Success());
+        storeResult!.Should().BeEquivalentTo(StoreIntentResultResponse.Success());
 
         var getIntentResultRequest = new GetIntentResultRequest()
         {
-            MessageId = raiseIntentResponse.MessageId!,
+            MessageId = raiseIntentResult.MessageId!,
             Intent = "dummy",
-            TargetAppIdentifier = new AppIdentifier() { AppId = "appId1", InstanceId = raiseIntentResponse.AppMetadata!.First().InstanceId! },
+            TargetAppIdentifier = new AppIdentifier() { AppId = "appId1", InstanceId = raiseIntentResult.AppMetadata!.First().InstanceId! },
             Version = "1.0"
         };
 
-        var result = await _fdc3.HandleGetIntentResult(Fdc3Topic.GetIntentResult, MessageBuffer.Factory.CreateJson(getIntentResultRequest, _options), new MessageContext());
+        var result = await _fdc3.HandleGetIntentResult(getIntentResultRequest, new MessageContext());
         result.Should().NotBeNull();
-        result!.ReadJson<GetIntentResultResponse>(_options).Should().BeEquivalentTo(new GetIntentResultResponse() { Error = ResolveError.IntentDeliveryFailed });
+        result!.Should().BeEquivalentTo(new GetIntentResultResponse() { Error = ResolveError.IntentDeliveryFailed });
     }
 
     [Fact]
@@ -706,8 +606,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var target = await _mockModuleLoader.Object.StartModule(new("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
-        var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
-            new RaiseIntentRequest()
+        var raiseIntentRequest = new RaiseIntentRequest()
             {
                 MessageId = int.MaxValue,
                 Fdc3InstanceId = Guid.NewGuid().ToString(),
@@ -715,45 +614,36 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 Selected = false,
                 Context = new Context("context2"),
                 TargetAppIdentifier = new AppIdentifier() { AppId = "appId4", InstanceId = targetFdc3InstanceId }
-            }, _options);
+            };
 
-        var raiseIntentResult = await _fdc3.HandleRaiseIntent(
-            Fdc3Topic.RaiseIntent,
-            raiseIntentRequest,
-            new MessageContext());
-
+        var raiseIntentResult = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
         raiseIntentResult.Should().NotBeNull();
-        var raiseIntentResponse = raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options);
-        raiseIntentResponse.Should().NotBeNull();
-        raiseIntentResponse!.AppMetadata.Should().HaveCount(1);
+        raiseIntentResult!.AppMetadata.Should().HaveCount(1);
 
-        var storeIntentRequest = MessageBuffer.Factory.CreateJson(new StoreIntentResultRequest()
+        var storeIntentRequest = new StoreIntentResultRequest()
         {
-            MessageId = raiseIntentResponse.MessageId!,
+            MessageId = raiseIntentResult.MessageId!,
             Intent = "intentMetadata4",
-            OriginFdc3InstanceId = raiseIntentResponse.AppMetadata!.First().InstanceId!,
+            OriginFdc3InstanceId = raiseIntentResult.AppMetadata!.First().InstanceId!,
             TargetFdc3InstanceId = originFdc3InstanceId,
             Context = context
-        }, _options);
+        };
 
-        var storeResult = await _fdc3.HandleStoreIntentResult(
-            Fdc3Topic.SendIntentResult,
-            storeIntentRequest,
-            new MessageContext());
+        var storeResult = await _fdc3.HandleStoreIntentResult(storeIntentRequest, new MessageContext());
 
         storeResult.Should().NotBeNull();
-        storeResult!.ReadJson<StoreIntentResultResponse>(_options).Should().BeEquivalentTo(StoreIntentResultResponse.Success());
+        storeResult!.Should().BeEquivalentTo(StoreIntentResultResponse.Success());
 
         var getIntentResultRequest = new GetIntentResultRequest()
         {
-            MessageId = raiseIntentResponse.MessageId!,
+            MessageId = raiseIntentResult.MessageId!,
             Intent = "intentMetadata4",
-            TargetAppIdentifier = new AppIdentifier() { AppId = "appId1", InstanceId = raiseIntentResponse.AppMetadata!.First().InstanceId! }
+            TargetAppIdentifier = new AppIdentifier() { AppId = "appId1", InstanceId = raiseIntentResult.AppMetadata!.First().InstanceId! }
         };
 
-        var result = await _fdc3.HandleGetIntentResult(Fdc3Topic.GetIntentResult, MessageBuffer.Factory.CreateJson(getIntentResultRequest, _options), new MessageContext());
+        var result = await _fdc3.HandleGetIntentResult(getIntentResultRequest, new MessageContext());
         result.Should().NotBeNull();
-        result!.ReadJson<GetIntentResultResponse>(_options).Should().BeEquivalentTo(GetIntentResultResponse.Success(context: context));
+        result!.Should().BeEquivalentTo(GetIntentResultResponse.Success(context: context));
     }
 
     [Fact]
@@ -763,12 +653,10 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var originFdc3InstanceId = Guid.NewGuid().ToString();
         var channelType = ChannelType.User;
         var channelId = "dummyChannelId";
-
         var target = await _mockModuleLoader.Object.StartModule(new("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
-        var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
-            new RaiseIntentRequest()
+        var raiseIntentRequest =new RaiseIntentRequest()
             {
                 MessageId = int.MaxValue,
                 Fdc3InstanceId = Guid.NewGuid().ToString(),
@@ -776,46 +664,37 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 Selected = false,
                 Context = new Context("context2"),
                 TargetAppIdentifier = new AppIdentifier() { AppId = "appId4", InstanceId = targetFdc3InstanceId }
-            }, _options);
+            };
 
-        var raiseIntentResult = await _fdc3.HandleRaiseIntent(
-            Fdc3Topic.RaiseIntent,
-            raiseIntentRequest,
-            new MessageContext());
-
+        var raiseIntentResult = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
         raiseIntentResult.Should().NotBeNull();
-        var raiseIntentResponse = raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options);
-        raiseIntentResponse.Should().NotBeNull();
-        raiseIntentResponse!.AppMetadata.Should().HaveCount(1);
+        raiseIntentResult!.AppMetadata.Should().HaveCount(1);
 
-        var storeIntentRequest = MessageBuffer.Factory.CreateJson(new StoreIntentResultRequest()
+        var storeIntentRequest = new StoreIntentResultRequest()
         {
-            MessageId = raiseIntentResponse.MessageId!,
+            MessageId = raiseIntentResult.MessageId!,
             Intent = "intentMetadata4",
-            OriginFdc3InstanceId = raiseIntentResponse.AppMetadata!.First().InstanceId!,
+            OriginFdc3InstanceId = raiseIntentResult.AppMetadata!.First().InstanceId!,
             TargetFdc3InstanceId = originFdc3InstanceId,
             ChannelType = channelType,
             ChannelId = channelId
-        }, _options);
+        };
 
-        var storeResult = await _fdc3.HandleStoreIntentResult(
-            Fdc3Topic.SendIntentResult,
-            storeIntentRequest,
-            new MessageContext());
+        var storeResult = await _fdc3.HandleStoreIntentResult(storeIntentRequest, new MessageContext());
 
         storeResult.Should().NotBeNull();
-        storeResult!.ReadJson<StoreIntentResultResponse>(_options).Should().BeEquivalentTo(StoreIntentResultResponse.Success());
+        storeResult!.Should().BeEquivalentTo(StoreIntentResultResponse.Success());
 
         var getIntentResultRequest = new GetIntentResultRequest()
         {
-            MessageId = raiseIntentResponse.MessageId!,
+            MessageId = raiseIntentResult.MessageId!,
             Intent = "intentMetadata4",
-            TargetAppIdentifier = new AppIdentifier() { AppId = "appId1", InstanceId = raiseIntentResponse.AppMetadata!.First().InstanceId! }
+            TargetAppIdentifier = new AppIdentifier() { AppId = "appId1", InstanceId = raiseIntentResult.AppMetadata!.First().InstanceId! }
         };
 
-        var result = await _fdc3.HandleGetIntentResult(Fdc3Topic.GetIntentResult, MessageBuffer.Factory.CreateJson(getIntentResultRequest, _options), new MessageContext());
+        var result = await _fdc3.HandleGetIntentResult(getIntentResultRequest, new MessageContext());
         result.Should().NotBeNull();
-        result!.ReadJson<GetIntentResultResponse>(_options).Should().BeEquivalentTo(GetIntentResultResponse.Success(channelType: channelType, channelId: channelId));
+        result!.Should().BeEquivalentTo(GetIntentResultResponse.Success(channelType: channelType, channelId: channelId));
     }
 
     [Fact]
@@ -827,8 +706,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var target = await _mockModuleLoader.Object.StartModule(new("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
-        var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
-            new RaiseIntentRequest()
+        var raiseIntentRequest = new RaiseIntentRequest()
             {
                 MessageId = int.MaxValue,
                 Fdc3InstanceId = Guid.NewGuid().ToString(),
@@ -836,53 +714,43 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 Selected = false,
                 Context = new Context("context2"),
                 TargetAppIdentifier = new AppIdentifier() { AppId = "appId4", InstanceId = targetFdc3InstanceId }
-            }, _options);
+            };
 
-        var raiseIntentResult = await _fdc3.HandleRaiseIntent(
-            Fdc3Topic.RaiseIntent,
-            raiseIntentRequest,
-            new MessageContext());
-
+        var raiseIntentResult = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
         raiseIntentResult.Should().NotBeNull();
-        var raiseIntentResponse = raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options);
-        raiseIntentResponse.Should().NotBeNull();
-        raiseIntentResponse!.AppMetadata.Should().HaveCount(1);
+        raiseIntentResult!.AppMetadata.Should().HaveCount(1);
 
-        var storeIntentRequest = MessageBuffer.Factory.CreateJson(new StoreIntentResultRequest()
+        var storeIntentRequest = new StoreIntentResultRequest()
         {
-            MessageId = raiseIntentResponse.MessageId!,
+            MessageId = raiseIntentResult.MessageId!,
             Intent = "intentMetadata4",
-            OriginFdc3InstanceId = raiseIntentResponse.AppMetadata!.First().InstanceId!,
+            OriginFdc3InstanceId = raiseIntentResult.AppMetadata!.First().InstanceId!,
             TargetFdc3InstanceId = originFdc3InstanceId,
             VoidResult = true
-        }, _options);
+        };
 
-        var storeResult = await _fdc3.HandleStoreIntentResult(
-            Fdc3Topic.SendIntentResult,
-            storeIntentRequest,
-            new MessageContext());
-
+        var storeResult = await _fdc3.HandleStoreIntentResult(storeIntentRequest, new MessageContext());
         storeResult.Should().NotBeNull();
-        storeResult!.ReadJson<StoreIntentResultResponse>(_options).Should().BeEquivalentTo(StoreIntentResultResponse.Success());
+        storeResult!.Should().BeEquivalentTo(StoreIntentResultResponse.Success());
 
         var getIntentResultRequest = new GetIntentResultRequest()
         {
-            MessageId = raiseIntentResponse.MessageId!,
+            MessageId = raiseIntentResult.MessageId!,
             Intent = "intentMetadata4",
-            TargetAppIdentifier = new AppIdentifier() { AppId = "appId1", InstanceId = raiseIntentResponse.AppMetadata!.First().InstanceId! }
+            TargetAppIdentifier = new AppIdentifier() { AppId = "appId1", InstanceId = raiseIntentResult.AppMetadata!.First().InstanceId! }
         };
 
-        var result = await _fdc3.HandleGetIntentResult(Fdc3Topic.GetIntentResult, MessageBuffer.Factory.CreateJson(getIntentResultRequest, _options), new MessageContext());
+        var result = await _fdc3.HandleGetIntentResult(getIntentResultRequest, new MessageContext());
         result.Should().NotBeNull();
-        result!.ReadJson<GetIntentResultResponse>(_options).Should().BeEquivalentTo(GetIntentResultResponse.Success(voidResult: true));
+        result!.Should().BeEquivalentTo(GetIntentResultResponse.Success(voidResult: true));
     }
 
     [Fact]
     public async Task AddIntentListener_fails_due_no_payload()
     {
-        var result = await _fdc3.HandleAddIntentListener(Fdc3Topic.AddIntentListener, null, new());
+        var result = await _fdc3.HandleAddIntentListener(null, new());
         result.Should().NotBeNull();
-        result!.ReadJson<IntentListenerResponse>(_options).Should().BeEquivalentTo(IntentListenerResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull));
+        result!.Should().BeEquivalentTo(IntentListenerResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull));
     }
 
     [Fact]
@@ -894,9 +762,9 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
             Fdc3InstanceId = Guid.NewGuid().ToString(),
             State = SubscribeState.Unsubscribe
         };
-        var result = await _fdc3.HandleAddIntentListener(Fdc3Topic.AddIntentListener, MessageBuffer.Factory.CreateJson(request, _options), new());
+        var result = await _fdc3.HandleAddIntentListener(request, new());
         result.Should().NotBeNull();
-        result!.ReadJson<IntentListenerResponse>(_options).Should().BeEquivalentTo(IntentListenerResponse.Failure(Fdc3DesktopAgentErrors.MissingId));
+        result!.Should().BeEquivalentTo(IntentListenerResponse.Failure(Fdc3DesktopAgentErrors.MissingId));
     }
 
     [Fact]
@@ -912,8 +780,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var target = await _mockModuleLoader.Object.StartModule(new StartRequest("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
-        var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
-            new RaiseIntentRequest()
+        var raiseIntentRequest = new RaiseIntentRequest()
             {
                 MessageId = 1,
                 Fdc3InstanceId = originFdc3InstanceId,
@@ -921,31 +788,24 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 Selected = false,
                 Context = new Context("contextCustom"),
                 TargetAppIdentifier = new AppIdentifier() { AppId = "appId4", InstanceId = targetFdc3InstanceId }
-            }, _options);
+            };
 
-        var raiseIntentResult = await _fdc3.HandleRaiseIntent(
-            Fdc3Topic.RaiseIntent,
-            raiseIntentRequest,
-            new MessageContext());
-
+        var raiseIntentResult = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
         raiseIntentResult.Should().NotBeNull();
-        raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata.Should().HaveCount(1);
-        raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.AppId.Should().Be("appId4");
-        raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.InstanceId.Should().Be(targetFdc3InstanceId);
+        raiseIntentResult!.AppMetadata.Should().HaveCount(1);
+        raiseIntentResult!.AppMetadata!.First()!.AppId.Should().Be("appId4");
+        raiseIntentResult!.AppMetadata!.First()!.InstanceId.Should().Be(targetFdc3InstanceId);
 
-        var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
-            new IntentListenerRequest()
+        var addIntentListenerRequest = new IntentListenerRequest()
             {
                 Intent = "intentMetadataCustom",
                 Fdc3InstanceId = targetFdc3InstanceId,
                 State = SubscribeState.Subscribe
-            }, _options);
+            };
 
-        var addIntentListenerResult = await _fdc3.HandleAddIntentListener(Fdc3Topic.AddIntentListener, addIntentListenerRequest, new MessageContext());
+        var addIntentListenerResult = await _fdc3.HandleAddIntentListener(addIntentListenerRequest, new MessageContext());
         addIntentListenerResult.Should().NotBeNull();
-
-        var addIntentListnerResponse = addIntentListenerResult!.ReadJson<IntentListenerResponse>(_options);
-        addIntentListnerResponse!.Stored.Should().BeTrue();
+        addIntentListenerResult!.Stored.Should().BeTrue();
 
         _mockMessageRouter.Verify(
             _ => _.PublishAsync(Fdc3Topic.RaiseIntentResolution("intentMetadataCustom", targetFdc3InstanceId), It.IsAny<MessageBuffer>(), It.IsAny<PublishOptions>(), It.IsAny<CancellationToken>()));
@@ -964,22 +824,18 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var target = await _mockModuleLoader.Object.StartModule(new StartRequest("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
-        var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
-            new IntentListenerRequest()
+        var addIntentListenerRequest = new IntentListenerRequest()
             {
                 Intent = "intentMetadataCustom",
                 Fdc3InstanceId = targetFdc3InstanceId,
                 State = SubscribeState.Subscribe
-            }, _options);
+            };
 
-        var addIntentListenerResult = await _fdc3.HandleAddIntentListener(Fdc3Topic.AddIntentListener, addIntentListenerRequest, new MessageContext());
+        var addIntentListenerResult = await _fdc3.HandleAddIntentListener(addIntentListenerRequest, new MessageContext());
         addIntentListenerResult.Should().NotBeNull();
+        addIntentListenerResult!.Stored.Should().BeTrue();
 
-        var addIntentListnerResponse = addIntentListenerResult!.ReadJson<IntentListenerResponse>(_options);
-        addIntentListnerResponse!.Stored.Should().BeTrue();
-
-        var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
-            new RaiseIntentRequest()
+        var raiseIntentRequest = new RaiseIntentRequest()
             {
                 MessageId = 1,
                 Fdc3InstanceId = originFdc3InstanceId,
@@ -987,17 +843,13 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 Selected = false,
                 Context = new Context("contextCustom"),
                 TargetAppIdentifier = new AppIdentifier() { AppId = "appId4", InstanceId = targetFdc3InstanceId }
-            }, _options);
+            };
 
-        var raiseIntentResult = await _fdc3.HandleRaiseIntent(
-            Fdc3Topic.RaiseIntent,
-            raiseIntentRequest,
-            new MessageContext());
-
+        var raiseIntentResult = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
         raiseIntentResult.Should().NotBeNull();
-        raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata.Should().HaveCount(1);
-        raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.AppId.Should().Be("appId4");
-        raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.InstanceId.Should().Be(targetFdc3InstanceId);
+        raiseIntentResult!.AppMetadata.Should().HaveCount(1);
+        raiseIntentResult!.AppMetadata!.First()!.AppId.Should().Be("appId4");
+        raiseIntentResult!.AppMetadata!.First()!.InstanceId.Should().Be(targetFdc3InstanceId);
 
         _mockMessageRouter.Verify(
             _ => _.PublishAsync(Fdc3Topic.RaiseIntentResolution("intentMetadataCustom", targetFdc3InstanceId), It.IsAny<MessageBuffer>(), It.IsAny<PublishOptions>(), It.IsAny<CancellationToken>()));
@@ -1015,71 +867,65 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var target = await _mockModuleLoader.Object.StartModule(new StartRequest("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
-        var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
-            new IntentListenerRequest()
+        var addIntentListenerRequest = new IntentListenerRequest()
             {
                 Intent = "intentMetadataCustom",
                 Fdc3InstanceId = targetFdc3InstanceId,
                 State = SubscribeState.Subscribe
-            }, _options);
+            };
 
-        var addIntentListenerResult = await _fdc3.HandleAddIntentListener(Fdc3Topic.AddIntentListener, addIntentListenerRequest, new MessageContext());
+        var addIntentListenerResult = await _fdc3.HandleAddIntentListener(addIntentListenerRequest, new MessageContext());
         addIntentListenerResult.Should().NotBeNull();
+        addIntentListenerResult!.Stored.Should().BeTrue();
 
-        var addIntentListnerResponse = addIntentListenerResult!.ReadJson<IntentListenerResponse>(_options);
-        addIntentListnerResponse!.Stored.Should().BeTrue();
-
-        addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
-            new IntentListenerRequest()
+        addIntentListenerRequest = new IntentListenerRequest()
             {
                 Intent = "intentMetadataCustom",
                 Fdc3InstanceId = targetFdc3InstanceId,
                 State = SubscribeState.Unsubscribe
-            }, _options);
+            };
 
-        addIntentListenerResult = await _fdc3.HandleAddIntentListener(Fdc3Topic.AddIntentListener, addIntentListenerRequest, new MessageContext());
+        addIntentListenerResult = await _fdc3.HandleAddIntentListener(addIntentListenerRequest, new MessageContext());
         addIntentListenerResult.Should().NotBeNull();
-
-        addIntentListnerResponse = addIntentListenerResult!.ReadJson<IntentListenerResponse>(_options);
-        addIntentListnerResponse!.Stored.Should().BeFalse();
-        addIntentListnerResponse!.Error.Should().BeNull();
+        addIntentListenerResult!.Stored.Should().BeFalse();
+        addIntentListenerResult!.Error.Should().BeNull();
     }
 
-    private MessageBuffer FindTestChannel => MessageBuffer.Factory.CreateJson(new FindChannelRequest() { ChannelId = "testChannel", ChannelType = ChannelType.User });
+    private FindChannelRequest FindTestChannel => new FindChannelRequest() { ChannelId = "testChannel", ChannelType = ChannelType.User };
 
 
     [Theory]
     [ClassData(typeof(FindIntentTheoryData))]
     public async Task FindIntent_edge_case_tests(FindIntentTestCase testCase)
     {
-        var request = MessageBuffer.Factory.CreateJson(testCase.Request, _options);
-        var result = await _fdc3.HandleFindIntent(Fdc3Topic.FindIntent, request, new MessageContext());
+        var request = testCase.Request;
+        var result = await _fdc3.HandleFindIntent(request, new MessageContext());
 
         result.Should().NotBeNull();
 
         if (testCase.ExpectedAppCount > 0)
         {
-            result!.ReadJson<FindIntentResponse>(_options)!.AppIntent!.Apps.Should().HaveCount(testCase.ExpectedAppCount);
+            result!.AppIntent!.Apps.Should().HaveCount(testCase.ExpectedAppCount);
         }
 
-        result!.ReadJson<FindIntentResponse>(_options)!.Should().BeEquivalentTo(testCase.ExpectedResponse);
+        result!.Should().BeEquivalentTo(testCase.ExpectedResponse);
     }
 
     [Theory]
     [ClassData(typeof(FindIntentsByContextTheoryData))]
     public async Task FindIntentsByContext_edge_case_tests(FindIntentsByContextTestCase testCase)
     {
-        var request = MessageBuffer.Factory.CreateJson(testCase.Request, _options);
-        var result = await _fdc3.HandleFindIntentsByContext(Fdc3Topic.FindIntentsByContext, request, new MessageContext());
+        var request = testCase.Request;
+        var result = await _fdc3.HandleFindIntentsByContext(request, new MessageContext());
 
         result.Should().NotBeNull();
 
         if (testCase.ExpectedAppIntentsCount > 0)
         {
-            result!.ReadJson<FindIntentsByContextResponse>(_options)!.AppIntents!.Should().HaveCount(testCase.ExpectedAppIntentsCount);
+            result!.AppIntents!.Should().HaveCount(testCase.ExpectedAppIntentsCount);
         }
 
-        result!.ReadJson<FindIntentsByContextResponse>(_options)!.Should().BeEquivalentTo(testCase.ExpectedResponse);
+        result!.Should().BeEquivalentTo(testCase.ExpectedResponse);
     }
 
     public class FindIntentsByContextTheoryData : TheoryData
@@ -1316,7 +1162,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 Request = new FindIntentsByContextRequest()
                 {
                     Fdc3InstanceId = Guid.NewGuid().ToString(),
-                    Context = new Context("fdc3.nothing"),
+                    Context = new Context(ContextTypes.Nothing),
                     ResultType = "resultWrongApp"
                 },
                 ExpectedResponse = new FindIntentsByContextResponse()

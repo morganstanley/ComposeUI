@@ -3,7 +3,7 @@
         {
             "appId": "Morgan Stanley",
             "name": "Morgan Stanley",
-            "type": 1,
+            "type": "web",
             "details": {
               "url": "http://www.morganstanley.com"
             },
@@ -14,7 +14,7 @@
           {
             "appId": "Microsoft",
             "name": "Microsoft",
-            "type": 1,
+            "type": "web",
             "details": {
               "url": "http://www.microsoft.com"
             },
@@ -36,7 +36,7 @@
           {
             "appId": "Google",
             "name": "Google",
-            "type": 1,
+            "type": "web",
             "details": {
               "url": "http://www.google.com"
             },
@@ -58,7 +58,7 @@
           {
             "appId": "FINOS FDC3 Workbench",
             "name": "FINOS FDC3 Workbench",
-            "type": 1,
+            "type": "web",
             "details": {
               "url": "https://fdc3.finos.org/toolbox/fdc3-workbench/"
             },

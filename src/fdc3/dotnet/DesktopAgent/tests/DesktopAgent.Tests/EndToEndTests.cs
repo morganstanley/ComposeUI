@@ -27,6 +27,7 @@ using MorganStanley.Fdc3.Context;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
 using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIdentifier;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
 {
@@ -39,10 +40,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
         private const string TestChannel = "testChannel";
         private readonly UserChannelTopics _topics = new UserChannelTopics(TestChannel);
         private const string AccessToken = "token";
-        private readonly JsonSerializerOptions _options = new(JsonSerializerDefaults.Web)
-        {
-            Converters = { new IntentMetadataJsonConverter(), new AppMetadataJsonConverter() }
-        };
+        private JsonSerializerOptions _options;
         private IModuleLoader _moduleLoader;
         private readonly object _runningAppsLock = new();
         private IDisposable _runningAppsObserver;
@@ -110,6 +108,9 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                       }
                   }
               });
+
+            var fdc3DesktopAgentMessageRouterService = _host.Services.GetRequiredService<IHostedService>() as Fdc3DesktopAgentMessageRouterService;
+            _options = fdc3DesktopAgentMessageRouterService!.JsonMessageSerializerOptions;
         }
 
         public async Task DisposeAsync()
@@ -447,7 +448,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 Fdc3InstanceId = originFdc3InstanceId,
                 Intent = "dummy",
                 Selected = false,
-                Context = new Context("fdc3.nothing"),
+                Context = new Context(ContextTypes.Nothing),
                 Error = "dummyError"
             };
 
@@ -475,7 +476,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 Fdc3InstanceId = originFdc3InstanceId,
                 Intent = "noIntentShouldHandle",
                 Selected = false,
-                Context = new Context("fdc3.nothing")
+                Context = new Context(ContextTypes.Nothing)
             };
 
             var expectedResponse = new RaiseIntentResponse()
@@ -502,7 +503,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 Fdc3InstanceId = originFdc3InstanceId,
                 Intent = "intentMetadata8", //wrongly set up AppDirectory on purpose
                 Selected = false,
-                Context = new Context("fdc3.nothing")
+                Context = new Context(ContextTypes.Nothing)
             };
 
             var expectedResponse = new RaiseIntentResponse()
@@ -882,8 +883,9 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var raiseIntentResult = await _messageRouter.InvokeAsync(Fdc3Topic.RaiseIntent, raiseIntentRequest);
 
             raiseIntentResult.Should().NotBeNull();
-            raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata.Should().HaveCount(1);
-            raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First()!.AppId.Should().Be("appId4");
+            var raiseIntentResponse = raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options)!;
+            raiseIntentResponse.AppMetadata.Should().HaveCount(1);
+            raiseIntentResponse.AppMetadata!.First()!.AppId.Should().Be("appId4");
 
             var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
                 new IntentListenerRequest()
