@@ -67,52 +67,29 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
     {
         var userChannel = new UserChannel(id, _messageRouter, _loggerFactory.CreateLogger<UserChannel>());
         await _desktopAgent.AddUserChannel(userChannel);
-
         return userChannel;
     }
 
     internal ValueTask<FindChannelResponse?> HandleFindChannel(FindChannelRequest? request, MessageContext context)
     {
-        if (request?.ChannelType != ChannelType.User)
-        {
-            return ValueTask.FromResult<FindChannelResponse?>(FindChannelResponse.Failure(ChannelError.NoChannelFound));
-        }
-
         return ValueTask.FromResult<FindChannelResponse?>(
-                _desktopAgent.FindChannel(request.ChannelId, request.ChannelType)
+                _desktopAgent.FindChannel(request!.ChannelId, request!.ChannelType)
                     ? FindChannelResponse.Success
                     : FindChannelResponse.Failure(ChannelError.NoChannelFound));
     }
 
     internal async ValueTask<FindIntentResponse?> HandleFindIntent(FindIntentRequest? request, MessageContext context)
     {
-        if (request == null)
-        {
-            return FindIntentResponse.Failure(ResolveError.IntentDeliveryFailed);
-        }
-
-        var response = await _desktopAgent.FindIntent(request);
-        return response;
+        return await _desktopAgent.FindIntent(request);
     }
 
     internal async ValueTask<FindIntentsByContextResponse?> HandleFindIntentsByContext(FindIntentsByContextRequest? request, MessageContext context)
     {
-        if (request == null)
-        {
-            return FindIntentsByContextResponse.Failure(ResolveError.IntentDeliveryFailed);
-        }
-
-        var response = await _desktopAgent.FindIntentsByContext(request);
-        return response;
+        return await _desktopAgent.FindIntentsByContext(request);
     }
 
     internal async ValueTask<RaiseIntentResponse?> HandleRaiseIntent(RaiseIntentRequest? request, MessageContext context)
     {
-        if (request == null)
-        {
-            return RaiseIntentResponse.Failure(ResolveError.IntentDeliveryFailed);
-        }
-
         try
         {
             var result = await _desktopAgent.RaiseIntent(request);
@@ -136,11 +113,6 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
 
     internal async ValueTask<IntentListenerResponse?> HandleAddIntentListener(IntentListenerRequest? request, MessageContext context)
     {
-        if (request == null)
-        {
-            return IntentListenerResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull);
-        }
-
         var result = await _desktopAgent.AddIntentListener(request);
 
         if (result.RaiseIntentResolutionMessages.Any())
@@ -158,34 +130,12 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
 
     internal async ValueTask<StoreIntentResultResponse?> HandleStoreIntentResult(StoreIntentResultRequest? request, MessageContext context)
     {
-        if (request == null)
-        {
-            return StoreIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed);
-        }
-
-        if (request.TargetFdc3InstanceId == null || request.Intent == null)
-        {
-            return StoreIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed);
-        }
-
-        var response = await _desktopAgent.StoreIntentResult(request);
-        return response;
+        return await _desktopAgent.StoreIntentResult(request);
     }
 
     internal async ValueTask<GetIntentResultResponse?> HandleGetIntentResult(GetIntentResultRequest? request, MessageContext context)
     {
-        if (request == null)
-        {
-            return GetIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed);
-        }
-
-        if (request.TargetAppIdentifier?.InstanceId == null || request.Intent == null || request.MessageId == null)
-        {
-            return GetIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed);
-        }
-
-        var response = await _desktopAgent.GetIntentResult(request);
-        return response;
+        return await _desktopAgent.GetIntentResult(request);
     }
 
     private async ValueTask SafeWaitAsync(IEnumerable<ValueTask> tasks)

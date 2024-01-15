@@ -53,40 +53,40 @@ internal interface IFdc3DesktopAgentBridge
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    public ValueTask<FindIntentResponse> FindIntent(FindIntentRequest request);
+    public ValueTask<FindIntentResponse> FindIntent(FindIntentRequest? request);
 
     /// <summary>
     /// Handles the FindIntentsByContext call in the bridge.
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    public ValueTask<FindIntentsByContextResponse> FindIntentsByContext(FindIntentsByContextRequest request);
+    public ValueTask<FindIntentsByContextResponse> FindIntentsByContext(FindIntentsByContextRequest? request);
 
     /// <summary>
     /// Handles the GetIntentResult call in the bridge.
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    public ValueTask<GetIntentResultResponse> GetIntentResult(GetIntentResultRequest request);
+    public ValueTask<GetIntentResultResponse> GetIntentResult(GetIntentResultRequest? request);
 
     /// <summary>
     /// Handles the RaiseIntent call in the bridge.
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    public ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntent(RaiseIntentRequest request);
+    public ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntent(RaiseIntentRequest? request);
 
     /// <summary>
     /// Handles the AddIntentListener call in the bridge.
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    public ValueTask<RaiseIntentResult<IntentListenerResponse>> AddIntentListener(IntentListenerRequest request);
+    public ValueTask<RaiseIntentResult<IntentListenerResponse>> AddIntentListener(IntentListenerRequest? request);
 
     /// <summary>
     /// Handles the StoreIntentResult call in the bridge.
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    public ValueTask<StoreIntentResultResponse> StoreIntentResult(StoreIntentResultRequest request);
+    public ValueTask<StoreIntentResultResponse> StoreIntentResult(StoreIntentResultRequest? request);
 }

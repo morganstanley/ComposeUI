@@ -109,8 +109,13 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         };
     }
 
-    public async ValueTask<FindIntentResponse> FindIntent(FindIntentRequest request)
+    public async ValueTask<FindIntentResponse> FindIntent(FindIntentRequest? request)
     {
+        if (request == null)
+        {
+            return FindIntentResponse.Failure(ResolveError.IntentDeliveryFailed);
+        }
+
         //This function returns null, if the app could not be accepted based on the intent (required), context (optional in request), resultType (optional in request)
         //else for consistency it will return a single element array containing the intentMetadata which is allowed by the request.
         Func<Fdc3App, IEnumerable<IntentMetadata>?> selector = (fdc3App) =>
@@ -133,8 +138,13 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             : FindIntentResponse.Success(appIntents.Values.First());
     }
 
-    public async ValueTask<FindIntentsByContextResponse> FindIntentsByContext(FindIntentsByContextRequest request)
+    public async ValueTask<FindIntentsByContextResponse> FindIntentsByContext(FindIntentsByContextRequest? request)
     {
+        if (request == null)
+        {
+            return FindIntentsByContextResponse.Failure(ResolveError.IntentDeliveryFailed);
+        }
+
         //This function returns null, if the app could not be accepted based on the context(optional in request), resultType (optional in request)
         //else for consistency it will return a collection containing the intentMetadata which is allowed by the request.
         Func<Fdc3App, IEnumerable<IntentMetadata>?> selector = (fdc3App) =>
@@ -168,8 +178,18 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         return FindIntentsByContextResponse.Success(appIntents.Values);
     }
 
-    public async ValueTask<GetIntentResultResponse> GetIntentResult(GetIntentResultRequest request)
+    public async ValueTask<GetIntentResultResponse> GetIntentResult(GetIntentResultRequest? request)
     {
+        if (request == null)
+        {
+            return GetIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed);
+        }
+
+        if (request.TargetAppIdentifier?.InstanceId == null || request.Intent == null || request.MessageId == null)
+        {
+            return GetIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed);
+        }
+
         using var cancellationTokenSource = new CancellationTokenSource();
         try
         {
@@ -188,8 +208,18 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         }
     }
 
-    public ValueTask<StoreIntentResultResponse> StoreIntentResult(StoreIntentResultRequest request)
+    public ValueTask<StoreIntentResultResponse> StoreIntentResult(StoreIntentResultRequest? request)
     {
+        if (request == null)
+        {
+            return ValueTask.FromResult(StoreIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed));
+        }
+
+        if (request.TargetFdc3InstanceId == null || request.Intent == null)
+        {
+            return ValueTask.FromResult(StoreIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed));
+        }
+
         _raisedIntentResolutions.AddOrUpdate(
             new Guid(request.OriginFdc3InstanceId),
             _ => throw ThrowHelper.MissingAppFromRaisedIntentInvocations(request.OriginFdc3InstanceId),
@@ -205,8 +235,16 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         return ValueTask.FromResult(StoreIntentResultResponse.Success());
     }
 
-    public async ValueTask<RaiseIntentResult<IntentListenerResponse>> AddIntentListener(IntentListenerRequest request)
+    public async ValueTask<RaiseIntentResult<IntentListenerResponse>> AddIntentListener(IntentListenerRequest? request)
     {
+        if (request == null)
+        {
+            return new()
+            {
+                Response = IntentListenerResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull)
+            };
+        }
+
         switch (request.State)
         {
             case SubscribeState.Subscribe:
@@ -270,8 +308,16 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         };
     }
 
-    public async ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntent(RaiseIntentRequest request)
+    public async ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntent(RaiseIntentRequest? request)
     {
+        if (request == null)
+        {
+            return new()
+            {
+                Response = RaiseIntentResponse.Failure(ResolveError.IntentDeliveryFailed)
+            };
+        }
+
         if (!string.IsNullOrEmpty(request.Error))
         {
             return new()
