@@ -15,6 +15,9 @@
 using Microsoft.Extensions.Hosting;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
+using MorganStanley.ComposeUI.ModuleLoader;
+using MorganStanley.ComposeUI.Shell.Fdc3;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -31,7 +34,10 @@ public static class ServiceCollectionExtensions
             builderAction(builder);
         }
 
-        serviceCollection.AddSingleton<IHostedService, Fdc3DesktopAgent>();
+        serviceCollection.AddSingleton<IFdc3DesktopAgentBridge, Fdc3DesktopAgent>();
+        serviceCollection.AddHostedService<Fdc3DesktopAgentMessageRouterService>();
+        serviceCollection.AddTransient<IStartupAction, Fdc3StartupAction>();
+
         return serviceCollection;
     }
 }

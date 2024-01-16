@@ -14,6 +14,7 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -30,6 +31,7 @@ using MorganStanley.ComposeUI.Shell.Fdc3;
 using MorganStanley.ComposeUI.Shell.Messaging;
 using MorganStanley.ComposeUI.Shell.Modules;
 using MorganStanley.ComposeUI.Shell.Utilities;
+using MorganStanley.ComposeUI.Utilities;
 
 namespace MorganStanley.ComposeUI.Shell;
 
@@ -172,14 +174,11 @@ public partial class App : Application
             {
                 services.AddFdc3DesktopAgent();
                 services.AddFdc3AppDirectory();
-
                 services.Configure<Fdc3Options>(fdc3ConfigurationSection);
                 services.Configure<Fdc3DesktopAgentOptions>(
                     fdc3ConfigurationSection.GetSection(nameof(fdc3Options.DesktopAgent)));
                 services.Configure<AppDirectoryOptions>(
                     fdc3ConfigurationSection.GetSection(nameof(fdc3Options.AppDirectory)));
-
-                services.AddTransient<IStartupAction, Fdc3StartupAction>();
             }
         }
     }

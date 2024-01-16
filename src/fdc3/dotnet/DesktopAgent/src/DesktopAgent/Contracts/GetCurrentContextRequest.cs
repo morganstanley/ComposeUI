@@ -12,10 +12,9 @@
  * and limitations under the License.
  */
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
+
+internal sealed class GetCurrentContextRequest
 {
-    internal class GetCurrentContextRequest
-    {
-        public string? ContextType { get; set; }
-    }
+    public string? ContextType { get; set; }
 }

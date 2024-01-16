@@ -11,13 +11,23 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{44C08E9B
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DesktopAgent.Tests", "tests\DesktopAgent.Tests\DesktopAgent.Tests.csproj", "{96398594-52D7-4A21-A8DA-CCD1D1038741}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dependencies", "dependencies", "{2CE54671-6C98-455E-B2A0-52F8564DDA5D}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libs", "libs", "{2CE54671-6C98-455E-B2A0-52F8564DDA5D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Client", "..\..\..\messaging\dotnet\src\Client\MorganStanley.ComposeUI.Messaging.Client.csproj", "{855B4208-30B4-4978-8ED9-D212AE0A63DA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Core", "..\..\..\messaging\dotnet\src\Core\MorganStanley.ComposeUI.Messaging.Core.csproj", "{C404E0C4-A97A-4062-A4A8-88F8C109515D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Host", "..\..\..\messaging\dotnet\src\Host\MorganStanley.ComposeUI.Messaging.Host.csproj", "{ECC53672-0EBA-4BB9-8578-4180D1A4358D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Server", "..\..\..\messaging\dotnet\src\Server\MorganStanley.ComposeUI.Messaging.Server.csproj", "{4CF751F6-0A49-4315-A473-1DBE365AE254}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ModuleLoader.Abstractions", "..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader.Abstractions\MorganStanley.ComposeUI.ModuleLoader.Abstractions.csproj", "{94E84562-211E-4BA7-A45F-9ADC3D402B74}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Utilities", "..\..\..\shared\dotnet\src\MorganStanley.ComposeUI.Utilities\MorganStanley.ComposeUI.Utilities.csproj", "{2C25BA40-0103-4EB5-B181-98362F563B0F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppDirectory", "..\AppDirectory\src\AppDirectory\AppDirectory.csproj", "{50BD1318-FC44-4582-B333-3033076164E7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ModuleLoader", "..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader\MorganStanley.ComposeUI.ModuleLoader.csproj", "{4207C810-55CC-433E-BD5B-B9B4D639C7A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +55,26 @@ Global
 		{ECC53672-0EBA-4BB9-8578-4180D1A4358D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ECC53672-0EBA-4BB9-8578-4180D1A4358D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ECC53672-0EBA-4BB9-8578-4180D1A4358D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4CF751F6-0A49-4315-A473-1DBE365AE254}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CF751F6-0A49-4315-A473-1DBE365AE254}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CF751F6-0A49-4315-A473-1DBE365AE254}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CF751F6-0A49-4315-A473-1DBE365AE254}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94E84562-211E-4BA7-A45F-9ADC3D402B74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94E84562-211E-4BA7-A45F-9ADC3D402B74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94E84562-211E-4BA7-A45F-9ADC3D402B74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94E84562-211E-4BA7-A45F-9ADC3D402B74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C25BA40-0103-4EB5-B181-98362F563B0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C25BA40-0103-4EB5-B181-98362F563B0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C25BA40-0103-4EB5-B181-98362F563B0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C25BA40-0103-4EB5-B181-98362F563B0F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50BD1318-FC44-4582-B333-3033076164E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50BD1318-FC44-4582-B333-3033076164E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50BD1318-FC44-4582-B333-3033076164E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50BD1318-FC44-4582-B333-3033076164E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4207C810-55CC-433E-BD5B-B9B4D639C7A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4207C810-55CC-433E-BD5B-B9B4D639C7A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4207C810-55CC-433E-BD5B-B9B4D639C7A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4207C810-55CC-433E-BD5B-B9B4D639C7A2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -55,6 +85,11 @@ Global
 		{855B4208-30B4-4978-8ED9-D212AE0A63DA} = {2CE54671-6C98-455E-B2A0-52F8564DDA5D}
 		{C404E0C4-A97A-4062-A4A8-88F8C109515D} = {2CE54671-6C98-455E-B2A0-52F8564DDA5D}
 		{ECC53672-0EBA-4BB9-8578-4180D1A4358D} = {2CE54671-6C98-455E-B2A0-52F8564DDA5D}
+		{4CF751F6-0A49-4315-A473-1DBE365AE254} = {2CE54671-6C98-455E-B2A0-52F8564DDA5D}
+		{94E84562-211E-4BA7-A45F-9ADC3D402B74} = {2CE54671-6C98-455E-B2A0-52F8564DDA5D}
+		{2C25BA40-0103-4EB5-B181-98362F563B0F} = {2CE54671-6C98-455E-B2A0-52F8564DDA5D}
+		{50BD1318-FC44-4582-B333-3033076164E7} = {2CE54671-6C98-455E-B2A0-52F8564DDA5D}
+		{4207C810-55CC-433E-BD5B-B9B4D639C7A2} = {2CE54671-6C98-455E-B2A0-52F8564DDA5D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {70FE103D-26D8-42D8-88BA-1BECB1F73A18}

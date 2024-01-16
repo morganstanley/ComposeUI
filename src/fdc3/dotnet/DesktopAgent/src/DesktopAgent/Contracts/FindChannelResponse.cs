@@ -14,7 +14,7 @@
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
-internal class FindChannelResponse
+internal sealed class FindChannelResponse
 {
     public bool Found { get; set; }
     public string? Error { get; set; }

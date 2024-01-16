@@ -56,7 +56,6 @@ internal class UserChannel : IAsyncDisposable
 
         var broadcastSubscribing = _messageRouter.SubscribeAsync(_topics.Broadcast, broadcastObserver);
 
-        //await _messageRouter.RegisterEndpointAsync(_topics.GetCurrentContext, GetCurrentContext);
         await _messageRouter.RegisterServiceAsync(_topics.GetCurrentContext, GetCurrentContext);
         _broadcastSubscription = await broadcastSubscribing;
 
@@ -102,24 +101,24 @@ internal class UserChannel : IAsyncDisposable
         return ValueTask.CompletedTask;
     }
 
-    internal async ValueTask<MessageBuffer?> GetCurrentContext(string endpoint, MessageBuffer? payloadBuffer, MessageContext? _)
+    internal ValueTask<MessageBuffer?> GetCurrentContext(string endpoint, MessageBuffer? payloadBuffer, MessageContext? context)
     {
         if (payloadBuffer == null)
-        {            
-            return _lastContext;
+        {
+            return ValueTask.FromResult<MessageBuffer?>(_lastContext);
         }
 
         var payload = payloadBuffer.ReadJson<GetCurrentContextRequest>();
         if (payload?.ContextType == null)
         {
-            return _lastContext;
+            return ValueTask.FromResult<MessageBuffer?>(_lastContext);
         }
 
-        if (_contexts.TryGetValue(payload.ContextType, out MessageBuffer? context))
+        if (_contexts.TryGetValue(payload.ContextType, out MessageBuffer? messageBuffer))
         {
-            return context;
+            return ValueTask.FromResult<MessageBuffer?>(messageBuffer);
         }
-        return null;
+        return ValueTask.FromResult<MessageBuffer?>(null);
     }
 
     public async ValueTask DisposeAsync()
@@ -128,7 +127,7 @@ internal class UserChannel : IAsyncDisposable
         {
             await _broadcastSubscription.DisposeAsync();
         }
-        
+
         _broadcastSubscription = null;
 
         await _messageRouter.UnregisterServiceAsync(_topics.GetCurrentContext);
