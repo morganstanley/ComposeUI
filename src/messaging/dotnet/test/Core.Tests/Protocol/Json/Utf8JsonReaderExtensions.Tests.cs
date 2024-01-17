@@ -20,7 +20,7 @@ namespace MorganStanley.ComposeUI.Messaging.Protocol.Json;
 
 public class Utf8JsonReaderExtensionsTests
 {
-    [Theory(Skip ="ci fail")]
+    [Theory]
     [ClassData(typeof(CopyStringTheoryData))]
     public void CopyString_writes_the_unescaped_UTF8_string_to_the_buffer(CopyStringTestData testData)
     {
@@ -55,10 +55,10 @@ public class Utf8JsonReaderExtensionsTests
                 reader = new Utf8JsonReader(MemoryHelper.CreateMultipartSequence(_utf8Buffers));
             }
 
-            Debug.Assert(reader.Read());
-            Debug.Assert(reader.TokenType == JsonTokenType.StartArray);
-            Debug.Assert(reader.Read());
-            Debug.Assert(reader.TokenType == JsonTokenType.String);
+            reader.Read().Should().Be(true);
+            reader.TokenType.Should().Be(JsonTokenType.StartArray);
+            reader.Read().Should().Be(true);
+            reader.TokenType.Should().Be(JsonTokenType.String);
 
             return reader;
         }
