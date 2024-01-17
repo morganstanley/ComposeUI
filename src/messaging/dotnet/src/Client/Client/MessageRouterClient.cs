@@ -314,7 +314,7 @@ internal sealed class MessageRouterClient : IMessageRouter
 
     private void HandleConnectResponse(ConnectResponse message)
     {
-        _ = Task.Run(
+        _ = Task.Factory.StartNew(
             async () =>
             {
                 using (await _mutex.LockAsync())
@@ -331,12 +331,12 @@ internal sealed class MessageRouterClient : IMessageRouter
                         _stateChangeEvents.Connected.TrySetResult();
                     }
                 }
-            });
+            }, TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
     private void HandleInvokeRequest(InvokeRequest message)
     {
-        _ = Task.Run(
+        _ = Task.Factory.StartNew(
             async () =>
             {
                 try
@@ -394,7 +394,7 @@ internal sealed class MessageRouterClient : IMessageRouter
                         $"Unhandled exception while processing an {nameof(InvokeRequest)}: {{ExceptionMessage}}",
                         e.Message);
                 }
-            });
+            }, TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
     private void HandleResponse(AbstractResponse message)
@@ -593,7 +593,7 @@ internal sealed class MessageRouterClient : IMessageRouter
 
     private void RequestClose(Exception? exception)
     {
-        _ = Task.Run(() => CloseAsyncCore(exception).AsTask());
+        _ = Task.Factory.StartNew(() => CloseAsyncCore(exception).AsTask(), TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
     private ValueTask CloseAsync(Exception? exception)
@@ -855,7 +855,7 @@ internal sealed class MessageRouterClient : IMessageRouter
                 _subscriptions.Remove(subscription);
                 if (_subscriptions.Count == 0)
                 {
-                    Task.Run(() => _messageRouter.TryUnsubscribe(this));
+                    Task.Factory.StartNew(() => _messageRouter.TryUnsubscribe(this), TaskCreationOptions.RunContinuationsAsynchronously);
                 }
             }
         }
@@ -880,7 +880,7 @@ internal sealed class MessageRouterClient : IMessageRouter
             _subscriber = subscriber;
             _topic = topic;
             _logger = logger;
-            _ = Task.Run(ProcessMessages);
+            _ = Task.Factory.StartNew(ProcessMessages, TaskCreationOptions.RunContinuationsAsynchronously);
         }
 
         public void OnNext(TopicMessage value)

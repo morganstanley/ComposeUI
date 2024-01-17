@@ -55,7 +55,7 @@ internal class WebSocketConnection : IConnection
         {
             _webSocket = new ClientWebSocket();
             await _webSocket.ConnectAsync(_options.Value.Uri, cancellationToken);
-            _ = Task.Run(ReceiveMessages);
+            _ = Task.Factory.StartNew(ReceiveMessages, TaskCreationOptions.RunContinuationsAsynchronously);
         }
         catch
         {

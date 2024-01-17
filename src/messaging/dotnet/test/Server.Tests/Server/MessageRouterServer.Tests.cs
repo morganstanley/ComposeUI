@@ -95,7 +95,7 @@ public class MessageRouterServerTests
     }
 
 
-    [Fact (Skip = "CI Fail")]
+    [Fact]
     public async Task When_Publish_message_received_it_dispatches_the_message_to_the_subscribers()
     {
         await using var server = CreateServer();
@@ -104,6 +104,8 @@ public class MessageRouterServerTests
 
         await client1.SendToServer(new SubscribeMessage {Topic = "test-topic"});
         await client2.SendToServer(new SubscribeMessage {Topic = "test-topic"});
+
+        await TaskExtensions.WaitForBackgroundTasksAsync();
 
         await client1.SendToServer(
             new PublishMessage
@@ -210,7 +212,7 @@ public class MessageRouterServerTests
                 Payload = MessageBuffer.Create("test-payload")
             });
 
-        await TaskExtensions.WaitForBackgroundTasksAsync();
+        await TaskExtensions.WaitForBackgroundTasksAsync(TimeSpan.FromSeconds(1));
 
         service.Expect<InvokeRequest>(
             msg => msg.Endpoint == "test-service" && msg.Payload!.GetString() == "test-payload",

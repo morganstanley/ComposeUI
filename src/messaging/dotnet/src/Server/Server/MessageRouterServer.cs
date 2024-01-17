@@ -45,7 +45,7 @@ internal class MessageRouterServer : IMessageRouterServer
 
         _logger.LogInformation("Client '{ClientId}' connected", client.ClientId);
 
-        _ = Task.Run(() => ProcessMessages(client, _stopTokenSource.Token));
+        _ = Task.Factory.StartNew(() => ProcessMessages(client, _stopTokenSource.Token), TaskCreationOptions.RunContinuationsAsynchronously);
 
         return default;
     }

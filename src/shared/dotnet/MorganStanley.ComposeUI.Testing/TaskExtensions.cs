@@ -13,12 +13,13 @@
 // ReSharper disable UnusedMember.Global
 
 using System.Diagnostics;
+using Xunit.Sdk;
 
 namespace MorganStanley.ComposeUI.Testing;
 
 public static class TaskExtensions
 {
-    public static Task WaitForBackgroundTasksAsync(CancellationToken cancellationToken = default)
+    public static async Task WaitForBackgroundTasksAsync(CancellationToken cancellationToken = default)
     {
         // Quick and dirty method of waiting for background tasks to finish.
         // We try to schedule enough tasks so that the thread pool is fully utilized.
@@ -32,12 +33,15 @@ public static class TaskExtensions
                 .Select(async _ => await gate.WaitAsync(cancellationToken)));
 
         // Let the tasks complete
-        Task.Delay(1, cancellationToken)
-            .ContinueWith(
-                _ => gate.Release(taskCount),
-                TaskContinuationOptions.RunContinuationsAsynchronously);
+        await Task.Yield();
+        gate.Release(taskCount);
 
-        return task;
+        await task;
+
+        if (SynchronizationContext.Current is AsyncTestSyncContext asyncContext)
+        {
+            await asyncContext.WaitForCompletionAsync();
+        }
     }
 
     public static async Task WaitForBackgroundTasksAsync(TimeSpan minimumWaitTime, CancellationToken cancellationToken = default)

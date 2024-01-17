@@ -27,6 +27,8 @@ public class MessageRouterClientTests : IAsyncLifetime
         var messageRouter = CreateMessageRouter();
         await messageRouter.DisposeAsync();
 
+        await TaskExtensions.WaitForBackgroundTasksAsync();
+
         _connectionMock.Verify(_ => _.DisposeAsync());
         _connectionMock.VerifyNoOtherCalls();
     }
@@ -37,6 +39,8 @@ public class MessageRouterClientTests : IAsyncLifetime
         var messageRouter = CreateMessageRouter();
         await messageRouter.ConnectAsync();
         await messageRouter.DisposeAsync();
+
+        await TaskExtensions.WaitForBackgroundTasksAsync();
 
         _connectionMock.Verify(_ => _.DisposeAsync());
     }
@@ -56,10 +60,12 @@ public class MessageRouterClientTests : IAsyncLifetime
         await messageRouter.DisposeAsync();
         await messageRouter.DisposeAsync();
 
+        await TaskExtensions.WaitForBackgroundTasksAsync();
+
         _connectionMock.Verify(_ => _.DisposeAsync(), Times.Once);
     }
 
-    [Fact (Skip ="Ci fail")]
+    [Fact]
     public async Task DisposeAsync_calls_OnError_on_active_subscribers()
     {
         var messageRouter = CreateMessageRouter();
@@ -68,6 +74,8 @@ public class MessageRouterClientTests : IAsyncLifetime
         await messageRouter.SubscribeAsync("test-topic", subscriber.Object);
 
         await messageRouter.DisposeAsync();
+
+        await TaskExtensions.WaitForBackgroundTasksAsync();
 
         subscriber.Verify(
             _ => _.OnErrorAsync(It.Is<MessageRouterException>(e => e.Name == MessageRouterErrors.ConnectionClosed)));
@@ -128,6 +136,8 @@ public class MessageRouterClientTests : IAsyncLifetime
 
         await _connectionMock.SendToClient(new ConnectResponse {Error = new Error("Error", "Fail")});
 
+        await TaskExtensions.WaitForBackgroundTasksAsync();
+
         var exception = await Assert.ThrowsAsync<MessageRouterException>(async () => await connectTask);
         exception.Name.Should().Be("Error");
         exception.Message.Should().Be("Fail");
@@ -145,7 +155,7 @@ public class MessageRouterClientTests : IAsyncLifetime
         exception.Name.Should().Be(MessageRouterErrors.ConnectionClosed);
     }
 
-    [Fact (Skip="CI fail")]
+    [Fact]
     public async Task PublishAsync_sends_a_PublishMessage()
     {
         await using var messageRouter = CreateMessageRouter();
@@ -156,6 +166,8 @@ public class MessageRouterClientTests : IAsyncLifetime
             "test-payload",
             new PublishOptions
                 {CorrelationId = "test-correlation-id", Scope = MessageScope.FromClientId("other-client")});
+
+        await TaskExtensions.WaitForBackgroundTasksAsync();
 
         _connectionMock.Expect<PublishMessage>(
             msg => msg.Topic == "test-topic"
@@ -179,7 +191,7 @@ public class MessageRouterClientTests : IAsyncLifetime
         exception.Name.Should().Be(MessageRouterErrors.ConnectionClosed);
     }
 
-    [Fact (Skip="CI Fail")]
+    [Fact]
     public async Task SubscribeAsync_sends_a_Subscribe_message()
     {
         await using var messageRouter = CreateMessageRouter();
@@ -187,10 +199,12 @@ public class MessageRouterClientTests : IAsyncLifetime
 
         await messageRouter.SubscribeAsync("test-topic", new Mock<IAsyncObserver<TopicMessage>>().Object);
 
+        await TaskExtensions.WaitForBackgroundTasksAsync();
+
         _connectionMock.Expect<SubscribeMessage>(msg => msg.Topic == "test-topic");
     }
 
-    [Fact (Skip="CI Fail")]
+    [Fact]
     public async Task SubscribeAsync_only_sends_a_Subscribe_message_on_the_first_subscription()
     {
         await using var messageRouter = CreateMessageRouter();
@@ -199,6 +213,8 @@ public class MessageRouterClientTests : IAsyncLifetime
         await messageRouter.SubscribeAsync("test-topic", new Mock<IAsyncObserver<TopicMessage>>().Object);
         await messageRouter.SubscribeAsync("test-topic", new Mock<IAsyncObserver<TopicMessage>>().Object);
         await messageRouter.SubscribeAsync("test-topic", new Mock<IAsyncObserver<TopicMessage>>().Object);
+
+        await TaskExtensions.WaitForBackgroundTasksAsync();
 
         _connectionMock.Expect<SubscribeMessage>(msg => msg.Topic == "test-topic", Times.Once);
     }
@@ -262,6 +278,7 @@ public class MessageRouterClientTests : IAsyncLifetime
         await _connectionMock.SendToClient(
             new Protocol.Messages.TopicMessage
                 {Topic = "test-topic", Payload = MessageBuffer.Create("payload1")});
+
         await _connectionMock.SendToClient(
             new Protocol.Messages.TopicMessage
                 {Topic = "test-topic", Payload = MessageBuffer.Create("payload2")});
@@ -289,11 +306,13 @@ public class MessageRouterClientTests : IAsyncLifetime
 
         var topic = messageRouter.Topic("test-topic");
         await using var sub1 = await topic.SubscribeAsync(_ => { });
+        await TaskExtensions.WaitForBackgroundTasksAsync();
 
         _connectionMock.Expect<SubscribeMessage>(msg => msg.Topic == "test-topic", Times.Once);
         _connectionMock.Invocations.Clear();
 
         await using var sub2 = await topic.SubscribeAsync(_ => { });
+        await TaskExtensions.WaitForBackgroundTasksAsync();
 
         _connectionMock.Expect<SubscribeMessage>(msg => msg.Topic == "test-topic", Times.Never);
     }
@@ -649,7 +668,6 @@ public class MessageRouterClientTests : IAsyncLifetime
     [Fact]
     public async Task When_the_connection_closes_it_fails_pending_requests()
     {
-
         await using var messageRouter = CreateMessageRouter();
         await messageRouter.ConnectAsync();
         var invokeTask = messageRouter.InvokeAsync("test-service");

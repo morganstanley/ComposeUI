@@ -51,7 +51,7 @@ public abstract class EndToEndTestsBase : IAsyncLifetime
             MessageBuffer.Create(JsonSerializer.SerializeToUtf8Bytes(publishedPayload)));
 
         // TODO: Investigate why WaitForBackgroundTasksAsync is unreliable in this particular scenario
-        await TaskExtensions.WaitForBackgroundTasksAsync(TimeSpan.FromMilliseconds(100));
+        await TaskExtensions.WaitForBackgroundTasksAsync();
 
         var receivedPayload = JsonSerializer.Deserialize<TestPayload>(receivedMessages.Single().Payload!.GetSpan());
 
