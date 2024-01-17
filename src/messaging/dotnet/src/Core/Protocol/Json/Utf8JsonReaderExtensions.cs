@@ -44,7 +44,7 @@ internal static class Utf8JsonReaderExtensions
     {
         if (reader.TokenType is not (JsonTokenType.String or JsonTokenType.PropertyName))
         {
-            throw ThrowHelper.StringExpected();
+            throw ThrowHelper.StringExpected(reader.TokenType);
         }
 
         var valueLength = reader.HasValueSequence 

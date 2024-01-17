@@ -10,11 +10,13 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using System.Text.Json;
+
 namespace MorganStanley.ComposeUI.Messaging.Protocol.Json;
 
 internal static class ThrowHelper
 {
-    public static InvalidOperationException StringExpected() => new InvalidOperationException("String expected");
+    public static InvalidOperationException StringExpected(JsonTokenType actualTokenType) => new InvalidOperationException($"String expected (actual: {actualTokenType})");
 
     public static ArgumentException DestinationTooShort(string paramName) =>
         new ArgumentException("The destination buffer is too short", paramName);
