@@ -11,6 +11,6 @@
     "prototypes/process-explorer/*"
   ],
   "devDependencies": {
-    "lerna": "^7.1.1"
+    "lerna": "8.0.2"
   }
 }
