@@ -65,6 +65,47 @@
             "interop": {
                 "intents": {}
             }
-          }
+          },
+		  {
+			"appId": "Datagrid Example",
+            "name": "Js Datagrid Example",
+            "type": "web",
+            "details": {
+              "url": "http://localhost:4200/"
+            },
+            "interop": {
+                "intents": {
+					"listensFor": {},
+					"raises": {
+						"ViewChart": [
+							"fdc3.chart",
+							"fdc3.nothing"
+						]
+					}
+				}
+			}
+		  },
+		  {
+			"appId": "Chart Example",
+            "name": "Js Chart Example",
+            "type": "web",
+            "details": {
+              "url": "http://localhost:8080/"
+            },
+            "interop": {
+                "intents": {
+					"listensFor": {
+						"ViewChart": {
+							"name": "ViewChart",
+							"displayName": "ViewChart",
+							"contexts": [
+								"fdc3.chart",
+								"fdc3.nothing"
+							]
+						}
+					}
+				}
+			}
+		  }	
     ]
 }

@@ -31,6 +31,7 @@ using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.Abstractions;
 using MorganStanley.ComposeUI.Shell.Fdc3;
+using MorganStanley.ComposeUI.Shell.ImageSource;
 using MorganStanley.ComposeUI.Shell.Messaging;
 using MorganStanley.ComposeUI.Shell.Modules;
 using MorganStanley.ComposeUI.Shell.Utilities;
@@ -138,6 +139,8 @@ public partial class App : Application
         services.AddHttpClient();
 
         services.Configure<LoggerFactoryOptions>(context.Configuration.GetSection("Logging"));
+
+        services.AddSingleton<IImageSourcePolicy, EnvironmentImageSourcePolicy>();
 
         ConfigureMessageRouter();
 

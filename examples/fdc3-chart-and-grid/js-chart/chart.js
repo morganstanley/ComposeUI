@@ -3,9 +3,9 @@ import ColumnSeries from 'highcharts/es-modules/Series/Column/ColumnSeries.js';
 import * as Highcharts from 'highcharts';
 
 let chart;
-let currentChannel;
+let intentListener;
 
-window.addEventListener('load', function() {
+window.addEventListener('load', async function() {
   chart = Highcharts.chart('container', {
       chart: {
         type: 'column',
@@ -37,16 +37,16 @@ window.addEventListener('load', function() {
   });
 });
 
+window.addEventListener('close', async function(){
+  if (this.intentListener) {
+    await this.intentListener.unsubscribe();
+  }
+});
+
 async function requestData() {
   (async () => {
-    currentChannel = await window.fdc3.getCurrentChannel();
-  
-    if(!currentChannel) {
-      await window.fdc3.joinUserChannel("default");
-    }
-
-    await window.fdc3.addContextListener('fdc3.instrument', (context, metadata) => {
-      if(context.id) {
+    intentListener = await window.fdc3.addIntentListener("ViewChart", (context, contextMetada) => {
+      if (context.id) {
         chart.setTitle({ text: "Monthly sales for " + context.id.ticker });
         chart.series[0].setData([]);
         chart.series[1].setData([]);

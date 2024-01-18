@@ -6,6 +6,7 @@ import { MatPaginator, MatPaginatorIntl, PageEvent } from '@angular/material/pag
 import { MatTableDataSource } from '@angular/material/table';
 import { Symbol } from '../models/Symbol';
 import { MockDataService } from '../services/mock-data.service';
+import { AppIdentifier } from '@finos/fdc3';
 
 @Component({
   selector: 'app-datagrid',
@@ -24,7 +25,8 @@ export class DatagridComponent implements OnInit, AfterViewInit {
   public lowValue: number = 0;
   public highValue: number = 5;
 
-  private chartWindow: Window|null;
+  private createdApp: AppIdentifier | null;
+  private selectedSymbol: Symbol;
   
   constructor(private ngZone: NgZone, private mockDataService: MockDataService){
     this.selection = new SelectionModel<Symbol>(false, []);
@@ -47,6 +49,7 @@ export class DatagridComponent implements OnInit, AfterViewInit {
 
   public async onRowClicked(symbol: Symbol){
     console.log(symbol.symbol);
+    this.selectedSymbol = symbol;
     await this.mockDataService.publishSymbolData(symbol);
   }
 
@@ -61,11 +64,12 @@ export class DatagridComponent implements OnInit, AfterViewInit {
     return event;
   }
 
-  public onButtonClick(){
-    if(this.chartWindow == null || this.chartWindow.closed == true){
-      this.chartWindow = window.open('http://localhost:8080');
+  public async onButtonClick(){
+    if(!this.createdApp){
+      this.createdApp = await this.mockDataService.openChart(this.selectedSymbol);
+
     }else{
-      console.log('The chart is already opened.. ', this.chartWindow);
+      console.log('The chart is already opened.. ', this.createdApp);
     }
   }
 }

@@ -50,6 +50,9 @@ public partial class MainWindow : RibbonWindow
         var modules = new List<ModuleViewModel>();
         foreach (var moduleId in moduleIds)
         {
+            // We dont want to see the chart example on the Ribbon menu, but without initializing in the module catalog we can't start via raiseIntent call
+            if (moduleId == "Chart Example") continue;
+
             var manifest = await _moduleCatalog.GetManifest(moduleId);
             modules.Add(new ModuleViewModel(manifest, _iconProvider));
         }

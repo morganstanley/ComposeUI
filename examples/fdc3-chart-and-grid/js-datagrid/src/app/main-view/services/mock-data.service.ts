@@ -3,7 +3,8 @@
 import { Injectable } from '@angular/core';
 import { interval, Subject } from 'rxjs';
 import { Market } from './mock-data';
-import { Channel, Context } from '@finos/fdc3';
+import { AppIdentifier, Context, ContextTypes, IntentResolution } from '@finos/fdc3';
+import { Symbol } from './../models/Symbol';
 
 @Injectable({
   providedIn: 'root'
@@ -12,19 +13,11 @@ export class MockDataService{
   public subject: Subject<any> = new Subject<any>();
   public marketData: any;
   private market: Market;
-  private currentChannel: Channel | null;
-  private connected: Boolean = false;
-  private connecting: Promise<void>;
+  private intentResolution: IntentResolution;
+  private readonly viewChartIntent: string = "ViewChart"; 
 
   constructor(){
     this.market = new Market();
-    this.connecting = new Promise(async(resolve, reject) => {
-      try{
-        resolve(await this.checkFdc3Connection());
-      } catch(err) {
-        reject(err);
-      }
-    });
 
     interval(1000).subscribe(() => {
       this.marketData = this.market.generateNewMarketNumbers();
@@ -32,24 +25,16 @@ export class MockDataService{
     });
   }
 
-  private async checkFdc3Connection(): Promise<void> {
-    if(!this.connected) {
-      this.currentChannel = await window.fdc3.getCurrentChannel();
-      if (!this.currentChannel) {
-        await window.fdc3.joinUserChannel("default");
-      }
-      this.connected = true;
-    }
-  }
-
-  public async publishSymbolData(symbol: any|undefined): Promise<void> {
+  public async publishSymbolData(symbol: Symbol | undefined): Promise<void> {
     if(symbol){
-      await this.connecting;
+      let marketSymbol;
       //TODO: involve DataService to generate the data for the chart
-      let marketSymbol = this.market.createMarketSymbol(symbol);
-
+      if (symbol) {
+        marketSymbol = this.market.createMarketSymbol(symbol);
+      }
+      
       const context: Context = {
-        type: 'fdc3.instrument',
+        type: ContextTypes.Chart,
         id: {
           ticker: marketSymbol?.symbol,
           buyData: marketSymbol?.buy,
@@ -57,7 +42,38 @@ export class MockDataService{
         }
       }
 
-      await window.fdc3.broadcast(context);
+      if (this.intentResolution?.source) {
+        await window.fdc3.raiseIntent(this.viewChartIntent, context, this.intentResolution.source).catch(async(rejected) => {
+          console.log("Error while raising intent, eg.: the window could be closed: ", rejected);
+          this.intentResolution = await window.fdc3.raiseIntent(this.viewChartIntent, context);
+        });
+        
+      } else {
+        this.intentResolution = await window.fdc3.raiseIntent(this.viewChartIntent, context);
+      }
+      console.log("Result: ", await this.intentResolution.getResult());
     }
+  }
+
+  public async openChart(symbol: Symbol | undefined) : Promise<AppIdentifier> {
+    let context: Context = {
+      type: ContextTypes.Chart
+    };
+
+    if (symbol) {
+      const marketSymbol = this.market.createMarketSymbol(symbol);
+      context = {
+        type: ContextTypes.Chart,
+        id: {
+          ticker: marketSymbol?.symbol,
+          buyData: marketSymbol?.buy,
+          sellData: marketSymbol?.sell
+        }
+      };
+    }
+
+    this.intentResolution = await window.fdc3.raiseIntent(this.viewChartIntent, context);
+
+    return this.intentResolution.source;
   }
 }
