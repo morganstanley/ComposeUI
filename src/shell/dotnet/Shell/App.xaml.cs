@@ -140,8 +140,6 @@ public partial class App : Application
 
         services.Configure<LoggerFactoryOptions>(context.Configuration.GetSection("Logging"));
 
-        services.AddSingleton<IImageSourcePolicy, EnvironmentImageSourcePolicy>();
-
         ConfigureMessageRouter();
 
         ConfigureModules();

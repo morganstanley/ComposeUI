@@ -1,111 +1,111 @@
 {
-    "applications": [
-        {
-            "appId": "Morgan Stanley",
-            "name": "Morgan Stanley",
-            "type": "web",
-            "details": {
-              "url": "http://www.morganstanley.com"
-            },
-            "interop": {
-                "intents": {}
+  "applications": [
+    {
+      "appId": "Morgan Stanley",
+      "name": "Morgan Stanley",
+      "type": "web",
+      "details": {
+        "url": "http://www.morganstanley.com"
+      },
+      "interop": {
+        "intents": {}
+      }
+    },
+    {
+      "appId": "Microsoft",
+      "name": "Microsoft",
+      "type": "web",
+      "details": {
+        "url": "http://www.microsoft.com"
+      },
+      "interop": {
+        "intents": {
+          "listensFor": {
+            "startMicrosoft": {
+              "name": "startMicrosoft",
+              "displayName": "StartMicrosoft",
+              "contexts": [
+                "fdc3.nothing"
+              ]
             }
           },
-          {
-            "appId": "Microsoft",
-            "name": "Microsoft",
-            "type": "web",
-            "details": {
-              "url": "http://www.microsoft.com"
-            },
-            "interop": {
-                "intents": {
-                  "listensFor": {
-                    "startMicrosoft": {
-                      "name": "startMicrosoft",
-                      "displayName": "StartMicrosoft",
-                      "contexts": [
-                        "fdc3.nothing"
-                      ]
-                    }
-                  },
-                  "raises": {}
-                }
-              }
-          },
-          {
-            "appId": "Google",
-            "name": "Google",
-            "type": "web",
-            "details": {
-              "url": "http://www.google.com"
-            },
-            "interop": {
-                "intents": {
-                  "listensFor": {
-                    "viewGoogle": {
-                      "name": "viewGoogle",
-                      "displayName": "ViewGoogle",
-                      "contexts": [
-                        "fdc3.testContext"
-                      ]
-                    }
-                  },
-                  "raises": {}
-                }
-              }
-          },
-          {
-            "appId": "FINOS FDC3 Workbench",
-            "name": "FINOS FDC3 Workbench",
-            "type": "web",
-            "details": {
-              "url": "https://fdc3.finos.org/toolbox/fdc3-workbench/"
-            },
-            "interop": {
-                "intents": {}
+          "raises": {}
+        }
+      }
+    },
+    {
+      "appId": "Google",
+      "name": "Google",
+      "type": "web",
+      "details": {
+        "url": "http://www.google.com"
+      },
+      "interop": {
+        "intents": {
+          "listensFor": {
+            "viewGoogle": {
+              "name": "viewGoogle",
+              "displayName": "ViewGoogle",
+              "contexts": [
+                "fdc3.testContext"
+              ]
             }
           },
-		  {
-			"appId": "Datagrid Example",
-            "name": "Js Datagrid Example",
-            "type": "web",
-            "details": {
-              "url": "http://localhost:4200/"
-            },
-            "interop": {
-                "intents": {
-					"listensFor": {},
-					"raises": {
-						"ViewChart": [
-							"fdc3.chart",
-							"fdc3.nothing"
-						]
-					}
-				}
-			}
-		  },
-		  {
-			"appId": "Chart Example",
-            "name": "Js Chart Example",
-            "type": "web",
-            "details": {
-              "url": "http://localhost:8080/"
-            },
-            "interop": {
-                "intents": {
-					"listensFor": {
-						"ViewChart": {
-							"name": "ViewChart",
-							"displayName": "ViewChart",
-							"contexts": [
-								"fdc3.chart",
-								"fdc3.nothing"
-							]
-						}
-					}
-				}
-			}
-		  }	
-    ]
+          "raises": {}
+        }
+      }
+    },
+    {
+      "appId": "FINOS FDC3 Workbench",
+      "name": "FINOS FDC3 Workbench",
+      "type": "web",
+      "details": {
+        "url": "https://fdc3.finos.org/toolbox/fdc3-workbench/"
+      },
+      "interop": {
+        "intents": {}
+      }
+    },
+    {
+      "appId": "Datagrid Example",
+      "name": "Js Datagrid Example",
+      "type": "web",
+      "details": {
+        "url": "http://localhost:4200/"
+      },
+      "interop": {
+        "intents": {
+          "listensFor": {},
+          "raises": {
+            "ViewChart": [
+              "fdc3.chart",
+              "fdc3.nothing"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "appId": "Chart Example",
+      "name": "Js Chart Example",
+      "type": "web",
+      "details": {
+        "url": "http://localhost:8080/"
+      },
+      "interop": {
+        "intents": {
+          "listensFor": {
+            "ViewChart": {
+              "name": "ViewChart",
+              "displayName": "ViewChart",
+              "contexts": [
+                "fdc3.chart",
+                "fdc3.nothing"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
 }
