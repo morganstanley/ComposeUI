@@ -369,11 +369,57 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
                 request.Fdc3InstanceId);
         }
 
-        //Multiple app inside one AppIntent, we pass back the messageId as string.
-        return new()
+        //Resolve to one app via ResolverUI.
+        var result = await WaitForResolverUIAsync(request.Intent, appIntent.Apps);
+
+        if (result != null)
         {
-            Response = RaiseIntentResponse.Success(request.MessageId.ToString(), appIntent)
+            return await RaiseIntentToApplication(
+                request.MessageId,
+                result,
+                request.Intent,
+                request.Context,
+                request.Fdc3InstanceId);
+        }
+        else
+        {
+            return new()
+            {
+                Response = RaiseIntentResponse.Failure(ResolveError.UserCancelledResolution)
+            };
+        }  
+    }
+
+    //TODO: Placeholder for the right implementation of returning the choosen application from the ResolverUI.
+    private async Task<AppMetadata> WaitForResolverUIAsync(string intent, IEnumerable<AppMetadata> apps)
+    {
+        Task<bool> IsIntentListenerRegisteredAsync(AppMetadata appMetadata)
+        {
+            if (_raisedIntentResolutions.TryGetValue(new Guid(appMetadata.InstanceId!), out var resolver))
+            {
+                if (resolver.IsIntentListenerRegistered(intent))
+                {
+                    return Task.FromResult(true);
+                }
+            }
+
+            return Task.FromResult(false);
         };
+
+        var runningApplications = apps.Where(app => app.InstanceId != null).ToArray();
+        if (runningApplications.Length >= 1)
+        {
+            for (var i = 0; i <= runningApplications.Length; i++)
+            {
+                var application = runningApplications[i];
+                if (await IsIntentListenerRegisteredAsync(application))
+                {
+                    return application;
+                }
+            }
+        }
+        
+        return apps.First();
     }
 
     //Here we have a specific application which should either start or we should send a intent resolution request

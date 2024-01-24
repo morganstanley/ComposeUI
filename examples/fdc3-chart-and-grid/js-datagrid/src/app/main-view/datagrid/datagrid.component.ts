@@ -6,7 +6,7 @@ import { MatPaginator, MatPaginatorIntl, PageEvent } from '@angular/material/pag
 import { MatTableDataSource } from '@angular/material/table';
 import { Symbol } from '../models/Symbol';
 import { MockDataService } from '../services/mock-data.service';
-import { AppIdentifier } from '@finos/fdc3';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-datagrid',
@@ -21,19 +21,17 @@ export class DatagridComponent implements OnInit, AfterViewInit {
   public marketData: MatTableDataSource<Symbol> = new MatTableDataSource<Symbol>();
   public displayedColumns: string[] = ['symbol', 'fullname', 'avarageProfit', 'amount', 'symbolRating'];
   public selection: SelectionModel<Symbol>;  
-  
   public lowValue: number = 0;
   public highValue: number = 5;
-
-  private createdApp: AppIdentifier | null;
-  private selectedSymbol: Symbol;
+  private latestSelectedSymbol: Symbol;
+  private subscription: Subscription;
   
   constructor(private ngZone: NgZone, private mockDataService: MockDataService){
     this.selection = new SelectionModel<Symbol>(false, []);
   }
 
   ngOnInit(){
-    const subscribingToMarketData = this.mockDataService.subject
+    this.subscription = this.mockDataService.subject
       .subscribe((data) => {
         this.marketData.data = data;
       });
@@ -47,9 +45,8 @@ export class DatagridComponent implements OnInit, AfterViewInit {
        (event) => console.log(event));
   }
 
-  public async onRowClicked(symbol: Symbol){
-    console.log(symbol.symbol);
-    this.selectedSymbol = symbol;
+  public async onRowClicked(symbol: Symbol) {
+    this.latestSelectedSymbol = symbol;
     await this.mockDataService.publishSymbolData(symbol);
   }
 
@@ -65,11 +62,6 @@ export class DatagridComponent implements OnInit, AfterViewInit {
   }
 
   public async onButtonClick(){
-    if(!this.createdApp){
-      this.createdApp = await this.mockDataService.openChart(this.selectedSymbol);
-
-    }else{
-      console.log('The chart is already opened.. ', this.createdApp);
-    }
+    await this.mockDataService.openChart(this.latestSelectedSymbol);
   }
 }

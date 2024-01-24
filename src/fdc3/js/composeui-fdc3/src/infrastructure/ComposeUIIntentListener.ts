@@ -55,7 +55,7 @@ export class ComposeUIIntentListener implements Listener {
                             const context = <Context>intentResult;
                             request = new Fdc3StoreIntentResultRequest(message.messageId, this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, context);
                         } else {
-                            throw new Error("Cannot detect return type of the IntentHandler.");
+                            throw new Error("Cannot detect the return type of the IntentHandler.");
                         }
                     } else { //its a void
                         request = new Fdc3StoreIntentResultRequest(message.messageId, this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, undefined, true);

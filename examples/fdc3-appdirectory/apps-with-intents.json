@@ -78,8 +78,7 @@
           "listensFor": {},
           "raises": {
             "ViewChart": [
-              "fdc3.chart",
-              "fdc3.nothing"
+              "fdc3.instrument"
             ]
           }
         }
@@ -99,8 +98,7 @@
               "name": "ViewChart",
               "displayName": "ViewChart",
               "contexts": [
-                "fdc3.chart",
-                "fdc3.nothing"
+                "fdc3.instrument"
               ]
             }
           }

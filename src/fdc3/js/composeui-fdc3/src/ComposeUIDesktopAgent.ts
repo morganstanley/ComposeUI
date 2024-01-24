@@ -210,7 +210,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
                 return reject(new Error(ComposeUIErrors.CurrentChannelNotSet));
             }
 
-            if (contextType !=null && typeof contextType != 'string') {
+            if (contextType && typeof contextType != 'string') {
                 handler = contextType;
                 contextType = null;                
             }
@@ -258,19 +258,6 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     //TODO: should return AccessDenied error when a channel object is denied
     //TODO: should return a CreationFailed error when a channel cannot be created or retrieved (channelId failure)
     public getOrCreateChannel(channelId: string): Promise<Channel> {
-        // return new Promise<Channel>(async(resolve, reject) => {
-        //     let channel = this.appChannels.find(innerChannel => innerChannel.id == channelId);
-        //     if (!channel) {
-        //         try{
-        //             await this.invokeChannelCreationMessage(ComposeUITopic.getOrCreateChannel(), channelId, "app");
-        //         } catch(error) {
-        //             reject(error);
-        //         }
-        //         channel = new ComposeUIChannel(channelId, "app", this.messageRouterClient);
-        //         this.addChannel(channel);
-        //     }
-        //     resolve(channel);
-        // });
         throw new Error("Not implemented.");
     }
 

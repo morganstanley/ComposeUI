@@ -12,12 +12,9 @@
  * and limitations under the License.
  */
 
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Fdc3.AppDirectory;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Helpers;
@@ -26,7 +23,6 @@ using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.Fdc3;
 using MorganStanley.Fdc3.AppDirectory;
 using MorganStanley.Fdc3.Context;
-using IntentMetadata = MorganStanley.Fdc3.AppDirectory.IntentMetadata;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
 using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIdentifier;
@@ -197,8 +193,9 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
             _ => _.PublishAsync(Fdc3Topic.RaiseIntentResolution("intentMetadataCustom", targetFdc3InstanceId), It.IsAny<MessageBuffer>(), It.IsAny<PublishOptions>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    //TODO: Right now we are returning just one element, without the possibility of selecting via ResolverUI.
     [Fact]
-    public async Task RaiseIntent_returns_multiple_apps_by_Context()
+    public async Task RaiseIntent_returns_first_app_by_Context()
     {
         var instanceId = Guid.NewGuid().ToString();
         var raiseIntentRequest = new RaiseIntentRequest()
@@ -213,18 +210,13 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var result = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
         result.Should().NotBeNull();
 
-        result!.AppMetadata.Should().HaveCount(3);
-        result!.AppMetadata.Should().BeEquivalentTo(
-            new List<AppMetadata>()
-            {
-                new() { AppId = "appId4", Name = "app4", ResultType = null },
-                new() { AppId = "appId5", Name = "app5", ResultType = "resultType<specified>" },
-                new() { AppId = "appId6", Name = "app6", ResultType = "resultType" }
-            });
+        result!.AppMetadata.Should().HaveCount(1);
+        result!.AppMetadata!.First().AppId.Should().Be("appId4");
     }
 
+    //TODO: Right now we are returning just one element, without the possibility of selecting via ResolverUI.
     [Fact]
-    public async Task RaiseIntent_returns_multiple_apps_by_Context_if_fdc3_nothing()
+    public async Task RaiseIntent_returns_first_app_by_Context_if_fdc3_nothing()
     {
         var instanceId = Guid.NewGuid().ToString();
         var raiseIntentRequest = new RaiseIntentRequest()
@@ -239,14 +231,8 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var result = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
         result.Should().NotBeNull();
 
-        result!.AppMetadata.Should().HaveCount(3);
-        result!.AppMetadata.Should().BeEquivalentTo(
-            new List<AppMetadata>()
-            {
-                new() { AppId = "appId4", Name = "app4", ResultType = null },
-                new() { AppId = "appId5", Name = "app5", ResultType = "resultType<specified>" },
-                new() { AppId = "appId6", Name = "app6", ResultType = "resultType" }
-            });
+        result!.AppMetadata.Should().HaveCount(1);
+        result!.AppMetadata!.First().AppId.Should().Be("appId4");
     }
 
     [Fact]
