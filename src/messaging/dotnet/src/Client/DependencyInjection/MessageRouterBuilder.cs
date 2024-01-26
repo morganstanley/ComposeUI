@@ -11,6 +11,8 @@
 // and limitations under the License.
 
 // ReSharper disable once CheckNamespace
+using MorganStanley.ComposeUI.Messaging;
+
 namespace Microsoft.Extensions.DependencyInjection;
 
 public sealed class MessageRouterBuilder
@@ -18,7 +20,12 @@ public sealed class MessageRouterBuilder
     public MessageRouterBuilder UseAccessToken(string accessToken)
     {
         AccessToken = accessToken;
+        return this;
+    }
 
+    public MessageRouterBuilder UseAccessTokenFromEnvironment()
+    {
+        AccessToken = Environment.GetEnvironmentVariable(EnvironmentVariables.AccessTokenEnvironmentVariableName);
         return this;
     }
 
