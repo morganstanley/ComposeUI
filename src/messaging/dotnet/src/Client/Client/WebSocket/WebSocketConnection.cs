@@ -21,6 +21,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using MorganStanley.ComposeUI.Messaging.Client.Abstractions;
 using MorganStanley.ComposeUI.Messaging.Exceptions;
+using MorganStanley.ComposeUI.Messaging.Instrumentation;
 using MorganStanley.ComposeUI.Messaging.Protocol.Json;
 using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
@@ -77,6 +78,8 @@ internal class WebSocketConnection : IConnection
                 WebSocketMessageType.Text,
                 WebSocketMessageFlags.EndOfMessage,
                 _stopTokenSource.Token);
+
+            OnMessageSent(message);
         }
         catch (OperationCanceledException)
         {
@@ -155,6 +158,8 @@ internal class WebSocketConnection : IConnection
 
                     while (!readBuffer.IsEmpty && TryReadMessage(ref readBuffer, out var message))
                     {
+                        OnMessageReceived(message);
+
                         if (!_receiveChannel.Writer.TryWrite(message))
                         {
                             break;
@@ -174,6 +179,26 @@ internal class WebSocketConnection : IConnection
                 "Exception thrown while trying to read a message from the WebSocket: {ExceptionMessage}",
                 e.Message);
             _receiveChannel.Writer.TryComplete();
+        }
+    }
+
+    private void OnMessageReceived(Message message)
+    {
+        if (MessageRouterDiagnosticSource.Log.IsEnabled(MessageRouterEventTypes.MessageReceived))
+        {
+            MessageRouterDiagnosticSource.Log.Write(
+                MessageRouterEventTypes.MessageReceived,
+                new MessageRouterEvent(this, MessageRouterEventTypes.MessageReceived, message));
+        }
+    }
+
+    private void OnMessageSent(Message message)
+    {
+        if (MessageRouterDiagnosticSource.Log.IsEnabled(MessageRouterEventTypes.MessageSent))
+        {
+            MessageRouterDiagnosticSource.Log.Write(
+                MessageRouterEventTypes.MessageSent,
+                new MessageRouterEvent(this, MessageRouterEventTypes.MessageSent, message));
         }
     }
 
