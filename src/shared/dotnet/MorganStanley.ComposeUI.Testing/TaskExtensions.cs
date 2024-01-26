@@ -19,6 +19,7 @@ namespace MorganStanley.ComposeUI.Testing;
 
 public static class TaskExtensions
 {
+    [Obsolete("Don't use, this method is not reliable. Add proper instrumentation to your code instead.")]
     public static async Task WaitForBackgroundTasksAsync(CancellationToken cancellationToken = default)
     {
         // Quick and dirty method of waiting for background tasks to finish.
@@ -44,6 +45,7 @@ public static class TaskExtensions
         }
     }
 
+    [Obsolete("Don't use, this method is not reliable. Add proper instrumentation to your code instead.")]
     public static async Task WaitForBackgroundTasksAsync(TimeSpan minimumWaitTime, CancellationToken cancellationToken = default)
     {
         var stopwatch = Stopwatch.StartNew();
