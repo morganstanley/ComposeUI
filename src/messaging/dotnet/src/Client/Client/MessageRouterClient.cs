@@ -398,7 +398,7 @@ internal sealed class MessageRouterClient : IMessageRouter
 
                     await SendMessageAsync(
                         response,
-                        (message, exception) => OnRequestStop((Message) message!, exception),
+                        (state, exception) => OnRequestStop((Message) state!, exception),
                         message,
                         _stateChangeEvents.CloseRequested.Token);
                 }
@@ -423,12 +423,10 @@ internal sealed class MessageRouterClient : IMessageRouter
         {
             var exception = new MessageRouterException(message.Error);
             tcs.TrySetException(exception);
-            OnRequestStop(message, exception);
         }
         else
         {
             tcs.TrySetResult(message);
-            OnRequestStop(message);
         }
     }
 
