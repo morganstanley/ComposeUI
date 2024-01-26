@@ -34,4 +34,16 @@ public static class MessageRouterBuilderWebSocketExtensions
         builder.ServiceCollection.AddSingleton<IConnectionFactory, WebSocketConnectionFactory>();
         return builder;
     }
+
+    public static MessageRouterBuilder UseWebSocketFromEnvironment(this MessageRouterBuilder builder)
+    {
+        var messageRouterUri = Environment.GetEnvironmentVariable(WebSocketEnvironmentVariables.UriEnvironmentVariableName);
+        if (string.IsNullOrEmpty(messageRouterUri))
+        {
+            throw new Exception($"{WebSocketEnvironmentVariables.UriEnvironmentVariableName} environment variable is not set or empty");
+        }
+
+        var opt = new MessageRouterWebSocketOptions { Uri = new Uri(messageRouterUri) };
+        return UseWebSocket(builder, opt);
+    }
 }
