@@ -11,7 +11,6 @@
 // and limitations under the License.
 
 using System.Buffers;
-using System.Buffers.Text;
 using System.Text;
 using MorganStanley.ComposeUI.Messaging.TestUtils;
 

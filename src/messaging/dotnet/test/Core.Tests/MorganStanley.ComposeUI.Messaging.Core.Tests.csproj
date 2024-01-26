@@ -16,4 +16,8 @@
 	  <ProjectReference Include="../../src/Core/MorganStanley.ComposeUI.Messaging.Core.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Instrumentation\" />
+	</ItemGroup>
+
 </Project>
