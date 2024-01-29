@@ -243,8 +243,7 @@ internal sealed class MessageRouterClient : IMessageRouter
 
             await _sendChannel.Writer.WriteAsync(
                 new MessageWrapper<Message, object?>(
-                    new ConnectRequest { AccessToken = _options.AccessToken })
-                ,
+                    new ConnectRequest {AccessToken = _options.AccessToken}),
                 cancellationToken);
 
             await _stateChangeEvents.Connected.Task;
@@ -432,8 +431,14 @@ internal sealed class MessageRouterClient : IMessageRouter
 
     private void HandleTopicMessage(Protocol.Messages.TopicMessage message)
     {
-        if (!_topics.TryGetValue(message.Topic, out var topic)) 
+        OnRequestStart(message);
+
+        if (!_topics.TryGetValue(message.Topic, out var topic))
+        {
+            OnRequestStop(message);
+
             return;
+        }
 
         var topicMessage = new TopicMessage(
             message.Topic,
@@ -444,8 +449,6 @@ internal sealed class MessageRouterClient : IMessageRouter
                 Scope = message.Scope,
                 CorrelationId = message.CorrelationId
             });
-
-        OnRequestStart(message);
 
         var wrapper = new MessageWrapper<TopicMessage, Protocol.Messages.TopicMessage>(
             topicMessage,
@@ -506,7 +509,11 @@ internal sealed class MessageRouterClient : IMessageRouter
         return SendMessageAsync(message, onDequeued: null, state: null, cancellationToken);
     }
 
-    private async ValueTask SendMessageAsync(Message message, Action<object?, Exception?>? onDequeued, object state, CancellationToken cancellationToken)
+    private async ValueTask SendMessageAsync(
+        Message message,
+        Action<object?, Exception?>? onDequeued,
+        object state,
+        CancellationToken cancellationToken)
     {
         await ConnectAsync(cancellationToken);
 
@@ -598,7 +605,7 @@ internal sealed class MessageRouterClient : IMessageRouter
             Descriptor = descriptor,
         };
 
-        
+
         await SendRequestAsync(request, cancellationToken);
     }
 
@@ -820,7 +827,7 @@ internal sealed class MessageRouterClient : IMessageRouter
                 new MessageRouterEvent(this, MessageRouterEventTypes.ConnectStop, Exception: exception));
         }
     }
-    
+
     private void OnMessageReceived(Message message)
     {
         if (MessageRouterDiagnosticSource.Log.IsEnabled(MessageRouterEventTypes.MessageReceived))
@@ -1021,7 +1028,7 @@ internal sealed class MessageRouterClient : IMessageRouter
             lock (_mutex)
             {
                 if (_isCompleted || !_subscriptions.Remove(subscription)) return;
-                
+
                 if (_subscriptions.Count == 0)
                 {
                     Task.Factory.StartNew(
@@ -1087,10 +1094,19 @@ internal sealed class MessageRouterClient : IMessageRouter
 
         public ValueTask DisposeAsync()
         {
-            _queue.Writer.TryComplete();
-            _topic.Unsubscribe(this);
+            return InvokeLocked(
+                _ =>
+                {
+                    if (_disposed)
+                        return ValueTask.CompletedTask;
 
-            return default;
+                    _disposed = true;
+                    _queue.Writer.TryComplete();
+                    _topic.Unsubscribe(this);
+
+                    return ValueTask.CompletedTask;
+                },
+                (object?) null);
         }
 
         private async Task ProcessMessages()
@@ -1099,58 +1115,76 @@ internal sealed class MessageRouterClient : IMessageRouter
             {
                 while (await _queue.Reader.WaitToReadAsync())
                 {
-                    while (_queue.Reader.TryRead(out var value))
+                    using (await _lock.LockAsync())
                     {
-                        try
+                        // We have to empty the queue even if already unsubscribed, to make sure OnDequeued is called on every message
+
+                        while (_queue.Reader.TryRead(out var value))
                         {
-                            await _subscriber.OnNextAsync(value.Message);
-                        }
-                        catch (Exception e)
-                        {
-                            _logger.LogError(
-                                e,
-                                $"Exception thrown while invoking {nameof(IAsyncObserver<TopicMessage>.OnNextAsync)} on a subscriber of topic '{{TopicName}}': {{ExceptionMessage}}",
-                                _topic.Name,
-                                e.Message);
-                        }
-                        finally
-                        {
+                            await InvokeSubscriber(_subscriber.OnNextAsync, value.Message, nameof(_subscriber.OnNextAsync));
                             value.OnDequeued();
                         }
                     }
                 }
 
-                try
+                using (await _lock.LockAsync())
                 {
-                    await _subscriber.OnCompletedAsync();
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(
-                        e,
-                        $"Exception thrown while invoking {nameof(IAsyncObserver<TopicMessage>.OnCompletedAsync)} on a subscriber of topic '{{TopicName}}': {{ExceptionMessage}}",
-                        _topic.Name,
-                        e.Message);
+                    await InvokeSubscriber(_ => _subscriber.OnCompletedAsync(), (object?)null, nameof(_subscriber.OnCompletedAsync));
                 }
             }
             catch (Exception e)
             {
-                try
+                using (await _lock.LockAsync())
                 {
-                    await _subscriber.OnErrorAsync(e is ChannelClosedException ? e.InnerException ?? e : e);
-                }
-                catch (Exception e2)
-                {
-                    _logger.LogError(
-                        e2,
-                        $"Exception thrown while invoking {nameof(IAsyncObserver<TopicMessage>.OnErrorAsync)} on a subscriber of topic '{{TopicName}}': {{ExceptionMessage}}",
-                        _topic.Name,
-                        e2.Message);
+                    await InvokeSubscriber(
+                        _subscriber.OnErrorAsync,
+                        e is ChannelClosedException ? e.InnerException ?? e : e,
+                        nameof(_subscriber.OnErrorAsync));
                 }
             }
             finally
             {
                 _topic.OnSubscriberCompleted();
+            }
+        }
+
+        private ValueTask InvokeLocked<TArg>(Func<TArg, ValueTask> action, TArg arg)
+        {
+            return _recursion.Value == 0 
+                ? InvokeLockedImpl(action, arg) 
+                : action(arg);
+
+            async ValueTask InvokeLockedImpl<TArg>(Func<TArg, ValueTask> action, TArg arg)
+            {
+                using (await _lock.LockAsync())
+                {
+
+                    await action(arg);
+                }
+            }
+        }
+
+        private async ValueTask InvokeSubscriber<TArg>(Func<TArg, ValueTask> action, TArg arg, string methodName)
+        {
+            if (_disposed) return;
+
+            _recursion.Value += 1;
+            try
+            {
+                await action(arg);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(
+                    e,
+                    $"Exception thrown while invoking {{MethodName}} on a subscriber of topic '{{TopicName}}': {{ExceptionMessage}}",
+                    methodName,
+                    _topic.Name,
+                    e.Message);
+            }
+            finally
+            {
+                _recursion.Value -= 1;
             }
         }
 
@@ -1162,11 +1196,14 @@ internal sealed class MessageRouterClient : IMessageRouter
                 {
                     AllowSynchronousContinuations = false,
                     SingleReader = true,
-                    SingleWriter = false
+                    SingleWriter = true
                 });
 
         private readonly Topic _topic;
         private readonly ILogger _logger;
+        private readonly AsyncLock _lock = new();
+        private readonly AsyncLocal<int> _recursion = new(); // Recursion counter when invoking a method of the subscriber
+        private bool _disposed;
     }
 
     private record struct SubscribeResult(Subscription Subscription, bool NeedsSubscription);

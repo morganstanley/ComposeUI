@@ -698,7 +698,7 @@ public class MessageRouterClientTests : IAsyncLifetime
                 {
                     if (msg.Payload?.GetString() == "2")
                     {
-                        await subscription.DisposeAsync();
+                        await subscription.DisposeAsync().AsTask().WaitAsync(TestTimeout);
                     }
                 });
 
@@ -712,8 +712,8 @@ public class MessageRouterClientTests : IAsyncLifetime
             RegisterRequest(new Protocol.Messages.TopicMessage { Topic = "test-topic", Payload = MessageBuffer.Create("3")}));
         await WaitForCompletionAsync();
 
-        subscriber.Verify(_ => _.OnNextAsync(It.Is<TopicMessage>(msg => msg.Payload.GetString() == "1")), Times.Once);
-        subscriber.Verify(_ => _.OnNextAsync(It.Is<TopicMessage>(msg => msg.Payload.GetString() == "2")), Times.Once);
+        subscriber.Verify(_ => _.OnNextAsync(It.Is<TopicMessage>(msg => msg.Payload!.GetString() == "1")), Times.Once);
+        subscriber.Verify(_ => _.OnNextAsync(It.Is<TopicMessage>(msg => msg.Payload!.GetString() == "2")), Times.Once);
         subscriber.VerifyNoOtherCalls();
     }
 
