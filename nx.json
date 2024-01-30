@@ -1,0 +1,25 @@
+{
+  "pluginsConfig": {
+    "@nx/js": {
+      "analyzeSourceFiles": false
+    }
+  },
+  "extends": "nx/presets/npm.json",
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "affected": {
+    "defaultBase": "main"
+  },
+  "targetDefaults": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "@nx/dotnet/core:build": {
+      "dependsOn": ["^build"]
+    }
+  },
+  "plugins": [
+    "@nx-dotnet/core"
+  ]
+}

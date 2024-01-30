@@ -1,20 +1,25 @@
 {
-  "name": "@morgan-stanley/composeui-web-modules",
-  "description": "Lerna monorepo of the web dependencies in ComposeUI",
+  "name": "@morgan-stanley/composeui",
+  "version": "0.0.0",
+  "license": "MIT",
+  "scripts": {
+    "prepare": "nx g @nx-dotnet/core:restore"
+  },
   "private": true,
-  "workspaces": [
-    "examples/js-chart-and-grid-messagerouter/js-*",
-    "examples/fdc3-chart-and-grid/js-*",
-    "src/messaging/js/*",
-    "src/shell/js/*",
-    "src/fdc3/js/*",
-    "prototypes/process-explorer/*"
-  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/MorganStanley/ComposeUI.git"
   },
   "devDependencies": {
-    "lerna": "8.1.2"
-  }
+    "@nx-dotnet/core": "^2.2.0",
+    "@nx/js": "18.0.4",
+    "@rollup/rollup-win32-x64-msvc": "^4.12.0",
+    "nx": "18.0.4",
+    "typescript": "^5.3.3"
+  },
+  "workspaces": [
+    "src/**/*",
+    "examples/**/*",
+    "prototypes/**/*"
+  ]
 }

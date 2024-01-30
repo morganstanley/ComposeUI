@@ -106,7 +106,12 @@ ScaffoldingReadMe.txt
 # StyleCop
 StyleCopReport.xml
 
+#NX
+.nx/
+
 # Files built by Visual Studio
+dist/
+output/
 *_i.c
 *_p.c
 *_h.h
@@ -1084,6 +1089,7 @@ coverage*.xml
 coverage*.info
 
 # Visual Studio code coverage results
+coverage/
 *.coverage
 *.coveragexml
 

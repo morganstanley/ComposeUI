@@ -8,7 +8,7 @@ on:
   push:
     branches: [ main ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, nx-monorepo ]
   workflow_call:
 
 permissions:
@@ -33,64 +33,19 @@ jobs:
         node-version: ${{ matrix.node-version }}
         COMPOSEUI_SKIP_DOWNLOAD: ${{env.COMPOSEUI_SKIP_DOWNLOAD}}
 
-    - name: Install NPM dependencies
-      run: npm ci
-
-    - name: Build JavaScript
-      run: npx lerna run build
-    
-    - name: Test JavaScript
-      run: npx lerna run test
-
     - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
       uses: actions/setup-dotnet@4d6c8fcf3c8f7a60068d26b594648e99df24cee3 # v4.0.0
       with:
         dotnet-version: ${{ matrix.dotnet-version }}
 
-    - name: Install NuGet dependencies
-      run: |
-        $failedSolutions = @()
-        
-        Get-ChildItem -Recurse -Include *.sln `
-        | ForEach-Object {
-            dotnet restore $_;
-            if ($LASTEXITCODE -ne 0) {$failedSolutions += Split-Path $_ -leaf; }
-          }
-        
-        if ($failedSolutions.count -gt 0) {
-            throw "Restore FAILED for solutions $failedSolutions"
-        }
+    - name: Install/Restore NPM/Nuget dependencies
+      run: npm ci
 
-
-    - name: Build .NET
-      run: |
-        $failedSolutions = @()
-        
-        Get-ChildItem -Recurse -Include *.sln `
-        | ForEach-Object {
-            dotnet build $_ --configuration Release --no-restore; 
-            if ($LASTEXITCODE -ne 0) {$failedSolutions += Split-Path $_ -leaf; }
-          }
-        
-        if ($failedSolutions.count -gt 0) {
-            throw "Build FAILED for solutions $failedSolutions"
-        }
-
-
-    - name: Test .NET
-      run: |
-        $failedSolutions = @()
-        
-        Get-ChildItem -Recurse -Include *.sln `
-        | ForEach-Object {
-            dotnet test $_ --configuration Release --no-build; 
-            if ($LASTEXITCODE -ne 0) { $failedSolutions += Split-Path $_ -leaf; }
-        }
-        
-        if ($failedSolutions.count -gt 0) {
-            throw "Test FAILED for solutions $failedSolutions"
-        }
-
+    - name: Build Projects
+      run: npx nx run-many -t build
+    
+    - name: Test Projects
+      run: npx nx run-many -t test
 
     - name: Codecov
       uses: codecov/codecov-action@54bcd8715eee62d40e33596ef5e8f0f48dbbccab # v4.1.0
