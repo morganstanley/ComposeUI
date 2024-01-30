@@ -1,0 +1,31 @@
+{
+    "name": "MorganStanley.ComposeUI.ProcessExplorer.Client.Tests-OLD",
+    "$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
+    "targets": {
+      "build": {
+        "executor": "@nx-dotnet/core:build",
+        "outputs": [
+          "{workspaceRoot}/dist/prototypes/process-explorer/dotnet/test/ProcessExplorer.Client.Tests-OLD",
+          "{workspaceRoot}/dist/intermediates/prototypes/process-explorer/dotnet/test/ProcessExplorer.Client.Tests-OLD"
+        ],
+        "options": {
+          "configuration": "Debug",
+          "noDependencies": true
+        },
+        "configurations": {
+          "production": {
+            "configuration": "Release"
+          }
+        }
+      },
+      "lint": {
+        "executor": "@nx-dotnet/core:format"
+      },
+      "test": {
+        "executor": "@nx-dotnet/core:test",
+        "options": {}
+      }
+    },
+    "projectType": "library"
+  }
+  

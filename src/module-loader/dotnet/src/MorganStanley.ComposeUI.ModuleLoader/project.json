@@ -1,0 +1,26 @@
+{
+  "name": "MorganStanley.ComposeUI.ModuleLoader",
+  "$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
+  "targets": {
+    "build": {
+      "executor": "@nx-dotnet/core:build",
+      "outputs": [
+        "{workspaceRoot}/dist/src/module-loader/dotnet/src/MorganStanley.ComposeUI.ModuleLoader",
+        "{workspaceRoot}/dist/intermediates/src/module-loader/dotnet/src/MorganStanley.ComposeUI.ModuleLoader"
+      ],
+      "options": {
+        "configuration": "Debug",
+        "noDependencies": true
+      },
+      "configurations": {
+        "production": {
+          "configuration": "Release"
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx-dotnet/core:format"
+    }
+  },
+  "projectType": "library"
+}

@@ -58,7 +58,7 @@
     "Name": "Diagnostics WPF",
     "ModuleType": "native",
     "Details": {
-      "Path": "..\\..\\..\\..\\..\\..\\..\\examples\\dotnet-diagnostics\\DiagnosticsExample\\bin\\Debug\\net6.0-windows\\DiagnosticsExample.exe",
+      "Path": "..\\..\\..\\..\\..\\..\\dist\\examples\\dotnet-diagnostics\\DiagnosticsExample\\net6.0-windows\\DiagnosticsExample.exe",
       "EnvironmentVariables": { "CUSTOM_GREETINGS": "Hello ComposeUI!" }
     }
   },

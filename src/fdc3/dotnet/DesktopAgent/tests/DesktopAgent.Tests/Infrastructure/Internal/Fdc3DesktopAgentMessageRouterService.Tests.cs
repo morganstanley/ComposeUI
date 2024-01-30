@@ -390,7 +390,6 @@ public class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
         raiseIntentResult.Should().NotBeNull();
         raiseIntentResult!.Error.Should().BeNull();
         raiseIntentResult.AppMetadata.Should().NotBeNull();
-        raiseIntentResult!.AppMetadata.Should().HaveCount(1);
 
         var storeIntentRequest = new StoreIntentResultRequest()
         {

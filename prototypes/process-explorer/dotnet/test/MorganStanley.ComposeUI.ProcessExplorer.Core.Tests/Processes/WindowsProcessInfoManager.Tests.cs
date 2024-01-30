@@ -200,10 +200,6 @@ public class WindowsProcessInfoManagerTests
         processMonitor.Dispose();
     }
 
-
-    [Conditional("DEBUG")]
-    private static void IsDebug(ref bool isDebug) => isDebug = true;
-
     private static Mock<ILogger<ProcessInfoMonitor>> CreateLoggerMock()
     {
         var loggerMock = new Mock<ILogger<ProcessInfoMonitor>>();
@@ -227,25 +223,11 @@ public class WindowsProcessInfoManagerTests
 
     private static string GetTestApplicationPath()
     {
-        var folder = GetEnvironmentFolder();
-
-        return Path.GetFullPath($@"../../../../MorganStanley.ComposeUI.TestConsoleApp/bin/{folder}/net6.0/MorganStanley.ComposeUI.TestConsoleApp.exe");
+        return Path.GetFullPath($@"../../../../dotnet/test/MorganStanley.ComposeUI.TestConsoleApp/net6.0/MorganStanley.ComposeUI.TestConsoleApp.exe");
     }
 
     private static string GetSimpleTestApplicationPath()
     {
-        var folder = GetEnvironmentFolder();
-
-        return Path.GetFullPath($"../../../../MorganStanley.ComposeUI.TestConsoleApp2/bin/{folder}/net6.0/MorganStanley.ComposeUI.TestConsoleApp2.exe");
-    }
-
-    private static string GetEnvironmentFolder()
-    {
-        var isDebug = false;
-        IsDebug(ref isDebug);
-
-        var folder = isDebug ? "Debug" : "Release";
-
-        return folder;
+        return Path.GetFullPath($"../../../../dotnet/test/MorganStanley.ComposeUI.TestConsoleApp2/net6.0/MorganStanley.ComposeUI.TestConsoleApp2.exe");
     }
 }

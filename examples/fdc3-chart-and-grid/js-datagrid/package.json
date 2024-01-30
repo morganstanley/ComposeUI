@@ -3,6 +3,7 @@
   "version": "0.1.0-alpha.1",
   "private": true,
   "scripts": {
+    "npm-restore": "npm install",
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",

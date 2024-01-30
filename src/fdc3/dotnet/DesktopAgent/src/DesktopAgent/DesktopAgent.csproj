@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -43,7 +43,7 @@
 
 	<Target Name="BuildComposeUIFdc3Bundle" BeforeTargets="PrebuildEvent" Condition="!Exists('$(Fdc3BundleOutput)')">
 		<CallTarget Targets="InstallMonoRepoDependencies" />
-		<Exec Command="cd $(ComposeUIRepositoryRoot) &amp;&amp; npx lerna run build --scope={@morgan-stanley/composeui-messaging-client,@morgan-stanley/composeui-fdc3}" />
+		<Exec Command="cd $(ComposeUIRepositoryRoot) &amp;&amp; nx run @morgan-stanley/composeui-fdc3:build" />
 		<Message Importance="normal" Text="Finished building the fdc3 bundle." />
 	</Target>
 
