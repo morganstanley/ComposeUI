@@ -6,6 +6,7 @@
   "main": "chart.js",
   "type": "module",
   "scripts": {
+    "npm-restore": "npm install",
     "clean": "rimraf dist",
     "bundle": "rollup -c",
     "build": "npm run clean && npm run bundle",

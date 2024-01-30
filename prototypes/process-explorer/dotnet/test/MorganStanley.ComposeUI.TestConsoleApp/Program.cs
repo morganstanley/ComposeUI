@@ -25,7 +25,7 @@ Helper.IsDebug(ref isDebug);
 var folder = isDebug ? "Debug" : "Release";
 Console.WriteLine(folder);
 
-var childProcess = Process.Start(Path.GetFullPath($"../../../../MorganStanley.ComposeUI.TestConsoleApp2/bin/{folder}/net6.0/MorganStanley.ComposeUI.TestConsoleApp2.exe"));
+var childProcess = Process.Start(Path.GetFullPath($"../../../../dotnet/test/MorganStanley.ComposeUI.TestConsoleApp2/net6.0/MorganStanley.ComposeUI.TestConsoleApp2.exe"));
 
 var sum = 0;
 for (int i = 0; i < 50000000; i++)

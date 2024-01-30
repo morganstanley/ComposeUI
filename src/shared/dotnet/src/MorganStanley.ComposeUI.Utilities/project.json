@@ -1,0 +1,26 @@
+{
+  "name": "MorganStanley.ComposeUI.Utilities",
+  "$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
+  "targets": {
+    "build": {
+      "executor": "@nx-dotnet/core:build",
+      "outputs": [
+        "{workspaceRoot}/dist/src/shared/dotnet/src/MorganStanley.ComposeUI.Utilities",
+        "{workspaceRoot}/dist/intermediates/src/shared/dotnet/src/MorganStanley.ComposeUI.Utilities"
+      ],
+      "options": {
+        "configuration": "Debug",
+        "noDependencies": true
+      },
+      "configurations": {
+        "production": {
+          "configuration": "Release"
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx-dotnet/core:format"
+    }
+  },
+  "projectType": "library"
+}

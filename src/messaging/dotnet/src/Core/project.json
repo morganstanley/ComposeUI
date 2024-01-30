@@ -1,0 +1,26 @@
+{
+  "name": "MorganStanley.ComposeUI.Messaging.Core",
+  "$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
+  "targets": {
+    "build": {
+      "executor": "@nx-dotnet/core:build",
+      "outputs": [
+        "{workspaceRoot}/dist/src/messaging/dotnet/src/Core",
+        "{workspaceRoot}/dist/intermediates/src/messaging/dotnet/src/Core"
+      ],
+      "options": {
+        "configuration": "Debug",
+        "noDependencies": true
+      },
+      "configurations": {
+        "production": {
+          "configuration": "Release"
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx-dotnet/core:format"
+    }
+  },
+  "projectType": "library"
+}

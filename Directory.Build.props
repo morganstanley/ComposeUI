@@ -1,14 +1,27 @@
+<!-- 
+  This file is imported early in the build order. 
+  Use it to set default property values that can be overridden in specific projects.
+-->
 <Project>
-    <Import Project="$([MSBuild]::GetPathOfFileAbove(Directory.Build.props, $(MSBuildThisFileDirectory)..))" Condition="Exists($([MSBuild]::GetPathOfFileAbove(Directory.Build.props, $(MSBuildThisFileDirectory)..)))"/>
+	<PropertyGroup>
+		<!-- Output path configuration -->
+		<RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))</RepoRoot>
+		<ProjectRelativePath>$([MSBuild]::MakeRelative($(RepoRoot), $(MSBuildProjectDirectory)))</ProjectRelativePath>
+		<BaseOutputPath>$(RepoRoot)dist/$(ProjectRelativePath)</BaseOutputPath>
+		<OutputPath>$(BaseOutputPath)</OutputPath>
+		<BaseIntermediateOutputPath>$(RepoRoot)dist/intermediates/$(ProjectRelativePath)/obj</BaseIntermediateOutputPath>
+		<IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
+		<AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
+	</PropertyGroup>
+	<PropertyGroup>
+		<RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
+	</PropertyGroup>
 
-    <PropertyGroup>
-        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    </PropertyGroup>
+	<Import Project="$([MSBuild]::GetPathOfFileAbove(Directory.Build.props, $(MSBuildThisFileDirectory)..))" Condition="Exists($([MSBuild]::GetPathOfFileAbove(Directory.Build.props, $(MSBuildThisFileDirectory)..)))"/>
 
-    <PropertyGroup>
-        <ComposeUIRepositoryRoot>$(MSBuildThisFileDirectory.TrimEnd('/').TrimEnd('\'))</ComposeUIRepositoryRoot>
-        <PackageOutputPath>$(ComposeUIRepositoryRoot)/artifacts/packages/nuget</PackageOutputPath>
-    </PropertyGroup>
+	<PropertyGroup>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+	</PropertyGroup>
 
     <PropertyGroup>
         <VSTestLogger>trx</VSTestLogger>
@@ -27,4 +40,10 @@
         <RepositoryUrl>https://github.com/morganstanley/ComposeUI</RepositoryUrl>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     </PropertyGroup>
+
+	<PropertyGroup>
+		<ComposeUIRepositoryRoot>$(MSBuildThisFileDirectory.TrimEnd('/').TrimEnd('\'))</ComposeUIRepositoryRoot>
+		<PackageOutputPath>$(ComposeUIRepositoryRoot)/artifacts/packages/nuget</PackageOutputPath>
+	</PropertyGroup>
+	
 </Project>

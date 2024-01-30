@@ -1,0 +1,30 @@
+{
+  "name": "MorganStanley.ComposeUI.ModuleLoader.Abstractions.Tests",
+  "$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
+  "targets": {
+    "build": {
+      "executor": "@nx-dotnet/core:build",
+      "outputs": [
+        "{workspaceRoot}/dist/src/module-loader/dotnet/tests/MorganStanley.ComposeUI.ModuleLoader.Abstractions.Tests",
+        "{workspaceRoot}/dist/intermediates/src/module-loader/dotnet/tests/MorganStanley.ComposeUI.ModuleLoader.Abstractions.Tests"
+      ],
+      "options": {
+        "configuration": "Debug",
+        "noDependencies": true
+      },
+      "configurations": {
+        "production": {
+          "configuration": "Release"
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx-dotnet/core:format"
+    },
+    "test": {
+      "executor": "@nx-dotnet/core:test",
+      "options": {}
+    }
+  },
+  "projectType": "library"
+}

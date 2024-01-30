@@ -7,6 +7,7 @@
   "main": "dist/index.js",
   "module": "dist/index.js",
   "scripts": {
+    "npm-restore": "npm install",
     "clean:dist": "rimraf dist",
     "clean:output": "rimraf output",
     "clean": "npm run clean:dist && npm run clean:output",

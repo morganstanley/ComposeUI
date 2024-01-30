@@ -6,7 +6,7 @@ on:
   push:
     branches: [ main ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, nx-monorepo ]
   workflow_call:
   workflow_dispatch:
 
@@ -35,34 +35,19 @@ jobs:
         node-version: ${{ matrix.node-version }}
         COMPOSEUI_SKIP_DOWNLOAD: ${{env.COMPOSEUI_SKIP_DOWNLOAD}}
 
-    - name: Install NPM dependencies
-      run: npm ci
-
-    - name: Build JavaScript
-      run: npx lerna run build
-    
-    - name: Test JavaScript
-      run: npx lerna run test
-
     - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
       uses: actions/setup-dotnet@4d6c8fcf3c8f7a60068d26b594648e99df24cee3 # v4.0.0
       with:
         dotnet-version: ${{ matrix.dotnet-version }}
 
-    - name: Install NuGet dependencies
-      run: |
-           powershell ./build/dotnet-restore.ps1
+    - name: Install/Restore NPM/Nuget dependencies
+      run: npm ci
 
-
-    - name: Build .NET
-      run: |
-           powershell ./build/dotnet-build.ps1
-
-
-    - name: Test .NET
-      run: |
-           powershell ./build/dotnet-test.ps1
-
+    - name: Build Projects
+      run: npx nx run-many -t build
+    
+    - name: Test Projects
+      run: npx nx run-many -t test
 
     - name: Codecov
       uses: codecov/codecov-action@7afa10ed9b269c561c2336fd862446844e0cbf71 # v4.2.0

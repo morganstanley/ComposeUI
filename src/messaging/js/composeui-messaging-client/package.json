@@ -11,6 +11,7 @@
     "module": "dist/esm/index.js",
     "types": "dist/esm/index.d.ts",
     "scripts": {
+        "npm-restore": "npm install",
         "build": "npm run build:clean && npm run build:rollup",
         "build:clean": "rimraf dist",
         "build:rollup": "rollup -c",

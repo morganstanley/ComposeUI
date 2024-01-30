@@ -29,9 +29,9 @@ It supports desktop and web applications in order to provide an evergreen altern
 * .NET 6
 * Visual Studio: 2022
 
-## Building the dependencies with Lerna
+## Building the dependencies with NX
 
-The javascript dependencies are managed by a lerna monorepo. To build them separately follow the steps below.
+The javascript dependencies are managed by a NX monorepo. To build them separately follow the steps below.
 
 ### Run scripts
 
@@ -42,27 +42,27 @@ npm i
 
 Build all modules:
 ```
-npx lerna run build --stream
+npx nx run-many -t build --verbose
 ```
 Test all modules:
 ```
-npx lerna run test --stream
+npx nx run-many -t test --verbose
 ```
-(If you don't want a detailed log, you can execute these without --stream)
+(If you don't want a detailed log, you can execute these without --verbose)
 
 Building a specific module:
 ```
-npx lerna run build --stream --scope=@morgan-stanley/composeui-messaging-client
+npx nx build @morgan-stanley/composeui-messaging-client OR nx run @morgan-stanley/composeui-messaging-client:build
 ```
 
-List all modules in the workspace
+Visualize all modules in the workspace
 ```
-npx lerna list
+npx nx graph
 ```
 
 ### Docs
 
-For more information check the [documentation](https://lerna.js.org/docs/api-reference/commands).
+For more information check the [documentation](https://nx.dev/getting-started/intro).
 
 
 # Building the Experimental Artifacts
@@ -90,10 +90,10 @@ Build .NET solutions:
 ```
 PS C:\projects\ComposeUI> .\build\dotnet-build.ps1
 ```
-Build javascript (with Lerna)
+Build javascript (with NX)
 
 ```
-PS C:\projects\ComposeUI> .\build\lerna-build.ps1
+PS C:\projects\ComposeUI> .\build\nx-build.ps1
 ```
 
 Now the necessary artifacts have been built.
