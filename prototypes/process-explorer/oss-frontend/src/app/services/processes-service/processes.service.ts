@@ -3,12 +3,35 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { MockProcesses } from './mock-processes';
 import { ProcessTable } from '../../DTOs/ProcessInfo';
+import { ProcessExplorerMessageHandlerClient } from 'src/app/generated-protos-files/ProcessExplorerMessages_pb_service';
+import { Message, Process } from 'src/app/generated-protos-files/ProcessExplorerMessages_pb';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProcessesService {
+  // allProcesses: Array<Process.AsObject> = [];
+  allProcesses:any[] = [];
+
+
   public getProcesses(tableName: string): Observable<ProcessTable[]> {
+    console.log("old process", MockProcesses[tableName]);
+    
     return of(MockProcesses[tableName]);
+  }
+
+  public getProcessesData(){
+    const client = new ProcessExplorerMessageHandlerClient('http://localhost:5000');
+    const message = new Message();
+    message.getProcessesList();
+    const response = client.subscribe(message) 
+
+     return response.on("data", req => {
+      if(req.toObject().processesList.length > 0){
+        this.allProcesses = [...this.allProcesses, ...req.toObject().processesList]
+      }
+      console.log('all', this.allProcesses);
+      return of(this.allProcesses)
+    })
   }
 }

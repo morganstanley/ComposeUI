@@ -23,7 +23,7 @@ import {LiveAnnouncer} from '@angular/cdk/a11y';
 })
 export class ProcessesComponent implements AfterViewInit {
   expandedElement: any;
-  processesData: Array<ProcessTable>;
+  processesData: Array<ProcessTable>; 
   dataSource = new MatTableDataSource<ProcessTable>()
 
   displayedColumns = [{ key: 'ProcessName', header: 'Process Name' }, { key: 'PID', header: 'PID' }, { key: 'ProcessStatus', header: 'Process Status' }, { key: 'StartTime', header: 'Start Time' }, { key: 'ProcessorUsage', header: 'Processor Usage' }, { key: 'PhysicalMemoryUsageBit', header: 'Physical Mem Usage' }, { key: 'PriorityLevel', header: 'Priority Level' }, { key: 'VirtualMemorySize', header: 'Virtual Memory Size' }];
@@ -34,6 +34,8 @@ export class ProcessesComponent implements AfterViewInit {
 
   constructor(private processService: ProcessesService, private liveAnnouncer: LiveAnnouncer) {
     this.processService.getProcesses('Processes').subscribe(process => this.processesData = process);
+    this.processService.getProcessesData()
+
     this.displayedColumnsKeys = this.displayedColumns.map(column => column.key);
     this.dataSource = new MatTableDataSource<ProcessTable>(this.processesData);
   }

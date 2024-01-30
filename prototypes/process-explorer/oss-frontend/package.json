@@ -22,8 +22,12 @@
     "@angular/platform-browser": "^16.1.0",
     "@angular/platform-browser-dynamic": "^16.1.0",
     "@angular/router": "^16.1.0",
+    "@improbable-eng/grpc-web": "^0.15.0",
+    "@types/google-protobuf": "^3.15.12",
+    "google-protobuf": "^3.21.2",
     "material-icons": "^1.13.10",
     "rxjs": "~7.8.0",
+    "ts-protoc-gen": "^0.15.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.3"
   },
