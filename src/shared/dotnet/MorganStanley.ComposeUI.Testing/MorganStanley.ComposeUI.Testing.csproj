@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Nito.AsyncEx.Coordination" />
+    <PackageReference Include="xunit.extensibility.execution" />
   </ItemGroup>
 
 </Project>

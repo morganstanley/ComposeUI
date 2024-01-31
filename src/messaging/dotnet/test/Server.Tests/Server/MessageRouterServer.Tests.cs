@@ -10,12 +10,13 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using System.Diagnostics;
 using System.Linq.Expressions;
+using MorganStanley.ComposeUI.Messaging.Instrumentation;
 using MorganStanley.ComposeUI.Messaging.Protocol;
 using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 using MorganStanley.ComposeUI.Messaging.Server.Abstractions;
 using MorganStanley.ComposeUI.Messaging.TestUtils;
-using TaskExtensions = MorganStanley.ComposeUI.Testing.TaskExtensions;
 
 namespace MorganStanley.ComposeUI.Messaging.Server;
 
@@ -25,11 +26,10 @@ public class MessageRouterServerTests
     public async Task It_responds_to_ConnectRequest_with_ConnectResponse()
     {
         var connectResponseReceived = new TaskCompletionSource<ConnectResponse>();
-        await using var server = CreateServer();
         var client = CreateClient();
         client.Handle<ConnectResponse>(connectResponseReceived.SetResult);
 
-        await server.ClientConnected(client.Object);
+        await _server.ClientConnected(client.Object);
         await client.SendToServer(new ConnectRequest());
         var connectResponse = await connectResponseReceived.Task;
 
@@ -41,12 +41,13 @@ public class MessageRouterServerTests
     public async Task It_accepts_connection_with_valid_token()
     {
         var connectResponseReceived = new TaskCompletionSource<ConnectResponse>();
-        var validator = new Mock<IAccessTokenValidator>();
-        await using var server = CreateServer(validator.Object);
+        _accessTokenValidator
+            .Setup(_ => _.Validate(It.IsAny<string>(), It.IsAny<string?>()))
+            .Returns(default(ValueTask));
         var client = CreateClient();
         client.Handle<ConnectResponse>(connectResponseReceived.SetResult);
 
-        await server.ClientConnected(client.Object);
+        await _server.ClientConnected(client.Object);
         await client.SendToServer(new ConnectRequest {AccessToken = "token"});
         var connectResponse = await connectResponseReceived.Task;
 
@@ -58,10 +59,10 @@ public class MessageRouterServerTests
     public async Task It_accepts_connection_without_token_if_validator_is_not_registered()
     {
         var connectResponseReceived = new TaskCompletionSource<ConnectResponse>();
-        await using var server = CreateServer();
         var client = CreateClient();
         client.Handle<ConnectResponse>(connectResponseReceived.SetResult);
 
+        var server = CreateServer(null);
         await server.ClientConnected(client.Object);
         await client.SendToServer(new ConnectRequest());
         var connectResponse = await connectResponseReceived.Task;
@@ -78,16 +79,14 @@ public class MessageRouterServerTests
     public async Task It_rejects_connections_with_invalid_token(string? token)
     {
         var connectResponseReceived = new TaskCompletionSource<ConnectResponse>();
-        var validator = new Mock<IAccessTokenValidator>();
 
-        validator.Setup(_ => _.Validate(It.IsAny<string>(), It.IsAny<string?>()))
+        _accessTokenValidator.Setup(_ => _.Validate(It.IsAny<string>(), It.IsAny<string?>()))
             .Throws(new InvalidOperationException("Invalid token"));
 
-        await using var server = CreateServer(validator.Object);
         var client = CreateClient();
         client.Handle<ConnectResponse>(connectResponseReceived.SetResult);
 
-        await server.ClientConnected(client.Object);
+        await _server.ClientConnected(client.Object);
         await client.SendToServer(new ConnectRequest {AccessToken = token});
         var connectResponse = await connectResponseReceived.Task;
 
@@ -95,25 +94,27 @@ public class MessageRouterServerTests
     }
 
 
-    [Fact (Skip = "CI Fail")]
+    [Fact]
     public async Task When_Publish_message_received_it_dispatches_the_message_to_the_subscribers()
     {
-        await using var server = CreateServer();
-        var client1 = await CreateAndConnectClient(server);
-        var client2 = await CreateAndConnectClient(server);
+        var client1 = await CreateAndConnectClient();
+        var client2 = await CreateAndConnectClient();
 
-        await client1.SendToServer(new SubscribeMessage {Topic = "test-topic"});
-        await client2.SendToServer(new SubscribeMessage {Topic = "test-topic"});
+        await client1.SendToServer(RegisterRequest(new SubscribeMessage {Topic = "test-topic"}));
+        await client2.SendToServer(RegisterRequest(new SubscribeMessage {Topic = "test-topic"}));
+
+        await WaitForCompletionAsync();
 
         await client1.SendToServer(
-            new PublishMessage
-            {
-                Topic = "test-topic",
-                Payload = MessageBuffer.Create("test-payload"),
-                CorrelationId = "test-correlation-id"
-            });
+            RegisterRequest(
+                new PublishMessage
+                {
+                    Topic = "test-topic",
+                    Payload = MessageBuffer.Create("test-payload"),
+                    CorrelationId = "test-correlation-id"
+                }));
 
-        await TaskExtensions.WaitForBackgroundTasksAsync();
+        await WaitForCompletionAsync();
 
         Expression<Func<Protocol.Messages.TopicMessage, bool>> expectation =
             msg => msg.Topic == "test-topic"
@@ -129,31 +130,28 @@ public class MessageRouterServerTests
     [Fact]
     public async Task It_does_not_dispatch_Topic_message_if_the_client_has_unsubscribed()
     {
-        await using var server = CreateServer();
-        var client = await CreateAndConnectClient(server);
-
-        await client.SendToServer(new SubscribeMessage {Topic = "test-topic"});
+        var client = await CreateAndConnectClient();
 
         await client.SendToServer(
-            new PublishMessage
-            {
-                Topic = "test-topic"
-            });
+            RegisterRequest(new SubscribeMessage {Topic = "test-topic"}));
 
-        await TaskExtensions.WaitForBackgroundTasksAsync();
+        await client.SendToServer(
+            RegisterRequest(new PublishMessage {Topic = "test-topic"}));
+
+        await WaitForCompletionAsync();
 
         client.Expect<Protocol.Messages.TopicMessage>(msg => msg.Topic == "test-topic", Times.Once);
         client.Invocations.Clear();
 
-        await client.SendToServer(new UnsubscribeMessage {Topic = "test-topic"});
+        await client.SendToServer(
+            RegisterRequest(
+                new UnsubscribeMessage {Topic = "test-topic"}));
 
         await client.SendToServer(
-            new PublishMessage
-            {
-                Topic = "test-topic"
-            });
+            RegisterRequest(
+                new PublishMessage {Topic = "test-topic"}));
 
-        await TaskExtensions.WaitForBackgroundTasksAsync();
+        await WaitForCompletionAsync();
 
         client.Expect<Protocol.Messages.TopicMessage>(msg => msg.Topic == "test-topic", Times.Never);
     }
@@ -161,11 +159,10 @@ public class MessageRouterServerTests
     [Fact]
     public async Task Client_can_register_itself_as_a_service()
     {
-        await using var server = CreateServer();
-        var client = await CreateAndConnectClient(server);
+        var client = await CreateAndConnectClient();
 
-        await client.SendToServer(new RegisterServiceRequest {Endpoint = "test-service"});
-        await TaskExtensions.WaitForBackgroundTasksAsync();
+        await client.SendToServer(RegisterRequest(new RegisterServiceRequest {Endpoint = "test-service"}));
+        await WaitForCompletionAsync();
 
         var registerServiceResponse = client.Received.OfType<RegisterServiceResponse>().First();
         registerServiceResponse.Error.Should().BeNull();
@@ -174,12 +171,11 @@ public class MessageRouterServerTests
     [Fact]
     public async Task Client_can_unregister_itself_as_a_service()
     {
-        await using var server = CreateServer();
-        var client = await CreateAndConnectClient(server);
+        var client = await CreateAndConnectClient();
 
-        await client.SendToServer(new RegisterServiceRequest { Endpoint = "test-service" });
-        await client.SendToServer(new UnregisterServiceRequest { Endpoint = "test-service" });
-        await TaskExtensions.WaitForBackgroundTasksAsync();
+        await client.SendToServer(RegisterRequest(new RegisterServiceRequest {Endpoint = "test-service"}));
+        await client.SendToServer(RegisterRequest(new UnregisterServiceRequest {Endpoint = "test-service"}));
+        await WaitForCompletionAsync();
 
         var registerServiceResponse = client.Received.OfType<RegisterServiceResponse>().Single();
         registerServiceResponse.Error.Should().BeNull();
@@ -190,27 +186,27 @@ public class MessageRouterServerTests
     [Fact]
     public async Task It_handles_service_invocation()
     {
-        await using var server = CreateServer();
-        var service = await CreateAndConnectClient(server);
+        var service = await CreateAndConnectClient();
 
         service.Handle(
             (InvokeRequest req) => new InvokeResponse
                 {RequestId = req.RequestId, Payload = MessageBuffer.Create("test-response")});
 
-        var caller = await CreateAndConnectClient(server);
+        var caller = await CreateAndConnectClient();
 
-        await service.SendToServer(new RegisterServiceRequest {Endpoint = "test-service"});
-        await TaskExtensions.WaitForBackgroundTasksAsync();
+        await service.SendToServer(RegisterRequest(new RegisterServiceRequest {Endpoint = "test-service"}));
+        await WaitForCompletionAsync();
 
         await caller.SendToServer(
-            new InvokeRequest
-            {
-                RequestId = "1",
-                Endpoint = "test-service",
-                Payload = MessageBuffer.Create("test-payload")
-            });
+            RegisterRequest(
+                new InvokeRequest
+                {
+                    RequestId = "1",
+                    Endpoint = "test-service",
+                    Payload = MessageBuffer.Create("test-payload")
+                }));
 
-        await TaskExtensions.WaitForBackgroundTasksAsync();
+        await WaitForCompletionAsync();
 
         service.Expect<InvokeRequest>(
             msg => msg.Endpoint == "test-service" && msg.Payload!.GetString() == "test-payload",
@@ -224,8 +220,7 @@ public class MessageRouterServerTests
     [Fact]
     public async Task It_handles_service_invocation_with_error()
     {
-        await using var server = CreateServer();
-        var service = await CreateAndConnectClient(server);
+        var service = await CreateAndConnectClient();
 
         service.Handle(
             (InvokeRequest req) => new InvokeResponse
@@ -234,20 +229,21 @@ public class MessageRouterServerTests
                 Error = new Error("Error", "Invoke failed")
             });
 
-        var caller = await CreateAndConnectClient(server);
+        var caller = await CreateAndConnectClient();
 
-        await service.SendToServer(new RegisterServiceRequest {Endpoint = "test-service"});
-        await TaskExtensions.WaitForBackgroundTasksAsync();
+        await service.SendToServer(RegisterRequest(new RegisterServiceRequest {Endpoint = "test-service"}));
+        await WaitForCompletionAsync();
 
         await caller.SendToServer(
-            new InvokeRequest
-            {
-                RequestId = "1",
-                Endpoint = "test-service",
-                Payload = MessageBuffer.Create("test-payload")
-            });
+            RegisterRequest(
+                new InvokeRequest
+                {
+                    RequestId = "1",
+                    Endpoint = "test-service",
+                    Payload = MessageBuffer.Create("test-payload")
+                }));
 
-        await TaskExtensions.WaitForBackgroundTasksAsync();
+        await WaitForCompletionAsync();
 
         service.Expect<InvokeRequest>(
             msg => msg.Endpoint == "test-service" && msg.Payload!.GetString() == "test-payload",
@@ -263,18 +259,17 @@ public class MessageRouterServerTests
     [Fact]
     public async Task It_fails_the_service_invocation_if_the_service_is_not_registered()
     {
-        await using var server = CreateServer();
-
-        var client = await CreateAndConnectClient(server);
+        var client = await CreateAndConnectClient();
 
         await client.SendToServer(
-            new InvokeRequest
-            {
-                RequestId = "1",
-                Endpoint = "test-service"
-            });
+            RegisterRequest(
+                new InvokeRequest
+                {
+                    RequestId = "1",
+                    Endpoint = "test-service"
+                }));
 
-        await TaskExtensions.WaitForBackgroundTasksAsync();
+        await WaitForCompletionAsync();
 
         client.Expect<InvokeResponse>(
             msg => msg.RequestId == "1"
@@ -285,40 +280,48 @@ public class MessageRouterServerTests
     [Fact]
     public async Task It_fails_the_service_invocation_if_the_service_has_unregistered_itself()
     {
-        await using var server = CreateServer();
-
-        var service = await CreateAndConnectClient(server);
+        var service = await CreateAndConnectClient();
         service.Handle<InvokeRequest, InvokeResponse>();
-        var caller = await CreateAndConnectClient(server);
+        var caller = await CreateAndConnectClient();
 
-        await service.SendToServer(new RegisterServiceRequest {RequestId = "1", Endpoint = "test-service"});
-        await TaskExtensions.WaitForBackgroundTasksAsync();
+        await service.SendToServer(
+            RegisterRequest(
+                new RegisterServiceRequest
+                {
+                    RequestId = "1",
+                    Endpoint = "test-service"
+                }));
+
+        await WaitForCompletionAsync();
 
         await caller.SendToServer(
-            new InvokeRequest
-            {
-                RequestId = "1",
-                Endpoint = "test-service"
-            });
+            RegisterRequest(
+                new InvokeRequest
+                {
+                    RequestId = "1",
+                    Endpoint = "test-service"
+                }));
 
-        await TaskExtensions.WaitForBackgroundTasksAsync();
+        await WaitForCompletionAsync();
 
         caller.Expect<InvokeResponse>(
             msg => msg.RequestId == "1",
             Times.Once);
         caller.Invocations.Clear();
 
-        await service.SendToServer(new UnregisterServiceRequest {RequestId = "2", Endpoint = "test-service"});
-        await TaskExtensions.WaitForBackgroundTasksAsync();
+        await service.SendToServer(
+            RegisterRequest(new UnregisterServiceRequest {RequestId = "2", Endpoint = "test-service"}));
+        await WaitForCompletionAsync();
 
         await caller.SendToServer(
-            new InvokeRequest
-            {
-                RequestId = "2",
-                Endpoint = "test-service"
-            });
+            RegisterRequest(
+                new InvokeRequest
+                {
+                    RequestId = "2",
+                    Endpoint = "test-service"
+                }));
 
-        await TaskExtensions.WaitForBackgroundTasksAsync();
+        await WaitForCompletionAsync();
 
         caller.Expect<InvokeResponse>(
             msg => msg.RequestId == "2" && msg.Error != null && msg.Error.Name == MessageRouterErrors.UnknownEndpoint,
@@ -328,19 +331,18 @@ public class MessageRouterServerTests
     [Fact]
     public async Task It_fails_direct_invocation_if_the_client_is_not_found()
     {
-        await using var server = CreateServer();
-
-        var client = await CreateAndConnectClient(server);
+        var client = await CreateAndConnectClient();
 
         await client.SendToServer(
-            new InvokeRequest
-            {
-                RequestId = "1",
-                Endpoint = "test-endpoint",
-                Scope = MessageScope.FromClientId("unknown-client")
-            });
+            RegisterRequest(
+                new InvokeRequest
+                {
+                    RequestId = "1",
+                    Endpoint = "test-endpoint",
+                    Scope = MessageScope.FromClientId("unknown-client")
+                }));
 
-        await TaskExtensions.WaitForBackgroundTasksAsync();
+        await WaitForCompletionAsync();
 
         client.Expect<InvokeResponse>(
             msg => msg.RequestId == "1"
@@ -351,33 +353,49 @@ public class MessageRouterServerTests
     [Fact]
     public async Task When_disposed_it_calls_CloseAsync_on_active_connections()
     {
-        var server = CreateServer();
-        var connection = new Mock<IClientConnection>();
-        
-        connection.SetupSequence(_ => _.ReceiveAsync(It.IsAny<CancellationToken>()))
-            .Returns(new ValueTask<Message>(
-                new ConnectRequest()))
-            .Returns(new ValueTask<Message>(
-                Task.Delay(1000).ContinueWith(_ => (Message)new PublishMessage {Topic = "dummy"})));
-        
-        await server.ClientConnected(connection.Object);
-        await TaskExtensions.WaitForBackgroundTasksAsync();
-        await server.DisposeAsync();
+        var connection = await CreateAndConnectClient();
+        await connection.SendToServer(RegisterRequest(new PublishMessage {Topic = "test-topic"}));
+
+        await WaitForCompletionAsync();
+
+        await _server.DisposeAsync();
 
         connection.Verify(_ => _.CloseAsync(), Times.Once);
     }
 
-    private MessageRouterServer CreateServer(IAccessTokenValidator? accessTokenValidator = null) =>
+    public MessageRouterServerTests()
+    {
+        _server = CreateServer(_accessTokenValidator.Object);
+        _diagnosticObserver = new MessageRouterDiagnosticObserver(_server);
+    }
+
+    private MessageRouterServer _server;
+    private Mock<IAccessTokenValidator> _accessTokenValidator = new();
+    private MessageRouterDiagnosticObserver _diagnosticObserver;
+
+    private MessageRouterServer CreateServer(IAccessTokenValidator? accessTokenValidator) =>
         new MessageRouterServer(new MessageRouterServerDependencies(accessTokenValidator));
 
-    private MockClientConnection CreateClient() => new MockClientConnection();
+    private MockClientConnection CreateClient() => new();
 
-    private async Task<MockClientConnection> CreateAndConnectClient(MessageRouterServer server)
+    private async Task<MockClientConnection> CreateAndConnectClient()
     {
         var client = CreateClient();
-        await server.ClientConnected(client.Object);
+        await _server.ClientConnected(client.Object);
         await client.Connect();
 
         return client;
+    }
+
+    private static readonly TimeSpan TestTimeout = TimeSpan.FromSeconds(2);
+
+    private TMessage RegisterRequest<TMessage>(TMessage message) where TMessage : Message
+    {
+        return _diagnosticObserver.RegisterRequest(message);
+    }
+
+    private async Task WaitForCompletionAsync()
+    {
+        await _diagnosticObserver.WaitForCompletionAsync(TestTimeout);
     }
 }

@@ -24,7 +24,7 @@ public class MockClientConnection : Mock<IClientConnection>
         Setup(_ => _.SendAsync(Capture.In(Received), It.IsAny<CancellationToken>()));
 
         Setup(_ => _.ReceiveAsync(It.IsAny<CancellationToken>()))
-            .Returns((CancellationToken ct) => _sendChannel.Reader.ReadAsync(ct));
+            .Returns(async (CancellationToken ct) => await _sendChannel.Reader.ReadAsync(ct));
 
         Setup(_ => _.CloseAsync())
             .Callback(
@@ -120,11 +120,6 @@ public class MockClientConnection : Mock<IClientConnection>
     public void Expect<TMessage>(Expression<Func<TMessage, bool>> expectation, Times times) where TMessage : Message
     {
         Verify(_ => _.SendAsync(It.Is<TMessage>(expectation), It.IsAny<CancellationToken>()), times);
-    }
-
-    public void Expect<TMessage>(Func<Times> times) where TMessage : Message
-    {
-        Expect<TMessage>(msg => true, times());
     }
 
     public ValueTask SendToServer(Message message)

@@ -40,7 +40,7 @@ internal sealed class WebSocketListenerService : IHostedService, IMessageRouterW
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        Task.Run(StartAsyncCore);
+        Task.Factory.StartNew(StartAsyncCore, TaskCreationOptions.RunContinuationsAsynchronously);
         return _startTaskSource.Task;
     }
 
