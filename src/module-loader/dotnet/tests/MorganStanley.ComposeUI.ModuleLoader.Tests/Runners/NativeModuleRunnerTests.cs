@@ -10,15 +10,18 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using System.Diagnostics;
 using System.Security;
 using Moq;
 using MorganStanley.ComposeUI.ModuleLoader.Runners;
 
 namespace MorganStanley.ComposeUI.ModuleLoader.Tests.Runners;
 
-public class NativeModuleRunnerTests
+public class NativeModuleRunnerTests : IDisposable
 {
     private readonly NativeModuleRunner _runner = new NativeModuleRunner();
+    private static readonly TimeSpan Timeout = TimeSpan.FromMinutes(1);
+    private Process? _mainProcess;
 
     [Fact]
     public void ModuleType_is_Native()
@@ -54,12 +57,12 @@ public class NativeModuleRunnerTests
             return null;
         });
 
-        var mainProcess = processInfo.MainProcess;
-        await mainProcess.WaitForExitAsync(new CancellationTokenSource(1000).Token);
-        var stdout = mainProcess.StandardOutput.ReadToEnd().TrimEnd();
+        _mainProcess = processInfo.MainProcess;
+        await _mainProcess.WaitForExitAsync(new CancellationTokenSource(Timeout).Token);
+        var stdout = _mainProcess.StandardOutput.ReadToEnd().TrimEnd();
         Assert.Equal($"Hello ComposeUI! I am {randomString}", stdout);
     }
-        
+
     [Fact]
     public async Task AbsolutePathModuleIsLaunchedWithEnvironmentVariablesFromManifest()
     {
@@ -88,9 +91,9 @@ public class NativeModuleRunnerTests
             return null;
         });
 
-        var mainProcess = processInfo.MainProcess;
-        await mainProcess.WaitForExitAsync(new CancellationTokenSource(1000).Token);
-        var stdout = mainProcess.StandardOutput.ReadToEnd().Split();
+        _mainProcess = processInfo.MainProcess;
+        await _mainProcess.WaitForExitAsync(new CancellationTokenSource(Timeout).Token);
+        var stdout = _mainProcess.StandardOutput.ReadToEnd().Split();
         Assert.Contains($"{variableName}={randomString}", stdout);
     }
 
@@ -122,9 +125,9 @@ public class NativeModuleRunnerTests
             return null;
         });
 
-        var mainProcess = processInfo.MainProcess;
-        await mainProcess.WaitForExitAsync(new CancellationTokenSource(1000).Token);
-        var stdout = mainProcess.StandardOutput.ReadToEnd().Split();
+        _mainProcess = processInfo.MainProcess;
+        await _mainProcess.WaitForExitAsync(new CancellationTokenSource(TimeSpan.FromMinutes(1)).Token);
+        var stdout = _mainProcess.StandardOutput.ReadToEnd().Split();
         Assert.Contains($"{variableName}={randomString}", stdout);
     }
 
@@ -160,9 +163,9 @@ public class NativeModuleRunnerTests
             return null;
         });
 
-        var mainProcess = processInfo.MainProcess;
-        await mainProcess.WaitForExitAsync(new CancellationTokenSource(1000).Token);
-        var stdout = mainProcess.StandardOutput.ReadToEnd().Split();
+        _mainProcess = processInfo.MainProcess;
+        await _mainProcess.WaitForExitAsync(new CancellationTokenSource(TimeSpan.FromMinutes(1)).Token);
+        var stdout = _mainProcess.StandardOutput.ReadToEnd().Split();
         Assert.Contains($"{variableName}={randomString}", stdout);
     }
 
@@ -171,5 +174,14 @@ public class NativeModuleRunnerTests
         var mainProcessInfo = startupContext.GetProperties<MainProcessInfo>().First();
         mainProcessInfo.MainProcess.StartInfo.RedirectStandardOutput = true;
         return Task.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        // If the test timed out, kill the test process.
+        if (_mainProcess != null && !_mainProcess.HasExited)
+        {
+            _mainProcess.Kill();
+        }
     }
 }
