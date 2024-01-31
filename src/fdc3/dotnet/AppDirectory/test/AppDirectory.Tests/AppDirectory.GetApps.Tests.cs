@@ -41,7 +41,7 @@ public partial class AppDirectoryTests
         apps.Should().BeEquivalentTo(GetAppsExpectation);
     }
 
-    [Theory (Skip ="Fail"), CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task GetApps_reloads_the_data_if_the_source_file_has_changed(bool useApiSchema)
     {
         var source = "/apps.json";
@@ -62,8 +62,8 @@ public partial class AppDirectoryTests
             useApiSchema ? GetAppsApiResponseChanged : GetAppsJsonArrayChanged,
             Encoding.UTF8);
 
-        await TaskExtensions.WaitForBackgroundTasksAsync(TimeSpan.FromMilliseconds(100));
-        
+        await TaskExtensions.WaitForBackgroundTasksAsync(TimeSpan.FromSeconds(20));
+
         var apps = await appDirectory.GetApps();
 
         apps.Should().BeEquivalentTo(GetAppsExpectationChanged);
