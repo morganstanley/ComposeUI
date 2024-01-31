@@ -17,6 +17,32 @@
             "details": {
                 "url": "http://localhost:4200/"
             }
-        }
+        },
+		{
+			"appId":"Conformance2",
+			"name":"Conformance2",
+			"title":"FDC3 2.0 Conformance Framework",
+			"description":"FDC3 2.0 Conformance testing framework - developed for FINOS by Scott Logic",
+			"type":"web",
+			"details":{
+				"url":"https://finos.github.io/FDC3-conformance-framework/v2.0/app/"
+			},
+			"screenshots":[{"src":"https://directory.fdc3.finos.org/assets/app/Conformance1.png"}],
+			"hostManifests": {
+				"sail":{"inject-api":"2.0"},
+				"Finsemble": {
+					"window": {
+						"top":"center","left":"0","width":800,"height":900
+					},
+					"foreign": {
+						"components":{"App Launcher":{"launchableByUser":true},"Window Manager":{"FSBLHeader":true,"titlebarType":"injected"}}
+					}, 
+					"interop":{"joinMultipleChannels":false}
+				}
+			},
+			"version":"1.0.0",
+			"publisher":"FINOS",
+			"icons":[{"src":"https://fdc3.finos.org/assets/fdc3-logo.png"}]
+		}
     ]
 }

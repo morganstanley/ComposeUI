@@ -20,18 +20,18 @@ using Microsoft.Extensions.Options;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.Fdc3;
 using MorganStanley.Fdc3.AppDirectory;
 using MorganStanley.Fdc3.Context;
-using IntentMetadata = MorganStanley.Fdc3.AppDirectory.IntentMetadata;
-using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
-using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIdentifier;
+using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
+using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
 using ContextMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.ContextMetadata;
 using Icon = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Icon;
+using IntentMetadata = MorganStanley.Fdc3.AppDirectory.IntentMetadata;
 using Screenshot = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Screenshot;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
@@ -434,8 +434,8 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
                     Title = targetAppMetadata.Title,
                     Tooltip = targetAppMetadata.Tooltip,
                     Description = targetAppMetadata.Description,
-                    Icons = targetAppMetadata.Icons.Select(icon => Icon.GetIcon(icon)),
-                    Screenshots = targetAppMetadata.Screenshots.Select(screenshot => Screenshot.GetScreenshot(screenshot)),
+                    Icons = targetAppMetadata.Icons.Select(Icon.GetIcon),
+                    Screenshots = targetAppMetadata.Screenshots.Select(Screenshot.GetScreenshot),
                     ResultType = targetAppMetadata.ResultType
                 };
 
@@ -556,7 +556,9 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     {
         foreach (var app in _runningModules)
         {
-            if (targetAppIdentifier?.InstanceId != null && new Guid(targetAppIdentifier.InstanceId) != app.Key)
+            if (targetAppIdentifier?.InstanceId != null 
+                && Guid.TryParse(targetAppIdentifier.InstanceId, out var instanceId)
+                && instanceId != app.Key)
             {
                 continue;
             }
@@ -617,8 +619,8 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
                     Title = app.Title,
                     Tooltip = app.ToolTip,
                     Description = app.Description,
-                    Icons = app.Icons == null ? Enumerable.Empty<Icon>() : app.Icons.Select(icon => Icon.GetIcon(icon)),
-                    Screenshots = app.Screenshots == null ? Enumerable.Empty<Screenshot>() : app.Screenshots.Select(screenshot => Screenshot.GetScreenshot(screenshot)),
+                    Icons = app.Icons == null ? Enumerable.Empty<Icon>() : app.Icons.Select(Icon.GetIcon),
+                    Screenshots = app.Screenshots == null ? Enumerable.Empty<Screenshot>() : app.Screenshots.Select(Screenshot.GetScreenshot),
                     ResultType = intentMetadata?.ResultType
                 };
 
