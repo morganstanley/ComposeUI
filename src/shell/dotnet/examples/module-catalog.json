@@ -34,5 +34,14 @@
             "Url": "https://fdc3.finos.org/toolbox/fdc3-workbench/",
             "IconUrl": "https://fdc3.finos.org/toolbox/fdc3-workbench/favicon.ico"
         }
+    },
+	{
+        "Id": "Conformance2",
+        "Name": "FDC3 2.0 Conformance Framework",
+        "ModuleType": "web",
+        "Details": {
+            "Url": "https://finos.github.io/FDC3-conformance-framework/v2.0/app/",
+            "IconUrl": "https://fdc3.finos.org/assets/fdc3-logo.png"
+        }
     }
 ]

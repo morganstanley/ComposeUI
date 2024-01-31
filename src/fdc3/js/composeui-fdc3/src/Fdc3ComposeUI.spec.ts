@@ -225,7 +225,7 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
         const testDesktopAgent = new ComposeUIDesktopAgent("dummyPath", messageRouterClient);
         await expect(testDesktopAgent.broadcast(testInstrument))
             .rejects
-            .toThrow("The current channel have not been set.");
+            .toThrow("The current channel has not been set.");
     });
 
     it('addContextListener will trigger messageRouter subscribe method', async() => {
@@ -241,7 +241,7 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
         const testDesktopAgent = new ComposeUIDesktopAgent("dummyPath", messageRouterClient);
         await expect(testDesktopAgent.addContextListener("fdc3.instrument", contextMessageHandlerMock))
             .rejects
-            .toThrow("The current channel have not been set.");
+            .toThrow("The current channel has not been set.");
         expect(messageRouterClient.subscribe).toBeCalledTimes(0);
     });
 
