@@ -31,7 +31,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lib", "lib", "{B7E63957-3C1
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Testing", "..\..\shared\dotnet\MorganStanley.ComposeUI.Testing\MorganStanley.ComposeUI.Testing.csproj", "{AE71CBC4-FD4E-4C66-B894-D7C31DE4D1BE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MorganStanley.ComposeUI.Messaging.Host.Tests", "test\Host.Tests\MorganStanley.ComposeUI.Messaging.Host.Tests.csproj", "{CEF78D3F-C645-4471-BAD2-9C538A0CA763}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Host.Tests", "test\Host.Tests\MorganStanley.ComposeUI.Messaging.Host.Tests.csproj", "{CEF78D3F-C645-4471-BAD2-9C538A0CA763}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

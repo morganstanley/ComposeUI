@@ -405,19 +405,19 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
         var target = await _mockModuleLoader.Object.StartModule(new("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
         var raiseIntentRequest = new RaiseIntentRequest()
-            {
-                MessageId = int.MaxValue,
-                Fdc3InstanceId = Guid.NewGuid().ToString(),
-                Intent = "intentMetadata4",
-                Selected = false,
-                Context = new Context("context2"),
-                TargetAppIdentifier = new AppIdentifier() { AppId = "appId4", InstanceId = targetFdc3InstanceId }
-            };
+        {
+            MessageId = int.MaxValue,
+            Fdc3InstanceId = Guid.NewGuid().ToString(),
+            Intent = "intentMetadata4",
+            Selected = false,
+            Context = new Context("context2"),
+            TargetAppIdentifier = new AppIdentifier() { AppId = "appId4", InstanceId = targetFdc3InstanceId }
+        };
 
         var raiseIntentResult = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
         raiseIntentResult.Should().NotBeNull();
-
-        raiseIntentResult.Should().NotBeNull();
+        raiseIntentResult!.Error.Should().BeNull();
+        raiseIntentResult.AppMetadata.Should().NotBeNull();
         raiseIntentResult!.AppMetadata.Should().HaveCount(1);
 
         var storeIntentRequest = new StoreIntentResultRequest()

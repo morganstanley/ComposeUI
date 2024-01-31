@@ -38,7 +38,7 @@ public abstract class EndToEndTestsBase : IAsyncLifetime
         observerMock.Setup(x => x.OnNext(Capture.In(receivedMessages)));
 
         await subscriber.SubscribeAsync(topic: "test-topic", observerMock.Object);
-        await TaskExtensions.WaitForBackgroundTasksAsync();
+        await Task.Delay(TimeSpan.FromSeconds(2));
 
         var publishedPayload = new TestPayload
         {
@@ -50,8 +50,7 @@ public abstract class EndToEndTestsBase : IAsyncLifetime
             topic: "test-topic",
             MessageBuffer.Create(JsonSerializer.SerializeToUtf8Bytes(publishedPayload)));
 
-        // TODO: Investigate why WaitForBackgroundTasksAsync is unreliable in this particular scenario
-        await TaskExtensions.WaitForBackgroundTasksAsync(TimeSpan.FromMilliseconds(100));
+        await Task.Delay(TimeSpan.FromSeconds(2));
 
         var receivedPayload = JsonSerializer.Deserialize<TestPayload>(receivedMessages.Single().Payload!.GetSpan());
 
@@ -176,7 +175,7 @@ public abstract class EndToEndTestsBase : IAsyncLifetime
                 {
                     using (await semaphore.LockAsync(new CancellationTokenSource(TimeSpan.Zero).Token))
                     {
-                        await TaskExtensions.WaitForBackgroundTasksAsync();
+                        await Task.Delay(TimeSpan.FromSeconds(1));
                     }
 
                     if (msg.Payload?.GetString() == "done")
