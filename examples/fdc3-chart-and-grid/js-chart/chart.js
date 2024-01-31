@@ -55,7 +55,7 @@ window.addEventListener('close', async function(){
 async function requestData() {
   (async () => {
     intentListener = await window.fdc3.addIntentListener(Intents.ViewChart, (context, contextMetada) => {
-      console.log("Opened Chart as per handled the intent:", context, ", metadata:", contextMetada);
+      console.log("Intent was handled by the chart. Received context:", context, ", metadata:", contextMetada);
     });
 
     currentChannel = await window.fdc3.getCurrentChannel();
