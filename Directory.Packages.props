@@ -16,7 +16,7 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.4.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.4.0" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="6.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
@@ -25,7 +25,7 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="6.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="6.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Options" Version="6.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="8.0.1" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
     <PackageVersion Include="Microsoft.Web.WebView2" Version="1.0.2045.28" />
     <PackageVersion Include="Moq.Contrib.HttpClient" Version="1.4.0" />
