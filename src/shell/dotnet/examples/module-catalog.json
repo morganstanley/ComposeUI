@@ -1,4 +1,4 @@
-[
+﻿[
     {
         "Id": "Morgan Stanley",
         "Name": "Morgan Stanley",
@@ -42,6 +42,15 @@
         "Details": {
             "Url": "https://finos.github.io/FDC3-conformance-framework/v2.0/app/",
             "IconUrl": "https://fdc3.finos.org/assets/fdc3-logo.png"
+        }
+    },
+    {
+        "Id": "js-grid",
+        "Name": "Grid",
+        "ModuleType": "web",
+        "Details": {
+          "Url": "http://localhost:4200/",
+          "IconUrl": "http://localhost:4200/favicon.ico"
         }
     }
 ]
