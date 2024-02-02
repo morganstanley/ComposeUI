@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
@@ -34,7 +35,6 @@ using MorganStanley.ComposeUI.Shell.Messaging;
 using MorganStanley.ComposeUI.Shell.Modules;
 using MorganStanley.ComposeUI.Shell.Utilities;
 using MorganStanley.ComposeUI.Utilities;
-using static MorganStanley.ComposeUI.Shell.Modules.ModuleCatalog;
 
 namespace MorganStanley.ComposeUI.Shell;
 

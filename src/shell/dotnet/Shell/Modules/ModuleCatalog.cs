@@ -77,11 +77,6 @@ internal sealed class ModuleCatalog : IModuleCatalog, IInitializeAsync
 
     private class NativeModuleManifest : ModuleManifest, IModuleManifest<NativeManifestDetails>
     {
-        public NativeManifestDetails GetDetails()
-        {
-            return Details;
-        }
-
         public NativeManifestDetails Details { get; set; }
     }
 
