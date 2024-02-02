@@ -116,21 +116,4 @@ internal sealed class ModuleCatalog : IModuleCatalog, IInitializeAsync
             public string ModuleType { get; set; }
         }
     }
-
-    internal class ModuleManifest : IModuleManifest
-    {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public string ModuleType { get; set; }
-    }
-
-    internal class WebModuleManifest : ModuleManifest, IModuleManifest<WebManifestDetails>
-    {
-        public WebManifestDetails GetDetails()
-        {
-            return Details;
-        }
-
-        public WebManifestDetails Details { get; set; }
-    }
 }
