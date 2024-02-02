@@ -61,5 +61,13 @@
       "Path": "..\\..\\..\\..\\..\\..\\..\\examples\\dotnet-diagnostics\\DiagnosticsExample\\bin\\Debug\\net6.0-windows\\DiagnosticsExample.exe",
       "EnvironmentVariables": { "CUSTOM_GREETINGS": "Hello ComposeUI!" }
     }
+  },
+  {
+    "Id": "js-chart",
+    "Name": "Js Chart Example",
+    "ModuleType": "web",
+    "Details": {
+      "Url": "http://localhost:8080/"
+    }
   }
 ]

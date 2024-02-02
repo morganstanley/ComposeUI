@@ -67,7 +67,7 @@
       }
     },
     {
-      "appId": "Datagrid Example",
+      "appId": "js-grid",
       "name": "Js Datagrid Example",
       "type": "web",
       "details": {
@@ -85,7 +85,7 @@
       }
     },
     {
-      "appId": "Chart Example",
+      "appId": "js-chart",
       "name": "Js Chart Example",
       "type": "web",
       "details": {
