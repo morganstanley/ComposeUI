@@ -1,0 +1,37 @@
+---
+description: Quick start guide
+title: Getting Started
+---
+
+The javascript dependencies are managed by a lerna monorepo.
+
+**Run scripts**
+
+In the root folder
+
+```powershell
+npm i
+```
+
+Build all modules
+
+```powershell
+npx lerna run build --stream
+```
+
+Test all modules
+
+```powershell
+npx lerna run test --stream
+```
+
+Building a sepecific module
+
+```powershell
+npx lerna run build --stream --scope=@morgan-stanley/composeui-messaging-client
+```
+
+List all modules in the workspace
+```powershell
+npx lerna list
+```
