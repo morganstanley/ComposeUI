@@ -13,9 +13,10 @@
 //  */
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Extensions.Configuration;
@@ -32,6 +33,7 @@ using MorganStanley.ComposeUI.Shell.Messaging;
 using MorganStanley.ComposeUI.Shell.Modules;
 using MorganStanley.ComposeUI.Shell.Utilities;
 using MorganStanley.ComposeUI.Utilities;
+using static MorganStanley.ComposeUI.Shell.Modules.ModuleCatalog;
 
 namespace MorganStanley.ComposeUI.Shell;
 
@@ -162,6 +164,7 @@ public partial class App : Application
             services.Configure<ModuleCatalogOptions>(
                 context.Configuration.GetSection(ModuleCatalogOptions.ConfigurationPath));
             services.AddHostedService<ModuleService>();
+            services.AddTransient<IStartupAction, WebWindowOptionsStartupAction>();
         }
 
         void ConfigureFdc3()
@@ -170,7 +173,7 @@ public partial class App : Application
             var fdc3Options = fdc3ConfigurationSection.Get<Fdc3Options>();
 
             // TODO: Use feature flag instead
-            if (fdc3Options is {EnableFdc3: true})
+            if (fdc3Options is { EnableFdc3: true })
             {
                 services.AddFdc3DesktopAgent();
                 services.AddFdc3AppDirectory();
@@ -200,7 +203,26 @@ public partial class App : Application
             && CommandLineParser.TryParse<WebWindowOptions>(e.Args, out var webWindowOptions)
             && webWindowOptions.Url != null)
         {
-            StartWithWebWindowOptions(webWindowOptions);
+            var moduleId = Guid.NewGuid().ToString();
+
+            var moduleCatalog = _host.Services.GetRequiredService<ModuleCatalog>();
+            moduleCatalog.Add(new WebModuleManifest
+            {
+                Id = moduleId,
+                Name = webWindowOptions.Url,
+                ModuleType = ModuleType.Web,
+                Details = new WebManifestDetails
+                {
+                    Url = new Uri(webWindowOptions.Url),
+                    IconUrl = webWindowOptions.IconUrl == null ? null : new Uri(webWindowOptions.IconUrl)
+                }
+            });
+
+            var moduleLoader = _host.Services.GetRequiredService<IModuleLoader>();
+            moduleLoader.StartModule(new StartRequest(moduleId, new List<KeyValuePair<string, string>>()
+                        {
+                            { new(WebWindowOptions.ParameterName, JsonSerializer.Serialize(webWindowOptions)) }
+                        }));
 
             return;
         }
@@ -235,11 +257,5 @@ public partial class App : Application
                     $"Exception thrown while stopping the generic host: {e.GetType().FullName}: {e.Message}");
             }
         }
-    }
-
-    private void StartWithWebWindowOptions(WebWindowOptions options)
-    {
-        ShutdownMode = ShutdownMode.OnLastWindowClose;
-        CreateWindow<WebWindow>(options).Show();
     }
 }
