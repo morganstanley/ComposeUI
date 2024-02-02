@@ -11,6 +11,7 @@
 // and limitations under the License.
 
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 
 namespace MorganStanley.ComposeUI.ModuleLoader;
 

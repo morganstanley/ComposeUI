@@ -1,56 +1,65 @@
 ﻿[
-    {
-        "Id": "Morgan Stanley",
-        "Name": "Morgan Stanley",
-        "ModuleType": "web",
-        "Details": {
-            "Url": "https://www.morganstanley.com",
-            "IconUrl": "https://www.morganstanley.com/etc/designs/msdotcom/image/favicon-96x96.png"
-        }
-    },
-    {
-        "Id": "Microsoft",
-        "Name": "Microsoft",
-        "ModuleType": "web",
-        "Details": {
-            "Url": "https://www.microsoft.com",
-            "IconUrl": "https://www.microsoft.com/favicon.ico?v2"
-        }
-    },
-    {
-        "Id": "Google",
-        "Name": "Google",
-        "ModuleType": "web",
-        "Details": {
-            "Url": "https://www.google.com",
-            "IconUrl": "https://www.google.com/images/branding/googleg/1x/googleg_standard_color_128dp.png"
-        }
-    },
-    {
-        "Id": "FINOS FDC3 Workbench",
-        "Name": "FINOS FDC3 Workbench",
-        "ModuleType": "web",
-        "Details": {
-            "Url": "https://fdc3.finos.org/toolbox/fdc3-workbench/",
-            "IconUrl": "https://fdc3.finos.org/toolbox/fdc3-workbench/favicon.ico"
-        }
-    },
-	{
-        "Id": "Conformance2",
-        "Name": "FDC3 2.0 Conformance Framework",
-        "ModuleType": "web",
-        "Details": {
-            "Url": "https://finos.github.io/FDC3-conformance-framework/v2.0/app/",
-            "IconUrl": "https://fdc3.finos.org/assets/fdc3-logo.png"
-        }
-    },
-    {
-        "Id": "js-grid",
-        "Name": "Grid",
-        "ModuleType": "web",
-        "Details": {
-          "Url": "http://localhost:4200/",
-          "IconUrl": "http://localhost:4200/favicon.ico"
-        }
+  {
+    "Id": "Morgan Stanley",
+    "Name": "Morgan Stanley",
+    "ModuleType": "web",
+    "Details": {
+      "Url": "https://www.morganstanley.com",
+      "IconUrl": "https://www.morganstanley.com/etc/designs/msdotcom/image/favicon-96x96.png"
     }
+  },
+  {
+    "Id": "Microsoft",
+    "Name": "Microsoft",
+    "ModuleType": "web",
+    "Details": {
+      "Url": "https://www.microsoft.com",
+      "IconUrl": "https://www.microsoft.com/favicon.ico?v2"
+    }
+  },
+  {
+    "Id": "Google",
+    "Name": "Google",
+    "ModuleType": "web",
+    "Details": {
+      "Url": "https://www.google.com",
+      "IconUrl": "https://www.google.com/images/branding/googleg/1x/googleg_standard_color_128dp.png"
+    }
+  },
+  {
+    "Id": "FINOS FDC3 Workbench",
+    "Name": "FINOS FDC3 Workbench",
+    "ModuleType": "web",
+    "Details": {
+      "Url": "https://fdc3.finos.org/toolbox/fdc3-workbench/",
+      "IconUrl": "https://fdc3.finos.org/toolbox/fdc3-workbench/favicon.ico"
+    }
+  },
+  {
+    "Id": "Conformance2",
+    "Name": "FDC3 2.0 Conformance Framework",
+    "ModuleType": "web",
+    "Details": {
+      "Url": "https://finos.github.io/FDC3-conformance-framework/v2.0/app/",
+      "IconUrl": "https://fdc3.finos.org/assets/fdc3-logo.png"
+    }
+  },
+  {
+    "Id": "js-grid",
+    "Name": "Grid",
+    "ModuleType": "web",
+    "Details": {
+      "Url": "http://localhost:4200/",
+      "IconUrl": "http://localhost:4200/favicon.ico"
+    }
+  },
+  {
+    "Id": "Diagnistics WPF",
+    "Name": "Diagnostics WPF",
+    "ModuleType": "native",
+    "Details": {
+      "Path": "..\\..\\..\\..\\..\\..\\..\\examples\\dotnet-diagnostics\\DiagnosticsExample\\bin\\Debug\\net6.0-windows\\DiagnosticsExample.exe",
+      "EnvironmentVariables": { "CUSTOM_GREETINGS": "Hello ComposeUI!" }
+    }
+  }
 ]

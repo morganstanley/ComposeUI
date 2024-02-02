@@ -203,7 +203,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         }
         catch (TimeoutException)
         {
-            
+
             return GetIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed);
         }
     }
@@ -550,7 +550,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     }
 
     private Dictionary<string, AppIntent> GetAppIntentsFromRunningModules(
-        Func<Fdc3App, IEnumerable<IntentMetadata>?> selector, 
+        Func<Fdc3App, IEnumerable<IntentMetadata>?> selector,
         IAppIdentifier? targetAppIdentifier,
         Dictionary<string, AppIntent> appIntents)
     {
@@ -660,8 +660,12 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
     private async Task AddOrUpdateModuleAsync(IModuleInstance instance)
     {
-        var fdc3App = await _appDirectory.GetApp(instance.Manifest.Id);
-        if (fdc3App == null)
+        Fdc3App fdc3App;
+        try
+        {
+            fdc3App = await _appDirectory.GetApp(instance.Manifest.Id);
+        }
+        catch (AppNotFoundException)
         {
             _logger.LogError($"Could not retrieve app: {instance.Manifest.Id} from AppDirectory.");
             return;
@@ -697,7 +701,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
             return startupProperties == null
                 ? throw ThrowHelper.MissingFdc3InstanceId(instance.Manifest.Id)
-                : ((Fdc3StartupProperties)startupProperties).InstanceId;
+                : ((Fdc3StartupProperties) startupProperties).InstanceId;
         }
 
         return fdc3InstanceId;
