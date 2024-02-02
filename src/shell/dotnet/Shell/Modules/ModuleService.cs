@@ -61,8 +61,9 @@ internal sealed class ModuleService : IHostedService
     private async void OnWebModuleStarted(LifetimeEvent.Started e)
     {
         var properties = e.Instance.GetProperties().OfType<WebStartupProperties>().FirstOrDefault();
-
         if (properties == null) return;
+
+        var webWindowOptions = e.Instance.GetProperties().OfType<WebWindowOptions>().FirstOrDefault();
 
         try
         {
@@ -71,7 +72,7 @@ internal sealed class ModuleService : IHostedService
                 {
                     var window = _application.CreateWindow<WebWindow>(
                         e.Instance,
-                        new WebWindowOptions
+                        webWindowOptions ?? new WebWindowOptions
                         {
                             Url = properties.Url.ToString(),
                             IconUrl = properties.IconUrl?.ToString()

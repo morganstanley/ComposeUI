@@ -67,7 +67,7 @@ internal sealed class ModuleCatalog : IModuleCatalog, IInitializeAsync
                    ?? new Dictionary<string, ModuleManifest>();
     }
 
-    private void Add(ModuleManifest manifest)
+    internal void Add(ModuleManifest manifest)
     {
         _modules.Add(manifest.Id, manifest);
     }
@@ -75,30 +75,8 @@ internal sealed class ModuleCatalog : IModuleCatalog, IInitializeAsync
     private static readonly JsonSerializerOptions JsonSerializerOptions =
         new() { Converters = { new ModuleManifestConverter() } };
 
-    private class ModuleManifest : IModuleManifest
-    {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public string ModuleType { get; set; }
-    }
-
-    private class WebModuleManifest : ModuleManifest, IModuleManifest<WebManifestDetails>
-    {
-        public WebManifestDetails GetDetails()
-        {
-            return Details;
-        }
-
-        public WebManifestDetails Details { get; set; }
-    }
-
     private class NativeModuleManifest : ModuleManifest, IModuleManifest<NativeManifestDetails>
     {
-        public NativeManifestDetails GetDetails()
-        {
-            return Details;
-        }
-
         public NativeManifestDetails Details { get; set; }
     }
 
