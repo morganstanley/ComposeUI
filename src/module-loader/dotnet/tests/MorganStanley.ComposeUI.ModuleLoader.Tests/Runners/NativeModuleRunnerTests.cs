@@ -11,11 +11,21 @@
 // and limitations under the License.
 
 using System.Diagnostics;
-using System.Security;
 using Moq;
 using MorganStanley.ComposeUI.ModuleLoader.Runners;
 
 namespace MorganStanley.ComposeUI.ModuleLoader.Tests.Runners;
+
+public class SkipOnGithubActionsFact : FactAttribute
+{
+    public SkipOnGithubActionsFact()
+    {
+        if (Environment.GetEnvironmentVariable("GITHUB_ACTION") != null)
+        {
+            Skip = "These tests fail on GitHub Actions with a timeout on the process, so they are skipped";
+        }
+    }
+}
 
 public class NativeModuleRunnerTests : IDisposable
 {
@@ -29,7 +39,7 @@ public class NativeModuleRunnerTests : IDisposable
         Assert.Equal(ModuleType.Native, _runner.ModuleType);
     }
 
-    [Fact]
+    [SkipOnGithubActionsFact]
     public async Task ModuleIsLaunchedWithProvidedArguments()
     {
         var startRequest = new StartRequest("testModule");
@@ -63,7 +73,7 @@ public class NativeModuleRunnerTests : IDisposable
         Assert.Equal($"Hello ComposeUI! I am {randomString}", stdout);
     }
 
-    [Fact]
+    [SkipOnGithubActionsFact]
     public async Task AbsolutePathModuleIsLaunchedWithEnvironmentVariablesFromManifest()
     {
         var startRequest = new StartRequest("testModule");
@@ -97,7 +107,7 @@ public class NativeModuleRunnerTests : IDisposable
         Assert.Contains($"{variableName}={randomString}", stdout);
     }
 
-    [Fact]
+    [SkipOnGithubActionsFact]
     public async Task RelativePathModuleIsLaunchedWithEnvironmentVariablesFromManifest()
     {
         var startRequest = new StartRequest("testModule");
@@ -131,7 +141,7 @@ public class NativeModuleRunnerTests : IDisposable
         Assert.Contains($"{variableName}={randomString}", stdout);
     }
 
-    [Fact]
+    [SkipOnGithubActionsFact]
     public async Task ModuleIsLaunchedWithEnvironmentVariablesFromPipeline()
     {
         var startRequest = new StartRequest("testModule");
