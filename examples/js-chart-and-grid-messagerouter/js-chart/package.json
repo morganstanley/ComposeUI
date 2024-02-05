@@ -1,0 +1,28 @@
+{
+  "name": "@morgan-stanley/composeui-example-chart-messagerouter",  
+  "version": "0.1.0-alpha.1",
+  "private": true,
+  "description": "Example Web Application",
+  "main": "chat.js",
+  "type": "module",
+  "scripts": {
+    "clean": "rimraf dist",
+    "bundle": "rollup -c",
+    "build": "npm run clean && npm run bundle",
+    "start": "http-server"
+  },
+  "dependencies": {
+    "@morgan-stanley/composeui-messaging-client": "*",
+    "bootstrap": "5.2.3",
+    "highcharts": "11.1.0",
+    "jquery": "3.6.3",
+    "tslib": "2.5.0"
+  },
+  "devDependencies": {
+    "http-server": "14.1.1",
+    "rimraf": "^4.4.0",
+    "rollup": "^3.14.0",
+    "@rollup/plugin-commonjs": "24.0.1",
+    "@rollup/plugin-node-resolve": "15.1.0"
+  }
+}

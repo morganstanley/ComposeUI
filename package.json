@@ -4,6 +4,7 @@
   "private": true,
   "workspaces": [
     "examples/js-*",
+    "examples/js-chart-and-grid-messagerouter/js-*",
     "src/messaging/js/*",
     "src/shell/js/*",
     "src/fdc3/js/*",
