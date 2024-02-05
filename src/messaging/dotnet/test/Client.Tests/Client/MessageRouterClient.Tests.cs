@@ -685,6 +685,38 @@ public class MessageRouterClientTests : IAsyncLifetime
         exception.Name.Should().Be(MessageRouterErrors.ConnectionAborted);
     }
 
+    [Fact]
+    public async Task When_a_subscription_is_disposed_there_will_be_no_further_calls_to_the_subscriber()
+    {
+        await _messageRouter.ConnectAsync();
+        IAsyncDisposable subscription = null!;
+        var subscriber = new Mock<IAsyncObserver<TopicMessage>>();
+        
+        subscriber.Setup(_ => _.OnNextAsync(It.IsAny<TopicMessage>()))
+            .Returns(
+                async (TopicMessage msg) =>
+                {
+                    if (msg.Payload?.GetString() == "2")
+                    {
+                        await subscription.DisposeAsync().AsTask().WaitAsync(TestTimeout);
+                    }
+                });
+
+        subscription = await _messageRouter.SubscribeAsync("test-topic", subscriber.Object);
+        await WaitForCompletionAsync();
+        await _connectionMock.SendToClient(
+            RegisterRequest(new Protocol.Messages.TopicMessage {Topic = "test-topic", Payload = MessageBuffer.Create("1")}));
+        await _connectionMock.SendToClient(
+            RegisterRequest(new Protocol.Messages.TopicMessage { Topic = "test-topic", Payload = MessageBuffer.Create("2")}));
+        await _connectionMock.SendToClient(
+            RegisterRequest(new Protocol.Messages.TopicMessage { Topic = "test-topic", Payload = MessageBuffer.Create("3")}));
+        await WaitForCompletionAsync();
+
+        subscriber.Verify(_ => _.OnNextAsync(It.Is<TopicMessage>(msg => msg.Payload!.GetString() == "1")), Times.Once);
+        subscriber.Verify(_ => _.OnNextAsync(It.Is<TopicMessage>(msg => msg.Payload!.GetString() == "2")), Times.Once);
+        subscriber.VerifyNoOtherCalls();
+    }
+
     public MessageRouterClientTests()
     {
         _connectionMock = new MockConnection();
