@@ -10,7 +10,6 @@ import { Message, Process } from 'src/app/generated-protos-files/ProcessExplorer
   providedIn: 'root'
 })
 export class ProcessesService {
-  // allProcesses: Array<Process.AsObject> = [];
   allProcesses:any[] = [];
 
   public getProcesses(tableName: string): Observable<ProcessTable[]> {
@@ -24,17 +23,7 @@ export class ProcessesService {
     const message = new Message();
     message.getProcessesList();
     const response = client.subscribe(message) 
-return response;
-  //   return response.on("data", req => {
-  //     if(req.toObject().processesList.length > 0){
-  //       this.allProcesses = [...this.allProcesses, ...req.toObject().processesList]
-  //     }
-  //     // console.log('all', this.allProcesses);
-  //     // return of(this.allProcesses)
-  //   })
-  //   // console.log('all', this.allProcesses);
-
-  //   // return of(this.allProcesses)
+    return response;
   }
-   
+
 }

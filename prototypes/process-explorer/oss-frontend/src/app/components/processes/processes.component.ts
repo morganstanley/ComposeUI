@@ -36,26 +36,25 @@ export class ProcessesComponent implements AfterViewInit {
   @ViewChild(MatSort) sort: MatSort;
 
   constructor(private processService: ProcessesService, private liveAnnouncer: LiveAnnouncer) {
-    this.processService.getProcesses('Processes').subscribe(process => this.processesData = process);
+    // this.processService.getProcesses('Processes').subscribe(process => this.processesData = process);
     this.processService.getProcessesData().on("data", req => {
           if(req.toObject().processesList.length > 0){
             this.allProcesses = [...this.allProcesses, ...req.toObject().processesList]
           }
-          console.log('all', this.allProcesses);
+          console.log('all processes', this.allProcesses);
           this.displayedColumnsKeys = this.displayedColumns.map(column => column.key);
-         this.dataSource = new MatTableDataSource<Process.AsObject>(this.allProcesses);
-         console.log('data', this.dataSource);
-        })
+          this.dataSource = new MatTableDataSource<Process.AsObject>(this.allProcesses);
 
-    // this.displayedColumnsKeys = this.displayedColumns.map(column => column.key);
-    // this.dataSource = new MatTableDataSource<Process.AsObject>(this.allProcesses);
-    // console.log('data', this.dataSource);
-    
+          this.dataSource.paginator = this.paginator;
+          this.dataSource.sort = this.sort;
+        })
   }
 
   ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
+    
+  }
+
+  ngOnChanges(){
   }
   
   ngOnInit() {
