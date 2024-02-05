@@ -37,4 +37,5 @@ public sealed class WebWindowOptions
     public const string DefaultTitle = "Compose Web Container";
     public const string DefaultUrl = "about:blank";
     public const double DefaultWidth = 800;
+    public const string ParameterName = nameof(WebWindowOptions);
 }

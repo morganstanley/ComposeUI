@@ -10,11 +10,11 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Fdc3.AppDirectory;
+using MorganStanley.ComposeUI.ModuleLoader;
 
-public class AppNotFoundException : Exception
+namespace MorganStanley.ComposeUI.Shell.Modules;
+
+internal class WebModuleManifest : ModuleManifest, IModuleManifest<WebManifestDetails>
 {
-    public AppNotFoundException(string appId) : base($"Could not find app with id '{appId}'")
-    {
-    }
+    public WebManifestDetails Details { get; set; }
 }

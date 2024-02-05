@@ -12,14 +12,13 @@
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls.Ribbon;
-using System.Windows.Documents;
+using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.ImageSource;
-using MorganStanley.ComposeUI.Shell.Modules;
 
 namespace MorganStanley.ComposeUI.Shell;
 
@@ -106,6 +105,15 @@ public partial class MainWindow : RibbonWindow
                         webManifestDetails.IconUrl,
                         webManifestDetails.Url);
                 }
+            }
+            else if (manifest.TryGetDetails<NativeManifestDetails>(out var nativeManifestDetails))
+            {
+                var icon = System.Drawing.Icon.ExtractAssociatedIcon(Path.GetFullPath(nativeManifestDetails.Path.ToString()));
+
+                ImageSource = System.Windows.Interop.Imaging.CreateBitmapSourceFromHIcon(
+                icon.Handle,
+                new Int32Rect { Width = icon.Width, Height = icon.Height },
+                BitmapSizeOptions.FromEmptyOptions());
             }
         }
 

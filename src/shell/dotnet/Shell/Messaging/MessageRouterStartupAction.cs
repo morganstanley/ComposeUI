@@ -11,8 +11,10 @@
 // and limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
+using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
 using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 using MorganStanley.ComposeUI.ModuleLoader;
 
@@ -29,15 +31,18 @@ internal sealed class MessageRouterStartupAction : IStartupAction
 
     public Task InvokeAsync(StartupContext startupContext, Func<Task> next)
     {
+        if (_webSocketServer == null)
+        {
+            return next();
+        }
+
         if (startupContext.ModuleInstance.Manifest.ModuleType == ModuleType.Web)
         {
-            if (_webSocketServer != null)
-            {
-                var webProperties = startupContext.GetOrAddProperty<WebStartupProperties>();
-                
-                webProperties.ScriptProviders.Add(
-                    _ => new ValueTask<string>(
-                        $$"""
+            var webProperties = startupContext.GetOrAddProperty<WebStartupProperties>();
+
+            webProperties.ScriptProviders.Add(
+                _ => new ValueTask<string>(
+                    $$"""
                             window.composeui = {
                                 ...window.composeui,
                                 messageRouterConfig: {
@@ -48,9 +53,11 @@ internal sealed class MessageRouterStartupAction : IStartupAction
                                 }
                             };
                             """));
-            }
         }
 
+        startupContext.AddProperty(new EnvironmentVariables(new[] { new KeyValuePair<string, string>(WebSocketEnvironmentVariableNames.Uri, _webSocketServer.WebSocketUrl.AbsoluteUri),
+        new KeyValuePair<string, string>(ComposeUI.Messaging.EnvironmentVariableNames.AccessToken, App.Current.MessageRouterAccessToken)}
+            ));
 
         return next();
     }

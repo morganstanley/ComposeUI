@@ -67,7 +67,7 @@ internal sealed class ModuleCatalog : IModuleCatalog, IInitializeAsync
                    ?? new Dictionary<string, ModuleManifest>();
     }
 
-    private void Add(ModuleManifest manifest)
+    internal void Add(ModuleManifest manifest)
     {
         _modules.Add(manifest.Id, manifest);
     }
@@ -75,21 +75,9 @@ internal sealed class ModuleCatalog : IModuleCatalog, IInitializeAsync
     private static readonly JsonSerializerOptions JsonSerializerOptions =
         new() { Converters = { new ModuleManifestConverter() } };
 
-    private class ModuleManifest : IModuleManifest
+    private class NativeModuleManifest : ModuleManifest, IModuleManifest<NativeManifestDetails>
     {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public string ModuleType { get; set; }
-    }
-
-    private class WebModuleManifest : ModuleManifest, IModuleManifest<WebManifestDetails>
-    {
-        public WebManifestDetails GetDetails()
-        {
-            return Details;
-        }
-
-        public WebManifestDetails Details { get; set; }
+        public NativeManifestDetails Details { get; set; }
     }
 
     private class ModuleManifestConverter : JsonConverter<ModuleManifest>
@@ -111,9 +99,11 @@ internal sealed class ModuleCatalog : IModuleCatalog, IInitializeAsync
             {
                 case ModuleType.Web:
                     return JsonSerializer.Deserialize<WebModuleManifest>(ref reader, options);
+                case ModuleType.Native:
+                    return JsonSerializer.Deserialize<NativeModuleManifest>(ref reader, options);
+                default:
+                    throw new InvalidOperationException("Unsupported module type: " + header.ModuleType);
             }
-
-            throw new InvalidOperationException("Unsupported module type: " + header.ModuleType);
         }
 
         public override void Write(Utf8JsonWriter writer, ModuleManifest value, JsonSerializerOptions options)

@@ -13,9 +13,11 @@
 //  */
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Extensions.Configuration;
@@ -25,6 +27,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Fdc3.AppDirectory;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
+using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.Abstractions;
 using MorganStanley.ComposeUI.Shell.Fdc3;
@@ -113,6 +116,16 @@ public partial class App : Application
         _host = host;
         _logger = _host.Services.GetRequiredService<ILogger<App>>();
 
+        var startupTime = DateTime.Now;
+        var diagnostics = new DiagnosticInfo
+        {
+            StartupTime = DateTime.Now,
+            ShellVersion = Assembly.GetExecutingAssembly().FullName
+        };
+
+        await _host.Services.GetRequiredService<IMessageRouter>().RegisterServiceAsync("Diagnostics", (e, m, t) =>
+        ValueTask.FromResult(MessageBuffer.Factory.CreateJson(diagnostics))!);
+
         await OnHostInitializedAsync();
 
         Dispatcher.Invoke(() => OnAsyncStartupCompleted(e));
@@ -162,6 +175,7 @@ public partial class App : Application
             services.Configure<ModuleCatalogOptions>(
                 context.Configuration.GetSection(ModuleCatalogOptions.ConfigurationPath));
             services.AddHostedService<ModuleService>();
+            services.AddTransient<IStartupAction, WebWindowOptionsStartupAction>();
         }
 
         void ConfigureFdc3()
@@ -170,7 +184,7 @@ public partial class App : Application
             var fdc3Options = fdc3ConfigurationSection.Get<Fdc3Options>();
 
             // TODO: Use feature flag instead
-            if (fdc3Options is {EnableFdc3: true})
+            if (fdc3Options is { EnableFdc3: true })
             {
                 services.AddFdc3DesktopAgent();
                 services.AddFdc3AppDirectory();
@@ -200,7 +214,26 @@ public partial class App : Application
             && CommandLineParser.TryParse<WebWindowOptions>(e.Args, out var webWindowOptions)
             && webWindowOptions.Url != null)
         {
-            StartWithWebWindowOptions(webWindowOptions);
+            var moduleId = Guid.NewGuid().ToString();
+
+            var moduleCatalog = _host.Services.GetRequiredService<ModuleCatalog>();
+            moduleCatalog.Add(new WebModuleManifest
+            {
+                Id = moduleId,
+                Name = webWindowOptions.Url,
+                ModuleType = ModuleType.Web,
+                Details = new WebManifestDetails
+                {
+                    Url = new Uri(webWindowOptions.Url),
+                    IconUrl = webWindowOptions.IconUrl == null ? null : new Uri(webWindowOptions.IconUrl)
+                }
+            });
+
+            var moduleLoader = _host.Services.GetRequiredService<IModuleLoader>();
+            moduleLoader.StartModule(new StartRequest(moduleId, new List<KeyValuePair<string, string>>()
+                        {
+                            { new(WebWindowOptions.ParameterName, JsonSerializer.Serialize(webWindowOptions)) }
+                        }));
 
             return;
         }
@@ -235,11 +268,5 @@ public partial class App : Application
                     $"Exception thrown while stopping the generic host: {e.GetType().FullName}: {e.Message}");
             }
         }
-    }
-
-    private void StartWithWebWindowOptions(WebWindowOptions options)
-    {
-        ShutdownMode = ShutdownMode.OnLastWindowClose;
-        CreateWindow<WebWindow>(options).Show();
     }
 }
