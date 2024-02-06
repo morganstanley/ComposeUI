@@ -15,7 +15,7 @@
     "@morgan-stanley/composeui-messaging-client": "*",
     "bootstrap": "5.2.3",
     "highcharts": "11.1.0",
-    "jquery": "3.6.3",
+    "jquery": "3.7.1",
     "tslib": "2.5.0"
   },
   "devDependencies": {
