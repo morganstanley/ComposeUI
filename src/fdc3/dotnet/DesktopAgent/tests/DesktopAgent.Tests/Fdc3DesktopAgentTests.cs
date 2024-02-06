@@ -510,8 +510,9 @@ public class Fdc3DesktopAgentTests
         result!.Response.Error.Should().Be("Some weird error");
     }
 
+    //TODO: Right now we are returning just one element, without the possibility of selecting via ResolverUI.
     [Fact]
-    public async Task RaiseIntent_returns_multiple_apps()
+    public async Task RaiseIntent_returns_first_app()
     {
         var request = new RaiseIntentRequest()
         {
@@ -525,14 +526,8 @@ public class Fdc3DesktopAgentTests
         var result = await _fdc3.RaiseIntent(request);
         result.Should().NotBeNull();
         result!.RaiseIntentResolutionMessages.Should().BeEmpty();
-        result!.Response!.AppMetadata.Should().HaveCount(3);
-        result!.Response.AppMetadata.Should().BeEquivalentTo(
-            new List<AppMetadata>()
-            {
-                new() { AppId = "appId4", Name = "app4", ResultType = null },
-                new() { AppId = "appId5", Name = "app5", ResultType = "resultType<specified>" },
-                new() { AppId = "appId6", Name = "app6", ResultType = "resultType" }
-            });
+        result!.Response!.AppMetadata.Should().HaveCount(1);
+        result!.Response.AppMetadata!.First().AppId.Should().Be("appId4");
     }
 
     [Fact]

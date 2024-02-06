@@ -607,8 +607,9 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             result.Should().BeEquivalentTo(expectedResponse);
         }
 
+        //TODO: Right now we are returning just one element, without the possibility of selecting via ResolverUI.
         [Fact]
-        public async Task RaiseIntentReturnsAppIntentWithMultipleApps()
+        public async Task RaiseIntentReturnsAppIntentWithFirstApp()
         {
             var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
             var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
@@ -622,23 +623,19 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 Context = new Context("context2")
             };
 
-            var expectedResponse = new RaiseIntentResponse()
-            {
-                MessageId = "2",
-                Intent = "intentMetadata4",
-                AppMetadata = new AppMetadata[]
-                {
-                    new() { AppId = "appId4", Name = "app4", ResultType = null },
-                    new() { AppId = "appId5", Name = "app5", ResultType = "resultType<specified>" },
-                    new() { AppId = "appId6", Name = "app6", ResultType = "resultType" }
-                }
-            };
-
             var resultBuffer = await _messageRouter.InvokeAsync(Fdc3Topic.RaiseIntent, MessageBuffer.Factory.CreateJson(request, _options));
             resultBuffer.Should().NotBeNull();
             var result = resultBuffer!.ReadJson<RaiseIntentResponse>(_options);
             result.Should().NotBeNull();
-            result.Should().BeEquivalentTo(expectedResponse);
+
+            var app4 = _runningApps.First(application => application.Manifest.Id == "appId4");
+            var app4Fdc3InstanceId = Fdc3InstanceIdRetriever.Get(app4);
+
+            result!.AppMetadata.Should().BeEquivalentTo(
+                new AppMetadata[]
+                {
+                    new() { AppId = "appId4", InstanceId = app4Fdc3InstanceId, Name = "app4", ResultType = null }
+                });
         }
 
         [Fact]

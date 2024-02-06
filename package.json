@@ -3,14 +3,14 @@
   "description": "Lerna monorepo of the web dependencies in ComposeUI",
   "private": true,
   "workspaces": [
-    "examples/js-*",
     "examples/js-chart-and-grid-messagerouter/js-*",
+    "examples/fdc3-chart-and-grid/js-*",
     "src/messaging/js/*",
     "src/shell/js/*",
     "src/fdc3/js/*",
     "prototypes/process-explorer/*"
   ],
   "devDependencies": {
-    "lerna": "^7.1.1"
+    "lerna": "8.0.2"
   }
 }

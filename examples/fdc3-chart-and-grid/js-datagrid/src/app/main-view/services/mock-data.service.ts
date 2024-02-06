@@ -3,7 +3,8 @@
 import { Injectable } from '@angular/core';
 import { interval, Subject } from 'rxjs';
 import { Market } from './mock-data';
-import { Channel, Context } from '@finos/fdc3';
+import { AppIdentifier, Channel, Context, ContextTypes, IntentResolution, Intents } from '@finos/fdc3';
+import { Symbol } from './../models/Symbol';
 
 @Injectable({
   providedIn: 'root'
@@ -12,6 +13,7 @@ export class MockDataService{
   public subject: Subject<any> = new Subject<any>();
   public marketData: any;
   private market: Market;
+  private intentResolution: IntentResolution;
   private currentChannel: Channel | null;
   private connected: Boolean = false;
   private connecting: Promise<void>;
@@ -23,7 +25,7 @@ export class MockDataService{
         resolve(await this.checkFdc3Connection());
       } catch(err) {
         reject(err);
-      }
+      };
     });
 
     interval(1000).subscribe(() => {
@@ -42,22 +44,44 @@ export class MockDataService{
     }
   }
 
-  public async publishSymbolData(symbol: any|undefined): Promise<void> {
-    if(symbol){
-      await this.connecting;
-      //TODO: involve DataService to generate the data for the chart
-      let marketSymbol = this.market.createMarketSymbol(symbol);
+  public async publishSymbolData(symbol: Symbol | undefined): Promise<void> {
+    await this.connecting;
 
+    if(symbol){      
       const context: Context = {
-        type: 'fdc3.instrument',
+        type: ContextTypes.Instrument,
         id: {
-          ticker: marketSymbol?.symbol,
-          buyData: marketSymbol?.buy,
-          sellData: marketSymbol?.sell
+          ticker: symbol?.symbol
         }
       }
 
       await window.fdc3.broadcast(context);
     }
+  }
+
+  public async openChart(symbol: Symbol | undefined) : Promise<AppIdentifier> {
+    let context: Context = {
+      type: ContextTypes.Instrument
+    };
+
+    if (symbol) {
+      context = {
+        type: ContextTypes.Instrument,
+        id: {
+          ticker: symbol?.symbol
+        }
+      };
+    }
+
+    if (this.intentResolution?.source) {
+      await window.fdc3.raiseIntent(Intents.ViewChart, context, this.intentResolution.source).catch(async(rejected) => {
+        console.log("Error while raising intent, eg.: the window could be closed: ", rejected);
+        this.intentResolution = await window.fdc3.raiseIntent(Intents.ViewChart, context);
+      }); 
+    } else {
+      this.intentResolution = await window.fdc3.raiseIntent(Intents.ViewChart, context);
+    }
+
+    return this.intentResolution.source;
   }
 }

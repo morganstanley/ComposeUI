@@ -66,8 +66,6 @@ public partial class MainWindow : RibbonWindow
         private set => DataContext = value;
     }
 
-
-
     private async void StartModule_Click(object sender, RoutedEventArgs e)
     {
         // I ❤️ C#

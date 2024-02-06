@@ -63,7 +63,7 @@ export class DatagridComponent implements OnInit, AfterViewInit {
 
   public onButtonClick(){
     if(this.chartWindow == null || this.chartWindow.closed == true){
-      this.chartWindow = window.open('http://localhost:8081');
+      this.chartWindow = window.open('http://localhost:8080');
     }else{
       console.log('The chart is already opened.. ', this.chartWindow);
     }
