@@ -3,8 +3,8 @@
   "description": "Lerna monorepo of the web dependencies in ComposeUI",
   "private": true,
   "workspaces": [
-    "examples/js-*",
     "examples/js-chart-and-grid-messagerouter/js-*",
+    "examples/fdc3-chart-and-grid/js-*",
     "src/messaging/js/*",
     "src/shell/js/*",
     "src/fdc3/js/*",
