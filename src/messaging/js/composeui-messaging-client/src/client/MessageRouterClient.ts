@@ -101,7 +101,6 @@ export class MessageRouterClient implements MessageRouter {
                 type: "Publish",
                 topic,
                 payload,
-                scope: options?.scope,
                 correlationId: options?.correlationId
             });
     }
@@ -115,7 +114,6 @@ export class MessageRouterClient implements MessageRouter {
                 requestId: this.getRequestId(),
                 endpoint,
                 payload,
-                scope: options?.scope,
                 correlationId: options?.correlationId
             });
 
