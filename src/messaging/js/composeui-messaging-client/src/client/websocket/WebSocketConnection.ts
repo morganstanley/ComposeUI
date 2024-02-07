@@ -13,7 +13,6 @@
 
 import * as messages from "../../protocol/messages";
 import { WebSocketOptions } from "./WebSocketOptions";
-import { MessageScope } from "../../MessageScope";
 import { Connection, OnMessageCallback, OnErrorCallback, OnCloseCallback } from "../Connection";
 
 export class WebSocketConnection implements Connection {
@@ -84,10 +83,6 @@ export class WebSocketConnection implements Connection {
 
     private static deserializeMessage(data: any): messages.Message {
         const msg = <messages.Message> JSON.parse(data);
-        if ("scope" in msg && typeof(msg.scope) === "string") {
-            msg.scope = MessageScope.parse(msg.scope);
-        }
-
         return msg;
     }
 

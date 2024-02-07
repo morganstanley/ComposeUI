@@ -94,49 +94,6 @@ public abstract class EndToEndTestsBase : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Client_can_invoke_another_client_by_id_as_long_as_it_is_registered()
-    {
-        await using var callee = CreateClient();
-        await using var caller = CreateClient();
-
-        var handlerMock = new Mock<MessageHandler>();
-
-        handlerMock.Setup(_ => _.Invoke(It.IsAny<string>(), It.IsAny<MessageBuffer?>(), It.IsAny<MessageContext>()))
-            .ReturnsAsync(
-                (string endpoint, MessageBuffer? payload, MessageContext context) =>
-                    MessageBuffer.Create("test-response"));
-
-        await callee.RegisterEndpointAsync(endpoint: "test-endpoint", handlerMock.Object);
-
-        var response = await caller.InvokeAsync(
-            endpoint: "test-endpoint",
-            payload: "test-request",
-            new InvokeOptions
-            {
-                Scope = MessageScope.FromClientId(callee.ClientId!)
-            });
-
-        response.Should().BeEquivalentTo("test-response");
-
-        handlerMock.Verify(
-            _ => _.Invoke(
-                "test-endpoint",
-                It.Is<MessageBuffer>(buf => buf.GetString() == "test-request"),
-                It.IsAny<MessageContext>()));
-
-        await callee.UnregisterEndpointAsync("test-endpoint");
-
-        await Assert.ThrowsAsync<MessageRouterException>(
-            async () => await caller.InvokeAsync(
-                endpoint: "test-endpoint",
-                payload: "test-request",
-                new InvokeOptions
-                {
-                    Scope = MessageScope.FromClientId(callee.ClientId!)
-                }));
-    }
-
-    [Fact]
     public async Task Subscriber_can_invoke_a_service_without_deadlock()
     {
         await using var subscriber = CreateClient();
@@ -190,31 +147,6 @@ public abstract class EndToEndTestsBase : IAsyncLifetime
         }
 
         await publisher.PublishAsync(topic: "test-topic", payload: "done");
-        await tcs.Task;
-    }
-
-    [Fact]
-    public async Task Endpoint_handler_can_invoke_a_service_without_deadlock()
-    {
-        await using var listener = CreateClient();
-        await using var caller = CreateClient();
-        await using var service = CreateClient();
-        var tcs = new TaskCompletionSource();
-
-        await listener.RegisterEndpointAsync(
-            endpoint: "test-endpoint",
-            new MessageHandler(
-                async (endpoint, payload, context) =>
-                {
-                    await listener.InvokeAsync("test-service");
-                    tcs.SetResult();
-                    return null;
-                }));
-
-        await service.RegisterServiceAsync(endpoint: "test-service", new Mock<MessageHandler>().Object);
-        await caller.InvokeAsync(
-            endpoint: "test-endpoint",
-            options: new InvokeOptions {Scope = MessageScope.FromClientId(listener.ClientId!)});
         await tcs.Task;
     }
 

@@ -156,7 +156,7 @@ public class MessageRouterClientTests : IAsyncLifetime
             "test-topic",
             "test-payload",
             new PublishOptions
-                {CorrelationId = "test-correlation-id", Scope = MessageScope.FromClientId("other-client")});
+                {CorrelationId = "test-correlation-id"});
 
         
         await WaitForCompletionAsync();
@@ -165,8 +165,7 @@ public class MessageRouterClientTests : IAsyncLifetime
             msg => msg.Topic == "test-topic"
                    && msg.Payload != null
                    && msg.Payload.GetString() == "test-payload"
-                   && msg.CorrelationId == "test-correlation-id"
-                   && msg.Scope == MessageScope.FromClientId("other-client"));
+                   && msg.CorrelationId == "test-correlation-id");
     }
 
     [Fact]

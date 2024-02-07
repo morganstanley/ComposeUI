@@ -19,7 +19,6 @@ export * from "./MessageContext";
 export * from "./MessageHandler";
 export * from "./MessageRouter";
 export * from "./MessageRouterError";
-export * from "./MessageScope";
 export * from "./PublishOptions";
 export * from "./TopicMessage";
 export * from "./TopicSubscriber";

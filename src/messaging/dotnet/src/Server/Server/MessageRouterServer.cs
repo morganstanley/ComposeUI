@@ -134,16 +134,7 @@ internal class MessageRouterServer : IMessageRouterServer
         {
             Client? serviceClient = null;
 
-            if (message.Scope.IsClientId)
-            {
-                var clientId = message.Scope.GetClientId()!;
-
-                if (!_clients.TryGetValue(clientId, out serviceClient))
-                {
-                    throw ThrowHelper.UnknownClient(clientId);
-                }
-            }
-            else if (!_serviceRegistrations.TryGetValue(message.Endpoint, out var serviceClientId)
+            if (!_serviceRegistrations.TryGetValue(message.Endpoint, out var serviceClientId)
                      || !_clients.TryGetValue(serviceClientId, out serviceClient))
             {
                 throw ThrowHelper.UnknownEndpoint(message.Endpoint);
@@ -242,7 +233,6 @@ internal class MessageRouterServer : IMessageRouterServer
             {
                 Topic = message.Topic,
                 Payload = message.Payload,
-                Scope = message.Scope,
                 SourceId = client.ClientId,
                 CorrelationId = message.CorrelationId,
             };

@@ -23,11 +23,6 @@ public sealed class MessageContext
     public string SourceId { get; init; } = "";
 
     /// <summary>
-    /// Gets the scope of the message.
-    /// </summary>
-    public MessageScope Scope { get; init; }
-
-    /// <summary>
     /// Gets the correlation ID of the message, if there's one.
     /// </summary>
     public string? CorrelationId { get; init; }
