@@ -80,7 +80,6 @@ internal sealed class MessageRouterClient : IMessageRouter
             {
                 Topic = topic,
                 Payload = payload,
-                Scope = options.Scope,
                 CorrelationId = options.CorrelationId
             },
             cancellationToken);
@@ -100,7 +99,6 @@ internal sealed class MessageRouterClient : IMessageRouter
             RequestId = GenerateRequestId(),
             Endpoint = endpoint,
             Payload = payload,
-            Scope = options.Scope,
             CorrelationId = options.CorrelationId,
         };
 
@@ -370,7 +368,6 @@ internal sealed class MessageRouterClient : IMessageRouter
                             new MessageContext
                             {
                                 SourceId = message.SourceId!,
-                                Scope = message.Scope,
                                 CorrelationId = message.CorrelationId,
                             });
 
@@ -446,7 +443,6 @@ internal sealed class MessageRouterClient : IMessageRouter
             new MessageContext
             {
                 SourceId = message.SourceId,
-                Scope = message.Scope,
                 CorrelationId = message.CorrelationId
             });
 

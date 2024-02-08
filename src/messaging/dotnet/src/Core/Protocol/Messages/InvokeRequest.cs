@@ -16,7 +16,6 @@ public sealed class InvokeRequest : AbstractRequest<InvokeResponse>
 {
     public override MessageType Type => MessageType.Invoke;
     public string Endpoint { get; init; } = null!;
-    public MessageScope Scope { get; init; }
     public MessageBuffer? Payload { get; init; }
     public string? SourceId { get; init; }
     public string? CorrelationId { get; init; }

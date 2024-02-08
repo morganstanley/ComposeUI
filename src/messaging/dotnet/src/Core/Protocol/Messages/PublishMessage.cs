@@ -17,6 +17,5 @@ public sealed class PublishMessage : Message
     public override MessageType Type => MessageType.Publish;
     public string Topic { get; init; } = null!;
     public MessageBuffer? Payload { get; init; }
-    public MessageScope Scope { get; init; }
     public string? CorrelationId { get; init; }
 }

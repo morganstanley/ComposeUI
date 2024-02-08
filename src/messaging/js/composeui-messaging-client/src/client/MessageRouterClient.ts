@@ -20,7 +20,6 @@ import { MessageBuffer } from "../MessageBuffer";
 import { MessageHandler } from "../MessageHandler";
 import { MessageRouter } from "../MessageRouter";
 import { createProtocolError, MessageRouterError } from "../MessageRouterError";
-import { MessageScope } from "../MessageScope";
 import * as messages from "../protocol/messages";
 import { PublishOptions } from "../PublishOptions";
 import { TopicMessage } from "../TopicMessage";
@@ -102,7 +101,6 @@ export class MessageRouterClient implements MessageRouter {
                 type: "Publish",
                 topic,
                 payload,
-                scope: options?.scope,
                 correlationId: options?.correlationId
             });
     }
@@ -116,7 +114,6 @@ export class MessageRouterClient implements MessageRouter {
                 requestId: this.getRequestId(),
                 endpoint,
                 payload,
-                scope: options?.scope,
                 correlationId: options?.correlationId
             });
 
@@ -323,7 +320,6 @@ export class MessageRouterClient implements MessageRouter {
             payload: message.payload,
             context: {
                 sourceId: message.sourceId,
-                scope: message.scope ?? MessageScope.default,
                 correlationId: message.correlationId
             }
         });
@@ -356,7 +352,6 @@ export class MessageRouterClient implements MessageRouter {
                 message.endpoint,
                 message.payload,
                 {
-                    scope: message.scope ?? MessageScope.default,
                     sourceId: message.sourceId!,
                     correlationId: message.correlationId
                 });

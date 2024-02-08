@@ -329,28 +329,6 @@ public class MessageRouterServerTests
     }
 
     [Fact]
-    public async Task It_fails_direct_invocation_if_the_client_is_not_found()
-    {
-        var client = await CreateAndConnectClient();
-
-        await client.SendToServer(
-            RegisterRequest(
-                new InvokeRequest
-                {
-                    RequestId = "1",
-                    Endpoint = "test-endpoint",
-                    Scope = MessageScope.FromClientId("unknown-client")
-                }));
-
-        await WaitForCompletionAsync();
-
-        client.Expect<InvokeResponse>(
-            msg => msg.RequestId == "1"
-                   && msg.Error!.Name == MessageRouterErrors.UnknownClient,
-            Times.Once);
-    }
-
-    [Fact]
     public async Task When_disposed_it_calls_CloseAsync_on_active_connections()
     {
         var connection = await CreateAndConnectClient();

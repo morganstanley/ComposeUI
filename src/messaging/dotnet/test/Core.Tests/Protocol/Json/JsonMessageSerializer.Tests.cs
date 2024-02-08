@@ -94,30 +94,6 @@ public class JsonMessageSerializerTests
                 });
 
             Add(
-                new InvokeRequest
-                {
-                    Endpoint = "testEndpoint",
-                    RequestId = "testRequestId",
-                    Scope = default,
-                });
-
-            Add(
-                new InvokeRequest
-                {
-                    Endpoint = "testEndpoint",
-                    RequestId = "testRequestId",
-                    Scope = MessageScope.Parse(""),
-                });
-
-            Add(
-                new InvokeRequest
-                {
-                    Endpoint = "testEndpoint",
-                    RequestId = "testRequestId",
-                    Scope = MessageScope.Parse("testScope"),
-                });
-
-            Add(
                 new InvokeResponse
                 {
                     RequestId = "testRequestId",
@@ -136,7 +112,6 @@ public class JsonMessageSerializerTests
                 {
                     Topic = "testTopic",
                     Payload = MessageBuffer.Create("testPayload"),
-                    Scope = default,
                     CorrelationId = "testCorrelationId",
                 });
 

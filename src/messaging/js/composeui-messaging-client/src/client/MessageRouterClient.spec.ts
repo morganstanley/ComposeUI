@@ -17,7 +17,6 @@ import * as messages from "../protocol/messages";
 import { Error } from "../protocol";
 import { MessageContext } from "../MessageContext";
 import { MessageHandler } from "../MessageHandler";
-import { MessageScope } from "../MessageScope";
 import { TopicMessage } from "../TopicMessage";
 import { TopicSubscriber } from "../TopicSubscriber";
 import { Connection, OnMessageCallback, OnErrorCallback, OnCloseCallback } from "./Connection";
@@ -185,14 +184,13 @@ describe("MessageRouterClient", () => {
 
             const client = new MessageRouterClient(connection, {});
 
-            await client.publish("test-topic", "test-payload", { scope: MessageScope.fromClientId("other-client"), correlationId: "test-correlation-id" });
+            await client.publish("test-topic", "test-payload", { correlationId: "test-correlation-id" });
 
             expect(connection.mock.send).toHaveBeenCalledWith(
                 expect.objectContaining(<messages.PublishMessage>{
                     type: "Publish",
                     topic: "test-topic",
                     payload: "test-payload",
-                    scope: MessageScope.fromClientId("other-client"),
                     correlationId: "test-correlation-id"
                 })
             );
@@ -237,7 +235,6 @@ describe("MessageRouterClient", () => {
                 type: "Topic",
                 topic: "test-topic",
                 payload: "test-payload",
-                scope: MessageScope.parse("test-scope"),
                 sourceId: "test-source-id",
                 correlationId: "test-correlation-id"
             });
@@ -249,7 +246,6 @@ describe("MessageRouterClient", () => {
                     topic: "test-topic",
                     payload: "test-payload",
                     context: {
-                        scope: MessageScope.parse("test-scope"),
                         sourceId: "test-source-id",
                         correlationId: "test-correlation-id"
                     }
@@ -267,7 +263,6 @@ describe("MessageRouterClient", () => {
                 type: "Topic",
                 topic: "test-topic",
                 payload: "test-payload",
-                scope: MessageScope.parse("test-scope"),
                 sourceId: "test-source-id",
                 correlationId: "test-correlation-id"
             });
@@ -279,7 +274,6 @@ describe("MessageRouterClient", () => {
                     topic: "test-topic",
                     payload: "test-payload",
                     context: {
-                        scope: MessageScope.parse("test-scope"),
                         sourceId: "test-source-id",
                         correlationId: "test-correlation-id"
                     }
@@ -297,7 +291,6 @@ describe("MessageRouterClient", () => {
                 type: "Topic",
                 topic: "test-topic",
                 payload: "test-payload-1",
-                scope: MessageScope.parse("test-scope"),
                 sourceId: "test-source-id",
                 correlationId: "test-correlation-id"
             });
@@ -306,7 +299,6 @@ describe("MessageRouterClient", () => {
                 type: "Topic",
                 topic: "test-topic",
                 payload: "test-payload-2",
-                scope: MessageScope.parse("test-scope"),
                 sourceId: "test-source-id",
                 correlationId: "test-correlation-id"
             });
@@ -343,7 +335,6 @@ describe("MessageRouterClient", () => {
                 type: "Topic",
                 topic: "test-topic",
                 payload: "test-payload-1",
-                scope: MessageScope.parse("test-scope"),
                 sourceId: "test-source-id",
                 correlationId: "test-correlation-id"
             });
@@ -352,7 +343,6 @@ describe("MessageRouterClient", () => {
                 type: "Topic",
                 topic: "test-topic",
                 payload: "test-payload-2",
-                scope: MessageScope.parse("test-scope"),
                 sourceId: "test-source-id",
                 correlationId: "test-correlation-id"
             });
@@ -390,7 +380,7 @@ describe("MessageRouterClient", () => {
 
             const client = new MessageRouterClient(connection, {});
 
-            let response = await client.invoke("test-endpoint", "test-request", { scope: MessageScope.fromClientId("other-client"), correlationId: "test-correlation-id" });
+            let response = await client.invoke("test-endpoint", "test-request", { correlationId: "test-correlation-id" });
 
             expect(response).toBe("Re: test-request");
 
@@ -399,7 +389,6 @@ describe("MessageRouterClient", () => {
                     type: "Invoke",
                     endpoint: "test-endpoint",
                     payload: "test-request",
-                    scope: MessageScope.fromClientId("other-client"),
                     correlationId: "test-correlation-id",
                     requestId: expect.anything()
                 }));
@@ -516,7 +505,6 @@ describe("MessageRouterClient", () => {
                 endpoint: "test-service",
                 requestId: "1",
                 payload: "test-payload",
-                scope: MessageScope.parse("test-scope"),
                 sourceId: "sender-id",
                 correlationId: "test-correlation-id"
             });
@@ -527,7 +515,6 @@ describe("MessageRouterClient", () => {
                 "test-service",
                 "test-payload",
                 expect.objectContaining(<MessageContext>{
-                    scope: MessageScope.parse("test-scope"),
                     sourceId: "sender-id",
                     correlationId: "test-correlation-id"
                 })
