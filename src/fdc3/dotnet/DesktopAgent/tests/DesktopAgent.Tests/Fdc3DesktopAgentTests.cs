@@ -15,15 +15,15 @@
 
 using MorganStanley.ComposeUI.Fdc3.AppDirectory;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.TestUtils;
-using MorganStanley.Fdc3.AppDirectory;
+using Finos.Fdc3.AppDirectory;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
 using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIdentifier;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
-using MorganStanley.Fdc3;
+using Finos.Fdc3;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
-using MorganStanley.Fdc3.Context;
+using Finos.Fdc3.Context;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Helpers;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
 using MorganStanley.ComposeUI.ModuleLoader;
