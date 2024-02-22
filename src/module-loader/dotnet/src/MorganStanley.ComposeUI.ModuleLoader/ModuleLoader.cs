@@ -24,15 +24,15 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
     private readonly IReadOnlyList<IStartupAction> _startupActions;
 
     public ModuleLoader(
-        IModuleCatalog moduleCatalog,
+        IEnumerable<IModuleCatalog> moduleCatalogs,
         IEnumerable<IModuleRunner> moduleRunners,
         IEnumerable<IStartupAction> startupActions)
     {
-        ArgumentNullException.ThrowIfNull(moduleCatalog);
+        ArgumentNullException.ThrowIfNull(moduleCatalogs);
         ArgumentNullException.ThrowIfNull(moduleRunners);
         ArgumentNullException.ThrowIfNull(startupActions);
 
-        _moduleCatalog = moduleCatalog;
+        _moduleCatalog = new AggregateModuleCatalog(moduleCatalogs);
         _moduleRunners = moduleRunners.GroupBy(runner => runner.ModuleType).ToDictionary(g => g.Key, g => g.First());
         _startupActions = new List<IStartupAction>(startupActions);
     }
@@ -42,10 +42,6 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
     public async Task<IModuleInstance> StartModule(StartRequest request)
     {
         var manifest = await _moduleCatalog.GetManifest(request.ModuleId);
-        if (manifest == null)
-        {
-            throw new Exception($"Unknown Module id: {request.ModuleId}");
-        }
 
         if (!_moduleRunners.TryGetValue(manifest.ModuleType, out var moduleRunner))
         {
@@ -105,5 +101,51 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
         await _moduleRunners[moduleInstance.Manifest.ModuleType].Stop(moduleInstance);
 
         _lifetimeEvents.OnNext(new LifetimeEvent.Stopped(moduleInstance));
+    }
+
+    private class AggregateModuleCatalog : IModuleCatalog
+    {
+        private readonly IEnumerable<IModuleCatalog> _moduleCatalogs;
+
+        public AggregateModuleCatalog(IEnumerable<IModuleCatalog> moduleCatalogs)
+        {
+            _moduleCatalogs = moduleCatalogs;
+            _lazyEnumerateModules = new Lazy<Task>(EnumerateModulesCore);
+        }
+
+        public async Task<IModuleManifest> GetManifest(string moduleId)
+        {
+            await EnumerateModules();
+
+            return _moduleIdToCatalog.TryGetValue(moduleId, out var catalog)
+                ? await catalog.GetManifest(moduleId)
+                : throw new ModuleNotFoundException(moduleId);
+        }
+
+        public async Task<IEnumerable<string>> GetModuleIds()
+        {
+            await EnumerateModules();
+
+            return _moduleIdToCatalog.Keys;
+        }
+
+        private readonly Lazy<Task> _lazyEnumerateModules;
+        private readonly ConcurrentDictionary<string, IModuleCatalog> _moduleIdToCatalog = new();
+
+        private Task EnumerateModules() => _lazyEnumerateModules.Value;
+
+        private async Task EnumerateModulesCore()
+        {
+            await Task.WhenAll(_moduleCatalogs.Select(
+                async catalog =>
+                {
+                    var moduleIds = await catalog.GetModuleIds();
+                    
+                    foreach (var moduleId in moduleIds)
+                    {
+                        _moduleIdToCatalog[moduleId] = catalog;
+                    }
+                }));
+        }
     }
 }
