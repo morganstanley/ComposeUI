@@ -45,7 +45,7 @@ public class AppDirectory : IAppDirectory
         return (await GetAppsCore()).Values;
     }
 
-    public async Task<Fdc3App?> GetApp(string appId)
+    public async Task<Fdc3App> GetApp(string appId)
     {
         if (!(await GetAppsCore()).TryGetValue(appId, out var app))
             throw new AppNotFoundException(appId);
@@ -158,9 +158,25 @@ public class AppDirectory : IAppDirectory
         using var jsonReader = new JsonTextReader(textReader);
         jsonReader.Read();
 
-        return jsonReader.TokenType == JsonToken.StartArray
-            ? serializer.Deserialize<IEnumerable<Fdc3App>>(jsonReader) ?? Enumerable.Empty<Fdc3App>()
-            : serializer.Deserialize<GetAppsJsonResponse>(jsonReader)?.Applications ?? Enumerable.Empty<Fdc3App>();
+        var apps = (jsonReader.TokenType == JsonToken.StartArray
+                ? serializer.Deserialize<IEnumerable<Fdc3App>>(jsonReader) ?? Enumerable.Empty<Fdc3App>()
+                : serializer.Deserialize<GetAppsJsonResponse>(jsonReader)?.Applications ?? Enumerable.Empty<Fdc3App>())
+            .ToList();
+
+        // Fix missing intent names
+        // TODO: Remove when this is fixed: https://github.com/finos/fdc3-dotnet/issues/115
+        foreach (var app in apps.Where(a => a.Interop?.Intents != null))
+        {
+            if (app.Interop!.Intents!.ListensFor != null)
+            {
+                foreach (var intent in app.Interop.Intents.ListensFor)
+                {
+                    intent.Value.Name = intent.Key;
+                }
+            }
+        }
+
+        return apps;
     }
 
     private sealed class FileSystemChangeToken : IChangeToken
