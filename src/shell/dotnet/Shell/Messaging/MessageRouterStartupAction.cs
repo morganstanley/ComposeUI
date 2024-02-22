@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
+using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
 using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 using MorganStanley.ComposeUI.ModuleLoader;
@@ -41,22 +42,31 @@ internal sealed class MessageRouterStartupAction : IStartupAction
             var webProperties = startupContext.GetOrAddProperty<WebStartupProperties>();
 
             webProperties.ScriptProviders.Add(
-                _ => new ValueTask<string>(
+                (_, _) => new ValueTask<string>(
                     $$"""
-                            window.composeui = {
-                                ...window.composeui,
-                                messageRouterConfig: {
-                                    accessToken: "{{JsonEncodedText.Encode(App.Current.MessageRouterAccessToken)}}",
-                                    webSocket: {
-                                        url: "{{_webSocketServer.WebSocketUrl}}"
-                                    }
-                                }
-                            };
-                            """));
+                      window.composeui = {
+                          ...window.composeui,
+                          messageRouterConfig: {
+                              accessToken: "{{JsonEncodedText.Encode(App.Current.MessageRouterAccessToken)}}",
+                              webSocket: {
+                                  url: "{{_webSocketServer.WebSocketUrl}}"
+                              }
+                          }
+                      };
+                      """));
         }
 
-        startupContext.AddProperty(new EnvironmentVariables(new[] { new KeyValuePair<string, string>(WebSocketEnvironmentVariableNames.Uri, _webSocketServer.WebSocketUrl.AbsoluteUri),
-        new KeyValuePair<string, string>(ComposeUI.Messaging.EnvironmentVariableNames.AccessToken, App.Current.MessageRouterAccessToken)}
+        startupContext.AddProperty(
+            new EnvironmentVariables(
+                new[]
+                {
+                    new KeyValuePair<string, string>(
+                        WebSocketEnvironmentVariableNames.Uri,
+                        _webSocketServer.WebSocketUrl.AbsoluteUri),
+                    new KeyValuePair<string, string>(
+                        EnvironmentVariableNames.AccessToken,
+                        App.Current.MessageRouterAccessToken)
+                }
             ));
 
         return next();

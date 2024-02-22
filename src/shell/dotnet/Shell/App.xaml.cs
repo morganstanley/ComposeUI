@@ -175,8 +175,7 @@ public partial class App : Application
             services.AddSingleton<IInitializeAsync>(p => p.GetRequiredService<ModuleCatalog>());
             services.Configure<ModuleCatalogOptions>(
                 context.Configuration.GetSection(ModuleCatalogOptions.ConfigurationPath));
-            services.AddHostedService<ModuleService>();
-            services.AddTransient<IStartupAction, WebWindowOptionsStartupAction>();
+            services.AddTransient<IStartupAction, WebWindowStartupAction>();
         }
 
         void ConfigureFdc3()
