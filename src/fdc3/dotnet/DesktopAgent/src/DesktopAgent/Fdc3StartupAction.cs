@@ -41,26 +41,31 @@ internal sealed class Fdc3StartupAction : IStartupAction
             {
                 var appId = (await _appDirectory.GetApp(startupContext.StartRequest.ModuleId)).AppId;
                 var fdc3InstanceId = startupContext.StartRequest.Parameters.FirstOrDefault(parameter => parameter.Key == Fdc3StartupParameters.Fdc3InstanceId).Value ?? Guid.NewGuid().ToString();
-                var fdc3StartupProperties = new Fdc3StartupProperties() { InstanceId = fdc3InstanceId };
-                fdc3InstanceId = startupContext.GetOrAddProperty<Fdc3StartupProperties>(_ => fdc3StartupProperties).InstanceId;
+                
+                var fdc3StartupProperties = startupContext
+                    .GetOrAddProperty(
+                        _ => new Fdc3StartupProperties() {InstanceId = fdc3InstanceId});
+
+                fdc3InstanceId = fdc3StartupProperties.InstanceId;
 
                 var webProperties = startupContext.GetOrAddProperty<WebStartupProperties>();
 
                 webProperties
-                    .ScriptProviders.Add(_ =>
-                        new ValueTask<string>(
-                            $$"""
-                        window.composeui.fdc3 = {
-                            ...window.composeui.fdc3, 
-                            config: {
-                                appId: "{{appId}}",
-                                instanceId: "{{fdc3InstanceId}}"
-                            }
-                        };
-                        """));
+                    .ScriptProviders.Add(
+                        (_, _) =>
+                            new ValueTask<string>(
+                                $$"""
+                                  window.composeui.fdc3 = {
+                                      ...window.composeui.fdc3,
+                                      config: {
+                                          appId: "{{appId}}",
+                                          instanceId: "{{fdc3InstanceId}}"
+                                      }
+                                  };
+                                  """));
 
                 webProperties
-                    .ScriptProviders.Add(_ => new ValueTask<string>(ResourceReader.ReadResource(ResourceNames.Fdc3Bundle)));
+                    .ScriptProviders.Add((_, _) => new ValueTask<string>(ResourceReader.ReadResource(ResourceNames.Fdc3Bundle)));
             }
             catch (AppNotFoundException exception)
             {

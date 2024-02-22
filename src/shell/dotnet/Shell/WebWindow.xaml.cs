@@ -1,16 +1,14 @@
-﻿// /*
-//  * Morgan Stanley makes this available to you under the Apache License,
-//  * Version 2.0 (the "License"). You may obtain a copy of the License at
-//  *
-//  *      http://www.apache.org/licenses/LICENSE-2.0.
-//  *
-//  * See the NOTICE file distributed with this work for additional information
-//  * regarding copyright ownership. Unless required by applicable law or agreed
-//  * to in writing, software distributed under the License is distributed on an
-//  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
-//  * or implied. See the License for the specific language governing permissions
-//  * and limitations under the License.
-//  */
+﻿// Morgan Stanley makes this available to you under the Apache License,
+// Version 2.0 (the "License"). You may obtain a copy of the License at
+// 
+//      http://www.apache.org/licenses/LICENSE-2.0.
+// 
+// See the NOTICE file distributed with this work for additional information
+// regarding copyright ownership. Unless required by applicable law or agreed
+// to in writing, software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+// or implied. See the License for the specific language governing permissions
+// and limitations under the License.
 
 using System;
 using System.Collections.Generic;
@@ -18,6 +16,8 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -26,23 +26,25 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Web.WebView2.Core;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.ImageSource;
+using MorganStanley.ComposeUI.Shell.Modules;
 using MorganStanley.ComposeUI.Shell.Utilities;
+using Nito.AsyncEx;
 
 namespace MorganStanley.ComposeUI.Shell;
 
 /// <summary>
 ///     Interaction logic for WebWindow.xaml
 /// </summary>
-
 public partial class WebWindow : Window
-{
+{                                                                                                
     public WebWindow(
         WebWindowOptions options,
         IModuleLoader moduleLoader,
         IModuleInstance? moduleInstance = null,
-        ILogger<WebWindow>? logger = null,
-        IImageSourcePolicy? imageSourcePolicy = null)
+        IImageSourcePolicy? imageSourcePolicy = null,
+        ILogger<WebWindow>? logger = null)
     {
+        _webWindowId = Interlocked.Increment(ref _lastWebWindowId);
         _moduleLoader = moduleLoader;
         _moduleInstance = moduleInstance;
         _iconProvider = new ImageSourceProvider(imageSourcePolicy ?? new DefaultImageSourcePolicy());
@@ -71,12 +73,30 @@ public partial class WebWindow : Window
                                 _lifetimeEvent = e.EventType;
                                 Close();
                             })));
+
+            DisposeWhenClosed(
+                _moduleLoader.LifetimeEvents
+                    .Where(
+                        e => e.Instance == moduleInstance
+                             && e.EventType is LifetimeEventType.Started)
+                    .ObserveOn(SynchronizationContext.Current!)
+                    .Subscribe(Observer.Create((LifetimeEvent e) =>
+                    {
+                        Show();
+                        _moduleStarted.Set();
+                    })));
+        }
+        else
+        {
+            _moduleStarted.Set();
         }
 
-        _ = InitializeAsync();
+        _ = InitializeAsyncCore();
     }
 
     public IModuleInstance? ModuleInstance => _moduleInstance;
+
+    public Task InitializeAsync() => _initialized.WaitAsync();
 
     protected override void OnClosing(CancelEventArgs args)
     {
@@ -118,21 +138,27 @@ public partial class WebWindow : Window
         }
     }
 
+    private static int _lastWebWindowId;
+    private readonly int _webWindowId;
     private readonly IModuleLoader _moduleLoader;
     private readonly IModuleInstance? _moduleInstance;
-    private readonly WebWindowOptions _options;
     private readonly ILogger<WebWindow> _logger;
+    private readonly WebWindowOptions _options;
     private readonly ImageSourceProvider _iconProvider;
     private bool _scriptsInjected;
     private LifetimeEventType _lifetimeEvent = LifetimeEventType.Started;
-    private readonly TaskCompletionSource _scriptInjectionCompleted = new();
     private readonly List<IDisposable> _disposables = new();
+    private readonly AsyncManualResetEvent _initialized = new();
+    private readonly AsyncManualResetEvent _moduleStarted = new();
+    private readonly string _hostObjectSecret = Guid.NewGuid().ToString();
 
-    private async Task InitializeAsync()
+    private async Task InitializeAsyncCore()
     {
+        await _moduleStarted.WaitAsync();
         await WebView.EnsureCoreWebView2Async();
         await InitializeCoreWebView2(WebView.CoreWebView2);
         await LoadWebContentAsync(_options);
+        _initialized.Set();
     }
 
     private void DisposeWhenClosed(IDisposable disposable)
@@ -158,38 +184,55 @@ public partial class WebWindow : Window
         }
     }
 
-    private Task InitializeCoreWebView2(CoreWebView2 coreWebView)
+    private async Task InitializeCoreWebView2(CoreWebView2 coreWebView)
     {
+        AddHostObjects(coreWebView);
+        await InjectScriptsAsync(coreWebView); 
+
         coreWebView.NewWindowRequested += (sender, args) => OnNewWindowRequested(args);
         coreWebView.WindowCloseRequested += (sender, args) => OnWindowCloseRequested(args);
-        coreWebView.NavigationStarting += (sender, args) => OnNavigationStarting(args); 
+        coreWebView.NavigationStarting += (sender, args) => OnNavigationStarting(args);
+        coreWebView.NavigationCompleted += (sender, args) => OnNavigationCompleted(args);
+        coreWebView.FrameCreated += (sender, args) => OnFrameCreated(args);
+        coreWebView.FrameNavigationStarting += (sender, args) => OnFrameNavigationStarting(args);
+        coreWebView.FrameNavigationCompleted += (sender, args) => OnFrameNavigationCompleted(args);
+        coreWebView.ContentLoading += (sender, args) => OnContentLoading(args);
         coreWebView.DocumentTitleChanged += (sender, args) => OnDocumentTitleChanged(args);
-
-        return Task.CompletedTask;
     }
 
     private void OnDocumentTitleChanged(object args)
     {
+        LogWebView2Event();
+
         if (_options.Title == null)
         {
             Title = WebView.CoreWebView2.DocumentTitle;
         }
     }
 
+    private void OnNavigationCompleted(CoreWebView2NavigationCompletedEventArgs args)
+    {
+        LogWebView2Event(args.NavigationId);
+    }
+
+    private void OnFrameNavigationCompleted(CoreWebView2NavigationCompletedEventArgs args)
+    {
+        LogWebView2Event(args.NavigationId);
+    }
+
+    private void OnFrameNavigationStarting(CoreWebView2NavigationStartingEventArgs args)
+    {
+        LogWebView2Event(args.NavigationId);
+    }
+
+    private void OnContentLoading(CoreWebView2ContentLoadingEventArgs args)
+    {
+        LogWebView2Event(args.NavigationId);
+    }
+
     private void OnNavigationStarting(CoreWebView2NavigationStartingEventArgs args)
     {
-        if (_scriptsInjected)
-            return;
-
-        args.Cancel = true;
-
-        Dispatcher.InvokeAsync(
-            async () =>
-            {
-                await InjectScriptsAsync(WebView.CoreWebView2);
-
-                WebView.CoreWebView2.Navigate(args.Uri);
-            });
+        LogWebView2Event(args.NavigationId);
     }
 
     private Task LoadWebContentAsync(WebWindowOptions options)
@@ -197,6 +240,29 @@ public partial class WebWindow : Window
         WebView.Source = new Uri(options.Url ?? WebWindowOptions.DefaultUrl);
 
         return Task.CompletedTask;
+    }
+
+    private void AddHostObjects(CoreWebView2 coreWebView)
+    {
+        if (_moduleInstance != null)
+        {
+            coreWebView.AddHostObjectToScript(
+                ScriptProviderHostObject.HostObjectName,
+                new ScriptProviderHostObject(_moduleInstance, _hostObjectSecret));
+        }
+    }
+
+    private void AddHostObjects(CoreWebView2Frame frame)
+    {
+        if (_moduleInstance != null)
+        {
+            // TODO: adr-013
+            // In accordance with the current state of adr-013, we don't inject scripts into iframes
+            //frame.AddHostObjectToScript(
+            //    ScriptProviderHostObject.HostObjectName,
+            //    new ScriptProviderHostObject(_moduleInstance, _hostObjectSecret),
+            //    new[] { "*" }); // TODO: TrustedOrigins
+        }
     }
 
     private async Task InjectScriptsAsync(CoreWebView2 coreWebView)
@@ -207,26 +273,47 @@ public partial class WebWindow : Window
         _scriptsInjected = true;
         var webProperties = _moduleInstance?.GetProperties().OfType<WebStartupProperties>().FirstOrDefault();
 
-        if (webProperties != null)
-        {
-            await Task.WhenAll(
-                webProperties.ScriptProviders.Select(
-                    async scriptProvider =>
-                    {
-                        var script = await scriptProvider(_moduleInstance!);
-                        await coreWebView.AddScriptToExecuteOnDocumentCreatedAsync(script);
-                    }));
-        }
+        if (webProperties == null) return;
+        
+        var flags = _options.IsPopup == true ? $"['{WebModuleScriptProviderFlags.Popup}']" : "[]";
 
-        _scriptInjectionCompleted.SetResult();
+        var script = $$"""
+                       (function() {
+                           
+                           let flags = {{flags}};
+                           
+                           if (window.top !== window) {
+                               flags.push('{{WebModuleScriptProviderFlags.Frame}}');
+                           }
+                           
+                           console.debug('Injecting scripts with flags ' + (flags.length ? flags : '{{WebModuleScriptProviderFlags.None}}'));
+                           const scripts = window.chrome.webview.hostObjects.sync.{{ScriptProviderHostObject.HostObjectName}}.{{nameof(ScriptProviderHostObject.GetScripts)}}(window.location.href, flags, '{{_hostObjectSecret}}');
+                           
+                           console.debug('Scripts found: ', scripts.length);
+                           
+                           scripts.forEach((script) => {
+                               try {
+                                   (new Function(script))();
+                               }
+                               catch (e) {
+                                   console.error('Error while executing the injected script: ', { error: e, script: script });
+                               }
+                           });
+                       })();
+                       //# sourceURL=//composeui-preload
+                       """;
+
+        await coreWebView.AddScriptToExecuteOnDocumentCreatedAsync(script);
     }
 
     private async void OnNewWindowRequested(CoreWebView2NewWindowRequestedEventArgs e)
     {
+        LogWebView2Event();
         using var deferral = e.GetDeferral();
         e.Handled = true;
 
-        var windowOptions = new WebWindowOptions { Url = e.Uri };
+        var uri = new Uri(e.Uri);
+        var windowOptions = new WebWindowOptions {Url = e.Uri, IsPopup = true};
 
         if (e.WindowFeatures.HasSize)
         {
@@ -234,24 +321,115 @@ public partial class WebWindow : Window
             windowOptions.Height = e.WindowFeatures.Height;
         }
 
-        var constructorArgs = new List<object> { windowOptions };
+        WebWindow? newWindow = null;
 
-        // For now, we only inject the module-specific information when the window was created 
-        // in response to a start request. Later we might allow the page to open a new window
-        // and get the scripts preloaded if some conditions are met.
-        if (_moduleInstance != null)
+        // TODO: adr-013
+        // In accordance with the current state of adr-013, we don't inject scripts into popup windows
+        //var webProperties = _moduleInstance?.GetProperties<WebStartupProperties>().FirstOrDefault();
+        //
+        //if (webProperties != null && IsTrustedOrigin(uri, webProperties))
+        //{
+        //    var newInstance = await _moduleLoader.StartModule(
+        //        new StartRequest(
+        //            _moduleInstance!.Manifest.Id,
+        //            new[]
+        //            {
+        //                new KeyValuePair<string, string>(
+        //                    WebWindowOptions.ParameterName,
+        //                    JsonSerializer.Serialize(windowOptions))
+        //            }));
+
+        //    newWindow = newInstance.GetProperties<WebWindow>().SingleOrDefault();
+        //}
+
+        if (newWindow == null)
         {
-            constructorArgs.Add(_moduleInstance);
+            newWindow = App.Current.CreateWindow<WebWindow>(windowOptions);
+            newWindow.Show();
         }
 
-        var window = App.Current.CreateWindow<WebWindow>(constructorArgs.ToArray());
-        window.Show();
-        await window.WebView.EnsureCoreWebView2Async();
-        e.NewWindow = window.WebView.CoreWebView2;
+        await newWindow.InitializeAsync();
+
+        e.NewWindow = newWindow.WebView.CoreWebView2;
+    }
+
+    private bool IsTrustedOrigin(Uri uri, WebStartupProperties webProperties)
+    {
+        // TODO: Add TrustedOrigins to the manifest from Lilla's PR
+        return webProperties.Url.IsSameOrigin(uri);
+    }
+
+    private void OnFrameCreated(CoreWebView2FrameCreatedEventArgs e)
+    {
+        LogWebView2Event();
+        AddHostObjects(e.Frame);
     }
 
     private void OnWindowCloseRequested(object args)
     {
+        LogWebView2Event();
         Close();
+    }
+
+    private void LogWebView2Event(ulong? navigationId = null, [CallerMemberName]string? methodName = null)
+    {
+        if (methodName == null) return;
+
+        _logger.LogDebug($"[{_webWindowId}] " + (navigationId.HasValue ? $"{methodName}({navigationId})": methodName));
+    }
+
+    [ComVisible(true)]
+    [ClassInterface(ClassInterfaceType.AutoDual)]
+    public sealed class ScriptProviderHostObject
+    {
+        // flags is an object array, see https://github.com/MicrosoftEdge/WebView2Feedback/issues/2188#issuecomment-1119638117
+        // This might not be necessary with later WV2 versions.
+        public ScriptProviderHostObject(IModuleInstance moduleInstance, string secret)
+        {
+            _moduleInstance = moduleInstance;
+            _secret = secret;
+        }
+
+        public async Task<string[]> GetScripts(string url, object[] flags, string secret)
+        {
+            if (secret != _secret) return new[] {"console.error('Invalid host object secret')"};
+
+            var result = new List<string>();
+            var parsedFlags = flags.Aggregate(
+                WebModuleScriptProviderFlags.None,
+                (f, obj) => obj is string s && Enum.TryParse<WebModuleScriptProviderFlags>(s, out var x) ? f | x : f);
+
+            // TODO: TrustedOrigins
+            if (_moduleInstance.Manifest is WebModuleManifest { Details: var details } && details.Url.IsSameOrigin(new Uri(url)))
+            {
+                result.Add(
+                    $$"""
+                      window.composeui = {
+                         frameId: "{{Guid.NewGuid()}}"
+                      }
+                      """
+                );
+            }
+
+            var scriptProviderParams = new WebModuleScriptProviderParameters(new Uri(url), parsedFlags);
+
+            foreach (var scriptProvider in _moduleInstance.GetProperties<WebStartupProperties>()
+                         .SelectMany(p => p.ScriptProviders))
+            {
+                var script = await scriptProvider(_moduleInstance, scriptProviderParams);
+                
+                if (!string.IsNullOrWhiteSpace(script))
+                {
+                    result.Add(script);
+                }
+            }
+
+            return result.ToArray();
+        }
+
+        public const string HostObjectName = "ComposeUI_ScriptProvider";
+
+        private readonly IModuleInstance _moduleInstance;
+        private readonly string _secret;
     }
 }

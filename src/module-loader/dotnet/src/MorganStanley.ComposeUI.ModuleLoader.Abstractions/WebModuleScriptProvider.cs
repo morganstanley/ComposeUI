@@ -12,13 +12,27 @@
 
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
-/// <summary>
-/// Contains the necessary properties to start a web module.
-/// This type is injected to <see cref="StartupContext"/>.
-/// </summary>
-public sealed class WebStartupProperties
+[Flags]
+public enum WebModuleScriptProviderFlags
 {
-    public Uri Url { get; set; } = ModuleLoaderConstants.DefaultUri;
-    public Uri? IconUrl { get; set; }
-    public List<WebModuleScriptProvider> ScriptProviders { get; } = new();
+    /// <summary>
+    /// No flags (default)
+    /// </summary>
+    None = 0,
+
+    /// <summary>
+    /// The script target is in a window that was created using <c>window.open()</c>.
+    /// </summary>
+    Popup = 1,
+
+    /// <summary>
+    /// The script target is frame.
+    /// </summary>
+    Frame = 2,
 }
+
+public sealed record WebModuleScriptProviderParameters(Uri Uri, WebModuleScriptProviderFlags Flags);
+
+public delegate ValueTask<string> WebModuleScriptProvider(
+    IModuleInstance moduleInstance,
+    WebModuleScriptProviderParameters parameters);

@@ -10,24 +10,18 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.ModuleLoader.Runners;
+using System;
+using System.Runtime.CompilerServices;
+using System.Windows.Navigation;
 
-internal class WebModuleRunner : IModuleRunner
+namespace MorganStanley.ComposeUI.Shell.Utilities;
+
+public static class UriExtensions
 {
-    public string ModuleType => ComposeUI.ModuleLoader.ModuleType.Web;
-
-    public Task Start(StartupContext startupContext, Func<Task> pipeline)
+    public static bool IsSameOrigin(this Uri uri, Uri other)
     {
-        if (startupContext.ModuleInstance.Manifest.TryGetDetails(out WebManifestDetails details))
-        {
-            startupContext.AddProperty(new WebStartupProperties { IconUrl = details.IconUrl, Url = details.Url });
-        }
-
-        return pipeline();
-    }
-
-    public Task Stop(IModuleInstance moduleInstance)
-    {
-        return Task.CompletedTask;
+        return uri.Scheme.Equals(other.Scheme, StringComparison.OrdinalIgnoreCase)
+               && uri.Host.Equals(other.Host, StringComparison.OrdinalIgnoreCase)
+               && uri.Port == other.Port;
     }
 }

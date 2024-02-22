@@ -30,4 +30,8 @@
 		<ProjectReference Include="..\NativeRunnerTestApp\NativeRunnerTestApp.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="TestUtils\" />
+	</ItemGroup>
+
 </Project>
