@@ -54,6 +54,7 @@ declare global {
                 config: AppIdentifier | undefined;
             }
         }
+        fdc3: DesktopAgent;
     }
 }
 
@@ -74,7 +75,14 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
             "user",
             this.messageRouterClient);
         this.addChannel(channel);
-        if (!window.composeui.fdc3.config || !window.composeui.fdc3.config.instanceId) throw new Error(ComposeUIErrors.InstanceIdNotFound);}
+        if (!window.composeui.fdc3.config || !window.composeui.fdc3.config.instanceId) throw new Error(ComposeUIErrors.InstanceIdNotFound);
+        setTimeout(
+            async () => {
+                await this.joinUserChannel(channelId);
+                window.fdc3 = this;
+                window.dispatchEvent(new Event("fdc3Ready"));
+            }, 0);
+    }
 
     //TODO
     public open(app?: string | AppIdentifier, context?: Context): Promise<AppIdentifier> {
@@ -82,7 +90,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     }
 
     public findIntent(intent: string, context?: Context, resultType?: string): Promise<AppIntent> {
-        return new Promise(async(resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             const request = new Fdc3FindIntentRequest(window.composeui.fdc3.config!.instanceId!, intent, context, resultType);
             const message = await this.messageRouterClient.invoke(ComposeUITopic.findIntent(), JSON.stringify(request));
             if (!message) {
@@ -132,7 +140,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     }
 
     public raiseIntent(intent: string, context: Context, app?: string | AppIdentifier): Promise<IntentResolution> {
-        return new Promise(async(resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             if (typeof app != 'string') {
                 const messageId = Math.floor(Math.random() * 10000);
                 const message = new Fdc3RaiseIntentRequest(messageId, window.composeui.fdc3.config!.instanceId!, intent, false, context, app);
@@ -145,11 +153,11 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
 
                 if (response.error) {
                     return reject(new Error(response.error));
-                } 
-                
+                }
+
                 if (response.appMetadata!.length <= 1) {
                     const intentResolution = new ComposeUIIntentResolution(response.messageId, this.messageRouterClient, response.intent!, response.appMetadata![0]);
-                    return resolve(intentResolution); 
+                    return resolve(intentResolution);
                 } else if (response.appMetadata!.length > 1) {
                     //TODO: integrationtest
                     //TODO: Now we are just selecting the first item
@@ -160,14 +168,14 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
                     if (!responseFromServiceSelectedApp) {
                         return reject(new Error(ResolveError.ResolverUnavailable));
                     }
-                    
+
                     const result = <Fdc3RaiseIntentResponse>JSON.parse(responseFromServiceSelectedApp);
                     if (result.error) {
                         return reject(new Error(result.error));
                     }
 
                     const intentResolution = new ComposeUIIntentResolution(result.messageId, this.messageRouterClient, result.intent!, result.appMetadata![0]);
-                    return resolve(intentResolution); 
+                    return resolve(intentResolution);
                 }
             }
             return reject(new Error("Using string type for app argument is not supported. Please use undefined | AppIdentifier types!"));
@@ -180,14 +188,14 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     }
 
     public addIntentListener(intent: string, handler: IntentHandler): Promise<Listener> {
-        return new Promise<ComposeUIIntentListener>(async(resolve, reject) => {
+        return new Promise<ComposeUIIntentListener>(async (resolve, reject) => {
             const listener = new ComposeUIIntentListener(this.messageRouterClient, intent, window.composeui.fdc3.config!.instanceId!, handler);
             await listener.registerIntentHandler();
-            
+
             const message = new Fdc3IntentListenerRequest(intent, window.composeui.fdc3.config!.instanceId!, "Subscribe");
             const response = await this.messageRouterClient.invoke(ComposeUITopic.addIntentListener(), JSON.stringify(message));
             if (!response) {
-                return reject(new Error(ComposeUIErrors.NoAnswerWasProvided)); 
+                return reject(new Error(ComposeUIErrors.NoAnswerWasProvided));
             } else {
                 const result = <Fdc3IntentListenerResponse>JSON.parse(response);
                 if (result.error) {
@@ -212,7 +220,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
 
             if (contextType && typeof contextType != 'string') {
                 handler = contextType;
-                contextType = null;                
+                contextType = null;
             }
 
             const listener = <ComposeUIContextListener>await this.currentChannel!.addContextListener(contextType ?? null, handler!);
@@ -242,10 +250,10 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
 
             let channel = this.userChannels.find(innerChannel => innerChannel.id == channelId);
             if (!channel) {
-                try{
+                try {
                     await this.invokeChannelCreationMessage(ComposeUITopic.joinUserChannel(), channelId, "user");
                     return resolve();
-                } catch(error) {
+                } catch (error) {
                     return reject(error);
                 }
             } else {
@@ -379,12 +387,12 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     private async invokeChannelCreationMessage(topic: string, channelId: string, channelType: ChannelType): Promise<void> {
         const message = JSON.stringify(new Fdc3FindChannelRequest(channelId, channelType));
         const response = await this.messageRouterClient.invoke(topic, message);
-        if(response) {
+        if (response) {
             const fdc3Message = <Fdc3FindChannelResponse>JSON.parse(response);
-            if(fdc3Message.error) {
+            if (fdc3Message.error) {
                 throw new Error(fdc3Message.error);
-            } 
-            if (fdc3Message.found){
+            }
+            if (fdc3Message.found) {
                 this.currentChannel = new ComposeUIChannel(channelId, channelType, this.messageRouterClient);
                 this.addChannel(this.currentChannel);
             }
@@ -393,9 +401,9 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
 
     private async unsubscribe(listener: ComposeUIIntentListener): Promise<void> {
         return new Promise(async (resolve, reject) => {
-            try{
+            try {
                 await listener.unsubscribe();
-            } catch(err) {
+            } catch (err) {
                 console.log("Listener could not unsubscribe: ", err);
             }
             return resolve();
