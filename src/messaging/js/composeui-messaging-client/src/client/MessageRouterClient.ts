@@ -83,11 +83,16 @@ export class MessageRouterClient implements MessageRouter {
         const subscription = topic.subscribe(subscriber);
 
         if (needsSubscription) {
-            await this.sendMessage<messages.SubscribeMessage>(
-                {
-                    type: "Subscribe",
-                    topic: topicName
-                });
+            try {
+                await this.sendRequest<messages.SubscribeMessage, messages.SubscribeResponse>(
+                    {
+                        requestId: this.getRequestId(),
+                        type: "Subscribe",
+                        topic: topicName
+                    });
+            } catch (error) {
+                throw error;
+            }
         }
 
         return subscription;
@@ -96,13 +101,18 @@ export class MessageRouterClient implements MessageRouter {
     async publish(topic: string, payload?: MessageBuffer, options?: PublishOptions): Promise<void> {
         await this.checkState();
 
-        return await this.sendMessage<messages.PublishMessage>(
-            {
-                type: "Publish",
-                topic,
-                payload,
-                correlationId: options?.correlationId
-            });
+        try {
+            await this.sendRequest<messages.PublishMessage, messages.PublishResponse>(
+                {
+                    type: "Publish",
+                    requestId: this.getRequestId(),
+                    topic,
+                    payload,
+                    correlationId: options?.correlationId
+                });
+        } catch (error) {
+            throw error;
+        }
     }
 
     async invoke(endpoint: string, payload?: MessageBuffer, options?: InvokeOptions): Promise<MessageBuffer | undefined> {
@@ -410,12 +420,17 @@ export class MessageRouterClient implements MessageRouter {
         if (!topic)
             return;
 
-        await this.sendMessage<messages.UnsubscribeMessage>(
-            {
-                type: "Unsubscribe",
-                topic: topicName
-            }
-        );
+        try {
+            await this.sendRequest<messages.UnsubscribeMessage, messages.UnsubscribeResponse>(
+                {
+                    requestId: this.getRequestId(),
+                    type: "Unsubscribe",
+                    topic: topicName
+                }
+            );
+        } catch (error) {
+            console.warn("Exception thrown while unsubscribing.", error);
+        }
     }
 
     private getRequestId(): string {

@@ -11,10 +11,12 @@
  *  
  */
 
+import { AbstractRequest } from ".";
 import { MessageBuffer } from "../../MessageBuffer";
 import { Message } from "./Message";
+import { PublishResponse } from "./PublishResponse";
 
-export interface PublishMessage extends Message {
+export interface PublishMessage extends AbstractRequest<PublishResponse> {
     type: "Publish";
     topic: string;
     payload?: MessageBuffer;

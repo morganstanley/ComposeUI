@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
@@ -22,7 +22,6 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="../Core/MorganStanley.ComposeUI.Messaging.Core.csproj" />
-	  <ProjectReference Include="..\..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader.Abstractions\MorganStanley.ComposeUI.ModuleLoader.Abstractions.csproj" />
 	</ItemGroup>
 
 </Project>

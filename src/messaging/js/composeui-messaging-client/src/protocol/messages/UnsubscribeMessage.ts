@@ -11,9 +11,11 @@
  *  
  */
 
+import { AbstractRequest } from ".";
 import { Message } from "./Message";
+import { UnsubscribeResponse } from "./UnsubscribeResponse";
 
-export interface UnsubscribeMessage extends Message {
+export interface UnsubscribeMessage extends AbstractRequest<UnsubscribeResponse> {
     type: "Unsubscribe";
     topic: string;
 }
