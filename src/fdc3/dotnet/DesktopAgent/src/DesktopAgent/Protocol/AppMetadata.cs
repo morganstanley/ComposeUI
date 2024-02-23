@@ -11,7 +11,7 @@
 // and limitations under the License.
 
 
-using MorganStanley.Fdc3;
+using Finos.Fdc3;
 using Icon = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Icon;
 using Screenshot = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Screenshot;
 

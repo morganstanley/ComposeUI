@@ -9,11 +9,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Finos.Fdc3" />
+		<PackageReference Include="Finos.Fdc3.AppDirectory" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
-		<PackageReference Include="MorganStanley.Fdc3" />
-		<PackageReference Include="MorganStanley.Fdc3.AppDirectory" />
 	</ItemGroup>
 
 	<ItemGroup>

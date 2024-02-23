@@ -18,8 +18,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
-using MorganStanley.Fdc3.AppDirectory;
-using MorganStanley.Fdc3.NewtonsoftJson.Serialization;
+using Finos.Fdc3.AppDirectory;
+using Finos.Fdc3.NewtonsoftJson.Serialization;
 using Newtonsoft.Json;
 
 namespace MorganStanley.ComposeUI.Fdc3.AppDirectory;

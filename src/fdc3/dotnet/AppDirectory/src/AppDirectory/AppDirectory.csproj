@@ -9,12 +9,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Finos.Fdc3.AppDirectory" />
+		<PackageReference Include="Finos.Fdc3.NewtonsoftJson" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Memory" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
 		<PackageReference Include="Microsoft.Extensions.Http" />
 		<PackageReference Include="Microsoft.Extensions.Options" />
-		<PackageReference Include="MorganStanley.Fdc3.AppDirectory" />
-		<PackageReference Include="MorganStanley.Fdc3.NewtonsoftJson" />
 		<PackageReference Include="Newtonsoft.Json" />
 		<PackageReference Include="Roslyn.System.IO.Abstractions.Analyzers">
 		  <PrivateAssets>all</PrivateAssets>
