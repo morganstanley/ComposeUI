@@ -105,20 +105,6 @@ public class Fdc3DesktopAgentTests
     }
 
     [Fact]
-    public async Task FindIntent_returns_IntentDeliveryFailed()
-    {
-        var request = new FindIntentRequest()
-        {
-            Intent = "intentMetadata8", //wrongly setup MockAppDirectory in purpose
-            Fdc3InstanceId = Guid.NewGuid().ToString()
-        };
-
-        var result = await _fdc3.FindIntent(request);
-        result.Should().NotBeNull();
-        result.Error.Should().Be(ResolveError.IntentDeliveryFailed);
-    }
-
-    [Fact]
     public async Task FindIntent_returns()
     {
         var request = new FindIntentRequest()
@@ -131,16 +117,17 @@ public class Fdc3DesktopAgentTests
 
         var result = await _fdc3.FindIntent(request);
         result.Should().NotBeNull();
-        result.AppIntent.Should().BeEquivalentTo(
-            new AppIntent()
-            {
-                Intent = new Protocol.IntentMetadata() { Name = "intentMetadata4", DisplayName = "displayName4" },
-                Apps = new[]
-                        {
-                            new AppMetadata() { AppId = "appId5", Name = "app5", ResultType = "resultType<specified>" },
-                            new AppMetadata() { AppId = "appId6", Name = "app6", ResultType = "resultType"},
-                        }
-            });
+        result.AppIntent.Should()
+            .BeEquivalentTo(
+                new AppIntent()
+                {
+                    Intent = new Protocol.IntentMetadata() {Name = "intentMetadata4", DisplayName = "displayName4"},
+                    Apps = new[]
+                    {
+                        new AppMetadata() {AppId = "appId5", Name = "app5", ResultType = "resultType<specified>"},
+                        new AppMetadata() {AppId = "appId6", Name = "app6", ResultType = "resultType"},
+                    }
+                });
     }
 
     [Fact]
@@ -155,42 +142,6 @@ public class Fdc3DesktopAgentTests
         var result = await _fdc3.FindIntentsByContext(request);
         result.Should().NotBeNull();
         result.Error.Should().Be(ResolveError.NoAppsFound);
-    }
-
-    [Fact]
-    public async Task FindIntentsByContext_returns()
-    {
-        var request = new FindIntentsByContextRequest()
-        {
-            Fdc3InstanceId = Guid.NewGuid().ToString(),
-            Context = new Context(ContextTypes.Nothing),
-            ResultType = "resultWrongApp"
-        };
-
-        var result = await _fdc3.FindIntentsByContext(request);
-        result.Should().NotBeNull();
-
-        result.AppIntents.Should().BeEquivalentTo(
-            new[]
-                    {
-                        new AppIntent()
-                        {
-                            Intent = new Protocol.IntentMetadata() { Name = "intentMetadata9", DisplayName = "displayName9" },
-                            Apps = new []
-                            {
-                                new AppMetadata() { AppId = "wrongappId9", Name = "app9", ResultType = "resultWrongApp" },
-                            }
-                        },
-
-                        new AppIntent()
-                        {
-                            Intent = new Protocol.IntentMetadata () { Name = "intentMetadata11", DisplayName = "displayName11" },
-                            Apps = new []
-                            {
-                                new AppMetadata() { AppId = "appId12", Name = "app12", ResultType = "resultWrongApp" }
-                            }
-                        },
-                    });
     }
 
     [Fact]
@@ -477,23 +428,6 @@ public class Fdc3DesktopAgentTests
     }
 
     [Fact]
-    public async Task RaiseIntent_returns_IntentDeliveryFailed()
-    {
-        var request = new RaiseIntentRequest()
-        {
-            MessageId = 1,
-            Fdc3InstanceId = Guid.NewGuid().ToString(),
-            Intent = "intentMetadata8",
-            Selected = false,
-            Context = new Context("context7")
-        };
-
-        var result = await _fdc3.RaiseIntent(request);
-        result.Should().NotBeNull();
-        result!.Response.Error.Should().Be(ResolveError.IntentDeliveryFailed);
-    }
-
-    [Fact]
     public async Task RaiseIntent_fails_as_request_specifies_error()
     {
         var request = new RaiseIntentRequest()
@@ -528,23 +462,6 @@ public class Fdc3DesktopAgentTests
         result!.RaiseIntentResolutionMessages.Should().BeEmpty();
         result!.Response!.AppMetadata.Should().HaveCount(1);
         result!.Response.AppMetadata!.First().AppId.Should().Be("appId4");
-    }
-
-    [Fact]
-    public async Task RaiseIntent_fails_as_multiple_AppIntent_found()
-    {
-        var request = new RaiseIntentRequest()
-        {
-            MessageId = 1,
-            Fdc3InstanceId = Guid.NewGuid().ToString(),
-            Intent = "intentMetadata8", //wrongly setup AppDirectory on purpose
-            Selected = false,
-            Context = new Context("context7")
-        };
-
-        var result = await _fdc3.RaiseIntent(request);
-        result.Should().NotBeNull();
-        result!.Response.Error.Should().Be(ResolveError.IntentDeliveryFailed);
     }
 
     [Fact]

@@ -22,6 +22,7 @@ public interface IModuleCatalog
     /// </summary>
     /// <param name="moduleId"></param>
     /// <returns></returns>
+    /// <exception cref="ModuleNotFoundException">The requested module was not found in the catalog</exception>
     Task<IModuleManifest> GetManifest(string moduleId);
 
     /// <summary>

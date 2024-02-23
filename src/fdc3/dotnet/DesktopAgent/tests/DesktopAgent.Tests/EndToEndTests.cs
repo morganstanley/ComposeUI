@@ -220,11 +220,11 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 {
                     Intent = appId4IntentMetadata,
                     Apps = new AppMetadata[]
-                        {
-                            new() { AppId = "appId4", Name = "app4", ResultType = null },
-                            new() { AppId = "appId5", Name = "app5", ResultType = "resultType<specified>" },
-                            new() { AppId = "appId6", Name = "app6", ResultType = "resultType" }
-                        }
+                    {
+                        new() {AppId = "appId4", Name = "app4", ResultType = null},
+                        new() {AppId = "appId5", Name = "app5", ResultType = "resultType<specified>"},
+                        new() {AppId = "appId6", Name = "app6", ResultType = "resultType"}
+                    }
                 }
             };
 
@@ -275,7 +275,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
         }
 
         [Fact]
-        public async Task FindIntentReturnsIntentDeliveryFailureBecauseOfMultipleAppIntentFound()
+        public async Task FindIntentReturnsMultipleMatchingAppIntents()
         {
             var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
             var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
@@ -286,16 +286,14 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
                 Intent = "intentMetadata8"
             };
 
-            var expectedResponse = new FindIntentResponse()
-            {
-                Error = ResolveError.IntentDeliveryFailed
-            };
-
             var resultBuffer = await _messageRouter.InvokeAsync(Fdc3Topic.FindIntent, MessageBuffer.Factory.CreateJson(request, _options));
             resultBuffer.Should().NotBeNull();
             var result = resultBuffer!.ReadJson<FindIntentResponse>(_options);
             result.Should().NotBeNull();
-            result.Should().BeEquivalentTo(expectedResponse);
+            result!.Error.Should().BeNull();
+            result.AppIntent.Should().NotBeNull();
+            result.AppIntent!.Intent.Should().BeEquivalentTo(new IntentMetadata("intentMetadata8", "displayName8"));
+            result.AppIntent.Apps.Select(a => a.AppId).Should().BeEquivalentTo("appId7", "appId8");
         }
 
         [Fact]
@@ -337,7 +335,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
         }
 
         [Fact]
-        public async Task FindIntentsByContextReturnsMultipleAppIntent()
+        public async Task FindIntentsByContextReturnsMultipleAppIntents()
         {
             var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
             var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
@@ -350,35 +348,36 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             };
 
             var appId9IntentMetadata = new Protocol.IntentMetadata() { Name = "intentMetadata9", DisplayName = "displayName9" };
-            var appId12IntentMetadata = new Protocol.IntentMetadata() { Name = "intentMetadata11", DisplayName = "displayName11" };
+            var appId12IntentMetadata = new Protocol.IntentMetadata() { Name = "intentMetadata10", DisplayName = "displayName10" };
+            
             var expectedResponse = new FindIntentsByContextResponse()
             {
                 AppIntents = new[]
+                {
+                    new AppIntent()
                     {
-                        new AppIntent()
+                        Intent = appId9IntentMetadata,
+                        Apps = new[]
                         {
-                            Intent = appId9IntentMetadata,
-                            Apps = new []
-                            {
-                                new AppMetadata() { AppId = "wrongappId9", Name = "app9", ResultType = "resultWrongApp" },
-                            }
-                        },
-                        new AppIntent()
+                            new AppMetadata() {AppId = "wrongappId9", Name = "app9", ResultType = "resultWrongApp"},
+                        }
+                    },
+                    new AppIntent()
+                    {
+                        Intent = appId12IntentMetadata,
+                        Apps = new[]
                         {
-                            Intent = appId12IntentMetadata,
-                            Apps = new []
-                            {
-                                new AppMetadata(){ AppId = "appId12", Name = "app12", ResultType = "resultWrongApp" },
-                            }
+                            new AppMetadata() {AppId = "appId12", Name = "app12", ResultType = "resultWrongApp"},
                         }
                     }
+                }
             };
 
             var resultBuffer = await _messageRouter.InvokeAsync(Fdc3Topic.FindIntentsByContext, MessageBuffer.Factory.CreateJson(request, _options));
             resultBuffer.Should().NotBeNull();
             var result = resultBuffer!.ReadJson<FindIntentsByContextResponse>(_options);
             result.Should().NotBeNull();
-            result.Should().BeEquivalentTo(expectedResponse);
+            result.Should().BeEquivalentTo(expectedResponse, opt => opt.WithoutStrictOrdering());
         }
 
         [Fact]
@@ -482,33 +481,6 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
             var expectedResponse = new RaiseIntentResponse()
             {
                 Error = ResolveError.NoAppsFound
-            };
-
-            var resultBuffer = await _messageRouter.InvokeAsync(Fdc3Topic.RaiseIntent, MessageBuffer.Factory.CreateJson(request, _options));
-            resultBuffer.Should().NotBeNull();
-            var result = resultBuffer!.ReadJson<RaiseIntentResponse>(_options);
-            result.Should().NotBeNull();
-            result.Should().BeEquivalentTo(expectedResponse);
-        }
-
-        [Fact]
-        public async Task RaiseIntentReturnsIntentDeliveryFailureAsMultipleAppIntentFound()
-        {
-            var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
-            var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
-
-            var request = new RaiseIntentRequest()
-            {
-                MessageId = 2,
-                Fdc3InstanceId = originFdc3InstanceId,
-                Intent = "intentMetadata8", //wrongly set up AppDirectory on purpose
-                Selected = false,
-                Context = new Context(ContextTypes.Nothing)
-            };
-
-            var expectedResponse = new RaiseIntentResponse()
-            {
-                Error = ResolveError.IntentDeliveryFailed
             };
 
             var resultBuffer = await _messageRouter.InvokeAsync(Fdc3Topic.RaiseIntent, MessageBuffer.Factory.CreateJson(request, _options));

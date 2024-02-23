@@ -175,7 +175,7 @@
         "intents": {
           "listensFor": {
             "intentMetadata8": {
-              "name": "intentMetadat8",
+              "name": "intentMetadata8",
               "displayName": "displayName8",
               "contexts": [
                 "context7"
@@ -241,8 +241,8 @@
         "intents": {
           "listensFor": {
             "intentMetadata10": {
-              "name": "intentMetadata11",
-              "displayName": "displayName11",
+              "name": "intentMetadata10",
+              "displayName": "displayName10",
               "contexts": [
                 "context9"
               ],

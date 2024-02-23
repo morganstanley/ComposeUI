@@ -290,24 +290,6 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
     }
 
     [Fact]
-    public async Task RaiseIntent_fails_as_multiple_IAppIntents_found()
-    {
-        var raiseIntentRequest = new RaiseIntentRequest()
-            {
-                MessageId = 1,
-                Fdc3InstanceId = Guid.NewGuid().ToString(),
-                Intent = "intentMetadata8",
-                Selected = false,
-                Context = new Context("context7")
-            };
-
-        var result = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
-
-        result.Should().NotBeNull();
-        result!.Error.Should().Be(ResolveError.IntentDeliveryFailed);
-    }
-
-    [Fact]
     public async Task RaiseIntent_fails_as_request_specifies_error()
     {
         var raiseIntentRequest = new RaiseIntentRequest()
@@ -906,11 +888,6 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
 
         result.Should().NotBeNull();
 
-        if (testCase.ExpectedAppIntentsCount > 0)
-        {
-            result!.AppIntents!.Should().HaveCount(testCase.ExpectedAppIntentsCount);
-        }
-
         result!.Should().BeEquivalentTo(testCase.ExpectedResponse);
     }
 
@@ -939,8 +916,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                             }
                         }
                     }
-                },
-                ExpectedAppIntentsCount = 1
+                }
             });
 
             // Returning one AppIntent with multiple app by just passing Context
@@ -966,8 +942,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                             }
                         }
                     }
-                },
-                ExpectedAppIntentsCount = 1
+                }
             });
 
             // Returning multiple appIntent by just passing Context
@@ -999,19 +974,11 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                             Apps = new []
                             {
                                 new AppMetadata(){ AppId = "appId11", Name = "app11", ResultType = "channel<specified>" },
-                            }
-                        },
-                        new AppIntent()
-                        {
-                            Intent = new Protocol.IntentMetadata () { Name = "intentMetadata11", DisplayName = "displayName11" },
-                            Apps = new []
-                            {
                                 new AppMetadata() { AppId = "appId12", Name = "app12", ResultType = "resultWrongApp"},
                             }
-                        }
+                        },
                     }
-                },
-                ExpectedAppIntentsCount = 3
+                }
             });
 
             // Returning error no apps found by just passing Context
@@ -1025,8 +992,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 ExpectedResponse = new FindIntentsByContextResponse()
                 {
                     Error = ResolveError.NoAppsFound
-                },
-                ExpectedAppIntentsCount = 0
+                }
             });
 
             // Returning one AppIntent with one app by ResultType
@@ -1050,8 +1016,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                             }
                         }
                     }
-                },
-                ExpectedAppIntentsCount = 1
+                }
             });
 
             // Returning one AppIntent with multiple apps by ResultType
@@ -1077,8 +1042,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                             }
                         },
                     }
-                },
-                ExpectedAppIntentsCount = 1
+                }
             });
 
             // Returning multiple AppIntent by ResultType
@@ -1104,15 +1068,14 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                         },
                         new AppIntent()
                         {
-                            Intent = new Protocol.IntentMetadata () { Name = "intentMetadata11", DisplayName = "displayName11" },
+                            Intent = new Protocol.IntentMetadata () { Name = "intentMetadata10", DisplayName = "displayName10" },
                             Apps = new []
                             {
                                 new AppMetadata() { AppId = "appId12", Name = "app12", ResultType = "resultWrongApp" }
                             }
                         }
                     }
-                },
-                ExpectedAppIntentsCount = 2
+                }
             });
 
             // Returning no apps found error by using ResultType
@@ -1127,8 +1090,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 ExpectedResponse = new FindIntentsByContextResponse()
                 {
                     Error = ResolveError.NoAppsFound
-                },
-                ExpectedAppIntentsCount = 0
+                }
             });
 
             // Returning intent delivery error
@@ -1138,8 +1100,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 ExpectedResponse = new FindIntentsByContextResponse()
                 {
                     Error = ResolveError.IntentDeliveryFailed
-                },
-                ExpectedAppIntentsCount = 0
+                }
             });
 
             // Returning all the apps that are using the ResultType by adding fdc3.nothing.
@@ -1166,15 +1127,14 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
 
                         new AppIntent()
                         {
-                            Intent = new Protocol.IntentMetadata () { Name = "intentMetadata11", DisplayName = "displayName11" },
+                            Intent = new Protocol.IntentMetadata () { Name = "intentMetadata10", DisplayName = "displayName10" },
                             Apps = new []
                             {
                                 new AppMetadata() { AppId = "appId12", Name = "app12", ResultType = "resultWrongApp" }
                             }
                         },
                     }
-                },
-                ExpectedAppIntentsCount = 2
+                }
             });
         }
     }
@@ -1183,25 +1143,26 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
     {
         internal FindIntentsByContextRequest Request { get; set; }
         internal FindIntentsByContextResponse ExpectedResponse { get; set; }
-        public int ExpectedAppIntentsCount { get; set; }
     }
 
     private class FindIntentTheoryData : TheoryData
     {
         public FindIntentTheoryData()
         {
-            //As per the documentation : https://github.com/morganstanley/fdc3-dotnet/blob/main/src/Fdc3/IIntentMetadata.cs
-            //name is unique for the intents, so it should be unique for every app, or the app should have the same intentMetadata?
-            //if so we should return multiple appIntents and do not return error message for the client.
-            //We have setup a test case for wrongappId9 which contains wrongly setted up intentMetadata.
             AddRow(
                 new FindIntentTestCase()
                 {
-                    ExpectedAppCount = 0,
-                    ExpectedResponse = new FindIntentResponse()
-                    {
-                        Error = ResolveError.IntentDeliveryFailed
-                    },
+                    ExpectedAppCount = 2,
+                    ExpectedResponse = FindIntentResponse.Success(
+                        new AppIntent
+                        {
+                            Intent = new Protocol.IntentMetadata() { Name = "intentMetadata8", DisplayName = "displayName8" },
+                            Apps = new[]
+                            {
+                                new AppMetadata(){ AppId = "appId7", Name = "app7", ResultType = "resultType2<specified>" },
+                                new AppMetadata(){ AppId = "appId8", Name = "app8", ResultType = "resultType2<specified>" }
+                            }
+                        }),
                     Request = new FindIntentRequest()
                     {
                         Fdc3InstanceId = Guid.NewGuid().ToString(),
@@ -1249,7 +1210,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 {
                     AppIntent = new AppIntent()
                     {
-                        Intent = new Protocol.IntentMetadata() { Name = "intentMetadat7", DisplayName = "displayName7" },
+                        Intent = new Protocol.IntentMetadata() { Name = "intentMetadata7", DisplayName = "displayName7" },
                         Apps = new[]
                         {
                             new AppMetadata(){ AppId = "appId7", Name = "app7", ResultType = "resultType2<specified2>" }
@@ -1296,7 +1257,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests
                 {
                     AppIntent = new AppIntent()
                     {
-                        Intent = new Protocol.IntentMetadata() { Name = "intentMetadat7", DisplayName = "displayName7" },
+                        Intent = new Protocol.IntentMetadata() { Name = "intentMetadata7", DisplayName = "displayName7" },
                         Apps = new[]
                         {
                             new AppMetadata() { AppId = "appId7", Name = "app7", ResultType = "resultType2<specified2>"}

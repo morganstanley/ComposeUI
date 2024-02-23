@@ -135,14 +135,10 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
         var appIntents = await GetAppIntentsByRequest(selector, null, false);
 
-        if (!appIntents.Any())
-        {
+        if (!appIntents.TryGetValue(request.Intent, out var appIntent))
             return FindIntentResponse.Failure(ResolveError.NoAppsFound);
-        }
 
-        return appIntents.Count > 1
-            ? FindIntentResponse.Failure(ResolveError.IntentDeliveryFailed)
-            : FindIntentResponse.Success(appIntents.Values.First());
+        return FindIntentResponse.Success(appIntent);
     }
 
     public async ValueTask<FindIntentsByContextResponse> FindIntentsByContext(FindIntentsByContextRequest? request)
@@ -355,25 +351,13 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         var appIntents = await GetAppIntentsByRequest(selector, request.TargetAppIdentifier, request.Selected);
 
         //No intents were found which would have the right information to handle the raised intent
-        if (!appIntents.Any())
+        if (!appIntents.TryGetValue(request.Intent, out var appIntent) || !appIntent.Apps.Any())
         {
             return new()
             {
                 Response = RaiseIntentResponse.Failure(ResolveError.NoAppsFound)
             };
         }
-
-        //Here we have used a method, which could return multiple IAppIntents to multiple intents, this is for abstracting method to findIntent, findIntentsByContext, etc.
-        //Here we should get just one IAppIntent, as the intent field is required (at least fdc3.nothing)
-        if (appIntents.Count > 1)
-        {
-            return new()
-            {
-                Response = RaiseIntentResponse.Failure(ResolveError.IntentDeliveryFailed)
-            };
-        }
-
-        var appIntent = appIntents.Values.First();
 
         if (appIntent.Apps.Count() == 1)
         {
@@ -406,8 +390,8 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         }
     }
 
-    //TODO: Placeholder for the right implementation of returning the choosen application from the ResolverUI.
-    private async Task<AppMetadata> WaitForResolverUIAsync(string intent, IEnumerable<AppMetadata> apps)
+    //TODO: Placeholder for the right implementation of returning the chosen application from the ResolverUI.
+    private async Task<AppMetadata?> WaitForResolverUIAsync(string intent, IEnumerable<AppMetadata> apps)
     {
         Task<bool> IsIntentListenerRegisteredAsync(AppMetadata appMetadata)
         {
@@ -659,7 +643,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
                 continue;
             }
 
-            appIntents = GetAppIntentsFromIntentMetadaCollection(
+            appIntents = GetAppIntentsFromIntentMetadataCollection(
                 app.Value,
                 app.Key.ToString(),
                 intentMetadataCollection,
@@ -688,13 +672,13 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
                 continue;
             }
 
-            appIntents = GetAppIntentsFromIntentMetadaCollection(app, null, intentMetadataCollection, appIntents);
+            appIntents = GetAppIntentsFromIntentMetadataCollection(app, null, intentMetadataCollection, appIntents);
         }
 
         return appIntents;
     }
 
-    private Dictionary<string, AppIntent> GetAppIntentsFromIntentMetadaCollection(
+    private Dictionary<string, AppIntent> GetAppIntentsFromIntentMetadataCollection(
         Fdc3App app,
         string? instanceId,
         IEnumerable<IntentMetadata> intentMetadataCollection,
@@ -716,29 +700,22 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
                     Screenshots = app.Screenshots == null
                         ? Enumerable.Empty<Screenshot>()
                         : app.Screenshots.Select(Screenshot.GetScreenshot),
-                    ResultType = intentMetadata?.ResultType
+                    ResultType = intentMetadata.ResultType
                 };
 
-            if (appIntents.ContainsKey(intentMetadata!.Name))
+            if (!appIntents.TryGetValue(intentMetadata.Name, out var appIntent))
             {
-                appIntents[intentMetadata.Name] = new AppIntent()
+                appIntent = new AppIntent
                 {
                     Intent = new Protocol.IntentMetadata
                         {Name = intentMetadata.Name, DisplayName = intentMetadata.DisplayName},
-                    Apps = appIntents[intentMetadata.Name].Apps.Append(appMetadata)
+                    Apps = Enumerable.Empty<AppMetadata>()
                 };
+
+                appIntents.Add(intentMetadata.Name, appIntent);
             }
-            else
-            {
-                appIntents.Add(
-                    intentMetadata.Name,
-                    new AppIntent()
-                    {
-                        Intent = new Protocol.IntentMetadata
-                            {Name = intentMetadata.Name, DisplayName = intentMetadata.DisplayName},
-                        Apps = new List<AppMetadata>() {appMetadata}
-                    });
-            }
+
+            appIntent.Apps = appIntent.Apps.Append(appMetadata);
         }
 
         return appIntents;
