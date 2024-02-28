@@ -340,8 +340,7 @@ internal class MessageRouterServer : IMessageRouterServer
 
         try
         {
-            if (!Protocol.Topic.IsValidTopicName(message.Topic))
-                return;
+            Protocol.Topic.Validate(message.Topic);
 
             var topic = _topics.AddOrUpdate(
                 message.Topic,
@@ -367,9 +366,9 @@ internal class MessageRouterServer : IMessageRouterServer
         }
         catch (Exception exception)
         {
-            if (_logger.IsEnabled(LogLevel.Debug))
+            if (_logger.IsEnabled(LogLevel.Error))
             {
-                _logger.LogDebug($"Exception thrown while handling subscription message: {0}.", exception);
+                _logger.LogError(exception, $"Exception thrown while handling subscription message: {0}.");
             }
             
             try
@@ -384,7 +383,7 @@ internal class MessageRouterServer : IMessageRouterServer
             }
             finally
             {
-                OnRequestStop(message);
+                OnRequestStop(message, exception);
             }
         }
     }
@@ -464,7 +463,7 @@ internal class MessageRouterServer : IMessageRouterServer
             }
             finally
             {
-                OnRequestStop(message);
+                OnRequestStop(message, exception);
             }
         }
     }

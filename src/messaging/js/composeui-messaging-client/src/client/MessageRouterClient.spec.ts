@@ -730,9 +730,9 @@ describe("MessageRouterClient", () => {
             await expect(subscribePromise).rejects.toThrowWithName(MessageRouterError, "testError-subscribe");
         });
 
-        it("dispose logs warning when UnsubscribeResponse contains error", async() => {
+        it("dispose logs error when UnsubscribeResponse contains error", async() => {
             const client = new MessageRouterClient(connection, {});
-            const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
+            const consoleErrorMock = jest.spyOn(console, 'error').mockImplementation();
             connection.handle<messages.SubscribeMessage>(
                 "Subscribe",
                 msg => connection.sendToClient<messages.SubscribeResponse>({ type: "SubscribeResponse", requestId: msg.requestId }));
@@ -748,9 +748,9 @@ describe("MessageRouterClient", () => {
             await new Promise(process.nextTick);
             await new Promise(process.nextTick);
 
-            expect(consoleWarnMock).toHaveBeenCalled();
-            expect(consoleWarnMock).toHaveBeenCalledWith("Exception thrown while unsubscribing.", new MessageRouterError("testError-unsubscribe"));
-            consoleWarnMock.mockRestore();
+            expect(consoleErrorMock).toHaveBeenCalled();
+            expect(consoleErrorMock).toHaveBeenCalledWith("Exception thrown while unsubscribing.", new MessageRouterError("testError-unsubscribe"));
+            consoleErrorMock.mockRestore();
         });
     });
 })

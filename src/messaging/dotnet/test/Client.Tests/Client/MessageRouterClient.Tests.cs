@@ -782,7 +782,7 @@ public class MessageRouterClientTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task It_log_warning_when_a_subscription_is_disposed_and_the_UnsubscribeResponse_contains_Error()
+    public async Task It_log_error_when_a_subscription_is_disposed_and_the_UnsubscribeResponse_contains_Error()
     {
         await _messageRouter.ConnectAsync();
 
@@ -812,7 +812,7 @@ public class MessageRouterClientTests : IAsyncLifetime
         _loggerMock
             .Verify(
                 _ => _.Log(
-                    LogLevel.Warning,
+                    LogLevel.Error,
                     It.IsAny<EventId>(),
                     It.Is<It.IsAnyType>((message, _) => message.ToString()!.Contains("Exception thrown while unsubscribing, topic: test-topic")),
                     It.IsAny<MessageRouterException>(),
@@ -827,7 +827,7 @@ public class MessageRouterClientTests : IAsyncLifetime
         var connectionFactory = new Mock<IConnectionFactory>();
         connectionFactory.Setup(_ => _.CreateConnection()).Returns(_connectionMock.Object);
         _loggerMock = new Mock<ILogger<MessageRouterClient>>();
-        _loggerMock.Setup(_ => _.IsEnabled(It.IsAny<LogLevel>()));
+        _loggerMock.Setup(_ => _.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 
         _messageRouter = new MessageRouterClient(connectionFactory.Object, new MessageRouterOptions(), _loggerMock.Object);
         _diagnosticObserver = new MessageRouterDiagnosticObserver(_messageRouter);

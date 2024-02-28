@@ -83,16 +83,12 @@ export class MessageRouterClient implements MessageRouter {
         const subscription = topic.subscribe(subscriber);
 
         if (needsSubscription) {
-            try {
-                await this.sendRequest<messages.SubscribeMessage, messages.SubscribeResponse>(
-                    {
-                        requestId: this.getRequestId(),
-                        type: "Subscribe",
-                        topic: topicName
-                    });
-            } catch (error) {
-                throw error;
-            }
+            await this.sendRequest<messages.SubscribeMessage, messages.SubscribeResponse>(
+                {
+                    requestId: this.getRequestId(),
+                    type: "Subscribe",
+                    topic: topicName
+                });
         }
 
         return subscription;
@@ -101,18 +97,14 @@ export class MessageRouterClient implements MessageRouter {
     async publish(topic: string, payload?: MessageBuffer, options?: PublishOptions): Promise<void> {
         await this.checkState();
 
-        try {
-            await this.sendRequest<messages.PublishMessage, messages.PublishResponse>(
-                {
-                    type: "Publish",
-                    requestId: this.getRequestId(),
-                    topic,
-                    payload,
-                    correlationId: options?.correlationId
-                });
-        } catch (error) {
-            throw error;
-        }
+        await this.sendRequest<messages.PublishMessage, messages.PublishResponse>(
+            {
+                type: "Publish",
+                requestId: this.getRequestId(),
+                topic,
+                payload,
+                correlationId: options?.correlationId
+            });
     }
 
     async invoke(endpoint: string, payload?: MessageBuffer, options?: InvokeOptions): Promise<MessageBuffer | undefined> {
@@ -429,7 +421,7 @@ export class MessageRouterClient implements MessageRouter {
                 }
             );
         } catch (error) {
-            console.warn("Exception thrown while unsubscribing.", error);
+            console.error("Exception thrown while unsubscribing.", error);
         }
     }
 
