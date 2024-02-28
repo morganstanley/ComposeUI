@@ -13,19 +13,9 @@
 using System.Diagnostics;
 using Moq;
 using MorganStanley.ComposeUI.ModuleLoader.Runners;
+using MorganStanley.ComposeUI.ModuleLoader.Tests.TestUtils;
 
 namespace MorganStanley.ComposeUI.ModuleLoader.Tests.Runners;
-
-public class SkipOnGithubActionsFact : FactAttribute
-{
-    public SkipOnGithubActionsFact()
-    {
-        if (Environment.GetEnvironmentVariable("GITHUB_ACTION") != null)
-        {
-            Skip = "These tests fail on GitHub Actions with a timeout on the process, so they are skipped";
-        }
-    }
-}
 
 public class NativeModuleRunnerTests : IDisposable
 {
@@ -39,7 +29,7 @@ public class NativeModuleRunnerTests : IDisposable
         Assert.Equal(ModuleType.Native, _runner.ModuleType);
     }
 
-    [SkipOnGithubActionsFact]
+    [Fact]
     public async Task ModuleIsLaunchedWithProvidedArguments()
     {
         var startRequest = new StartRequest("testModule");
@@ -68,12 +58,11 @@ public class NativeModuleRunnerTests : IDisposable
         });
 
         _mainProcess = processInfo.MainProcess;
-        await _mainProcess.WaitForExitAsync(new CancellationTokenSource(Timeout).Token);
-        var stdout = _mainProcess.StandardOutput.ReadToEnd().TrimEnd();
-        Assert.Equal($"Hello ComposeUI! I am {randomString}", stdout);
+        var result = await _mainProcess.WaitForExitAsync(Timeout);
+        Assert.Equal($"Hello ComposeUI! I am {randomString}", result.Output.Trim());
     }
 
-    [SkipOnGithubActionsFact]
+    [Fact]
     public async Task AbsolutePathModuleIsLaunchedWithEnvironmentVariablesFromManifest()
     {
         var startRequest = new StartRequest("testModule");
@@ -102,12 +91,11 @@ public class NativeModuleRunnerTests : IDisposable
         });
 
         _mainProcess = processInfo.MainProcess;
-        await _mainProcess.WaitForExitAsync(new CancellationTokenSource(Timeout).Token);
-        var stdout = _mainProcess.StandardOutput.ReadToEnd().Split();
-        Assert.Contains($"{variableName}={randomString}", stdout);
+        var result = await _mainProcess.WaitForExitAsync(Timeout);
+        Assert.Contains($"{variableName}={randomString}", result.Output);
     }
 
-    [SkipOnGithubActionsFact]
+    [Fact]
     public async Task RelativePathModuleIsLaunchedWithEnvironmentVariablesFromManifest()
     {
         var startRequest = new StartRequest("testModule");
@@ -136,12 +124,11 @@ public class NativeModuleRunnerTests : IDisposable
         });
 
         _mainProcess = processInfo.MainProcess;
-        await _mainProcess.WaitForExitAsync(new CancellationTokenSource(TimeSpan.FromMinutes(1)).Token);
-        var stdout = _mainProcess.StandardOutput.ReadToEnd().Split();
-        Assert.Contains($"{variableName}={randomString}", stdout);
+        var result = await _mainProcess.WaitForExitAsync(Timeout);
+        Assert.Contains($"{variableName}={randomString}", result.Output);
     }
 
-    [SkipOnGithubActionsFact]
+    [Fact]
     public async Task ModuleIsLaunchedWithEnvironmentVariablesFromPipeline()
     {
         var startRequest = new StartRequest("testModule");
@@ -174,9 +161,8 @@ public class NativeModuleRunnerTests : IDisposable
         });
 
         _mainProcess = processInfo.MainProcess;
-        await _mainProcess.WaitForExitAsync(new CancellationTokenSource(TimeSpan.FromMinutes(1)).Token);
-        var stdout = _mainProcess.StandardOutput.ReadToEnd().Split();
-        Assert.Contains($"{variableName}={randomString}", stdout);
+        var result = await _mainProcess.WaitForExitAsync(Timeout);
+        Assert.Contains($"{variableName}={randomString}", result.Output);
     }
 
     private Task RedirectMainProcessOutput(StartupContext startupContext)
