@@ -162,9 +162,18 @@ public partial class WebWindow : Window
     {
         coreWebView.NewWindowRequested += (sender, args) => OnNewWindowRequested(args);
         coreWebView.WindowCloseRequested += (sender, args) => OnWindowCloseRequested(args);
-        coreWebView.NavigationStarting += (sender, args) => OnNavigationStarting(args);
+        coreWebView.NavigationStarting += (sender, args) => OnNavigationStarting(args); 
+        coreWebView.DocumentTitleChanged += (sender, args) => OnDocumentTitleChanged(args);
 
         return Task.CompletedTask;
+    }
+
+    private void OnDocumentTitleChanged(object args)
+    {
+        if (_options.Title == null)
+        {
+            Title = WebView.CoreWebView2.DocumentTitle;
+        }
     }
 
     private void OnNavigationStarting(CoreWebView2NavigationStartingEventArgs args)
