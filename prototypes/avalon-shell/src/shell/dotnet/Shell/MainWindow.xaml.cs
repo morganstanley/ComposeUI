@@ -10,8 +10,10 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls.Ribbon;
@@ -19,6 +21,7 @@ using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.ImageSource;
+using MorganStanley.ComposeUI.Shell.Layout;
 
 namespace MorganStanley.ComposeUI.Shell;
 
@@ -41,6 +44,34 @@ public partial class MainWindow : RibbonWindow
         _iconProvider = new ImageSourceProvider(imageSourcePolicy ?? new DefaultImageSourcePolicy());
 
         InitializeComponent();
+
+        DockManager.AnchorableHidden += (sender, args) =>
+        {
+            args.Anchorable.Close();
+        };
+    }
+
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        base.OnClosing(e);
+        SaveLayout();
+    }
+
+    private void SaveLayout()
+    {
+        var fileName = GetLayoutFileName();
+        Directory.CreateDirectory(Path.GetDirectoryName(fileName));
+        using var stream = File.Create(fileName);
+        DockingHelper.SaveLayout(stream);
+    }
+
+    private string GetLayoutFileName()
+    {
+        return Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "Morgan Stanley",
+            "ComposeUI-AvalonDock",
+            "layout.xml");
     }
 
     private async void RibbonWindow_Initialized(object sender, System.EventArgs e)
@@ -58,6 +89,30 @@ public partial class MainWindow : RibbonWindow
         {
             Modules = new ObservableCollection<ModuleViewModel>(modules)
         };
+
+        LoadLayout();
+    }
+
+    private void LoadLayout()
+    {
+        var fileName = GetLayoutFileName();
+
+        if (!File.Exists(fileName))
+            return;
+
+        using var backupStream = new MemoryStream();
+        DockingHelper.SaveLayout(backupStream);
+
+        try
+        {
+            using var stream = File.OpenRead(fileName);
+            DockingHelper.LoadLayout(stream);
+        }
+        catch (Exception e)
+        {
+            backupStream.Position = 0;
+            DockingHelper.LoadLayout(backupStream);
+        }
     }
 
     internal MainWindowViewModel ViewModel

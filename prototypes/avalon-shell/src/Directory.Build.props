@@ -2,7 +2,7 @@
     <Import Project="$([MSBuild]::GetPathOfFileAbove(Directory.Build.props, $(MSBuildThisFileDirectory)..))" Condition="Exists($([MSBuild]::GetPathOfFileAbove(Directory.Build.props, $(MSBuildThisFileDirectory)..)))"/>
 
     <PropertyGroup>
-        <RelativeRoot>$(MSBuildProjectDirectory.Replace('$(ComposeUIRepositoryRoot)\prototypes\avalon-shell', '$(ComposeUIRepositoryRoot)\src\shell'))\</RelativeRoot>
+        <RelativeRoot>$(MSBuildProjectDirectory.Replace('$(ComposeUIRepositoryRoot)\prototypes\avalon-shell\src\shell', '$(ComposeUIRepositoryRoot)\src\shell'))\</RelativeRoot>
     </PropertyGroup>
 
 </Project>

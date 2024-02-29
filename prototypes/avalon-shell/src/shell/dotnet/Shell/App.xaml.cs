@@ -32,6 +32,7 @@ using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.Abstractions;
 using MorganStanley.ComposeUI.Shell.Fdc3;
 using MorganStanley.ComposeUI.Shell.ImageSource;
+using MorganStanley.ComposeUI.Shell.Layout;
 using MorganStanley.ComposeUI.Shell.Messaging;
 using MorganStanley.ComposeUI.Shell.Modules;
 using MorganStanley.ComposeUI.Shell.Utilities;
@@ -45,7 +46,8 @@ namespace MorganStanley.ComposeUI.Shell;
 public partial class App : Application
 {
     public new static App Current => (App) Application.Current;
-
+    public new MainWindow? MainWindow => base.MainWindow as MainWindow;
+    
     public IHost Host =>
         _host
         ?? throw new InvalidOperationException(
@@ -89,6 +91,7 @@ public partial class App : Application
     protected override void OnExit(ExitEventArgs e)
     {
         base.OnExit(e);
+
         Debug.WriteLine("Waiting for async shutdown");
         Task.Run(StopAsync).WaitOnDispatcher();
         Debug.WriteLine("Async shutdown completed, the application will now exit");

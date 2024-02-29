@@ -20,6 +20,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.ModuleLoader;
+using MorganStanley.ComposeUI.Shell.Layout;
 
 namespace MorganStanley.ComposeUI.Shell.Modules;
 
@@ -63,6 +64,9 @@ internal sealed class ModuleService : IHostedService
         var properties = e.Instance.GetProperties().OfType<WebStartupProperties>().FirstOrDefault();
         if (properties == null) return;
 
+        if (e.Instance.StartRequest.Parameters.Any(p => p.Key == WebWindow.XmlConstants.SerializationIdAttribute))
+            return;
+
         var webWindowOptions = e.Instance.GetProperties().OfType<WebWindowOptions>().FirstOrDefault();
 
         try
@@ -70,15 +74,13 @@ internal sealed class ModuleService : IHostedService
             await _application.Dispatcher.InvokeAsync(
                 () =>
                 {
-                    var window = _application.CreateWindow<WebWindow>(
+                    DockingHelper.CreateDockingWindow<WebWindow>(
                         e.Instance,
                         webWindowOptions ?? new WebWindowOptions
                         {
                             Url = properties.Url.ToString(),
                             IconUrl = properties.IconUrl?.ToString()
                         });
-
-                    window.Show();
                 });
         }
         catch (Exception ex)

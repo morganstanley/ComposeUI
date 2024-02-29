@@ -18,15 +18,18 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Security.Policy;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
+using System.Xml;
+using AvalonDock.Layout;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Microsoft.Web.WebView2.Core;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.ImageSource;
-using MorganStanley.ComposeUI.Shell.Utilities;
+using MorganStanley.ComposeUI.Shell.Layout;
 
 namespace MorganStanley.ComposeUI.Shell;
 
@@ -34,15 +37,35 @@ namespace MorganStanley.ComposeUI.Shell;
 ///     Interaction logic for WebWindow.xaml
 /// </summary>
 
-public partial class WebWindow : Window
+public partial class WebWindow : LayoutAnchorable
 {
     public WebWindow(
         WebWindowOptions options,
         IModuleLoader moduleLoader,
         IModuleInstance? moduleInstance = null,
         ILogger<WebWindow>? logger = null,
+        IImageSourcePolicy? imageSourcePolicy = null) : this(false, options, moduleLoader, moduleInstance, logger, imageSourcePolicy)
+    {
+    }
+
+    public WebWindow() : this(
+        true,
+        new WebWindowOptions(),
+        App.Current.GetRequiredService<IModuleLoader>(),
+        logger: App.Current.GetService<ILogger<WebWindow>>(),
+        imageSourcePolicy: App.Current.GetService<IImageSourcePolicy>()
+    ) { }
+
+    private WebWindow(
+        bool skipInitialize,
+        WebWindowOptions options,
+        IModuleLoader moduleLoader,
+        IModuleInstance? moduleInstance = null,
+        ILogger<WebWindow>? logger = null,
         IImageSourcePolicy? imageSourcePolicy = null)
     {
+        CanHide = false;
+        CanClose = true;
         _moduleLoader = moduleLoader;
         _moduleInstance = moduleInstance;
         _iconProvider = new ImageSourceProvider(imageSourcePolicy ?? new DefaultImageSourcePolicy());
@@ -52,28 +75,13 @@ public partial class WebWindow : Window
 
         // TODO: When no title is set from options, we should show the HTML document's title instead
         Title = options.Title ?? WebWindowOptions.DefaultTitle;
-        Width = options.Width ?? WebWindowOptions.DefaultWidth;
-        Height = options.Height ?? WebWindowOptions.DefaultHeight;
-        TrySetIconUrl(options);
+        FloatingWidth = options.Width ?? WebWindowOptions.DefaultWidth;
+        FloatingHeight = options.Height ?? WebWindowOptions.DefaultHeight;
 
-        if (moduleInstance != null)
+        if (!skipInitialize)
         {
-            DisposeWhenClosed(
-                _moduleLoader.LifetimeEvents
-                    .Where(
-                        e => e.Instance == moduleInstance
-                             && e.EventType is LifetimeEventType.Stopping or LifetimeEventType.Stopped)
-                    .ObserveOn(SynchronizationContext.Current!)
-                    .Subscribe(
-                        Observer.Create(
-                            (LifetimeEvent e) =>
-                            {
-                                _lifetimeEvent = e.EventType;
-                                Close();
-                            })));
+            _ = InitializeAsync();
         }
-
-        _ = InitializeAsync();
     }
 
     public IModuleInstance? ModuleInstance => _moduleInstance;
@@ -92,21 +100,21 @@ public partial class WebWindow : Window
 
             case LifetimeEventType.Stopping:
                 args.Cancel = true;
-                Hide();
+                //Hide();
                 return;
 
             default:
                 args.Cancel = true;
-                Hide();
+                //Hide();
                 Task.Run(() => _moduleLoader.StopModule(new StopRequest(_moduleInstance.InstanceId)));
                 return;
         }
     }
 
-    protected override void OnClosed(EventArgs e)
+    protected override void OnClosed()
     {
-        base.OnClosed(e);
-        RemoveLogicalChild(WebView);
+        base.OnClosed();
+        //RemoveLogicalChild(WebView);
         WebView.Dispose();
 
         var disposables = _disposables.AsEnumerable().Reverse().ToArray();
@@ -118,9 +126,97 @@ public partial class WebWindow : Window
         }
     }
 
+    public override void ReadXml(XmlReader reader)
+    {
+        ReadAttribute(XmlConstants.ModuleIdAttribute, out var moduleId);
+        ReadAttribute(XmlConstants.UrlAttribute, out var url);
+
+        base.ReadXml(reader);
+
+        if (moduleId == null)
+        {
+            Dispatcher.InvokeAsync(() =>
+            {
+                _options.Url = url;
+                return InitializeAsync();
+            });
+
+            return;
+        }
+
+        var serializationId = Guid.NewGuid().ToString();
+
+        _moduleLoader.LifetimeEvents
+            .Where(
+                e => e.EventType == LifetimeEventType.Started
+                     && e.Instance.StartRequest.Parameters.Any(p => p.Key == XmlConstants.SerializationIdAttribute && p.Value == serializationId))
+            .Subscribe(
+                e =>
+                {
+                    Dispatcher.InvokeAsync(() =>
+                    {
+                        _moduleInstance = e.Instance;
+                        var properties = _moduleInstance.GetProperties<WebStartupProperties>().FirstOrDefault();
+
+                        if (properties != null)
+                        {
+                            _options.Url = properties.Url.ToString();
+                            _options.IconUrl = properties.IconUrl?.ToString();
+                        }
+
+                        _options = _moduleInstance.GetProperties<WebWindowOptions>().FirstOrDefault() ?? _options;
+
+                        return InitializeAsync();
+                    });
+                });
+
+        _ = _moduleLoader.StartModule(
+            new StartRequest(
+                moduleId,
+                new[] { new KeyValuePair<string, string>(XmlConstants.SerializationIdAttribute, serializationId) }));
+
+        bool ReadAttribute(string attrName, out string? value)
+        {
+            if (reader.MoveToAttribute(attrName))
+            {
+                value = reader.Value;
+                return true;
+            }
+
+            value = null;
+            return false;
+        }
+    }
+
+    public override void WriteXml(XmlWriter writer)
+    {
+        base.WriteXml(writer);
+
+        if (_moduleInstance != null)
+        {
+            writer.WriteAttributeString(XmlConstants.ModuleIdAttribute, _moduleInstance.Manifest.Id);
+
+            if (WebView.Source != null && WebView.Source != ((IModuleManifest<WebManifestDetails>)_moduleInstance.Manifest).Details.Url)
+            {
+                writer.WriteAttributeString(XmlConstants.UrlAttribute, WebView.Source.ToString());
+            }
+        }
+        else if (WebView.Source != null)
+        {
+            writer.WriteAttributeString(XmlConstants.UrlAttribute, WebView.Source.ToString());
+        }
+    }
+
+    internal static class XmlConstants
+    {
+        public const string ModuleIdAttribute = "ModuleId";
+        public const string UrlAttribute = "Url";
+        public const string SerializationIdAttribute = "SerializationId";
+    }
+
     private readonly IModuleLoader _moduleLoader;
-    private readonly IModuleInstance? _moduleInstance;
-    private readonly WebWindowOptions _options;
+    private IModuleInstance? _moduleInstance;
+    private WebWindowOptions _options;
     private readonly ILogger<WebWindow> _logger;
     private readonly ImageSourceProvider _iconProvider;
     private bool _scriptsInjected;
@@ -130,6 +226,25 @@ public partial class WebWindow : Window
 
     private async Task InitializeAsync()
     {
+        TrySetIconUrl(_options);
+
+        if (_moduleInstance != null)
+        {
+            DisposeWhenClosed(
+                _moduleLoader.LifetimeEvents
+                    .Where(
+                        e => e.Instance == _moduleInstance
+                             && e.EventType is LifetimeEventType.Stopping or LifetimeEventType.Stopped)
+                    .ObserveOn(SynchronizationContext.Current!)
+                    .Subscribe(
+                        Observer.Create(
+                            (LifetimeEvent e) =>
+                            {
+                                _lifetimeEvent = e.EventType;
+                                Close();
+                            })));
+        }
+
         await WebView.EnsureCoreWebView2Async();
         await InitializeCoreWebView2(WebView.CoreWebView2);
         await LoadWebContentAsync(_options);
@@ -154,7 +269,7 @@ public partial class WebWindow : Window
 
         if (iconUrl != null)
         {
-            Icon = _iconProvider.GetImageSource(iconUrl, appUrl);
+            IconSource = _iconProvider.GetImageSource(iconUrl, appUrl);
         }
     }
 
@@ -234,18 +349,7 @@ public partial class WebWindow : Window
             windowOptions.Height = e.WindowFeatures.Height;
         }
 
-        var constructorArgs = new List<object> { windowOptions };
-
-        // For now, we only inject the module-specific information when the window was created 
-        // in response to a start request. Later we might allow the page to open a new window
-        // and get the scripts preloaded if some conditions are met.
-        if (_moduleInstance != null)
-        {
-            constructorArgs.Add(_moduleInstance);
-        }
-
-        var window = App.Current.CreateWindow<WebWindow>(constructorArgs.ToArray());
-        window.Show();
+        var window = DockingHelper.CreateDockingWindow<WebWindow>(new[]{ windowOptions });
         await window.WebView.EnsureCoreWebView2Async();
         e.NewWindow = window.WebView.CoreWebView2;
     }

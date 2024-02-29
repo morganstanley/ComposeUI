@@ -7,34 +7,34 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shell", "Shell\Shell.csproj
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lib", "lib", "{E7A2C581-4BF4-47A5-8A11-59B2DEBADCA7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Core", "..\..\..\src\messaging\dotnet\src\Core\MorganStanley.ComposeUI.Messaging.Core.csproj", "{B2AA5676-2776-4BDA-95F8-BE09D7642393}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Core", "..\..\..\..\..\src\messaging\dotnet\src\Core\MorganStanley.ComposeUI.Messaging.Core.csproj", "{B2AA5676-2776-4BDA-95F8-BE09D7642393}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Server", "..\..\..\src\messaging\dotnet\src\Server\MorganStanley.ComposeUI.Messaging.Server.csproj", "{F0DFAB55-14F5-4FF6-A12F-37B1745D4551}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Server", "..\..\..\..\..\src\messaging\dotnet\src\Server\MorganStanley.ComposeUI.Messaging.Server.csproj", "{F0DFAB55-14F5-4FF6-A12F-37B1745D4551}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{BEA71FE5-7EC8-4BEA-819B-C0DB33125D91}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shell.Tests", "tests\Shell.Tests\Shell.Tests.csproj", "{70491F36-A27B-4E8C-AFD5-B49480EC1343}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Host", "..\..\..\src\messaging\dotnet\src\Host\MorganStanley.ComposeUI.Messaging.Host.csproj", "{DD91C297-06D4-4578-9C75-1BA5D8595AA0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Host", "..\..\..\..\..\src\messaging\dotnet\src\Host\MorganStanley.ComposeUI.Messaging.Host.csproj", "{DD91C297-06D4-4578-9C75-1BA5D8595AA0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DesktopAgent", "..\..\..\src\fdc3\dotnet\DesktopAgent\src\DesktopAgent\DesktopAgent.csproj", "{7A94BC15-8FE5-4C84-8572-3C72248AFF8C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DesktopAgent", "..\..\..\..\..\src\fdc3\dotnet\DesktopAgent\src\DesktopAgent\DesktopAgent.csproj", "{7A94BC15-8FE5-4C84-8572-3C72248AFF8C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Client", "..\..\..\src\messaging\dotnet\src\Client\MorganStanley.ComposeUI.Messaging.Client.csproj", "{3153E575-513F-4B1A-86D0-CBE5A7A8C606}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Client", "..\..\..\..\..\src\messaging\dotnet\src\Client\MorganStanley.ComposeUI.Messaging.Client.csproj", "{3153E575-513F-4B1A-86D0-CBE5A7A8C606}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppDirectory", "..\..\..\src\fdc3\dotnet\AppDirectory\src\AppDirectory\AppDirectory.csproj", "{70EAC402-B711-4528-B4DE-34081EB8676E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppDirectory", "..\..\..\..\..\src\fdc3\dotnet\AppDirectory\src\AppDirectory\AppDirectory.csproj", "{70EAC402-B711-4528-B4DE-34081EB8676E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ModuleLoader.Abstractions", "..\..\..\src\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader.Abstractions\MorganStanley.ComposeUI.ModuleLoader.Abstractions.csproj", "{F94A14A9-38B2-4573-A74B-979044428152}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ModuleLoader.Abstractions", "..\..\..\..\..\src\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader.Abstractions\MorganStanley.ComposeUI.ModuleLoader.Abstractions.csproj", "{F94A14A9-38B2-4573-A74B-979044428152}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ModuleLoader", "..\..\..\src\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader\MorganStanley.ComposeUI.ModuleLoader.csproj", "{1D387A56-DC64-4EB0-870D-3872BE4716B4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ModuleLoader", "..\..\..\..\..\src\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader\MorganStanley.ComposeUI.ModuleLoader.csproj", "{1D387A56-DC64-4EB0-870D-3872BE4716B4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Utilities", "..\..\..\src\shared\dotnet\src\MorganStanley.ComposeUI.Utilities\MorganStanley.ComposeUI.Utilities.csproj", "{990C5E01-FA98-4E26-A746-88731A78D502}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Utilities", "..\..\..\..\..\src\shared\dotnet\src\MorganStanley.ComposeUI.Utilities\MorganStanley.ComposeUI.Utilities.csproj", "{990C5E01-FA98-4E26-A746-88731A78D502}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{DA1A43C4-F758-47E2-870A-7E5BBB946671}"
 	ProjectSection(SolutionItems) = preProject
 		examples\module-catalog.json = examples\module-catalog.json
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiagnosticsExample", "..\..\..\examples\dotnet-diagnostics\DiagnosticsExample\DiagnosticsExample.csproj", "{24E64AFE-D2C5-487D-85F3-B0CE5AC0A128}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiagnosticsExample", "..\..\..\..\..\examples\dotnet-diagnostics\DiagnosticsExample\DiagnosticsExample.csproj", "{24E64AFE-D2C5-487D-85F3-B0CE5AC0A128}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
