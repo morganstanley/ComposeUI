@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 using MorganStanley.ComposeUI.ModuleLoader;
-using MorganStanley.Fdc3.AppDirectory;
+using Finos.Fdc3.AppDirectory;
 using ResourceReader = MorganStanley.ComposeUI.Utilities.ResourceReader;
 
 namespace MorganStanley.ComposeUI.Shell.Fdc3;
