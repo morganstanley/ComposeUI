@@ -7,6 +7,8 @@ import { ProcessesService } from 'src/app/services/processes-service/processes.s
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { MatSort, Sort } from '@angular/material/sort';
 import {LiveAnnouncer} from '@angular/cdk/a11y';
+import { of } from 'rxjs';
+import { Process } from 'src/app/generated-protos-files/ProcessExplorerMessages_pb';
 
 
 @Component({
@@ -23,25 +25,38 @@ import {LiveAnnouncer} from '@angular/cdk/a11y';
 })
 export class ProcessesComponent implements AfterViewInit {
   expandedElement: any;
-  processesData: Array<ProcessTable>;
-  dataSource = new MatTableDataSource<ProcessTable>()
+  processesData: Array<ProcessTable>; 
+  dataSource = new MatTableDataSource<Process.AsObject>();
+  allProcesses: Array<Process.AsObject> = [];
 
-  displayedColumns = [{ key: 'ProcessName', header: 'Process Name' }, { key: 'PID', header: 'PID' }, { key: 'ProcessStatus', header: 'Process Status' }, { key: 'StartTime', header: 'Start Time' }, { key: 'ProcessorUsage', header: 'Processor Usage' }, { key: 'PhysicalMemoryUsageBit', header: 'Physical Mem Usage' }, { key: 'PriorityLevel', header: 'Priority Level' }, { key: 'VirtualMemorySize', header: 'Virtual Memory Size' }];
+  displayedColumns = [{ key: 'processname', header: 'Process Name' }, { key: 'processid', header: 'PID' }, { key: 'processstatus', header: 'Process Status' }, { key: 'starttime', header: 'Start Time' }, { key: 'processorusage', header: 'Processor Usage' }, { key: 'physicalmemoryusagebit', header: 'Physical Mem Usage' }, { key: 'processpriorityclass', header: 'Priority Level' }, { key: 'virtualmemorysize', header: 'Virtual Memory Size' }];
   displayedColumnsKeys: string[];
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
 
   constructor(private processService: ProcessesService, private liveAnnouncer: LiveAnnouncer) {
-    this.processService.getProcesses('Processes').subscribe(process => this.processesData = process);
-    this.displayedColumnsKeys = this.displayedColumns.map(column => column.key);
-    this.dataSource = new MatTableDataSource<ProcessTable>(this.processesData);
+    // this.processService.getProcesses('Processes').subscribe(process => this.processesData = process);
+    this.processService.getProcessesData().on("data", req => {
+          if(req.toObject().processesList.length > 0){
+            this.allProcesses = [...this.allProcesses, ...req.toObject().processesList]
+          }
+          console.log('all processes', this.allProcesses);
+          this.displayedColumnsKeys = this.displayedColumns.map(column => column.key);
+          this.dataSource = new MatTableDataSource<Process.AsObject>(this.allProcesses);
+
+          this.dataSource.paginator = this.paginator;
+          this.dataSource.sort = this.sort;
+        })
   }
 
   ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
+    
   }
+
+  ngOnChanges(){
+  }
+  
   ngOnInit() {
   }
 
