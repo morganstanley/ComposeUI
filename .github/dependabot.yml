@@ -50,8 +50,27 @@ updates:
     schedule:
       interval: "monthly"
 
-
   - package-ecosystem: "npm" 
     directory: "/" 
     schedule:
       interval: "monthly"
+    groups:
+      angular: # group all angular updates together
+        patterns: 
+        - "@angular*"
+        update-types: # group angular where highest version is minor or patch
+        - "minor"
+        - "patch"
+      rollup: # group all rollup updates together
+        patterns: 
+        - "@rollup*"
+        - "rollup*"
+      testing: # group all dev testing updates together
+        patterns: 
+        - "@types/jasmine"
+        - "jasmine*"
+        - "karma*"
+    ignore:
+      - dependency-name: "@angular*"
+        update-types: ["version-update:semver-major"]
+        
