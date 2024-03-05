@@ -1386,3 +1386,9 @@ $RECYCLE.BIN/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+##
+## gatsby files
+##
+.cache/
+public

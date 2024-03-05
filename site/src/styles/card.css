@@ -1,0 +1,169 @@
+.card-collection {
+  display: flex;
+  align-items: stretch;
+  align-content: stretch;
+  justify-content: space-between;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-section);
+}
+
+.card-collection-container {
+  border-left: 10px solid var(--primary-foundational-color);
+  padding-left: 1.25rem;
+}
+.card-collection-container.primary {
+  border-color: var(--primary-accent-color);
+}
+.card-collection-container.secondary {
+  border-color: var(--secondary-accent-color);
+}
+.card-collection-container.tertiary {
+  border-color: var(--tertiary-accent-color);
+}
+.card-collection-container.error {
+  border-color: var(--error-extended-accent-color);
+}
+.card-collection-container.berry {
+  border-color: var(--berry-extended-accent-color);
+}
+.card-collection-container.peach {
+  border-color: var(--peach-extended-accent-color);
+}
+.card-collection-container.tangerine {
+  border-color: var(--tangerine-extended-accent-color);
+}
+.card-collection-container.aqua {
+  border-color: var(--aqua-extended-accent-color);
+}
+.card-collection-container.none {
+  border: none;
+  padding-left: 0;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  font-family: var(--alternate-font);
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--black-foundational-color);
+}
+.eyebrow.primary {
+  color: var(--primary-foundational-color);
+}
+.eyebrow.secondary {
+  color: var(--secondary-foundational-color);
+}
+.eyebrow.error {
+  color: var(--error-extended-accent-color);
+}
+.eyebrow.berry {
+  color: var(--berry-extended-accent-color);
+}
+.eyebrow.peach {
+  color: var(--peach-extended-accent-color);
+}
+.eyebrow.tangerine {
+  color: var(--tangerine-extended-accent-color);
+}
+.eyebrow.aqua {
+  color: var(--aqua-extended-accent-color);
+}
+
+.card-collection .card {
+  margin: 0;
+  flex-basis: 100%;
+}
+
+.card-collection.card-collection-cols-2 .card {
+  flex-basis: 45%;
+}
+
+.card-collection.card-collection-cols-3 .card {
+  flex-basis: 30%;
+}
+
+.card .card-inner-wrapper > h3 {
+  font-size: 1.25rem;
+}
+
+.card {
+  line-height: 1.5rem;
+}
+
+.card p {
+  margin-top: 0;
+  font-size: 0.9rem;
+}
+
+.card h3 {
+  margin: auto;
+}
+
+.card .card-image {
+  display: flex;
+  justify-content: center;
+  min-height: 125px;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.card.card-business-details .card-inner-wrapper > .card-image,
+.card.card-theme .card-inner-wrapper > .card-image {
+  display: block;
+}
+
+.card img {
+  max-width: 100%;
+}
+
+.card.card-business-details .card-inner-wrapper > .eyebrow-wrapper,
+.card.card-theme .card-inner-wrapper > .eyebrow-wrapper {
+  margin: -2.6rem 0 0.8rem 0;
+}
+
+.card.card-business-details .card-inner-wrapper > .eyebrow-wrapper .eyebrow,
+.card.card-theme .card-inner-wrapper > .eyebrow-wrapper .eyebrow {
+  display: inline-block;
+  background: var(--black-foundational-color);
+  color: var(--white-foundational-color);
+  padding: 0.08rem 0.5rem;
+  font-size: 0.65rem;
+  font-weight: normal;
+}
+
+.card.card-person .card-person-title {
+  font-weight: bold;
+}
+
+.card.card-program .card-inner-wrapper {
+  border: solid 2rem var(--purple-extended-accent-color);
+  border-bottom: none;
+  margin: 0;
+  padding: 1.5rem 1.5rem 0 1.5rem;
+}
+
+.card.card-program .card-inner-wrapper .card-program-child::before {
+  display: block;
+  content: '';
+  width: 30px;
+  height: 0px;
+  border: solid 1px var(--secondary-accent-color);
+  margin: 1rem 0;
+}
+
+.card.card-program .card-inner-wrapper .card-program-child {
+  font-weight: bold;
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .card-collection .card {
+    flex-basis: 45%;
+  }
+}
+
+@media (max-width: 767px) {
+  .card-collection {
+    display: block;
+  }
+}
