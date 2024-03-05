@@ -17,7 +17,7 @@ export default function Footer() {
           </li>
           <li>
             <a
-              href="https://github.com/MorganStanley/"
+              href="https://MorganStanley.com"
               target="_blank"
               rel="noreferrer"
             >
