@@ -7,70 +7,80 @@
 
 version: 2
 updates:
+  - package-ecosystem: 'nuget'
+    directory: '/' # Location of package manifests
+    schedule:
+      interval: 'monthly'
 
-  - package-ecosystem: "nuget"
-    directory: "/" # Location of package manifests
-    schedule:
-      interval: "monthly"
+  # Dependabot doesn't support glob syntax. Every solution needs an entry
 
-# Dependabot doesn't support glob syntax. Every solution needs an entry
+  - package-ecosystem: 'nuget'
+    directory: '/src/fdc3/dotnet/DesktopAgent/src/DesktopAgent'
+    schedule:
+      interval: 'monthly'
 
-  - package-ecosystem: "nuget"
-    directory: "/src/fdc3/dotnet/DesktopAgent/src/DesktopAgent" 
+  - package-ecosystem: 'nuget'
+    directory: '/src/messaging/dotnet/src/Client'
     schedule:
-      interval: "monthly"
+      interval: 'monthly'
 
-  - package-ecosystem: "nuget"
-    directory: "/src/messaging/dotnet/src/Client" 
+  - package-ecosystem: 'nuget'
+    directory: '/src/messaging/dotnet/src/Core'
     schedule:
-      interval: "monthly"
+      interval: 'monthly'
 
-  - package-ecosystem: "nuget"
-    directory: "/src/messaging/dotnet/src/Core" 
+  - package-ecosystem: 'nuget'
+    directory: '/src/messaging/dotnet/src/Host'
     schedule:
-      interval: "monthly"  
-    
-  - package-ecosystem: "nuget"
-    directory: "/src/messaging/dotnet/src/Host" 
-    schedule:
-      interval: "monthly"  
+      interval: 'monthly'
 
-  - package-ecosystem: "nuget"
-    directory: "/src/messaging/dotnet/src/Server" 
+  - package-ecosystem: 'nuget'
+    directory: '/src/messaging/dotnet/src/Server'
     schedule:
-      interval: "monthly"  
-  
-  - package-ecosystem: "nuget"
-    directory: "/src/shell/dotnet/Shell" 
-    schedule:
-      interval: "monthly"
+      interval: 'monthly'
 
-  - package-ecosystem: "nuget"
-    directory: "/prototypes/multi-module-prototype/examples/multi-module-example/ModulesPrototype" 
+  - package-ecosystem: 'nuget'
+    directory: '/src/shell/dotnet/Shell'
     schedule:
-      interval: "monthly"
+      interval: 'monthly'
 
-  - package-ecosystem: "npm" 
-    directory: "/" 
+  - package-ecosystem: 'nuget'
+    directory: '/prototypes/multi-module-prototype/examples/multi-module-example/ModulesPrototype'
     schedule:
-      interval: "monthly"
+      interval: 'monthly'
+
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'monthly'
     groups:
+      gatsby:
+        patterns:
+          - 'gatsby*'
       angular: # group all angular updates together
-        patterns: 
-        - "@angular*"
+        patterns:
+          - '@angular*'
         update-types: # group angular where highest version is minor or patch
-        - "minor"
-        - "patch"
+          - 'minor'
+          - 'patch'
       rollup: # group all rollup updates together
-        patterns: 
-        - "@rollup*"
-        - "rollup*"
+        patterns:
+          - '@rollup*'
+          - 'rollup*'
       testing: # group all dev testing updates together
-        patterns: 
-        - "@types/jasmine"
-        - "jasmine*"
-        - "karma*"
+        patterns:
+          - '@types/jasmine'
+          - 'jasmine*'
+          - 'karma*'
     ignore:
-      - dependency-name: "@angular*"
-        update-types: ["version-update:semver-major"]
-        
+      - dependency-name: '@angular*'
+        update-types: ['version-update:semver-major']
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: 'monthly'
+    groups:
+      artifact-actions:
+        patterns:
+          - 'actions/*-artifact*' # Upload/Download usually need to be updated together
