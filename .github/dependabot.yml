@@ -54,6 +54,9 @@ updates:
     schedule:
       interval: 'monthly'
     groups:
+      react:
+        patterns:
+          - 'react*'
       gatsby:
         patterns:
           - 'gatsby*'
