@@ -93,7 +93,9 @@ jobs:
 
 
     - name: Codecov
-      uses: codecov/codecov-action@v3.0.0
+      uses: codecov/codecov-action@v4.1.0
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
 
     # By uploading it's shared with the other workflows that are reusing this
     - name: Upload Shell Binaries
