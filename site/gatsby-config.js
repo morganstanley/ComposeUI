@@ -8,6 +8,6 @@ module.exports = {
     documentationUrl: false,
     //  documentationUrl: url-of.documentation.site,
   },
-  pathPrefix: `/`, // put GitHub project url slug here e.g. github.com/morganstanley/<project url slug>
+  pathPrefix: `/ComposeUI`, // put GitHub project url slug here e.g. github.com/morganstanley/<project url slug>
   plugins,
 };
