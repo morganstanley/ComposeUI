@@ -30,7 +30,7 @@
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="6.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="7.0.1" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
-    <PackageVersion Include="Microsoft.Web.WebView2" Version="1.0.2045.28" />
+    <PackageVersion Include="Microsoft.Web.WebView2" Version="1.0.2210.55" />
     <PackageVersion Include="Moq.Contrib.HttpClient" Version="1.4.0" />
     <PackageVersion Include="Moq" Version="4.18.4" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
