@@ -11,7 +11,7 @@
  *  
  */
 
-import { AbstractRequest } from ".";
+import { AbstractRequest } from "./AbstractRequest";
 import { MessageBuffer } from "../../MessageBuffer";
 import { Message } from "./Message";
 import { PublishResponse } from "./PublishResponse";

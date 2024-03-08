@@ -11,7 +11,7 @@
  *  
  */
 
-import { AbstractRequest } from ".";
+import { AbstractRequest } from "./AbstractRequest";
 import { Message } from "./Message";
 import { UnsubscribeResponse } from "./UnsubscribeResponse";
 
