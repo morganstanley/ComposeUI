@@ -12,8 +12,7 @@
 
 namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
-public sealed class UnsubscribeMessage : AbstractRequest<UnsubscribeResponse>
+public class UnsubscribeResponse : AbstractResponse
 {
-    public override MessageType Type => MessageType.Unsubscribe;
-    public string Topic { get; init; } = null!;
+    public override MessageType Type => MessageType.UnsubscribeResponse;
 }

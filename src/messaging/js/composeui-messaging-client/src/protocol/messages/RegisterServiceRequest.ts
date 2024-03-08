@@ -11,7 +11,7 @@
  *  
  */
 
-import { EndpointDescriptor } from "../..";
+import { EndpointDescriptor } from "../../EndpointDescriptor";
 import { AbstractRequest } from "./AbstractRequest";
 import { Message } from "./Message";
 import { RegisterServiceResponse } from "./RegisterServiceResponse";

@@ -29,21 +29,30 @@ public enum MessageType : int
     /// </summary>
     Subscribe,
 
-    // TODO: SubscribeResponse
+    /// <summary>
+    ///     Server confirms that the client subscribed.
+    /// </summary>
+    SubscribeResponse,
 
     /// <summary>
     ///     Client unsubscribes from a topic.
     /// </summary>
     Unsubscribe,
 
-    // TODO: UnsubscribeResponse
+    /// <summary>
+    ///     Server confirms that the client unsubscribed.
+    /// </summary>
+    UnsubscribeResponse,
 
     /// <summary>
     ///     Client publishes a message to a topic.
     /// </summary>
     Publish,
 
-    // TODO: PublishResponse
+    /// <summary>
+    ///     Server confirms that the message was published to a topic by the client.
+    /// </summary>
+    PublishResponse,
 
     /// <summary>
     ///     Server notifies client of a message from a subscribed topic.

@@ -11,9 +11,11 @@
  *  
  */
 
+import { AbstractRequest } from "./AbstractRequest";
 import { Message } from "./Message";
+import { SubscribeResponse } from "./SubscribeResponse";
 
-export interface SubscribeMessage extends Message {
+export interface SubscribeMessage extends AbstractRequest<SubscribeResponse> {
     type: "Subscribe";
     topic: string;
 }
