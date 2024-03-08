@@ -135,7 +135,7 @@ internal class MessageRouterServer : IMessageRouterServer
             Client? serviceClient = null;
 
             if (!_serviceRegistrations.TryGetValue(message.Endpoint, out var serviceClientId)
-                     || !_clients.TryGetValue(serviceClientId, out serviceClient))
+                || !_clients.TryGetValue(serviceClientId, out serviceClient))
             {
                 throw ThrowHelper.UnknownEndpoint(message.Endpoint);
             }
@@ -190,12 +190,26 @@ internal class MessageRouterServer : IMessageRouterServer
         CancellationToken cancellationToken)
     {
         if (!_serviceInvocations.TryRemove(message.RequestId, out var invocation))
-            return; // TODO: Log warning
+        {
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning("ServiceInvocation could not be retrieved. RequestId: {0}", message.RequestId);
+            }
+            
+            return;
+        }
 
         try
         {
             if (!_clients.TryGetValue(invocation.CallerClientId, out var caller))
-                return; // TODO: Log warning
+            {
+                if (_logger.IsEnabled(LogLevel.Warning))
+                {
+                    _logger.LogWarning("Client: {0}, could nt be retrieved when handling invoke response. Invocation: {1}, RequestId: {2}", invocation.CallerClientId, invocation, message.RequestId);
+                }
+                
+                return;
+            }
 
             var response = new InvokeResponse
             {
@@ -245,12 +259,32 @@ internal class MessageRouterServer : IMessageRouterServer
                             await subscriber.Connection.SendAsync(outgoingMessage, cancellationToken);
                     }));
 
+            await client.Connection.SendAsync(
+                new PublishResponse
+                {
+                    RequestId = message.RequestId
+                },
+                CancellationToken.None);
+
             OnRequestStop(message);
         }
-        catch (Exception e)
+        catch (Exception exception)
         {
-            OnRequestStop(message, e);
-
+            try
+            {
+                await client.Connection.SendAsync(
+                    new PublishResponse
+                    {
+                        RequestId = message.RequestId,
+                        Error = new Error(exception)
+                    },
+                    CancellationToken.None);
+            }
+            finally
+            {
+                OnRequestStop(message, exception);
+            }
+            
             throw;
         }
     }
@@ -297,7 +331,7 @@ internal class MessageRouterServer : IMessageRouterServer
         }
     }
 
-    private Task HandleSubscribeMessage(
+    private async Task HandleSubscribeMessage(
         Client client,
         SubscribeMessage message,
         CancellationToken cancellationToken)
@@ -306,8 +340,7 @@ internal class MessageRouterServer : IMessageRouterServer
 
         try
         {
-            if (!Protocol.Topic.IsValidTopicName(message.Topic))
-                return Task.CompletedTask;
+            Protocol.Topic.Validate(message.Topic);
 
             var topic = _topics.AddOrUpdate(
                 message.Topic,
@@ -322,11 +355,36 @@ internal class MessageRouterServer : IMessageRouterServer
                 },
                 client);
 
-            return Task.CompletedTask;
-        }
-        finally
-        {
+            await client.Connection.SendAsync(
+                new SubscribeResponse
+                {
+                    RequestId = message.RequestId
+                },
+                CancellationToken.None);
+
             OnRequestStop(message);
+        }
+        catch (Exception exception)
+        {
+            if (_logger.IsEnabled(LogLevel.Error))
+            {
+                _logger.LogError(exception, $"Exception thrown while handling subscription message: {0}.");
+            }
+            
+            try
+            {
+                await client.Connection.SendAsync(
+                    new SubscribeResponse
+                    {
+                        RequestId = message.RequestId,
+                        Error = new Error(exception)
+                    },
+                    CancellationToken.None);
+            }
+            finally
+            {
+                OnRequestStop(message, exception);
+            }
         }
     }
 
@@ -354,7 +412,7 @@ internal class MessageRouterServer : IMessageRouterServer
         }
     }
 
-    private Task HandleUnsubscribeMessage(
+    private async Task HandleUnsubscribeMessage(
         Client client,
         UnsubscribeMessage message,
         CancellationToken cancellationToken)
@@ -364,7 +422,7 @@ internal class MessageRouterServer : IMessageRouterServer
         try
         {
             if (string.IsNullOrWhiteSpace(message.Topic))
-                return Task.CompletedTask;
+                return;
 
             var topic = _topics.AddOrUpdate(
                 message.Topic,
@@ -378,12 +436,35 @@ internal class MessageRouterServer : IMessageRouterServer
                     return topic;
                 },
                 client);
-
-            return Task.CompletedTask;
-        }
-        finally
-        {
+            
+            await client.Connection.SendAsync(
+                new UnsubscribeResponse
+                {
+                    RequestId = message.RequestId
+                }, 
+                CancellationToken.None);
+            
             OnRequestStop(message);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(
+                exception,
+                "Exception thrown while handling unsubscribe message...");
+
+            try
+            {
+                await client.Connection.SendAsync(
+                    new UnsubscribeResponse
+                    {
+                        RequestId= message.RequestId,
+                        Error = new Error(exception)
+                    }, CancellationToken.None);
+            }
+            finally
+            {
+                OnRequestStop(message, exception);
+            }
         }
     }
 

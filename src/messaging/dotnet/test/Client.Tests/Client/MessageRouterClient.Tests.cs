@@ -10,7 +10,11 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using System.Diagnostics;
 using System.Linq.Expressions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
 using MorganStanley.ComposeUI.Messaging.Client.Abstractions;
 using MorganStanley.ComposeUI.Messaging.Instrumentation;
 using MorganStanley.ComposeUI.Messaging.Protocol;
@@ -63,6 +67,7 @@ public class MessageRouterClientTests : IAsyncLifetime
     public async Task DisposeAsync_calls_OnError_on_active_subscribers()
     {
         await _messageRouter.ConnectAsync();
+        _connectionMock.Handle<SubscribeMessage, SubscribeResponse>();
         var subscriber = new Mock<IAsyncObserver<TopicMessage>>();
         await _messageRouter.SubscribeAsync("test-topic", subscriber.Object);
 
@@ -150,6 +155,7 @@ public class MessageRouterClientTests : IAsyncLifetime
     public async Task PublishAsync_sends_a_PublishMessage()
     {
         await _messageRouter.ConnectAsync();
+        _connectionMock.Handle<PublishMessage, PublishResponse>();
         _diagnosticObserver.ExpectMessage<PublishMessage>();
 
         await _messageRouter.PublishAsync(
@@ -166,6 +172,32 @@ public class MessageRouterClientTests : IAsyncLifetime
                    && msg.Payload != null
                    && msg.Payload.GetString() == "test-payload"
                    && msg.CorrelationId == "test-correlation-id");
+    }
+
+    [Fact]
+    public async Task PublishAsync_throws_if_PublishResponse_contains_Error()
+    {
+        await _messageRouter.ConnectAsync();
+        
+        async ValueTask SendPublishResponse(string requestId)
+        {
+            await _connectionMock.SendToClient(new PublishResponse() { RequestId = requestId, Error = new Error("testError-publish", null) });
+        }
+
+        _connectionMock.Handle<PublishMessage>(
+            async request => await SendPublishResponse(request.RequestId));
+
+        _diagnosticObserver.ExpectMessage<PublishMessage>();
+
+        var exception =
+            await Assert.ThrowsAsync<MessageRouterException>(
+                async () => await _messageRouter.PublishAsync(
+                    "test-topic",
+                    "test-payload",
+                    new PublishOptions
+                    { CorrelationId = "test-correlation-id" }));
+
+        exception.Name.Should().Be("testError-publish");
     }
 
     [Fact]
@@ -186,10 +218,11 @@ public class MessageRouterClientTests : IAsyncLifetime
     public async Task SubscribeAsync_sends_a_Subscribe_message()
     {
         await _messageRouter.ConnectAsync();
+        _connectionMock.Handle<SubscribeMessage, SubscribeResponse>();
+        _diagnosticObserver.ExpectMessage<SubscribeMessage>();
 
         await _messageRouter.SubscribeAsync("test-topic", new Mock<IAsyncObserver<TopicMessage>>().Object);
-
-        _diagnosticObserver.ExpectMessage<SubscribeMessage>();
+        
         await WaitForCompletionAsync();
 
         _connectionMock.Expect<SubscribeMessage>(msg => msg.Topic == "test-topic");
@@ -199,6 +232,7 @@ public class MessageRouterClientTests : IAsyncLifetime
     public async Task SubscribeAsync_only_sends_a_Subscribe_message_on_the_first_subscription()
     {
         await _messageRouter.ConnectAsync();
+        _connectionMock.Handle<SubscribeMessage, SubscribeResponse>();
 
         _diagnosticObserver.ExpectMessage<SubscribeMessage>();
         await _messageRouter.SubscribeAsync("test-topic", new Mock<IAsyncObserver<TopicMessage>>().Object);
@@ -211,9 +245,32 @@ public class MessageRouterClientTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task SubscribeAsync_throws_if_SubscribeResponse_contains_Error()
+    {
+        await _messageRouter.ConnectAsync();
+
+        async ValueTask SendSubscribeResponse(string requestId)
+        {
+            await _connectionMock.SendToClient(new SubscribeResponse() { RequestId = requestId, Error = new Error("testError-subscribe", null) });
+        }
+
+        _connectionMock.Handle<SubscribeMessage>(
+            async request => await SendSubscribeResponse(request.RequestId));
+
+        _diagnosticObserver.ExpectMessage<SubscribeMessage>();
+
+        var exception =
+            await Assert.ThrowsAsync<MessageRouterException>(
+                async () => await _messageRouter.SubscribeAsync("test-topic", new Mock<IAsyncObserver<string?>>().Object));
+
+        exception.Name.Should().Be("testError-subscribe");
+    }
+
+    [Fact]
     public async Task When_Topic_message_received_it_invokes_the_subscribers()
     {
         await _messageRouter.ConnectAsync();
+        _connectionMock.Handle<SubscribeMessage, SubscribeResponse>();
 
         var sub1 = new Mock<IAsyncObserver<TopicMessage>>();
         var sub2 = new Mock<IAsyncObserver<TopicMessage>>();
@@ -249,6 +306,7 @@ public class MessageRouterClientTests : IAsyncLifetime
     public async Task When_Topic_message_received_it_keeps_processing_messages_if_the_subscriber_calls_InvokeAsync()
     {
         await _messageRouter.ConnectAsync();
+        _connectionMock.Handle<SubscribeMessage, SubscribeResponse>();
 
         // Register two subscribers, the first one will invoke a service that completes when
         // the second subscriber has been called twice. If the first subscriber could block
@@ -307,6 +365,7 @@ public class MessageRouterClientTests : IAsyncLifetime
     [Fact]
     public async Task Topic_extension_sends_a_Subscribe_message_on_first_subscription()
     {
+        _connectionMock.Handle<SubscribeMessage, SubscribeResponse>();
         var topic = _messageRouter.Topic("test-topic");
         _diagnosticObserver.ExpectMessage<SubscribeMessage>();
         await using var sub1 = await topic.SubscribeAsync(_ => { });
@@ -323,8 +382,12 @@ public class MessageRouterClientTests : IAsyncLifetime
     [Fact]
     public async Task Topic_extension_sends_an_Unsubscribe_message_after_the_last_subscription_is_disposed()
     {
+        _connectionMock.Handle<SubscribeMessage, SubscribeResponse>();
+        _connectionMock.Handle<UnsubscribeMessage, UnsubscribeResponse>();
+
         var topic = _messageRouter.Topic("test-topic");
         _diagnosticObserver.ExpectMessage<SubscribeMessage>();
+
         var sub1 = await topic.SubscribeAsync(_ => { });
         var sub2 = await topic.SubscribeAsync(_ => { });
         await WaitForCompletionAsync();
@@ -344,6 +407,7 @@ public class MessageRouterClientTests : IAsyncLifetime
     public async Task When_the_last_subscription_is_disposed_it_sends_an_Unsubscribe_message()
     {
         await _messageRouter.ConnectAsync();
+        _connectionMock.Handle<SubscribeMessage, SubscribeResponse>();
         var subscriber = new Mock<IAsyncObserver<TopicMessage>>();
         var sub1 = await _messageRouter.SubscribeAsync("test-topic", subscriber.Object);
         var sub2 = await _messageRouter.SubscribeAsync("test-topic", subscriber.Object);
@@ -654,7 +718,7 @@ public class MessageRouterClientTests : IAsyncLifetime
     public async Task When_the_connection_closes_it_calls_OnErrorAsync_on_active_subscribers()
     {
         await _messageRouter.ConnectAsync();
-
+        _connectionMock.Handle<SubscribeMessage, SubscribeResponse>();
         var subscriberCalled = new AsyncManualResetEvent();
         var subscriber = new Mock<IAsyncObserver<TopicMessage>>();
         subscriber.Setup(_ => _.OnErrorAsync(It.IsAny<Exception>())).Callback(() => subscriberCalled.Set());
@@ -688,6 +752,7 @@ public class MessageRouterClientTests : IAsyncLifetime
     public async Task When_a_subscription_is_disposed_there_will_be_no_further_calls_to_the_subscriber()
     {
         await _messageRouter.ConnectAsync();
+        _connectionMock.Handle<SubscribeMessage, SubscribeResponse>();
         IAsyncDisposable subscription = null!;
         var subscriber = new Mock<IAsyncObserver<TopicMessage>>();
         
@@ -716,13 +781,55 @@ public class MessageRouterClientTests : IAsyncLifetime
         subscriber.VerifyNoOtherCalls();
     }
 
+    [Fact]
+    public async Task It_log_error_when_a_subscription_is_disposed_and_the_UnsubscribeResponse_contains_Error()
+    {
+        await _messageRouter.ConnectAsync();
+
+        async ValueTask SendUnsubscribeResponse(string requestId)
+        {
+            await _connectionMock.SendToClient(
+                new UnsubscribeResponse { RequestId = requestId, Error = new Error("testError-unsubscribe", null) });
+        }
+
+        _connectionMock.Handle<SubscribeMessage, SubscribeResponse>();
+        _connectionMock.Handle<UnsubscribeMessage>(
+            request => SendUnsubscribeResponse(request.RequestId));
+
+        IAsyncDisposable subscription = null!;
+        var subscriber = new Mock<IAsyncObserver<TopicMessage>>();
+
+        _diagnosticObserver.ExpectMessage<UnsubscribeMessage>();
+
+        subscription = await _messageRouter.SubscribeAsync("test-topic", subscriber.Object);
+
+        await subscription.DisposeAsync();
+
+        await WaitForCompletionAsync();
+
+        Thread.Sleep(1);
+
+        _loggerMock
+            .Verify(
+                _ => _.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((message, _) => message.ToString()!.Contains("Exception thrown while unsubscribing, topic: test-topic")),
+                    It.IsAny<MessageRouterException>(),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+             Times.Once);
+    }
+
     public MessageRouterClientTests()
     {
         _connectionMock = new MockConnection();
         _connectionMock.AcceptConnections();
         var connectionFactory = new Mock<IConnectionFactory>();
         connectionFactory.Setup(_ => _.CreateConnection()).Returns(_connectionMock.Object);
-        _messageRouter = new MessageRouterClient(connectionFactory.Object, new MessageRouterOptions());
+        _loggerMock = new Mock<ILogger<MessageRouterClient>>();
+        _loggerMock.Setup(_ => _.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
+
+        _messageRouter = new MessageRouterClient(connectionFactory.Object, new MessageRouterOptions(), _loggerMock.Object);
         _diagnosticObserver = new MessageRouterDiagnosticObserver(_messageRouter);
     }
 
@@ -741,6 +848,7 @@ public class MessageRouterClientTests : IAsyncLifetime
     private readonly MockConnection _connectionMock;
     private readonly MessageRouterClient _messageRouter;
     private readonly MessageRouterDiagnosticObserver _diagnosticObserver;
+    private readonly Mock<ILogger<MessageRouterClient>> _loggerMock;
 
     private TMessage RegisterRequest<TMessage>(TMessage message) where TMessage: Message
     {
