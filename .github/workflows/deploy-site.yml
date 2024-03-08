@@ -17,9 +17,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7 # v3.8.2
         with:
           node-version: 20
           cache: 'npm'
@@ -27,7 +27,7 @@ jobs:
       - run: npm ci
       - run: npm run build
       - name: Deploy
-        uses: crazy-max/ghaction-github-pages@v4
+        uses: crazy-max/ghaction-github-pages@c05ee637ec73429400a359430db8e5629f3f2564 # v4.0.0
         with:
           target_branch: gh-pages
           build_dir: docs

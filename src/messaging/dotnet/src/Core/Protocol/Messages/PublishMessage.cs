@@ -12,7 +12,7 @@
 
 namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
-public sealed class PublishMessage : Message
+public sealed class PublishMessage : AbstractRequest<PublishResponse>
 {
     public override MessageType Type => MessageType.Publish;
     public string Topic { get; init; } = null!;

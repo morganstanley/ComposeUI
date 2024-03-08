@@ -83,8 +83,9 @@ export class MessageRouterClient implements MessageRouter {
         const subscription = topic.subscribe(subscriber);
 
         if (needsSubscription) {
-            await this.sendMessage<messages.SubscribeMessage>(
+            await this.sendRequest<messages.SubscribeMessage, messages.SubscribeResponse>(
                 {
+                    requestId: this.getRequestId(),
                     type: "Subscribe",
                     topic: topicName
                 });
@@ -96,9 +97,10 @@ export class MessageRouterClient implements MessageRouter {
     async publish(topic: string, payload?: MessageBuffer, options?: PublishOptions): Promise<void> {
         await this.checkState();
 
-        return await this.sendMessage<messages.PublishMessage>(
+        await this.sendRequest<messages.PublishMessage, messages.PublishResponse>(
             {
                 type: "Publish",
+                requestId: this.getRequestId(),
                 topic,
                 payload,
                 correlationId: options?.correlationId
@@ -410,12 +412,17 @@ export class MessageRouterClient implements MessageRouter {
         if (!topic)
             return;
 
-        await this.sendMessage<messages.UnsubscribeMessage>(
-            {
-                type: "Unsubscribe",
-                topic: topicName
-            }
-        );
+        try {
+            await this.sendRequest<messages.UnsubscribeMessage, messages.UnsubscribeResponse>(
+                {
+                    requestId: this.getRequestId(),
+                    type: "Unsubscribe",
+                    topic: topicName
+                }
+            );
+        } catch (error) {
+            console.error("Exception thrown while unsubscribing.", error);
+        }
     }
 
     private getRequestId(): string {
