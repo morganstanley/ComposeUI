@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   actions: read
 
 name: Release
@@ -19,7 +19,7 @@ jobs:
     name: Upload Release Asset
     needs: build
     runs-on: windows-latest
-  
+
     steps:
 
       # Using shared artifact from build workflow
