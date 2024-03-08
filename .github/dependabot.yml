@@ -82,8 +82,8 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: 'monthly'
+      interval: 'weekly'
     groups:
       artifact-actions:
         patterns:
-          - 'actions/*-artifact*' # Upload/Download usually need to be updated together
+          - 'actions/*' # Upload/Download usually need to be updated together
