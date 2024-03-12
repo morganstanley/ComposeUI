@@ -11,11 +11,21 @@
 // and limitations under the License.
 
 using System.Diagnostics;
+using System.Threading.Tasks;
 
-namespace MorganStanley.ComposeUI.TestConsoleApp;
+namespace MorganStanley.ComposeUI.ProcessExplorer.Core.Tests.Utils;
 
-internal static class Helper
+internal static class ProcessExtensions
 {
-    [Conditional("DEBUG")]
-    public static void IsDebug(ref bool isDebug) => isDebug = true;
+    public static async Task WaitStartOfChildProcess(this Process process, string expectedOutputLine)
+    {
+        using (var streamReader = process.StandardOutput)
+        {
+            var line = string.Empty;
+            while (line != expectedOutputLine)
+            {
+                line = await streamReader.ReadLineAsync();
+            }
+        }
+    }
 }
