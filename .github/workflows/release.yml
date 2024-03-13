@@ -47,7 +47,7 @@ jobs:
           asset_name: composeui-${{ github.ref_name }}-win32.zip
           asset_content_type: application/zip
           
-  deploy:
+  deploy-npm:
     name: Publish Package to npmjs
     runs-on: windows-latest
     needs: upload
