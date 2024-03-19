@@ -7,6 +7,10 @@
 		<RootNamespace>MorganStanley.ComposeUI.Messaging</RootNamespace>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<IsPackable>true</IsPackable>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<InternalsVisibleTo Include="$(AssemblyName).Tests" />
 	</ItemGroup>
