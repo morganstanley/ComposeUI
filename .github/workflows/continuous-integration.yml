@@ -68,7 +68,7 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
 
 
-    -- name: Pack .NET
+    - name: Pack .NET
     run: |
          powershell ./build/dotnet-pack.ps1
 
