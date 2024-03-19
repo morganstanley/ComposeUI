@@ -45,6 +45,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     private readonly IModuleLoader _moduleLoader;
     private readonly ConcurrentDictionary<Guid, Fdc3App> _runningModules = new();
     private readonly ConcurrentDictionary<Guid, RaisedIntentRequestHandler> _raisedIntentResolutions = new();
+    private readonly ConcurrentDictionary<StartRequest, TaskCompletionSource<IModuleInstance>> _pendingStartRequests = new();
     private IAsyncDisposable? _subscription;
 
     public Fdc3DesktopAgent(
@@ -97,6 +98,13 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             _runningModules.Clear();
             await _subscription.DisposeAsync();
         }
+
+        foreach (var pendingStartRequest in _pendingStartRequests)
+        {
+            pendingStartRequest.Value.TrySetCanceled();
+        }
+
+        _pendingStartRequests.Clear();
     }
 
     public bool FindChannel(string channelId, ChannelType channelType)
@@ -461,13 +469,33 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             try
             {
                 var fdc3InstanceId = Guid.NewGuid();
-                var moduleInstance = await _moduleLoader.StartModule(
-                    new StartRequest(
-                        targetAppMetadata.AppId, //TODO: possible remove some identifier like @"fdc3."
+                var startRequest = new StartRequest(
+                    targetAppMetadata.AppId, //TODO: possible remove some identifier like @"fdc3."
                         new List<KeyValuePair<string, string>>()
                         {
                                 { new(Fdc3StartupParameters.Fdc3InstanceId, fdc3InstanceId.ToString()) }
-                        })) ?? throw ThrowHelper.TargetInstanceUnavailable();
+                        });
+
+                var taskCompletionSource = new TaskCompletionSource<IModuleInstance>();
+
+                if (_pendingStartRequests.TryAdd(startRequest, taskCompletionSource))
+                {
+                    var moduleInstance = await _moduleLoader.StartModule(startRequest);
+
+                    if (moduleInstance == null)
+                    {
+                        var exception = ThrowHelper.TargetInstanceUnavailable();
+
+                        if (!_pendingStartRequests.TryRemove(startRequest, out _))
+                        {
+                            _logger.LogWarning($"Could not remove {nameof(StartRequest)} from the pending requests. ModuleId: {startRequest.ModuleId}.");
+                        }
+
+                        taskCompletionSource.TrySetException(exception);
+                    }
+
+                    await taskCompletionSource.Task;
+                }
 
                 var raisedIntentMessageId = StoreRaisedIntentForTarget(messageId, fdc3InstanceId.ToString(), intent, context, sourceFdc3InstanceId);
 
@@ -496,7 +524,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
                 return new()
                 {
-                    Response = RaiseIntentResponse.Failure(exception.Message),
+                    Response = RaiseIntentResponse.Failure(exception.ToString()),
                 };
             }
         }
@@ -698,9 +726,15 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         try
         {
             var fdc3InstanceId = GetFdc3InstanceId(instance);
+            
             if (!_runningModules.TryRemove(new(fdc3InstanceId), out _))
             {
                 _logger.LogError($"Could not remove the closed window with instanceId: {fdc3InstanceId}.");
+            }
+
+            if (_pendingStartRequests.TryRemove(instance.StartRequest, out var taskCompletionSource))
+            {
+                taskCompletionSource.SetException(ThrowHelper.TargetInstanceUnavailable());
             }
         }
         catch (Fdc3DesktopAgentException exception)
@@ -717,6 +751,11 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         try
         {
             fdc3App = await _appDirectory.GetApp(instance.Manifest.Id);
+
+            if (_pendingStartRequests.TryRemove(instance.StartRequest, out var taskCompletionSource))
+            {
+                taskCompletionSource.SetResult(instance);
+            }
         }
         catch (AppNotFoundException)
         {
