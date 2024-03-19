@@ -49,47 +49,17 @@ jobs:
 
     - name: Install NuGet dependencies
       run: |
-        $failedSolutions = @()
-        
-        Get-ChildItem -Recurse -Include *.sln `
-        | ForEach-Object {
-            dotnet restore $_;
-            if ($LASTEXITCODE -ne 0) {$failedSolutions += Split-Path $_ -leaf; }
-          }
-        
-        if ($failedSolutions.count -gt 0) {
-            throw "Restore FAILED for solutions $failedSolutions"
-        }
+           ./build/dotnet-restore.ps1
 
 
     - name: Build .NET
       run: |
-        $failedSolutions = @()
-        
-        Get-ChildItem -Recurse -Include *.sln `
-        | ForEach-Object {
-            dotnet build $_ --configuration Release --no-restore; 
-            if ($LASTEXITCODE -ne 0) {$failedSolutions += Split-Path $_ -leaf; }
-          }
-        
-        if ($failedSolutions.count -gt 0) {
-            throw "Build FAILED for solutions $failedSolutions"
-        }
+           powershell ./build/dotnet-build.ps1
 
 
     - name: Test .NET
       run: |
-        $failedSolutions = @()
-        
-        Get-ChildItem -Recurse -Include *.sln `
-        | ForEach-Object {
-            dotnet test $_ --configuration Release --no-build; 
-            if ($LASTEXITCODE -ne 0) { $failedSolutions += Split-Path $_ -leaf; }
-        }
-        
-        if ($failedSolutions.count -gt 0) {
-            throw "Test FAILED for solutions $failedSolutions"
-        }
+           powershell ./build/dotnet-test.ps1
 
 
     - name: Codecov
@@ -97,9 +67,17 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
 
+
+    -- name: Pack .NET
+    run: |
+         powershell ./build/dotnet-pack.ps1
+
     # By uploading it's shared with the other workflows that are reusing this
     - name: Upload Shell Binaries
       uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
       with:
         name: shell-binaries
         path: ${{ github.workspace }}/src/shell/dotnet/Shell/bin/Release/net6.0-windows/
+      with:
+        name: packages
+        path: ${{ github.workspace }}/packages
