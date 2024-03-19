@@ -49,7 +49,7 @@ jobs:
 
     - name: Install NuGet dependencies
       run: |
-           ./build/dotnet-restore.ps1
+           powershell ./build/dotnet-restore.ps1
 
 
     - name: Build .NET
