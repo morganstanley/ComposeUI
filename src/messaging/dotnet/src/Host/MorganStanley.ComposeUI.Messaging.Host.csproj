@@ -8,6 +8,10 @@
 		<RootNamespace>MorganStanley.ComposeUI.Messaging</RootNamespace>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<IsPackable>true</IsPackable>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="../Core/MorganStanley.ComposeUI.Messaging.Core.csproj" />
 		<ProjectReference Include="../Client/MorganStanley.ComposeUI.Messaging.Client.csproj" />
