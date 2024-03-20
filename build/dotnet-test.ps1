@@ -3,7 +3,7 @@
 $failedSolutions = @()
 
 foreach ($sln in GetSolutions) {
-    dotnet test $sln --no-restore --verbosity normal --collect:"XPlat Code Coverage"
+    dotnet test $sln --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage"
     
     if ($LASTEXITCODE -ne 0 ) { 
         $failedSolutions += $sln
