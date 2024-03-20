@@ -2,17 +2,18 @@
 
 # This workflow will do a clean install of node dependencies, build the source code and run tests
 
-name: CI
-
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
   workflow_call:
+  workflow_dispatch:
 
 permissions:
   contents: read
+
+name: CI
 
 jobs:
   build:
@@ -22,8 +23,8 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        dotnet-version: [ '6.0.x' ]
-        node-version: [ '18.x' ]
+        dotnet-version: [ ${{ vars.DOTNET_VERSION }} ]
+        node-version: [ ${{ vars.NODE_VERSION }} ]
     steps:
     - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
 
@@ -49,47 +50,17 @@ jobs:
 
     - name: Install NuGet dependencies
       run: |
-        $failedSolutions = @()
-        
-        Get-ChildItem -Recurse -Include *.sln `
-        | ForEach-Object {
-            dotnet restore $_;
-            if ($LASTEXITCODE -ne 0) {$failedSolutions += Split-Path $_ -leaf; }
-          }
-        
-        if ($failedSolutions.count -gt 0) {
-            throw "Restore FAILED for solutions $failedSolutions"
-        }
+           powershell ./build/dotnet-restore.ps1
 
 
     - name: Build .NET
       run: |
-        $failedSolutions = @()
-        
-        Get-ChildItem -Recurse -Include *.sln `
-        | ForEach-Object {
-            dotnet build $_ --configuration Release --no-restore; 
-            if ($LASTEXITCODE -ne 0) {$failedSolutions += Split-Path $_ -leaf; }
-          }
-        
-        if ($failedSolutions.count -gt 0) {
-            throw "Build FAILED for solutions $failedSolutions"
-        }
+           powershell ./build/dotnet-build.ps1
 
 
     - name: Test .NET
       run: |
-        $failedSolutions = @()
-        
-        Get-ChildItem -Recurse -Include *.sln `
-        | ForEach-Object {
-            dotnet test $_ --configuration Release --no-build; 
-            if ($LASTEXITCODE -ne 0) { $failedSolutions += Split-Path $_ -leaf; }
-        }
-        
-        if ($failedSolutions.count -gt 0) {
-            throw "Test FAILED for solutions $failedSolutions"
-        }
+           powershell ./build/dotnet-test.ps1
 
 
     - name: Codecov
