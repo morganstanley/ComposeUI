@@ -23,8 +23,8 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        dotnet-version: [ ${{ vars.DOTNET_VERSION }} ]
-        node-version: [ ${{ vars.NODE_VERSION }} ]
+        dotnet-version: [ '${{ vars.DOTNET_VERSION }}' ]
+        node-version: [ '${{ vars.NODE_VERSION }}' ]
     steps:
     - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
 
@@ -67,8 +67,17 @@ jobs:
       uses: codecov/codecov-action@54bcd8715eee62d40e33596ef5e8f0f48dbbccab # v4.1.0
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
+        
+    - name: Pack .NET
+      run: |
+           powershell ./build/dotnet-pack.ps1
 
-    # By uploading it's shared with the other workflows that are reusing this
+    - name: Upload Nuget Packages
+      uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+      with:
+        name: packages
+        path: ${{ github.workspace }}/packages
+
     - name: Upload Shell Binaries
       uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
       with:
