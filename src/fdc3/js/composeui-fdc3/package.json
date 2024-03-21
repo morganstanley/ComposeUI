@@ -1,6 +1,7 @@
 {
   "name": "@morgan-stanley/composeui-fdc3",
   "version": "0.1.0",
+  "private": true,
   "description": "FDC3 DesktopAgent implementation for Compose UI",
   "type": "module",
   "main": "dist/index.js",
