@@ -16,7 +16,7 @@
         "build:rollup": "rollup -c",
         "test": "jest"
     },
-    "publisConfig": {
+    "publishConfig": {
         "access": "public",
         "provenance": true
     },

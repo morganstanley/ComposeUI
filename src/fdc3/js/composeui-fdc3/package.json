@@ -27,8 +27,8 @@
     "type": "git",
     "url": "git+https://github.com/morganstanley/ComposeUI.git"
   },
-  "publisConfig": {
-    "access": "public",
+  "publishConfig": {
+    "access": "restricted",
     "provenance": true
   },
   "devDependencies": {

@@ -18,7 +18,7 @@
     "install": "node ./src/cli/install.js",
     "test": "jest"
   },
-  "publisConfig": {
+  "publishConfig": {
     "access": "public",
     "provenance": true
   },
