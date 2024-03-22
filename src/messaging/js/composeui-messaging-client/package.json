@@ -16,6 +16,14 @@
         "build:rollup": "rollup -c",
         "test": "jest"
     },
+    "publisConfig": {
+        "access": "public",
+        "provenance": true
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/morganstanley/ComposeUI.git"
+    },
     "author": "Morgan Stanley",
     "license": "Apache-2.0",
     "devDependencies": {

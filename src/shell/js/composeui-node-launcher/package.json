@@ -10,13 +10,17 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/morganstanley/ComposeUI.git#main"
+    "url": "git+https://github.com/morganstanley/ComposeUI.git"
   },
   "scripts": {
     "clean": "rimraf output",
     "build": "npm run clean && tsc",
     "install": "node ./src/cli/install.js",
     "test": "jest"
+  },
+  "publisConfig": {
+    "access": "public",
+    "provenance": true
   },
   "bin": {
     "composeui": "./output/cli/cli.js"

@@ -23,6 +23,14 @@
     "jest-environment-jsdom": "^29.7.0",
     "rxjs": "^7.8.1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/morganstanley/ComposeUI.git"
+  },
+  "publisConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "devDependencies": {
     "@rollup/plugin-commonjs": "25.0.7",
     "@rollup/plugin-node-resolve": "15.2.3",
