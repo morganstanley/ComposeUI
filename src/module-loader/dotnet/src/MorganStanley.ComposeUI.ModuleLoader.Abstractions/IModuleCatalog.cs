@@ -15,6 +15,7 @@ namespace MorganStanley.ComposeUI.ModuleLoader;
 /// <summary>
 /// Represents a collection of modules that can be started in the scope of the application.
 /// </summary>
+/// <exception cref="ModuleNotFoundException">The requested module was not found in the catalog</exception>
 public interface IModuleCatalog
 {
     /// <summary>
