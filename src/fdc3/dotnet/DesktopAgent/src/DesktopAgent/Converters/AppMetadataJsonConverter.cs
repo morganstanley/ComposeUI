@@ -14,7 +14,7 @@
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using MorganStanley.Fdc3;
+using Finos.Fdc3;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;

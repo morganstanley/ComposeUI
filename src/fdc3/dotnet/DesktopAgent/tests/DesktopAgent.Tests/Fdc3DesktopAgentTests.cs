@@ -15,15 +15,15 @@
 
 using MorganStanley.ComposeUI.Fdc3.AppDirectory;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.TestUtils;
-using MorganStanley.Fdc3.AppDirectory;
+using Finos.Fdc3.AppDirectory;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
 using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIdentifier;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
-using MorganStanley.Fdc3;
+using Finos.Fdc3;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
-using MorganStanley.Fdc3.Context;
+using Finos.Fdc3.Context;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Helpers;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
 using MorganStanley.ComposeUI.ModuleLoader;
@@ -31,7 +31,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
 
-public class Fdc3DesktopAgentTests
+public class Fdc3DesktopAgentTests : IAsyncLifetime
 {
     private readonly MockModuleLoader _mockModuleLoader = new();
     private readonly IAppDirectory _appDirectory = new AppDirectory.AppDirectory(
@@ -592,5 +592,15 @@ public class Fdc3DesktopAgentTests
         result!.Response!.Intent.Should().Be("intentMetadataCustom");
         result!.RaiseIntentResolutionMessages!.Should().HaveCount(1);
         result!.RaiseIntentResolutionMessages!.First().TargetModuleInstanceId.Should().Be(targetFdc3InstanceId);
+    }
+
+    public async Task InitializeAsync()
+    {
+        await _fdc3.StartAsync(CancellationToken.None);
+    }
+
+    public async Task DisposeAsync()
+    {
+        await _fdc3.StopAsync(CancellationToken.None);
     }
 }

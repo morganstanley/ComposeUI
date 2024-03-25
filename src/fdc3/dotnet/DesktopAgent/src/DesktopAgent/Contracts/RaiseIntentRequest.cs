@@ -12,7 +12,7 @@
  * and limitations under the License.
  */
 
-using MorganStanley.Fdc3.Context;
+using Finos.Fdc3.Context;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIdentifier;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;

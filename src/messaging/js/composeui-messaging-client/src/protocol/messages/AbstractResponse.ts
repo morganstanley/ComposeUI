@@ -22,5 +22,8 @@ export interface AbstractResponse extends Message {
 export function isResponse(message: Message): message is AbstractResponse {
     return (message.type === "InvokeResponse" 
             || message.type === "RegisterServiceResponse"
-            || message.type === "UnregisterServiceResponse");
+            || message.type === "UnregisterServiceResponse"
+            || message.type === "SubscribeResponse"
+            || message.type === "UnsubscribeResponse"
+            || message.type === "PublishResponse");
 }

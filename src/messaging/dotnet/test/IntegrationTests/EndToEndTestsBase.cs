@@ -15,7 +15,6 @@ using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Nito.AsyncEx;
-using TaskExtensions = MorganStanley.ComposeUI.Testing.TaskExtensions;
 
 namespace MorganStanley.ComposeUI.Messaging;
 

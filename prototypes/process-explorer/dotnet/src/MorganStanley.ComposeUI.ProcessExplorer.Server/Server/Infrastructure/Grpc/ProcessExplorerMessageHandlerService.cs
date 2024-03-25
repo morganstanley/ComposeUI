@@ -48,11 +48,13 @@ internal class ProcessExplorerMessageHandlerService : ProcessExplorerMessageHand
             await _processInfoAggregator.UiHandler.AddProcesses(_processInfoAggregator.GetProcesses());
             await _processInfoAggregator.UiHandler.AddRuntimeInfo(_processInfoAggregator.GetRuntimeInformation());
             await _processInfoAggregator.UiHandler.AddSubsystems(
-                _processInfoAggregator.SubsystemController.GetSubsystems());
+            _processInfoAggregator.SubsystemController.GetSubsystems());
 
             //wait here until the user is connected to the service
             while (!context.CancellationToken.IsCancellationRequested)
+            {
                 continue;
+            }
         }
         catch (Exception exception)
         {

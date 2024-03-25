@@ -10,12 +10,9 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using System.Diagnostics;
+namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
-namespace MorganStanley.ComposeUI.TestConsoleApp;
-
-internal static class Helper
+public class PublishResponse : AbstractResponse
 {
-    [Conditional("DEBUG")]
-    public static void IsDebug(ref bool isDebug) => isDebug = true;
+    public override MessageType Type => MessageType.PublishResponse;
 }

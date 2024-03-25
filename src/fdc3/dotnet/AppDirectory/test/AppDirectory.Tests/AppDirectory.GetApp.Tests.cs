@@ -1,4 +1,4 @@
-﻿using MorganStanley.Fdc3.AppDirectory;
+﻿using Finos.Fdc3.AppDirectory;
 
 namespace MorganStanley.ComposeUI.Fdc3.AppDirectory;
 

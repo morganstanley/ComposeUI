@@ -56,7 +56,7 @@ internal class GrpcUiHandler : IUiHandler
                 Connections = { connections.Select(conn => conn.DeriveProtoConnectionType()) }
             };
 
-            return UpdateInfoOnUI(handler => handler.SendMessage(message));
+            return UpdateInfoOnUI(async handler => await handler.SendMessage(message));
         }
         catch (Exception exception)
         {
@@ -86,7 +86,7 @@ internal class GrpcUiHandler : IUiHandler
                 Processes = { list }
             };
 
-            return UpdateInfoOnUI(handler => handler.SendMessage(message));
+            return UpdateInfoOnUI(async handler => await handler.SendMessage(message));
         }
         catch (Exception exception)
         {
@@ -131,7 +131,7 @@ internal class GrpcUiHandler : IUiHandler
                 Processes = { processes.Select(proc => proc.DeriveProtoProcessType()) }
             };
 
-            return UpdateInfoOnUI(handler => handler.SendMessage(message));
+            return UpdateInfoOnUI(async handler => await handler.SendMessage(message));
         }
         catch (Exception exception)
         {
@@ -157,7 +157,7 @@ internal class GrpcUiHandler : IUiHandler
                 RuntimeInfo = runtimeInformation.DeriveProtoRuntimeInfoType() 
             };
 
-            return UpdateInfoOnUI(handler => handler.SendMessage(message));
+            return UpdateInfoOnUI(async handler => await handler.SendMessage(message));
         }
         catch (Exception exception)
         {
@@ -182,7 +182,7 @@ internal class GrpcUiHandler : IUiHandler
                 MultipleRuntimeInfo = { runtimeInfo.DeriveProtoDictionaryType(ProtoConvertHelper.DeriveProtoRuntimeInfoType) }
             };
 
-            return UpdateInfoOnUI(handler => handler.SendMessage(message));
+            return UpdateInfoOnUI(async handler => await handler.SendMessage(message));
         }
         catch (Exception exception)
         {
@@ -506,7 +506,7 @@ internal class GrpcUiHandler : IUiHandler
     {
         try
         {
-            return Task.WhenAll(CreateCopyOfClients().Select(handlerAction));
+            return Task.WhenAll(CreateCopyOfClients().Select(async(IClientConnection<Message> connection) => await handlerAction(connection)));
         }
         catch (Exception exception)
         {

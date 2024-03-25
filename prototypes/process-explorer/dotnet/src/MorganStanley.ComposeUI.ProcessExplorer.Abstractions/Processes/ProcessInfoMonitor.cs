@@ -27,9 +27,7 @@ public abstract class ProcessInfoMonitor : IProcessInfoMonitor
     private readonly ObservableCollection<int> _processIds = new();
     private readonly object _processIdsLocker = new();
     private readonly Subject<KeyValuePair<int, ProcessStatus>> _processIdsSubject = new();
-
     public IObservable<KeyValuePair<int, ProcessStatus>> ProcessIds => _processIdsSubject;
-
 
     protected ProcessInfoMonitor(ILogger? logger)
     {

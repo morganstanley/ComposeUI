@@ -15,8 +15,11 @@ export type MessageType = (
     "Connect" |
     "ConnectResponse" |
     "Subscribe" |
+    "SubscribeResponse" |
     "Unsubscribe" |
+    "UnsubscribeResponse" |
     "Publish" |
+    "PublishResponse" |
     "Topic" |
     "RegisterService" |
     "RegisterServiceResponse" |

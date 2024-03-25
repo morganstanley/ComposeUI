@@ -11,7 +11,7 @@
 // and limitations under the License.
 
 using Microsoft.Extensions.Options;
-using MorganStanley.Fdc3.AppDirectory;
+using Finos.Fdc3.AppDirectory;
 
 namespace MorganStanley.ComposeUI.Fdc3.AppDirectory;
 

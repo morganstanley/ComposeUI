@@ -67,7 +67,7 @@ internal sealed class MessageRouterClient : IMessageRouter
         return SubscribeAsyncCore(GetTopic(topic), subscriber, cancellationToken);
     }
 
-    public ValueTask PublishAsync(
+    public async ValueTask PublishAsync(
         string topic,
         MessageBuffer? payload = null,
         PublishOptions options = default,
@@ -75,9 +75,10 @@ internal sealed class MessageRouterClient : IMessageRouter
     {
         Protocol.Topic.Validate(topic);
 
-        return SendMessageAsync(
+        await SendRequestAsync(
             new PublishMessage
             {
+                RequestId = GenerateRequestId(),
                 Topic = topic,
                 Payload = payload,
                 CorrelationId = options.CorrelationId
@@ -616,9 +617,10 @@ internal sealed class MessageRouterClient : IMessageRouter
 
         try
         {
-            await SendMessageAsync(
+            await SendRequestAsync(
                 new SubscribeMessage
                 {
+                    RequestId = GenerateRequestId(),
                     Topic = topic.Name
                 },
                 cancellationToken);
@@ -797,11 +799,24 @@ internal sealed class MessageRouterClient : IMessageRouter
         }
     }
 
-    private ValueTask TryUnsubscribe(Topic topic)
+    private async ValueTask TryUnsubscribe(Topic topic)
     {
-        return topic.CanUnsubscribe
-            ? SendMessageAsync(new UnsubscribeMessage {Topic = topic.Name}, CancellationToken.None)
-            : default;
+        var requestId = GenerateRequestId();
+
+        try
+        {
+            if (topic.CanUnsubscribe)
+            {
+                await SendRequestAsync(new UnsubscribeMessage { RequestId = requestId, Topic = topic.Name }, CancellationToken.None);
+            }
+        }
+        catch (MessageRouterException exception)
+        {
+            if (_logger.IsEnabled(LogLevel.Error))
+            {
+                _logger.LogError(exception, $"Exception thrown while unsubscribing, topic: {topic.Name}, request id: {requestId}.");
+            }
+        }
     }
 
     private void OnConnectStart()

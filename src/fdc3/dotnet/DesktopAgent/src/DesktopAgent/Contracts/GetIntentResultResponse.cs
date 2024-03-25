@@ -13,8 +13,8 @@
  */
 
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
-using MorganStanley.Fdc3;
-using MorganStanley.Fdc3.Context;
+using Finos.Fdc3;
+using Finos.Fdc3.Context;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 

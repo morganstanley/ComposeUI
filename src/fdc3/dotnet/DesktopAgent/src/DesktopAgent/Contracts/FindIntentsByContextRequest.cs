@@ -12,7 +12,7 @@
  * and limitations under the License.
  */
 
-using MorganStanley.Fdc3.Context;
+using Finos.Fdc3.Context;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
@@ -28,7 +28,7 @@ internal sealed class FindIntentsByContextRequest
     public string Fdc3InstanceId { get; set; }
 
     /// <summary>
-    /// <see cref="MorganStanley.Fdc3.Context.Context"/>
+    /// <see cref="Finos.Fdc3.Context.Context"/>
     /// </summary>
     public Context Context { get; set; }
 

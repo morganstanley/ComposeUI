@@ -10,7 +10,7 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using MorganStanley.Fdc3;
+using Finos.Fdc3;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIdentifier;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;

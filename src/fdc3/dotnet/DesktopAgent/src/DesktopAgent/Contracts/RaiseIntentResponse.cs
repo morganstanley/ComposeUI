@@ -12,7 +12,7 @@
  * and limitations under the License.
  */
 
-using MorganStanley.Fdc3;
+using Finos.Fdc3;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
 using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
 

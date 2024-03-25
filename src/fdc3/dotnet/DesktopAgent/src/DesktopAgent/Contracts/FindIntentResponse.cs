@@ -22,7 +22,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 internal sealed class FindIntentResponse
 {
     /// <summary>
-    /// <see cref="MorganStanley.Fdc3.AppIntent"/>, as result of executing the fdc3.findIntent.
+    /// <see cref="Finos.Fdc3.AppIntent"/>, as result of executing the fdc3.findIntent.
     /// </summary>
     public AppIntent? AppIntent { get; init; }
 

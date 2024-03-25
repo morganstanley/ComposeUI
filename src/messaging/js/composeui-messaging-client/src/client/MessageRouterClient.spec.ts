@@ -22,6 +22,7 @@ import { TopicSubscriber } from "../TopicSubscriber";
 import { Connection, OnMessageCallback, OnErrorCallback, OnCloseCallback } from "./Connection";
 import { ErrorNames } from "../ErrorNames";
 import { MessageRouterError } from "../MessageRouterError";
+import { describe } from "node:test";
 
 describe("MessageRouterClient", () => {
 
@@ -155,6 +156,11 @@ describe("MessageRouterClient", () => {
             const subscriber: TopicSubscriber = {
                 error: jest.fn()
             };
+
+            connection.handle<messages.SubscribeMessage>(
+                "Subscribe",
+                msg => connection.sendToClient<messages.SubscribeResponse>({ type: "SubscribeResponse", requestId: msg.requestId }));
+
             await client.subscribe("test-topic", subscriber);
 
             await client.close();
@@ -184,6 +190,10 @@ describe("MessageRouterClient", () => {
 
             const client = new MessageRouterClient(connection, {});
 
+            connection.handle<messages.PublishMessage>(
+                "Publish",
+                msg => connection.sendToClient<messages.PublishResponse>({ type: "PublishResponse", requestId: msg.requestId }));
+
             await client.publish("test-topic", "test-payload", { correlationId: "test-correlation-id" });
 
             expect(connection.mock.send).toHaveBeenCalledWith(
@@ -207,6 +217,10 @@ describe("MessageRouterClient", () => {
         it("sends a Subscribe message", async () => {
 
             const client = new MessageRouterClient(connection, {});
+            
+            connection.handle<messages.SubscribeMessage>(
+                "Subscribe",
+                msg => connection.sendToClient<messages.SubscribeResponse>({ type: "SubscribeResponse", requestId: msg.requestId }));
 
             await client.subscribe("test-topic", { next: () => { } });
 
@@ -228,6 +242,10 @@ describe("MessageRouterClient", () => {
             const observer = {
                 next: jest.fn()
             };
+
+            connection.handle<messages.SubscribeMessage>(
+                "Subscribe",
+                msg => connection.sendToClient<messages.SubscribeResponse>({ type: "SubscribeResponse", requestId: msg.requestId }));
 
             await client.subscribe("test-topic", observer);
 
@@ -257,6 +275,11 @@ describe("MessageRouterClient", () => {
 
             const client = new MessageRouterClient(connection, {});
             const subscriber = jest.fn();
+            
+            connection.handle<messages.SubscribeMessage>(
+                "Subscribe",
+                msg => connection.sendToClient<messages.SubscribeResponse>({ type: "SubscribeResponse", requestId: msg.requestId }));
+
             await client.subscribe("test-topic", subscriber);
 
             await connection.sendToClient<messages.TopicMessage>({
@@ -285,6 +308,11 @@ describe("MessageRouterClient", () => {
 
             const client = new MessageRouterClient(connection, {});
             const subscriber = <TopicSubscriber>jest.fn((msg: TopicMessage) => client.invoke("test-service", msg.payload));
+            
+            connection.handle<messages.SubscribeMessage>(
+                "Subscribe",
+                msg => connection.sendToClient<messages.SubscribeResponse>({ type: "SubscribeResponse", requestId: msg.requestId }));
+
             await client.subscribe("test-topic", subscriber);
 
             await connection.sendToClient<messages.TopicMessage>({
@@ -328,6 +356,10 @@ describe("MessageRouterClient", () => {
             const subscriber = <TopicSubscriber>{
                 next: jest.fn((msg: TopicMessage) => client.invoke("test-service", msg.payload))
             };
+
+            connection.handle<messages.SubscribeMessage>(
+                "Subscribe",
+                msg => connection.sendToClient<messages.SubscribeResponse>({ type: "SubscribeResponse", requestId: msg.requestId }));
 
             await client.subscribe("test-topic", subscriber);
 
@@ -609,7 +641,13 @@ describe("MessageRouterClient", () => {
             const subscriber: TopicSubscriber = {
                 error: jest.fn()
             };
+            
+            connection.handle<messages.SubscribeMessage>(
+                "Subscribe",
+                msg => connection.sendToClient<messages.SubscribeResponse>({ type: "SubscribeResponse", requestId: msg.requestId }));
+
             await client.subscribe("test-topic", subscriber);
+
             await new Promise(process.nextTick);
             connection.raiseClose();
             await new Promise(process.nextTick);
@@ -638,6 +676,11 @@ describe("MessageRouterClient", () => {
             const subscriber: TopicSubscriber = {
                 error: jest.fn()
             };
+
+            connection.handle<messages.SubscribeMessage>(
+                "Subscribe",
+                msg => connection.sendToClient<messages.SubscribeResponse>({ type: "SubscribeResponse", requestId: msg.requestId }));
+                
             await client.subscribe("test-topic", subscriber);
 
             const err = {};
@@ -661,7 +704,55 @@ describe("MessageRouterClient", () => {
             await expect(invokePromise).rejects.toThrow("Fail");
         });
 
-    })
+    });
+
+    describe("when server raises error", () => {
+
+        it("publish fails when PublishResponse contains error", async() => {
+            const client = new MessageRouterClient(connection, {});
+            connection.handle<messages.PublishMessage>(
+                "Publish",
+                msg => connection.sendToClient<messages.PublishResponse>({ type: "PublishResponse", requestId: msg.requestId, error: new MessageRouterError("testError-publish") }));
+
+            var publishPromise = client.publish("test-topic", "test-payload", { correlationId: "test-correlation-id" });
+
+            await expect(publishPromise).rejects.toThrowWithName(MessageRouterError, "testError-publish");
+        });
+
+        it("subscribe fails when SubscribeResponse contains error", async() => {
+            const client = new MessageRouterClient(connection, {});
+            connection.handle<messages.SubscribeMessage>(
+                "Subscribe",
+                msg => connection.sendToClient<messages.SubscribeResponse>({ type: "SubscribeResponse", requestId: msg.requestId, error: new MessageRouterError("testError-subscribe") }));
+
+            var subscribePromise = client.subscribe("test-topic", { next: () => { } });
+
+            await expect(subscribePromise).rejects.toThrowWithName(MessageRouterError, "testError-subscribe");
+        });
+
+        it("dispose logs error when UnsubscribeResponse contains error", async() => {
+            const client = new MessageRouterClient(connection, {});
+            const consoleErrorMock = jest.spyOn(console, 'error').mockImplementation();
+            connection.handle<messages.SubscribeMessage>(
+                "Subscribe",
+                msg => connection.sendToClient<messages.SubscribeResponse>({ type: "SubscribeResponse", requestId: msg.requestId }));
+
+            connection.handle<messages.UnsubscribeMessage>(
+                "Unsubscribe",
+                msg => connection.sendToClient<messages.UnsubscribeResponse>({ type: "UnsubscribeResponse", requestId: msg.requestId, error: new MessageRouterError("testError-unsubscribe") }));
+
+            var subscription = await client.subscribe("test-topic", { next: () => { } });
+            await subscription.unsubscribe();
+
+            // Waiting for the background task to finish.
+            await new Promise(process.nextTick);
+            await new Promise(process.nextTick);
+
+            expect(consoleErrorMock).toHaveBeenCalled();
+            expect(consoleErrorMock).toHaveBeenCalledWith("Exception thrown while unsubscribing.", new MessageRouterError("testError-unsubscribe"));
+            consoleErrorMock.mockRestore();
+        });
+    });
 })
 
 type MockHandler<TMessage extends messages.Message> = ((msg: TMessage) => Promise<void>);

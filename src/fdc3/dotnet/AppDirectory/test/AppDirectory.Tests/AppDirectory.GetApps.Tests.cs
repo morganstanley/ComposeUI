@@ -13,7 +13,7 @@
 using System.Net;
 using System.Text;
 using Moq.Contrib.HttpClient;
-using MorganStanley.Fdc3.AppDirectory;
+using Finos.Fdc3.AppDirectory;
 using Newtonsoft.Json.Linq;
 using TaskExtensions = MorganStanley.ComposeUI.Testing.TaskExtensions;
 
