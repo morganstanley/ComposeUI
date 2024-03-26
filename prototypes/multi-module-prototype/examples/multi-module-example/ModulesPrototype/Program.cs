@@ -72,20 +72,6 @@ internal class Program
         var loader = factory.Create(catalogue);
         var moduleCounter = new AsyncCountdownEvent(0);
 
-        //var processExplorer = new HostBuilder()
-        //    .ConfigureLogging(l => l.AddConsole().SetMinimumLevel(LogLevel.Debug))
-        //    .ConfigureServices(
-        //     (context, services) => services
-        //         .ConfigureSubsystemLauncher(loader.RequestStartProcess, loader.RequestStopProcess, CreateLaunchRequest, CreateStopRequest)
-        //         .AddProcessExplorerWindowsServerWithGrpc(pe => pe.UseGrpc())
-        //         .Configure<ProcessExplorerServerOptions>(op =>
-        //         {
-        //             op.Port = 5056;
-        //             op.MainProcessId = Process.GetCurrentProcess().Id;
-        //             op.EnableProcessExplorer = true;
-        //         }))
-        //    .Build();
-
         var processExplorer = WebApplication.CreateBuilder(args);
         processExplorer.Services.AddGrpc();
         processExplorer.Services.AddCors(o => o.AddPolicy("AllowAll", builder =>
