@@ -54,11 +54,10 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - run: echo Calling setup-node with node-version ${{ vars.NODE_VERSION }}
       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
       - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
-          node-version: ${{ vars.NODE_VERSION }}
+          node-version: 20.x
           registry-url: https://registry.npmjs.org/
       - run: |
              lerna publish from-package --no-private --yes
@@ -77,10 +76,9 @@ jobs:
         with:
           name: packages
           path: ./packages
-      - run: echo Calling setup-dotnet with dotnet-version ${{ vars.DOTNET_VERSION }}
       - uses: actions/setup-dotnet@4d6c8fcf3c8f7a60068d26b594648e99df24cee3 # v4.0.0
         with:
-          dotnet-version: ${{ vars.DOTNET_VERSION }}
+          dotnet-version: 6.0.x
       - name: Publish Messaging packages
         working-directory: ./packages
         run: |
