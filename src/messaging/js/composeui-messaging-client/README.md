@@ -1,4 +1,4 @@
-# Messaging-JS
+# @morgan-stanley/composeui-messaging-client
 This package contains the client used to connect to the MessageRouter from web modules in ComposeUI.
 
 ## Setup
