@@ -7,6 +7,8 @@
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<RootNamespace>MorganStanley.ComposeUI.Messaging</RootNamespace>
+		<Description>.NET Core Package for ComposeUI's Message Router. More Details: http://opensource.morganstanley.com/ComposeUI/</Description>
+		<Tags>ComposeUI</Tags>
 	</PropertyGroup>
 
 	<PropertyGroup>
