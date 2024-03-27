@@ -1,6 +1,6 @@
 {
   "name": "@morgan-stanley/composeui-node-launcher",
-  "version": "0.1.0-alpha.3",
+  "version": "0.1.0-alpha.4",
   "private": false,
   "description": "Package to launch ComposeUI from Node.js",
   "main": "output/index.js",
