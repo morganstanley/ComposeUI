@@ -29,6 +29,7 @@
 	
 	<PropertyGroup>
 		<Fdc3BundleOutput>$(ComposeUIRepositoryRoot)\src\fdc3\js\composeui-fdc3\dist\fdc3-iife-bundle.js</Fdc3BundleOutput>
+		<ConnectifiBundleOutput>$(ComposeUIRepositoryRoot)\src\fdc3\js\composeui-connectifi\dist\connectifi-iife-bundle.js</ConnectifiBundleOutput>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -60,7 +60,13 @@ internal sealed class Fdc3StartupAction : IStartupAction
                         """));
 
                 webProperties
-                    .ScriptProviders.Add(_ => new ValueTask<string>(ResourceReader.ReadResource(ResourceNames.Fdc3Bundle)));
+                    .ScriptProviders.Add(_ => new ValueTask<string>(ResourceReader.ReadResource(ResourceNames.Fdc3Bundle))); //domcontentloaded <-- todo
+
+                //log script injections
+                // comment out parts of the injected script
+
+                //webProperties
+                  //  .ScriptProviders.Add(_ => new ValueTask<string>(ResourceReader.ReadResource(ResourceNames.ConnectifiBundle)));
             }
             catch (AppNotFoundException exception)
             {

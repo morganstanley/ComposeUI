@@ -7,6 +7,6 @@
   "module": "example.js",
   "type": "module",
   "dependencies": {
-    "@morgan-stanley/composeui-node-launcher": "*"
+    "@morgan-stanley/composeui-node-launcher": "0.1.0-alpha.2"
   }
 }

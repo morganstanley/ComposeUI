@@ -12,29 +12,21 @@
  */
 
 
-
-/*
-import { ComposeUIDesktopAgent } from "./ComposeUIDesktopAgent";
-import { createMessageRouter } from "@morgan-stanley/composeui-messaging-client";
-
-
-let fdc3 = new ComposeUIDesktopAgent("default", createMessageRouter());
-
-export default fdc3;
-
-*/
+//import {  } from  "./ConnectifiDesktopAgent";
 
 import { createAgent } from '@connectifi/agent-web';
 
 async function agent() {
+
     const appId = 'test@test';
     const interopEndpoint = 'https://dev.connectifi-interop.com';
     (window as any).fdc3 = await createAgent(interopEndpoint, appId, {});
 }
+
 //(window as any).fdc3 = agent();
 
-let a = agent();
-//
+//let fdc3 = new ComposeUIDesktopAgent("default", createMessageRouter());
+
 agent();
-//export default a;
-//export default agent();
+
+//export 

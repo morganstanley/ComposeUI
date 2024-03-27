@@ -130,6 +130,7 @@ public partial class WebWindow : Window
 
     private async Task InitializeAsync()
     {
+        
         await WebView.EnsureCoreWebView2Async();
         await InitializeCoreWebView2(WebView.CoreWebView2);
         await LoadWebContentAsync(_options);
@@ -160,6 +161,7 @@ public partial class WebWindow : Window
 
     private Task InitializeCoreWebView2(CoreWebView2 coreWebView)
     {
+       // coreWebView.r
         coreWebView.NewWindowRequested += (sender, args) => OnNewWindowRequested(args);
         coreWebView.WindowCloseRequested += (sender, args) => OnWindowCloseRequested(args);
         coreWebView.NavigationStarting += (sender, args) => OnNavigationStarting(args); 

@@ -8,6 +8,7 @@
     "src/messaging/js/*",
     "src/shell/js/*",
     "src/fdc3/js/*",
+
     "prototypes/process-explorer/*"
   ],
   "repository": {
