@@ -14,20 +14,19 @@ const NewsIndex = ({ data, location }) => {
       <div className="main news-main">
         <HeroContent />
         <Seo title="News" />
-        {news &&
-          news.map((node) => {
-            const title = node.frontmatter.title;
-            const date = new Date(node.frontmatter.date);
-            return (
-              <article className="content news-content" key={node.fields.slug}>
-                <div className="eyebrow">{date.toLocaleDateString()}</div>
-                <h3>
-                  <Link to={node.fields.slug}>{title}</Link>
-                </h3>
-                <section>{node.excerpt}</section>
-              </article>
-            );
-          })}
+        {news.map((node) => {
+          const title = node.frontmatter.title;
+          const date = new Date(node.frontmatter.date);
+          return (
+            <article className="content news-content" key={node.fields.slug}>
+              <div className="eyebrow">{date.toLocaleDateString()}</div>
+              <h3>
+                <Link to={node.fields.slug}>{title}</Link>
+              </h3>
+              <section>{node.excerpt}</section>
+            </article>
+          );
+        })}
       </div>
     </Layout>
   );
