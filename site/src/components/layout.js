@@ -1,51 +1,33 @@
 import React from 'react';
 import { MDXProvider } from '@mdx-js/react';
+import { ThemeProvider } from '@mui/material/styles';
+
+import { HeaderLinks } from '../constants/header-links';
+import { ShortCodes } from '../constants/mdx-shortcodes';
+import { theme } from '../utils/mui-theme';
 
 import Header from './header';
 import Footer from './footer';
 import Seo from './seo';
 
-import Article from './article';
-import ButtonLink from './button-link';
-import CardCollection from './card-collection';
-import * as Cards from './cards/index';
-import Example from './example-box';
-import Hero from './hero';
-import Section from './section';
-
-const shortcodes = {
-  Article,
-  ButtonLink,
-  CardCollection,
-  ...Cards,
-  Example,
-  Hero,
-  Section,
-};
-
-const links = {
-  Documentation: '/documentation',
-  // News: '/news', // uncomment for news section
-};
-
 function Layout({ data, location, children }) {
   const { documentationUrl, title } = data.site.siteMetadata;
 
   if (documentationUrl) {
-    links.Documentation = documentationUrl;
+    HeaderLinks.Documentation = documentationUrl;
   }
 
   return (
-    <>
+    <ThemeProvider theme={theme}>
       <Seo title={title} />
       <header className="header-main">
-        <Header location={location} links={links} />
+        <Header location={location} links={HeaderLinks} />
       </header>
       <main className="body-main">
-        <MDXProvider components={shortcodes}>{children}</MDXProvider>
+        <MDXProvider components={ShortCodes}>{children}</MDXProvider>
       </main>
       <Footer />
-    </>
+    </ThemeProvider>
   );
 }
 
