@@ -1,10 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<RootNamespace>MorganStanley.ComposeUI.Messaging</RootNamespace>
+		<Description>.NET Server Package for ComposeUI's Message Router. More Details: http://opensource.morganstanley.com/ComposeUI/</Description>
+		<Tags>ComposeUI</Tags>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<IsPackable>true</IsPackable>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -22,7 +28,6 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="../Core/MorganStanley.ComposeUI.Messaging.Core.csproj" />
-	  <ProjectReference Include="..\..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader.Abstractions\MorganStanley.ComposeUI.ModuleLoader.Abstractions.csproj" />
 	</ItemGroup>
 
 </Project>

@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   actions: read
 
 name: Release
@@ -19,12 +19,12 @@ jobs:
     name: Upload Release Asset
     needs: build
     runs-on: windows-latest
-  
+    permissions:
+      contents: write
     steps:
-
       # Using shared artifact from build workflow
       - name: Download Artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.4
         with:
           name: shell-binaries
           path: ${{ github.workspace }}/shell-binaries
@@ -37,8 +37,8 @@ jobs:
         run: Compress-Archive -Path  ${{ github.workspace }}/shell-binaries/* composeui-${{ github.ref_name }}-win32.zip
         
       - name: Upload Release Asset
-        id: upload-release-asset 
-        uses: actions/upload-release-asset@v1
+        id: upload-release-asset
+        uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5 # v1.0.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -47,22 +47,43 @@ jobs:
           asset_name: composeui-${{ github.ref_name }}-win32.zip
           asset_content_type: application/zip
           
-  deploy:
+  deploy-npm:
     name: Publish Package to npmjs
     runs-on: windows-latest
     needs: upload
+    permissions:
+      id-token: write
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
-          node-version: 18
+          node-version: 20.x
           registry-url: https://registry.npmjs.org/
       - run: |
-             dir
-             npm ci
-             npm run build
-             npm whoami
-             npm publish --access public
+             lerna publish from-package --no-private --yes
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-        working-directory: ${{ github.workspace }}/src/shell/js/composeui-node-launcher/
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
+
+  deploy-nuget:
+    name: Publish messaging packages to nuget.org
+    runs-on: windows-latest
+    needs: build
+    env:
+      nuget_source: https://api.nuget.org/v3/index.json
+    steps:
+      - uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.4
+        with:
+          name: packages
+          path: ./packages
+      - uses: actions/setup-dotnet@4d6c8fcf3c8f7a60068d26b594648e99df24cee3 # v4.0.0
+        with:
+          dotnet-version: 6.0.x
+      - name: Publish Messaging packages
+        working-directory: ./packages
+        run: |
+             dotnet nuget push MorganStanley.ComposeUI.Messaging.Core.*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source ${{ env.nuget_source }} --skip-duplicate
+             dotnet nuget push MorganStanley.ComposeUI.Messaging.Server.*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source ${{ env.nuget_source }} --skip-duplicate
+             dotnet nuget push MorganStanley.ComposeUI.Messaging.Client.*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source ${{ env.nuget_source }} --skip-duplicate
+             dotnet nuget push MorganStanley.ComposeUI.Messaging.Host.*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source ${{ env.nuget_source }} --skip-duplicate
+

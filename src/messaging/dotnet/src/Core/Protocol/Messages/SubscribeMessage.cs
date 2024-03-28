@@ -12,7 +12,7 @@
 
 namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
-public sealed class SubscribeMessage : Message
+public sealed class SubscribeMessage : AbstractRequest<SubscribeResponse> 
 {
     public override MessageType Type => MessageType.Subscribe;
     public string Topic { get; init; } = null!;

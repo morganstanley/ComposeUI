@@ -1,6 +1,6 @@
 {
   "name": "@morgan-stanley/composeui-node-launcher",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.4",
   "private": false,
   "description": "Package to launch ComposeUI from Node.js",
   "main": "output/index.js",
@@ -10,13 +10,17 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/morganstanley/ComposeUI.git#main"
+    "url": "git+https://github.com/morganstanley/ComposeUI.git"
   },
   "scripts": {
     "clean": "rimraf output",
     "build": "npm run clean && tsc",
     "install": "node ./src/cli/install.js",
     "test": "jest"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "bin": {
     "composeui": "./output/cli/cli.js"
@@ -27,11 +31,11 @@
   },
 
   "devDependencies": {
-    "@types/jest": "29.5.2",
+    "@types/jest": "29.5.12",
     "@types/node": "^18.11.18",
-    "jest": "29.5.0",
+    "jest": "29.7.0",
     "rimraf": "^5.0.5",
-    "ts-jest": "29.1.0",
+    "ts-jest": "29.1.2",
     "ts-node": "10.9.2",
     "tslib": "^2.4.0",
     "typescript": "^5.3.3"

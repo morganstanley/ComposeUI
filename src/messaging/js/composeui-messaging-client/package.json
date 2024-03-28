@@ -1,6 +1,6 @@
 {
     "name": "@morgan-stanley/composeui-messaging-client",
-    "version": "0.1.0-alpha.3",
+    "version": "0.1.0-alpha.4",
     "private": false,
     "description": "JavaScript client for ComposeUI's Message Router",
     "type": "module",
@@ -16,6 +16,14 @@
         "build:rollup": "rollup -c",
         "test": "jest"
     },
+    "publishConfig": {
+        "access": "public",
+        "provenance": true
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/morganstanley/ComposeUI.git"
+    },
     "author": "Morgan Stanley",
     "license": "Apache-2.0",
     "devDependencies": {
@@ -28,8 +36,8 @@
         "jest": "^29.4.2",
         "jest-extended": "^4.0.2",
         "rimraf": "^5.0.5",
-        "rollup": "^3.17.2",
-        "rollup-plugin-dts": "^5.2.0",
+        "rollup": "^4.12.1",
+        "rollup-plugin-dts": "^6.1.0",
         "ts-jest": "^29.0.5",
         "tslib": "^2.5.0",
         "typescript": "^5.3.3"

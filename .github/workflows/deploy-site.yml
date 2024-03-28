@@ -10,16 +10,19 @@ defaults:
     working-directory: ./site
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
           node-version: 20
           cache: 'npm'
@@ -27,7 +30,7 @@ jobs:
       - run: npm ci
       - run: npm run build
       - name: Deploy
-        uses: crazy-max/ghaction-github-pages@v4
+        uses: crazy-max/ghaction-github-pages@c05ee637ec73429400a359430db8e5629f3f2564 # v4.0.0
         with:
           target_branch: gh-pages
           build_dir: docs

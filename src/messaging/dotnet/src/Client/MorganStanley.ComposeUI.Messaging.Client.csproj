@@ -5,6 +5,12 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<RootNamespace>MorganStanley.ComposeUI.Messaging</RootNamespace>
+		<Description>.NET Client for ComposeUI's Message Router. More Details: http://opensource.morganstanley.com/ComposeUI/</Description>
+		<Tags>ComposeUI</Tags>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<IsPackable>true</IsPackable>
 	</PropertyGroup>
 
 	<ItemGroup>

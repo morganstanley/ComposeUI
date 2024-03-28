@@ -36,11 +36,9 @@ public class JsonMessageSerializerTests
         var json = @"{ ""junk1"": ""junkText"", ""topic"": ""a/b/c"", ""type"": ""subscribe"" }";
         var messageBytes = Encoding.UTF8.GetBytes(json);
         var buffer = new ReadOnlySequence<byte>(messageBytes);
-
-
+        
         var message = JsonMessageSerializer.DeserializeMessage(ref buffer);
-
-
+        
         message.Should().BeOfType<SubscribeMessage>();
         ((SubscribeMessage)message).Topic.Should().Be("a/b/c");
     }
@@ -150,6 +148,30 @@ public class JsonMessageSerializerTests
                 new UnsubscribeMessage
                 {
                     Topic = "testTopic",
+                });
+            
+            Add(new SubscribeResponse());
+            
+            Add(
+                new SubscribeResponse()
+                {
+                    Error = new Error("testErrorName", "testErrorMessage")
+                });
+            
+            Add(new PublishResponse());
+            
+            Add(
+                new PublishResponse()
+                {
+                    Error = new Error("testErrorName", "testErrorMessage")
+                });
+            
+            Add(new UnsubscribeResponse());
+            
+            Add(
+                new UnsubscribeResponse()
+                {
+                    Error = new Error("testErrorName", "testErrorMessage")
                 });
         }
     }

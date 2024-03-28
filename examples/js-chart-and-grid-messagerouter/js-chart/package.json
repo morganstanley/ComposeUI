@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@morgan-stanley/composeui-messaging-client": "*",
-    "bootstrap": "5.2.3",
+    "bootstrap": "5.3.3",
     "highcharts": "11.3.0",
     "jquery": "3.7.1",
     "tslib": "2.6.2"
@@ -21,8 +21,8 @@
   "devDependencies": {
     "http-server": "14.1.1",
     "rimraf": "^5.0.5",
-    "rollup": "^3.14.0",
-    "@rollup/plugin-commonjs": "24.0.1",
-    "@rollup/plugin-node-resolve": "15.1.0"
+    "rollup": "^4.12.1",
+    "@rollup/plugin-commonjs": "25.0.7",
+    "@rollup/plugin-node-resolve": "15.2.3"
   }
 }
