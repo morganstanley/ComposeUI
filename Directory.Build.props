@@ -14,4 +14,17 @@
         <VSTestLogger>trx</VSTestLogger>
         <VSTestResultsDirectory>$(ComposeUIRepositoryRoot)/artifacts/test-results</VSTestResultsDirectory>
     </PropertyGroup>
+    
+    <PropertyGroup>
+        <IsPackable>false</IsPackable>
+        <VersionPrefix>0.1.0</VersionPrefix>
+        <VersionSuffix>alpha.4</VersionSuffix>
+    </PropertyGroup>
+	
+    <PropertyGroup>
+        <Company>Morgan Stanley</Company>
+        <Authors>Morgan Stanley</Authors>
+        <RepositoryUrl>https://github.com/morganstanley/ComposeUI</RepositoryUrl>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    </PropertyGroup>
 </Project>

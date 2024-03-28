@@ -3,7 +3,7 @@
 $failedSolutions = @()
 
 foreach ($sln in GetSolutions) {
-    dotnet pack $sln --configuration Release --no-build
+    dotnet pack $sln --configuration Release --no-build --output ./packages
     
     if ($LASTEXITCODE -ne 0 ) { 
         $failedSolutions += $sln
