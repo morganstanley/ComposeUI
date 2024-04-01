@@ -4,9 +4,9 @@
     <PackageVersion Include="coverlet.collector" Version="6.0.0" />
     <PackageVersion Include="coverlet.msbuild" Version="6.0.0" />
     <PackageVersion Include="CommunityToolkit.HighPerformance" Version="8.2.2" />
-    <PackageVersion Include="Finos.Fdc3" Version="2.0.0-beta.1" />
-    <PackageVersion Include="Finos.Fdc3.NewtonsoftJson" Version="2.0.0-beta.1" />
-    <PackageVersion Include="Finos.Fdc3.AppDirectory" Version="2.0.0-beta.1" />
+    <PackageVersion Include="Finos.Fdc3" Version="2.0.0" />
+    <PackageVersion Include="Finos.Fdc3.NewtonsoftJson" Version="2.0.0" />
+    <PackageVersion Include="Finos.Fdc3.AppDirectory" Version="2.0.0" />
     <PackageVersion Include="FluentAssertions" Version="6.12.0" />
     <PackageVersion Include="FluentAssertions.Json" Version="6.1.0" />
     <PackageVersion Include="Google.Protobuf" Version="3.24.0" />
