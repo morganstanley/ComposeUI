@@ -50,8 +50,8 @@
     <PackageVersion Include="System.Reactive" Version="6.0.0" />
     <PackageVersion Include="System.ServiceModel.Primitives" Version="6.2.0" />
     <PackageVersion Include="System.Text.Json" Version="8.0.2" />
-    <PackageVersion Include="TestableIO.System.IO.Abstractions.Wrappers" Version="20.0.15" />
-    <PackageVersion Include="TestableIO.System.IO.Abstractions" Version="20.0.15" />
+    <PackageVersion Include="TestableIO.System.IO.Abstractions.Wrappers" Version="21.0.2" />
+    <PackageVersion Include="TestableIO.System.IO.Abstractions" Version="21.0.2" />
     <PackageVersion Include="Testably.Abstractions.Testing" Version="2.4.1" />
     <PackageVersion Include="Xunit.Combinatorial" Version="1.6.24" />
     <PackageVersion Include="xunit.extensibility.execution" Version="2.4.2" />
