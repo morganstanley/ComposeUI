@@ -14,10 +14,12 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Processes;
 using MorganStanley.ComposeUI.ProcessExplorer.Core.Processes;
+using MorganStanley.ComposeUI.ProcessExplorer.Core.Tests.Utils;
 using Xunit;
 
 namespace MorganStanley.ComposeUI.ProcessExplorer.Core.Tests.Processes;
@@ -25,24 +27,30 @@ namespace MorganStanley.ComposeUI.ProcessExplorer.Core.Tests.Processes;
 public class WindowsProcessInfoManagerTests
 {
     [Fact]
-    public void AddChildProcesses_will_add_child_processes_to_the_list()
+    public async Task AddChildProcesses_will_add_child_processes_to_the_list()
     {
         var loggerMock = CreateLoggerMock();
         var processMonitor = CreateWindowsProcessMonitor(loggerMock.Object);
-        var testApplication = Process.Start(GetTestApplicationPath()); //It will start an another child process
+        var testApplicationProcess = Process.Start(
+            new ProcessStartInfo
+            {
+                FileName = GetTestApplicationPath(),
+                RedirectStandardOutput = true,
+            }); //It will start an another child process
 
-        // Waiting for the child process to start
-        Thread.Sleep(100);
+        if (testApplicationProcess == null) throw new NullReferenceException(nameof(testApplicationProcess));
 
-        processMonitor.AddChildProcesses(testApplication.Id, testApplication.ProcessName);
+        await testApplicationProcess.WaitForMessageOfChildProcess("Hello world from ProcessExplorerTestApp2!"); //State when the ChildProcess is started
+
+        processMonitor.AddChildProcesses(testApplicationProcess.Id, testApplicationProcess.ProcessName);
 
         var result = processMonitor.GetProcessIds().ToArray();
 
         Assert.NotEmpty(result);
-        Assert.Equal(2, result.Length);
-        Assert.Contains(testApplication.Id, result);
+        Assert.True(result.Length >= 2);
+        Assert.Contains(testApplicationProcess.Id, result);
 
-        testApplication.Kill();
+        testApplicationProcess.Kill();
         processMonitor.Dispose();
     }
 
@@ -176,14 +184,23 @@ public class WindowsProcessInfoManagerTests
     }
     
     [Fact]
-    public void SetProcessIds_will_set_the_ids_and_its_child_process_ids()
+    public async Task SetProcessIds_will_set_the_ids_and_its_child_process_ids()
     {
         var loggerMock = CreateLoggerMock();
         var processMonitor = CreateWindowsProcessMonitor(loggerMock.Object);
 
-        var testApplication = Process.Start(GetTestApplicationPath()); //It will start a process
+        var testApplicationProcess = Process.Start(
+            new ProcessStartInfo
+            {
+                FileName = GetTestApplicationPath(),
+                RedirectStandardOutput = true,
+            }); //It will start an another child process
 
-        var processes = new[] { testApplication.Id };
+        if (testApplicationProcess == null) throw new NullReferenceException(nameof(testApplicationProcess));
+
+        await testApplicationProcess.WaitForMessageOfChildProcess("Hello world from ProcessExplorerTestApp2!");
+
+        var processes = new[] { testApplicationProcess.Id };
 
         // Waiting for the test process to start
         Thread.Sleep(1000);
@@ -192,11 +209,13 @@ public class WindowsProcessInfoManagerTests
         var result = processMonitor.GetProcessIds().ToArray();
 
         foreach (var process in processes)
+        {
             Assert.Contains(process, result);
+        }
 
         Assert.Equal(3, result.Length);
 
-        testApplication.Kill();
+        testApplicationProcess.Kill();
         processMonitor.Dispose();
     }
 

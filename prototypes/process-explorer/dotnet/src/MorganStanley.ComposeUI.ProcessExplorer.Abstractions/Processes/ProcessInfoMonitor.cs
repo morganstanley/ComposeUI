@@ -27,9 +27,7 @@ public abstract class ProcessInfoMonitor : IProcessInfoMonitor
     private readonly ObservableCollection<int> _processIds = new();
     private readonly object _processIdsLocker = new();
     private readonly Subject<KeyValuePair<int, ProcessStatus>> _processIdsSubject = new();
-
     public IObservable<KeyValuePair<int, ProcessStatus>> ProcessIds => _processIdsSubject;
-
 
     protected ProcessInfoMonitor(ILogger? logger)
     {
@@ -151,23 +149,41 @@ public abstract class ProcessInfoMonitor : IProcessInfoMonitor
     /// </summary>
     /// <param name="processId"></param>
     /// <returns></returns>
-    private bool IsComposeProcess(int processId)
+    private bool IsComposeProcess(int processId, ReadOnlySpan<int> checkedIds)
     {
-        //snapshot if the process has already exited
-        if (Process.GetProcessById(processId) == null) return false;
+        try
+        {
+            if (ContainsId(processId)) return true;
 
-        if (ContainsId(processId)) return true;
+            var process = Process.GetProcessById(processId);
+            if (process.Id == 0) return false;
 
-        var process = Process.GetProcessById(processId);
-        if (process.Id == 0) return false;
+            var parentId = GetParentId(processId, process.ProcessName);
 
-        var parentProcessId = GetParentId(processId, process.ProcessName);
+            if (parentId == null) return false;
 
-        if (parentProcessId == null || parentProcessId == 0) return false;
+            var parentProcessId = Convert.ToInt32(parentId);
 
-        if (ContainsId((int)parentProcessId)) return true;
+            if (checkedIds.Contains(parentProcessId)) return false;
 
-        return IsComposeProcess(Convert.ToInt32(parentProcessId));
+            if (ContainsId(parentProcessId)) return true;
+
+            var processIds = checkedIds
+                .ToArray()
+                .Append(parentProcessId)
+                .ToArray();
+
+            return IsComposeProcess(parentProcessId, processIds);
+        }
+        catch (Exception exception)
+        {
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug(exception, $"Exception thrown while resolving if process: {processId} or it's parentProcessId is ComposeUI process.");
+            }
+
+            return false;
+        }
     }
 
     /// <summary>
@@ -185,7 +201,7 @@ public abstract class ProcessInfoMonitor : IProcessInfoMonitor
     {
         try
         {
-            return IsComposeProcess(processId);
+            return IsComposeProcess(processId, Array.Empty<int>());
         }
         catch (Exception exception)
         {
