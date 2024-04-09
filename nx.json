@@ -19,6 +19,12 @@
       "dependsOn": ["^build"]
     }
   },
+  "release": {
+    "projectsRelationship": "independent",
+    "changelog": {
+      "projectChangelogs": true
+    }
+  },
   "plugins": [
     "@nx-dotnet/core"
   ]

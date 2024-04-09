@@ -4,6 +4,7 @@
     "private": false,
     "description": "JavaScript client for ComposeUI's Message Router",
     "type": "module",
+    "tags": ["release"],
     "files": [
         "dist/esm/**/*"
     ],
