@@ -10,9 +10,9 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-Console.WriteLine("Hello, World!");
+Console.WriteLine("Hello world from ProcessExplorerTestApp2!");
 Console.WriteLine("Doing some stuff");
 var dummy = new object();
 var dummyString = string.Empty;
-Thread.Sleep(15000);
-Console.WriteLine("Exiting...");
+Thread.Sleep(3000);
+Console.WriteLine("Exiting childProcess...");

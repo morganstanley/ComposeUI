@@ -11,30 +11,49 @@
 // and limitations under the License.
 
 using System.Diagnostics;
-using MorganStanley.ComposeUI.TestConsoleApp;
 
 Console.WriteLine("Hello, World!");
-var stopwatch = Stopwatch.StartNew();
-Console.WriteLine("This is a test application to test the ProcessMonitor...");
 
+var stopwatch = Stopwatch.StartNew();
+
+Console.WriteLine("This is a test application to test the ProcessMonitor...");
 Console.WriteLine("Starting a process...");
 
-var isDebug = false;
-Helper.IsDebug(ref isDebug);
+var childProcess = Process.Start(
+    new ProcessStartInfo
+    {
+        FileName = Path.GetFullPath($"../../../../dotnet/test/MorganStanley.ComposeUI.TestConsoleApp2/net6.0/MorganStanley.ComposeUI.TestConsoleApp2.exe"),
+        RedirectStandardError = true,
+        RedirectStandardOutput = true,
+    });
 
-var folder = isDebug ? "Debug" : "Release";
-Console.WriteLine(folder);
+if (childProcess == null) throw new NullReferenceException(nameof(childProcess));
 
-var childProcess = Process.Start(Path.GetFullPath($"../../../../dotnet/test/MorganStanley.ComposeUI.TestConsoleApp2/net6.0/MorganStanley.ComposeUI.TestConsoleApp2.exe"));
-
-var sum = 0;
-for (int i = 0; i < 50000000; i++)
+using (var streamReader = childProcess.StandardOutput)
 {
-    sum += i;
+    var line = streamReader.ReadLine();
+
+    while (!streamReader.EndOfStream)
+    {
+        if (line == null)
+        {
+            line = await streamReader.ReadLineAsync();
+        }
+        else if (line.Contains("Hello world from ProcessExplorerTestApp2!"))
+        {
+            Console.WriteLine(line);
+            break;
+        }
+        else if (line != null)
+        {
+            Console.WriteLine(line);
+        }
+    }
 }
-Thread.Sleep(10000);
+
+Thread.Sleep(5000);
 
 Console.WriteLine("Terminating a process....");
-childProcess.Kill();
+childProcess?.Kill();
 stopwatch.Stop();
 Console.WriteLine("ChildProcess is terminated");

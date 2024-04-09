@@ -12,6 +12,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Google.Protobuf.Collections;
@@ -39,11 +40,13 @@ public class ServerEndToEndTests : IAsyncLifetime
     public async Task DisposeAsync()
     {
         if (_host != null)
+        {
             await _host.StopAsync();
+        }
     }
 
-    //TODO(Lilla): investigate why the integrationtests are keeping to fail on CI, but works everytime locally.
-    [Fact(Skip = "Local end to end test")]
+    //TODO
+    [Fact]
     public async Task Client_can_connect()
     {
         var client = CreateGrpcClient();
@@ -52,7 +55,7 @@ public class ServerEndToEndTests : IAsyncLifetime
 
         var messages = new List<Message>();
 
-        using var call = client.Subscribe(new Empty(), cancellationToken: cancellationTokenSource.Token);
+        using var call = client.Subscribe(new Empty(), cancellationToken: CancellationToken.None);
 
         // We want to receive the message, that the subscription is established, and we do not want to wait.
         // Due to that no processes/subsystems/runtime information have not been declared it will just receive the subscription alive notification
@@ -62,16 +65,19 @@ public class ServerEndToEndTests : IAsyncLifetime
             await foreach (var message in call.ResponseStream.ReadAllAsync())
             {
                 messages.Add(message);
+                break;
             }
         }
-        catch (RpcException) { }
+        catch (RpcException exception) 
+        {
+            Debug.WriteLine(exception.ToString());
+        }
 
         Assert.True(messages.Count >= 1);
         Assert.Equal(ActionType.SubscriptionAliveAction, messages[0].Action);
     }
 
-    //TODO(Lilla): investigate why the integrationtests are keeping to fail on CI, but works everytime locally.
-    [Fact(Skip = "Local end to end test")]
+    [Fact]
     public async Task Client_can_subscribe_and_receive_messages()
     {
         // defining here some dummy subsystems to trigger the ProcessExplorer backend to send information about it to the defined ui connections. (not just the subscription alive notification)
@@ -98,25 +104,24 @@ public class ServerEndToEndTests : IAsyncLifetime
         await aggregator.SubsystemController.InitializeSubsystems(subsystems);
 
         var client = CreateGrpcClient();
-        var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+        var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         var messages = new List<Message>();
 
         using var call = client.Subscribe(new Empty(), cancellationToken: cancellationTokenSource.Token);
 
-        //try catch block to avoid OperationCanceledException due to that we are just waiting for 2 seconds
-        try
+        var countOfMessages = 0;
+        await foreach (var message in call.ResponseStream.ReadAllAsync())
         {
-            await foreach (var message in call.ResponseStream.ReadAllAsync())
+            messages.Add(message);
+            countOfMessages++;
+
+            if (countOfMessages == 2)
             {
-                messages.Add(message);
+                break;
             }
         }
-        catch (RpcException) { }
 
         // We just need to receive SubscriptionAlive and a subsystems collection, skipping if that some error occurred
-
-
-        Assert.True(messages.Count >= 2);
         Assert.Equal(ActionType.SubscriptionAliveAction, messages[0].Action);
         Assert.Equal(ActionType.AddSubsystemsAction, messages[1].Action);
         Assert.Single(messages[1].Subsystems);
@@ -125,7 +130,6 @@ public class ServerEndToEndTests : IAsyncLifetime
         //In Proto3, all fields are optional and have a default value. For example, a string field has a default value of empty string ("") and an int field has a default value of zero (0).
         //If you want to create a proto message without a certain field, you have to set its value to the default value.
         var result = messages[1].Subsystems[dummyId.ToString()];
-
         Assert.NotNull(result);
         Assert.Equal(dummySubsystemInfo.Name, result.Name);
         Assert.Equal(dummySubsystemInfo.State, result.State);
@@ -138,11 +142,10 @@ public class ServerEndToEndTests : IAsyncLifetime
         Assert.Empty(result.Description);
     }
 
-    [Fact(Skip = "Local end to end test")]
+    [Fact]
     public void Client_can_send_message()
     {
         var client = CreateGrpcClient();
-        var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(2));
 
         var message = new Message()
         {
@@ -150,13 +153,7 @@ public class ServerEndToEndTests : IAsyncLifetime
             Description = "dummy message"
         };
 
-        Empty? result = null;
-        try
-        {
-            result = client.Send(message, cancellationToken: cancellationTokenSource.Token);
-        }
-        catch (RpcException) { }
-
+        var result = client.Send(message);
         Assert.NotNull(result);
         Assert.IsType<Empty>(result);
     }
@@ -183,7 +180,6 @@ public class ServerEndToEndTests : IAsyncLifetime
     {
         var channel = GrpcChannel.ForAddress($"http://{Host}:{Port}/");
         var client = new ProcessExplorerMessageHandler.ProcessExplorerMessageHandlerClient(channel);
-
         return client;
     }
 
