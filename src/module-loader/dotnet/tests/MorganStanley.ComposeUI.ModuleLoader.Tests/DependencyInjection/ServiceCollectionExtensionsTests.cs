@@ -10,6 +10,7 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using MorganStanley.ComposeUI.ModuleLoader.Runners;
 
@@ -23,8 +24,8 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection()
             .AddModuleLoader();
 
-        Assert.Equal(1, services.Count(s => s.ServiceType == typeof(IModuleLoader) && s.ImplementationType == typeof(ModuleLoader)));
-        Assert.Equal(1, services.Count(s => s.ServiceType == typeof(IModuleRunner) && s.ImplementationType == typeof(WebModuleRunner)));
-        Assert.Equal(1, services.Count(s => s.ServiceType == typeof(IModuleRunner) && s.ImplementationType == typeof(NativeModuleRunner)));
+        services.Count(s => s.ServiceType == typeof(IModuleLoader) && s.ImplementationType == typeof(ModuleLoader)).Should().Be(1);
+        services.Count(s => s.ServiceType == typeof(IModuleRunner) && s.ImplementationType == typeof(WebModuleRunner)).Should().Be(1);
+        services.Count(s => s.ServiceType == typeof(IModuleRunner) && s.ImplementationType == typeof(NativeModuleRunner)).Should().Be(1);
     }
 }
