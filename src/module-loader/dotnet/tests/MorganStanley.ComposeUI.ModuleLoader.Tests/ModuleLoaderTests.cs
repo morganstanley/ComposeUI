@@ -21,8 +21,8 @@ namespace MorganStanley.ComposeUI.ModuleLoader.Tests
         public void GivenNullArguments_WhenCtor_ThrowsArgumentNullException()
         {
             Assert.Throws<ArgumentNullException>(() => new ModuleLoader(null!, Enumerable.Empty<IModuleRunner>(), Enumerable.Empty<IStartupAction>()));
-            Assert.Throws<ArgumentNullException>(() => new ModuleLoader(new Mock<IModuleCatalog>().Object, null!, Enumerable.Empty<IStartupAction>()));
-            Assert.Throws<ArgumentNullException>(() => new ModuleLoader(new Mock<IModuleCatalog>().Object, Enumerable.Empty<IModuleRunner>(), null!));
+            Assert.Throws<ArgumentNullException>(() => new ModuleLoader(new Mock<IEnumerable<IModuleCatalog>>().Object, null!, Enumerable.Empty<IStartupAction>()));
+            Assert.Throws<ArgumentNullException>(() => new ModuleLoader(new Mock<IEnumerable<IModuleCatalog>>().Object, Enumerable.Empty<IModuleRunner>(), null!));
         }
 
         [Fact]
@@ -31,7 +31,7 @@ namespace MorganStanley.ComposeUI.ModuleLoader.Tests
             var moduleCatalogMock = new Mock<IModuleCatalog>();
             moduleCatalogMock.Setup(c => c.GetManifest(It.IsAny<string>())).Returns(Task.FromResult<IModuleManifest?>(null));
 
-            var moduleLoader = new ModuleLoader(moduleCatalogMock.Object, Enumerable.Empty<IModuleRunner>(), Enumerable.Empty<IStartupAction>());
+            var moduleLoader = new ModuleLoader(new[] { moduleCatalogMock.Object }, Enumerable.Empty<IModuleRunner>(), Enumerable.Empty<IStartupAction>());
             Assert.ThrowsAsync<Exception>(async () => await moduleLoader.StartModule(new StartRequest("invalid")));
         }
 
@@ -45,7 +45,7 @@ namespace MorganStanley.ComposeUI.ModuleLoader.Tests
             var testModuleRunnerMock = new Mock<IModuleRunner>();
             testModuleRunnerMock.Setup(r => r.ModuleType).Returns("other");
 
-            var moduleLoader = new ModuleLoader(moduleCatalogMock.Object, new[] { testModuleRunnerMock.Object }, Enumerable.Empty<IStartupAction>());
+            var moduleLoader = new ModuleLoader(new[] { moduleCatalogMock.Object }, new[] { testModuleRunnerMock.Object }, Enumerable.Empty<IStartupAction>());
             Assert.ThrowsAsync<Exception>(async () => await moduleLoader.StartModule(new StartRequest("valid")));
         }
 
@@ -67,6 +67,7 @@ namespace MorganStanley.ComposeUI.ModuleLoader.Tests
             moduleManifestMock.Setup(m => m.ModuleType).Returns(ModuleType.Web);
             moduleManifestMock.Setup(m => m.Details).Returns(webManifestDetails);
             moduleCatalogMock.Setup(c => c.GetManifest(moduleId)).Returns(Task.FromResult<IModuleManifest>(moduleManifestMock.Object));
+            moduleCatalogMock.Setup(catalog => catalog.GetModuleIds()).Returns(Task.FromResult<IEnumerable<string>>(new[] { moduleId }));
             startupActionMock.Setup(s => s.InvokeAsync(It.IsAny<StartupContext>(), It.IsAny<Func<Task>>()))
                 .Callback<StartupContext, Func<Task>>((startupContext, next) =>
                 {
