@@ -27,13 +27,16 @@ export default fdc3;
 import { createAgent } from '@connectifi/agent-web';
 
 async function agent() {
-    const appId = 'test@test';
+    window.addEventListener('DOMContentLoaded', async() => {
+    const appId = '*@sandbox';
     const interopEndpoint = 'https://dev.connectifi-interop.com';
-    (window as any).fdc3 = await createAgent(interopEndpoint, appId, {});
+    (window as any).fdc3 = await createAgent(interopEndpoint, appId);
+    console.log("!!!");
+    });
 }
 //(window as any).fdc3 = agent();
 
-let a = agent();
+//let a = agent();
 //
 agent();
 //export default a;
