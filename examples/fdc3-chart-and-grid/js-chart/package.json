@@ -14,14 +14,14 @@
   "dependencies": {
     "@finos/fdc3": "^2.0.3",
     "bootstrap": "5.3.3",
-    "highcharts": "11.3.0",
+    "highcharts": "11.4.0",
     "jquery": "3.7.1",
     "tslib": "2.6.2"
   },
   "devDependencies": {
     "http-server": "14.1.1",
     "rimraf": "5.0.5",
-    "rollup": "4.12.1",
+    "rollup": "4.13.2",
     "@rollup/plugin-commonjs": "25.0.7",
     "@rollup/plugin-node-resolve": "15.2.3"
   }

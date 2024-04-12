@@ -12,7 +12,10 @@
     "npm": "^10.3.0"
   },
   "dependencies": {
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.0",
     "@mdx-js/react": "^2.3.0",
+    "@mui/material": "^5.15.14",
     "gatsby": "^5.13.3",
     "gatsby-plugin-image": "^3.13.1",
     "gatsby-plugin-manifest": "^5.13.1",
@@ -41,9 +44,17 @@
     "build": "gatsby clean && gatsby build --prefix-paths && npm run pub",
     "serve": "gatsby serve",
     "pub": "rm -rf ../docs && mv public ../docs",
-    "clean": "gatsby clean"
+    "clean": "gatsby clean",
+    "test": "jest"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.4.2",
+    "@testing-library/react": "^14.2.2",
+    "babel-jest": "^29.7.0",
+    "babel-preset-gatsby": "^3.13.1",
+    "identity-obj-proxy": "^3.0.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
     "prettier": "^3.2.5"
   }
 }
