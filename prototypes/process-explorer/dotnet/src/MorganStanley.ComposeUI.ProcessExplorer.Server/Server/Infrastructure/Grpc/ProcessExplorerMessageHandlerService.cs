@@ -20,7 +20,7 @@ using ProcessExplorer.Abstractions.Infrastructure.Protos;
 
 namespace MorganStanley.ComposeUI.ProcessExplorer.Server.Server.Infrastructure.Grpc;
 
-internal class ProcessExplorerMessageHandlerService : ProcessExplorerMessageHandler.ProcessExplorerMessageHandlerBase
+public class ProcessExplorerMessageHandlerService : ProcessExplorerMessageHandler.ProcessExplorerMessageHandlerBase
 {
     private readonly IProcessInfoAggregator _processInfoAggregator;
     private readonly ILogger _logger;
