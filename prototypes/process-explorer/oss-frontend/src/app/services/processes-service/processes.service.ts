@@ -3,12 +3,22 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { MockProcesses } from './mock-processes';
 import { ProcessTable } from '../../DTOs/ProcessInfo';
+import { ProcessExplorerMessageHandlerClient } from 'src/app/generated-protos-files/ProcessExplorerMessages_pb_service';
+import { Message, Process } from 'src/app/generated-protos-files/ProcessExplorerMessages_pb';
+import { Empty } from 'google-protobuf/google/protobuf/empty_pb';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProcessesService {
+
   public getProcesses(tableName: string): Observable<ProcessTable[]> {
     return of(MockProcesses[tableName]);
+  }
+
+  public getProcessesData(){
+    const client = new ProcessExplorerMessageHandlerClient('http://localhost:5000');
+    const response = client.subscribe(new Empty) 
+    return response;
   }
 }
