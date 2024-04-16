@@ -106,12 +106,14 @@ public partial class MainWindow : RibbonWindow
             }
             else if (manifest.TryGetDetails<NativeManifestDetails>(out var nativeManifestDetails))
             {
-                var icon = System.Drawing.Icon.ExtractAssociatedIcon(Path.GetFullPath(nativeManifestDetails.Path.ToString()));
-
-                ImageSource = System.Windows.Interop.Imaging.CreateBitmapSourceFromHIcon(
-                icon.Handle,
-                new Int32Rect { Width = icon.Width, Height = icon.Height },
-                BitmapSizeOptions.FromEmptyOptions());
+                using var icon = System.Drawing.Icon.ExtractAssociatedIcon(Path.GetFullPath(nativeManifestDetails.Path.ToString()));
+                if (icon != null)
+                {
+                    ImageSource = System.Windows.Interop.Imaging.CreateBitmapSourceFromHIcon(
+                        icon.Handle,
+                        new Int32Rect { Width = icon.Width, Height = icon.Height },
+                        BitmapSizeOptions.FromEmptyOptions());
+                }
             }
         }
 
