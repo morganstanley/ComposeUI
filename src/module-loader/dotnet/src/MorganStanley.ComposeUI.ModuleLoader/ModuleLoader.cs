@@ -12,11 +12,14 @@
 
 using System.Collections.Concurrent;
 using System.Reactive.Subjects;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
 internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
 {
+    private readonly ILogger<ModuleLoader> _logger;
     private readonly Subject<LifetimeEvent> _lifetimeEvents = new();
     private readonly ConcurrentDictionary<Guid, IModuleInstance> _modules = new();
     private readonly Dictionary<string, IModuleRunner> _moduleRunners;
@@ -24,17 +27,20 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
     private readonly IReadOnlyList<IStartupAction> _startupActions;
 
     public ModuleLoader(
-        IModuleCatalog moduleCatalog,
+        IEnumerable<IModuleCatalog> moduleCatalogs,
         IEnumerable<IModuleRunner> moduleRunners,
-        IEnumerable<IStartupAction> startupActions)
+        IEnumerable<IStartupAction> startupActions,
+        ILogger<ModuleLoader>? logger = null)
     {
-        ArgumentNullException.ThrowIfNull(moduleCatalog);
+        ArgumentNullException.ThrowIfNull(moduleCatalogs);
         ArgumentNullException.ThrowIfNull(moduleRunners);
         ArgumentNullException.ThrowIfNull(startupActions);
-
-        _moduleCatalog = moduleCatalog;
+        
+        _logger = logger ?? NullLogger<ModuleLoader>.Instance;
+        _moduleCatalog = new AggregateModuleCatalog(moduleCatalogs, _logger);
         _moduleRunners = moduleRunners.GroupBy(runner => runner.ModuleType).ToDictionary(g => g.Key, g => g.First());
         _startupActions = new List<IStartupAction>(startupActions);
+        
     }
 
     public IObservable<LifetimeEvent> LifetimeEvents => _lifetimeEvents;
@@ -42,10 +48,6 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
     public async Task<IModuleInstance> StartModule(StartRequest request)
     {
         var manifest = await _moduleCatalog.GetManifest(request.ModuleId);
-        if (manifest == null)
-        {
-            throw new Exception($"Unknown Module id: {request.ModuleId}");
-        }
 
         if (!_moduleRunners.TryGetValue(manifest.ModuleType, out var moduleRunner))
         {

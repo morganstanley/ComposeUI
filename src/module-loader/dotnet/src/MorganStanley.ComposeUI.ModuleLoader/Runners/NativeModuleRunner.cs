@@ -22,7 +22,7 @@ internal class NativeModuleRunner : IModuleRunner
     {
         if (!startupContext.ModuleInstance.Manifest.TryGetDetails(out NativeManifestDetails details))
         {
-            throw new Exception("Unable to get native maifest details");
+            throw new Exception("Unable to get native manifest details");
         }
 
         startupContext.AddProperty(new EnvironmentVariables(details.EnvironmentVariables));

@@ -11,6 +11,8 @@
 // and limitations under the License.
 
 using System.Diagnostics;
+using FluentAssertions;
+using FluentAssertions.Execution;
 using Moq;
 using MorganStanley.ComposeUI.ModuleLoader.Runners;
 using MorganStanley.ComposeUI.ModuleLoader.Tests.TestUtils;
@@ -26,7 +28,7 @@ public class NativeModuleRunnerTests : IDisposable
     [Fact]
     public void ModuleType_is_Native()
     {
-        Assert.Equal(ModuleType.Native, _runner.ModuleType);
+        _runner.ModuleType.Should().Be(ModuleType.Native);
     }
 
     [Fact]
@@ -53,13 +55,13 @@ public class NativeModuleRunnerTests : IDisposable
 
         var processInfo = startupContext.GetOrAddProperty<MainProcessInfo>(() =>
         {
-            Assert.Fail("No MainProcessInfo found");
+            Execute.Assertion.FailWith("No MainProcessInfo found");
             return null;
         });
 
         _mainProcess = processInfo.MainProcess;
         var result = await _mainProcess.WaitForExitAsync(Timeout);
-        Assert.Equal($"Hello ComposeUI! I am {randomString}", result.Output.Trim());
+        result.Output.Trim().Should().Be($"Hello ComposeUI! I am {randomString}");
     }
 
     [Fact]
@@ -86,13 +88,13 @@ public class NativeModuleRunnerTests : IDisposable
 
         var processInfo = startupContext.GetOrAddProperty<MainProcessInfo>(() =>
         {
-            Assert.Fail("No MainProcessInfo found");
+            Execute.Assertion.FailWith("No MainProcessInfo found");
             return null;
         });
 
         _mainProcess = processInfo.MainProcess;
         var result = await _mainProcess.WaitForExitAsync(Timeout);
-        Assert.Contains($"{variableName}={randomString}", result.Output);
+        result.Output.Should().Contain($"{variableName}={randomString}");
     }
 
     [Fact]
@@ -119,13 +121,13 @@ public class NativeModuleRunnerTests : IDisposable
 
         var processInfo = startupContext.GetOrAddProperty<MainProcessInfo>(() =>
         {
-            Assert.Fail("No MainProcessInfo found");
+            Execute.Assertion.FailWith("No MainProcessInfo found");
             return null;
         });
 
         _mainProcess = processInfo.MainProcess;
         var result = await _mainProcess.WaitForExitAsync(Timeout);
-        Assert.Contains($"{variableName}={randomString}", result.Output);
+        result.Output.Should().Contain($"{variableName}={randomString}");
     }
 
     [Fact]
@@ -156,13 +158,13 @@ public class NativeModuleRunnerTests : IDisposable
 
         var processInfo = startupContext.GetOrAddProperty<MainProcessInfo>(() =>
         {
-            Assert.Fail("No MainProcessInfo found");
+            Execute.Assertion.FailWith("No MainProcessInfo found");
             return null;
         });
 
         _mainProcess = processInfo.MainProcess;
         var result = await _mainProcess.WaitForExitAsync(Timeout);
-        Assert.Contains($"{variableName}={randomString}", result.Output);
+        result.Output.Should().Contain($"{variableName}={randomString}");
     }
 
     private Task RedirectMainProcessOutput(StartupContext startupContext)
