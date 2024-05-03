@@ -22,8 +22,8 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 internal sealed class FindIntentRequest 
 {
     /// <summary>
-    /// Unique identifier from the application which sent the RaiseIntentRequest type of message.
-    /// eg.: the instanceId of the application which can be queried from the window.object.composeui.fdc3.config, if it's a webapplication.
+    /// Unique identifier from the application which sent the FindIntentRequest type of message.
+    /// eg.: the instanceId of the application which can be queried from the window.object.composeui.fdc3.config, if it's a WebApplication.
     /// </summary>
     public string Fdc3InstanceId { get; set; }
 

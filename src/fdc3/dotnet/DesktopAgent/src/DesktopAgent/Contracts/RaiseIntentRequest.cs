@@ -29,7 +29,7 @@ internal sealed class RaiseIntentRequest
 
     /// <summary>
     /// Unique identifier from the application which sent the RaiseIntentRequest type of message.
-    /// eg.: the instanceId of the application which can be queried from the window.object.composeui.fdc3.config, if it's a webapplication.
+    /// eg.: the instanceId of the application which can be queried from the window.object.composeui.fdc3.config, if it's a WebApplication.
     /// </summary>
     public string Fdc3InstanceId { get; set; }
 
@@ -52,9 +52,4 @@ internal sealed class RaiseIntentRequest
     /// Information about the app that should resolve the raised intent.
     /// </summary>
     public AppIdentifier? TargetAppIdentifier { get; set; }
-
-    /// <summary>
-    /// Contains error text if an error happened during executing the raiseIntent method.
-    /// </summary>
-    public string? Error { get; set; }
 }
