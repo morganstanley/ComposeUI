@@ -11,6 +11,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Uti
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Utilities.Tests", "tests\MorganStanley.ComposeUI.Utilities.Tests\MorganStanley.ComposeUI.Utilities.Tests.csproj", "{ED668A15-0186-41CD-B79D-2D9F18A6F15B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestUtils", "TestUtils", "{01E62FC1-7F5E-4C75-8F6C-1C9027BCBFEC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Testing", "tests\TestUtils\MorganStanley.ComposeUI.Testing\MorganStanley.ComposeUI.Testing.csproj", "{71213EAF-2B49-4756-AD62-EE3C1CB7315C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,6 +29,10 @@ Global
 		{ED668A15-0186-41CD-B79D-2D9F18A6F15B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ED668A15-0186-41CD-B79D-2D9F18A6F15B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ED668A15-0186-41CD-B79D-2D9F18A6F15B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71213EAF-2B49-4756-AD62-EE3C1CB7315C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71213EAF-2B49-4756-AD62-EE3C1CB7315C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71213EAF-2B49-4756-AD62-EE3C1CB7315C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71213EAF-2B49-4756-AD62-EE3C1CB7315C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -32,6 +40,8 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{13B9FB01-144E-4BBE-9920-1C69B44FB711} = {8E838164-6370-4320-ACD5-CD1E6631C09C}
 		{ED668A15-0186-41CD-B79D-2D9F18A6F15B} = {51355F98-9BDE-42CA-B284-296AAE6B6B38}
+		{01E62FC1-7F5E-4C75-8F6C-1C9027BCBFEC} = {51355F98-9BDE-42CA-B284-296AAE6B6B38}
+		{71213EAF-2B49-4756-AD62-EE3C1CB7315C} = {01E62FC1-7F5E-4C75-8F6C-1C9027BCBFEC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EF62D6D0-E133-4C3A-A1AF-79C44BAD39C4}
