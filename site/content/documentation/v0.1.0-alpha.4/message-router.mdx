@@ -1,0 +1,220 @@
+---
+order: 2
+title: Message Router API documentation
+---
+
+The Message Router is responsible for every communication that happens between processes. It is an independent pluggable module that runs under the main ComposeUI process, delivering messages between processes and optionally other devices.
+Message Router is an open-source out-of-the-box library that is fast and reliable. It supports JSON and it also uses WebSockets and has a Javascript library, so Web-based applications can be integrated. 
+So basically it is real-time solution that can be easily setup for Pub-Sub messaging.
+
+More details can be found under the [ADR-012](https://github.com/morganstanley/ComposeUI/blob/main/architecture/adr-012-message-router.md).
+The Message Router is an ASP.NET Core-based backend service that exposes one or more endpoints that the applications can connect to.
+
+### Setup
+Message Router Server can be setup in .NET by adding to the `ServiceCollection` and its configuration like `MessageRouterWebSocketServerOptions` after you have added the nuget package: `MorganStanley.ComposeUI.Messaging.Server`.
+
+Example:
+```C#
+IHostBuilder builder = new HostBuilder();
+
+builder.ConfigureServices(
+    services =>
+    {
+        services.AddMessageRouterServer(
+            server =>
+            {
+                server.UseAccessTokenValidator(
+                    (clientId, token) =>
+                    {
+                        if (token != AccessToken)
+                        {
+                            throw new InvalidOperationException("Invalid access token");
+                        }
+                    });
+
+                ConfigureServer(server);
+            });
+
+        ConfigureServices(services);
+    });
+
+_host = builder.Build();
+await _host.StartAsync();
+```
+
+where with the `ConfigureServer` method the `MessageRouterWebSocketServerOptions` - [reference](https://github.com/morganstanley/ComposeUI/blob/main/src/messaging/dotnet/src/Server/Server/WebSocket/MessageRouterWebSocketServerOptions.cs), can be set with properties like `RootPath` and `Port`.
+The server implementation is only available on the .NET side.
+
+Also the Message Router Client can be set up in .NET easily with dependecy injection. You are able to call the `AddMessageRouter()` extension method on a `IServiceCollection` where you can configure `MessageRouterWebSocketOptions` - [reference](https://github.com/morganstanley/ComposeUI/blob/main/src/messaging/dotnet/src/Client/Client/WebSocket/MessageRouterWebSocketOptions.cs), within the `.UseWebSocket()` builder method and the AccessToken with the `UseAccessToken` after you have added the nuget package: `MorganStanley.ComposeUI.Messaging.Client`.
+```C#
+var services = new ServiceCollection()
+    .AddMessageRouter(
+        mr => mr
+            .UseWebSocket(
+                new MessageRouterWebSocketOptions
+                {
+                    Uri = _webSocketUri
+                })
+            .UseAccessToken(AccessToken))
+    .BuildServiceProvider();
+```
+
+In Javascript/Typescript you should import the `createMessageRouter` from the `@morgan-stanley/composeui-messaging-client` library.
+```Javascript
+import { createMessageRouter } from "@morgan-stanley/composeui-messaging-client";
+```
+
+Use `createMessageRouter()` to instantiate the MessageRouter client in a ComposeUI application. It will connect to the MessageRouter hosted by the container when you call `connect()` on the client.
+```Javascript
+let client = createMessageRouter();
+```
+
+The `MessageRouterConfig` will be read from a global variable - from the window's `composeui.messageRouterConfig`, where the `url` and the same property, `accessToken` can be set.
+
+If you are using the Message Router Client you will be able to get its unique client Id which shows the id of the current connection.
+You can query that by calling the `ClientId` property from the interface.
+
+In Javascript/Typescript side you can also get the same property from the interface by calling the `clientId` property's getter.
+
+The Message Router inteface provides a huge set of functionality to handle messages as it adds the ability for Pub-Sub messaging.
+To directly connect to the server, you can call the `ConnectAsync` method from the interface on the .NET side. Clients don't need to call this method before calling any other methog on the interface. The client automatically establish the connection when needed.
+In .NET you can connect to the server endpoint, by passing a `CancellationToken` as well which can control the connection lifetime. Not setting that will fallback on its default value which is `CancellationToken.None`.
+
+In Javascript/Typescript you are also able to achieve this by calling the `connect` method which returns a `Promise<void>`.
+```Javascript
+await client.connect();
+```
+
+### Usage 
+#### Subscribe to a topic
+Use the subscribe method of the client to set a handler on a topic. The message parameter of the handler method contains the payload as a string. The following example parses a JSON payload from the "exampleTopic" topic and logs it to console.
+
+- .NET
+    ```C#
+    ValuTask HandleTopicMessage(MessageBuffer? payload)
+    {
+        Console.WriteLine(payload.GetString());
+        return ValueTask.CompletedTask;
+    }
+
+    await _messageRouter.SubscribeAsync(
+        "exampleTopic",
+        AsyncObserver.Create<TopicMessage>(x => HandleTopicMessage(x.Payload)));
+    ```
+    It returns an `IAsyncDisposable` object.
+
+- Javascript/TypeScript
+    ```Javascript
+    client.subscribe('exampleTopic', (message) => {
+        const payload = JSON.parse(message.payload);
+        console.log(payload);
+    });
+    ```
+    It returns an `Unsubscribable` object.
+
+#### Publish a message
+Use the publish method of the client to publish a message to a topic. The payload of the message must be a string. The following example creates a JSON string out of an object, and publishes it to the "exampleTopic" topic.
+- .NET 
+    ```C# 
+    await _messageRouter.PublishAsync(
+        'exampleTopic',
+        MessageBuffer.Factory.CreateJson(payloadObject, _jsonSerializerOptions));
+    ```
+    where `_jsonSerializerOptions` is your own defined serializer options to be used with the `JsonSerializer`.
+
+- Javascript/Typescript
+    ```Javascript
+    await client.publish('exampleTopic', JSON.stringify(payloadObject));
+    ```
+
+#### Invoking a service
+Use the invoke method of the client to invoke a registered service's handler and get the response from it. The payload must be a string.
+- .NET
+    ```C# 
+    var resultBuffer = await _messageRouter.InvokeAsync(
+        "exampleTopic",
+        MessageBuffer.Factory.CreateJson(payloadObject, _jsonSerializerOptions));
+    ```
+    This results an `MessageBuffer` -see [reference](https://github.com/morganstanley/ComposeUI/blob/main/src/messaging/dotnet/src/Core/MessageBuffer.cs), type where you could call the `ReadJson<T>` extension method to convert the buffer to the expected type that the called service should return eg. `var result = resultBuffer.ReadJson<MyClass>(_jsonSerializerOptions);`.
+
+- Javascript/Typescript
+    ```Javascript
+    const resultBuffer = await this.messageRouterClient.invoke('exampleTopic', JSON.stringify(payloadObject));
+    const result = <MyClass>JSON.parse(resultBuffer);
+    ```
+
+#### Registering a service
+Use the register service method to register a service by providing its name and its handler. The handler should return the type of `MessageBuffer?` so when a client calls the service they will receive the response from the registered handler function.
+- .NET
+    ```C#
+    await _messageRouter.RegisterServiceAsync(
+        "exampleTopic",
+        (endpoint, payload, context) =>
+        {
+            Console.WriteLine("Payload is handled.");
+            return new ValueTask<MessageBuffer?>(MessageBuffer.Create("Hello"));
+        });
+    ```
+
+- Javascript/Typescript
+    ```Javascript
+    await client.registerService(
+        "exampleTopic",
+        () => Promise.resolve(),
+        { description: "This is a test service" });
+    ```
+
+#### Unregistering a service
+Use the unregister service method if you want to remove the service registration.
+- .NET
+    ```C#
+    await _messageRouter.UnregisterServiceAsync("exampleTopic", cancellationToken);
+    ```
+
+- Javascript/Typescript
+    ```Javascript
+    await client.unregisterService("exampleTopic");
+    ```
+
+#### Registering an endpoint
+Use register an endpoint method if you want to register an endpoint by providing a name, handler and optional descriptor - and of course optionally the cancellationToken. The main difference between the RegisterService and RegisterEndpoint is that when we register a service, then we send a register service call to the server so it gets registered on the server side while the endpoint is only registering the endpoint on the client so that endpoint could not be used for another service registered by the client.
+The invoke request in this case would be solved "locally".
+
+- .NET
+    ```C#
+    await _messageRouter.RegisterEndpointAsync(
+        "exampleTopic",
+        (endpoint, payload, context) =>
+        {
+            Console.WriteLine("Payload is handled.");
+            return new ValueTask<MessageBuffer?>(MessageBuffer.Create("Hello"));
+        });
+    ```
+
+- Javascript/Typescript
+    ```Javascript
+    await client.registerEndpoint("exampleTopic", (endpoint, payload, context) => {
+        console.log("Payload is handled.");
+        return Promise.resolve();
+    });
+    ```
+
+#### Unregistering an endpoint
+Use the unregister endpoint method if you want to remove an endpoint.
+
+- NET
+    ```C#
+    var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+    await _messageRouter.UnregisterEndpointAsync("exampleTopic", cancellationTokenSource.Token);
+    ```
+
+- Javascript/Typescript
+    ```Javascript
+    await client.unregisterEndpoint("exampleTopic");
+    ```
+
+There are some optional values the above mentioned methods/functions eg.: `CancellationToken` or `EndpointDescriptior`, with you can add additional details to the Message Router or control the call, but you'll find every detail when you are using the API as MessageRouter is well documented.
+If you are interested explicitely on the API, you can find the source code on GitHub ([Typescript](https://github.com/morganstanley/ComposeUI/blob/main/src/messaging/js/composeui-messaging-client/src/MessageRouter.ts) and [.NET](https://github.com/morganstanley/ComposeUI/blob/main/src/messaging/dotnet/src/Core/IMessageRouter.cs)).
+
+Example code snippets can be found under the [examples folder](https://github.com/morganstanley/ComposeUI/tree/main/examples/js-chart-and-grid-messagerouter).
+
