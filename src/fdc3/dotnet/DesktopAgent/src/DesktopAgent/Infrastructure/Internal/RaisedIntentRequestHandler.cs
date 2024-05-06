@@ -15,6 +15,8 @@
 using Finos.Fdc3.Context;
 using Finos.Fdc3;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
@@ -24,13 +26,28 @@ internal class RaisedIntentRequestHandler
     private readonly object _raiseIntentInvocationsLock = new();
     private readonly List<string> _registeredIntentListeners = new();
     private readonly List<RaiseIntentResolutionInvocation> _raiseIntentResolutions = new();
+    private readonly ILogger<RaisedIntentRequestHandler> _logger;
+
     public IEnumerable<string> IntentListeners => _registeredIntentListeners;
     public IEnumerable<RaiseIntentResolutionInvocation> RaiseIntentResolutions => _raiseIntentResolutions;
+
+    public RaisedIntentRequestHandler(ILogger<RaisedIntentRequestHandler>? logger = null)
+    {
+        _logger = logger ?? NullLogger<RaisedIntentRequestHandler>.Instance;
+    }
 
     public RaisedIntentRequestHandler AddIntentListener(string intent)
     {
         lock (_intentListenersLock)
         {
+            if (_registeredIntentListeners.Contains(intent))
+            {
+                if (_logger.IsEnabled(LogLevel.Warning))
+                {
+                    _logger.LogWarning($"Multiple IntentHandlers are registered to the intent: {intent}.");
+                }
+            }
+
             _registeredIntentListeners.Add(intent);
             return this;
         }
@@ -84,6 +101,7 @@ internal class RaisedIntentRequestHandler
                 raisedIntentInvocation.ResultContext = context;
                 raisedIntentInvocation.ResultVoid = voidResult;
                 raisedIntentInvocation.ResultError = error;
+                raisedIntentInvocation.IsResolved = true;
             }
             else if (raisedIntentInvocations.Count() > 1)
             {
@@ -98,7 +116,11 @@ internal class RaisedIntentRequestHandler
     {
         lock (_raiseIntentInvocationsLock)
         {
-            var raiseIntentInvocations = _raiseIntentResolutions.Where(raiseIntentInvocation => raiseIntentInvocation.RaiseIntentMessageId == messageId && raiseIntentInvocation.Intent == intent);
+            var raiseIntentInvocations = _raiseIntentResolutions.Where(raiseIntentInvocation => 
+                raiseIntentInvocation.RaiseIntentMessageId == messageId 
+                && raiseIntentInvocation.Intent == intent 
+                && raiseIntentInvocation.IsResolved);
+
             if (raiseIntentInvocations.Any())
             {
                 if (raiseIntentInvocations.Count() > 1)

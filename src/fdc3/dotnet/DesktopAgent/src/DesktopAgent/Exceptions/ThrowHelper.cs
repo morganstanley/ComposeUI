@@ -25,14 +25,8 @@ public static class ThrowHelper
         new(Fdc3DesktopAgentErrors.MissingId, $"Missing Fdc3InstanceId: {instanceId}, when module has added its intent listener and FDC3 is enabled by the application.");
 
     public static Fdc3DesktopAgentException MultipleIntentRegisteredToAnAppInstance(string intent) =>
-        new(Fdc3DesktopAgentErrors.MultipleIntent, $"Multiplpe intent were registered to the running instance. Intent: {intent}.");
+        new(Fdc3DesktopAgentErrors.MultipleIntent, $"Multiple intents were registered to the running instance. Intent: {intent}.");
 
     public static Fdc3DesktopAgentException TargetInstanceUnavailable() =>
         new(ResolveError.TargetAppUnavailable, $"Target app is unavailable when intent was raised.");
-
-    public static Fdc3DesktopAgentException StartModuleFailure(Exception exception) =>
-        new(Fdc3DesktopAgentErrors.StartModuleFailure, $"Could not start module when intent was raised.", exception);
-
-    public static Fdc3DesktopAgentException MissingIntentForMessage(string messageId, string intent) =>
-        new(Fdc3DesktopAgentErrors.MissingIntent, $"Could not found raised intent invocations for message: {messageId} with intent: {intent}");    
 }

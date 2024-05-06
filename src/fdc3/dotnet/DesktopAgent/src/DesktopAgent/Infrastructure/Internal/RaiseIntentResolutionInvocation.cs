@@ -50,4 +50,5 @@ internal class RaiseIntentResolutionInvocation
     public ChannelType? ResultChannelType { get; set; }
     public bool? ResultVoid { get; set; }
     public string? ResultError { get; set; }
+    public bool IsResolved { get; set; } = false;
 }
