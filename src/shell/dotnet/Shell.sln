@@ -34,7 +34,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{DA
 		examples\module-catalog.json = examples\module-catalog.json
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiagnosticsExample", "..\..\..\examples\dotnet-diagnostics\DiagnosticsExample\DiagnosticsExample.csproj", "{24E64AFE-D2C5-487D-85F3-B0CE5AC0A128}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiagnosticsExample", "..\..\..\examples\dotnet-diagnostics\DiagnosticsExample\DiagnosticsExample.csproj", "{24E64AFE-D2C5-487D-85F3-B0CE5AC0A128}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{9173857E-84BF-4F8B-906B-39BCF0A8915B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

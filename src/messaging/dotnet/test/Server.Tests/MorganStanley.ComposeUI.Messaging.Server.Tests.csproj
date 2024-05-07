@@ -14,7 +14,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="../../src/Server/MorganStanley.ComposeUI.Messaging.Server.csproj" />
-	  <ProjectReference Include="../../../../shared/dotnet/MorganStanley.ComposeUI.Testing/MorganStanley.ComposeUI.Testing.csproj" />
+	  <ProjectReference Include="../../../../shared/dotnet/tests/TestUtils/MorganStanley.ComposeUI.Testing/MorganStanley.ComposeUI.Testing.csproj" />
 	</ItemGroup>
 
 </Project>

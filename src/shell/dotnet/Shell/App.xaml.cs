@@ -31,7 +31,6 @@ using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.Abstractions;
 using MorganStanley.ComposeUI.Shell.Fdc3;
-using MorganStanley.ComposeUI.Shell.ImageSource;
 using MorganStanley.ComposeUI.Shell.Messaging;
 using MorganStanley.ComposeUI.Shell.Modules;
 using MorganStanley.ComposeUI.Shell.Utilities;
@@ -125,7 +124,7 @@ public partial class App : Application
         };
 
         await _host.Services.GetRequiredService<IMessageRouter>().RegisterServiceAsync("Diagnostics", (e, m, t) =>
-        ValueTask.FromResult(MessageBuffer.Factory.CreateJson(diagnostics))!);
+            ValueTask.FromResult(MessageBuffer.Factory.CreateJson(diagnostics))!);
 
         await OnHostInitializedAsync();
 
@@ -231,10 +230,10 @@ public partial class App : Application
             });
 
             var moduleLoader = _host.Services.GetRequiredService<IModuleLoader>();
-            moduleLoader.StartModule(new StartRequest(moduleId, new List<KeyValuePair<string, string>>()
-                        {
-                            { new(WebWindowOptions.ParameterName, JsonSerializer.Serialize(webWindowOptions)) }
-                        }));
+            moduleLoader.StartModule(new StartRequest(moduleId, new List<KeyValuePair<string, string>>
+            {
+                new(WebWindowOptions.ParameterName, JsonSerializer.Serialize(webWindowOptions))
+            }));
 
             return;
         }
