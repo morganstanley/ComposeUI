@@ -15,10 +15,11 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls.Ribbon;
-using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.ImageSource;
+using MorganStanley.ComposeUI.Shell.Utilities;
+using IconUtilities = MorganStanley.ComposeUI.Shell.Utilities.IconUtilities;
 
 namespace MorganStanley.ComposeUI.Shell;
 
@@ -106,12 +107,15 @@ public partial class MainWindow : RibbonWindow
             }
             else if (manifest.TryGetDetails<NativeManifestDetails>(out var nativeManifestDetails))
             {
-                var icon = System.Drawing.Icon.ExtractAssociatedIcon(Path.GetFullPath(nativeManifestDetails.Path.ToString()));
+                using var icon =
+                    System.Drawing.Icon.ExtractAssociatedIcon(Path.GetFullPath(nativeManifestDetails.Path.ToString()));
 
-                ImageSource = System.Windows.Interop.Imaging.CreateBitmapSourceFromHIcon(
-                icon.Handle,
-                new Int32Rect { Width = icon.Width, Height = icon.Height },
-                BitmapSizeOptions.FromEmptyOptions());
+                if (icon != null)
+                {
+                    using var bitmap = icon.ToBitmap();
+
+                    ImageSource = bitmap.ToImageSource();
+                }
             }
         }
 
