@@ -14,7 +14,7 @@ The Message Router is an ASP.NET Core-based backend service that exposes one or 
 Message Router Server can be setup in .NET by adding to the `ServiceCollection` and its configuration like `MessageRouterWebSocketServerOptions` after you have added the nuget package: `MorganStanley.ComposeUI.Messaging.Server`.
 
 Example:
-```C#
+```csharp
 IHostBuilder builder = new HostBuilder();
 
 builder.ConfigureServices(
@@ -46,7 +46,7 @@ where with the `ConfigureServer` method the `MessageRouterWebSocketServerOptions
 The server implementation is only available on the .NET side.
 
 Also the Message Router Client can be set up in .NET easily with dependecy injection. You are able to call the `AddMessageRouter()` extension method on a `IServiceCollection` where you can configure `MessageRouterWebSocketOptions` - [reference](https://github.com/morganstanley/ComposeUI/blob/main/src/messaging/dotnet/src/Client/Client/WebSocket/MessageRouterWebSocketOptions.cs), within the `.UseWebSocket()` builder method and the AccessToken with the `UseAccessToken` after you have added the nuget package: `MorganStanley.ComposeUI.Messaging.Client`.
-```C#
+```csharp
 var services = new ServiceCollection()
     .AddMessageRouter(
         mr => mr
@@ -90,7 +90,7 @@ await client.connect();
 Use the subscribe method of the client to set a handler on a topic. The message parameter of the handler method contains the payload as a string. The following example parses a JSON payload from the "exampleTopic" topic and logs it to console.
 
 - .NET
-    ```C#
+    ```csharp
     ValuTask HandleTopicMessage(MessageBuffer? payload)
     {
         Console.WriteLine(payload.GetString());
@@ -115,7 +115,7 @@ Use the subscribe method of the client to set a handler on a topic. The message 
 #### Publish a message
 Use the publish method of the client to publish a message to a topic. The payload of the message must be a string. The following example creates a JSON string out of an object, and publishes it to the "exampleTopic" topic.
 - .NET 
-    ```C# 
+    ```csharp 
     await _messageRouter.PublishAsync(
         'exampleTopic',
         MessageBuffer.Factory.CreateJson(payloadObject, _jsonSerializerOptions));
@@ -130,7 +130,7 @@ Use the publish method of the client to publish a message to a topic. The payloa
 #### Invoking a service
 Use the invoke method of the client to invoke a registered service's handler and get the response from it. The payload must be a string.
 - .NET
-    ```C# 
+    ```csharp 
     var resultBuffer = await _messageRouter.InvokeAsync(
         "exampleTopic",
         MessageBuffer.Factory.CreateJson(payloadObject, _jsonSerializerOptions));
@@ -146,7 +146,7 @@ Use the invoke method of the client to invoke a registered service's handler and
 #### Registering a service
 Use the register service method to register a service by providing its name and its handler. The handler should return the type of `MessageBuffer?` so when a client calls the service they will receive the response from the registered handler function.
 - .NET
-    ```C#
+    ```csharp
     await _messageRouter.RegisterServiceAsync(
         "exampleTopic",
         (endpoint, payload, context) =>
@@ -167,7 +167,7 @@ Use the register service method to register a service by providing its name and 
 #### Unregistering a service
 Use the unregister service method if you want to remove the service registration.
 - .NET
-    ```C#
+    ```csharp
     await _messageRouter.UnregisterServiceAsync("exampleTopic", cancellationToken);
     ```
 
@@ -181,7 +181,7 @@ Use register an endpoint method if you want to register an endpoint by providing
 The invoke request in this case would be solved "locally".
 
 - .NET
-    ```C#
+    ```csharp
     await _messageRouter.RegisterEndpointAsync(
         "exampleTopic",
         (endpoint, payload, context) =>
@@ -203,7 +203,7 @@ The invoke request in this case would be solved "locally".
 Use the unregister endpoint method if you want to remove an endpoint.
 
 - NET
-    ```C#
+    ```csharp
     var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
     await _messageRouter.UnregisterEndpointAsync("exampleTopic", cancellationTokenSource.Token);
     ```
