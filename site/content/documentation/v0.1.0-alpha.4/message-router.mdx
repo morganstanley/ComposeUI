@@ -60,12 +60,12 @@ var services = new ServiceCollection()
 ```
 
 In Javascript/Typescript you should import the `createMessageRouter` from the `@morgan-stanley/composeui-messaging-client` library.
-```Javascript
+```javascript
 import { createMessageRouter } from "@morgan-stanley/composeui-messaging-client";
 ```
 
 Use `createMessageRouter()` to instantiate the MessageRouter client in a ComposeUI application. It will connect to the MessageRouter hosted by the container when you call `connect()` on the client.
-```Javascript
+```javascript
 let client = createMessageRouter();
 ```
 
@@ -81,7 +81,7 @@ To directly connect to the server, you can call the `ConnectAsync` method from t
 In .NET you can connect to the server endpoint, by passing a `CancellationToken` as well which can control the connection lifetime. Not setting that will fallback on its default value which is `CancellationToken.None`.
 
 In Javascript/Typescript you are also able to achieve this by calling the `connect` method which returns a `Promise<void>`.
-```Javascript
+```javascript
 await client.connect();
 ```
 
@@ -104,7 +104,7 @@ Use the subscribe method of the client to set a handler on a topic. The message 
     It returns an `IAsyncDisposable` object.
 
 - Javascript/TypeScript
-    ```Javascript
+    ```javascript
     client.subscribe('exampleTopic', (message) => {
         const payload = JSON.parse(message.payload);
         console.log(payload);
@@ -115,7 +115,7 @@ Use the subscribe method of the client to set a handler on a topic. The message 
 #### Publish a message
 Use the publish method of the client to publish a message to a topic. The payload of the message must be a string. The following example creates a JSON string out of an object, and publishes it to the "exampleTopic" topic.
 - .NET 
-    ```csharp 
+    ```csharp
     await _messageRouter.PublishAsync(
         'exampleTopic',
         MessageBuffer.Factory.CreateJson(payloadObject, _jsonSerializerOptions));
@@ -123,7 +123,7 @@ Use the publish method of the client to publish a message to a topic. The payloa
     where `_jsonSerializerOptions` is your own defined serializer options to be used with the `JsonSerializer`.
 
 - Javascript/Typescript
-    ```Javascript
+    ```javascript
     await client.publish('exampleTopic', JSON.stringify(payloadObject));
     ```
 
@@ -138,7 +138,7 @@ Use the invoke method of the client to invoke a registered service's handler and
     This results an `MessageBuffer` -see [reference](https://github.com/morganstanley/ComposeUI/blob/main/src/messaging/dotnet/src/Core/MessageBuffer.cs), type where you could call the `ReadJson<T>` extension method to convert the buffer to the expected type that the called service should return eg. `var result = resultBuffer.ReadJson<MyClass>(_jsonSerializerOptions);`.
 
 - Javascript/Typescript
-    ```Javascript
+    ```javascript
     const resultBuffer = await this.messageRouterClient.invoke('exampleTopic', JSON.stringify(payloadObject));
     const result = <MyClass>JSON.parse(resultBuffer);
     ```
@@ -157,7 +157,7 @@ Use the register service method to register a service by providing its name and 
     ```
 
 - Javascript/Typescript
-    ```Javascript
+    ```javascript
     await client.registerService(
         "exampleTopic",
         () => Promise.resolve(),
@@ -172,7 +172,7 @@ Use the unregister service method if you want to remove the service registration
     ```
 
 - Javascript/Typescript
-    ```Javascript
+    ```javascript
     await client.unregisterService("exampleTopic");
     ```
 
@@ -192,7 +192,7 @@ The invoke request in this case would be solved "locally".
     ```
 
 - Javascript/Typescript
-    ```Javascript
+    ```javascript
     await client.registerEndpoint("exampleTopic", (endpoint, payload, context) => {
         console.log("Payload is handled.");
         return Promise.resolve();
@@ -209,7 +209,7 @@ Use the unregister endpoint method if you want to remove an endpoint.
     ```
 
 - Javascript/Typescript
-    ```Javascript
+    ```javascript
     await client.unregisterEndpoint("exampleTopic");
     ```
 
