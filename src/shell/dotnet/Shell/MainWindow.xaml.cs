@@ -16,10 +16,10 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls.Ribbon;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Infragistics.Windows.DockManager;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.ImageSource;
 using MorganStanley.ComposeUI.Shell.Utilities;
-using IconUtilities = MorganStanley.ComposeUI.Shell.Utilities.IconUtilities;
 
 namespace MorganStanley.ComposeUI.Shell;
 
@@ -59,6 +59,18 @@ public partial class MainWindow : RibbonWindow
         {
             Modules = new ObservableCollection<ModuleViewModel>(modules)
         };
+    }
+
+    public void AddDockableFloatingContent(WebContent webContent)
+    {
+        var splitPane = new SplitPane();
+        var contentPane = new WebContentPane(webContent, _moduleLoader);
+        splitPane.Panes.Add(contentPane);
+        
+        XamDockManager.SetInitialLocation(splitPane, InitialPaneLocation.DockedLeft);
+        XamDockManager.SetFloatingSize(splitPane, new(webContent.Width, webContent.Height));
+
+        _xamDockManager.Panes.Add(splitPane);
     }
 
     internal MainWindowViewModel ViewModel
