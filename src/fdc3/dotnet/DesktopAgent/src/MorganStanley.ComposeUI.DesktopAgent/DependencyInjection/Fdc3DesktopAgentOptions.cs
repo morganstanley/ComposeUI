@@ -30,5 +30,10 @@ public sealed class Fdc3DesktopAgentOptions : IOptions<Fdc3DesktopAgentOptions>
     /// </summary>
     public TimeSpan IntentResultTimeout { get; set; } = TimeSpan.FromMilliseconds(1000);
 
+    /// <summary>
+    /// Indicates the chosen messaging layer under the Fdc3 standard.
+    /// </summary>
+    public Fdc3CommunicationRoute Fdc3CommunicationRoute { get; set; } = Fdc3CommunicationRoute.MessageRouter;
+
     Fdc3DesktopAgentOptions IOptions<Fdc3DesktopAgentOptions>.Value => this;
 }

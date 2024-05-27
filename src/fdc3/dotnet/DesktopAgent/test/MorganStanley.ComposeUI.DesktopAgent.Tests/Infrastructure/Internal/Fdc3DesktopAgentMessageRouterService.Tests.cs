@@ -44,6 +44,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
 
     private readonly Fdc3DesktopAgentMessageRouterService _fdc3;
     private readonly Mock<IMessageRouter> _mockMessageRouter = new();
+    private readonly Mock<IResolverUiCommunicator> _mockResolverUiCommunicator = new();
     private readonly MockModuleLoader _mockModuleLoader = new();
 
     public Fdc3DesktopAgentMessageRouterServiceTests()
@@ -54,6 +55,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
                 _appDirectory,
                 _mockModuleLoader.Object,
                 new Fdc3DesktopAgentOptions(),
+                _mockResolverUiCommunicator.Object,
                 NullLoggerFactory.Instance),
             new Fdc3DesktopAgentOptions(),
             NullLoggerFactory.Instance);
@@ -222,9 +224,8 @@ public class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
             Times.Once);
     }
 
-    //TODO: Right now we are returning just one element, without the possibility of selecting via ResolverUI.
     [Fact]
-    public async Task RaiseIntent_returns_first_app_by_Context()
+    public async Task RaiseIntent_calls_ResolverUi_by_Context_filter()
     {
         var instanceId = Guid.NewGuid().ToString();
         var raiseIntentRequest = new RaiseIntentRequest
@@ -237,14 +238,11 @@ public class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
         };
 
         var result = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
-        result.Should().NotBeNull();
-        result!.AppMetadata.Should().HaveCount(1);
-        result.AppMetadata!.First().AppId.Should().Be("appId4");
+        _mockResolverUiCommunicator.Verify(_ => _.SendResolverUiRequest(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()));
     }
 
-    //TODO: Right now we are returning just one element, without the possibility of selecting via ResolverUI.
     [Fact]
-    public async Task RaiseIntent_returns_first_app_by_Context_if_fdc3_nothing()
+    public async Task RaiseIntent_calls_ResolverUi_by_Context_filter_if_fdc3_nothing()
     {
         var instanceId = Guid.NewGuid().ToString();
         var raiseIntentRequest = new RaiseIntentRequest
@@ -257,9 +255,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
         };
 
         var result = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
-        result.Should().NotBeNull();
-        result!.AppMetadata.Should().HaveCount(1);
-        result!.AppMetadata!.First().AppId.Should().Be("appId4");
+        _mockResolverUiCommunicator.Verify(_ => _.SendResolverUiRequest(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()));
     }
 
     [Fact]

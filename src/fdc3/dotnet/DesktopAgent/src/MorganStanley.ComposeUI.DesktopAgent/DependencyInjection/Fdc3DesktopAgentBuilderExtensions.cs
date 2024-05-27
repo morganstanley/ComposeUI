@@ -12,29 +12,26 @@
  * and limitations under the License.
  */
 
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-public class Fdc3DesktopAgentBuilder
+public static class Fdc3DesktopAgentBuilderExtensions
 {
-    public IServiceCollection ServiceCollection { get; }
-
-    public Fdc3DesktopAgentBuilder(IServiceCollection serviceCollection)
+    public static Fdc3DesktopAgentBuilder UseMessageRouter(
+        this Fdc3DesktopAgentBuilder builder,
+        Action<Fdc3DesktopAgentOptions>? configureOptions = null)
     {
-        ServiceCollection = serviceCollection;
-    }
+        if (configureOptions != null)
+        {
+            builder.ServiceCollection.Configure<Fdc3DesktopAgentOptions>(configureOptions);
+        }
 
-    /// <summary>
-    /// Extension method, for configuring the <see cref="Fdc3DesktopAgentOptions"/> by a delegate.
-    /// </summary>
-    /// <param name="configureOptions"></param>
-    /// <returns></returns>
-    public Fdc3DesktopAgentBuilder Configure(Action<Fdc3DesktopAgentOptions> configureOptions)
-    {
-        ServiceCollection.AddOptions<Fdc3DesktopAgentOptions>()
-            .Configure(configureOptions);
+        builder.ServiceCollection.AddSingleton<IResolverUiCommunicator, ResolverUiMessageRouterCommunicator>();
+        builder.ServiceCollection.AddHostedService<Fdc3DesktopAgentMessageRouterService>();
 
-        return this;
+        return builder;
     }
 }

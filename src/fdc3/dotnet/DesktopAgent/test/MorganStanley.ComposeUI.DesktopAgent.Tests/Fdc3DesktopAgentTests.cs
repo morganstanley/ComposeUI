@@ -42,7 +42,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
 
     private readonly IFdc3DesktopAgentBridge _fdc3;
     private readonly MockModuleLoader _mockModuleLoader = new();
-
+    private readonly Mock<IResolverUiCommunicator> _mockResolverUiCommunicator = new();
 
     public Fdc3DesktopAgentTests()
     {
@@ -50,6 +50,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             _appDirectory,
             _mockModuleLoader.Object,
             new Fdc3DesktopAgentOptions(),
+            _mockResolverUiCommunicator.Object,
             NullLoggerFactory.Instance);
     }
 
@@ -482,9 +483,8 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
         result.Response.Error.Should().Be(ResolveError.NoAppsFound);
     }
 
-    //TODO: Right now we are returning just one element, without the possibility of selecting via ResolverUI.
     [Fact]
-    public async Task RaiseIntent_returns_first_app()
+    public async Task RaiseIntent_calls_ResolverUi()
     {
         var request = new RaiseIntentRequest
         {
@@ -496,10 +496,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
         };
 
         var result = await _fdc3.RaiseIntent(request);
-        result.Should().NotBeNull();
-        result.RaiseIntentResolutionMessages.Should().BeEmpty();
-        result.Response.AppMetadata.Should().HaveCount(1);
-        result.Response.AppMetadata!.First().AppId.Should().Be("appId4");
+        _mockResolverUiCommunicator.Verify(_ => _.SendResolverUiRequest(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()));
     }
 
     [Fact]

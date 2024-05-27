@@ -85,8 +85,11 @@ public class EndToEndTests : IAsyncLifetime
                 services.AddModuleLoader();
 
                 services.AddFdc3DesktopAgent(
-                    fdc3 => fdc3.Configure(
-                        builder => { builder.ChannelId = TestChannel; }));
+                    fdc3 =>
+                    {
+                        fdc3.Configure(builder => { builder.ChannelId = TestChannel; });
+                        fdc3.UseMessageRouter();
+                    });
             });
 
         _host = builder.Build();
@@ -565,40 +568,6 @@ public class EndToEndTests : IAsyncLifetime
         };
 
         result.Should().BeEquivalentTo(expectedResponse);
-    }
-
-    //TODO: Right now we are returning just one element, without the possibility of selecting via ResolverUI.
-    [Fact]
-    public async Task RaiseIntentReturnsAppIntentWithFirstApp()
-    {
-        var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
-        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
-
-        var request = new RaiseIntentRequest
-        {
-            MessageId = 2,
-            Fdc3InstanceId = originFdc3InstanceId,
-            Intent = "intentMetadata4",
-            Selected = false,
-            Context = new Context("context2")
-        };
-
-        var resultBuffer = await _messageRouter.InvokeAsync(
-            Fdc3Topic.RaiseIntent,
-            MessageBuffer.Factory.CreateJson(request, _options));
-        resultBuffer.Should().NotBeNull();
-        var result = resultBuffer!.ReadJson<RaiseIntentResponse>(_options);
-        result.Should().NotBeNull();
-
-        var app4 = _runningApps.First(application => application.Manifest.Id == "appId4");
-        var app4Fdc3InstanceId = Fdc3InstanceIdRetriever.Get(app4);
-
-        result!.AppMetadata.Should()
-            .BeEquivalentTo(
-                new AppMetadata[]
-                {
-                    new() {AppId = "appId4", InstanceId = app4Fdc3InstanceId, Name = "app4", ResultType = null}
-                });
     }
 
     [Fact]

@@ -36,7 +36,6 @@ public static class ServiceCollectionExtensions
         }
 
         serviceCollection.AddSingleton<IFdc3DesktopAgentBridge, Fdc3DesktopAgent>();
-        serviceCollection.AddHostedService<Fdc3DesktopAgentMessageRouterService>();
         serviceCollection.AddTransient<IStartupAction, Fdc3StartupAction>();
 
         return serviceCollection;

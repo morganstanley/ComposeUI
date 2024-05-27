@@ -24,6 +24,7 @@ internal static class Fdc3Topic
     internal static string GetIntentResult => TopicRoot + "getIntentResult";
     internal static string SendIntentResult => TopicRoot + "sendIntentResult";
     internal static string AddIntentListener => TopicRoot + "addIntentListener";
+    public static string ResolverUi => TopicRoot + "resolverUI";
 
     //IntentListeners will be listening at this endpoint
     internal static string RaiseIntentResolution(string intent, string instanceId)
@@ -31,7 +32,7 @@ internal static class Fdc3Topic
         return $"{RaiseIntent}/{intent}/{instanceId}";
     }
 
-    internal static UserChannelTopics UserChannel(string id) => new UserChannelTopics(id);
+    internal static UserChannelTopics UserChannel(string id) => new(id);
 }
 
 internal class UserChannelTopics

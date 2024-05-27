@@ -10,7 +10,6 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using System.Reactive.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Hosting;
