@@ -119,7 +119,7 @@ public partial class WebContent : ContentPresenter, IDisposable
 
         if (iconUrl != null)
         {
-            Icon = _iconProvider.GetImageSource(iconUrl, appUrl);
+            Icon = _iconProvider.GetImageSource(iconUrl, appUrl, new(16, 16));
         }
     }
 
