@@ -57,7 +57,11 @@ See the License for the specific language governing permissions and limitations 
                                    AllowMaximizeFloatingWindows="True"
                                    AllowMinimizeFloatingWindows="True"
                                    ShowFloatingWindowsInTaskbar="True"
-                                   LayoutMode="FillContainer"/>
+                                   LayoutMode="FillContainer">
+                <igDock:XamDockManager.Panes>
+                    <igDock:SplitPane x:Name="_verticalSplit" SplitterOrientation="Vertical" igDock:XamDockManager.InitialLocation="DockedLeft" />
+                </igDock:XamDockManager.Panes>
+            </igDock:XamDockManager>
         </Grid>
     </Grid>
 </RibbonWindow>

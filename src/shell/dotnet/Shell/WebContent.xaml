@@ -5,13 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         xmlns:local="clr-namespace:MorganStanley.ComposeUI.Shell"
-        mc:Ignorable="d" Height="450" Width="800"
-        >
+        mc:Ignorable="d">
     <ContentPresenter.Content>
-        <Grid>
-            <DockPanel>
-                <wv2:WebView2 Name = "WebView" Source = ""/>
-            </DockPanel>
-        </Grid>
+         <wv2:WebView2 Name = "WebView" Source = "" />
     </ContentPresenter.Content>
 </ContentPresenter>

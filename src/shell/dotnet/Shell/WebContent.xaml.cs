@@ -31,7 +31,6 @@ namespace MorganStanley.ComposeUI.Shell;
 /// <summary>
 ///     Interaction logic for WebContent.xaml
 /// </summary>
-
 public partial class WebContent : ContentPresenter, IDisposable
 {
     public WebContent(
