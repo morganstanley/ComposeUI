@@ -34,7 +34,16 @@ public class ImageSourceProvider
 
         if (_imageSourcePolicy.IsAllowed(uri, appUri))
         {
-            return BitmapFrame.Create(uri);
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            
+            bitmap.DecodePixelHeight = 16;
+            bitmap.DecodePixelWidth = 16;
+            bitmap.UriSource = uri;
+
+            bitmap.EndInit();
+
+            return bitmap;
         }
         return null;
     }
