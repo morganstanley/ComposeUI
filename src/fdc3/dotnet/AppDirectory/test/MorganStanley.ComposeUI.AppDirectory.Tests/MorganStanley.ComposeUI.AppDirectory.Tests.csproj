@@ -30,7 +30,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\..\..\shared\dotnet\tests\TestUtils\MorganStanley.ComposeUI.Testing\MorganStanley.ComposeUI.Testing.csproj" />
-		<ProjectReference Include="..\..\src\AppDirectory\AppDirectory.csproj" />
+		<ProjectReference Include="..\..\src\MorganStanley.ComposeUI.AppDirectory\MorganStanley.ComposeUI.AppDirectory.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
