@@ -14,40 +14,37 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
+using System.Windows.Controls;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Web.WebView2.Core;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.ImageSource;
-using MorganStanley.ComposeUI.Shell.Utilities;
 
 namespace MorganStanley.ComposeUI.Shell;
 
 /// <summary>
-///     Interaction logic for WebWindow.xaml
+///     Interaction logic for WebContent.xaml
 /// </summary>
-
-public partial class WebWindow : Window
+public partial class WebContent : ContentPresenter, IDisposable
 {
-    public WebWindow(
+    public WebContent(
         WebWindowOptions options,
         IModuleLoader moduleLoader,
         IModuleInstance? moduleInstance = null,
-        ILogger<WebWindow>? logger = null,
+        ILogger<WebContent>? logger = null,
         IImageSourcePolicy? imageSourcePolicy = null)
     {
         _moduleLoader = moduleLoader;
         _moduleInstance = moduleInstance;
         _iconProvider = new ImageSourceProvider(imageSourcePolicy ?? new DefaultImageSourcePolicy());
         _options = options;
-        _logger = logger ?? NullLogger<WebWindow>.Instance;
+        _logger = logger ?? NullLogger<WebContent>.Instance;
         InitializeComponent();
 
         // TODO: When no title is set from options, we should show the HTML document's title instead
@@ -69,7 +66,6 @@ public partial class WebWindow : Window
                             (LifetimeEvent e) =>
                             {
                                 _lifetimeEvent = e.EventType;
-                                Close();
                             })));
         }
 
@@ -77,56 +73,25 @@ public partial class WebWindow : Window
     }
 
     public IModuleInstance? ModuleInstance => _moduleInstance;
+    public LifetimeEventType LifetimeEvent => _lifetimeEvent;
 
-    protected override void OnClosing(CancelEventArgs args)
-    {
-        // TODO: Send the closing event to the page, allow it to cancel
+    public event EventHandler CloseRequested;
 
-        if (_moduleInstance == null)
-            return;
+    public string Title { get; private set; }
 
-        switch (_lifetimeEvent)
-        {
-            case LifetimeEventType.Stopped:
-                return;
-
-            case LifetimeEventType.Stopping:
-                args.Cancel = true;
-                Hide();
-                return;
-
-            default:
-                args.Cancel = true;
-                Hide();
-                Task.Run(() => _moduleLoader.StopModule(new StopRequest(_moduleInstance.InstanceId)));
-                return;
-        }
-    }
-
-    protected override void OnClosed(EventArgs e)
-    {
-        base.OnClosed(e);
-        RemoveLogicalChild(WebView);
-        WebView.Dispose();
-
-        var disposables = _disposables.AsEnumerable().Reverse().ToArray();
-        _disposables.Clear();
-
-        foreach (var disposable in disposables)
-        {
-            disposable.Dispose();
-        }
-    }
+    public System.Windows.Media.ImageSource? Icon { get; private set; }
 
     private readonly IModuleLoader _moduleLoader;
     private readonly IModuleInstance? _moduleInstance;
     private readonly WebWindowOptions _options;
-    private readonly ILogger<WebWindow> _logger;
+    private readonly ILogger<WebContent> _logger;
     private readonly ImageSourceProvider _iconProvider;
     private bool _scriptsInjected;
     private LifetimeEventType _lifetimeEvent = LifetimeEventType.Started;
     private readonly TaskCompletionSource _scriptInjectionCompleted = new();
     private readonly List<IDisposable> _disposables = new();
+
+    public WebWindowOptions Options => _options;
 
     private async Task InitializeAsync()
     {
@@ -154,7 +119,7 @@ public partial class WebWindow : Window
 
         if (iconUrl != null)
         {
-            Icon = _iconProvider.GetImageSource(iconUrl, appUrl);
+            Icon = _iconProvider.GetImageSource(iconUrl, appUrl, new(16, 16));
         }
     }
 
@@ -162,7 +127,7 @@ public partial class WebWindow : Window
     {
         coreWebView.NewWindowRequested += (sender, args) => OnNewWindowRequested(args);
         coreWebView.WindowCloseRequested += (sender, args) => OnWindowCloseRequested(args);
-        coreWebView.NavigationStarting += (sender, args) => OnNavigationStarting(args); 
+        coreWebView.NavigationStarting += (sender, args) => OnNavigationStarting(args);
         coreWebView.DocumentTitleChanged += (sender, args) => OnDocumentTitleChanged(args);
 
         return Task.CompletedTask;
@@ -244,14 +209,27 @@ public partial class WebWindow : Window
             constructorArgs.Add(_moduleInstance);
         }
 
-        var window = App.Current.CreateWindow<WebWindow>(constructorArgs.ToArray());
-        window.Show();
+        var window = App.Current.CreateWebContent(constructorArgs.ToArray());
         await window.WebView.EnsureCoreWebView2Async();
         e.NewWindow = window.WebView.CoreWebView2;
     }
 
     private void OnWindowCloseRequested(object args)
     {
-        Close();
+        CloseRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void Dispose()
+    {
+        RemoveLogicalChild(WebView);
+        WebView.Dispose();
+
+        var disposables = _disposables.AsEnumerable().Reverse().ToArray();
+        _disposables.Clear();
+
+        foreach (var disposable in disposables)
+        {
+            disposable.Dispose();
+        }
     }
 }

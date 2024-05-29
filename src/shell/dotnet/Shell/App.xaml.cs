@@ -64,6 +64,15 @@ public partial class App : Application
         return CreateInstance<TWindow>(parameters);
     }
 
+    public WebContent CreateWebContent(params object[] parameters)
+    {
+        Dispatcher.VerifyAccess();
+        var webContent = CreateInstance<WebContent>(parameters);
+        _shellWindow!.AddDockableFloatingContent(webContent);
+
+        return webContent;
+    }
+
     public T? GetService<T>()
     {
         return Host.Services.GetService<T>();
@@ -96,6 +105,7 @@ public partial class App : Application
     private IHost? _host;
 
     private ILogger _logger = NullLogger<App>.Instance;
+    private MainWindow? _shellWindow;
 
     // TODO: Assign a unique token for each module
     internal readonly string MessageRouterAccessToken = Guid.NewGuid().ToString("N");
@@ -234,12 +244,11 @@ public partial class App : Application
             {
                 new(WebWindowOptions.ParameterName, JsonSerializer.Serialize(webWindowOptions))
             }));
-
-            return;
         }
 
         ShutdownMode = ShutdownMode.OnMainWindowClose;
-        CreateWindow<MainWindow>().Show();
+        _shellWindow = CreateWindow<MainWindow>();
+        _shellWindow.Show();
     }
 
     private async Task StopAsync()
