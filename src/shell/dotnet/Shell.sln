@@ -11,17 +11,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Mes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Server", "..\..\messaging\dotnet\src\Server\MorganStanley.ComposeUI.Messaging.Server.csproj", "{F0DFAB55-14F5-4FF6-A12F-37B1745D4551}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{BEA71FE5-7EC8-4BEA-819B-C0DB33125D91}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{BEA71FE5-7EC8-4BEA-819B-C0DB33125D91}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shell.Tests", "tests\Shell.Tests\Shell.Tests.csproj", "{70491F36-A27B-4E8C-AFD5-B49480EC1343}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shell.Tests", "test\Shell.Tests\Shell.Tests.csproj", "{70491F36-A27B-4E8C-AFD5-B49480EC1343}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Host", "..\..\messaging\dotnet\src\Host\MorganStanley.ComposeUI.Messaging.Host.csproj", "{DD91C297-06D4-4578-9C75-1BA5D8595AA0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DesktopAgent", "..\..\fdc3\dotnet\DesktopAgent\src\DesktopAgent\DesktopAgent.csproj", "{7A94BC15-8FE5-4C84-8572-3C72248AFF8C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.DesktopAgent", "..\..\fdc3\dotnet\DesktopAgent\src\MorganStanley.ComposeUI.DesktopAgent\MorganStanley.ComposeUI.DesktopAgent.csproj", "{7A94BC15-8FE5-4C84-8572-3C72248AFF8C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Client", "..\..\messaging\dotnet\src\Client\MorganStanley.ComposeUI.Messaging.Client.csproj", "{3153E575-513F-4B1A-86D0-CBE5A7A8C606}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppDirectory", "..\..\fdc3\dotnet\AppDirectory\src\AppDirectory\AppDirectory.csproj", "{70EAC402-B711-4528-B4DE-34081EB8676E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.AppDirectory", "..\..\fdc3\dotnet\AppDirectory\src\MorganStanley.ComposeUI.AppDirectory\MorganStanley.ComposeUI.AppDirectory.csproj", "{70EAC402-B711-4528-B4DE-34081EB8676E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ModuleLoader.Abstractions", "..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader.Abstractions\MorganStanley.ComposeUI.ModuleLoader.Abstractions.csproj", "{F94A14A9-38B2-4573-A74B-979044428152}"
 EndProject

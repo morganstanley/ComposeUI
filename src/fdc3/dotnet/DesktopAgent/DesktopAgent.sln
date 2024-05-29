@@ -5,11 +5,11 @@ VisualStudioVersion = 17.4.33103.184
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{75D43F58-806B-4C28-BDA1-7A7AFF0250DB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DesktopAgent", "src\DesktopAgent\DesktopAgent.csproj", "{4A71A18B-6DC1-44AD-85F3-200CC2CBC6BD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.DesktopAgent", "src\MorganStanley.ComposeUI.DesktopAgent\MorganStanley.ComposeUI.DesktopAgent.csproj", "{4A71A18B-6DC1-44AD-85F3-200CC2CBC6BD}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{44C08E9B-2A1D-4F01-B579-59DFCE4CBF6D}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{44C08E9B-2A1D-4F01-B579-59DFCE4CBF6D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DesktopAgent.Tests", "tests\DesktopAgent.Tests\DesktopAgent.Tests.csproj", "{96398594-52D7-4A21-A8DA-CCD1D1038741}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.DesktopAgent.Tests", "test\MorganStanley.ComposeUI.DesktopAgent.Tests\MorganStanley.ComposeUI.DesktopAgent.Tests.csproj", "{96398594-52D7-4A21-A8DA-CCD1D1038741}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libs", "libs", "{2CE54671-6C98-455E-B2A0-52F8564DDA5D}"
 EndProject
@@ -25,7 +25,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Mod
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Utilities", "..\..\..\shared\dotnet\src\MorganStanley.ComposeUI.Utilities\MorganStanley.ComposeUI.Utilities.csproj", "{2C25BA40-0103-4EB5-B181-98362F563B0F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppDirectory", "..\AppDirectory\src\AppDirectory\AppDirectory.csproj", "{50BD1318-FC44-4582-B333-3033076164E7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.AppDirectory", "..\AppDirectory\src\MorganStanley.ComposeUI.AppDirectory\MorganStanley.ComposeUI.AppDirectory.csproj", "{50BD1318-FC44-4582-B333-3033076164E7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ModuleLoader", "..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader\MorganStanley.ComposeUI.ModuleLoader.csproj", "{4207C810-55CC-433E-BD5B-B9B4D639C7A2}"
 EndProject

@@ -4,11 +4,8 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-
     <IsPackable>false</IsPackable>
-
     <AssemblyName>MorganStanley.ComposeUI.Fdc3.$(MSBuildProjectName)</AssemblyName>
-
     <RootNamespace>MorganStanley.ComposeUI.Fdc3.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
   </PropertyGroup>
 
@@ -33,8 +30,8 @@
     <ProjectReference Include="..\..\..\..\..\messaging\dotnet\src\Client\MorganStanley.ComposeUI.Messaging.Client.csproj" />
     <ProjectReference Include="..\..\..\..\..\messaging\dotnet\src\Host\MorganStanley.ComposeUI.Messaging.Host.csproj" />
     <ProjectReference Include="..\..\..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader\MorganStanley.ComposeUI.ModuleLoader.csproj" />
-    <ProjectReference Include="..\..\..\AppDirectory\src\AppDirectory\AppDirectory.csproj" />
-    <ProjectReference Include="..\..\src\DesktopAgent\DesktopAgent.csproj" />
+    <ProjectReference Include="..\..\..\AppDirectory\src\MorganStanley.ComposeUI.AppDirectory\MorganStanley.ComposeUI.AppDirectory.csproj" />
+    <ProjectReference Include="..\..\src\MorganStanley.ComposeUI.DesktopAgent\MorganStanley.ComposeUI.DesktopAgent.csproj" />
   </ItemGroup>
 
   <ItemGroup>
