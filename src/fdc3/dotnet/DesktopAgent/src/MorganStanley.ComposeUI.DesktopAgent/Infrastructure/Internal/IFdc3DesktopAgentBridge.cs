@@ -12,8 +12,9 @@
  * and limitations under the License.
  */
 
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using Finos.Fdc3;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
