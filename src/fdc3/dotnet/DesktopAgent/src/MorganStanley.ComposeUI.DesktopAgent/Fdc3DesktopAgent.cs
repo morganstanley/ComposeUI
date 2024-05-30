@@ -32,6 +32,7 @@ using ContextMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Conte
 using Icon = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Icon;
 using IntentMetadata = Finos.Fdc3.AppDirectory.IntentMetadata;
 using Screenshot = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Screenshot;
+using MorganStanley.ComposeUI.Fdc3.MorganStanley.ComposeUI.DesktopAgent.Channels;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 

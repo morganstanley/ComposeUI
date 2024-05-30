@@ -22,6 +22,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 using MorganStanley.ComposeUI.Messaging;
 using Finos.Fdc3;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
+using MorganStanley.ComposeUI.Fdc3.MorganStanley.ComposeUI.DesktopAgent.Channels;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 

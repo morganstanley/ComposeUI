@@ -13,6 +13,7 @@
  */
 
 using Microsoft.Extensions.Logging;
+using MorganStanley.ComposeUI.Fdc3.MorganStanley.ComposeUI.DesktopAgent.Channels;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;

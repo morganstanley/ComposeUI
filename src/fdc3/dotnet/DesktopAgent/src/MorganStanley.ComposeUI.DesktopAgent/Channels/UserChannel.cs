@@ -17,11 +17,12 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
+namespace MorganStanley.ComposeUI.Fdc3.MorganStanley.ComposeUI.DesktopAgent.Channels;
 
 internal class UserChannel : IAsyncDisposable
 {
@@ -113,7 +114,7 @@ internal class UserChannel : IAsyncDisposable
             return ValueTask.FromResult(_lastContext);
         }
 
-        if (_contexts.TryGetValue(payload.ContextType, out IMessageBuffer? messageBuffer))
+        if (_contexts.TryGetValue(payload.ContextType, out var messageBuffer))
         {
             return ValueTask.FromResult<IMessageBuffer?>(messageBuffer);
         }

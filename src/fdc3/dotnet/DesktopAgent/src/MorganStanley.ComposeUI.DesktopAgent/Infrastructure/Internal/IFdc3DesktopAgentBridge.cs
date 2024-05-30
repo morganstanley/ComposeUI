@@ -14,6 +14,7 @@
 
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using Finos.Fdc3;
+using MorganStanley.ComposeUI.Fdc3.MorganStanley.ComposeUI.DesktopAgent.Channels;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
