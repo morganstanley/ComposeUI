@@ -12,10 +12,10 @@
  * and limitations under the License.
  */
 
-using System.Text.Json;
+using Finos.Fdc3.Context;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
-using Finos.Fdc3.Context;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
 
