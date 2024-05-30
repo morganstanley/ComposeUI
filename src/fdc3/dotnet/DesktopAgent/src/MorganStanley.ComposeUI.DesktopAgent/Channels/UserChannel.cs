@@ -21,7 +21,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
 
 internal class UserChannel : IAsyncDisposable
 {
@@ -113,11 +113,11 @@ internal class UserChannel : IAsyncDisposable
             return ValueTask.FromResult(_lastContext);
         }
 
-        if (_contexts.TryGetValue(payload.ContextType, out IMessageBuffer? messageBuffer))
+        if (_contexts.TryGetValue(payload.ContextType, out var messageBuffer))
         {
             return ValueTask.FromResult<IMessageBuffer?>(messageBuffer);
         }
-        
+
         return ValueTask.FromResult<IMessageBuffer?>(null);
     }
 
