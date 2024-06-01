@@ -49,6 +49,19 @@ updates:
     schedule:
       interval: 'monthly'
 
+  - package-ecosystem: 'nuget'
+    directory: '/'
+    schedule:
+      interval: 'monthly'
+    groups:
+      react:
+        patterns:
+          - 'Infragistics*'
+      grpc:
+        patterns:
+          - 'Grpc*'
+          - 'Google.Protobuf*'
+
   - package-ecosystem: 'npm'
     directory: '/'
     schedule:
