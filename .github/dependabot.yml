@@ -54,7 +54,7 @@ updates:
     schedule:
       interval: 'monthly'
     groups:
-      react:
+      infragistics:
         patterns:
           - 'Infragistics*'
       grpc:
