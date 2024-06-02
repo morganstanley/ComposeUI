@@ -7,10 +7,6 @@
 
 version: 2
 updates:
-  - package-ecosystem: 'nuget'
-    directory: '/' # Location of package manifests
-    schedule:
-      interval: 'monthly'
 
   # Dependabot doesn't support glob syntax. Every solution needs an entry
 
