@@ -46,6 +46,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "app-directory", "app-direct
 		..\..\..\examples\fdc3-appdirectory\apps.json = ..\..\..\examples\fdc3-appdirectory\apps.json
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_", "_", "{1944F009-EA2D-4DA7-A90C-DCAF44D524A4}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\..\Directory.Build.props = ..\..\..\Directory.Build.props
+		..\..\..\Directory.Packages.props = ..\..\..\Directory.Packages.props
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
