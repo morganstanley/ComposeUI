@@ -12,6 +12,10 @@
  * and limitations under the License.
  */
 
+using System.Threading.Tasks.Dataflow;
+using Finos.Fdc3;
+using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
+
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
 internal static class Fdc3Topic
@@ -32,15 +36,30 @@ internal static class Fdc3Topic
         return $"{RaiseIntent}/{intent}/{instanceId}";
     }
 
-    internal static UserChannelTopics UserChannel(string id) => new(id);
+    internal static ChannelTopics UserChannel(string id) => new ChannelTopics(id, ChannelType.User);
+
+    internal static ChannelTopics PrivateChannel(string id) => new ChannelTopics(id, ChannelType.Private);
 }
 
-internal class UserChannelTopics
+internal class ChannelTopics
 {
     private readonly string _channelRoot;
-    public UserChannelTopics(string id)
+    internal ChannelTopics(string id, ChannelType type)
     {
-        _channelRoot = $"{Fdc3Topic.TopicRoot}userChannels/{id}/";
+        string channelTypeString;
+        switch (type)
+        {
+            case ChannelType.User:
+                channelTypeString = "userChannels";
+                break;
+            case ChannelType.Private:
+                channelTypeString = "privateChannels";
+                break;
+            default:
+                throw new NotImplementedException("Channel type not implemented yet");
+        }
+
+        _channelRoot = $"{Fdc3Topic.TopicRoot}{channelTypeString}/{id}/";
         Broadcast = _channelRoot + "broadcast";
         GetCurrentContext = _channelRoot + "getCurrentContext";
     }

@@ -46,6 +46,8 @@ import { Fdc3FindIntentsByContextResponse } from './infrastructure/messages/Fdc3
 import { ComposeUIErrors } from './infrastructure/ComposeUIErrors';
 import { Fdc3IntentListenerRequest } from './infrastructure/messages/Fdc3IntentListenerRequest';
 import { Fdc3IntentListenerResponse } from './infrastructure/messages/Fdc3IntentListenerResponse';
+import { Fdc3CreatePrivateChannelRequest } from './infrastructure/Fdc3CreatePrivateChannelRequest';
+import {Fdc3CreatePrivateChannelResponse} from './infrastructure/Fdc3CreatePrivateChannelResponse';
 
 declare global {
     interface Window {
@@ -233,7 +235,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
             let channel = this.userChannels.find(innerChannel => innerChannel.id == channelId);
             if (!channel) {
                 try {
-                    await this.invokeChannelCreationMessage(ComposeUITopic.joinUserChannel(), channelId, "user");
+                    await this.findAndConnectUserChannel(ComposeUITopic.joinUserChannel(), channelId);
                     return resolve();
                 } catch (error) {
                     return reject(error);
@@ -366,8 +368,8 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         }
     }
 
-    private async invokeChannelCreationMessage(topic: string, channelId: string, channelType: ChannelType): Promise<void> {
-        const message = JSON.stringify(new Fdc3FindChannelRequest(channelId, channelType));
+    private async findAndConnectUserChannel(topic: string, channelId: string): Promise<void> {
+        const message = JSON.stringify(new Fdc3FindChannelRequest(channelId, "user"));
         const response = await this.messageRouterClient.invoke(topic, message);
         if (response) {
             const fdc3Message = <Fdc3FindChannelResponse>JSON.parse(response);
@@ -375,11 +377,25 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
                 throw new Error(fdc3Message.error);
             }
             if (fdc3Message.found) {
-                this.currentChannel = new ComposeUIChannel(channelId, channelType, this.messageRouterClient);
+                this.currentChannel = new ComposeUIChannel(channelId, "user", this.messageRouterClient);
                 this.addChannel(this.currentChannel);
             }
         }
     }
+
+    private async createNewPrivateChannel(): Promise<void> {
+        const message = JSON.stringify(new Fdc3CreatePrivateChannelRequest());
+        const response = await this.messageRouterClient.invoke("", message);
+        if(response){
+            const fdc3response = <Fdc3CreatePrivateChannelResponse>JSON.parse(response);
+            if(fdc3response.error){
+                throw new Error(fdc3response.error);
+            }
+            // return channel            
+        }
+    }
+
+
 
     private async unsubscribe(listener: ComposeUIIntentListener): Promise<void> {
         return new Promise(async (resolve, reject) => {
