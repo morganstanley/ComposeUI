@@ -16,6 +16,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
 public class ResolverUiAppData
 {
+    public string AppId { get; set; }
     public IAppMetadata AppMetadata { get; set; }
     public IIcon? Icon { get; set; }
 }

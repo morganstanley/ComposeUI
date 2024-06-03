@@ -16,12 +16,15 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 using Finos.Fdc3;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
+using MorganStanley.ComposeUI.Shell.Fdc3.ResolverUi.Pages;
 
-namespace MorganStanley.ComposeUI.Shell.Fdc3;
+namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUi;
 
 /// <summary>
 /// Interaction logic for Fdc3ResolverUi.xaml
@@ -29,10 +32,15 @@ namespace MorganStanley.ComposeUI.Shell.Fdc3;
 public partial class Fdc3ResolverUi : Window, IDisposable
 {
     private ILogger<Fdc3ResolverUi> _logger;
+    private readonly Page _simpleResolverUiPage;
+    private readonly Size _simpleResolverUiSize = new(500, 400);
+    private readonly Page _advancedResolverUiPage;
+    private readonly Size _advancedResolverUiSize = new(800, 600);
+    private Page? _currentPage;
     private readonly List<ResolverUiAppData> _appData = new();
     private readonly CancellationTokenSource _userCancellationTokenSource;
 
-    public IAppMetadata? AppMetadata { get; private set; }
+    public IAppMetadata? AppMetadata { get; internal set; }
     internal CancellationToken UserCancellationToken => _userCancellationTokenSource.Token;
     
     public Fdc3ResolverUi(
@@ -48,12 +56,16 @@ public partial class Fdc3ResolverUi : Window, IDisposable
         {
             _appData.Add(new()
             {
+                AppId = app.AppId,
                 AppMetadata = app,
-                Icon = app.Icons.FirstOrDefault() ?? null
+                Icon = app.Icons.FirstOrDefault() //First Icon from the array will be shown on the ResolverUi
             });
         }
 
-        ResolverUiDataSource.ItemsSource = _appData;
+        _simpleResolverUiPage = new SimpleResolverUiPage(_appData);
+        _advancedResolverUiPage = new AdvancedResolverUiPage(_appData);
+
+        SetCurrentPageToSimpleView();
     }
 
     protected override void OnClosing(CancelEventArgs e)
@@ -73,18 +85,51 @@ public partial class Fdc3ResolverUi : Window, IDisposable
         Close();
     }
 
-    private void ResolverUiDataSource_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
-    {
-        if (ResolverUiDataSource.SelectedItem != null)
-        {
-            AppMetadata = ((ResolverUiAppData) ResolverUiDataSource.SelectedItem).AppMetadata;
-            Close();
-        }
-    }
-
     public void Dispose()
     {
         _userCancellationTokenSource.Cancel();
         _userCancellationTokenSource.Dispose();
+    }
+
+    private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton == MouseButton.Left)
+        { 
+            DragMove(); 
+        }
+    }
+
+    private void SetCurrentPageToSimpleView()
+    {
+        ResolverUiFrame.Content = _simpleResolverUiPage;
+        Width = _simpleResolverUiSize.Width;
+        Height = _simpleResolverUiSize.Height;
+        _currentPage = _simpleResolverUiPage;
+    }
+
+    private void SetCurrentPageToAdvancedView()
+    {
+        ResolverUiFrame.Content = _advancedResolverUiPage;
+        Width = _advancedResolverUiSize.Width;
+        Height = _advancedResolverUiSize.Height;
+        _currentPage = _advancedResolverUiPage;
+    }
+
+    private void OpenSimpleResolverUi(object sender, RoutedEventArgs e)
+    {
+        if (_currentPage != null
+            && _currentPage != _simpleResolverUiPage)
+        {
+            SetCurrentPageToSimpleView();
+        }
+    }
+
+    private void OpenAdvancedResolverUi(object sender, RoutedEventArgs e)
+    {
+        if (_currentPage != null
+            && _currentPage != _advancedResolverUiPage)
+        {
+            SetCurrentPageToAdvancedView();
+        }
     }
 }

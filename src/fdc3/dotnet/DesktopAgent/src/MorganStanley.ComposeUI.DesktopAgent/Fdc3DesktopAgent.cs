@@ -222,12 +222,11 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             return GetIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed);
         }
 
-        if (request.TargetAppIdentifier?.InstanceId == null || request.Intent == null || request.MessageId == null)
+        if (request.TargetAppIdentifier?.InstanceId == null)
         {
             return GetIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed);
         }
 
-        using var cancellationTokenSource = new CancellationTokenSource();
         try
         {
             var intentResolution = await GetIntentResolutionResult(request).WaitAsync(_options.IntentResultTimeout);
@@ -247,11 +246,6 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     public ValueTask<StoreIntentResultResponse> StoreIntentResult(StoreIntentResultRequest? request)
     {
         if (request == null)
-        {
-            return ValueTask.FromResult(StoreIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed));
-        }
-
-        if (request.TargetFdc3InstanceId == null || request.Intent == null)
         {
             return ValueTask.FromResult(StoreIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed));
         }
@@ -434,8 +428,24 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
     private async Task<ResolverUiResponse?> WaitForResolverUiAsync(IEnumerable<AppMetadata> apps)
     {
-        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(1));
-        return await _resolverUi.SendResolverUiRequest(apps, cancellationTokenSource.Token);
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+        
+        try
+        {
+            return await _resolverUi.SendResolverUiRequest(apps, cancellationTokenSource.Token);
+        }
+        catch(TimeoutException exception)
+        {
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug(exception, "MessageRouter didn't receive response from the ResolverUi.");
+            }
+
+            return new ResolverUiResponse()
+            {
+                Error = ResolveError.ResolverTimeout
+            };
+        }
     }
 
     //Here we have a specific application which should either start or we should send a intent resolution request

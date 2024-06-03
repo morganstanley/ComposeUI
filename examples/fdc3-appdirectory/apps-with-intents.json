@@ -15,7 +15,10 @@
         }
       ],
       "interop": {
-        "intents": {}
+        "intents": {
+          "listensFor": {
+          }
+        }
       }
     },
     {

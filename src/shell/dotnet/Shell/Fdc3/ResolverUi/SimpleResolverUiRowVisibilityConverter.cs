@@ -12,40 +12,25 @@
 
 using System;
 using System.Globalization;
+using System.Windows;
 using System.Windows.Data;
-using System.Windows.Media.Imaging;
-using Finos.Fdc3;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
-namespace MorganStanley.ComposeUI.Shell.Fdc3;
+namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUi;
 
-public class ImageSourceConverter : IValueConverter
+internal class SimpleResolverUiRowVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value is not IIcon icon)
+        if (value is ResolverUiAppData appData)
         {
-            return null;
+            if (appData.AppMetadata.InstanceId == null)
+            {
+                return Visibility.Collapsed;
+            }
         }
 
-        var uri = new Uri(icon.Src);
-        if (uri == null)
-        {
-            return null;
-        }
-        
-        if (uri.Scheme.StartsWith("http") || uri.Scheme.StartsWith("https"))
-        {
-            var bitmap = new BitmapImage();
-            bitmap.BeginInit();
-            bitmap.UriSource = uri;
-            bitmap.DecodePixelHeight = 10;
-            bitmap.DecodePixelWidth = 10;
-            bitmap.EndInit();
-            return bitmap;
-        }
-
-        //TODO native apps
-        throw new NotImplementedException();
+        return Visibility.Visible;
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

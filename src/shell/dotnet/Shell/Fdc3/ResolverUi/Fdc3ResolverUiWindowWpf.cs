@@ -24,7 +24,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
-namespace MorganStanley.ComposeUI.Shell.Fdc3;
+namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUi;
 
 internal class Fdc3ResolverUiWindowWpf : IResolverUiWindow
 {
@@ -58,6 +58,7 @@ internal class Fdc3ResolverUiWindowWpf : IResolverUiWindow
                 }
 
                 resolverUi = new Fdc3ResolverUi(apps, _loggerFactory.CreateLogger<Fdc3ResolverUi>());
+
                 timeoutTask = Task.Delay(timeout)
                     .ContinueWith((task) => resolverUi?.Close(), TaskScheduler.FromCurrentSynchronizationContext());
 
@@ -127,7 +128,7 @@ internal class Fdc3ResolverUiWindowWpf : IResolverUiWindow
                 Application.Current.Windows
                     .Cast<Window>()
                     .FirstOrDefault(window => window.Visibility == Visibility.Visible);
-        })?.Dispatcher ??  
+        })?.Dispatcher ??
         Application.Current.Dispatcher;
     }
 }

@@ -34,9 +34,18 @@
 		
 		<Page Include="MainWindow.xaml" />
 		
-		<Page Include="Fdc3\Fdc3ResolverUi.xaml">
+		<Page Include="Fdc3\ResolverUi\Fdc3ResolverUi.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		</Page>
+
+		<Page Include="Fdc3\ResolverUi\Pages\AdvancedResolverUiPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</Page>
+
+		<Page Include="Fdc3\ResolverUi\Pages\SimpleResolverUiPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</Page>
+		
 	</ItemGroup>
 
 	<ItemGroup>

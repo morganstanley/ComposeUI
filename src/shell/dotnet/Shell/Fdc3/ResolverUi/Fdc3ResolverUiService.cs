@@ -25,10 +25,9 @@ using Microsoft.Extensions.Options;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 using MorganStanley.ComposeUI.Messaging;
 
-namespace MorganStanley.ComposeUI.Shell.Fdc3;
+namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUi;
 
 internal class Fdc3ResolverUiService : IHostedService
 {
@@ -61,15 +60,7 @@ internal class Fdc3ResolverUiService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        switch (_options.Value.DesktopAgent.Fdc3CommunicationRoute)
-        {
-            case Fdc3CommunicationRoute.MessageRouter:
-                await StartMessageRouterAsync(cancellationToken);
-                break;
-
-            default:
-                throw new NotSupportedException(nameof(Fdc3CommunicationRoute));
-        }
+        await StartMessageRouterAsync(cancellationToken);
     }
 
     private async Task StartMessageRouterAsync(CancellationToken cancellationToken)
@@ -91,7 +82,7 @@ internal class Fdc3ResolverUiService : IHostedService
                     return response is null ? null : MessageBuffer.Factory.CreateJson(response, _jsonSerializerOptions);
                 }, cancellationToken: cancellationToken);
 
-        lock(_disposeLock)
+        lock (_disposeLock)
         {
             _disposeTask.Add(async () =>
             {
@@ -117,7 +108,7 @@ internal class Fdc3ResolverUiService : IHostedService
         {
             reversedList = _disposeTask.AsEnumerable().Reverse().ToArray();
         }
-        
+
 
         if (reversedList != null)
         {

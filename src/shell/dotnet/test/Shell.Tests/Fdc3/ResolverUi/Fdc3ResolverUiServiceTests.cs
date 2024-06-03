@@ -17,7 +17,7 @@ using Moq;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 using MorganStanley.ComposeUI.Messaging;
 
-namespace MorganStanley.ComposeUI.Shell.Fdc3;
+namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUi;
 
 public class Fdc3ResolverUiServiceTests
 {

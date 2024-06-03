@@ -32,6 +32,7 @@ using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.Abstractions;
 using MorganStanley.ComposeUI.Shell.Fdc3;
+using MorganStanley.ComposeUI.Shell.Fdc3.ResolverUi;
 using MorganStanley.ComposeUI.Shell.Messaging;
 using MorganStanley.ComposeUI.Shell.Modules;
 using MorganStanley.ComposeUI.Shell.Utilities;
@@ -197,9 +198,7 @@ public partial class App : Application
             // TODO: Use feature flag instead
             if (fdc3Options is { EnableFdc3: true })
             {
-                services.AddFdc3DesktopAgent(
-                    desktopAgent => desktopAgent
-                        .UseMessageRouter());
+                services.AddFdc3DesktopAgent(desktopAgent => desktopAgent.UseMessageRouter());
                 services.AddFdc3AppDirectory();
                 services.AddSingleton<Fdc3ResolverUiWindowWpf>();
                 services.AddSingleton<IResolverUiWindow>(p => p.GetRequiredService<Fdc3ResolverUiWindowWpf>());
