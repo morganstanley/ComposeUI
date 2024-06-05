@@ -11,12 +11,12 @@
  *  
  */
 
-export class Fdc3CreatePrivateChannelRequest {
-    constructor(fdc3instance: string, requesterInstance: string) {
-        this.creatorFdc3InstanceId = fdc3instance;
-        this.intentRequesterInstanceId = requesterInstance;
-    }
+import { AppIdentifier, AppIntent, AppMetadata, Context, IntentResolution } from "@finos/fdc3";
 
-    public readonly creatorFdc3InstanceId: string;
-    public readonly intentRequesterInstanceId: string;
+export interface IntentsClient {
+    findIntent(intent: string, context?: Context, resultType?: string): Promise<AppIntent>;
+    findIntentsByContext(context: Context, resultType?: string): Promise<Array<AppIntent>>;
+    raiseIntent(intent: string, context: Context, app?: string | AppIdentifier): Promise<IntentResolution>
+
+    getIntentResolution(messageId: string, intent: string, source: AppMetadata): Promise<IntentResolution>;
 }

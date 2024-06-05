@@ -18,15 +18,18 @@ import { ComposeUIContextListener } from "./ComposeUIContextListener";
 import { Fdc3GetCurrentContextRequest } from "./messages/Fdc3GetCurrentContextRequest";
 import { ComposeUITopic } from "./ComposeUITopic";
 import { ComposeUIChannel } from "./ComposeUIChannel";
+import { ComposeUIPrivateChannelSubscriptionEventListener } from "./ChannelEventListener";
 
 export class ComposeUIPrivateChannel extends ComposeUIChannel implements PrivateChannel {
-    private addContextListenerHandlers: Array<((contextType?: string) => void)>
+    private addContextListenerHandlers: Array<ComposeUIPrivateChannelSubscriptionEventListener>
 
     constructor(id: string, messageRouterClient: MessageRouter) {
         super(id, "private", messageRouterClient);
     }
     onAddContextListener(handler: (contextType?: string) => void): Listener {
-        this.addContextListenerHandlers.push(handler);
+        var listener = new ComposeUIPrivateChannelSubscriptionEventListener(handler, (x)=>this.removeAddContextListenerHandler(x));
+        this.addContextListenerHandlers.push(listener);
+        return listener;
     }
     onUnsubscribe(handler: (contextType?: string) => void): Listener {
         throw new Error("Method not implemented.");
@@ -38,5 +41,8 @@ export class ComposeUIPrivateChannel extends ComposeUIChannel implements Private
         throw new Error("Method not implemented.");
     }
 
-    
+    private removeAddContextListenerHandler(listener: ComposeUIPrivateChannelSubscriptionEventListener){
+        var idx=this.addContextListenerHandlers.indexOf(listener);   
+    this.addContextListenerHandlers.splice(idx)
+    }
 }

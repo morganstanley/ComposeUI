@@ -11,12 +11,10 @@
  *  
  */
 
-export class Fdc3CreatePrivateChannelRequest {
-    constructor(fdc3instance: string, requesterInstance: string) {
-        this.creatorFdc3InstanceId = fdc3instance;
-        this.intentRequesterInstanceId = requesterInstance;
-    }
+import { Channel, IntentHandler, Listener, PrivateChannel } from "@finos/fdc3";
 
-    public readonly creatorFdc3InstanceId: string;
-    public readonly intentRequesterInstanceId: string;
+export interface ChannelFactory {
+    GetUserChannel(channelId: string): Promise<Channel>;
+    GetPrivateChannel(): Promise<PrivateChannel>;
+    GetIntentListener(intent: string, handler: IntentHandler): Promise<Listener>;
 }

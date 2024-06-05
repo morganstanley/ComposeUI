@@ -12,5 +12,6 @@
  */
 
 export class Fdc3CreatePrivateChannelResponse {
-  public readonly channelId: string;
+  public error?: string;
+  public channelId?: string;
 }
