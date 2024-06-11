@@ -77,20 +77,9 @@ git clone https://github.com/morganstanley/ComposeUI.git
 
 ### Building Nuget and NPM packages
 
-Open Powershell in the ComposeUI folder.
+Open a terminal in the ComposeUI folder.
 
-Restore nuget packages:
-
-```
-PS C:\projects\ComposeUI> .\build\dotnet-restore.ps1
-```
-
-Build .NET solutions:
-
-```
-PS C:\projects\ComposeUI> .\build\dotnet-build.ps1
-```
-Build javascript (with NX)
+Build javascript and .NET (with NX):
 
 ```
 PS C:\projects\ComposeUI> .\build\nx-build.ps1

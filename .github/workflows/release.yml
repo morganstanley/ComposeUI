@@ -59,7 +59,7 @@ jobs:
         with:
           node-version: 20.x
       - run: |
-             npx nx release publish --dry-run --projects=tag:release # THIS IS DRY-RUN
+             npx nx release publish --projects=tag:release
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
