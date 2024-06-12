@@ -82,7 +82,8 @@ Open a terminal in the ComposeUI folder.
 Build javascript and .NET (with NX):
 
 ```
-PS C:\projects\ComposeUI> .\build\nx-build.ps1
+npm i
+npx nx run-many -t build
 ```
 
 Now the necessary artifacts have been built.
