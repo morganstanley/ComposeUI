@@ -12,21 +12,24 @@
  * and limitations under the License.
  */
 
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Finos.Fdc3;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
+namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;
 
 /// <summary>
 /// Abstraction for showing the ResolverUI for the raised intent.
 /// </summary>
-public interface IResolverUiWindow
+public interface IResolverUIProjector
 {
     /// <summary>
     /// Shows ResolverUi for the user to select an module to resolve the raised intent.
     /// </summary>
     /// <param name="apps">Possible modules to resolve the intent.</param>
-    /// <param name="timeout">Configurable timeout to show the blocking window for the set time.</param>
+    /// <param name="timeout">Configurable timeout to show the blocking window for the set of time.</param>
     /// <returns></returns>
-    ValueTask<ResolverUiResponse> ShowResolverUi(IEnumerable<IAppMetadata> apps, TimeSpan timeout);
+    ValueTask<ResolverUIResponse> ShowResolverUI(IEnumerable<IAppMetadata> apps, TimeSpan timeout);
 }

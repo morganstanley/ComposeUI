@@ -22,7 +22,7 @@ using MorganStanley.ComposeUI.Messaging;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
-internal class ResolverUiMessageRouterCommunicator : IResolverUiCommunicator
+internal class ResolverUiMessageRouterCommunicator : IResolverUICommunicator
 {
     private readonly IMessageRouter _messageRouter;
     private readonly JsonSerializerOptions _jsonMessageSerializerOptions = new()
@@ -39,9 +39,9 @@ internal class ResolverUiMessageRouterCommunicator : IResolverUiCommunicator
         _logger = logger ?? NullLogger<ResolverUiMessageRouterCommunicator>.Instance;
     }
 
-    public async Task<ResolverUiResponse?> SendResolverUiRequest(IEnumerable<IAppMetadata> appMetadata, CancellationToken cancellationToken = default)
+    public async Task<ResolverUIResponse?> SendResolverUIRequest(IEnumerable<IAppMetadata> appMetadata, CancellationToken cancellationToken = default)
     {
-        var request = new ResolverUiRequest
+        var request = new ResolverUIRequest
         {
             AppMetadata = appMetadata
         };
@@ -56,7 +56,7 @@ internal class ResolverUiMessageRouterCommunicator : IResolverUiCommunicator
             return null;
         }
 
-        var response = responseBuffer.ReadJson<ResolverUiResponse>(_jsonMessageSerializerOptions);
+        var response = responseBuffer.ReadJson<ResolverUIResponse>(_jsonMessageSerializerOptions);
 
         return response;
     }

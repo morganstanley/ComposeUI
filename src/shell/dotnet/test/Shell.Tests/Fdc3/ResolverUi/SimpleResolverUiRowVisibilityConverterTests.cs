@@ -14,24 +14,23 @@ using System.Globalization;
 using System.Windows;
 using Finos.Fdc3;
 using FluentAssertions;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
-namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUi;
+namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;
 
-public class SimpleResolverUiRowVisibilityConverterTests
+public class SimpleResolverUIRowVisibilityConverterTests
 {
     [Fact]
     public void Convert_returns_Collapsed()
     {
-        var resolverUiAppData = new ResolverUiAppData()
+        var resolverUiAppData = new ResolverUIAppData()
         {
             AppId = "dummyAppId",
             AppMetadata = new AppMetadata("dummyAppId")
         };
 
-        var converter = new SimpleResolverUiRowVisibilityConverter();
+        var converter = new SimpleResolverUIRowVisibilityConverter();
 
-        var result = converter.Convert(resolverUiAppData, typeof(ResolverUiAppData), null, CultureInfo.InvariantCulture);
+        var result = converter.Convert(resolverUiAppData, typeof(ResolverUIAppData), null, CultureInfo.InvariantCulture);
 
         result.Should().NotBeNull();
         result.Should().BeOfType(typeof(Visibility));
@@ -41,9 +40,9 @@ public class SimpleResolverUiRowVisibilityConverterTests
     [Fact]
     public void Convert_returns_Visible_if_the_object_is_not_acceptable()
     {
-        var converter = new SimpleResolverUiRowVisibilityConverter();
+        var converter = new SimpleResolverUIRowVisibilityConverter();
 
-        var result = converter.Convert(new object(), typeof(ResolverUiAppData), null, CultureInfo.InvariantCulture);
+        var result = converter.Convert(new object(), typeof(ResolverUIAppData), null, CultureInfo.InvariantCulture);
 
         result.Should().NotBeNull();
         result.Should().BeOfType(typeof(Visibility));
@@ -53,15 +52,15 @@ public class SimpleResolverUiRowVisibilityConverterTests
     [Fact]
     public void Convert_returns_Visible_if_instanceId_exists()
     {
-        var resolverUiAppData = new ResolverUiAppData()
+        var resolverUiAppData = new ResolverUIAppData()
         {
             AppId = "dummyAppId",
             AppMetadata = new AppMetadata("dummyAppId", Guid.NewGuid().ToString())
         };
 
-        var converter = new SimpleResolverUiRowVisibilityConverter();
+        var converter = new SimpleResolverUIRowVisibilityConverter();
 
-        var result = converter.Convert(resolverUiAppData, typeof(ResolverUiAppData), null, CultureInfo.InvariantCulture);
+        var result = converter.Convert(resolverUiAppData, typeof(ResolverUIAppData), null, CultureInfo.InvariantCulture);
 
         result.Should().NotBeNull();
         result.Should().BeOfType(typeof(Visibility));

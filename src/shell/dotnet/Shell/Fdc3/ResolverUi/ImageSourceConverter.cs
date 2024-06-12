@@ -16,7 +16,7 @@ using System.Windows.Data;
 using System.Windows.Media.Imaging;
 using Finos.Fdc3;
 
-namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUi;
+namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;
 
 public class ImageSourceConverter : IValueConverter
 {

@@ -21,31 +21,21 @@ using System.Windows.Threading;
 using Finos.Fdc3;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
-namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUi;
+namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;
 
-internal class Fdc3ResolverUiWindowWpf : IResolverUiWindow
+internal class Fdc3ResolverUIWindow(ILogger<Fdc3ResolverUIWindow>? logger = null) : IResolverUIProjector
 {
-    private readonly ILogger<Fdc3ResolverUiWindowWpf> _logger;
-    private readonly ILoggerFactory _loggerFactory;
+    private readonly ILogger<Fdc3ResolverUIWindow> _logger = logger ?? NullLogger<Fdc3ResolverUIWindow>.Instance;
 
-    public Fdc3ResolverUiWindowWpf(
-        ILogger<Fdc3ResolverUiWindowWpf>? logger = null,
-        ILoggerFactory? loggerFactory = null)
-    {
-        _logger = logger ?? NullLogger<Fdc3ResolverUiWindowWpf>.Instance;
-        _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
-    }
-
-    public ValueTask<ResolverUiResponse> ShowResolverUi(IEnumerable<IAppMetadata> apps, TimeSpan timeout)
+    public ValueTask<ResolverUIResponse> ShowResolverUI(IEnumerable<IAppMetadata> apps, TimeSpan timeout)
     {
         try
         {
             var dispatcher = GetDispatcher();
 
-            Fdc3ResolverUi? resolverUi = null;
+            Fdc3ResolverUI? resolverUI = null;
             Task? timeoutTask = null;
 
             dispatcher.Invoke(() =>
@@ -57,12 +47,12 @@ internal class Fdc3ResolverUiWindowWpf : IResolverUiWindow
                     return;
                 }
 
-                resolverUi = new Fdc3ResolverUi(apps, _loggerFactory.CreateLogger<Fdc3ResolverUi>());
+                resolverUI = new Fdc3ResolverUI(apps);
 
                 timeoutTask = Task.Delay(timeout)
-                    .ContinueWith((task) => resolverUi?.Close(), TaskScheduler.FromCurrentSynchronizationContext());
+                    .ContinueWith((task) => resolverUI?.Close(), TaskScheduler.FromCurrentSynchronizationContext());
 
-                resolverUi.ShowDialog();
+                resolverUI.ShowDialog();
             });
 
             //First we need to check if the timeout happened
@@ -70,32 +60,32 @@ internal class Fdc3ResolverUiWindowWpf : IResolverUiWindow
                 && timeoutTask.IsCompletedSuccessfully)
             {
                 return ValueTask.FromResult(
-                    new ResolverUiResponse()
+                    new ResolverUIResponse()
                     {
                         Error = ResolveError.ResolverTimeout,
                     });
             }
 
-            if (resolverUi?.UserCancellationToken != null
-                && resolverUi.UserCancellationToken.IsCancellationRequested)
+            if (resolverUI?.UserCancellationToken != null
+                && resolverUI.UserCancellationToken.IsCancellationRequested)
             {
                 return ValueTask.FromResult(
-                    new ResolverUiResponse()
+                    new ResolverUIResponse()
                     {
                         Error = ResolveError.UserCancelledResolution,
                     });
             }
 
             return ValueTask.FromResult(
-                new ResolverUiResponse()
+                new ResolverUIResponse()
                 {
-                    AppMetadata = resolverUi?.AppMetadata
+                    AppMetadata = resolverUI?.AppMetadata
                 });
         }
         catch (TimeoutException)
         {
             return ValueTask.FromResult(
-                    new ResolverUiResponse()
+                    new ResolverUIResponse()
                     {
                         Error = ResolveError.ResolverTimeout,
                     });
@@ -108,7 +98,7 @@ internal class Fdc3ResolverUiWindowWpf : IResolverUiWindow
             }
 
             return ValueTask.FromResult(
-                new ResolverUiResponse()
+                new ResolverUIResponse()
                 {
                     Error = ResolveError.ResolverUnavailable
                 });

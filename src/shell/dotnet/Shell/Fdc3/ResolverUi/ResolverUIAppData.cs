@@ -12,11 +12,25 @@
 
 using Finos.Fdc3;
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
+namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;
 
-public class ResolverUiAppData
+/// <summary>
+/// Model containing information about the app that can resolve the intent.
+/// </summary>
+public class ResolverUIAppData
 {
+    /// <summary>
+    /// Unique identifier.
+    /// </summary>
     public string AppId { get; set; }
+
+    /// <summary>
+    /// <inheritdoc/>
+    /// </summary>
     public IAppMetadata AppMetadata { get; set; }
+
+    /// <summary>
+    /// <inheritdoc/>
+    /// </summary>
     public IIcon? Icon { get; set; }
 }

@@ -12,17 +12,19 @@
  * and limitations under the License.
  */
 
-using Finos.Fdc3;
+using System;
+using System.Windows;
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
+namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;
 
-/// <summary>
-/// Request for the ResolverUI to get the response from the user.
-/// </summary>
-public class ResolverUIRequest
+public class PageSizeChangedEventArgs : EventArgs
 {
-    /// <summary>
-    /// Possible list of AppMetadata that can resolve the raised intent.
-    /// </summary>
-    public IEnumerable<IAppMetadata> AppMetadata { get; set; }
+    private readonly Size _newSize;
+
+    public Size NewSize => _newSize;
+
+    public PageSizeChangedEventArgs(Size newSize)
+    {
+        _newSize = newSize;
+    }
 }

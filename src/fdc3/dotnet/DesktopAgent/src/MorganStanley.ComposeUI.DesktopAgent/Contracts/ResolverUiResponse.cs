@@ -19,7 +19,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 /// <summary>
 /// Response from the service which provides the ResolverUI's functionality.
 /// </summary>
-public class ResolverUiResponse
+public class ResolverUIResponse
 {
     /// <summary>
     /// The chosen app to send the raised intent to handle.

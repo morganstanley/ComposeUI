@@ -8,13 +8,13 @@ is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND
 See the License for the specific language governing permissions and limitations under the License.
 ********************************************************************************************************
 -->
-<Page x:Class="MorganStanley.ComposeUI.Shell.Fdc3.ResolverUi.Pages.AdvancedResolverUiPage"
+<Page x:Class="MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI.Pages.AdvancedResolverUIPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:MorganStanley.ComposeUI.Shell.Fdc3.ResolverUi.Pages"
-      xmlns:mainNamespace="clr-namespace:MorganStanley.ComposeUI.Shell.Fdc3.ResolverUi"
+      xmlns:local="clr-namespace:MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI.Pages"
+      xmlns:mainNamespace="clr-namespace:MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI"
       mc:Ignorable="d" 
       ShowsNavigationUI="False"
       Title="AdvancedResolverUiPage">
@@ -38,7 +38,6 @@ See the License for the specific language governing permissions and limitations 
                 <Setter.Value>
                     <Style TargetType="DataGridCell">
                         <Setter Property="Background" Value="Transparent"/>
-                        <Setter Property="Foreground" Value="White"/>
                         <Setter Property="FontWeight" Value="SemiBold"/>
                         <Setter Property="BorderBrush" Value="Transparent"/>
                     </Style>
@@ -51,7 +50,7 @@ See the License for the specific language governing permissions and limitations 
             <Setter Property="BorderBrush" Value="Transparent"/>
             <Style.Triggers>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#FF177B39"/>
+                    <Setter Property="Background" Value="Gray"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -88,8 +87,7 @@ See the License for the specific language governing permissions and limitations 
                 <DataGrid.Resources>
                     <Style x:Key="DataGridColumnHeaderStyle" TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
                         <Setter Property="Background" Value="Transparent" />
-                        <Setter Property="Height" Value="20" />
-                        <Setter Property="Foreground" Value="White" />
+                        <Setter Property="Height" Value="50" />
                         <Setter Property="FontWeight" Value="Bold" />
                         <Setter Property="VerticalAlignment" Value="Center" />
                         <Setter Property="HorizontalAlignment" Value="Center" />
@@ -110,7 +108,7 @@ See the License for the specific language governing permissions and limitations 
                     </DataGridTemplateColumn>
 
                     <DataGridTextColumn Header="Name" Binding="{Binding Path=AppMetadata.Name}" HeaderStyle="{StaticResource DataGridColumnHeaderStyle}" Width="100" />
-                    <DataGridTextColumn Header="InstanceId" Binding="{Binding Path=AppMetadata.InstanceId}" HeaderStyle="{StaticResource DataGridColumnHeaderStyle}" Width="150" />
+                    <DataGridTextColumn Header="InstanceId" Binding="{Binding Path=AppMetadata.InstanceId}" HeaderStyle="{StaticResource DataGridColumnHeaderStyle}" Width="250" />
                     <DataGridTextColumn Header="Version" Binding="{Binding Path=AppMetadata.Version}" HeaderStyle="{StaticResource DataGridColumnHeaderStyle}" Width="100" Visibility="Hidden" />
                     <DataGridTextColumn Header="ResultType" Binding="{Binding Path=AppMetadata.ResultType}" HeaderStyle="{StaticResource DataGridColumnHeaderStyle}" Width="100" />
                 </DataGrid.Columns>

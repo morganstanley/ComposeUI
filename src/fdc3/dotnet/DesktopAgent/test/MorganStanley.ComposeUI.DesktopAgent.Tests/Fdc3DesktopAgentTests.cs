@@ -42,7 +42,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
 
     private readonly IFdc3DesktopAgentBridge _fdc3;
     private readonly MockModuleLoader _mockModuleLoader = new();
-    private readonly Mock<IResolverUiCommunicator> _mockResolverUiCommunicator = new();
+    private readonly Mock<IResolverUICommunicator> _mockResolverUICommunicator = new();
 
     public Fdc3DesktopAgentTests()
     {
@@ -50,7 +50,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             _appDirectory,
             _mockModuleLoader.Object,
             new Fdc3DesktopAgentOptions(),
-            _mockResolverUiCommunicator.Object,
+            _mockResolverUICommunicator.Object,
             NullLoggerFactory.Instance);
     }
 
@@ -496,7 +496,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
         };
 
         var result = await _fdc3.RaiseIntent(request);
-        _mockResolverUiCommunicator.Verify(_ => _.SendResolverUiRequest(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()));
+        _mockResolverUICommunicator.Verify(_ => _.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()));
     }
 
     [Fact]

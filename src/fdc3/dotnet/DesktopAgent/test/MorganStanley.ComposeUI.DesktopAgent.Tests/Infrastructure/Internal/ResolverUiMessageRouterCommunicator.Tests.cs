@@ -29,7 +29,7 @@ public class ResolverUiMessageRouterCommunicatorTests
     };
 
     [Fact]
-    public async Task SendResolverUiRequest_will_return_null()
+    public async Task SendResolverUIRequest_will_return_null()
     {
         var messageRouterMock = new Mock<IMessageRouter>();
         messageRouterMock.Setup(
@@ -40,15 +40,15 @@ public class ResolverUiMessageRouterCommunicatorTests
                     It.IsAny<CancellationToken>()))
             .Returns(null);
 
-        var resolverUiMessageRouterCommunicator = new ResolverUiMessageRouterCommunicator(messageRouterMock.Object);
+        var resolverUIMessageRouterCommunicator = new ResolverUiMessageRouterCommunicator(messageRouterMock.Object);
 
-        var response = await resolverUiMessageRouterCommunicator.SendResolverUiRequest(It.IsAny<IEnumerable<IAppMetadata>>());
+        var response = await resolverUIMessageRouterCommunicator.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>());
 
         response.Should().BeNull();
     }
 
     [Fact]
-    public async Task SendResolverUiRequest_will_return_response()
+    public async Task SendResolverUIRequest_will_return_response()
     {
         var messageRouterMock = new Mock<IMessageRouter>();
         messageRouterMock.Setup(
@@ -58,14 +58,14 @@ public class ResolverUiMessageRouterCommunicatorTests
                     It.IsAny<InvokeOptions>(),
                     It.IsAny<CancellationToken>()))
             .Returns(ValueTask.FromResult<MessageBuffer?>(
-                MessageBuffer.Factory.CreateJson(new ResolverUiResponse()
+                MessageBuffer.Factory.CreateJson(new ResolverUIResponse()
                 {
                     AppMetadata = new AppMetadata(){ AppId = "testAppId" }
                 }, _jsonSerializerOptions)));
 
-        var resolverUiMessageRouterCommunicator = new ResolverUiMessageRouterCommunicator(messageRouterMock.Object);
+        var resolverUIMessageRouterCommunicator = new ResolverUiMessageRouterCommunicator(messageRouterMock.Object);
 
-        var response = await resolverUiMessageRouterCommunicator.SendResolverUiRequest(It.IsAny<IEnumerable<IAppMetadata>>());
+        var response = await resolverUIMessageRouterCommunicator.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>());
 
         response.Should().NotBeNull();
         response!.AppMetadata.Should().NotBeNull();

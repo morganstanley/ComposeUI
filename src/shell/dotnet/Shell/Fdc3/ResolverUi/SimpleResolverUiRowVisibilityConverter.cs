@@ -14,15 +14,14 @@ using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
-namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUi;
+namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;
 
-internal class SimpleResolverUiRowVisibilityConverter : IValueConverter
+internal class SimpleResolverUIRowVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value is ResolverUiAppData appData)
+        if (value is ResolverUIAppData appData)
         {
             if (appData.AppMetadata.InstanceId == null)
             {

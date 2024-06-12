@@ -38,7 +38,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 {
     private readonly ILogger<Fdc3DesktopAgent> _logger;
-    private readonly IResolverUiCommunicator _resolverUi;
+    private readonly IResolverUICommunicator _resolverUI;
     private readonly List<UserChannel> _userChannels = new();
     private readonly ILoggerFactory _loggerFactory;
     private readonly Fdc3DesktopAgentOptions _options;
@@ -53,13 +53,13 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         IAppDirectory appDirectory,
         IModuleLoader moduleLoader,
         IOptions<Fdc3DesktopAgentOptions> options,
-        IResolverUiCommunicator resolverUi,
+        IResolverUICommunicator resolverUI,
         ILoggerFactory? loggerFactory = null)
     {
         _appDirectory = appDirectory;
         _moduleLoader = moduleLoader;
         _options = options.Value;
-        _resolverUi = resolverUi;
+        _resolverUI = resolverUI;
         _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
         _logger = _loggerFactory.CreateLogger<Fdc3DesktopAgent>() ?? NullLogger<Fdc3DesktopAgent>.Instance;
     }
@@ -426,13 +426,13 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         };
     }
 
-    private async Task<ResolverUiResponse?> WaitForResolverUiAsync(IEnumerable<AppMetadata> apps)
+    private async Task<ResolverUIResponse?> WaitForResolverUiAsync(IEnumerable<AppMetadata> apps)
     {
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
         
         try
         {
-            return await _resolverUi.SendResolverUiRequest(apps, cancellationTokenSource.Token);
+            return await _resolverUI.SendResolverUIRequest(apps, cancellationTokenSource.Token);
         }
         catch(TimeoutException exception)
         {
@@ -441,7 +441,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
                 _logger.LogDebug(exception, "MessageRouter didn't receive response from the ResolverUi.");
             }
 
-            return new ResolverUiResponse()
+            return new ResolverUIResponse()
             {
                 Error = ResolveError.ResolverTimeout
             };

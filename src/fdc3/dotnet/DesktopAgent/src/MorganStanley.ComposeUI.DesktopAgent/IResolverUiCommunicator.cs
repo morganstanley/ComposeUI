@@ -17,7 +17,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
-public interface IResolverUiCommunicator
+public interface IResolverUICommunicator
 {
     /// <summary>
     /// Sends a request for the shell to show a window, aka ResolverUI, with the appropriate AppMetadata that can solve the raised intent.
@@ -25,5 +25,5 @@ public interface IResolverUiCommunicator
     /// <param name="appMetadata"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task<ResolverUiResponse?> SendResolverUiRequest(IEnumerable<IAppMetadata> appMetadata, CancellationToken cancellationToken = default);
+    public Task<ResolverUIResponse?> SendResolverUIRequest(IEnumerable<IAppMetadata> appMetadata, CancellationToken cancellationToken = default);
 }

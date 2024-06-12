@@ -14,7 +14,6 @@
 
 using Finos.Fdc3;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
-using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
@@ -34,7 +33,7 @@ internal sealed class RaiseIntentResponse
     public string? Intent { get; set; }
 
     /// <summary>
-    /// Apps that could handle the raiseIntent.
+    /// App that can handle the raiseIntent.
     /// </summary>
     public AppMetadata? AppMetadata { get; set; }
 

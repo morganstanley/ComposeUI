@@ -44,7 +44,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
 
     private readonly Fdc3DesktopAgentMessageRouterService _fdc3;
     private readonly Mock<IMessageRouter> _mockMessageRouter = new();
-    private readonly Mock<IResolverUiCommunicator> _mockResolverUiCommunicator = new();
+    private readonly Mock<IResolverUICommunicator> _mockResolverUICommunicator = new();
     private readonly MockModuleLoader _mockModuleLoader = new();
 
     public Fdc3DesktopAgentMessageRouterServiceTests()
@@ -55,7 +55,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
                 _appDirectory,
                 _mockModuleLoader.Object,
                 new Fdc3DesktopAgentOptions(),
-                _mockResolverUiCommunicator.Object,
+                _mockResolverUICommunicator.Object,
                 NullLoggerFactory.Instance),
             new Fdc3DesktopAgentOptions(),
             NullLoggerFactory.Instance);
@@ -238,7 +238,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
         };
 
         var result = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
-        _mockResolverUiCommunicator.Verify(_ => _.SendResolverUiRequest(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()));
+        _mockResolverUICommunicator.Verify(_ => _.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()));
     }
 
     [Fact]
@@ -255,7 +255,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
         };
 
         var result = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
-        _mockResolverUiCommunicator.Verify(_ => _.SendResolverUiRequest(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()));
+        _mockResolverUICommunicator.Verify(_ => _.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()));
     }
 
     [Fact]

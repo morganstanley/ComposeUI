@@ -14,16 +14,15 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
-namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUi.Pages;
+namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI.Pages;
 
 /// <summary>
 /// Interaction logic for AdvancedResolverUiPage.xaml
 /// </summary>
-public partial class AdvancedResolverUiPage : Page
+public partial class AdvancedResolverUIPage : Page
 {
-    public AdvancedResolverUiPage(IEnumerable<ResolverUiAppData> apps)
+    public AdvancedResolverUIPage(IEnumerable<ResolverUIAppData> apps)
     {
         InitializeComponent();
 
@@ -35,9 +34,9 @@ public partial class AdvancedResolverUiPage : Page
         if (ResolverUiDataSource.SelectedItem != null)
         {
             var window = Window.GetWindow(this);
-            if (window is Fdc3ResolverUi resolverUiWindow)
+            if (window is Fdc3ResolverUI resolverUiWindow)
             {
-                resolverUiWindow.AppMetadata = ((ResolverUiAppData) ResolverUiDataSource.SelectedItem).AppMetadata;
+                resolverUiWindow.AppMetadata = ((ResolverUIAppData) ResolverUiDataSource.SelectedItem).AppMetadata;
                 resolverUiWindow.Close();
             }
         }

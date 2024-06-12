@@ -19,23 +19,16 @@ using System.Threading.Tasks;
 using Finos.Fdc3;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
 using MorganStanley.ComposeUI.Messaging;
 
-namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUi;
+namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;
 
-internal class Fdc3ResolverUiService : IHostedService
+internal class Fdc3ResolverUIService : IHostedService
 {
-    private readonly Fdc3Options _options;
     private readonly IHost _host;
-    private readonly IResolverUiWindow _resolverUiWindow;
-    private readonly ILogger<Fdc3ResolverUiService> _logger;
-    private readonly ILoggerFactory _loggerFactory;
+    private readonly IResolverUIProjector _resolverUIWindow;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         Converters = { new AppMetadataJsonConverter(), new IconJsonConverter() },
@@ -44,26 +37,20 @@ internal class Fdc3ResolverUiService : IHostedService
     private readonly List<Func<ValueTask>> _disposeTask = new();
     private readonly object _disposeLock = new();
 
-    public Fdc3ResolverUiService(
-        IOptions<Fdc3Options> options,
+    public Fdc3ResolverUIService(
         IHost host,
-        IResolverUiWindow resolverUiWindow,
-        ILogger<Fdc3ResolverUiService>? logger = null,
-        ILoggerFactory? loggerFactory = null)
+        IResolverUIProjector resolverUIWindow)
     {
-        _options = options.Value;
         _host = host;
-        _resolverUiWindow = resolverUiWindow;
-        _logger = logger ?? NullLogger<Fdc3ResolverUiService>.Instance;
-        _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
+        _resolverUIWindow = resolverUIWindow;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        await StartMessageRouterAsync(cancellationToken);
+        await StartMessageRouterServiceAsync(cancellationToken);
     }
 
-    private async Task StartMessageRouterAsync(CancellationToken cancellationToken)
+    private async Task StartMessageRouterServiceAsync(CancellationToken cancellationToken)
     {
         var messageRouter = _host.Services.GetRequiredService<IMessageRouter>();
         var topic = "ComposeUI/fdc3/v2.0/resolverUI";
@@ -71,13 +58,13 @@ internal class Fdc3ResolverUiService : IHostedService
         await messageRouter.RegisterServiceAsync(topic,
                 async (endpoint, payload, context) =>
                 {
-                    var request = payload?.ReadJson<ResolverUiRequest>(_jsonSerializerOptions);
+                    var request = payload?.ReadJson<ResolverUIRequest>(_jsonSerializerOptions);
                     if (request == null)
                     {
                         return null;
                     }
 
-                    var response = await ShowResolverUi(request.AppMetadata);
+                    var response = await ShowResolverUI(request.AppMetadata);
 
                     return response is null ? null : MessageBuffer.Factory.CreateJson(response, _jsonSerializerOptions);
                 }, cancellationToken: cancellationToken);
@@ -95,9 +82,9 @@ internal class Fdc3ResolverUiService : IHostedService
         }
     }
 
-    private ValueTask<ResolverUiResponse> ShowResolverUi(IEnumerable<IAppMetadata> apps)
+    private ValueTask<ResolverUIResponse> ShowResolverUI(IEnumerable<IAppMetadata> apps)
     {
-        return _resolverUiWindow.ShowResolverUi(apps, TimeSpan.FromMinutes(1));
+        return _resolverUIWindow.ShowResolverUI(apps, TimeSpan.FromMinutes(1));
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)

@@ -17,18 +17,17 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using Finos.Fdc3;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
-namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUi.Pages;
+namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI.Pages;
 
 /// <summary>
 /// Interaction logic for SimpleResolverUiPage.xaml
 /// </summary>
-public partial class SimpleResolverUiPage : Page
+public partial class SimpleResolverUIPage : Page
 {
-    private readonly IEnumerable<ResolverUiAppData> _apps;
+    private readonly IEnumerable<ResolverUIAppData> _apps;
 
-    public SimpleResolverUiPage(IEnumerable<ResolverUiAppData> apps)
+    public SimpleResolverUIPage(IEnumerable<ResolverUIAppData> apps)
     {
         InitializeComponent();
 
@@ -59,14 +58,14 @@ public partial class SimpleResolverUiPage : Page
     {
         if (ResolverUiDataSource.SelectedItem != null)
         {
-            SetAppMetadataAndCloseWindow(((ResolverUiAppData) ResolverUiDataSource.SelectedItem).AppMetadata);
+            SetAppMetadataAndCloseWindow(((ResolverUIAppData) ResolverUiDataSource.SelectedItem).AppMetadata);
         }
     }
 
     private void SetAppMetadataAndCloseWindow(IAppMetadata appMetadata)
     {
         var window = Window.GetWindow(this);
-        if (window is Fdc3ResolverUi resolverUiWindow)
+        if (window is Fdc3ResolverUI resolverUiWindow)
         {
             resolverUiWindow.AppMetadata = appMetadata;
             resolverUiWindow.Close();
