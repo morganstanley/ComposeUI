@@ -16,7 +16,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls.Ribbon;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Infragistics.Windows.DockManager;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.ImageSource;
 using MorganStanley.ComposeUI.Shell.Utilities;
@@ -112,14 +111,18 @@ public partial class MainWindow : RibbonWindow
             }
             else if (manifest.TryGetDetails<NativeManifestDetails>(out var nativeManifestDetails))
             {
-                using var icon =
-                    System.Drawing.Icon.ExtractAssociatedIcon(Path.GetFullPath(nativeManifestDetails.Path.ToString()));
-
-                if (icon != null)
+                var path = nativeManifestDetails.Path.IsAbsoluteUri ? nativeManifestDetails.Path.AbsolutePath : nativeManifestDetails.Path.ToString();
+                if (File.Exists(path))
                 {
-                    using var bitmap = icon.ToBitmap();
+                    using var icon =
+                        System.Drawing.Icon.ExtractAssociatedIcon(path);
 
-                    ImageSource = bitmap.ToImageSource();
+                    if (icon != null)
+                    {
+                        using var bitmap = icon.ToBitmap();
+
+                        ImageSource = bitmap.ToImageSource();
+                    }
                 }
             }
         }
