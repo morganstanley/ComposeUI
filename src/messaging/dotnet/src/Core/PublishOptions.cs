@@ -10,9 +10,11 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using MorganStanley.ComposeUI.Messaging.Abstractions;
+
 namespace MorganStanley.ComposeUI.Messaging;
 
-public readonly record struct PublishOptions
+public readonly record struct PublishOptions : IPublishOptions
 {
     public string? CorrelationId { get; init; }
 

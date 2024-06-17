@@ -23,6 +23,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Helpers;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.TestUtils;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 using MorganStanley.ComposeUI.ModuleLoader;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIdentifier;
 using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
@@ -215,8 +216,8 @@ public class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
         _mockMessageRouter.Verify(
             _ => _.PublishAsync(
                 Fdc3Topic.RaiseIntentResolution("intentMetadataCustom", targetFdc3InstanceId),
-                It.IsAny<MessageBuffer>(),
-                It.IsAny<PublishOptions>(),
+                It.IsAny<IMessageBuffer>(),
+                It.IsAny<IPublishOptions>(),
                 It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -792,8 +793,8 @@ public class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
         _mockMessageRouter.Verify(
             _ => _.PublishAsync(
                 Fdc3Topic.RaiseIntentResolution("intentMetadataCustom", targetFdc3InstanceId),
-                It.IsAny<MessageBuffer>(),
-                It.IsAny<PublishOptions>(),
+                It.IsAny<IMessageBuffer>(),
+                It.IsAny<IPublishOptions>(),
                 It.IsAny<CancellationToken>()));
     }
 
@@ -841,8 +842,8 @@ public class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
         _mockMessageRouter.Verify(
             _ => _.PublishAsync(
                 Fdc3Topic.RaiseIntentResolution("intentMetadataCustom", targetFdc3InstanceId),
-                It.IsAny<MessageBuffer>(),
-                It.IsAny<PublishOptions>(),
+                It.IsAny<IMessageBuffer>(),
+                It.IsAny<IPublishOptions>(),
                 It.IsAny<CancellationToken>()));
     }
 

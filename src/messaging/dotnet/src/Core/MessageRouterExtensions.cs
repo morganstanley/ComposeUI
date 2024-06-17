@@ -10,10 +10,9 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using System.Reactive;
-using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 using MorganStanley.ComposeUI.Messaging.Internal;
 
 namespace MorganStanley.ComposeUI.Messaging;
@@ -90,26 +89,14 @@ public static class MessageRouterExtensions
         IObserver<TopicMessage> observer,
         CancellationToken cancellationToken = default)
     {
-        var innerSubscriber = AsyncObserver.Create<TopicMessage>(
-            message =>
-            {
-                observer.OnNext(message);
+        Func<IMessageBuffer, ValueTask> innerSubscriber = async messageBuffer =>
+        {
+            MessageContext context = new MessageContext();
+            var topicMessage = new TopicMessage(topic, messageBuffer, context);
 
-                return default;
-
-            },
-            exception =>
-            {
-                observer.OnError(exception);
-
-                return default;
-            },
-            () =>
-            {
-                observer.OnCompleted();
-
-                return default;
-            });
+            observer.OnNext(topicMessage);
+            await ValueTask.CompletedTask;
+        };
 
         return Disposable.FromAsyncDisposable(
             messageRouter.SubscribeAsync(topic, innerSubscriber, cancellationToken));
@@ -130,26 +117,12 @@ public static class MessageRouterExtensions
         IObserver<string?> observer,
         CancellationToken cancellationToken = default)
     {
-        var innerSubscriber = AsyncObserver.Create<TopicMessage>(
-            message =>
-            {
-                observer.OnNext(message.Payload?.GetString());
-
-                return default;
-
-            },
-            exception =>
-            {
-                observer.OnError(exception);
-
-                return default;
-            },
-            () =>
-            {
-                observer.OnCompleted();
-
-                return default;
-            });
+        Func<IMessageBuffer, ValueTask> innerSubscriber = async messageBuffer =>
+        {
+            string? message = messageBuffer?.GetString();
+            observer.OnNext(message);
+            await ValueTask.CompletedTask;
+        };
 
         return Disposable.FromAsyncDisposable(
             messageRouter.SubscribeAsync(topic, innerSubscriber, cancellationToken));
@@ -170,10 +143,12 @@ public static class MessageRouterExtensions
         IAsyncObserver<string?> subscriber,
         CancellationToken cancellationToken = default)
     {
-        var innerSubscriber = AsyncObserver.Create<TopicMessage>(
-            message => subscriber.OnNextAsync(message.Payload?.GetString()),
-            subscriber.OnErrorAsync,
-            subscriber.OnCompletedAsync);
+
+        Func<IMessageBuffer, ValueTask> innerSubscriber = async messageBuffer =>
+        {
+            string? message = messageBuffer?.GetString();
+            await subscriber.OnNextAsync(message);
+        };
 
         return messageRouter.SubscribeAsync(topic, innerSubscriber, cancellationToken);
     }
@@ -192,23 +167,14 @@ public static class MessageRouterExtensions
     {
         var channel = Channel.CreateUnbounded<TopicMessage>();
 
-        await using var subscription = await messageRouter.SubscribeAsync(
-            topic,
-            AsyncObserver.Create<TopicMessage>(
-                onNextAsync: message => channel.Writer.WriteAsync(message, cancellationToken),
-                onErrorAsync: exception =>
-                {
-                    channel.Writer.TryComplete(exception);
+        Func<IMessageBuffer, ValueTask> handler = async messageBuffer =>
+        {
+            var context = new MessageContext();
+            var topicMessage = new TopicMessage(topic, messageBuffer, context);
+            await channel.Writer.WriteAsync(topicMessage, cancellationToken);
+        };
 
-                    return default;
-                },
-                onCompletedAsync: () =>
-                {
-                    channel.Writer.TryComplete();
-
-                    return default;
-                }),
-            cancellationToken);
+        await using var subscription = await messageRouter.SubscribeAsync(topic, handler, cancellationToken);
 
         await foreach (var message in channel.Reader.ReadAllAsync(cancellationToken).WithCancellation(cancellationToken))
         {

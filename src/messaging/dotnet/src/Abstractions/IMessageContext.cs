@@ -10,16 +10,9 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using MorganStanley.ComposeUI.Messaging.Abstractions;
-
-namespace MorganStanley.ComposeUI.Messaging;
-
-/// <summary>
-///     The delegate type that gets called when an endpoint is invoked.
-/// </summary>
-public delegate ValueTask<IMessageBuffer?> MessageHandler(string endpoint, IMessageBuffer? payload, IMessageContext context);
-
-/// <summary>
-///     The delegate type that gets called when an endpoint is invoked (plain text version).
-/// </summary>
-public delegate ValueTask<string?> PlainTextMessageHandler(string endpoint, string? payload, IMessageContext context);
+namespace MorganStanley.ComposeUI.Messaging.Abstractions
+{
+    public interface IMessageContext
+    {
+    }
+}

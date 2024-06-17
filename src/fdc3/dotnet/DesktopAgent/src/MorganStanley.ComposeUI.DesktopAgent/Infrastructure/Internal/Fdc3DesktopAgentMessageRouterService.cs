@@ -20,15 +20,15 @@ using Microsoft.Extensions.Options;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
 using MorganStanley.ComposeUI.Messaging;
 using Finos.Fdc3;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
 internal class Fdc3DesktopAgentMessageRouterService : IHostedService
 {
-    private readonly IMessageRouter _messageRouter;
+    private readonly IMessagingService _messageRouter;
     private readonly IFdc3DesktopAgentBridge _desktopAgent;
     private readonly Fdc3DesktopAgentOptions _options;
     private readonly ILoggerFactory _loggerFactory;
@@ -51,7 +51,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
     public JsonSerializerOptions JsonMessageSerializerOptions => new(_jsonSerializerOptions);
 
     public Fdc3DesktopAgentMessageRouterService(
-        IMessageRouter messageRouter,
+        IMessagingService messageRouter,
         IFdc3DesktopAgentBridge desktopAgent,
         IOptions<Fdc3DesktopAgentOptions> options,
         ILoggerFactory? loggerFactory = null)
@@ -70,7 +70,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         return userChannel;
     }
 
-    internal ValueTask<FindChannelResponse?> HandleFindChannel(FindChannelRequest? request, MessageContext context)
+    internal ValueTask<FindChannelResponse?> HandleFindChannel(FindChannelRequest? request, IMessageContext context)
     {
         return ValueTask.FromResult<FindChannelResponse?>(
             _desktopAgent.FindChannel(request!.ChannelId, request!.ChannelType)
@@ -78,17 +78,17 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
                 : FindChannelResponse.Failure(ChannelError.NoChannelFound));
     }
 
-    internal async ValueTask<FindIntentResponse?> HandleFindIntent(FindIntentRequest? request, MessageContext context)
+    internal async ValueTask<FindIntentResponse?> HandleFindIntent(FindIntentRequest? request, IMessageContext context)
     {
         return await _desktopAgent.FindIntent(request);
     }
 
-    internal async ValueTask<FindIntentsByContextResponse?> HandleFindIntentsByContext(FindIntentsByContextRequest? request, MessageContext context)
+    internal async ValueTask<FindIntentsByContextResponse?> HandleFindIntentsByContext(FindIntentsByContextRequest? request, IMessageContext context)
     {
         return await _desktopAgent.FindIntentsByContext(request);
     }
 
-    internal async ValueTask<RaiseIntentResponse?> HandleRaiseIntent(RaiseIntentRequest? request, MessageContext context)
+    internal async ValueTask<RaiseIntentResponse?> HandleRaiseIntent(RaiseIntentRequest? request, IMessageContext context)
     {
         var result = await _desktopAgent.RaiseIntent(request);
         if (result.RaiseIntentResolutionMessages.Any())
@@ -97,14 +97,14 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
             {
                 await _messageRouter.PublishAsync(
                     Fdc3Topic.RaiseIntentResolution(message.Intent, message.TargetModuleInstanceId),
-                    MessageBuffer.Factory.CreateJson(message.Request, _jsonSerializerOptions));
+                    MessageBuffer.CreateJson(message.Request, _jsonSerializerOptions));
             }
         }
 
         return result.Response;
     }
 
-    internal async ValueTask<IntentListenerResponse?> HandleAddIntentListener(IntentListenerRequest? request, MessageContext context)
+    internal async ValueTask<IntentListenerResponse?> HandleAddIntentListener(IntentListenerRequest? request, IMessageContext context)
     {
         var result = await _desktopAgent.AddIntentListener(request);
 
@@ -114,19 +114,19 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
             {
                 await _messageRouter.PublishAsync(
                     Fdc3Topic.RaiseIntentResolution(message.Intent, message.TargetModuleInstanceId),
-                    MessageBuffer.Factory.CreateJson(message.Request, _jsonSerializerOptions));
+                    MessageBuffer.CreateJson(message.Request, _jsonSerializerOptions));
             }
         }
 
         return result.Response;
     }
 
-    internal async ValueTask<StoreIntentResultResponse?> HandleStoreIntentResult(StoreIntentResultRequest? request, MessageContext context)
+    internal async ValueTask<StoreIntentResultResponse?> HandleStoreIntentResult(StoreIntentResultRequest? request, IMessageContext context)
     {
         return await _desktopAgent.StoreIntentResult(request);
     }
 
-    internal async ValueTask<GetIntentResultResponse?> HandleGetIntentResult(GetIntentResultRequest? request, MessageContext context)
+    internal async ValueTask<GetIntentResultResponse?> HandleGetIntentResult(GetIntentResultRequest? request, IMessageContext context)
     {
         return await _desktopAgent.GetIntentResult(request);
     }
@@ -148,14 +148,14 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        async Task RegisterHandler<TRequest, TResponse>(string topic, Func<TRequest?, MessageContext, ValueTask<TResponse?>> handler) where TRequest : class
+        async Task RegisterHandler<TRequest, TResponse>(string topic, Func<TRequest?, IMessageContext, ValueTask<TResponse?>> handler) where TRequest : class
         {
             await _messageRouter.RegisterServiceAsync(topic,
                 async (endpoint, payload, context) =>
                 {
                     var request = payload?.ReadJson<TRequest>(_jsonSerializerOptions);
                     var response = await handler(request, context);
-                    return response is null ? null : MessageBuffer.Factory.CreateJson(response, _jsonSerializerOptions);
+                    return response is null ? null : MessageBuffer.CreateJson(response, _jsonSerializerOptions);
                 }, cancellationToken: cancellationToken);
         }
 

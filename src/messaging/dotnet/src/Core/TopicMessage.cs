@@ -10,6 +10,8 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using MorganStanley.ComposeUI.Messaging.Abstractions;
+
 namespace MorganStanley.ComposeUI.Messaging;
 
 /// <summary>
@@ -24,7 +26,7 @@ public sealed class TopicMessage
     /// <param name="topic"></param>
     /// <param name="payload"></param>
     /// <param name="context"></param>
-    public TopicMessage(string topic, MessageBuffer? payload, MessageContext context)
+    public TopicMessage(string topic, IMessageBuffer? payload, MessageContext context)
     {
         Topic = topic;
         Payload = payload;
@@ -40,7 +42,7 @@ public sealed class TopicMessage
     ///     The payload of the message. The format of the message is arbitrary and should
     ///     be defined and documented with the message definition.
     /// </summary>
-    public MessageBuffer? Payload { get; }
+    public IMessageBuffer? Payload { get; }
 
     /// <summary>
     /// Gets contextual information about the message.

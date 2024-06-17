@@ -12,6 +12,7 @@
 
 using System.Buffers;
 using System.Text;
+using System.Text.Json;
 using MorganStanley.ComposeUI.Messaging.TestUtils;
 
 namespace MorganStanley.ComposeUI.Messaging;
@@ -181,12 +182,70 @@ public class MessageBufferTests
         buffer.GetString().Should().Be(Convert.ToBase64String(bytes));
     }
 
+    [Fact]
+    public void ReadJson_can_deserialize_an_object()
+    {
+        var buffer = MessageBuffer.Create(@"{ ""Name"": ""test-name"", ""Value"": ""test-value"" }");
+
+        var payload = buffer.ReadJson<TestPayload>();
+
+        payload.Should()
+            .BeEquivalentTo(
+                new TestPayload
+                {
+                    Name = "test-name",
+                    Value = "test-value"
+                });
+    }
+
+    [Fact]
+    public void ReadJson_respects_the_provided_JsonSerializerOptions()
+    {
+        var buffer = MessageBuffer.Create(@"{ ""name"": ""test-name"", ""value"": ""test-value"" }");
+
+        var jsonSerializerOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
+        var payload = buffer.ReadJson<TestPayload>(
+            jsonSerializerOptions);
+
+        payload.Should()
+            .BeEquivalentTo(
+                new TestPayload
+                {
+                    Name = "test-name",
+                    Value = "test-value"
+                });
+    }
+
+    [Fact]
+    public void CreateJson_creates_a_MessageBuffer_with_the_JSON_string()
+    {
+        var payload = new TestPayload
+        {
+            Name = "test-name",
+            Value = "test-value"
+        };
+
+        var buffer = MessageBuffer.CreateJson(payload);
+
+        JsonSerializer.Deserialize<TestPayload>(buffer.GetString()).Should().BeEquivalentTo(payload);
+    }
+
     private static byte[] GetRandomBytes(int count)
     {
         var result = new byte[count];
         new Random().NextBytes(result);
 
         return result;
+    }
+
+    private class TestPayload
+    {
+        public string Name { get; set; }
+        public string Value { get; set; }
     }
 }
 

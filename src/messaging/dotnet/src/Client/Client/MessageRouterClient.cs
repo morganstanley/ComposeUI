@@ -10,11 +10,15 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Reactive;
+using System.Reactive.Linq;
 using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 using MorganStanley.ComposeUI.Messaging.Client.Abstractions;
 using MorganStanley.ComposeUI.Messaging.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Instrumentation;
@@ -58,8 +62,19 @@ internal sealed class MessageRouterClient : IMessageRouter
 
     public ValueTask<IAsyncDisposable> SubscribeAsync(
         string topic,
-        IAsyncObserver<TopicMessage> subscriber,
+        Func<IMessageBuffer, ValueTask> subscriber,
         CancellationToken cancellationToken = default)
+    {
+        Protocol.Topic.Validate(topic);
+        CheckState();
+
+        return SubscribeAsyncCore(GetTopic(topic), subscriber, cancellationToken);
+    }
+
+    public ValueTask<IAsyncDisposable> SubscribeAsync(
+    string topic,
+    IAsyncObserver<TopicMessage> subscriber,
+    CancellationToken cancellationToken = default)
     {
         Protocol.Topic.Validate(topic);
         CheckState();
@@ -69,8 +84,8 @@ internal sealed class MessageRouterClient : IMessageRouter
 
     public async ValueTask PublishAsync(
         string topic,
-        MessageBuffer? payload = null,
-        PublishOptions options = default,
+        IMessageBuffer? payload = null,
+        IPublishOptions? options = default,
         CancellationToken cancellationToken = default)
     {
         Protocol.Topic.Validate(topic);
@@ -81,15 +96,15 @@ internal sealed class MessageRouterClient : IMessageRouter
                 RequestId = GenerateRequestId(),
                 Topic = topic,
                 Payload = payload,
-                CorrelationId = options.CorrelationId
+                CorrelationId = options?.CorrelationId
             },
             cancellationToken);
     }
 
-    public async ValueTask<MessageBuffer?> InvokeAsync(
+    public async ValueTask<IMessageBuffer?> InvokeAsync(
         string endpoint,
-        MessageBuffer? payload = null,
-        InvokeOptions options = default,
+        IMessageBuffer? payload = null,
+        IInvokeOptions? options = default,
         CancellationToken cancellationToken = default)
     {
         Endpoint.Validate(endpoint);
@@ -100,7 +115,7 @@ internal sealed class MessageRouterClient : IMessageRouter
             RequestId = GenerateRequestId(),
             Endpoint = endpoint,
             Payload = payload,
-            CorrelationId = options.CorrelationId,
+            CorrelationId = options?.CorrelationId,
         };
 
         var response = await SendRequestAsync(request, cancellationToken);
@@ -108,6 +123,14 @@ internal sealed class MessageRouterClient : IMessageRouter
         return response.Payload;
     }
 
+    /// <summary>
+    /// Registers a service by providing a name and handler.
+    /// </summary>
+    /// <param name="endpoint"></param>
+    /// <param name="subscriber"></param>
+    /// <param name="descriptor"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public ValueTask RegisterServiceAsync(
         string endpoint,
         MessageHandler handler,
@@ -130,6 +153,19 @@ internal sealed class MessageRouterClient : IMessageRouter
 
             throw;
         }
+    }
+
+    public ValueTask RegisterServiceAsync(
+        string endpoint,
+        Func<string, IMessageBuffer?, IMessageContext?, ValueTask<IMessageBuffer?>> subscriber,
+        CancellationToken cancellationToken = default)
+    {
+        MessageHandler handler = async (endpoint, payload, context) =>
+        {
+            return await subscriber(endpoint, payload, context);
+        };
+
+        return RegisterServiceAsync(endpoint, handler, null, cancellationToken);
     }
 
     public ValueTask UnregisterServiceAsync(string endpoint, CancellationToken cancellationToken = default)
@@ -604,6 +640,37 @@ internal sealed class MessageRouterClient : IMessageRouter
 
 
         await SendRequestAsync(request, cancellationToken);
+    }
+
+    private async ValueTask<IAsyncDisposable> SubscribeAsyncCore(
+        Topic topic,
+        Func<IMessageBuffer, ValueTask> handler,
+        CancellationToken cancellationToken)
+    {
+        var subscriber = AsyncObserver.Create<TopicMessage>(
+            async message =>
+            {
+                if (message?.Payload != null)
+                {
+                    await handler(message.Payload);
+                }
+                else 
+                {
+                    ThrowHelper.MessageOrPayloadNull();
+                }
+            },
+            async ex =>
+            {
+                ThrowHelper.ErrorInObserver(ex);
+                await Task.CompletedTask;
+            },
+
+            async () =>
+            {
+                await Task.CompletedTask;
+            });
+
+        return await SubscribeAsyncCore(topic, subscriber, cancellationToken);
     }
 
     private async ValueTask<IAsyncDisposable> SubscribeAsyncCore(

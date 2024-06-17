@@ -133,8 +133,8 @@ public partial class App : Application
             ShellVersion = Assembly.GetExecutingAssembly().FullName
         };
 
-        await _host.Services.GetRequiredService<IMessageRouter>().RegisterServiceAsync("Diagnostics", (e, m, t) =>
-            ValueTask.FromResult(MessageBuffer.Factory.CreateJson(diagnostics))!);
+        await _host.Services.GetRequiredService<IMessageRouter>().RegisterServiceAsync("Diagnostics", (e, m, t) => 
+            ValueTask.FromResult(MessageBuffer.CreateJson(diagnostics).GetString())!);
 
         await OnHostInitializedAsync();
 

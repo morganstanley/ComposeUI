@@ -40,7 +40,7 @@ public static class MessageRouterJsonExtensions
     {
         return messageRouter.PublishAsync(
             topic,
-            MessageBuffer.Factory.CreateJson(payload, jsonSerializerOptions),
+            MessageBuffer.CreateJson(payload, jsonSerializerOptions),
             publishOptions,
             cancellationToken);
     }

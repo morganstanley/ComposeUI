@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MorganStanley.ComposeUI.Messaging.Abstractions", "src\Abstractions\MorganStanley.ComposeUI.Messaging.Abstractions.csproj", "{2F0D6AA5-E922-4EAE-B627-4449A92CCD43}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Core", "src\Core\MorganStanley.ComposeUI.Messaging.Core.csproj", "{FC647551-B014-49A8-817E-F5FE6FEBF452}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Client", "src\Client\MorganStanley.ComposeUI.Messaging.Client.csproj", "{A3156691-0B46-4C3D-B042-E71D9BAF02EC}"
@@ -83,6 +85,10 @@ Global
 		{F1B0C089-450E-4B02-881F-F41A8B7F5867}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F1B0C089-450E-4B02-881F-F41A8B7F5867}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F1B0C089-450E-4B02-881F-F41A8B7F5867}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2F0D6AA5-E922-4EAE-B627-4449A92CCD43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F0D6AA5-E922-4EAE-B627-4449A92CCD43}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2F0D6AA5-E922-4EAE-B627-4449A92CCD43}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2F0D6AA5-E922-4EAE-B627-4449A92CCD43}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -99,6 +105,7 @@ Global
 		{AA63BC7C-9DB8-4062-A689-7FA9689EF6B1} = {78E94277-B0B4-425C-9C47-81E09933FE5B}
 		{CEF78D3F-C645-4471-BAD2-9C538A0CA763} = {78E94277-B0B4-425C-9C47-81E09933FE5B}
 		{F1B0C089-450E-4B02-881F-F41A8B7F5867} = {B7E63957-3C1B-4A16-B530-3EAD0D0C5F07}
+		{2F0D6AA5-E922-4EAE-B627-4449A92CCD43} = {37DE16A7-F731-4206-B650-8A1D9D066B60}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {38CFF5DF-459A-49E1-8189-2DB429A99B3A}

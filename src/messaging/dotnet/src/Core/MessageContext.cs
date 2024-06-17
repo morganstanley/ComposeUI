@@ -10,12 +10,14 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using MorganStanley.ComposeUI.Messaging.Abstractions;
+
 namespace MorganStanley.ComposeUI.Messaging;
 
 /// <summary>
 /// Provides contextual information for a message received from the Message Router.
 /// </summary>
-public sealed class MessageContext
+public sealed class MessageContext : IMessageContext
 {
     /// <summary>
     /// Gets the client ID of the sender.

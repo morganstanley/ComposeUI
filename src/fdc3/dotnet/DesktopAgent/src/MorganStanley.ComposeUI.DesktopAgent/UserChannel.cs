@@ -13,33 +13,32 @@
  */
 
 using System.Collections.Concurrent;
-using System.Reactive.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
-using MorganStanley.ComposeUI.Messaging;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
 internal class UserChannel : IAsyncDisposable
 {
     public string Id { get; }
-    private readonly ConcurrentDictionary<string, MessageBuffer> _contexts = new ConcurrentDictionary<string, MessageBuffer>();
-    private MessageBuffer? _lastContext = null;
+    private readonly ConcurrentDictionary<string, IMessageBuffer> _contexts = new();
+    private IMessageBuffer? _lastContext = null;
     private readonly UserChannelTopics _topics;
-    private readonly IMessageRouter _messageRouter;
+    private readonly IMessagingService _messagingService;
     private IAsyncDisposable? _broadcastSubscription;
     private bool _disposed = false;
     private readonly ILogger _logger;
 
 
-    public UserChannel(string id, IMessageRouter messageRouter, ILogger<UserChannel>? logger)
+    public UserChannel(string id, IMessagingService messageRouter, ILogger<UserChannel>? logger)
     {
         Id = id;
         _topics = Fdc3Topic.UserChannel(id);
-        _messageRouter = messageRouter;
+        _messagingService = messageRouter;
         _logger = (ILogger?) logger ?? NullLogger.Instance;
     }
 
@@ -50,19 +49,18 @@ internal class UserChannel : IAsyncDisposable
             throw new ObjectDisposedException(nameof(UserChannel));
         }
 
-        await _messageRouter.ConnectAsync();
+        await _messagingService.ConnectAsync();
 
-        var broadcastObserver = AsyncObserver.Create<TopicMessage>(x => HandleBroadcast(x.Payload));
+        var broadcastHandler = new Func<IMessageBuffer, ValueTask>(HandleBroadcast);
+        var broadcastSubscription = _messagingService.SubscribeAsync(_topics.Broadcast, broadcastHandler);
 
-        var broadcastSubscribing = _messageRouter.SubscribeAsync(_topics.Broadcast, broadcastObserver);
-
-        await _messageRouter.RegisterServiceAsync(_topics.GetCurrentContext, GetCurrentContext);
-        _broadcastSubscription = await broadcastSubscribing;
+        await _messagingService.RegisterServiceAsync(_topics.GetCurrentContext, GetCurrentContext);
+        _broadcastSubscription = await broadcastSubscription;
 
         LogConnected();
     }
 
-    internal ValueTask HandleBroadcast(MessageBuffer? payloadBuffer)
+    internal ValueTask HandleBroadcast(IMessageBuffer? payloadBuffer)
     {
         if (payloadBuffer == null)
         {
@@ -101,24 +99,24 @@ internal class UserChannel : IAsyncDisposable
         return ValueTask.CompletedTask;
     }
 
-    internal ValueTask<MessageBuffer?> GetCurrentContext(string endpoint, MessageBuffer? payloadBuffer, MessageContext? context)
+    internal ValueTask<IMessageBuffer?> GetCurrentContext(string endpoint, IMessageBuffer? payloadBuffer, IMessageContext? context)
     {
         if (payloadBuffer == null)
         {
-            return ValueTask.FromResult<MessageBuffer?>(_lastContext);
+            return ValueTask.FromResult(_lastContext);
         }
 
         var payload = payloadBuffer.ReadJson<GetCurrentContextRequest>();
         if (payload?.ContextType == null)
         {
-            return ValueTask.FromResult<MessageBuffer?>(_lastContext);
+            return ValueTask.FromResult(_lastContext);
         }
 
-        if (_contexts.TryGetValue(payload.ContextType, out MessageBuffer? messageBuffer))
+        if (_contexts.TryGetValue(payload.ContextType, out IMessageBuffer? messageBuffer))
         {
-            return ValueTask.FromResult<MessageBuffer?>(messageBuffer);
+            return ValueTask.FromResult<IMessageBuffer?>(messageBuffer);
         }
-        return ValueTask.FromResult<MessageBuffer?>(null);
+        return ValueTask.FromResult<IMessageBuffer?>(null);
     }
 
     public async ValueTask DisposeAsync()
@@ -130,7 +128,7 @@ internal class UserChannel : IAsyncDisposable
 
         _broadcastSubscription = null;
 
-        await _messageRouter.UnregisterServiceAsync(_topics.GetCurrentContext);
+        await _messagingService.UnregisterServiceAsync(_topics.GetCurrentContext);
 
         _disposed = true;
     }
@@ -139,7 +137,7 @@ internal class UserChannel : IAsyncDisposable
     {
         if (_logger.IsEnabled(LogLevel.Debug))
         {
-            _logger.LogDebug($"UserChannel {Id} connected to messagerouter with client id {_messageRouter.ClientId}");
+            _logger.LogDebug($"UserChannel {Id} connected to messagerouter with client id {_messagingService.ClientId}");
         }
     }
 
@@ -159,7 +157,7 @@ internal class UserChannel : IAsyncDisposable
         }
     }
 
-    private void LogPayload(MessageBuffer payload)
+    private void LogPayload(IMessageBuffer payload)
     {
         if (_logger.IsEnabled(LogLevel.Debug))
         {

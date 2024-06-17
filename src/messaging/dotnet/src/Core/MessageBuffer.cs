@@ -15,7 +15,9 @@ using System.Buffers.Text;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Text.Json;
 using CommunityToolkit.HighPerformance.Buffers;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Messaging;
 
@@ -23,12 +25,8 @@ namespace MorganStanley.ComposeUI.Messaging;
 ///     Represents an UTF8-encoded string buffer that uses pooled memory.
 ///     Instances of this type typically represent message payloads.
 /// </summary>
-public sealed class MessageBuffer : IDisposable
+public sealed class MessageBuffer : IMessageBuffer, IDisposable
 {
-    /// <summary>
-    ///     Gets the string value of the buffer.
-    /// </summary>
-    /// <returns></returns>
     public string GetString()
     {
         ThrowIfDisposed();
@@ -36,10 +34,6 @@ public sealed class MessageBuffer : IDisposable
         return Encoding.GetString(_bytes, 0, _length);
     }
 
-    /// <summary>
-    ///     Gets the bytes of the underlying buffer as a <see cref="ReadOnlySpan{T}" />
-    /// </summary>
-    /// <returns></returns>
     public ReadOnlySpan<byte> GetSpan()
     {
         ThrowIfDisposed();
@@ -116,11 +110,6 @@ public sealed class MessageBuffer : IDisposable
         DisposeCore();
         GC.SuppressFinalize(this);
     }
-
-    /// <summary>
-    /// Acts as a stub for extensions methods that create <see cref="MessageBuffer"/> instances with various formats.
-    /// </summary>
-    public static MessageBufferFactory Factory { get; } = new();
 
     /// <summary>
     ///     Creates a new <see cref="MessageBuffer" /> from a string.
@@ -342,6 +331,32 @@ public sealed class MessageBuffer : IDisposable
         bufferWriter.Advance(bytesWritten);
 
         return true;
+    }
+
+    public T? ReadJson<T>(JsonSerializerOptions? options = null)
+    {
+        var reader = new Utf8JsonReader(GetSpan());
+
+        return JsonSerializer.Deserialize<T>(ref reader, options);
+    }
+
+    /// <summary>
+    /// Creates a <see cref="MessageBuffer"/> from the provided value serialized to JSON.
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="options"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public static MessageBuffer CreateJson<T>(
+        T value,
+        JsonSerializerOptions? options = null)
+    {
+        using var bufferWriter = GetBufferWriter();
+        using var jsonWriter = new Utf8JsonWriter(bufferWriter);
+        JsonSerializer.Serialize(jsonWriter, value, options);
+        jsonWriter.Flush();
+
+        return Create(bufferWriter.WrittenMemory);
     }
 
     ~MessageBuffer()

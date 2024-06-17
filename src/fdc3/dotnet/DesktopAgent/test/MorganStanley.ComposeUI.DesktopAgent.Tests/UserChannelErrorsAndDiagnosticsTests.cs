@@ -13,6 +13,7 @@
  */
 
 using Microsoft.Extensions.Logging;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
 
@@ -51,7 +52,7 @@ public class UserChannelErrorsAndDiagnosticsTests
     public UserChannelErrorsAndDiagnosticsTests()
     {
         _logger = new TestLogger();
-        _channel = new UserChannel(TestChannel, new Mock<IMessageRouter>().Object, _logger);
+        _channel = new UserChannel(TestChannel, new Mock<IMessagingService>().Object, _logger);
     }
 
     [Fact]
