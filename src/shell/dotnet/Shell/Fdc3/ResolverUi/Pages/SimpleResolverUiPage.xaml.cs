@@ -11,64 +11,51 @@
 // and limitations under the License.
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Input;
 using Finos.Fdc3;
 
 namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI.Pages;
 
 /// <summary>
-/// Interaction logic for SimpleResolverUiPage.xaml
+/// Interaction logic for SimpleResolverUIPage.xaml
 /// </summary>
-public partial class SimpleResolverUIPage : Page
+public partial class SimpleResolverUIPage : Page, IPageService
 {
-    private readonly IEnumerable<ResolverUIAppData> _apps;
+    private readonly ResolverUIPageViewModel _viewModel;
 
     public SimpleResolverUIPage(IEnumerable<ResolverUIAppData> apps)
     {
         InitializeComponent();
 
-        _apps = apps;
-
-        var collection = new ListCollectionView(apps.ToList());
-        collection.GroupDescriptions.Add(new PropertyGroupDescription("AppId"));
-        ResolverUiDataSource.ItemsSource = collection;
+        _viewModel = new ResolverUIPageViewModel(this, apps);
+        DataContext = _viewModel;
     }
 
-    private void OpenApp_Click(object sender, RoutedEventArgs e)
-    {
-        if ((sender as Button)?.CommandParameter is not string appId)
-        {
-            return;
-        }
-
-        var app = _apps.FirstOrDefault(x => x.AppId == appId && string.IsNullOrEmpty(x.AppMetadata.InstanceId));
-        if (app == default)
-        {
-            return;
-        }
-
-        SetAppMetadataAndCloseWindow(app.AppMetadata);
-    }
-
-    private void ResolverUiDataSource_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-    {
-        if (ResolverUiDataSource.SelectedItem != null)
-        {
-            SetAppMetadataAndCloseWindow(((ResolverUIAppData) ResolverUiDataSource.SelectedItem).AppMetadata);
-        }
-    }
-
-    private void SetAppMetadataAndCloseWindow(IAppMetadata appMetadata)
+    public void ClosePage(IAppMetadata? appMetadata)
     {
         var window = Window.GetWindow(this);
-        if (window is Fdc3ResolverUI resolverUiWindow)
+        if (window is Fdc3ResolverUI resolverUIWindow)
         {
-            resolverUiWindow.AppMetadata = appMetadata;
-            resolverUiWindow.Close();
+            resolverUIWindow.AppMetadata = appMetadata;
+            resolverUIWindow.Close();
+        }
+    }
+
+    private void ResolverUIDataSource_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is ListBox listBox)
+        {
+            if (listBox.SelectionMode != SelectionMode.Single)
+            {
+                ClosePage(null);
+            }
+
+            if (listBox.SelectedItem is ResolverUIAppData resolverUIAppData)
+            {
+                _viewModel.DoubleClickListBox(resolverUIAppData);
+            }
         }
     }
 }

@@ -12,20 +12,9 @@
 
 using Finos.Fdc3;
 
-namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;
+namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI.Pages;
 
-/// <summary>
-/// Model containing information about the app that can resolve the intent.
-/// </summary>
-public class ResolverUIAppData
+internal interface IPageService
 {
-    /// <summary>
-    /// App specific information.
-    /// </summary>
-    public IAppMetadata AppMetadata { get; set; }
-
-    /// <summary>
-    /// Icon that can be visualized on the ResolverUI.
-    /// </summary>
-    public IIcon? Icon { get; set; }
+    public void ClosePage(IAppMetadata appMetadata);
 }

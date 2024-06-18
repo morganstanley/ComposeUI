@@ -400,7 +400,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         }
 
         //Resolve to one app via ResolverUI.
-        var result = await WaitForResolverUiAsync(appIntent.Apps);
+        var result = await WaitForResolverUIAsync(appIntent.Apps);
 
         if (result != null && result.Error == null)
         {
@@ -426,7 +426,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         };
     }
 
-    private async Task<ResolverUIResponse?> WaitForResolverUiAsync(IEnumerable<AppMetadata> apps)
+    private async Task<ResolverUIResponse?> WaitForResolverUIAsync(IEnumerable<AppMetadata> apps)
     {
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
         
@@ -438,7 +438,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         {
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug(exception, "MessageRouter didn't receive response from the ResolverUi.");
+                _logger.LogDebug(exception, "MessageRouter didn't receive response from the ResolverUI.");
             }
 
             return new ResolverUIResponse()

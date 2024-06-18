@@ -14,10 +14,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Threading;
 using Finos.Fdc3;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -33,16 +31,15 @@ internal class Fdc3ResolverUIWindow(ILogger<Fdc3ResolverUIWindow>? logger = null
     {
         try
         {
-            var dispatcher = GetDispatcher();
+            var dispatcher = Application.Current.Dispatcher;
 
             Fdc3ResolverUI? resolverUI = null;
             Task? timeoutTask = null;
 
             dispatcher.Invoke(() =>
             {
-                if (Application.Current.Dispatcher == null
-                    || Application.Current.Dispatcher.HasShutdownStarted
-                    || Application.Current.Dispatcher.HasShutdownFinished)
+                if (dispatcher.HasShutdownStarted
+                    || dispatcher.HasShutdownFinished)
                 {
                     return;
                 }
@@ -85,10 +82,10 @@ internal class Fdc3ResolverUIWindow(ILogger<Fdc3ResolverUIWindow>? logger = null
         catch (TimeoutException)
         {
             return ValueTask.FromResult(
-                    new ResolverUIResponse()
-                    {
-                        Error = ResolveError.ResolverTimeout,
-                    });
+                new ResolverUIResponse()
+                {
+                    Error = ResolveError.ResolverTimeout,
+                });
         }
         catch (Exception exception)
         {
@@ -103,22 +100,5 @@ internal class Fdc3ResolverUIWindow(ILogger<Fdc3ResolverUIWindow>? logger = null
                     Error = ResolveError.ResolverUnavailable
                 });
         }
-    }
-
-    private static Dispatcher GetDispatcher()
-    {
-        return Application.Current.Dispatcher.Invoke(() =>
-        {
-            return
-                //First window which is active
-                Application.Current.Windows
-                    .Cast<Window>()
-                    .FirstOrDefault(window => window.IsActive) ??
-                //Or the first window which is visible
-                Application.Current.Windows
-                    .Cast<Window>()
-                    .FirstOrDefault(window => window.Visibility == Visibility.Visible);
-        })?.Dispatcher ??
-        Application.Current.Dispatcher;
     }
 }

@@ -10,30 +10,26 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using System;
-using System.Globalization;
 using System.Windows;
-using System.Windows.Data;
+using System.Windows.Controls;
 
 namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;
 
-internal class SimpleResolverUIRowVisibilityConverter : IValueConverter
+internal class ResolverUIDataTemplateSelector : DataTemplateSelector
 {
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    public DataTemplate NormalDataTemplate { get; set; }
+    public DataTemplate NullInstanceIdDataTemplate { get; set; }
+
+    public override DataTemplate SelectTemplate(object item, DependencyObject container)
     {
-        if (value is ResolverUIAppData appData)
+        if (item is ResolverUIAppData appData)
         {
             if (appData.AppMetadata.InstanceId == null)
             {
-                return Visibility.Collapsed;
+                return NullInstanceIdDataTemplate;
             }
         }
 
-        return Visibility.Visible;
-    }
-
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-    {
-        throw new NotImplementedException();
+        return NormalDataTemplate;
     }
 }

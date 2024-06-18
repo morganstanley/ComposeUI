@@ -23,7 +23,7 @@ public class Fdc3ResolverUIServiceTests
     [Fact]
     public async Task StartAsync_registers_MessageRouter_service()
     {
-        var resolverUiWindowMock = new Mock<IResolverUIProjector>();
+        var resolverUIWindowMock = new Mock<IResolverUIProjector>();
         var messageRouterMock = new Mock<IMessageRouter>();
         var serviceProviderMock = new Mock<IServiceProvider>();
         var hostMock = new Mock<IHost>();
@@ -32,14 +32,14 @@ public class Fdc3ResolverUIServiceTests
             .Returns(serviceProviderMock.Object);
 
         serviceProviderMock.Setup(
-            _ => _.GetService(typeof(IMessageRouter)))
+                _ => _.GetService(typeof(IMessageRouter)))
             .Returns(messageRouterMock.Object);
 
-        var fdc3ResolverUiService = new Fdc3ResolverUIService(
+        var fdc3ResolverUIService = new Fdc3ResolverUIService(
             hostMock.Object,
-            resolverUiWindowMock.Object);
+            resolverUIWindowMock.Object);
 
-        await fdc3ResolverUiService.StartAsync(CancellationToken.None);
+        await fdc3ResolverUIService.StartAsync(CancellationToken.None);
 
         messageRouterMock.Verify(
             _ => _.RegisterServiceAsync("ComposeUI/fdc3/v2.0/resolverUI", It.IsAny<MessageHandler>(), It.IsAny<EndpointDescriptor>(), It.IsAny<CancellationToken>()));

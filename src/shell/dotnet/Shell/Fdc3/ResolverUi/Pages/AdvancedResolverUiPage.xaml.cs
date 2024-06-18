@@ -14,30 +14,48 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Finos.Fdc3;
+
 
 namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI.Pages;
 
 /// <summary>
-/// Interaction logic for AdvancedResolverUiPage.xaml
+/// Interaction logic for AdvancedResolverUIPage.xaml
 /// </summary>
-public partial class AdvancedResolverUIPage : Page
+public partial class AdvancedResolverUIPage : Page, IPageService
 {
+    private readonly ResolverUIPageViewModel _viewModel;
+
     public AdvancedResolverUIPage(IEnumerable<ResolverUIAppData> apps)
     {
         InitializeComponent();
 
-        ResolverUiDataSource.ItemsSource = apps;
+        _viewModel = new ResolverUIPageViewModel(this, apps);
+        DataContext = _viewModel;
     }
 
-    private void ResolverUiDataSource_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    public void ClosePage(IAppMetadata appMetadata)
     {
-        if (ResolverUiDataSource.SelectedItem != null)
+        var window = Window.GetWindow(this);
+        if (window is Fdc3ResolverUI resolverUIWindow)
         {
-            var window = Window.GetWindow(this);
-            if (window is Fdc3ResolverUI resolverUiWindow)
+            resolverUIWindow.AppMetadata = appMetadata;
+            resolverUIWindow.Close();
+        }
+    }
+
+    private void ResolverUIDataSource_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is DataGrid dataGrid)
+        {
+            if (dataGrid.SelectionMode != DataGridSelectionMode.Single)
             {
-                resolverUiWindow.AppMetadata = ((ResolverUIAppData) ResolverUiDataSource.SelectedItem).AppMetadata;
-                resolverUiWindow.Close();
+                ClosePage(null);
+            }
+
+            if (dataGrid.SelectedItem is ResolverUIAppData resolverUIAppData)
+            {
+                _viewModel.DoubleClickListBox(resolverUIAppData);
             }
         }
     }

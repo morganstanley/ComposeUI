@@ -11,10 +11,13 @@
 // and limitations under the License.
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
 using Finos.Fdc3;
+using MorganStanley.ComposeUI.Shell.Utilities;
 
 namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;
 
@@ -27,25 +30,48 @@ public class ImageSourceConverter : IValueConverter
             return null;
         }
 
-        var uri = new Uri(icon.Src);
-        if (uri == null)
+        try
         {
+            var uri = new Uri(icon.Src);
+            if (uri == null)
+            {
+                return null;
+            }
+
+            if (uri.Scheme.StartsWith("http") || uri.Scheme.StartsWith("https"))
+            {
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.UriSource = uri;
+                bitmap.DecodePixelHeight = 10;
+                bitmap.DecodePixelWidth = 10;
+                bitmap.EndInit();
+                return bitmap;
+            }
+
+            var path = uri.IsAbsoluteUri ? uri.AbsolutePath : uri.ToString();
+            if (!File.Exists(path))
+            {
+                return null;
+            }
+
+            using var nativeIcon =
+                System.Drawing.Icon.ExtractAssociatedIcon(path);
+
+            if (icon != null)
+            {
+                using var bitmap = nativeIcon.ToBitmap();
+
+                return (BitmapImage)bitmap.ToImageSource();
+            }
+
             return null;
         }
-
-        if (uri.Scheme.StartsWith("http") || uri.Scheme.StartsWith("https"))
+        catch (UriFormatException exception)
         {
-            var bitmap = new BitmapImage();
-            bitmap.BeginInit();
-            bitmap.UriSource = uri;
-            bitmap.DecodePixelHeight = 10;
-            bitmap.DecodePixelWidth = 10;
-            bitmap.EndInit();
-            return bitmap;
+            Debug.WriteLine(exception.ToString());
+            return null;
         }
-
-        //TODO native apps
-        throw new NotImplementedException();
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

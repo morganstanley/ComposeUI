@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and limitations 
       xmlns:mainNamespace="clr-namespace:MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI"
       mc:Ignorable="d" 
       ShowsNavigationUI="False"
-      Title="AdvancedResolverUiPage">
+      Title="AdvancedResolverUIPage">
     <Page.Resources>
 
         <Style TargetType="DataGrid">
@@ -60,7 +60,7 @@ See the License for the specific language governing permissions and limitations 
     </Page.Resources>
 
     <Border
-        x:Name="ResolverUiBorder"
+        x:Name="ResolverUIBorder"
         Background="Transparent">
 
         <Grid>
@@ -71,11 +71,14 @@ See the License for the specific language governing permissions and limitations 
             </Grid.RowDefinitions>
 
             <DataGrid 
-                x:Name="ResolverUiDataSource"
+                x:Name="ResolverUIDataSource"
+                ItemsSource="{Binding Apps}"
                 HorizontalAlignment="Center" 
                 VerticalAlignment="Top" 
                 IsReadOnly="True" 
-                MouseDoubleClick="ResolverUiDataSource_MouseDoubleClick"
+                SelectionMode="Single"
+                SelectedItem="{Binding SelectedApp, Mode=TwoWay}"
+                MouseDoubleClick="ResolverUIDataSource_OnMouseDoubleClick"
                 AutoGenerateColumns="False"
                 Background="Transparent"
                 GridLinesVisibility="None"
@@ -107,6 +110,7 @@ See the License for the specific language governing permissions and limitations 
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
 
+                    <DataGridTextColumn Header="AppId" Binding="{Binding Path=AppMetadata.AppId}" HeaderStyle="{StaticResource DataGridColumnHeaderStyle}" Width="100" />
                     <DataGridTextColumn Header="Name" Binding="{Binding Path=AppMetadata.Name}" HeaderStyle="{StaticResource DataGridColumnHeaderStyle}" Width="100" />
                     <DataGridTextColumn Header="InstanceId" Binding="{Binding Path=AppMetadata.InstanceId}" HeaderStyle="{StaticResource DataGridColumnHeaderStyle}" Width="250" />
                     <DataGridTextColumn Header="Version" Binding="{Binding Path=AppMetadata.Version}" HeaderStyle="{StaticResource DataGridColumnHeaderStyle}" Width="100" Visibility="Hidden" />

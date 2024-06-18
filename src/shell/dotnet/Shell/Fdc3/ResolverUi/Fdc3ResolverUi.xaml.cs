@@ -36,16 +36,6 @@ public partial class Fdc3ResolverUI : Window, IDisposable
 
         _viewModel = new Fdc3ResolverUIViewModel(apps);
         DataContext = _viewModel;
-        _viewModel.SizeChanged += OnSizeChanged;
-    }
-
-    private void OnSizeChanged(object? sender, PageSizeChangedEventArgs e)
-    {
-        if (e.NewSize != Size.Empty)
-        {
-            Width = e.NewSize.Width;
-            Height = e.NewSize.Height;
-        }
     }
 
     protected override void OnClosing(CancelEventArgs e)

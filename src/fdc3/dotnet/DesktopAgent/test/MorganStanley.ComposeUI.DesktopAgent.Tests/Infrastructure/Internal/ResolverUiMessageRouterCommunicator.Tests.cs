@@ -21,7 +21,7 @@ using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetada
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Infrastructure.Internal;
 
-public class ResolverUiMessageRouterCommunicatorTests
+public class ResolverUIMessageRouterCommunicatorTests
 {
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -40,7 +40,7 @@ public class ResolverUiMessageRouterCommunicatorTests
                     It.IsAny<CancellationToken>()))
             .Returns(null);
 
-        var resolverUIMessageRouterCommunicator = new ResolverUiMessageRouterCommunicator(messageRouterMock.Object);
+        var resolverUIMessageRouterCommunicator = new ResolverUIMessageRouterCommunicator(messageRouterMock.Object);
 
         var response = await resolverUIMessageRouterCommunicator.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>());
 
@@ -63,7 +63,7 @@ public class ResolverUiMessageRouterCommunicatorTests
                     AppMetadata = new AppMetadata(){ AppId = "testAppId" }
                 }, _jsonSerializerOptions)));
 
-        var resolverUIMessageRouterCommunicator = new ResolverUiMessageRouterCommunicator(messageRouterMock.Object);
+        var resolverUIMessageRouterCommunicator = new ResolverUIMessageRouterCommunicator(messageRouterMock.Object);
 
         var response = await resolverUIMessageRouterCommunicator.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>());
 

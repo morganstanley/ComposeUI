@@ -14,29 +14,24 @@
 
 using System.Text.Json;
 using Finos.Fdc3;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
 using MorganStanley.ComposeUI.Messaging;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
-internal class ResolverUiMessageRouterCommunicator : IResolverUICommunicator
+internal class ResolverUIMessageRouterCommunicator : IResolverUICommunicator
 {
     private readonly IMessageRouter _messageRouter;
     private readonly JsonSerializerOptions _jsonMessageSerializerOptions = new()
     {
         Converters = { new AppMetadataJsonConverter() }
     };
-    private readonly ILogger<ResolverUiMessageRouterCommunicator> _logger;
 
-    public ResolverUiMessageRouterCommunicator(
-        IMessageRouter messageRouter,
-        ILogger<ResolverUiMessageRouterCommunicator>? logger = null)
+    public ResolverUIMessageRouterCommunicator(
+        IMessageRouter messageRouter)
     {
         _messageRouter = messageRouter;
-        _logger = logger ?? NullLogger<ResolverUiMessageRouterCommunicator>.Instance;
     }
 
     public async Task<ResolverUIResponse?> SendResolverUIRequest(IEnumerable<IAppMetadata> appMetadata, CancellationToken cancellationToken = default)
@@ -47,7 +42,7 @@ internal class ResolverUiMessageRouterCommunicator : IResolverUICommunicator
         };
 
         var responseBuffer = await _messageRouter.InvokeAsync(
-            Fdc3Topic.ResolverUi,
+            Fdc3Topic.ResolverUI,
             MessageBuffer.Factory.CreateJson(request, _jsonMessageSerializerOptions), 
             cancellationToken: cancellationToken);
 

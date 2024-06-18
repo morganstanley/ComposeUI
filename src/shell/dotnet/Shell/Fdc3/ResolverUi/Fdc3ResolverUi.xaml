@@ -21,9 +21,9 @@ See the License for the specific language governing permissions and limitations 
         MouseDown="Window_MouseDown"
         AllowDrop="True"
         AllowsTransparency="True"
-        Width="500"
-        Height="400"
-        DataContext="{Binding RelativeSource={RelativeSource Self}}">
+        DataContext="{Binding RelativeSource={RelativeSource Self}}"
+        Height="{Binding CurrentHeight, Mode=TwoWay}"
+        Width="{Binding CurrentWidth, Mode=TwoWay}">
 
     <Border>
         <Grid 
