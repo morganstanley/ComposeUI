@@ -15,26 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddGrpc();
-builder.Services.AddCors(o => o.AddPolicy("AllowAll", builder =>
-{
-    builder.AllowAnyOrigin()
-            .AllowAnyMethod()
-            .AllowAnyHeader()
-            .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
-}));
-builder.Services.AddProcessExplorerAggregator();
-builder.Services.AddProcessMonitorWindows();
-builder.Services.AddSubsystemController();
-builder.Services.AddSingleton<IUiHandler, GrpcUiHandler>();
-builder.Services.Configure<ProcessExplorerServerOptions>(op =>
-{
-    op.Port = 5060;
-    op.MainProcessId = Process.GetCurrentProcess().Id;
-    op.EnableProcessExplorer = true;
-});
-builder.Services.AddSingleton<GrpcListenerService>();
-builder.Services.AddSingleton<IHostedService>(provider => provider.GetRequiredService<GrpcListenerService>());
-builder.Services.AddSingleton<ProcessExplorerServer>(provider => provider.GetRequiredService<GrpcListenerService>());
+builder.Services.AddProcessExplorerWindowsServerWithGrpc(pe => pe.UseGrpc());
 
 var app = builder.Build();
 app.UseGrpcWeb();

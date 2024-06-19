@@ -36,6 +36,7 @@ public static class ProcessExplorerBuilderExtensions
 
         builder.ServiceCollection.AddSingleton<GrpcListenerService>();
         builder.ServiceCollection.AddSingleton<IHostedService>(provider => provider.GetRequiredService<GrpcListenerService>());
+            
         builder.ServiceCollection.AddSingleton<ProcessExplorerServer>(provider => provider.GetRequiredService<GrpcListenerService>());
 
         return builder;
