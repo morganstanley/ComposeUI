@@ -21,10 +21,10 @@ namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI.Pages;
 
 internal class ResolverUIPageViewModel : INotifyPropertyChanged
 {
-    private IEnumerable<ResolverUIAppData> _apps;
+    private readonly IEnumerable<ResolverUIAppData> _apps;
+    private readonly RelayCommand<string> _openAppCommand;
     private readonly IPageService _pageService;
     private ResolverUIAppData? _selectedApp;
-    private readonly RelayCommand<string> _openAppCommand;
 
     public ResolverUIPageViewModel(
         IPageService pageService,
@@ -34,17 +34,6 @@ internal class ResolverUIPageViewModel : INotifyPropertyChanged
         Apps = apps.OrderBy(x => x.AppMetadata.InstanceId == null);
         SelectAppMetadata = new RelayCommand<ResolverUIAppData>(DoubleClickListBox);
         OpenApp = new RelayCommand<string>(ExecuteOpenApp);
-    }
-
-    public void DoubleClickListBox(ResolverUIAppData? appMetadata)
-    {
-        if (appMetadata == null)
-        {
-            return;
-        }
-
-        SelectedApp = appMetadata;
-        _pageService.ClosePage(SelectedApp.AppMetadata);
     }
 
     public ResolverUIAppData? SelectedApp
@@ -78,6 +67,21 @@ internal class ResolverUIPageViewModel : INotifyPropertyChanged
         }
     }
 
+    public ICommand SelectAppMetadata { get; }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public void DoubleClickListBox(ResolverUIAppData? appMetadata)
+    {
+        if (appMetadata == null)
+        {
+            return;
+        }
+
+        SelectedApp = appMetadata;
+        _pageService.ClosePage(SelectedApp.AppMetadata);
+    }
+
     private void ExecuteOpenApp(string? appId)
     {
         if (appId == null)
@@ -85,7 +89,8 @@ internal class ResolverUIPageViewModel : INotifyPropertyChanged
             return;
         }
 
-        var app = Apps.FirstOrDefault(x => x.AppMetadata.AppId == appId && string.IsNullOrEmpty(x.AppMetadata.InstanceId));
+        var app = Apps.FirstOrDefault(
+            x => x.AppMetadata.AppId == appId && string.IsNullOrEmpty(x.AppMetadata.InstanceId));
         if (app == default)
         {
             return;
@@ -93,10 +98,6 @@ internal class ResolverUIPageViewModel : INotifyPropertyChanged
 
         _pageService.ClosePage(app.AppMetadata);
     }
-
-    public ICommand SelectAppMetadata { get; }
-
-    public event PropertyChangedEventHandler? PropertyChanged;
 
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {

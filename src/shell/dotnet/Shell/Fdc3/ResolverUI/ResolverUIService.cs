@@ -25,19 +25,21 @@ using MorganStanley.ComposeUI.Messaging;
 
 namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;
 
-internal class Fdc3ResolverUIService : IHostedService
+internal class ResolverUIService : IHostedService
 {
-    private readonly IHost _host;
-    private readonly IResolverUIProjector _resolverUIWindow;
-    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        Converters = { new AppMetadataJsonConverter(), new IconJsonConverter() },
-    };
-
-    private readonly List<Func<ValueTask>> _disposeTask = new();
     private readonly object _disposeLock = new();
 
-    public Fdc3ResolverUIService(
+    private readonly List<Func<ValueTask>> _disposeTask = new();
+    private readonly IHost _host;
+
+    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        Converters = {new AppMetadataJsonConverter(), new IconJsonConverter()}
+    };
+
+    private readonly IResolverUIProjector _resolverUIWindow;
+
+    public ResolverUIService(
         IHost host,
         IResolverUIProjector resolverUIWindow)
     {
@@ -48,43 +50,6 @@ internal class Fdc3ResolverUIService : IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         await StartMessageRouterServiceAsync(cancellationToken);
-    }
-
-    private async Task StartMessageRouterServiceAsync(CancellationToken cancellationToken)
-    {
-        var messageRouter = _host.Services.GetRequiredService<IMessageRouter>();
-        var topic = "ComposeUI/fdc3/v2.0/resolverUI";
-
-        await messageRouter.RegisterServiceAsync(topic,
-                async (endpoint, payload, context) =>
-                {
-                    var request = payload?.ReadJson<ResolverUIRequest>(_jsonSerializerOptions);
-                    if (request == null)
-                    {
-                        return null;
-                    }
-
-                    var response = await ShowResolverUI(request.AppMetadata);
-
-                    return response is null ? null : MessageBuffer.Factory.CreateJson(response, _jsonSerializerOptions);
-                }, cancellationToken: cancellationToken);
-
-        lock (_disposeLock)
-        {
-            _disposeTask.Add(async () =>
-            {
-                if (messageRouter != null)
-                {
-                    await messageRouter.UnregisterServiceAsync(topic, cancellationToken);
-                    await messageRouter.DisposeAsync();
-                }
-            });
-        }
-    }
-
-    private ValueTask<ResolverUIResponse> ShowResolverUI(IEnumerable<IAppMetadata> apps)
-    {
-        return _resolverUIWindow.ShowResolverUI(apps, TimeSpan.FromMinutes(1));
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
@@ -104,5 +69,45 @@ internal class Fdc3ResolverUIService : IHostedService
                 await reversedList[i].Invoke();
             }
         }
+    }
+
+    private async Task StartMessageRouterServiceAsync(CancellationToken cancellationToken)
+    {
+        var messageRouter = _host.Services.GetRequiredService<IMessageRouter>();
+        var topic = "ComposeUI/fdc3/v2.0/resolverUI";
+
+        await messageRouter.RegisterServiceAsync(
+            topic,
+            async (endpoint, payload, context) =>
+            {
+                var request = payload?.ReadJson<ResolverUIRequest>(_jsonSerializerOptions);
+                if (request == null)
+                {
+                    return null;
+                }
+
+                var response = await ShowResolverUI(request.AppMetadata);
+
+                return response is null ? null : MessageBuffer.Factory.CreateJson(response, _jsonSerializerOptions);
+            },
+            cancellationToken: cancellationToken);
+
+        lock (_disposeLock)
+        {
+            _disposeTask.Add(
+                async () =>
+                {
+                    if (messageRouter != null)
+                    {
+                        await messageRouter.UnregisterServiceAsync(topic, cancellationToken);
+                        await messageRouter.DisposeAsync();
+                    }
+                });
+        }
+    }
+
+    private ValueTask<ResolverUIResponse> ShowResolverUI(IEnumerable<IAppMetadata> apps)
+    {
+        return _resolverUIWindow.ShowResolverUI(apps, TimeSpan.FromMinutes(1));
     }
 }

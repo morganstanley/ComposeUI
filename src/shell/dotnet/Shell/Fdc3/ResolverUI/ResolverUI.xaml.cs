@@ -21,21 +21,26 @@ using Finos.Fdc3;
 namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;
 
 /// <summary>
-/// Interaction logic for Fdc3ResolverUi.xaml
+///     Interaction logic for Fdc3ResolverUi.xaml
 /// </summary>
-public partial class Fdc3ResolverUI : Window, IDisposable
+public partial class ResolverUI : Window, IDisposable
 {
     private readonly Fdc3ResolverUIViewModel _viewModel;
 
-    public IAppMetadata? AppMetadata { get; internal set; }
-    public CancellationToken UserCancellationToken => _viewModel.UserCancellationToken;
-
-    public Fdc3ResolverUI(IEnumerable<IAppMetadata> apps)
+    public ResolverUI(IEnumerable<IAppMetadata> apps)
     {
         InitializeComponent();
 
         _viewModel = new Fdc3ResolverUIViewModel(apps);
         DataContext = _viewModel;
+    }
+
+    public IAppMetadata? AppMetadata { get; internal set; }
+    public CancellationToken UserCancellationToken => _viewModel.UserCancellationToken;
+
+    public void Dispose()
+    {
+        _viewModel.Dispose();
     }
 
     protected override void OnClosing(CancelEventArgs e)
@@ -55,16 +60,11 @@ public partial class Fdc3ResolverUI : Window, IDisposable
         Close();
     }
 
-    public void Dispose()
-    {
-        _viewModel.Dispose();
-    }
-
     private void Window_MouseDown(object sender, MouseButtonEventArgs e)
     {
         if (e.ChangedButton == MouseButton.Left)
-        { 
-            DragMove(); 
+        {
+            DragMove();
         }
     }
 }

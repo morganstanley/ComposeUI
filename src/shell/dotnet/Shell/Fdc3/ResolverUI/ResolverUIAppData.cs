@@ -15,17 +15,17 @@ using Finos.Fdc3;
 namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;
 
 /// <summary>
-/// Model containing information about the app that can resolve the intent.
+///     Model containing information about the app that can resolve the intent.
 /// </summary>
 public class ResolverUIAppData
 {
     /// <summary>
-    /// App specific information.
+    ///     App specific information.
     /// </summary>
     public IAppMetadata AppMetadata { get; set; }
 
     /// <summary>
-    /// Icon that can be visualized on the ResolverUI.
+    ///     Icon that can be visualized on the ResolverUI.
     /// </summary>
     public IIcon? Icon { get; set; }
 }

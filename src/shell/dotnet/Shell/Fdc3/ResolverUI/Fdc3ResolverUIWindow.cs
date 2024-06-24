@@ -33,33 +33,34 @@ internal class Fdc3ResolverUIWindow(ILogger<Fdc3ResolverUIWindow>? logger = null
         {
             var dispatcher = Application.Current.Dispatcher;
 
-            Fdc3ResolverUI? resolverUI = null;
+            ResolverUI? resolverUI = null;
             Task? timeoutTask = null;
 
-            dispatcher.Invoke(() =>
-            {
-                if (dispatcher.HasShutdownStarted
-                    || dispatcher.HasShutdownFinished)
+            dispatcher.Invoke(
+                () =>
                 {
-                    return;
-                }
+                    if (dispatcher.HasShutdownStarted
+                        || dispatcher.HasShutdownFinished)
+                    {
+                        return;
+                    }
 
-                resolverUI = new Fdc3ResolverUI(apps);
+                    resolverUI = new ResolverUI(apps);
 
-                timeoutTask = Task.Delay(timeout)
-                    .ContinueWith((task) => resolverUI?.Close(), TaskScheduler.FromCurrentSynchronizationContext());
+                    timeoutTask = Task.Delay(timeout)
+                        .ContinueWith(task => resolverUI?.Close(), TaskScheduler.FromCurrentSynchronizationContext());
 
-                resolverUI.ShowDialog();
-            });
+                    resolverUI.ShowDialog();
+                });
 
             //First we need to check if the timeout happened
             if (timeoutTask != null
                 && timeoutTask.IsCompletedSuccessfully)
             {
                 return ValueTask.FromResult(
-                    new ResolverUIResponse()
+                    new ResolverUIResponse
                     {
-                        Error = ResolveError.ResolverTimeout,
+                        Error = ResolveError.ResolverTimeout
                     });
             }
 
@@ -67,14 +68,14 @@ internal class Fdc3ResolverUIWindow(ILogger<Fdc3ResolverUIWindow>? logger = null
                 && resolverUI.UserCancellationToken.IsCancellationRequested)
             {
                 return ValueTask.FromResult(
-                    new ResolverUIResponse()
+                    new ResolverUIResponse
                     {
-                        Error = ResolveError.UserCancelledResolution,
+                        Error = ResolveError.UserCancelledResolution
                     });
             }
 
             return ValueTask.FromResult(
-                new ResolverUIResponse()
+                new ResolverUIResponse
                 {
                     AppMetadata = resolverUI?.AppMetadata
                 });
@@ -82,20 +83,20 @@ internal class Fdc3ResolverUIWindow(ILogger<Fdc3ResolverUIWindow>? logger = null
         catch (TimeoutException)
         {
             return ValueTask.FromResult(
-                new ResolverUIResponse()
+                new ResolverUIResponse
                 {
-                    Error = ResolveError.ResolverTimeout,
+                    Error = ResolveError.ResolverTimeout
                 });
         }
         catch (Exception exception)
         {
             if (_logger.IsEnabled(LogLevel.Error))
             {
-                _logger.LogError(exception, $"Exception thrown while showing ResolverUi.");
+                _logger.LogError(exception, message: "Exception thrown while showing ResolverUi.");
             }
 
             return ValueTask.FromResult(
-                new ResolverUIResponse()
+                new ResolverUIResponse
                 {
                     Error = ResolveError.ResolverUnavailable
                 });

@@ -17,13 +17,6 @@
       "interop": {
         "intents": {
           "listensFor": {
-            "ViewChart": {
-              "name": "ViewChart",
-              "displayName": "ViewChart",
-              "contexts": [
-                "fdc3.instrument"
-              ]
-            }
           }
         }
       }
@@ -50,13 +43,6 @@
               "displayName": "StartMicrosoft",
               "contexts": [
                 "fdc3.nothing"
-              ]
-            },
-            "ViewChart": {
-              "name": "ViewChart",
-              "displayName": "ViewChart",
-              "contexts": [
-                "fdc3.instrument"
               ]
             }
           },
@@ -86,13 +72,6 @@
               "displayName": "ViewGoogle",
               "contexts": [
                 "fdc3.testContext"
-              ]
-            },
-            "ViewChart": {
-              "name": "ViewChart",
-              "displayName": "ViewChart",
-              "contexts": [
-                "fdc3.instrument"
               ]
             }
           },

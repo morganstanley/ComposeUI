@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using System.Threading;
 using System.Windows.Controls;
@@ -22,35 +23,33 @@ using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 using Finos.Fdc3;
 using MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI.Pages;
-using Size = System.Drawing.Size;
 
 namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;
 
 internal class Fdc3ResolverUIViewModel : INotifyPropertyChanged, IDisposable
 {
-    private readonly CancellationTokenSource _userCancellationTokenSource;
+    private readonly Page _advancedResolverUIPage;
+    private readonly Size _advancedResolverUISize = new(width: 800, height: 600);
     private readonly List<ResolverUIAppData> _appData = new();
     private readonly Page _simpleResolverUIPage;
-    private readonly Size _simpleResolverUISize = new(500, 400);
-    private readonly Page _advancedResolverUIPage;
-    private readonly Size _advancedResolverUISize = new(800, 600);
+    private readonly Size _simpleResolverUISize = new(width: 500, height: 400);
+    private readonly CancellationTokenSource _userCancellationTokenSource;
+    private double _currentHeight;
     private Page _currentPage;
     private double _currentWidth;
-    private double _currentHeight;
-
-    internal CancellationToken UserCancellationToken => _userCancellationTokenSource.Token;
 
     public Fdc3ResolverUIViewModel(IEnumerable<IAppMetadata> apps)
     {
-        _userCancellationTokenSource = new();
+        _userCancellationTokenSource = new CancellationTokenSource();
 
         foreach (var app in apps)
         {
-            _appData.Add(new()
-            {
-                AppMetadata = app,
-                Icon = app.Icons.FirstOrDefault() //First Icon from the array will be shown on the ResolverUI
-            });
+            _appData.Add(
+                new ResolverUIAppData
+                {
+                    AppMetadata = app,
+                    Icon = app.Icons.FirstOrDefault() //First Icon from the array will be shown on the ResolverUI
+                });
         }
 
         _simpleResolverUIPage = new SimpleResolverUIPage(_appData);
@@ -62,11 +61,7 @@ internal class Fdc3ResolverUIViewModel : INotifyPropertyChanged, IDisposable
         OpenAdvancedViewCommand = new RelayCommand(SetCurrentPageToAdvancedView);
     }
 
-    private void SetCurrentSize(Size size)
-    {
-        CurrentWidth = size.Width;
-        CurrentHeight = size.Height;
-    }
+    internal CancellationToken UserCancellationToken => _userCancellationTokenSource.Token;
 
     public Page CurrentPage
     {
@@ -76,19 +71,6 @@ internal class Fdc3ResolverUIViewModel : INotifyPropertyChanged, IDisposable
             _currentPage = value;
             OnPropertyChanged(nameof(CurrentPage));
         }
-    }
-
-    private void SetCurrentPageToSimpleView()
-    {
-        CurrentPage = _simpleResolverUIPage;
-
-        SetCurrentSize(_simpleResolverUISize);
-    }
-
-    private void SetCurrentPageToAdvancedView()
-    {
-        CurrentPage = _advancedResolverUIPage;
-        SetCurrentSize(_advancedResolverUISize);
     }
 
     public ICommand OpenSimpleViewCommand { get; }
@@ -114,7 +96,32 @@ internal class Fdc3ResolverUIViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
+    public void Dispose()
+    {
+        _userCancellationTokenSource.Cancel();
+        _userCancellationTokenSource.Dispose();
+    }
+
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void SetCurrentSize(Size size)
+    {
+        CurrentWidth = size.Width;
+        CurrentHeight = size.Height;
+    }
+
+    private void SetCurrentPageToSimpleView()
+    {
+        CurrentPage = _simpleResolverUIPage;
+
+        SetCurrentSize(_simpleResolverUISize);
+    }
+
+    private void SetCurrentPageToAdvancedView()
+    {
+        CurrentPage = _advancedResolverUIPage;
+        SetCurrentSize(_advancedResolverUISize);
+    }
 
     protected virtual void OnPropertyChanged(string propertyName)
     {
@@ -124,11 +131,5 @@ internal class Fdc3ResolverUIViewModel : INotifyPropertyChanged, IDisposable
     internal void CancelDialog()
     {
         _userCancellationTokenSource.Cancel();
-    }
-
-    public void Dispose()
-    {
-        _userCancellationTokenSource.Cancel();
-        _userCancellationTokenSource.Dispose();
     }
 }

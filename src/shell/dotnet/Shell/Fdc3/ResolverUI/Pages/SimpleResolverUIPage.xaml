@@ -11,12 +11,10 @@ See the License for the specific language governing permissions and limitations 
 <Page x:Class="MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI.Pages.SimpleResolverUIPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI.Pages"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:mainNamespace="clr-namespace:MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI"
-      mc:Ignorable="d" 
+      mc:Ignorable="d"
       MinHeight="500"
       MinWidth="500"
       ShowsNavigationUI="False"
@@ -24,19 +22,19 @@ See the License for the specific language governing permissions and limitations 
       Title="SimpleResolverUIPage">
 
     <Page.Resources>
-        <mainNamespace:ImageSourceConverter x:Key="ImageSourceConverter"/>
+        <mainNamespace:ImageSourceConverter x:Key="ImageSourceConverter" />
 
         <DataTemplate x:Key="NormalDataTemplate">
             <StackPanel Orientation="Horizontal">
                 <Image Source="{Binding Icon, Converter={StaticResource ImageSourceConverter}}" Margin="5" />
-                <TextBlock Text="{Binding AppMetadata.AppId}" Margin="5"/>
+                <TextBlock Text="{Binding AppMetadata.AppId}" Margin="5" />
             </StackPanel>
         </DataTemplate>
 
         <DataTemplate x:Key="NullInstanceIdDataTemplate">
             <StackPanel Orientation="Horizontal">
                 <Image Source="{Binding Icon, Converter={StaticResource ImageSourceConverter}}" Margin="5" />
-                <TextBlock Text="Start New " Margin="5,0,0,0"/>
+                <TextBlock Text="Start New " Margin="5,0,0,0" />
                 <TextBlock Text="{Binding AppMetadata.AppId}" Margin="0,0,0,0" />
             </StackPanel>
         </DataTemplate>
@@ -44,17 +42,17 @@ See the License for the specific language governing permissions and limitations 
         <mainNamespace:ResolverUIDataTemplateSelector
             x:Key="DataTemplateSelector"
             NormalDataTemplate="{StaticResource NormalDataTemplate}"
-            NullInstanceIdDataTemplate="{StaticResource NullInstanceIdDataTemplate}"/>
+            NullInstanceIdDataTemplate="{StaticResource NullInstanceIdDataTemplate}" />
 
     </Page.Resources>
 
     <Border
         x:Name="ResolverUIBorder"
         Background="Transparent">
-        
+
         <Grid
             Background="Transparent">
-            
+
             <ListBox
                 x:Name="ResolverUIDataSource"
                 Background="Transparent"

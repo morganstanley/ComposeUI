@@ -18,7 +18,7 @@ using MorganStanley.ComposeUI.Messaging;
 
 namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;
 
-public class Fdc3ResolverUIServiceTests
+public class ResolverUIServiceTests
 {
     [Fact]
     public async Task StartAsync_registers_MessageRouter_service()
@@ -35,7 +35,7 @@ public class Fdc3ResolverUIServiceTests
                 _ => _.GetService(typeof(IMessageRouter)))
             .Returns(messageRouterMock.Object);
 
-        var fdc3ResolverUIService = new Fdc3ResolverUIService(
+        var fdc3ResolverUIService = new ResolverUIService(
             hostMock.Object,
             resolverUIWindowMock.Object);
 

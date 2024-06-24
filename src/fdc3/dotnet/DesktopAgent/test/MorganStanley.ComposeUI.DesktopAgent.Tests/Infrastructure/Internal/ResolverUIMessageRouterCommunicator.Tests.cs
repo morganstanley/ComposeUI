@@ -17,6 +17,7 @@ using Finos.Fdc3;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Infrastructure.Internal;
@@ -57,7 +58,7 @@ public class ResolverUIMessageRouterCommunicatorTests
                     It.IsAny<MessageBuffer>(),
                     It.IsAny<InvokeOptions>(),
                     It.IsAny<CancellationToken>()))
-            .Returns(ValueTask.FromResult<MessageBuffer?>(
+            .Returns(ValueTask.FromResult<IMessageBuffer?>(
                 MessageBuffer.Factory.CreateJson(new ResolverUIResponse()
                 {
                     AppMetadata = new AppMetadata(){ AppId = "testAppId" }

@@ -18,6 +18,7 @@ using System.Windows.Data;
 using System.Windows.Media.Imaging;
 using Finos.Fdc3;
 using MorganStanley.ComposeUI.Shell.Utilities;
+using Icon = System.Drawing.Icon;
 
 namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;
 
@@ -56,13 +57,13 @@ public class ImageSourceConverter : IValueConverter
             }
 
             using var nativeIcon =
-                System.Drawing.Icon.ExtractAssociatedIcon(path);
+                Icon.ExtractAssociatedIcon(path);
 
             if (icon != null)
             {
                 using var bitmap = nativeIcon.ToBitmap();
 
-                return (BitmapImage)bitmap.ToImageSource();
+                return (BitmapImage) bitmap.ToImageSource();
             }
 
             return null;

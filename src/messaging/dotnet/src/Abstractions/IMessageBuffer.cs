@@ -10,20 +10,19 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Messaging.Abstractions
-{
-    public interface IMessageBuffer
-    {
-        /// <summary>
-        ///     Gets the bytes of the underlying buffer as a <see cref="ReadOnlySpan{T}" />
-        /// </summary>
-        /// <returns></returns>
-        ReadOnlySpan<byte> GetSpan();
+namespace MorganStanley.ComposeUI.Messaging.Abstractions;
 
-        /// <summary>
-        ///     Gets the string value of the buffer.
-        /// </summary>
-        /// <returns></returns>
-        string GetString();
-    }
+public interface IMessageBuffer
+{
+    /// <summary>
+    ///     Gets the bytes of the underlying buffer as a <see cref="ReadOnlySpan{T}" />
+    /// </summary>
+    /// <returns></returns>
+    ReadOnlySpan<byte> GetSpan();
+
+    /// <summary>
+    ///     Gets the string value of the buffer.
+    /// </summary>
+    /// <returns></returns>
+    string GetString();
 }

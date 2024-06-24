@@ -34,7 +34,7 @@
 		
 		<Page Include="MainWindow.xaml" />
 		
-		<Page Include="Fdc3\ResolverUI\Fdc3ResolverUI.xaml">
+		<Page Include="Fdc3\ResolverUI\ResolverUI.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		</Page>
 

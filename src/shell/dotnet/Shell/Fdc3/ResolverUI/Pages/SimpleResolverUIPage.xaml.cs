@@ -16,17 +16,16 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Finos.Fdc3;
 
-
 namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI.Pages;
 
 /// <summary>
-/// Interaction logic for AdvancedResolverUIPage.xaml
+///     Interaction logic for SimpleResolverUIPage.xaml
 /// </summary>
-public partial class AdvancedResolverUIPage : Page, IPageService
+public partial class SimpleResolverUIPage : Page, IPageService
 {
     private readonly ResolverUIPageViewModel _viewModel;
 
-    public AdvancedResolverUIPage(IEnumerable<ResolverUIAppData> apps)
+    public SimpleResolverUIPage(IEnumerable<ResolverUIAppData> apps)
     {
         InitializeComponent();
 
@@ -34,10 +33,10 @@ public partial class AdvancedResolverUIPage : Page, IPageService
         DataContext = _viewModel;
     }
 
-    public void ClosePage(IAppMetadata appMetadata)
+    public void ClosePage(IAppMetadata? appMetadata)
     {
         var window = Window.GetWindow(this);
-        if (window is Fdc3ResolverUI resolverUIWindow)
+        if (window is ResolverUI resolverUIWindow)
         {
             resolverUIWindow.AppMetadata = appMetadata;
             resolverUIWindow.Close();
@@ -46,14 +45,14 @@ public partial class AdvancedResolverUIPage : Page, IPageService
 
     private void ResolverUIDataSource_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        if (sender is DataGrid dataGrid)
+        if (sender is ListBox listBox)
         {
-            if (dataGrid.SelectionMode != DataGridSelectionMode.Single)
+            if (listBox.SelectionMode != SelectionMode.Single)
             {
                 ClosePage(null);
             }
 
-            if (dataGrid.SelectedItem is ResolverUIAppData resolverUIAppData)
+            if (listBox.SelectedItem is ResolverUIAppData resolverUIAppData)
             {
                 _viewModel.DoubleClickListBox(resolverUIAppData);
             }
