@@ -21,11 +21,11 @@ using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Infrastructure;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Logging;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Processes;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Subsystems;
-using gRPC_Web_Service.Logging;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Logging;
 using ProcessExplorer.Abstractions.Infrastructure.Protos;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions;
 
-namespace gRPC_Web_Service.Server.Infrastructure.Grpc;
+namespace MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.Infrastructure.Grpc;
 
 [ExcludeFromCodeCoverage]
 internal class GrpcUiHandler : IUiHandler

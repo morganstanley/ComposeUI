@@ -14,9 +14,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Infrastructure;
 using MorganStanley.ComposeUI.ProcessExplorer.Core.DependencyInjection;
-using gRPC_Web_Service.Server.Infrastructure.Grpc;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.Infrastructure.Grpc;
 
-namespace gRPC_Web_Service.DependencyInjection;
+namespace MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.DependencyInjection;
 
 public static class ServiceCollectionProcessExplorerExtensions
 {

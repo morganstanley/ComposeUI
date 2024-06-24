@@ -15,10 +15,10 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Subsystems;
-using gRPC_Web_Service.Logging;
-using gRPC_Web_Service.Server.Abstractions;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Logging;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.Abstractions;
 
-namespace gRPC_Web_Service.Sever.Abstractions;
+namespace MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Sever.Abstractions;
 
 internal abstract class ProcessExplorerServer
 {

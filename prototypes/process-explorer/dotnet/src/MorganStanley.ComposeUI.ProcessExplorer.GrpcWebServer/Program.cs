@@ -1,12 +1,6 @@
-﻿using gRPC_Web_Service.DependencyInjection;
-using gRPC_Web_Service.Server.GrpcServer;
-using gRPC_Web_Service.Server.Abstractions;
-using gRPC_Web_Service.Server.Infrastructure.Grpc;
-using gRPC_Web_Service.Services;
-using gRPC_Web_Service.Sever.Abstractions;
-using MorganStanley.ComposeUI.ProcessExplorer.Core.DependencyInjection;
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Infrastructure;
-using System.Diagnostics;
+﻿using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.DependencyInjection;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.Abstractions;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.Infrastructure.Grpc;
 
 var builder = WebApplication.CreateBuilder(args);
 

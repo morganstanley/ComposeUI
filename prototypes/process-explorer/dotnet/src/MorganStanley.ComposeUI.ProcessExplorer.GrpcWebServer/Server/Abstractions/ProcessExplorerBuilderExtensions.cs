@@ -12,15 +12,15 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using gRPC_Web_Service.DependencyInjection;
-using gRPC_Web_Service.Server.GrpcServer;
-using gRPC_Web_Service.Sever.Abstractions;
-using gRPC_Web_Service.Server.Infrastructure.Grpc;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.DependencyInjection;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.GrpcServer;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.Infrastructure.Grpc;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Infrastructure;
 using MorganStanley.ComposeUI.ProcessExplorer.Core.DependencyInjection;
 using System.Diagnostics;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Sever.Abstractions;
 
-namespace gRPC_Web_Service.Server.Abstractions;
+namespace MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.Abstractions;
 
 public static class ProcessExplorerBuilderExtensions
 {

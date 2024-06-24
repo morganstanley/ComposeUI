@@ -15,7 +15,7 @@ using ProcessExplorer.Abstractions.Infrastructure.Protos;
 using ProcessInfoCollectorData = MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.ProcessInfoCollectorData;
 using ProtoProcessInfoCollectorData = ProcessExplorer.Abstractions.Infrastructure.Protos.ProcessInfoCollectorData;
 
-namespace gRPC_Web_Service.Extensions;
+namespace MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Extensions;
 
 internal static class ProtoConvertHelper
 {

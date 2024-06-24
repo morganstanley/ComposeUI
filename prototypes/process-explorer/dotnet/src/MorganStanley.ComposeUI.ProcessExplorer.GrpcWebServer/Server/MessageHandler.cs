@@ -10,13 +10,13 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using gRPC_Web_Service.Extensions;
-using gRPC_Web_Service.Logging;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Extensions;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Logging;
 using Microsoft.Extensions.Logging;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions;
 using ProcessExplorer.Abstractions.Infrastructure.Protos;
 
-namespace gRPC_Web_Service.Server;
+namespace MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server;
 
 internal static class MessageHandler
 {

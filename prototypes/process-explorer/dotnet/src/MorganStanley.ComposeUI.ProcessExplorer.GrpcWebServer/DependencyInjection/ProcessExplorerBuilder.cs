@@ -12,7 +12,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
-namespace gRPC_Web_Service.DependencyInjection;
+namespace MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.DependencyInjection;
 
 public sealed class ProcessExplorerBuilder
 {

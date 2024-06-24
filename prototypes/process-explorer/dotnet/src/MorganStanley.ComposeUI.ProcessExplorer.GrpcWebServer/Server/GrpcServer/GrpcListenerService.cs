@@ -16,14 +16,14 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions;
-using gRPC_Web_Service.Logging;
-using gRPC_Web_Service.Server.Abstractions;
-using gRPC_Web_Service.Server.Infrastructure.Grpc;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Logging;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.Abstractions;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.Infrastructure.Grpc;
 using ProcessExplorer.Abstractions.Infrastructure.Protos;
 using GRPCServer = Grpc.Core.Server;
-using gRPC_Web_Service.Sever.Abstractions;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Sever.Abstractions;
 
-namespace gRPC_Web_Service.Server.GrpcServer;
+namespace MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.GrpcServer;
 internal class GrpcListenerService : ProcessExplorerServer, IHostedService
 {
     private readonly CancellationTokenSource _stopTokenSource = new();

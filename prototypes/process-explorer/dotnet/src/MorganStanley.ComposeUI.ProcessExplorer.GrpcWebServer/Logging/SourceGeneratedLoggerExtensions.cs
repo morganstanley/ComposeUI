@@ -12,7 +12,7 @@
 
 using Microsoft.Extensions.Logging;
 
-namespace gRPC_Web_Service.Logging;
+namespace MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Logging;
 
 internal static partial class SourceGeneratedLoggerExtensions
 {
