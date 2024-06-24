@@ -20,15 +20,15 @@ using Microsoft.Extensions.Options;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
 using MorganStanley.ComposeUI.Messaging;
 using Finos.Fdc3;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
 internal class Fdc3DesktopAgentMessageRouterService : IHostedService
 {
-    private readonly IMessageRouter _messageRouter;
+    private readonly IMessagingService _messageRouter;
     private readonly IFdc3DesktopAgentBridge _desktopAgent;
     private readonly Fdc3DesktopAgentOptions _options;
     private readonly ILoggerFactory _loggerFactory;
@@ -51,7 +51,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
     public JsonSerializerOptions JsonMessageSerializerOptions => new(_jsonSerializerOptions);
 
     public Fdc3DesktopAgentMessageRouterService(
-        IMessageRouter messageRouter,
+        IMessagingService messageRouter,
         IFdc3DesktopAgentBridge desktopAgent,
         IOptions<Fdc3DesktopAgentOptions> options,
         ILoggerFactory? loggerFactory = null)

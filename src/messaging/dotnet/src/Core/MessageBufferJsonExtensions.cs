@@ -11,6 +11,7 @@
 // and limitations under the License.
 
 using System.Text.Json;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Messaging;
 
@@ -26,7 +27,7 @@ public static class MessageBufferJsonExtensions
     /// <param name="buffer"></param>
     /// <param name="options"></param>
     /// <returns></returns>
-    public static T? ReadJson<T>(this MessageBuffer buffer, JsonSerializerOptions? options = null)
+    public static T? ReadJson<T>(this IMessageBuffer buffer, JsonSerializerOptions? options = null)
     {
         var reader = new Utf8JsonReader(buffer.GetSpan());
 
@@ -50,7 +51,7 @@ public static class MessageBufferJsonExtensions
         using var jsonWriter = new Utf8JsonWriter(bufferWriter);
         JsonSerializer.Serialize(jsonWriter, value, options);
         jsonWriter.Flush();
-        
+
         return MessageBuffer.Create(bufferWriter.WrittenMemory);
     }
 }

@@ -10,7 +10,7 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Messaging;
+namespace MorganStanley.ComposeUI.Messaging.Abstractions;
 
 public readonly record struct PublishOptions
 {

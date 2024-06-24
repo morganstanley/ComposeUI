@@ -11,6 +11,7 @@
 // and limitations under the License.
 
 using System.Text.Json;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Messaging;
 

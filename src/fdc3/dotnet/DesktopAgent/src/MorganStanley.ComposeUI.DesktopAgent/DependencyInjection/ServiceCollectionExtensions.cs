@@ -12,10 +12,11 @@
  * and limitations under the License.
  */
 
-using Microsoft.Extensions.Hosting;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
+using MorganStanley.ComposeUI.Messaging;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.Fdc3;
 

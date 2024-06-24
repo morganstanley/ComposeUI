@@ -10,20 +10,20 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Messaging;
-
-/// <summary>
-/// Provides contextual information for a message received from the Message Router.
-/// </summary>
-public sealed class MessageContext
+namespace MorganStanley.ComposeUI.Messaging.Abstractions
 {
-    /// <summary>
-    /// Gets the client ID of the sender.
-    /// </summary>
-    public string SourceId { get; init; } = "";
+    public interface IMessageBuffer
+    {
+        /// <summary>
+        ///     Gets the bytes of the underlying buffer as a <see cref="ReadOnlySpan{T}" />
+        /// </summary>
+        /// <returns></returns>
+        ReadOnlySpan<byte> GetSpan();
 
-    /// <summary>
-    /// Gets the correlation ID of the message, if there's one.
-    /// </summary>
-    public string? CorrelationId { get; init; }
+        /// <summary>
+        ///     Gets the string value of the buffer.
+        /// </summary>
+        /// <returns></returns>
+        string GetString();
+    }
 }

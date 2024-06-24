@@ -11,6 +11,7 @@
 // and limitations under the License.
 
 using MorganStanley.ComposeUI.Messaging;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 using MorganStanley.ComposeUI.Messaging.Client;
 
 // ReSharper disable once CheckNamespace
@@ -35,6 +36,7 @@ public static class ServiceCollectionExtensions
     {
         var builder = new MessageRouterBuilder(serviceCollection);
         builderAction(builder);
+        serviceCollection.AddSingleton<IMessagingService, MessageRouterClient>();
         serviceCollection.AddSingleton<IMessageRouter, MessageRouterClient>();
 
         serviceCollection.AddSingleton(

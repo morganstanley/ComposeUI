@@ -10,16 +10,20 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using MorganStanley.ComposeUI.Messaging.Abstractions;
-
-namespace MorganStanley.ComposeUI.Messaging;
+namespace MorganStanley.ComposeUI.Messaging.Abstractions;
 
 /// <summary>
-///     The delegate type that gets called when an endpoint is invoked.
+/// Provides contextual information for a message received from the Message Router.
 /// </summary>
-public delegate ValueTask<IMessageBuffer?> MessageHandler(string endpoint, IMessageBuffer? payload, MessageContext context);
+public sealed class MessageContext
+{
+    /// <summary>
+    /// Gets the client ID of the sender.
+    /// </summary>
+    public string SourceId { get; init; } = "";
 
-/// <summary>
-///     The delegate type that gets called when an endpoint is invoked (plain text version).
-/// </summary>
-public delegate ValueTask<string?> PlainTextMessageHandler(string endpoint, string? payload, MessageContext context);
+    /// <summary>
+    /// Gets the correlation ID of the message, if there's one.
+    /// </summary>
+    public string? CorrelationId { get; init; }
+}

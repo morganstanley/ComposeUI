@@ -13,6 +13,7 @@
  */
 
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 using Finos.Fdc3.Context;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
@@ -20,7 +21,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
 public class UserChannelTests
 {
     private const string TestChannel = "testChannel";
-    UserChannel _channel = new UserChannel(TestChannel, new Mock<IMessageRouter>().Object, null);
+    UserChannel _channel = new UserChannel(TestChannel, new Mock<IMessagingService>().Object, null);
     UserChannelTopics _topics = new UserChannelTopics(TestChannel);
 
     [Theory]

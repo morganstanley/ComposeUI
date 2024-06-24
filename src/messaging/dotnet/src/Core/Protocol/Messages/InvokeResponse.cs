@@ -10,10 +10,12 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using MorganStanley.ComposeUI.Messaging.Abstractions;
+
 namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
 public sealed class InvokeResponse : AbstractResponse
 {
     public override MessageType Type => MessageType.InvokeResponse;
-    public MessageBuffer? Payload { get; init; }
+    public IMessageBuffer? Payload { get; init; }
 }
