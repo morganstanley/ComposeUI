@@ -85,7 +85,7 @@ internal sealed class MessageRouterClient : IMessageRouter
     public async ValueTask PublishAsync(
         string topic,
         IMessageBuffer? payload = null,
-        IPublishOptions? options = default,
+        PublishOptions options = default,
         CancellationToken cancellationToken = default)
     {
         Protocol.Topic.Validate(topic);
@@ -96,7 +96,7 @@ internal sealed class MessageRouterClient : IMessageRouter
                 RequestId = GenerateRequestId(),
                 Topic = topic,
                 Payload = payload,
-                CorrelationId = options?.CorrelationId
+                CorrelationId = options.CorrelationId
             },
             cancellationToken);
     }
@@ -104,7 +104,7 @@ internal sealed class MessageRouterClient : IMessageRouter
     public async ValueTask<IMessageBuffer?> InvokeAsync(
         string endpoint,
         IMessageBuffer? payload = null,
-        IInvokeOptions? options = default,
+        InvokeOptions options = default,
         CancellationToken cancellationToken = default)
     {
         Endpoint.Validate(endpoint);
@@ -115,7 +115,7 @@ internal sealed class MessageRouterClient : IMessageRouter
             RequestId = GenerateRequestId(),
             Endpoint = endpoint,
             Payload = payload,
-            CorrelationId = options?.CorrelationId,
+            CorrelationId = options.CorrelationId,
         };
 
         var response = await SendRequestAsync(request, cancellationToken);
@@ -157,7 +157,7 @@ internal sealed class MessageRouterClient : IMessageRouter
 
     public ValueTask RegisterServiceAsync(
         string endpoint,
-        Func<string, IMessageBuffer?, IMessageContext?, ValueTask<IMessageBuffer?>> subscriber,
+        Func<string, IMessageBuffer?, MessageContext?, ValueTask<IMessageBuffer?>> subscriber,
         CancellationToken cancellationToken = default)
     {
         MessageHandler handler = async (endpoint, payload, context) =>

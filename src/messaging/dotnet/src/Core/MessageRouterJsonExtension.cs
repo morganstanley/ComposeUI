@@ -11,6 +11,7 @@
 // and limitations under the License.
 
 using System.Text.Json;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Messaging;
 
@@ -40,7 +41,7 @@ public static class MessageRouterJsonExtensions
     {
         return messageRouter.PublishAsync(
             topic,
-            MessageBuffer.CreateJson(payload, jsonSerializerOptions),
+            MessageBuffer.Factory.CreateJson(payload, jsonSerializerOptions),
             publishOptions,
             cancellationToken);
     }

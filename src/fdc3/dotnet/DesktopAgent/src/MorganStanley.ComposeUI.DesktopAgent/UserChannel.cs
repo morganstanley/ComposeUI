@@ -18,6 +18,7 @@ using System.Text.Json.Nodes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
+using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
@@ -99,7 +100,7 @@ internal class UserChannel : IAsyncDisposable
         return ValueTask.CompletedTask;
     }
 
-    internal ValueTask<IMessageBuffer?> GetCurrentContext(string endpoint, IMessageBuffer? payloadBuffer, IMessageContext? context)
+    internal ValueTask<IMessageBuffer?> GetCurrentContext(string endpoint, IMessageBuffer? payloadBuffer, MessageContext? context)
     {
         if (payloadBuffer == null)
         {

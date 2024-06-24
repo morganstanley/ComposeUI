@@ -10,8 +10,6 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using System.Text.Json;
-
 namespace MorganStanley.ComposeUI.Messaging.Abstractions
 {
     public interface IMessageBuffer
@@ -27,13 +25,5 @@ namespace MorganStanley.ComposeUI.Messaging.Abstractions
         /// </summary>
         /// <returns></returns>
         string GetString();
-
-        /// <summary>
-        /// Deserializes the JSON content of the buffer.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="options"></param>
-        /// <returns></returns>
-        T? ReadJson<T>(JsonSerializerOptions? options = null);
     }
 }

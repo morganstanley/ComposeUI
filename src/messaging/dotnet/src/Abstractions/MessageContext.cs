@@ -10,13 +10,20 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using MorganStanley.ComposeUI.Messaging.Abstractions;
+namespace MorganStanley.ComposeUI.Messaging.Abstractions;
 
-namespace MorganStanley.ComposeUI.Messaging;
-
-public readonly record struct PublishOptions : IPublishOptions
+/// <summary>
+/// Provides contextual information for a message received from the Message Router.
+/// </summary>
+public sealed class MessageContext
 {
-    public string? CorrelationId { get; init; }
+    /// <summary>
+    /// Gets the client ID of the sender.
+    /// </summary>
+    public string SourceId { get; init; } = "";
 
-    // TODO: Wait for delivery
+    /// <summary>
+    /// Gets the correlation ID of the message, if there's one.
+    /// </summary>
+    public string? CorrelationId { get; init; }
 }

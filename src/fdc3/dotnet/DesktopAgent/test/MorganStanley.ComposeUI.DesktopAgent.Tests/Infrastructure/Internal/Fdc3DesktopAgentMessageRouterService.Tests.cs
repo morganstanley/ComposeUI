@@ -216,8 +216,8 @@ public class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
         _mockMessageRouter.Verify(
             _ => _.PublishAsync(
                 Fdc3Topic.RaiseIntentResolution("intentMetadataCustom", targetFdc3InstanceId),
-                It.IsAny<IMessageBuffer>(),
-                It.IsAny<IPublishOptions>(),
+                It.IsAny<MessageBuffer>(),
+                It.IsAny<PublishOptions>(),
                 It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -793,8 +793,8 @@ public class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
         _mockMessageRouter.Verify(
             _ => _.PublishAsync(
                 Fdc3Topic.RaiseIntentResolution("intentMetadataCustom", targetFdc3InstanceId),
-                It.IsAny<IMessageBuffer>(),
-                It.IsAny<IPublishOptions>(),
+                It.IsAny<MessageBuffer>(),
+                It.IsAny<PublishOptions>(),
                 It.IsAny<CancellationToken>()));
     }
 
@@ -830,7 +830,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
             Intent = "intentMetadataCustom",
             Selected = false,
             Context = new Context("contextCustom"),
-            TargetAppIdentifier = new AppIdentifier {AppId = "appId4", InstanceId = targetFdc3InstanceId}
+            TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
         };
 
         var raiseIntentResult = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
@@ -842,8 +842,8 @@ public class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
         _mockMessageRouter.Verify(
             _ => _.PublishAsync(
                 Fdc3Topic.RaiseIntentResolution("intentMetadataCustom", targetFdc3InstanceId),
-                It.IsAny<IMessageBuffer>(),
-                It.IsAny<IPublishOptions>(),
+                It.IsAny<MessageBuffer>(),
+                It.IsAny<PublishOptions>(),
                 It.IsAny<CancellationToken>()));
     }
 

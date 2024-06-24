@@ -70,7 +70,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         return userChannel;
     }
 
-    internal ValueTask<FindChannelResponse?> HandleFindChannel(FindChannelRequest? request, IMessageContext context)
+    internal ValueTask<FindChannelResponse?> HandleFindChannel(FindChannelRequest? request, MessageContext context)
     {
         return ValueTask.FromResult<FindChannelResponse?>(
             _desktopAgent.FindChannel(request!.ChannelId, request!.ChannelType)
@@ -78,17 +78,17 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
                 : FindChannelResponse.Failure(ChannelError.NoChannelFound));
     }
 
-    internal async ValueTask<FindIntentResponse?> HandleFindIntent(FindIntentRequest? request, IMessageContext context)
+    internal async ValueTask<FindIntentResponse?> HandleFindIntent(FindIntentRequest? request, MessageContext context)
     {
         return await _desktopAgent.FindIntent(request);
     }
 
-    internal async ValueTask<FindIntentsByContextResponse?> HandleFindIntentsByContext(FindIntentsByContextRequest? request, IMessageContext context)
+    internal async ValueTask<FindIntentsByContextResponse?> HandleFindIntentsByContext(FindIntentsByContextRequest? request, MessageContext context)
     {
         return await _desktopAgent.FindIntentsByContext(request);
     }
 
-    internal async ValueTask<RaiseIntentResponse?> HandleRaiseIntent(RaiseIntentRequest? request, IMessageContext context)
+    internal async ValueTask<RaiseIntentResponse?> HandleRaiseIntent(RaiseIntentRequest? request, MessageContext context)
     {
         var result = await _desktopAgent.RaiseIntent(request);
         if (result.RaiseIntentResolutionMessages.Any())
@@ -97,14 +97,14 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
             {
                 await _messageRouter.PublishAsync(
                     Fdc3Topic.RaiseIntentResolution(message.Intent, message.TargetModuleInstanceId),
-                    MessageBuffer.CreateJson(message.Request, _jsonSerializerOptions));
+                    MessageBuffer.Factory.CreateJson(message.Request, _jsonSerializerOptions));
             }
         }
 
         return result.Response;
     }
 
-    internal async ValueTask<IntentListenerResponse?> HandleAddIntentListener(IntentListenerRequest? request, IMessageContext context)
+    internal async ValueTask<IntentListenerResponse?> HandleAddIntentListener(IntentListenerRequest? request, MessageContext context)
     {
         var result = await _desktopAgent.AddIntentListener(request);
 
@@ -114,19 +114,19 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
             {
                 await _messageRouter.PublishAsync(
                     Fdc3Topic.RaiseIntentResolution(message.Intent, message.TargetModuleInstanceId),
-                    MessageBuffer.CreateJson(message.Request, _jsonSerializerOptions));
+                    MessageBuffer.Factory.CreateJson(message.Request, _jsonSerializerOptions));
             }
         }
 
         return result.Response;
     }
 
-    internal async ValueTask<StoreIntentResultResponse?> HandleStoreIntentResult(StoreIntentResultRequest? request, IMessageContext context)
+    internal async ValueTask<StoreIntentResultResponse?> HandleStoreIntentResult(StoreIntentResultRequest? request, MessageContext context)
     {
         return await _desktopAgent.StoreIntentResult(request);
     }
 
-    internal async ValueTask<GetIntentResultResponse?> HandleGetIntentResult(GetIntentResultRequest? request, IMessageContext context)
+    internal async ValueTask<GetIntentResultResponse?> HandleGetIntentResult(GetIntentResultRequest? request, MessageContext context)
     {
         return await _desktopAgent.GetIntentResult(request);
     }
@@ -148,14 +148,14 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        async Task RegisterHandler<TRequest, TResponse>(string topic, Func<TRequest?, IMessageContext, ValueTask<TResponse?>> handler) where TRequest : class
+        async Task RegisterHandler<TRequest, TResponse>(string topic, Func<TRequest?, MessageContext, ValueTask<TResponse?>> handler) where TRequest : class
         {
             await _messageRouter.RegisterServiceAsync(topic,
                 async (endpoint, payload, context) =>
                 {
                     var request = payload?.ReadJson<TRequest>(_jsonSerializerOptions);
                     var response = await handler(request, context);
-                    return response is null ? null : MessageBuffer.CreateJson(response, _jsonSerializerOptions);
+                    return response is null ? null : MessageBuffer.Factory.CreateJson(response, _jsonSerializerOptions);
                 }, cancellationToken: cancellationToken);
         }
 

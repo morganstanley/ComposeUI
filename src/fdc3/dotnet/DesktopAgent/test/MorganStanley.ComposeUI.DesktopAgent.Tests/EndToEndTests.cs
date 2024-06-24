@@ -48,18 +48,18 @@ public class EndToEndTests : IAsyncLifetime
     private JsonSerializerOptions _options;
     private IDisposable _runningAppsObserver;
 
-    private MessageBuffer EmptyContextType => MessageBuffer.CreateJson(new GetCurrentContextRequest());
+    private MessageBuffer EmptyContextType => MessageBuffer.Factory.CreateJson(new GetCurrentContextRequest());
 
     private MessageBuffer ContextType =>
-        MessageBuffer.CreateJson(new GetCurrentContextRequest {ContextType = new Contact().Type});
+        MessageBuffer.Factory.CreateJson(new GetCurrentContextRequest {ContextType = new Contact().Type});
 
     private MessageBuffer OtherContextType =>
-        MessageBuffer.CreateJson(new GetCurrentContextRequest {ContextType = new Email(null).Type});
+        MessageBuffer.Factory.CreateJson(new GetCurrentContextRequest {ContextType = new Email(null).Type});
 
-    private MessageBuffer FindRequest => MessageBuffer.CreateJson(
+    private MessageBuffer FindRequest => MessageBuffer.Factory.CreateJson(
         new FindChannelRequest {ChannelId = TestChannel, ChannelType = ChannelType.User});
 
-    private MessageBuffer FindNonExistingRequest => MessageBuffer.CreateJson(
+    private MessageBuffer FindNonExistingRequest => MessageBuffer.Factory.CreateJson(
         new FindChannelRequest {ChannelId = "nonexisting", ChannelType = ChannelType.User});
 
     public async Task InitializeAsync()
@@ -248,7 +248,7 @@ public class EndToEndTests : IAsyncLifetime
 
         var resultBuffer = await _messageRouter.InvokeAsync(
             Fdc3Topic.FindIntent,
-            MessageBuffer.CreateJson(request, _options));
+            MessageBuffer.Factory.CreateJson(request, _options));
         resultBuffer.Should().NotBeNull();
         var result = resultBuffer!.ReadJson<FindIntentResponse>(_options);
         result.Should().NotBeNull();
@@ -289,7 +289,7 @@ public class EndToEndTests : IAsyncLifetime
 
         var resultBuffer = await _messageRouter.InvokeAsync(
             Fdc3Topic.FindIntent,
-            MessageBuffer.CreateJson(request, _options));
+            MessageBuffer.Factory.CreateJson(request, _options));
         resultBuffer.Should().NotBeNull();
         var result = resultBuffer!.ReadJson<FindIntentResponse>(_options);
         result.Should().NotBeNull();
@@ -329,7 +329,7 @@ public class EndToEndTests : IAsyncLifetime
 
         var resultBuffer = await _messageRouter.InvokeAsync(
             Fdc3Topic.FindIntentsByContext,
-            MessageBuffer.CreateJson(request, _options));
+            MessageBuffer.Factory.CreateJson(request, _options));
         resultBuffer.Should().NotBeNull();
         var result = resultBuffer!.ReadJson<FindIntentsByContextResponse>(_options);
         result.Should().NotBeNull();
@@ -376,7 +376,7 @@ public class EndToEndTests : IAsyncLifetime
 
         var resultBuffer = await _messageRouter.InvokeAsync(
             Fdc3Topic.FindIntentsByContext,
-            MessageBuffer.CreateJson(request, _options));
+            MessageBuffer.Factory.CreateJson(request, _options));
         resultBuffer.Should().NotBeNull();
         var result = resultBuffer!.ReadJson<FindIntentsByContextResponse>(_options);
         result.Should().NotBeNull();
@@ -418,7 +418,7 @@ public class EndToEndTests : IAsyncLifetime
 
         var resultBuffer = await _messageRouter.InvokeAsync(
             Fdc3Topic.FindIntentsByContext,
-            MessageBuffer.CreateJson(request, _options));
+            MessageBuffer.Factory.CreateJson(request, _options));
         resultBuffer.Should().NotBeNull();
         var result = resultBuffer!.ReadJson<FindIntentsByContextResponse>(_options);
         result.Should().NotBeNull();
@@ -462,7 +462,7 @@ public class EndToEndTests : IAsyncLifetime
 
         var resultBuffer = await _messageRouter.InvokeAsync(
             Fdc3Topic.RaiseIntent,
-            MessageBuffer.CreateJson(request, _options));
+            MessageBuffer.Factory.CreateJson(request, _options));
         resultBuffer.Should().NotBeNull();
         var result = resultBuffer!.ReadJson<RaiseIntentResponse>(_options);
         result.Should().NotBeNull();
@@ -486,7 +486,7 @@ public class EndToEndTests : IAsyncLifetime
 
         var resultBuffer = await _messageRouter.InvokeAsync(
             Fdc3Topic.RaiseIntent,
-            MessageBuffer.CreateJson(request, _options));
+            MessageBuffer.Factory.CreateJson(request, _options));
         var app4 = _runningApps.First(application => application.Manifest.Id == "appId4");
         var app4Fdc3InstanceId = Fdc3InstanceIdRetriever.Get(app4);
         app4Fdc3InstanceId.Should()
@@ -519,7 +519,7 @@ public class EndToEndTests : IAsyncLifetime
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
         var addIntentListenerRequest =
-            MessageBuffer.CreateJson(
+            MessageBuffer.Factory.CreateJson(
                 new IntentListenerRequest
                 {
                     Intent = "intentMetadataCustom",
@@ -548,7 +548,7 @@ public class EndToEndTests : IAsyncLifetime
 
         var resultBuffer = await _messageRouter.InvokeAsync(
             Fdc3Topic.RaiseIntent,
-            MessageBuffer.CreateJson(request, _options));
+            MessageBuffer.Factory.CreateJson(request, _options));
 
         resultBuffer.Should().NotBeNull();
         var result = resultBuffer!.ReadJson<RaiseIntentResponse>(_options);
@@ -585,7 +585,7 @@ public class EndToEndTests : IAsyncLifetime
 
         var resultBuffer = await _messageRouter.InvokeAsync(
             Fdc3Topic.RaiseIntent,
-            MessageBuffer.CreateJson(request, _options));
+            MessageBuffer.Factory.CreateJson(request, _options));
         resultBuffer.Should().NotBeNull();
         var result = resultBuffer!.ReadJson<RaiseIntentResponse>(_options);
         result.Should().NotBeNull();
@@ -636,7 +636,7 @@ public class EndToEndTests : IAsyncLifetime
 
         var resultBuffer = await _messageRouter.InvokeAsync(
             Fdc3Topic.SendIntentResult,
-            MessageBuffer.CreateJson(request, _options));
+            MessageBuffer.Factory.CreateJson(request, _options));
         resultBuffer.Should().NotBeNull();
         var result = resultBuffer!.ReadJson<StoreIntentResultResponse>(_options);
         result!.Should().BeEquivalentTo(expectedResponse);
@@ -659,7 +659,7 @@ public class EndToEndTests : IAsyncLifetime
 
         var raiseIntentResultBuffer = await _messageRouter.InvokeAsync(
             Fdc3Topic.RaiseIntent,
-            MessageBuffer.CreateJson(raiseIntentRequest, _options));
+            MessageBuffer.Factory.CreateJson(raiseIntentRequest, _options));
         raiseIntentResultBuffer.Should().NotBeNull();
         var raiseIntentResult = raiseIntentResultBuffer!.ReadJson<RaiseIntentResponse>(_options);
         raiseIntentResult!.AppMetadata.Should().HaveCount(1);
@@ -687,7 +687,7 @@ public class EndToEndTests : IAsyncLifetime
 
         var resultBuffer = await _messageRouter.InvokeAsync(
             Fdc3Topic.SendIntentResult,
-            MessageBuffer.CreateJson(request, _options));
+            MessageBuffer.Factory.CreateJson(request, _options));
         resultBuffer.Should().NotBeNull();
         var result = resultBuffer!.ReadJson<StoreIntentResultResponse>(_options);
         result!.Should().BeEquivalentTo(expectedResponse);
@@ -724,7 +724,7 @@ public class EndToEndTests : IAsyncLifetime
 
         var resultBuffer = await _messageRouter.InvokeAsync(
             Fdc3Topic.GetIntentResult,
-            MessageBuffer.CreateJson(request, _options));
+            MessageBuffer.Factory.CreateJson(request, _options));
         resultBuffer.Should().NotBeNull();
         var result = resultBuffer!.ReadJson<GetIntentResultResponse>(_options);
         result!.Should().BeEquivalentTo(expectedResponse);
@@ -750,7 +750,7 @@ public class EndToEndTests : IAsyncLifetime
 
         var resultBuffer = await _messageRouter.InvokeAsync(
             Fdc3Topic.GetIntentResult,
-            MessageBuffer.CreateJson(request, _options));
+            MessageBuffer.Factory.CreateJson(request, _options));
         resultBuffer.Should().NotBeNull();
         var result = resultBuffer!.ReadJson<GetIntentResultResponse>(_options);
         result!.Should().BeEquivalentTo(expectedResponse);
@@ -773,7 +773,7 @@ public class EndToEndTests : IAsyncLifetime
 
         var resultRaiseIntentBuffer = await _messageRouter.InvokeAsync(
             Fdc3Topic.RaiseIntent,
-            MessageBuffer.CreateJson(raiseIntentRequest, _options));
+            MessageBuffer.Factory.CreateJson(raiseIntentRequest, _options));
         var raiseIntentResult = resultRaiseIntentBuffer!.ReadJson<RaiseIntentResponse>(_options);
 
         var testContext = new Context("testContextType");
@@ -789,7 +789,7 @@ public class EndToEndTests : IAsyncLifetime
 
         await _messageRouter.InvokeAsync(
             Fdc3Topic.SendIntentResult,
-            MessageBuffer.CreateJson(storeIntentRequest, _options));
+            MessageBuffer.Factory.CreateJson(storeIntentRequest, _options));
 
         var request = new GetIntentResultRequest
         {
@@ -810,7 +810,7 @@ public class EndToEndTests : IAsyncLifetime
 
         var resultBuffer = await _messageRouter.InvokeAsync(
             Fdc3Topic.GetIntentResult,
-            MessageBuffer.CreateJson(request, _options));
+            MessageBuffer.Factory.CreateJson(request, _options));
         resultBuffer.Should().NotBeNull();
         var result = resultBuffer!.ReadJson<GetIntentResultResponse>(_options);
         result!.Should().BeEquivalentTo(expectedResponse);
@@ -835,7 +835,7 @@ public class EndToEndTests : IAsyncLifetime
             {Intent = "dummy", Fdc3InstanceId = originFdc3InstanceId, State = SubscribeState.Unsubscribe};
         var expectedResponse = await _messageRouter.InvokeAsync(
             Fdc3Topic.AddIntentListener,
-            MessageBuffer.CreateJson(request, _options));
+            MessageBuffer.Factory.CreateJson(request, _options));
         expectedResponse.Should().NotBeNull();
         expectedResponse!.ReadJson<IntentListenerResponse>(_options)
             .Should()
@@ -853,7 +853,7 @@ public class EndToEndTests : IAsyncLifetime
         var target = await _moduleLoader.StartModule(new StartRequest("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
-        var raiseIntentRequest = MessageBuffer.CreateJson(
+        var raiseIntentRequest = MessageBuffer.Factory.CreateJson(
             new RaiseIntentRequest
             {
                 MessageId = 1,
@@ -872,7 +872,7 @@ public class EndToEndTests : IAsyncLifetime
         raiseIntentResponse.AppMetadata.Should().HaveCount(1);
         raiseIntentResponse.AppMetadata!.First()!.AppId.Should().Be("appId4");
 
-        var addIntentListenerRequest = MessageBuffer.CreateJson(
+        var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
             new IntentListenerRequest
             {
                 Intent = "intentMetadataCustom",
@@ -902,7 +902,7 @@ public class EndToEndTests : IAsyncLifetime
         var target = await _moduleLoader.StartModule(new StartRequest("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
-        var addIntentListenerRequest = MessageBuffer.CreateJson(
+        var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
             new IntentListenerRequest
             {
                 Intent = "intentMetadataCustom",
@@ -927,7 +927,7 @@ public class EndToEndTests : IAsyncLifetime
         var target = await _moduleLoader.StartModule(new StartRequest("appId4"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
-        var addIntentListenerRequest = MessageBuffer.CreateJson(
+        var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
             new IntentListenerRequest
             {
                 Intent = "intentMetadataCustom",
@@ -944,7 +944,7 @@ public class EndToEndTests : IAsyncLifetime
         var addIntentListnerResponse = addIntentListenerResult!.ReadJson<IntentListenerResponse>(_options);
         addIntentListnerResponse!.Stored.Should().BeTrue();
 
-        addIntentListenerRequest = MessageBuffer.CreateJson(
+        addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
             new IntentListenerRequest
             {
                 Intent = "intentMetadataCustom",
@@ -965,7 +965,7 @@ public class EndToEndTests : IAsyncLifetime
 
     private MessageBuffer GetContext()
     {
-        return MessageBuffer.CreateJson(
+        return MessageBuffer.Factory.CreateJson(
             new Contact(
                 new ContactID {Email = $"test{_counter}@test.org", FdsId = $"test{_counter++}"},
                 name: "Testy Tester"));

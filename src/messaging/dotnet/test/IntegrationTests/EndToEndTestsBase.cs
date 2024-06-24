@@ -73,7 +73,7 @@ public abstract class EndToEndTestsBase : IAsyncLifetime
         var handlerMock = new Mock<MessageHandler>();
 
         handlerMock
-            .Setup(_ => _.Invoke("test-service", It.IsAny<IMessageBuffer?>(), It.IsAny<IMessageContext>()))
+            .Setup(_ => _.Invoke("test-service", It.IsAny<MessageBuffer?>(), It.IsAny<MessageContext>()))
             .Returns(new ValueTask<IMessageBuffer?>(MessageBuffer.Create("test-response")));
 
         await service.RegisterServiceAsync(endpoint: "test-service", handlerMock.Object);

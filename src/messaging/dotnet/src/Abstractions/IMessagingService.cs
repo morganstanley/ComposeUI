@@ -54,7 +54,7 @@ namespace MorganStanley.ComposeUI.Messaging.Abstractions
         /// <returns></returns>
         ValueTask PublishAsync(string topic, 
             IMessageBuffer? message = null, 
-            IPublishOptions? optinos = default, 
+            PublishOptions optinos = default, 
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace MorganStanley.ComposeUI.Messaging.Abstractions
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         ValueTask RegisterServiceAsync(string endpoint,
-            Func<string, IMessageBuffer?, IMessageContext?, ValueTask<IMessageBuffer?>> subscriber,
+            Func<string, IMessageBuffer?, MessageContext?, ValueTask<IMessageBuffer?>> subscriber,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace MorganStanley.ComposeUI.Messaging.Abstractions
         ValueTask<IMessageBuffer?> InvokeAsync(
             string endpoint,
             IMessageBuffer? payload = null,
-            IInvokeOptions? options = default,
+            InvokeOptions options = default,
             CancellationToken cancellationToken = default);
     }
 }

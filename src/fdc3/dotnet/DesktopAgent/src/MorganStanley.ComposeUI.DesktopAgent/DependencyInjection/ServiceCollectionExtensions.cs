@@ -35,7 +35,6 @@ public static class ServiceCollectionExtensions
             builderAction(builder);
         }
 
-        serviceCollection.AddSingleton<IMessagingService>(provider => provider.GetRequiredService<IMessageRouter>());
         serviceCollection.AddSingleton<IFdc3DesktopAgentBridge, Fdc3DesktopAgent>();
         serviceCollection.AddHostedService<Fdc3DesktopAgentMessageRouterService>();
         serviceCollection.AddTransient<IStartupAction, Fdc3StartupAction>();

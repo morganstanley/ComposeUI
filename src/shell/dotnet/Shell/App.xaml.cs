@@ -134,7 +134,7 @@ public partial class App : Application
         };
 
         await _host.Services.GetRequiredService<IMessageRouter>().RegisterServiceAsync("Diagnostics", (e, m, t) => 
-            ValueTask.FromResult(MessageBuffer.CreateJson(diagnostics).GetString())!);
+            ValueTask.FromResult(MessageBuffer.Factory.CreateJson(diagnostics).GetString())!);
 
         await OnHostInitializedAsync();
 
