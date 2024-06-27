@@ -85,8 +85,11 @@ public class EndToEndTests : IAsyncLifetime
                 services.AddModuleLoader();
 
                 services.AddFdc3DesktopAgent(
-                    fdc3 => fdc3.Configure(
-                        builder => { builder.ChannelId = TestChannel; }));
+                    fdc3 =>
+                    {
+                        fdc3.Configure(builder => { builder.ChannelId = TestChannel; });
+                        fdc3.UseMessageRouter();
+                    });
             });
 
         _host = builder.Build();
@@ -490,7 +493,7 @@ public class EndToEndTests : IAsyncLifetime
         var app4 = _runningApps.First(application => application.Manifest.Id == "appId4");
         var app4Fdc3InstanceId = Fdc3InstanceIdRetriever.Get(app4);
         app4Fdc3InstanceId.Should()
-            .Be(resultBuffer!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First().InstanceId);
+            .Be(resultBuffer!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.InstanceId);
         app4Fdc3InstanceId.Should().NotBeNull();
 
         resultBuffer.Should().NotBeNull();
@@ -501,10 +504,7 @@ public class EndToEndTests : IAsyncLifetime
         {
             MessageId = result!.MessageId,
             Intent = "intentMetadataCustom",
-            AppMetadata = new AppMetadata[]
-            {
-                new() {AppId = "appId4", InstanceId = app4Fdc3InstanceId, Name = "app4", ResultType = null}
-            }
+            AppMetadata = new() { AppId = "appId4", InstanceId = app4Fdc3InstanceId, Name = "app4", ResultType = null }
         };
 
         result.Should().BeEquivalentTo(expectedResponse);
@@ -558,47 +558,10 @@ public class EndToEndTests : IAsyncLifetime
         {
             MessageId = result!.MessageId,
             Intent = "intentMetadataCustom",
-            AppMetadata = new AppMetadata[]
-            {
-                new() {AppId = "appId4", InstanceId = targetFdc3InstanceId, Name = "app4", ResultType = null}
-            }
+            AppMetadata = new() { AppId = "appId4", InstanceId = targetFdc3InstanceId, Name = "app4", ResultType = null }
         };
 
         result.Should().BeEquivalentTo(expectedResponse);
-    }
-
-    //TODO: Right now we are returning just one element, without the possibility of selecting via ResolverUI.
-    [Fact]
-    public async Task RaiseIntentReturnsAppIntentWithFirstApp()
-    {
-        var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
-        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
-
-        var request = new RaiseIntentRequest
-        {
-            MessageId = 2,
-            Fdc3InstanceId = originFdc3InstanceId,
-            Intent = "intentMetadata4",
-            Selected = false,
-            Context = new Context("context2")
-        };
-
-        var resultBuffer = await _messageRouter.InvokeAsync(
-            Fdc3Topic.RaiseIntent,
-            MessageBuffer.Factory.CreateJson(request, _options));
-        resultBuffer.Should().NotBeNull();
-        var result = resultBuffer!.ReadJson<RaiseIntentResponse>(_options);
-        result.Should().NotBeNull();
-
-        var app4 = _runningApps.First(application => application.Manifest.Id == "appId4");
-        var app4Fdc3InstanceId = Fdc3InstanceIdRetriever.Get(app4);
-
-        result!.AppMetadata.Should()
-            .BeEquivalentTo(
-                new AppMetadata[]
-                {
-                    new() {AppId = "appId4", InstanceId = app4Fdc3InstanceId, Name = "app4", ResultType = null}
-                });
     }
 
     [Fact]
@@ -610,33 +573,6 @@ public class EndToEndTests : IAsyncLifetime
         };
 
         var resultBuffer = await _messageRouter.InvokeAsync(Fdc3Topic.SendIntentResult);
-        resultBuffer.Should().NotBeNull();
-        var result = resultBuffer!.ReadJson<StoreIntentResultResponse>(_options);
-        result!.Should().BeEquivalentTo(expectedResponse);
-    }
-
-    [Fact]
-    public async Task StoreIntentResultReturnsIntentDeliveryFailureAsRequestNotContainsInformation()
-    {
-        var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
-        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
-
-        var request = new StoreIntentResultRequest
-        {
-            MessageId = string.Empty,
-            Intent = "dummyIntent",
-            OriginFdc3InstanceId = originFdc3InstanceId,
-            TargetFdc3InstanceId = null
-        };
-
-        var expectedResponse = new StoreIntentResultResponse
-        {
-            Error = ResolveError.IntentDeliveryFailed
-        };
-
-        var resultBuffer = await _messageRouter.InvokeAsync(
-            Fdc3Topic.SendIntentResult,
-            MessageBuffer.Factory.CreateJson(request, _options));
         resultBuffer.Should().NotBeNull();
         var result = resultBuffer!.ReadJson<StoreIntentResultResponse>(_options);
         result!.Should().BeEquivalentTo(expectedResponse);
@@ -662,8 +598,8 @@ public class EndToEndTests : IAsyncLifetime
             MessageBuffer.Factory.CreateJson(raiseIntentRequest, _options));
         raiseIntentResultBuffer.Should().NotBeNull();
         var raiseIntentResult = raiseIntentResultBuffer!.ReadJson<RaiseIntentResponse>(_options);
-        raiseIntentResult!.AppMetadata.Should().HaveCount(1);
-        raiseIntentResult.AppMetadata!.First().InstanceId.Should().NotBeNull();
+        raiseIntentResult!.AppMetadata.Should().NotBeNull();
+        raiseIntentResult.AppMetadata!.InstanceId.Should().NotBeNull();
 
         var testContext = new Context("testContextType");
 
@@ -671,7 +607,7 @@ public class EndToEndTests : IAsyncLifetime
         {
             MessageId = raiseIntentResult.MessageId!,
             Intent = "intentMetadataCustom",
-            OriginFdc3InstanceId = raiseIntentResult.AppMetadata!.First().InstanceId!,
+            OriginFdc3InstanceId = raiseIntentResult.AppMetadata!.InstanceId!,
             TargetFdc3InstanceId = originFdc3InstanceId,
             Context = testContext
         };
@@ -683,7 +619,7 @@ public class EndToEndTests : IAsyncLifetime
 
         var app4 = _runningApps.First(application => application.Manifest.Id == "appId4");
         var app4Fdc3InstanceId = Fdc3InstanceIdRetriever.Get(app4);
-        app4Fdc3InstanceId.Should().Be(raiseIntentResult!.AppMetadata!.First().InstanceId);
+        app4Fdc3InstanceId.Should().Be(raiseIntentResult!.AppMetadata!.InstanceId);
 
         var resultBuffer = await _messageRouter.InvokeAsync(
             Fdc3Topic.SendIntentResult,
@@ -782,7 +718,7 @@ public class EndToEndTests : IAsyncLifetime
         {
             MessageId = raiseIntentResult!.MessageId!,
             Intent = "intentMetadataCustom",
-            OriginFdc3InstanceId = raiseIntentResult!.AppMetadata!.First().InstanceId!,
+            OriginFdc3InstanceId = raiseIntentResult!.AppMetadata!.InstanceId!,
             TargetFdc3InstanceId = originFdc3InstanceId,
             Context = testContext
         };
@@ -796,7 +732,7 @@ public class EndToEndTests : IAsyncLifetime
             MessageId = raiseIntentResult!.MessageId!,
             Intent = "intentMetadataCustom",
             TargetAppIdentifier = new AppIdentifier
-                {AppId = "appId4", InstanceId = raiseIntentResult!.AppMetadata!.First().InstanceId!}
+                {AppId = "appId4", InstanceId = raiseIntentResult!.AppMetadata!.InstanceId!}
         };
 
         var expectedResponse = new GetIntentResultResponse
@@ -806,7 +742,7 @@ public class EndToEndTests : IAsyncLifetime
 
         var app4 = _runningApps.First(application => application.Manifest.Id == "appId4");
         var app4Fdc3InstanceId = Fdc3InstanceIdRetriever.Get(app4);
-        app4Fdc3InstanceId.Should().Be(raiseIntentResult!.AppMetadata!.First().InstanceId);
+        app4Fdc3InstanceId.Should().Be(raiseIntentResult!.AppMetadata!.InstanceId);
 
         var resultBuffer = await _messageRouter.InvokeAsync(
             Fdc3Topic.GetIntentResult,
@@ -869,8 +805,8 @@ public class EndToEndTests : IAsyncLifetime
 
         raiseIntentResult.Should().NotBeNull();
         var raiseIntentResponse = raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options)!;
-        raiseIntentResponse.AppMetadata.Should().HaveCount(1);
-        raiseIntentResponse.AppMetadata!.First()!.AppId.Should().Be("appId4");
+        raiseIntentResponse.AppMetadata.Should().NotBeNull();
+        raiseIntentResponse.AppMetadata!.AppId.Should().Be("appId4");
 
         var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
             new IntentListenerRequest
@@ -892,7 +828,7 @@ public class EndToEndTests : IAsyncLifetime
         var app4 = _runningApps.First(application => application.Manifest.Id == "appId4");
         var app4Fdc3InstanceId = Fdc3InstanceIdRetriever.Get(app4);
         app4Fdc3InstanceId.Should()
-            .Be(raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.First().InstanceId);
+            .Be(raiseIntentResult!.ReadJson<RaiseIntentResponse>(_options)!.AppMetadata!.InstanceId);
     }
 
     [Fact]
@@ -968,6 +904,6 @@ public class EndToEndTests : IAsyncLifetime
         return MessageBuffer.Factory.CreateJson(
             new Contact(
                 new ContactID {Email = $"test{_counter}@test.org", FdsId = $"test{_counter++}"},
-                name: "Testy Tester"));
+                name: "Testy Tester"), _options);
     }
 }

@@ -31,13 +31,31 @@
 		<Page Include="WebContent.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		</Page>
+		
 		<Page Include="MainWindow.xaml" />
+		
+		<Page Include="Fdc3\ResolverUI\ResolverUI.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</Page>
+
+		<Page Include="Fdc3\ResolverUI\Pages\AdvancedResolverUIPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</Page>
+
+		<Page Include="Fdc3\ResolverUI\Pages\SimpleResolverUIPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</Page>
+		
 	</ItemGroup>
 
 	<ItemGroup>
 		<None Update="appsettings.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="Shell.Tests" />
 	</ItemGroup>
 
 	<ItemGroup>

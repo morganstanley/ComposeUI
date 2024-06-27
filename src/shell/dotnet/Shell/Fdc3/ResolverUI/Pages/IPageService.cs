@@ -10,19 +10,11 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Messaging.Abstractions;
+using Finos.Fdc3;
 
-public interface IMessageBuffer
+namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI.Pages;
+
+internal interface IPageService
 {
-    /// <summary>
-    ///     Gets the bytes of the underlying buffer as a <see cref="ReadOnlySpan{T}" />
-    /// </summary>
-    /// <returns></returns>
-    ReadOnlySpan<byte> GetSpan();
-
-    /// <summary>
-    ///     Gets the string value of the buffer.
-    /// </summary>
-    /// <returns></returns>
-    string GetString();
+    public void ClosePage(IAppMetadata appMetadata);
 }

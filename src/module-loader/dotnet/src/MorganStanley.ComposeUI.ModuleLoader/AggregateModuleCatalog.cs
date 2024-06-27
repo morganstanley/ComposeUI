@@ -11,8 +11,6 @@
 // and limitations under the License.
 
 using System.Collections.Concurrent;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 

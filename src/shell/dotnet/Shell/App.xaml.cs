@@ -31,6 +31,7 @@ using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.Abstractions;
 using MorganStanley.ComposeUI.Shell.Fdc3;
+using MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;
 using MorganStanley.ComposeUI.Shell.Messaging;
 using MorganStanley.ComposeUI.Shell.Modules;
 using MorganStanley.ComposeUI.Shell.Utilities;
@@ -196,8 +197,11 @@ public partial class App : Application
             // TODO: Use feature flag instead
             if (fdc3Options is { EnableFdc3: true })
             {
-                services.AddFdc3DesktopAgent();
+                services.AddFdc3DesktopAgent(desktopAgent => desktopAgent.UseMessageRouter());
                 services.AddFdc3AppDirectory();
+                services.AddSingleton<Fdc3ResolverUIWindow>();
+                services.AddSingleton<IResolverUIProjector>(p => p.GetRequiredService<Fdc3ResolverUIWindow>());
+                services.AddHostedService<ResolverUIService>();
                 services.Configure<Fdc3Options>(fdc3ConfigurationSection);
                 services.Configure<Fdc3DesktopAgentOptions>(
                     fdc3ConfigurationSection.GetSection(nameof(fdc3Options.DesktopAgent)));
@@ -226,7 +230,7 @@ public partial class App : Application
         {
             var moduleId = Guid.NewGuid().ToString();
 
-            var moduleCatalog = _host.Services.GetRequiredService<ModuleCatalog>();
+            var moduleCatalog = _host!.Services.GetRequiredService<ModuleCatalog>();
             moduleCatalog.Add(new WebModuleManifest
             {
                 Id = moduleId,

@@ -14,7 +14,6 @@
 
 using Finos.Fdc3;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
-using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
@@ -34,17 +33,16 @@ internal sealed class RaiseIntentResponse
     public string? Intent { get; set; }
 
     /// <summary>
-    /// Apps that could handle the raiseIntent.
+    /// App that can handle the raiseIntent.
     /// </summary>
-    public IEnumerable<AppMetadata>? AppMetadata { get; set; }
+    public AppMetadata? AppMetadata { get; set; }
 
     /// <summary>
     /// Contains error text if an error happened during the raiseIntent's execution.
     /// </summary>
     public string? Error { get; set; }
 
-    public static RaiseIntentResponse Success(string messageId, AppIntent appIntent) => new() { MessageId = messageId, Intent = appIntent.Intent.Name, AppMetadata = appIntent.Apps.Select(appMetadata => (AppMetadata)appMetadata) };
-    public static RaiseIntentResponse Success(string messageId, string intent, IAppMetadata appMetadata) => new() { MessageId = messageId, Intent = intent, AppMetadata = new[] { (AppMetadata)appMetadata } };
-    public static RaiseIntentResponse Success(string messageId, string intent, AppMetadata appMetadata) => new() {MessageId = messageId, Intent = intent, AppMetadata = new[] { appMetadata } };
+    public static RaiseIntentResponse Success(string messageId, string intent, IAppMetadata appMetadata) => new() { MessageId = messageId, Intent = intent, AppMetadata = (AppMetadata)appMetadata };
+    public static RaiseIntentResponse Success(string messageId, string intent, AppMetadata appMetadata) => new() {MessageId = messageId, Intent = intent, AppMetadata = appMetadata };
     public static RaiseIntentResponse Failure(string error) => new() { Error = error };
 }

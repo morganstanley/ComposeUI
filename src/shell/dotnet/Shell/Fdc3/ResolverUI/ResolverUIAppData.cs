@@ -10,19 +10,22 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.Messaging.Abstractions;
+using Finos.Fdc3;
 
-public interface IMessageBuffer
+namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;
+
+/// <summary>
+///     Model containing information about the app that can resolve the intent.
+/// </summary>
+public class ResolverUIAppData
 {
     /// <summary>
-    ///     Gets the bytes of the underlying buffer as a <see cref="ReadOnlySpan{T}" />
+    ///     App specific information.
     /// </summary>
-    /// <returns></returns>
-    ReadOnlySpan<byte> GetSpan();
+    public IAppMetadata AppMetadata { get; set; }
 
     /// <summary>
-    ///     Gets the string value of the buffer.
+    ///     Icon that can be visualized on the ResolverUI.
     /// </summary>
-    /// <returns></returns>
-    string GetString();
+    public IIcon? Icon { get; set; }
 }

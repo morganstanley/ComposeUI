@@ -11,7 +11,7 @@
  *  
  */
 
-import { IntentHandler, Listener, Context, Channel, IntentResult, ResultError } from "@finos/fdc3";
+import { IntentHandler, Listener, Context, Channel, ResultError } from "@finos/fdc3";
 import { MessageRouter, TopicMessage } from "@morgan-stanley/composeui-messaging-client";
 import { Unsubscribable } from "rxjs";
 import { ComposeUITopic } from "./ComposeUITopic";
@@ -35,6 +35,7 @@ export class ComposeUIIntentListener implements Listener {
 
     public async registerIntentHandler(): Promise<void> {
         const topic = ComposeUITopic.raiseIntent(this.intent, this.instanceId);
+
         //Applications register the intents and context data combinations they support in the App Directory.
         //https://fdc3.finos.org/docs/intents/spec
         this.unsubscribable = await this.messageRouterClient.subscribe(
@@ -42,7 +43,6 @@ export class ComposeUIIntentListener implements Listener {
             async (topicMessage: TopicMessage) => {
                 const message = <Fdc3RaiseIntentResolutionRequest>(JSON.parse(topicMessage.payload!));
                 //TODO: integrationtest
-                //TODO: test
                 let request: Fdc3StoreIntentResultRequest;
                 try {
                     const result = this.intentHandler(message.context, message.contextMetadata);
@@ -57,7 +57,7 @@ export class ComposeUIIntentListener implements Listener {
                         } else {
                             throw new Error("Cannot detect the return type of the IntentHandler.");
                         }
-                    } else { //its a void
+                    } else { //it's a void
                         request = new Fdc3StoreIntentResultRequest(message.messageId, this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, undefined, true);
                     }
                     

@@ -16,6 +16,6 @@ import { AppMetadata } from "@finos/fdc3";
 export interface Fdc3RaiseIntentResponse {
     messageId: string;
     intent?: string;
-    appMetadata?: AppMetadata[];
+    appMetadata?: AppMetadata;
     error?: string;
 }

@@ -25,7 +25,8 @@ public static class ServiceCollectionAppDirectoryExtensions
     public static IServiceCollection AddFdc3AppDirectory(this IServiceCollection serviceCollection)
     {
         serviceCollection.AddSingleton<IAppDirectory, AppDirectory>();
-        serviceCollection.AddSingleton<IModuleCatalog, Fdc3ModuleCatalog>();
+        serviceCollection.AddSingleton<Fdc3ModuleCatalog>();
+        serviceCollection.AddSingleton<IModuleCatalog>(p => p.GetRequiredService<Fdc3ModuleCatalog>());
         return serviceCollection;
     }
 

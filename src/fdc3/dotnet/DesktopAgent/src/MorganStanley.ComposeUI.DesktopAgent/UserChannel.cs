@@ -117,6 +117,7 @@ internal class UserChannel : IAsyncDisposable
         {
             return ValueTask.FromResult<IMessageBuffer?>(messageBuffer);
         }
+        
         return ValueTask.FromResult<IMessageBuffer?>(null);
     }
 
