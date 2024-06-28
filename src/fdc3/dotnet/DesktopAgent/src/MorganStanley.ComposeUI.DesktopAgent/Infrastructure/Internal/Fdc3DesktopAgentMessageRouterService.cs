@@ -23,6 +23,7 @@ using MorganStanley.ComposeUI.Messaging;
 using Finos.Fdc3;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 using MorganStanley.ComposeUI.Fdc3.MorganStanley.ComposeUI.DesktopAgent.Channels;
+using MorganStanley.ComposeUI.Fdc3.MorganStanley.ComposeUI.DesktopAgent.Contracts;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
@@ -131,6 +132,23 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         return await _desktopAgent.GetIntentResult(request);
     }
 
+    internal async ValueTask<CreatePrivateChannelResponse> HandleCreatePrivateChannel(CreatePrivateChannelRequest request, MessageContext context)
+    {
+        try
+        {
+            var channel = new PrivateChannel(Guid.NewGuid().ToString(), _messageRouter, _loggerFactory.CreateLogger<PrivateChannel>());
+
+            await _desktopAgent.AddPrivateChannel(channel);
+
+            return CreatePrivateChannelResponse.Created(channel.Id);
+        }
+        catch (Exception ex)
+        {
+            // TODO: better exception
+            return CreatePrivateChannelResponse.Failed(ex.Message);
+        }
+    }
+
     private async ValueTask SafeWaitAsync(IEnumerable<ValueTask> tasks)
     {
         foreach (var task in tasks)
@@ -166,6 +184,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         await RegisterHandler<GetIntentResultRequest, GetIntentResultResponse>(Fdc3Topic.GetIntentResult, HandleGetIntentResult);
         await RegisterHandler<StoreIntentResultRequest, StoreIntentResultResponse>(Fdc3Topic.SendIntentResult, HandleStoreIntentResult);
         await RegisterHandler<IntentListenerRequest, IntentListenerResponse>(Fdc3Topic.AddIntentListener, HandleAddIntentListener);
+        await RegisterHandler<CreatePrivateChannelRequest, CreatePrivateChannelResponse>(Fdc3Topic.CreatePrivateChannel, HandleCreatePrivateChannel);
 
         await _desktopAgent.StartAsync(cancellationToken);
 

@@ -11,17 +11,13 @@
  *  
  */
 
-import { Channel, Context, ContextHandler, DisplayMetadata, Listener, PrivateChannel } from "@finos/fdc3";
-import { MessageRouter, TopicMessage } from "@morgan-stanley/composeui-messaging-client";
-import { ChannelType } from "./ChannelType";
-import { ComposeUIContextListener } from "./ComposeUIContextListener";
-import { Fdc3GetCurrentContextRequest } from "./messages/Fdc3GetCurrentContextRequest";
-import { ComposeUITopic } from "./ComposeUITopic";
+import { Listener, PrivateChannel } from "@finos/fdc3";
+import { MessageRouter } from "@morgan-stanley/composeui-messaging-client";
 import { ComposeUIChannel } from "./ComposeUIChannel";
-import { ComposeUIPrivateChannelSubscriptionEventListener } from "./ChannelEventListener";
+import { ComposeUIPrivateChannelSubscriptionEventListener } from "./ComposeUIPrivateChannelSubscriptionEventListener";
 
 export class ComposeUIPrivateChannel extends ComposeUIChannel implements PrivateChannel {
-    private addContextListenerHandlers: Array<ComposeUIPrivateChannelSubscriptionEventListener>
+    private addContextListenerHandlers: Array<ComposeUIPrivateChannelSubscriptionEventListener> = []
 
     constructor(id: string, messageRouterClient: MessageRouter) {
         super(id, "private", messageRouterClient);

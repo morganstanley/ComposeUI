@@ -29,10 +29,11 @@ import { Fdc3IntentListenerRequest } from "./messages/Fdc3IntentListenerRequest"
 
 export class MessageRouterChannelFactory implements ChannelFactory {
     private messageRouterClient: MessageRouter;
+    private fdc3instanceId: string;
 
-    constructor(messageRouter: MessageRouter) {
+    constructor(messageRouter: MessageRouter, fdc3instanceId: string) {
         this.messageRouterClient = messageRouter;
-
+        this.fdc3instanceId = fdc3instanceId;
     }
 
     public async GetUserChannel(channelId: string): Promise<Channel> {
@@ -55,9 +56,10 @@ export class MessageRouterChannelFactory implements ChannelFactory {
         }
     }
 
-    public async GetPrivateChannel(): Promise<PrivateChannel> {
-        const message = JSON.stringify(new Fdc3CreatePrivateChannelRequest(window.composeui.fdc3.config!.instanceId!, requesterInstance));
-        const response = await this.messageRouterClient.invoke("", message); //TODO: Topic
+    public async CreatePrivateChannel(): Promise<PrivateChannel> {
+        // TODO: how to properly identify the other participant of the channel if the interface is parameterless?
+        const message = JSON.stringify(new Fdc3CreatePrivateChannelRequest());
+        const response = await this.messageRouterClient.invoke(ComposeUITopic.createPrivateChannel(), message);
         if (response) {
             const fdc3response = <Fdc3CreatePrivateChannelResponse>JSON.parse(response);
             if (fdc3response.error) {
@@ -70,10 +72,10 @@ export class MessageRouterChannelFactory implements ChannelFactory {
     }
 
     public async GetIntentListener(intent: string, handler: IntentHandler): Promise<Listener> {
-        const listener = new ComposeUIIntentListener(this.messageRouterClient, intent, window.composeui.fdc3.config!.instanceId!, handler);
+        const listener = new ComposeUIIntentListener(this.messageRouterClient, intent, this.fdc3instanceId, handler);
         await listener.registerIntentHandler();
 
-        const message = new Fdc3IntentListenerRequest(intent, window.composeui.fdc3.config!.instanceId!, "Subscribe");
+        const message = new Fdc3IntentListenerRequest(intent, this.fdc3instanceId, "Subscribe");
         const response = await this.messageRouterClient.invoke(ComposeUITopic.addIntentListener(), JSON.stringify(message));
         if (!response) {
             throw new Error(ComposeUIErrors.NoAnswerWasProvided);

@@ -23,7 +23,7 @@ export class ComposeUITopic {
     private static readonly broadcastSuffix = "broadcast";
     private static readonly getCurrentContextSuffix = "getCurrentContext";
     private static readonly joinUserChannelSuffix = "joinUserChannel";
-    private static readonly getOrCreateChannelSuffix = "getOrCreateChannel";
+    private static readonly createPrivateChannelSuffix = "createPrivateChannel";
     private static readonly raiseIntentSuffix = "raiseIntent";
     private static readonly addIntentListenerSuffix = "addIntentListener";
     private static readonly getIntentSuffix = "getIntentResult";
@@ -44,8 +44,8 @@ export class ComposeUITopic {
         return `${this.topicRoot}/${this.joinUserChannelSuffix}`;
     }
 
-    public static getOrCreateChannel(): string {
-        return `${this.topicRoot}/${this.getOrCreateChannelSuffix}`;
+    public static createPrivateChannel(): string {
+        return `${this.topicRoot}/${this.createPrivateChannelSuffix}`;
     }
 
     public static raiseIntent(intent?: string, instanceId?: string): string {

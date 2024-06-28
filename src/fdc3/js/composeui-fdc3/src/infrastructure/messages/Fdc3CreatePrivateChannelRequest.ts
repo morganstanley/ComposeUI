@@ -12,11 +12,5 @@
  */
 
 export class Fdc3CreatePrivateChannelRequest {
-    constructor(fdc3instance: string, requesterInstance: string) {
-        this.creatorFdc3InstanceId = fdc3instance;
-        this.intentRequesterInstanceId = requesterInstance;
-    }
 
-    public readonly creatorFdc3InstanceId: string;
-    public readonly intentRequesterInstanceId: string;
 }

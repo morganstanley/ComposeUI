@@ -24,20 +24,11 @@ import {
     IntentHandler,
     IntentResolution,
     Listener,
-    PrivateChannel,
-    ResolveError
+    PrivateChannel
 } from '@finos/fdc3';
 
 import { MessageRouter } from '@morgan-stanley/composeui-messaging-client';
-import { ChannelType } from './infrastructure/ChannelType';
 import { ComposeUIContextListener } from './infrastructure/ComposeUIContextListener';
-import { ComposeUITopic } from './infrastructure/ComposeUITopic';
-import { ComposeUIIntentListener } from './infrastructure/ComposeUIIntentListener';
-import { Fdc3RaiseIntentRequest } from './infrastructure/messages/Fdc3RaiseIntentRequest';
-import { ComposeUIIntentResolution } from './infrastructure/ComposeUIIntentResolution';
-import { Fdc3RaiseIntentResponse } from './infrastructure/messages/Fdc3RaiseIntentResponse';
-import { Fdc3FindIntentsByContextRequest } from './infrastructure/messages/Fdc3FindIntentsByContextRequest';
-import { Fdc3FindIntentsByContextResponse } from './infrastructure/messages/Fdc3FindIntentsByContextResponse';
 import { ComposeUIErrors } from './infrastructure/ComposeUIErrors';
 import { ChannelFactory } from './infrastructure/ChannelFactory';
 import { MessageRouterChannelFactory } from './infrastructure/MessageRouterChannelFactory';
@@ -72,7 +63,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         }
 
         // TODO: inject this directly instead of the messageRouter
-        this.channelFactory = new MessageRouterChannelFactory(messageRouterClient);
+        this.channelFactory = new MessageRouterChannelFactory(messageRouterClient, window.composeui.fdc3.config.instanceId);
         this.intentsClient = new MessageRouterIntentsClient(messageRouterClient);
 
 
@@ -184,8 +175,8 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     }
 
     //TODO
-    public createPrivateChannel(): Promise<PrivateChannel> {
-        throw new Error("Not implemented");
+    public async createPrivateChannel(): Promise<PrivateChannel> {
+        return this.channelFactory.CreatePrivateChannel();
     }
 
     public getCurrentChannel(): Promise<Channel | null> {
