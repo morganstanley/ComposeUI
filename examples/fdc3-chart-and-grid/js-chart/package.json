@@ -16,7 +16,7 @@
     "bootstrap": "5.3.3",
     "highcharts": "11.4.3",
     "jquery": "3.7.1",
-    "tslib": "2.6.2"
+    "tslib": "2.6.3"
   },
   "devDependencies": {
     "http-server": "14.1.1",
