@@ -26,6 +26,7 @@ import { ComposeUIIntentListener } from "./ComposeUIIntentListener";
 import { ComposeUIErrors } from "./ComposeUIErrors";
 import { Fdc3IntentListenerResponse } from "./messages/Fdc3IntentListenerResponse";
 import { Fdc3IntentListenerRequest } from "./messages/Fdc3IntentListenerRequest";
+import { ChannelType } from "./ChannelType";
 
 export class MessageRouterChannelFactory implements ChannelFactory {
     private messageRouterClient: MessageRouter;
@@ -36,9 +37,17 @@ export class MessageRouterChannelFactory implements ChannelFactory {
         this.fdc3instanceId = fdc3instanceId;
     }
 
-    public async GetUserChannel(channelId: string): Promise<Channel> {
-        const topic = ComposeUITopic.joinUserChannel();
-        const message = JSON.stringify(new Fdc3FindChannelRequest(channelId, "user"));
+    private GetChannelTypeEnum(type: ChannelType): number {
+        switch (type) {
+            case "user": return 1;
+            case "private": return 3;
+            case "app": return 2;
+        }
+    }
+
+    public async GetChannel(channelId: string, channelType: ChannelType): Promise<Channel> {
+        const topic = ComposeUITopic.findChannel();
+        const message = JSON.stringify(new Fdc3FindChannelRequest(channelId, channelType));
         const response = await this.messageRouterClient.invoke(topic, message);
         if (!response) {
             throw new Error(ChannelError.AccessDenied);

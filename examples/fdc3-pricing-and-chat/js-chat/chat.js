@@ -1,9 +1,15 @@
 import "bootstrap/dist/css/bootstrap.css";
 
 window.addEventListener('load', async function () {
-    intentListener = await window.fdc3.addIntentListener("startChat", handleChatIntent);
+    intentListener = await window.fdc3.addIntentListener("StartChat", handleChatIntent);
+    console.log("added intent listener");
+
+    await window.fdc3.joinUserChannel("default");
+    console.log("joined user channel");
+
 });
 
-function handleChatIntent(context, contextMetada) {
-    console.log("Chat intent received. Received context:", context, ", metadata:", contextMetada);
+async function handleChatIntent(context, contextMetada) {
+    const channel = await window.fdc3.createPrivateChannel();
+    return channel;
 };

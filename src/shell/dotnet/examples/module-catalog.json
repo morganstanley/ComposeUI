@@ -85,7 +85,7 @@
     "Name": "Js Chart Example",
     "ModuleType": "web",
     "Details": {
-      "Url": "http://localhost:8080/"
+      "Url": "http://localhost:8083/"
     }
   }
 ]

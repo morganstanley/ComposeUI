@@ -22,7 +22,6 @@ export class ComposeUITopic {
     private static readonly privateChannels = 'privateChannels';
     private static readonly broadcastSuffix = "broadcast";
     private static readonly getCurrentContextSuffix = "getCurrentContext";
-    private static readonly joinUserChannelSuffix = "joinUserChannel";
     private static readonly createPrivateChannelSuffix = "createPrivateChannel";
     private static readonly raiseIntentSuffix = "raiseIntent";
     private static readonly addIntentListenerSuffix = "addIntentListener";
@@ -38,10 +37,6 @@ export class ComposeUITopic {
 
     public static getCurrentContext(channelId: string, channelType: ChannelType = "user") : string {
         return `${this.getChannelsTopicRootWithTopicId(channelId, channelType)}/${this.getCurrentContextSuffix}`;
-    }
-
-    public static joinUserChannel(): string {
-        return `${this.topicRoot}/${this.joinUserChannelSuffix}`;
     }
 
     public static createPrivateChannel(): string {

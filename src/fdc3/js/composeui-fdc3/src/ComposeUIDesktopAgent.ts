@@ -64,7 +64,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
 
         // TODO: inject this directly instead of the messageRouter
         this.channelFactory = new MessageRouterChannelFactory(messageRouterClient, window.composeui.fdc3.config.instanceId);
-        this.intentsClient = new MessageRouterIntentsClient(messageRouterClient);
+        this.intentsClient = new MessageRouterIntentsClient(messageRouterClient, this.channelFactory);
 
 
         setTimeout(
@@ -155,7 +155,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
             let channel = this.userChannels.find(innerChannel => innerChannel.id == channelId);
             if (!channel) {
                 try {
-                    channel = await this.channelFactory.GetUserChannel(channelId);
+                    channel = await this.channelFactory.GetChannel(channelId, "user");
                     this.addChannel(channel);
                     return resolve();
                 } catch (error) {

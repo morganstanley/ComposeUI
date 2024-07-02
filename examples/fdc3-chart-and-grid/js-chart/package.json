@@ -9,7 +9,7 @@
     "clean": "rimraf dist",
     "bundle": "rollup -c",
     "build": "npm run clean && npm run bundle",
-    "start": "http-server"
+    "start": "http-server -p 8083"
   },
   "dependencies": {
     "@finos/fdc3": "^2.0.3",

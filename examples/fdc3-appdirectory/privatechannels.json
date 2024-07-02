@@ -16,14 +16,14 @@
       "name": "Pricing Example",
       "type": "web",
       "details": {
-        "url": "http://localhost:8080/"
+        "url": "http://localhost:8081/"
       },
       "interop": {
         "intents": {
           "listensFor": {},
           "raises": {
             "StartChat": [
-              "fdc3.startChat"
+              "StartChat"
             ]
           }
         }
@@ -34,7 +34,7 @@
       "name": "Js Chat Example",
       "type": "web",
       "details": {
-        "url": "http://localhost:8080/"
+        "url": "http://localhost:8082/"
       },
       "interop": {
         "intents": {
@@ -43,7 +43,7 @@
               "name": "StartChat",
               "displayName": "StartChat",
               "contexts": [
-                "fdc3.startChat"
+                "fdc3.contact"
               ]
             }
           }

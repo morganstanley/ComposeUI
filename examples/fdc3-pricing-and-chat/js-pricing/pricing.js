@@ -1,15 +1,21 @@
 import "bootstrap/dist/css/bootstrap.css";
 
-window.addEventListener('load', function () {
+window.addEventListener('load', async function () {
     const pricingForm = document.querySelector("#pricing");
+    await this.window.fdc3.joinUserChannel("default");
     pricingForm.addEventListener('submit', submitPrice);
-    
 });
 
 async function submitPrice(event) {
     event.preventDefault();
 
-    const resolution = await window.fdc3.raiseIntent("StartChat");
+    const resolution = await window.fdc3.raiseIntent("StartChat", {
+        type: 'fdc3.contact',
+        name: 'Jane Doe',
+        id: {
+            email: 'jane@mail.com'
+        }
+    });
     const result = await resolution.getResult();
 
     if (result && result.broadcast) {
@@ -25,7 +31,7 @@ async function submitPrice(event) {
         result.broadcast({
             type: "fdc3.chat.initSettings",
             chatName: "Pricing for " + product,
-            members:{
+            members: {
                 type: "fdc3.contactList",
                 contacts: [{
                     contact
