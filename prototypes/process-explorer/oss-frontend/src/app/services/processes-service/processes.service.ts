@@ -17,7 +17,7 @@ export class ProcessesService {
   }
 
   public getProcessesData(){
-    const client = new ProcessExplorerMessageHandlerClient('http://localhost:5000');
+    const client = new ProcessExplorerMessageHandlerClient('http://localhost:5056');
     const response = client.subscribe(new Empty) 
     return response;
   }

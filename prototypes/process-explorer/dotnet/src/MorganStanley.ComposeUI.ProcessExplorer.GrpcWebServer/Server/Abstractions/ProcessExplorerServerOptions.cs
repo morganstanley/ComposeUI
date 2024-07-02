@@ -14,7 +14,7 @@ using Microsoft.Extensions.Options;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions;
 using MorganStanley.ComposeUI.ProcessExplorer.Core.Processes;
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.Server.Server.Abstractions;
+namespace MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.Abstractions;
 
 public class ProcessExplorerServerOptions : IOptions<ProcessExplorerServerOptions>
 {

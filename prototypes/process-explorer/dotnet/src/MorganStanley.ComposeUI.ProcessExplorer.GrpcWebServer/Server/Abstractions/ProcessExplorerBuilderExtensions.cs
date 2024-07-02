@@ -12,10 +12,15 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using MorganStanley.ComposeUI.ProcessExplorer.Server.DependencyInjection;
-using MorganStanley.ComposeUI.ProcessExplorer.Server.Server.GrpcServer;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.DependencyInjection;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.GrpcServer;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.Infrastructure.Grpc;
+using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Infrastructure;
+using MorganStanley.ComposeUI.ProcessExplorer.Core.DependencyInjection;
+using System.Diagnostics;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Sever.Abstractions;
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.Server.Server.Abstractions;
+namespace MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.Abstractions;
 
 public static class ProcessExplorerBuilderExtensions
 {
@@ -33,6 +38,18 @@ public static class ProcessExplorerBuilderExtensions
                     .AllowAnyHeader()
                     .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
         }));
+
+        builder.ServiceCollection.Configure<ProcessExplorerServerOptions>(op =>
+        {
+            op.Port = 5060;
+            op.MainProcessId = Process.GetCurrentProcess().Id;
+            op.EnableProcessExplorer = true;
+        });
+
+        builder.ServiceCollection.AddProcessExplorerAggregator();
+        builder.ServiceCollection.AddProcessMonitorWindows();
+        builder.ServiceCollection.AddSubsystemController();
+        builder.ServiceCollection.AddSingleton<IUiHandler, GrpcUiHandler>();
 
         builder.ServiceCollection.AddSingleton<GrpcListenerService>();
         builder.ServiceCollection.AddSingleton<IHostedService>(provider => provider.GetRequiredService<GrpcListenerService>());

@@ -12,13 +12,13 @@
 
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions;
-using MorganStanley.ComposeUI.ProcessExplorer.Server.Logging;
 using ProcessExplorer.Abstractions.Infrastructure.Protos;
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.Server.Server.Infrastructure.Grpc;
+namespace MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.Infrastructure.Grpc;
 
 public class ProcessExplorerMessageHandlerService : ProcessExplorerMessageHandler.ProcessExplorerMessageHandlerBase
 {

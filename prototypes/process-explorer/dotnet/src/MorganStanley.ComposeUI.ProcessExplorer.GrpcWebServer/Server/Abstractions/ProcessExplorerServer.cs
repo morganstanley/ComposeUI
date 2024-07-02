@@ -15,9 +15,10 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Subsystems;
-using MorganStanley.ComposeUI.ProcessExplorer.Server.Logging;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Logging;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.Abstractions;
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.Server.Server.Abstractions;
+namespace MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Sever.Abstractions;
 
 internal abstract class ProcessExplorerServer
 {

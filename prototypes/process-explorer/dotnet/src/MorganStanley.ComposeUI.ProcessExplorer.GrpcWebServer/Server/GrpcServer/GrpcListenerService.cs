@@ -16,14 +16,14 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions;
-using MorganStanley.ComposeUI.ProcessExplorer.Server.Logging;
-using MorganStanley.ComposeUI.ProcessExplorer.Server.Server.Abstractions;
-using MorganStanley.ComposeUI.ProcessExplorer.Server.Server.Infrastructure.Grpc;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Logging;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.Abstractions;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.Infrastructure.Grpc;
 using ProcessExplorer.Abstractions.Infrastructure.Protos;
 using GRPCServer = Grpc.Core.Server;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Sever.Abstractions;
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.Server.Server.GrpcServer;
-
+namespace MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.GrpcServer;
 internal class GrpcListenerService : ProcessExplorerServer, IHostedService
 {
     private readonly CancellationTokenSource _stopTokenSource = new();
@@ -39,7 +39,7 @@ internal class GrpcListenerService : ProcessExplorerServer, IHostedService
         IOptions<ProcessExplorerServerOptions> options,
         ILogger<GrpcListenerService>? logger = null)
         :base(
-            options.Value.Port ?? 5056,
+            options.Value.Port ?? 5060,
             options.Value.Host ?? "localhost",
             logger)
     {

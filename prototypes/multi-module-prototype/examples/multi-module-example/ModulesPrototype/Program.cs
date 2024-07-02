@@ -29,10 +29,10 @@ using System.Linq;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Subsystems;
 using MorganStanley.ComposeUI.ProcessExplorer.Core.DependencyInjection;
-using MorganStanley.ComposeUI.ProcessExplorer.Server.DependencyInjection;
-using MorganStanley.ComposeUI.ProcessExplorer.Server.Server.Abstractions;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.DependencyInjection;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.Abstractions;
 using Microsoft.AspNetCore.Builder;
-using MorganStanley.ComposeUI.ProcessExplorer.Server.Server.Infrastructure.Grpc;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.Infrastructure.Grpc;
 
 namespace ModulesPrototype;
 
