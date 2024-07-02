@@ -11,4 +11,12 @@
  *  
  */
 
-export type ChannelType = "user" | "app" | "private"
+import { AppIdentifier, AppIntent, AppMetadata, Context, IntentResolution } from "@finos/fdc3";
+
+export interface IntentsClient {
+    findIntent(intent: string, context?: Context, resultType?: string): Promise<AppIntent>;
+    findIntentsByContext(context: Context, resultType?: string): Promise<Array<AppIntent>>;
+    raiseIntent(intent: string, context: Context, app?: string | AppIdentifier): Promise<IntentResolution>
+
+    getIntentResolution(messageId: string, intent: string, source: AppMetadata): Promise<IntentResolution>;
+}

@@ -11,4 +11,7 @@
  *  
  */
 
-export type ChannelType = "user" | "app" | "private"
+export class Fdc3CreatePrivateChannelResponse {
+  public error?: string;
+  public channelId?: string;
+}

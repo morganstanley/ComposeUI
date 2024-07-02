@@ -28,6 +28,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Fdc3.AppDirectory;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 using MorganStanley.ComposeUI.Messaging;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.Abstractions;
 using MorganStanley.ComposeUI.Shell.Fdc3;
@@ -36,6 +37,7 @@ using MorganStanley.ComposeUI.Shell.Messaging;
 using MorganStanley.ComposeUI.Shell.Modules;
 using MorganStanley.ComposeUI.Shell.Utilities;
 using MorganStanley.ComposeUI.Utilities;
+
 
 namespace MorganStanley.ComposeUI.Shell;
 
@@ -134,7 +136,7 @@ public partial class App : Application
             ShellVersion = Assembly.GetExecutingAssembly().FullName
         };
 
-        await _host.Services.GetRequiredService<IMessageRouter>().RegisterServiceAsync("Diagnostics", (e, m, t) => 
+        await _host.Services.GetRequiredService<IMessageRouter>().RegisterServiceAsync("Diagnostics", (e, m, t) =>
             ValueTask.FromResult(MessageBuffer.Factory.CreateJson(diagnostics).GetString())!);
 
         await OnHostInitializedAsync();

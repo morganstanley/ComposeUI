@@ -27,7 +27,7 @@ export class ComposeUIIntentListener implements Listener {
     private isSubscribed: boolean = false;
 
     constructor(
-        private messageRouterClient: MessageRouter, 
+        private messageRouterClient: MessageRouter,
         private intent: string,
         private instanceId: string,
         private intentHandler: IntentHandler) {
@@ -60,8 +60,8 @@ export class ComposeUIIntentListener implements Listener {
                     } else { //it's a void
                         request = new Fdc3StoreIntentResultRequest(message.messageId, this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, undefined, true);
                     }
-                    
-                } catch(error) {
+
+                } catch (error) {
                     request = new Fdc3StoreIntentResultRequest(message.messageId, this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, undefined, false, ResultError.IntentHandlerRejected);
                 }
 
@@ -80,7 +80,7 @@ export class ComposeUIIntentListener implements Listener {
     }
 
     public unsubscribe(): Promise<void> {
-        return new Promise<void>(async(resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             if (!this.isSubscribed) return;
             const message = new Fdc3IntentListenerRequest(this.intent, this.instanceId, "Unsubscribe");
             const response = await this.messageRouterClient.invoke(ComposeUITopic.addIntentListener(), JSON.stringify(message));

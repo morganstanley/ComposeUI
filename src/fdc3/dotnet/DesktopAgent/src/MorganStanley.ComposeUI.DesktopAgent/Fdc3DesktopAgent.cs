@@ -32,6 +32,7 @@ using ContextMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Conte
 using Icon = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Icon;
 using IntentMetadata = Finos.Fdc3.AppDirectory.IntentMetadata;
 using Screenshot = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Screenshot;
+using MorganStanley.ComposeUI.Fdc3.MorganStanley.ComposeUI.DesktopAgent.Channels;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
@@ -40,6 +41,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     private readonly ILogger<Fdc3DesktopAgent> _logger;
     private readonly IResolverUICommunicator _resolverUI;
     private readonly List<UserChannel> _userChannels = new();
+    private readonly List<PrivateChannel> _privateChannels = new();
     private readonly ILoggerFactory _loggerFactory;
     private readonly Fdc3DesktopAgentOptions _options;
     private readonly IAppDirectory _appDirectory;
@@ -70,6 +72,12 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         _userChannels.Add(userChannel);
     }
 
+    public async ValueTask AddPrivateChannel(PrivateChannel privateChannel)
+    {
+        await privateChannel.Connect();
+        _privateChannels.Add(privateChannel);
+    }
+
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         var observable = _moduleLoader.LifetimeEvents.ToAsyncObservable();
@@ -92,9 +100,11 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        var tasks = _userChannels.Select(x => x.DisposeAsync()).ToArray();
+        var userChannelDisposeTasks = _userChannels.Select(x => x.DisposeAsync()).ToArray();
+        var privateChannelDisposeTasks = _privateChannels.Select(x => x.DisposeAsync()).ToArray();
 
-        await SafeWaitAsync(tasks);
+        await SafeWaitAsync(privateChannelDisposeTasks);
+        await SafeWaitAsync(userChannelDisposeTasks);
 
         if (_subscription != null)
         {
@@ -115,7 +125,8 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         return channelType switch
         {
             ChannelType.User => _userChannels.Any(x => x.Id == channelId),
-            ChannelType.App or ChannelType.Private => throw new NotSupportedException(),
+            ChannelType.Private => _privateChannels.Any(x => x.Id == channelId),
+            ChannelType.App => throw new NotSupportedException(),
             _ => false,
         };
     }
@@ -284,14 +295,14 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
                     var resolutions = new List<RaiseIntentResolutionMessage>();
                     foreach (var raisedIntent in resolver.RaiseIntentResolutions.Where(
-                                 invocation => invocation.Intent == request.Intent && !invocation.IsResolved))
+                        invocation => invocation.Intent == request.Intent && !invocation.IsResolved))
                     {
                         var resolution = await GetRaiseIntentResolutionMessage(
-                            raisedIntent.RaiseIntentMessageId,
-                            raisedIntent.Intent,
-                            raisedIntent.Context,
-                            request.Fdc3InstanceId,
-                            raisedIntent.OriginFdc3InstanceId);
+                                                        raisedIntent.RaiseIntentMessageId,
+                                                        raisedIntent.Intent,
+                                                        raisedIntent.Context,
+                                                        request.Fdc3InstanceId,
+                                                        raisedIntent.OriginFdc3InstanceId);
 
                         if (resolution != null)
                         {
@@ -422,9 +433,9 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
         return new()
         {
-            Response = RaiseIntentResponse.Failure(ResolveError.UserCancelledResolution)
-        };
-    }
+                Response = RaiseIntentResponse.Failure(ResolveError.UserCancelledResolution)
+            };
+        }
 
     private async Task<ResolverUIResponse?> WaitForResolverUIAsync(IEnumerable<AppMetadata> apps)
     {
@@ -435,18 +446,18 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             return await _resolverUI.SendResolverUIRequest(apps, cancellationTokenSource.Token);
         }
         catch(TimeoutException exception)
-        {
-            if (_logger.IsEnabled(LogLevel.Debug))
             {
+            if (_logger.IsEnabled(LogLevel.Debug))
+                {
                 _logger.LogDebug(exception, "MessageRouter didn't receive response from the ResolverUI.");
-            }
+                }
 
             return new ResolverUIResponse()
             {
                 Error = ResolveError.ResolverTimeout
-            };
-        }
-    }
+        };
+                }
+            }
 
     //Here we have a specific application which should either start or we should send a intent resolution request
     private async ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntentToApplication(
@@ -478,8 +489,8 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             {
                 Response = RaiseIntentResponse.Success(raisedIntentMessageId, intent, targetAppMetadata),
                 RaiseIntentResolutionMessages = resolution != null
-                        ? [resolution]
-                        : Enumerable.Empty<RaiseIntentResolutionMessage>()
+                    ? [resolution]
+                    : Enumerable.Empty<RaiseIntentResolutionMessage>()
             };
         }
 
@@ -551,9 +562,9 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         while (
             !_raisedIntentResolutions.TryGetValue(new Guid(request.TargetAppIdentifier.InstanceId!), out var resolver)
             || !resolver.TryGetRaisedIntentResult(request.MessageId, request.Intent, out resolution)
-            || (resolution.ResultChannelId == null 
-                && resolution.ResultChannelType == null 
-                && resolution.ResultContext == null 
+            || (resolution.ResultChannelId == null
+                && resolution.ResultChannelType == null
+                && resolution.ResultContext == null
                 && resolution.ResultVoid == null))
         {
             await Task.Delay(100);
@@ -590,10 +601,10 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
     //Publishing intent resolution request to the fdc3 clients, they will receive the message and start their IntentHandler appropriately, and send a store request back to the backend.
     private Task<RaiseIntentResolutionMessage?> GetRaiseIntentResolutionMessage(
-        string raisedIntentMessageId, 
-        string intent, 
-        Context context, 
-        string targetId, 
+        string raisedIntentMessageId,
+        string intent,
+        Context context,
+        string targetId,
         string sourceFdc3InstanceId)
     {
         if (_runningModules.TryGetValue(new(sourceFdc3InstanceId), out var sourceApp))
