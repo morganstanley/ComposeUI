@@ -48,7 +48,7 @@ namespace MorganStanley.ComposeUI.Fdc3.MorganStanley.ComposeUI.DesktopAgent.Chan
         {
             if (_disposed)
             {
-                throw new ObjectDisposedException(nameof(UserChannel));
+                throw new ObjectDisposedException(nameof(Channel));
             }
 
             await MessagingService.ConnectAsync();

@@ -37,14 +37,6 @@ export class MessageRouterChannelFactory implements ChannelFactory {
         this.fdc3instanceId = fdc3instanceId;
     }
 
-    private GetChannelTypeEnum(type: ChannelType): number {
-        switch (type) {
-            case "user": return 1;
-            case "private": return 3;
-            case "app": return 2;
-        }
-    }
-
     public async GetChannel(channelId: string, channelType: ChannelType): Promise<Channel> {
         const topic = ComposeUITopic.findChannel();
         const message = JSON.stringify(new Fdc3FindChannelRequest(channelId, channelType));
@@ -57,7 +49,7 @@ export class MessageRouterChannelFactory implements ChannelFactory {
             throw new Error(fdc3Message.error);
         }
         if (fdc3Message.found) {
-            const channel = new ComposeUIChannel(channelId, "user", this.messageRouterClient);
+            const channel = new ComposeUIChannel(channelId, channelType, this.messageRouterClient);
             return channel;
         }
         else {

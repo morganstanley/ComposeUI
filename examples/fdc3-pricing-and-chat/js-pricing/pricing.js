@@ -19,6 +19,7 @@ async function submitPrice(event) {
     const result = await resolution.getResult();
 
     if (result && result.broadcast) {
+        const pricingForm = document.querySelector("#pricing");
         const formData = new FormData(pricingForm);
 
         const contact = {
