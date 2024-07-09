@@ -17,9 +17,9 @@
     <PackageVersion Include="Grpc.Net.Client" Version="2.62.0" />
     <PackageVersion Include="Grpc.Tools" Version="2.64.0" />
     <PackageVersion Include="Grpc" Version="2.46.6" />
-    <PackageVersion Include="Infragistics.WPF.DockManager.Trial" Version="23.2.157" />
-    <PackageVersion Include="Infragistics.WPF.Ribbon.Trial" Version="23.2.157" />
-    <PackageVersion Include="Infragistics.WPF.Trial" Version="23.2.157" />
+    <PackageVersion Include="Infragistics.WPF.DockManager.Trial" Version="23.2.233" />
+    <PackageVersion Include="Infragistics.WPF.Ribbon.Trial" Version="23.2.233" />
+    <PackageVersion Include="Infragistics.WPF.Trial" Version="23.2.233" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.10.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.10.0" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="6.0.1" />
