@@ -20,8 +20,8 @@
     <PackageVersion Include="Infragistics.WPF.DockManager.Trial" Version="23.2.157" />
     <PackageVersion Include="Infragistics.WPF.Ribbon.Trial" Version="23.2.157" />
     <PackageVersion Include="Infragistics.WPF.Trial" Version="23.2.157" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.9.2" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.9.2" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.10.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.10.0" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="6.0.1" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
@@ -54,8 +54,8 @@
     <PackageVersion Include="System.Reactive" Version="6.0.1" />
     <PackageVersion Include="System.ServiceModel.Primitives" Version="6.2.0" />
     <PackageVersion Include="System.Text.Json" Version="8.0.3" />
-    <PackageVersion Include="TestableIO.System.IO.Abstractions.Wrappers" Version="21.0.2" />
-    <PackageVersion Include="TestableIO.System.IO.Abstractions" Version="21.0.2" />
+    <PackageVersion Include="TestableIO.System.IO.Abstractions.Wrappers" Version="21.0.22" />
+    <PackageVersion Include="TestableIO.System.IO.Abstractions" Version="21.0.22" />
     <PackageVersion Include="Testably.Abstractions.Testing" Version="2.4.1" />
     <PackageVersion Include="Xunit.Combinatorial" Version="1.6.24" />
     <PackageVersion Include="xunit.extensibility.execution" Version="2.4.2" />
