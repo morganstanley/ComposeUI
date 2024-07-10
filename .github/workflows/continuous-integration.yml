@@ -20,6 +20,9 @@ jobs:
     env:
       COMPOSEUI_SKIP_DOWNLOAD: 'true'
       DOTNET_CONSOLE_ANSI_COLOR: 'true'
+      NX_VERBOSE_LOGGING: 'true'
+      NX_API_LOG_LEVEL: 'DEBUG'
+
     runs-on: windows-latest
     strategy:
       matrix:
@@ -43,14 +46,20 @@ jobs:
     - name: Install/Restore NPM/Nuget dependencies
       run: npm ci
 
+    - name: Information about directory
+      run: | 
+           npm -v
+           node -v
+           dir
+
     - name: Build Projects
-      run: npx nx run-many -t build
+      run: npx nx run-many -t build --verbose
     
     - name: Test Projects
-      run: npx nx run-many -t test
+      run: npx nx run-many -t test --verbose
 
     - name: Codecov
-      uses: codecov/codecov-action@7afa10ed9b269c561c2336fd862446844e0cbf71 # v4.2.0
+      uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 # v4.5.0
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         

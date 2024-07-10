@@ -60,8 +60,6 @@ internal class NativeModuleRunner : IModuleRunner
         }
 
         mainProcess.Start();
-
-        
     }
 
     public async Task Stop(IModuleInstance moduleInstance)

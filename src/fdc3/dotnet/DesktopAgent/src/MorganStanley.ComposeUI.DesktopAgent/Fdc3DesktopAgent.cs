@@ -429,12 +429,12 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     private async Task<ResolverUIResponse?> WaitForResolverUIAsync(IEnumerable<AppMetadata> apps)
     {
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-        
+
         try
         {
             return await _resolverUI.SendResolverUIRequest(apps, cancellationTokenSource.Token);
         }
-        catch(TimeoutException exception)
+        catch (TimeoutException exception)
         {
             if (_logger.IsEnabled(LogLevel.Debug))
             {
@@ -551,9 +551,9 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         while (
             !_raisedIntentResolutions.TryGetValue(new Guid(request.TargetAppIdentifier.InstanceId!), out var resolver)
             || !resolver.TryGetRaisedIntentResult(request.MessageId, request.Intent, out resolution)
-            || (resolution.ResultChannelId == null 
-                && resolution.ResultChannelType == null 
-                && resolution.ResultContext == null 
+            || (resolution.ResultChannelId == null
+                && resolution.ResultChannelType == null
+                && resolution.ResultContext == null
                 && resolution.ResultVoid == null))
         {
             await Task.Delay(100);
@@ -590,10 +590,10 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
     //Publishing intent resolution request to the fdc3 clients, they will receive the message and start their IntentHandler appropriately, and send a store request back to the backend.
     private Task<RaiseIntentResolutionMessage?> GetRaiseIntentResolutionMessage(
-        string raisedIntentMessageId, 
-        string intent, 
-        Context context, 
-        string targetId, 
+        string raisedIntentMessageId,
+        string intent,
+        Context context,
+        string targetId,
         string sourceFdc3InstanceId)
     {
         if (_runningModules.TryGetValue(new(sourceFdc3InstanceId), out var sourceApp))
@@ -839,21 +839,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
         if (!_runningModules.TryRemove(new(fdc3InstanceId!), out _)) //At this point the fdc3InstanceId shouldn't be null
         {
-            var fdc3InstanceId = GetFdc3InstanceId(instance);
-            
-            if (!_runningModules.TryRemove(new(fdc3InstanceId), out _))
-            {
-                _logger.LogError($"Could not remove the closed window with instanceId: {fdc3InstanceId}.");
-            }
-
-            if (_pendingStartRequests.TryRemove(instance.StartRequest, out var taskCompletionSource))
-            {
-                taskCompletionSource.SetException(ThrowHelper.TargetInstanceUnavailable());
-            }
-        }
-        catch (Fdc3DesktopAgentException exception)
-        {
-            _logger.LogError(exception, $"Exception thrown while removing module: {instance.Manifest.Id}, {instance.Manifest.Name} from running instances in FDC3DesktopAgent.");
+            _logger.LogError($"Could not remove the closed window with instanceId: {fdc3InstanceId}.");
         }
 
         if (_pendingStartRequests.TryRemove(instance.StartRequest, out var taskCompletionSource))

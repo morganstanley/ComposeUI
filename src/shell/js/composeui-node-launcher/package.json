@@ -9,6 +9,7 @@
   "author": "Morgan Stanley",
   "license": "Apache-2.0",
   "sourceTag": "release",
+  "tags": ["release"],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/morganstanley/ComposeUI.git"

@@ -1,5 +1,5 @@
 {
-  "name": "@morgan-stanley/composeui-process-explorer-frontend-oss",
+  "name": "@morgan-stanley/composeui-process-explorer-frontend-oss-prototype",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
@@ -29,7 +29,8 @@
     "ts-protoc-gen": "^0.15.0",
     "rxjs": "^7.8.0",
     "tslib": "^2.3.0",
-    "zone.js": "^0.14.3"
+    "zone.js": "^0.14.3",
+    "browser-headers": "0.4.1"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^17.2.2",

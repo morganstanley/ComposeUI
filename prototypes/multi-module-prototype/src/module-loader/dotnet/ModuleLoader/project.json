@@ -1,12 +1,12 @@
 {
-    "name": "MorganStanley.ComposeUI.ModuleLoader-OLD",
+    "name": "MorganStanley.ComposeUI.ModuleLoader.Prototype",
     "$schema": "../../../../../../node_modules/nx/schemas/project-schema.json",
     "targets": {
       "build": {
         "executor": "@nx-dotnet/core:build",
         "outputs": [
-          "{workspaceRoot}/dist/prototypes/multi-module-prototype/src/ModuleLoader-OLD",
-          "{workspaceRoot}/dist/intermediates/prototypes/multi-module-prototype/src/ModuleLoader-OLD"
+          "{workspaceRoot}/dist/prototypes/multi-module-prototype/src/ModuleLoader.Prototype",
+          "{workspaceRoot}/dist/intermediates/prototypes/multi-module-prototype/src/ModuleLoader.Prototype"
         ],
         "options": {
           "configuration": "Debug",
