@@ -11,6 +11,7 @@
 // and limitations under the License.
 
 
+using FluentAssertions;
 using Moq;
 using MorganStanley.ComposeUI.ModuleLoader.Runners;
 
@@ -22,7 +23,7 @@ public class WebModuleRunnerTests
     public void ModuleType_Is_Web()
     {
         var runner = new WebModuleRunner();
-        Assert.Equal(ModuleType.Web, runner.ModuleType);
+        runner.ModuleType.Should().Be(ModuleType.Web);
     }
 
     [Fact]
@@ -40,10 +41,10 @@ public class WebModuleRunnerTests
         await runner.Start(startupContext, MockPipeline);
 
         var result = startupContext.GetProperties();
-        Assert.NotNull(result);
+        result.Should().NotBeNull();
         var webProperties = result.OfType<WebStartupProperties>().Single();
-        Assert.Equal(details.IconUrl, webProperties.IconUrl);
-        Assert.Equal(details.Url, webProperties.Url);
+        details.IconUrl.Should().BeEquivalentTo(webProperties.IconUrl);
+        details.Url.Should().BeEquivalentTo(webProperties.Url);
     }
 
     private class MockModuleManifest : IModuleManifest<WebManifestDetails>

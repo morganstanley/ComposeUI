@@ -15,7 +15,9 @@ using System.Buffers.Text;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Text.Json;
 using CommunityToolkit.HighPerformance.Buffers;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Messaging;
 
@@ -23,12 +25,8 @@ namespace MorganStanley.ComposeUI.Messaging;
 ///     Represents an UTF8-encoded string buffer that uses pooled memory.
 ///     Instances of this type typically represent message payloads.
 /// </summary>
-public sealed class MessageBuffer : IDisposable
+public sealed class MessageBuffer : IMessageBuffer, IDisposable
 {
-    /// <summary>
-    ///     Gets the string value of the buffer.
-    /// </summary>
-    /// <returns></returns>
     public string GetString()
     {
         ThrowIfDisposed();
@@ -36,10 +34,6 @@ public sealed class MessageBuffer : IDisposable
         return Encoding.GetString(_bytes, 0, _length);
     }
 
-    /// <summary>
-    ///     Gets the bytes of the underlying buffer as a <see cref="ReadOnlySpan{T}" />
-    /// </summary>
-    /// <returns></returns>
     public ReadOnlySpan<byte> GetSpan()
     {
         ThrowIfDisposed();
@@ -342,6 +336,13 @@ public sealed class MessageBuffer : IDisposable
         bufferWriter.Advance(bytesWritten);
 
         return true;
+    }
+
+    public T? ReadJson<T>(JsonSerializerOptions? options = null)
+    {
+        var reader = new Utf8JsonReader(GetSpan());
+
+        return JsonSerializer.Deserialize<T>(ref reader, options);
     }
 
     ~MessageBuffer()

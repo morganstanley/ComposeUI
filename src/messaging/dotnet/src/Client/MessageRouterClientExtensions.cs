@@ -10,6 +10,7 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 using MorganStanley.ComposeUI.Messaging.Client;
 
 namespace MorganStanley.ComposeUI.Messaging;
@@ -37,7 +38,14 @@ public static class MessageRouterClientExtensions
 
         public ValueTask<IAsyncDisposable> SubscribeAsync(IAsyncObserver<TopicMessage> observer)
         {
-            return _messageRouter.SubscribeAsync(_topic, observer, CancellationToken.None);
+            Func<IMessageBuffer, ValueTask> handler = async messageBuffer =>
+            {
+                var context = new MessageContext();
+                var topicMessage = new TopicMessage(_topic, messageBuffer, context);
+                await observer.OnNextAsync(topicMessage);
+            };
+
+            return _messageRouter.SubscribeAsync(_topic, handler, CancellationToken.None);
         }
 
         private readonly IMessageRouter _messageRouter;

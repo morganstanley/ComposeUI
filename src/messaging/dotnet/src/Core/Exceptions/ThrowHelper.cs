@@ -48,4 +48,10 @@ public static class ThrowHelper
 
     public static MessageRouterException ConnectionAborted(Exception innerException) =>
         new(MessageRouterErrors.ConnectionAborted, $"The connection dropped unexpectedly.\n\r{innerException.Message}", innerException);
+
+    public static MessageRouterException MessageOrPayloadNull() =>
+        new(MessageRouterErrors.ConnectionAborted, "The TopicMessage or its payload is null.");
+
+    public static MessageRouterException ErrorInObserver(Exception innerException) =>
+        new(MessageRouterErrors.ConnectionAborted, $"Error in Observer.\n\r{innerException.Message}", innerException);
 }

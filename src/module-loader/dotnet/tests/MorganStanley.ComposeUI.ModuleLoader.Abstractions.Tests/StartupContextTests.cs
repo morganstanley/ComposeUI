@@ -10,6 +10,7 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using FluentAssertions;
 using Moq;
 
 namespace MorganStanley.ComposeUI.ModuleLoader.Abstractions.Tests;
@@ -25,20 +26,21 @@ public class StartupContextTests
             new MyContextInfo { Name = "Test2" }
         };
 
-        StartupContext context = new StartupContext(new StartRequest("test"), Mock.Of<IModuleInstance>());
+        var context = new StartupContext(new StartRequest("test"), Mock.Of<IModuleInstance>());
         context.AddProperty(expected[0]);
         context.AddProperty(expected[1]);
 
         var result = context.GetProperties();
-        Assert.NotNull(result);
-        Assert.Equal(expected, result);
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(expected);
     }
 
     [Fact]
     public void GivenNullArgument_WhenAdd_ThrowsArgumentNullException()
     {
-        StartupContext context = new StartupContext(new StartRequest("test"), Mock.Of<IModuleInstance>());
-        Assert.Throws<ArgumentNullException>(() => context.AddProperty<object>(null!));
+        var context = new StartupContext(new StartRequest("test"), Mock.Of<IModuleInstance>());
+        var action = () => context.AddProperty<object>(null!);
+        action.Should().Throw<ArgumentNullException>();
     }
 
     private class MyContextInfo

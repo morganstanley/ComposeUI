@@ -31,7 +31,7 @@ using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.Abstractions;
 using MorganStanley.ComposeUI.Shell.Fdc3;
-using MorganStanley.ComposeUI.Shell.ImageSource;
+using MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;
 using MorganStanley.ComposeUI.Shell.Messaging;
 using MorganStanley.ComposeUI.Shell.Modules;
 using MorganStanley.ComposeUI.Shell.Utilities;
@@ -63,6 +63,15 @@ public partial class App : Application
         Dispatcher.VerifyAccess();
 
         return CreateInstance<TWindow>(parameters);
+    }
+
+    public WebContent CreateWebContent(params object[] parameters)
+    {
+        Dispatcher.VerifyAccess();
+        var webContent = CreateInstance<WebContent>(parameters);
+        _shellWindow!.AddDockableFloatingContent(webContent);
+
+        return webContent;
     }
 
     public T? GetService<T>()
@@ -97,6 +106,7 @@ public partial class App : Application
     private IHost? _host;
 
     private ILogger _logger = NullLogger<App>.Instance;
+    private MainWindow? _shellWindow;
 
     // TODO: Assign a unique token for each module
     internal readonly string MessageRouterAccessToken = Guid.NewGuid().ToString("N");
@@ -124,8 +134,8 @@ public partial class App : Application
             ShellVersion = Assembly.GetExecutingAssembly().FullName
         };
 
-        await _host.Services.GetRequiredService<IMessageRouter>().RegisterServiceAsync("Diagnostics", (e, m, t) =>
-        ValueTask.FromResult(MessageBuffer.Factory.CreateJson(diagnostics))!);
+        await _host.Services.GetRequiredService<IMessageRouter>().RegisterServiceAsync("Diagnostics", (e, m, t) => 
+            ValueTask.FromResult(MessageBuffer.Factory.CreateJson(diagnostics).GetString())!);
 
         await OnHostInitializedAsync();
 
@@ -187,8 +197,11 @@ public partial class App : Application
             // TODO: Use feature flag instead
             if (fdc3Options is { EnableFdc3: true })
             {
-                services.AddFdc3DesktopAgent();
+                services.AddFdc3DesktopAgent(desktopAgent => desktopAgent.UseMessageRouter());
                 services.AddFdc3AppDirectory();
+                services.AddSingleton<Fdc3ResolverUIWindow>();
+                services.AddSingleton<IResolverUIProjector>(p => p.GetRequiredService<Fdc3ResolverUIWindow>());
+                services.AddHostedService<ResolverUIService>();
                 services.Configure<Fdc3Options>(fdc3ConfigurationSection);
                 services.Configure<Fdc3DesktopAgentOptions>(
                     fdc3ConfigurationSection.GetSection(nameof(fdc3Options.DesktopAgent)));
@@ -217,7 +230,7 @@ public partial class App : Application
         {
             var moduleId = Guid.NewGuid().ToString();
 
-            var moduleCatalog = _host.Services.GetRequiredService<ModuleCatalog>();
+            var moduleCatalog = _host!.Services.GetRequiredService<ModuleCatalog>();
             moduleCatalog.Add(new WebModuleManifest
             {
                 Id = moduleId,
@@ -231,16 +244,15 @@ public partial class App : Application
             });
 
             var moduleLoader = _host.Services.GetRequiredService<IModuleLoader>();
-            moduleLoader.StartModule(new StartRequest(moduleId, new List<KeyValuePair<string, string>>()
-                        {
-                            { new(WebWindowOptions.ParameterName, JsonSerializer.Serialize(webWindowOptions)) }
-                        }));
-
-            return;
+            moduleLoader.StartModule(new StartRequest(moduleId, new List<KeyValuePair<string, string>>
+            {
+                new(WebWindowOptions.ParameterName, JsonSerializer.Serialize(webWindowOptions))
+            }));
         }
 
         ShutdownMode = ShutdownMode.OnMainWindowClose;
-        CreateWindow<MainWindow>().Show();
+        _shellWindow = CreateWindow<MainWindow>();
+        _shellWindow.Show();
     }
 
     private async Task StopAsync()

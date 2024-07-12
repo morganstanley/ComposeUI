@@ -15,10 +15,10 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls.Ribbon;
-using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.ImageSource;
+using MorganStanley.ComposeUI.Shell.Utilities;
 
 namespace MorganStanley.ComposeUI.Shell;
 
@@ -58,6 +58,11 @@ public partial class MainWindow : RibbonWindow
         {
             Modules = new ObservableCollection<ModuleViewModel>(modules)
         };
+    }
+
+    public void AddDockableFloatingContent(WebContent webContent)
+    {
+        _verticalSplit.Panes.Add(new WebContentPane(webContent, _moduleLoader));
     }
 
     internal MainWindowViewModel ViewModel
@@ -106,12 +111,19 @@ public partial class MainWindow : RibbonWindow
             }
             else if (manifest.TryGetDetails<NativeManifestDetails>(out var nativeManifestDetails))
             {
-                var icon = System.Drawing.Icon.ExtractAssociatedIcon(Path.GetFullPath(nativeManifestDetails.Path.ToString()));
+                var path = nativeManifestDetails.Path.IsAbsoluteUri ? nativeManifestDetails.Path.AbsolutePath : nativeManifestDetails.Path.ToString();
+                if (File.Exists(path))
+                {
+                    using var icon =
+                        System.Drawing.Icon.ExtractAssociatedIcon(path);
 
-                ImageSource = System.Windows.Interop.Imaging.CreateBitmapSourceFromHIcon(
-                icon.Handle,
-                new Int32Rect { Width = icon.Width, Height = icon.Height },
-                BitmapSizeOptions.FromEmptyOptions());
+                    if (icon != null)
+                    {
+                        using var bitmap = icon.ToBitmap();
+
+                        ImageSource = bitmap.ToImageSource();
+                    }
+                }
             }
         }
 

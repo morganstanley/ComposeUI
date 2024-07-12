@@ -13,7 +13,7 @@
 
 	<ItemGroup>
 		<None Remove="MainWindow.xaml" />
-		<None Remove="WebWindow.xaml" />
+		<None Remove="WebContent.xaml" />
 	</ItemGroup>
 	
 	<ItemGroup>
@@ -22,13 +22,30 @@
 		<PackageReference Include="Microsoft.Extensions.Http" />
 		<PackageReference Include="Microsoft.Web.WebView2" />
 		<PackageReference Include="System.Drawing.Common" />
+		<PackageReference Include="Infragistics.WPF.DockManager.Trial" />
+		<PackageReference Include="Infragistics.WPF.Trial" />
+		<PackageReference Include="Infragistics.WPF.Ribbon.Trial" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<Page Include="WebWindow.xaml">
+		<Page Include="WebContent.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		</Page>
+		
 		<Page Include="MainWindow.xaml" />
+		
+		<Page Include="Fdc3\ResolverUI\ResolverUI.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</Page>
+
+		<Page Include="Fdc3\ResolverUI\Pages\AdvancedResolverUIPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</Page>
+
+		<Page Include="Fdc3\ResolverUI\Pages\SimpleResolverUIPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</Page>
+		
 	</ItemGroup>
 
 	<ItemGroup>
@@ -38,8 +55,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\fdc3\dotnet\AppDirectory\src\AppDirectory\AppDirectory.csproj" />
-		<ProjectReference Include="..\..\..\fdc3\dotnet\DesktopAgent\src\DesktopAgent\DesktopAgent.csproj" />
+		<InternalsVisibleTo Include="Shell.Tests" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\fdc3\dotnet\AppDirectory\src\MorganStanley.ComposeUI.AppDirectory\MorganStanley.ComposeUI.AppDirectory.csproj" />
+		<ProjectReference Include="..\..\..\fdc3\dotnet\DesktopAgent\src\MorganStanley.ComposeUI.DesktopAgent\MorganStanley.ComposeUI.DesktopAgent.csproj" />
 		<ProjectReference Include="..\..\..\messaging\dotnet\src\Host\MorganStanley.ComposeUI.Messaging.Host.csproj" />
 		<ProjectReference Include="..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader.Abstractions\MorganStanley.ComposeUI.ModuleLoader.Abstractions.csproj" />
 		<ProjectReference Include="..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader\MorganStanley.ComposeUI.ModuleLoader.csproj" />

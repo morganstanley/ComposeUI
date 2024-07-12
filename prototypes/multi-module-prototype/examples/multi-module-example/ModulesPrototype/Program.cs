@@ -31,6 +31,8 @@ using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Subsystems;
 using MorganStanley.ComposeUI.ProcessExplorer.Core.DependencyInjection;
 using MorganStanley.ComposeUI.ProcessExplorer.Server.DependencyInjection;
 using MorganStanley.ComposeUI.ProcessExplorer.Server.Server.Abstractions;
+using Microsoft.AspNetCore.Builder;
+using MorganStanley.ComposeUI.ProcessExplorer.Server.Server.Infrastructure.Grpc;
 
 namespace ModulesPrototype;
 
@@ -70,22 +72,31 @@ internal class Program
         var loader = factory.Create(catalogue);
         var moduleCounter = new AsyncCountdownEvent(0);
 
-        var processExplorer = new HostBuilder()
-            .ConfigureLogging(l => l.AddConsole().SetMinimumLevel(LogLevel.Debug))
-            .ConfigureServices(
-             (context, services) => services
-                 .ConfigureSubsystemLauncher(loader.RequestStartProcess, loader.RequestStopProcess, CreateLaunchRequest, CreateStopRequest)
-                 .AddProcessExplorerWindowsServerWithGrpc(pe => pe.UseGrpc())
-                 .Configure<ProcessExplorerServerOptions>(op =>
-                 {
-                     op.Port = 5056;
-                     op.MainProcessId = Process.GetCurrentProcess().Id;
-                     op.EnableProcessExplorer = true;
-                 }))
-            .Build();
+        var processExplorer = WebApplication.CreateBuilder(args);
+        processExplorer.Services.AddGrpc();
+        processExplorer.Services.AddCors(o => o.AddPolicy("AllowAll", builder =>
+        {
+            builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
+        }));
+        processExplorer.Services.ConfigureSubsystemLauncher(loader.RequestStartProcess, loader.RequestStopProcess, CreateLaunchRequest, CreateStopRequest);
+        processExplorer.Services.AddProcessExplorerWindowsServerWithGrpc(pe => pe.UseGrpc());
+        processExplorer.Services.Configure<ProcessExplorerServerOptions>(op =>
+                {
+                    op.Port = 5056;
+                    op.MainProcessId = Process.GetCurrentProcess().Id;
+                    op.EnableProcessExplorer = true;
+                });
 
-        await processExplorer.StartAsync(cts.Token);
-        var infoAggregator = processExplorer.Services.GetRequiredService<IProcessInfoAggregator>();
+        var processExploreWebApplication = processExplorer.Build();
+        processExploreWebApplication.UseGrpcWeb();
+        processExploreWebApplication.UseCors();
+        processExploreWebApplication.MapGrpcService<ProcessExplorerMessageHandlerService>().EnableGrpcWeb().RequireCors("AllowAll");
+
+        await processExploreWebApplication.StartAsync(cts.Token);
+        var infoAggregator = processExploreWebApplication.Services.GetRequiredService<IProcessInfoAggregator>();
 
         loader.LifecycleEvents.Subscribe(
             e =>
