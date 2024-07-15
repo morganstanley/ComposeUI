@@ -13,6 +13,7 @@
 
 import { AppIdentifier, AppIntent, AppMetadata, Context, IntentResolution } from "@finos/fdc3";
 import { MessageRouter } from "@morgan-stanley/composeui-messaging-client";
+import { ChannelFactory } from "./ChannelFactory";
 import { ComposeUIErrors } from "./ComposeUIErrors";
 import { ComposeUIIntentResolution } from "./ComposeUIIntentResolution";
 import { ComposeUITopic } from "./ComposeUITopic";
@@ -26,14 +27,16 @@ import { Fdc3RaiseIntentResponse } from "./messages/Fdc3RaiseIntentResponse";
 
 export class MessageRouterIntentsClient implements IntentsClient {
 
-    messageRouterClient: MessageRouter;
+    private messageRouterClient: MessageRouter;
+    private channelFactory: ChannelFactory;
 
-    constructor(messageRouterClient: MessageRouter) {
+    constructor(messageRouterClient: MessageRouter, channelFactory: ChannelFactory) {
         if (!window.composeui.fdc3.config || !window.composeui.fdc3.config.instanceId) {
             throw new Error(ComposeUIErrors.InstanceIdNotFound);
         }
 
         this.messageRouterClient = messageRouterClient;
+        this.channelFactory = channelFactory;
     }
 
     public async findIntent(intent: string, context?: Context, resultType?: string): Promise<AppIntent> {
@@ -69,7 +72,7 @@ export class MessageRouterIntentsClient implements IntentsClient {
     }
 
     public async getIntentResolution(messageId: string, intent: string, source: AppMetadata): Promise<IntentResolution> {
-        return new ComposeUIIntentResolution(messageId, this.messageRouterClient, intent, source);
+        return new ComposeUIIntentResolution(messageId, this.messageRouterClient, this.channelFactory, intent, source);
     }
 
     public async raiseIntent(intent: string, context: Context, app?: string | AppIdentifier): Promise<IntentResolution> {
@@ -90,7 +93,7 @@ export class MessageRouterIntentsClient implements IntentsClient {
             throw new Error(response.error);
         }
 
-        const intentResolution = new ComposeUIIntentResolution(response.messageId, this.messageRouterClient, response.intent!, response.appMetadata!);
+        const intentResolution = new ComposeUIIntentResolution(response.messageId, this.messageRouterClient, this.channelFactory, response.intent!, response.appMetadata!);
         return intentResolution;
     }
 }
