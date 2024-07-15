@@ -11,9 +11,8 @@
 // and limitations under the License.
 
 using System.Text.Json;
-using MorganStanley.ComposeUI.Messaging.Abstractions;
 
-namespace MorganStanley.ComposeUI.Messaging;
+namespace MorganStanley.ComposeUI.Messaging.Abstractions;
 
 /// <summary>
 /// Extensions methods for handling JSON data in <see cref="MessageBuffer"/> objects.
@@ -32,26 +31,5 @@ public static class MessageBufferJsonExtensions
         var reader = new Utf8JsonReader(buffer.GetSpan());
 
         return JsonSerializer.Deserialize<T>(ref reader, options);
-    }
-
-    /// <summary>
-    /// Creates a <see cref="MessageBuffer"/> from the provided value serialized to JSON.
-    /// </summary>
-    /// <param name="factory"></param>
-    /// <param name="value"></param>
-    /// <param name="options"></param>
-    /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
-    public static MessageBuffer CreateJson<T>(
-        this MessageBuffer.MessageBufferFactory factory,
-        T value,
-        JsonSerializerOptions? options = null)
-    {
-        using var bufferWriter = MessageBuffer.GetBufferWriter();
-        using var jsonWriter = new Utf8JsonWriter(bufferWriter);
-        JsonSerializer.Serialize(jsonWriter, value, options);
-        jsonWriter.Flush();
-
-        return MessageBuffer.Create(bufferWriter.WrittenMemory);
     }
 }

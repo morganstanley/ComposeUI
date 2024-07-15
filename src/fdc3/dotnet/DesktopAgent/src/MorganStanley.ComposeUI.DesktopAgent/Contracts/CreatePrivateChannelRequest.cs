@@ -12,16 +12,8 @@
  * and limitations under the License.
  */
 
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using MorganStanley.ComposeUI.Messaging.Abstractions;
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
-
-internal class UserChannel : Channel, IAsyncDisposable
+internal class CreatePrivateChannelRequest
 {
-    public UserChannel(string id, IMessagingService messagingService, ILogger<UserChannel>? logger)
-        : base(id, messagingService, (ILogger?) logger ?? NullLogger.Instance, Fdc3Topic.UserChannel(id)) { }
-
-    protected override string ChannelTypeName => "UserChannel";
 }
