@@ -30,40 +30,40 @@ export class ComposeUIContextListener implements Listener {
     constructor(messageRouterClient: MessageRouter, handler: ContextHandler, channelId: string, channelType: ChannelType, contextType?: string) {
         this.messageRouterClient = messageRouterClient;
         this.handler = handler;
+
         this.channelId = channelId;
         this.channelType = channelType;
+
         this.contextType = contextType;
     }
 
-    public async subscribe(): Promise<void> { 
+    public async subscribe(): Promise<void> {
         const subscribeTopic = ComposeUITopic.broadcast(this.channelId, this.channelType);
         this.unsubscribable = await this.messageRouterClient.subscribe(subscribeTopic, (topicMessage: TopicMessage) => {
-            if(topicMessage.context.sourceId == this.messageRouterClient.clientId) return;
+            if (topicMessage.context.sourceId == this.messageRouterClient.clientId) return;
             //TODO: integration test
-            const context = <Context>JSON.parse(topicMessage.payload!);            
-            if(!this.contextType || this.contextType == context!.type) {                
+            const context = <Context>JSON.parse(topicMessage.payload!);
+            if (!this.contextType || this.contextType == context!.type) {
                 this.handler!(context!);
             }
         });
         this.isSubscribed = true;
     }
 
-    public handleContextMessage(context: Context | null = null): Promise<void> {
-        return new Promise((resolve, reject) => {
-            if (!this.isSubscribed ) {
-                reject(new Error("The current listener is not subscribed."));
+    public async handleContextMessage(context: Context | null = null): Promise<void> {
+
+        if (!this.isSubscribed) {
+            throw new Error("The current listener is not subscribed.");
+        }
+        if (context) {
+            return this.handler(context);
+        } else {
+            if (this.latestContext) {
+                return this.handler(this.latestContext);
             } else {
-                if(context) {
-                    resolve(this.handler(context));
-                } else {
-                    if (this.latestContext) {
-                        resolve(this.handler(this.latestContext));
-                    } else {
-                        resolve(this.handler({type: ""}));
-                    }
-                }            
+                return this.handler({ type: "" });
             }
-        });
+        }
     }
 
     public unsubscribe(): Boolean {
