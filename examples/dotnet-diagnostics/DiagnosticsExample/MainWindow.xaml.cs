@@ -12,6 +12,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using MorganStanley.ComposeUI.Messaging;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
 using System;
 using System.Text;

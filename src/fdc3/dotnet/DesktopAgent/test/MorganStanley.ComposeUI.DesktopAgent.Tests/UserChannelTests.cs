@@ -23,7 +23,7 @@ public class UserChannelTests
 {
     private const string TestChannel = "testChannel";
     UserChannel _channel = new UserChannel(TestChannel, new Mock<IMessagingService>().Object, null);
-    UserChannelTopics _topics = new UserChannelTopics(TestChannel);
+    ChannelTopics _topics = Fdc3Topic.UserChannel(TestChannel);
 
     [Theory]
     [InlineData(new object?[] { null })]
