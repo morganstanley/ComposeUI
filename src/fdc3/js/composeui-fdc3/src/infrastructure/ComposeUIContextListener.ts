@@ -18,14 +18,14 @@ import { Unsubscribable } from "rxjs";
 import { ComposeUITopic } from "./ComposeUITopic";
 
 export class ComposeUIContextListener implements Listener {
-    private messageRouterClient: MessageRouter;
+    private readonly messageRouterClient: MessageRouter;
     private unsubscribable?: Unsubscribable;
-    private handler: ContextHandler;
-    private channelId: string;
-    private channelType: ChannelType;
-    private contextType?: string;
+    private readonly handler: ContextHandler;
+    private readonly channelId: string;
+    private readonly channelType: ChannelType;
+    public readonly contextType?: string;
     private isSubscribed: boolean = false;
-    public latestContext: Context | null = null;
+    private unsubscribeCallback?: (x: ComposeUIContextListener) => void;
 
     constructor(messageRouterClient: MessageRouter, handler: ContextHandler, channelId: string, channelType: ChannelType, contextType?: string) {
         this.messageRouterClient = messageRouterClient;
@@ -50,26 +50,28 @@ export class ComposeUIContextListener implements Listener {
         this.isSubscribed = true;
     }
 
-    public async handleContextMessage(context: Context | null = null): Promise<void> {
-
+    public async handleContextMessage(context: Context): Promise<void> {
         if (!this.isSubscribed) {
             throw new Error("The current listener is not subscribed.");
         }
-        if (context) {
-            return this.handler(context);
-        } else {
-            if (this.latestContext) {
-                return this.handler(this.latestContext);
-            } else {
-                return this.handler({ type: "" });
-            }
+        if (this.contextType && this.contextType != context.type) {
+            throw new Error(`The current listener is not able to handle context type ${context.type}. It is registered to handle ${this.contextType}.`)
         }
+        this.handler(context);
     }
 
-    public unsubscribe(): Boolean {
-        if (!this.unsubscribable || !this.isSubscribed) return false;
+    public setUnsubscribeCallback(unsubscribeCallback: (x: ComposeUIContextListener) => void): void {
+        this.unsubscribeCallback = unsubscribeCallback;
+    }
+
+    public unsubscribe(): void {
+        if (!this.unsubscribable || !this.isSubscribed) {
+            return;
+        }
         this.unsubscribable.unsubscribe();
         this.isSubscribed = false;
-        return true;
+        if (this.unsubscribeCallback) {
+            this.unsubscribeCallback(this);
+        }
     }
 }
