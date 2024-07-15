@@ -57,19 +57,18 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     private intentsClient: IntentsClient;
 
     //TODO: we should enable passing multiple channelId to the ctor.
-    constructor(channelId: string, messageRouterClient: MessageRouter) {
+    constructor(channelId: string, messageRouterClient: MessageRouter, channelFactory?: ChannelFactory) {
         if (!window.composeui.fdc3.config || !window.composeui.fdc3.config.instanceId) {
             throw new Error(ComposeUIErrors.InstanceIdNotFound);
         }
 
         // TODO: inject this directly instead of the messageRouter
-        this.channelFactory = new MessageRouterChannelFactory(messageRouterClient);
-        this.intentsClient = new MessageRouterIntentsClient(messageRouterClient);
+        this.channelFactory = channelFactory ?? new MessageRouterChannelFactory(messageRouterClient, window.composeui.fdc3.config.instanceId);
+        this.intentsClient = new MessageRouterIntentsClient(messageRouterClient, this.channelFactory);
 
 
         setTimeout(
             async () => {
-                await this.joinUserChannel(channelId);
                 window.fdc3 = this;
                 window.dispatchEvent(new Event("fdc3Ready"));
             }, 0);
@@ -111,7 +110,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     }
 
     public async addIntentListener(intent: string, handler: IntentHandler): Promise<Listener> {
-        var listener = await this.channelFactory.GetIntentListener(intent, handler);
+        var listener = await this.channelFactory.getIntentListener(intent, handler);
         this.intentListeners.push(listener);
         return listener;
     }
@@ -145,15 +144,19 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     //TODO: should return AccessDenied error when a channel object is denied?
     public async joinUserChannel(channelId: string): Promise<void> {
         if (this.currentChannel) {
-            throw new Error(ChannelError.AccessDenied);
+            return;
         }
 
         let channel = this.userChannels.find(innerChannel => innerChannel.id == channelId);
         if (!channel) {
-            channel = await this.channelFactory.GetUserChannel(channelId);
+            channel = await this.channelFactory.getChannel(channelId, "user");
             this.addChannel(channel);
-            return;
         }
+
+        if (!channel) {
+            throw new Error(ChannelError.NoChannelFound);
+        }
+
         this.currentChannel = channel;
     }
 
@@ -164,8 +167,8 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     }
 
     //TODO
-    public createPrivateChannel(): Promise<PrivateChannel> {
-        throw new Error("Not implemented");
+    public async createPrivateChannel(): Promise<PrivateChannel> {
+        return this.channelFactory.createPrivateChannel();
     }
 
     public async getCurrentChannel(): Promise<Channel | null> {
@@ -176,11 +179,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     public async leaveCurrentChannel(): Promise<void> {
         this.currentChannel = undefined;
         this.currentChannelListeners.forEach(listener => {
-            const isUnsubscribed = listener.unsubscribe();
-            if (!isUnsubscribed) {
-                //TODO: Review this behavior as it may lead to a partially completed operation
-                throw new Error(`Listener couldn't unsubscribe. IsSubscribed: ${isUnsubscribed}, Listener: ${listener}`);
-            }
+            listener.unsubscribe();
         });
         this.currentChannelListeners = [];
     }

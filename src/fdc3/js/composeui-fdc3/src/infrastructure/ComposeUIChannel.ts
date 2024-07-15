@@ -12,7 +12,7 @@
  */
 
 import { Channel, Context, ContextHandler, DisplayMetadata, Listener } from "@finos/fdc3";
-import { MessageRouter, TopicMessage } from "@morgan-stanley/composeui-messaging-client";
+import { MessageRouter } from "@morgan-stanley/composeui-messaging-client";
 import { ChannelType } from "./ChannelType";
 import { ComposeUIContextListener } from "./ComposeUIContextListener";
 import { Fdc3GetCurrentContextRequest } from "./messages/Fdc3GetCurrentContextRequest";
@@ -23,7 +23,7 @@ export class ComposeUIChannel implements Channel {
     type: "user" | "app" | "private";
     displayMetadata?: DisplayMetadata;
 
-    private messageRouterClient: MessageRouter;
+    protected messageRouterClient: MessageRouter;
     private lastContexts: Map<string, Context> = new Map<string, Context>();
     private lastContext?: Context;
 

@@ -10,12 +10,17 @@
  *  and limitations under the License.
  *  
  */
+export type Fdc3PrivateChannelInternalEventType = "contextListenerAdded" | "unsubscribed" | "disconnected";
+export class Fdc3PrivateChannelInternalEvent {
 
-import { Channel, IntentHandler, Listener, PrivateChannel } from "@finos/fdc3";
-import { ChannelType } from "./ChannelType";
+    /**
+     * Message representing events on the remote side of a PrivateChannel
+     */
+    constructor(event: Fdc3PrivateChannelInternalEventType, contextType?: string) {
+        this.event = event;
+        this.contextType = contextType;
+    }
 
-export interface ChannelFactory {
-    getChannel(channelId: string, channelType: ChannelType): Promise<Channel>;
-    createPrivateChannel(): Promise<PrivateChannel>;
-    getIntentListener(intent: string, handler: IntentHandler): Promise<Listener>;
+    public event: Fdc3PrivateChannelInternalEventType;
+    public contextType: string | undefined;
 }

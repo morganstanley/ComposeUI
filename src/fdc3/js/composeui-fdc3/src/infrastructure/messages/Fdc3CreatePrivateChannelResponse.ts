@@ -11,11 +11,7 @@
  *  
  */
 
-import { Channel, IntentHandler, Listener, PrivateChannel } from "@finos/fdc3";
-import { ChannelType } from "./ChannelType";
-
-export interface ChannelFactory {
-    getChannel(channelId: string, channelType: ChannelType): Promise<Channel>;
-    createPrivateChannel(): Promise<PrivateChannel>;
-    getIntentListener(intent: string, handler: IntentHandler): Promise<Listener>;
+export interface Fdc3CreatePrivateChannelResponse {
+  error?: string;
+  channelId?: string;
 }
