@@ -23,6 +23,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Helpers;
 using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 using MorganStanley.ComposeUI.ModuleLoader;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIdentifier;
 using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
@@ -37,7 +38,7 @@ public class EndToEndTests : IAsyncLifetime
     private const string AccessToken = "token";
     private readonly List<IModuleInstance> _runningApps = new();
     private readonly object _runningAppsLock = new();
-    private readonly UserChannelTopics _topics = new(TestChannel);
+    private readonly ChannelTopics _topics = Fdc3Topic.UserChannel(TestChannel);
     private readonly Uri _webSocketUri = new("ws://localhost:7098/ws");
     private ServiceProvider _clientServices;
 

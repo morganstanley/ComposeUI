@@ -48,7 +48,7 @@ public class UserChannelErrorsAndDiagnosticsTests
     private const string TestChannel = "testChannel";
     TestLogger _logger;
     UserChannel _channel;
-    UserChannelTopics _topics = new UserChannelTopics(TestChannel);
+    ChannelTopics _topics = Fdc3Topic.UserChannel(TestChannel);
 
     public UserChannelErrorsAndDiagnosticsTests()
     {

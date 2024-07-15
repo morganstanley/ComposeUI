@@ -132,6 +132,23 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         return await _desktopAgent.GetIntentResult(request);
     }
 
+    internal async ValueTask<CreatePrivateChannelResponse> HandleCreatePrivateChannel(CreatePrivateChannelRequest request, MessageContext context)
+    {
+        try
+        {
+            var channel = new PrivateChannel(Guid.NewGuid().ToString(), _messageRouter, _loggerFactory.CreateLogger<PrivateChannel>());
+
+            await _desktopAgent.AddPrivateChannel(channel);
+
+            return CreatePrivateChannelResponse.Created(channel.Id);
+        }
+        catch (Exception ex)
+        {
+            // TODO: better exception
+            return CreatePrivateChannelResponse.Failed(ex.Message);
+        }
+    }
+
     private async ValueTask SafeWaitAsync(IEnumerable<ValueTask> tasks)
     {
         foreach (var task in tasks)
@@ -142,7 +159,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
             }
             catch (Exception exception)
             {
-                _logger.LogError($"An exception was thrown while waiting for a teask to finish. Exception: {exception}");
+                _logger.LogError($"An exception was thrown while waiting for a task to finish. Exception: {exception}");
             }
         }
     }
@@ -167,6 +184,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         await RegisterHandler<GetIntentResultRequest, GetIntentResultResponse>(Fdc3Topic.GetIntentResult, HandleGetIntentResult);
         await RegisterHandler<StoreIntentResultRequest, StoreIntentResultResponse>(Fdc3Topic.SendIntentResult, HandleStoreIntentResult);
         await RegisterHandler<IntentListenerRequest, IntentListenerResponse>(Fdc3Topic.AddIntentListener, HandleAddIntentListener);
+        await RegisterHandler<CreatePrivateChannelRequest, CreatePrivateChannelResponse>(Fdc3Topic.CreatePrivateChannel, HandleCreatePrivateChannel);
 
         await _desktopAgent.StartAsync(cancellationToken);
 
@@ -186,7 +204,8 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
             _messageRouter.UnregisterServiceAsync(Fdc3Topic.FindIntentsByContext, cancellationToken),
             _messageRouter.UnregisterServiceAsync(Fdc3Topic.GetIntentResult, cancellationToken),
             _messageRouter.UnregisterServiceAsync(Fdc3Topic.SendIntentResult, cancellationToken),
-            _messageRouter.UnregisterServiceAsync(Fdc3Topic.AddIntentListener, cancellationToken)
+            _messageRouter.UnregisterServiceAsync(Fdc3Topic.AddIntentListener, cancellationToken),
+            _messageRouter.UnregisterServiceAsync(Fdc3Topic.CreatePrivateChannel, cancellationToken)
         };
 
         await SafeWaitAsync(unregisteringTasks);
