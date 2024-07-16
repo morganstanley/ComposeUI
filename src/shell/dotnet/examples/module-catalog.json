@@ -54,6 +54,24 @@
     }
   },
   {
+    "Id": "js-pricing",
+    "Name": "Pricing",
+    "ModuleType": "web",
+    "Details": {
+      "Url": "http://localhost:8081/",
+      "IconUrl": "http://localhost:8081/favicon.ico"
+    }
+  },
+  {
+    "Id": "js-chat",
+    "Name": "Chat",
+    "ModuleType": "web",
+    "Details": {
+      "Url": "http://localhost:8082/",
+      "IconUrl": "http://localhost:8082/favicon.ico"
+    }
+  },
+  {
     "Id": "Diagnistics WPF",
     "Name": "Diagnostics WPF",
     "ModuleType": "native",
