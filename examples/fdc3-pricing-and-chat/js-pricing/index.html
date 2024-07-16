@@ -1,0 +1,59 @@
+<!--
+Morgan Stanley makes this available to you under the Apache License,
+Version 2.0 (the "License"). You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0.
+
+See the NOTICE file distributed with this work for additional information
+regarding copyright ownership. Unless required by applicable law or agreed
+to in writing, software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+or implied. See the License for the specific language governing permissions
+and limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Pricing</title>
+	<link href="dist/bundle.css" rel="stylesheet" />
+</head>
+
+<body>
+	<div class="container">
+		<h1>Prepare pricing info</h1>
+		<form id="pricing">
+			<div class="row">
+				<div class="col-2"><label for="recipient" class="form-label">Recipient</label></div>
+				<div class="col-6"><input name="recipient" id="recipient" type="text" class="form-control" /></div>
+			</div>
+			<div class="row">
+				<div class="col-2"><label for="product" class="form-label">Product</label>
+				</div>
+				<div class="col-6"><input name="product" id="product" type="text" class="form-control" /></div>
+			</div>
+			<div class="row">
+				<div class="col-2"><label for="price" class="form-label">Price</label></div>
+				<div class="col-6"><input name="price" id="price" type="number" class="form-control" /></div>
+			</div>
+			<button id="send" type="submit" class="btn btn-primary">Send</button>
+		</form>
+	</div>
+	<div class="fixed-bottom">
+		<div>FDC3 Info&Tools</div>
+		<div>
+			Remote channel: <span id="remote-channel-status">Disconnected</span>
+		</div>
+		<div>
+			Remote context listener: <span id="remote-listener-status">Not subscribed</span>
+		</div>
+		<div>Local channel: <span id="local-channel-status">Not added</span></div>
+		<div>Local listener: <span id="local-listener-status">Not added</span></div>
+		<button type="button" class="btn btn-secondary" onclick="app.addListener()">AddContextListener</button>
+		<button type="button" class="btn btn-secondary" onclick="app.disconnect()">Disconnect</button>
+	</div>
+	<script type="text/javascript" src="dist/bundle.js"></script>
+</body>
+
+</html>

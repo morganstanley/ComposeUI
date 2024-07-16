@@ -1,0 +1,54 @@
+{
+  "applications": [
+    {
+      "appId": "FINOS FDC3 Workbench",
+      "name": "FINOS FDC3 Workbench",
+      "type": "web",
+      "details": {
+        "url": "https://fdc3.finos.org/toolbox/fdc3-workbench/"
+      },
+      "interop": {
+        "intents": {}
+      }
+    },
+    {
+      "appId": "js-pricing",
+      "name": "Pricing Example",
+      "type": "web",
+      "details": {
+        "url": "http://localhost:8081/"
+      },
+      "interop": {
+        "intents": {
+          "listensFor": {},
+          "raises": {
+            "StartChat": [
+              "StartChat"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "appId": "js-chat",
+      "name": "Js Chat Example",
+      "type": "web",
+      "details": {
+        "url": "http://localhost:8082/"
+      },
+      "interop": {
+        "intents": {
+          "listensFor": {
+            "StartChat": {
+              "name": "StartChat",
+              "displayName": "StartChat",
+              "contexts": [
+                "fdc3.contact"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
+}
