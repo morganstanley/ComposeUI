@@ -802,7 +802,7 @@ public class MessageRouterClientTests : IAsyncLifetime
 
         subscription = await _messageRouter.SubscribeAsync("test-topic", subscriber.Object);
 
-        ///Unsubscribing is not awaited, it started with a Task.Factory.StartNew(...)
+        //Unsubscribing is not awaited, it started with a Task.Factory.StartNew(...)
         await subscription.DisposeAsync();
 
         Thread.Sleep(1000);
