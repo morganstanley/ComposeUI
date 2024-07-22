@@ -579,9 +579,7 @@ describe ('Tests for ComposeUIDesktopAgent\'s intent handling', () => {
         const fdc3IntentResponse : Fdc3RaiseIntentResponse = {
             messageId: "1",
             intent: "test",
-            appMetadata: [
-                {appId: "test1"}
-            ]
+            appMetadata: {appId: "test1"}
         };
         const messageRouterClientMock = {
             clientId: "dummy",
@@ -599,35 +597,7 @@ describe ('Tests for ComposeUIDesktopAgent\'s intent handling', () => {
         const testDesktopAgent = new ComposeUIDesktopAgent("dummyPath", messageRouterClientMock);
         var result = await testDesktopAgent.raiseIntent("test", { type: "test"} );
         expect(messageRouterClientMock.invoke).toHaveBeenCalledTimes(1);
-        expect(result).toMatchObject(new ComposeUIIntentResolution("1", messageRouterClientMock, "test", fdc3IntentResponse.appMetadata?.at(0)!));
-    });
-
-    it('raiseIntent will call invoke of the messageRouter once again, due the DesktopAgent service sent multiple possible solution', async() => {
-        const fdc3IntentResponse : Fdc3RaiseIntentResponse = {
-            messageId: "1",
-            intent: "test",
-            appMetadata: [
-                {appId: "test1"},
-                {appId: "test2"}
-            ]
-        };
-        const messageRouterClientMock = {
-            clientId: "dummy",
-            subscribe: jest.fn(() => {
-                return Promise.resolve({unsubscribe: () => {}});}),
-                
-            publish: jest.fn(() => { return Promise.resolve() }),
-            connect: jest.fn(() => { return Promise.resolve() }),
-            registerEndpoint: jest.fn(() => { return Promise.resolve() }),
-            unregisterEndpoint: jest.fn(() => { return Promise.resolve() }),
-            registerService: jest.fn(() => { return Promise.resolve() }),
-            unregisterService: jest.fn(() => { return Promise.resolve() }),
-            invoke: jest.fn(() => { return Promise.resolve(`${JSON.stringify(fdc3IntentResponse)}`) })
-        };
-        const testDesktopAgent = new ComposeUIDesktopAgent("dummyPath", messageRouterClientMock);
-        var result = await testDesktopAgent.raiseIntent("test", { type: "test"} );
-        expect(messageRouterClientMock.invoke).toHaveBeenCalledTimes(2);
-        expect(result).toMatchObject(new ComposeUIIntentResolution("1", messageRouterClientMock, "test", fdc3IntentResponse.appMetadata?.at(0)!));
+        expect(result).toMatchObject(new ComposeUIIntentResolution("1", messageRouterClientMock, "test", fdc3IntentResponse.appMetadata!));
     });
 
     it('addIntentListener will resolve an intentListener', async () => {

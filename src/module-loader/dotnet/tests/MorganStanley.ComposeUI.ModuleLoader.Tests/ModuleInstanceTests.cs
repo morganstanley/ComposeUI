@@ -11,6 +11,7 @@
 // and limitations under the License.
 
 
+using FluentAssertions;
 using Moq;
 
 namespace MorganStanley.ComposeUI.ModuleLoader.Tests;
@@ -22,17 +23,19 @@ public class ModuleInstanceTests
     [Fact]
     public void GivenNullArguments_WhenCtor_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => new ModuleInstance(_testGuid, null!, new StartRequest("test")));
-        Assert.Throws<ArgumentNullException>(() => new ModuleInstance(_testGuid, new Mock<IModuleManifest>().Object, null!));
+        var action1 = () => new ModuleInstance(_testGuid, null!, new StartRequest("test"));
+        action1.Should().Throw<ArgumentNullException>();
+
+        var action2 = () => new ModuleInstance(_testGuid, new Mock<IModuleManifest>().Object, null!);
+        action2.Should().Throw<ArgumentNullException>();
     }
 
     [Fact]
     public void WhenNewModuleInstance_GetProperties_ReturnsEmptyCollection()
     {
         var moduleInstance = new ModuleInstance(_testGuid, new Mock<IModuleManifest>().Object, new StartRequest("test"));
-
         var properties = moduleInstance.GetProperties();
-        Assert.Empty(properties);
+        properties.Should().BeEmpty();
     }
 
     [Fact]
@@ -44,6 +47,6 @@ public class ModuleInstanceTests
         moduleInstance.AddProperties(testProperties);
         var properties = moduleInstance.GetProperties();
 
-        Assert.Equal(testProperties, properties);
+        testProperties.Should().BeEquivalentTo(properties);
     }
 }

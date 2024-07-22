@@ -16,7 +16,7 @@ namespace MorganStanley.ComposeUI.ModuleLoader;
 
 public sealed class NativeManifestDetails
 {
-    public Uri Path { get; init; }
+    public Uri Path { get; set; }
     public Uri? Icon { get; init; }
     public string[] Arguments { get; init; } = Array.Empty<string>();
     public Dictionary<string, string> EnvironmentVariables { get; init; } = new Dictionary<string, string>();

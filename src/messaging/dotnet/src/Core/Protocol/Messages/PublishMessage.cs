@@ -10,12 +10,14 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using MorganStanley.ComposeUI.Messaging.Abstractions;
+
 namespace MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
 public sealed class PublishMessage : AbstractRequest<PublishResponse>
 {
     public override MessageType Type => MessageType.Publish;
     public string Topic { get; init; } = null!;
-    public MessageBuffer? Payload { get; init; }
+    public IMessageBuffer? Payload { get; init; }
     public string? CorrelationId { get; init; }
 }

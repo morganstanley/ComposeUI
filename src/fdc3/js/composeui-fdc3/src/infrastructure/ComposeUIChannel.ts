@@ -12,7 +12,7 @@
  */
 
 import { Channel, Context, ContextHandler, DisplayMetadata, Listener } from "@finos/fdc3";
-import { MessageRouter, TopicMessage } from "@morgan-stanley/composeui-messaging-client";
+import { MessageRouter } from "@morgan-stanley/composeui-messaging-client";
 import { ChannelType } from "./ChannelType";
 import { ComposeUIContextListener } from "./ComposeUIContextListener";
 import { Fdc3GetCurrentContextRequest } from "./messages/Fdc3GetCurrentContextRequest";
@@ -52,8 +52,10 @@ export class ComposeUIChannel implements Channel {
                 if(context) {
                     this.lastContext = context;
                     this.lastContexts.set(context.type, context);
+                    resolve(context);
                 }
             }
+            
             resolve(this.retrieveCurrentContext(contextType));
         });
     }

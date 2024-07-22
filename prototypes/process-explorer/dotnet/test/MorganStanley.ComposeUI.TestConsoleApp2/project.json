@@ -1,12 +1,12 @@
 {
-    "name": "MorganStanley.ComposeUI.TestConsoleApp2-OLD",
+    "name": "MorganStanley.ComposeUI.TestConsoleApp2.Prototype",
     "$schema": "../../../../../../node_modules/nx/schemas/project-schema.json",
     "targets": {
       "build": {
         "executor": "@nx-dotnet/core:build",
         "outputs": [
-          "{workspaceRoot}/dist/prototypes/process-explorer/dotnet/test/TestConsoleApp2-OLD",
-          "{workspaceRoot}/dist/intermediates/prototypes/process-explorer/dotnet/test/TestConsoleApp2-OLD"
+          "{workspaceRoot}/dist/prototypes/process-explorer/dotnet/test/TestConsoleApp2.Prototype",
+          "{workspaceRoot}/dist/intermediates/prototypes/process-explorer/dotnet/test/TestConsoleApp2.Prototype"
         ],
         "options": {
           "configuration": "Debug",

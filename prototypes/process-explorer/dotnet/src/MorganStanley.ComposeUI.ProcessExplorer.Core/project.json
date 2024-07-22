@@ -1,12 +1,12 @@
 {
-    "name": "MorganStanley.ComposeUI.ProcessExplorer.Core-OLD",
+    "name": "MorganStanley.ComposeUI.ProcessExplorer.Core.Prototype",
     "$schema": "../../../../../../node_modules/nx/schemas/project-schema.json",
     "targets": {
       "build": {
         "executor": "@nx-dotnet/core:build",
         "outputs": [
-          "{workspaceRoot}/dist/prototypes/process-explorer/dotnet/src/ProcessExplorer.Core-OLD",
-          "{workspaceRoot}/dist/intermediates/prototypes/process-explorer/dotnet/src/ProcessExplorer.Core-OLD"
+          "{workspaceRoot}/dist/prototypes/process-explorer/dotnet/src/ProcessExplorer.Core.Prototype",
+          "{workspaceRoot}/dist/intermediates/prototypes/process-explorer/dotnet/src/ProcessExplorer.Core.Prototype"
         ],
         "options": {
           "configuration": "Debug",

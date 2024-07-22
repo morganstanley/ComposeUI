@@ -13,6 +13,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using FluentAssertions.Json;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 using Newtonsoft.Json.Linq;
 
 namespace MorganStanley.ComposeUI.Messaging;

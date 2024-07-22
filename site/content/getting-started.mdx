@@ -16,22 +16,22 @@ npm i
 Build all modules
 
 ```powershell
-npx lerna run build --stream
+npx nx run-many -t build --verbose
 ```
 
 Test all modules
 
 ```powershell
-npx lerna run test --stream
+npx nx run-many -t test --verbose
 ```
 
 Building a sepecific module
 
 ```powershell
-npx lerna run build --stream --scope=@morgan-stanley/composeui-messaging-client
+npx nx build @morgan-stanley/composeui-messaging-client OR nx run @morgan-stanley/composeui-messaging-client:build
 ```
 
 List all modules in the workspace
 ```powershell
-npx lerna list
+npx nx show projects
 ```

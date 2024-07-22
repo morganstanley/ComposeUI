@@ -29,4 +29,8 @@
 	<ItemGroup>
 	  <Folder Include="Exceptions\" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Abstractions\MorganStanley.ComposeUI.Messaging.Abstractions.csproj" />
+	</ItemGroup>
 </Project>

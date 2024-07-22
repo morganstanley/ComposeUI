@@ -13,8 +13,14 @@
 		<IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
 		<AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
 	</PropertyGroup>
+
 	<PropertyGroup>
 		<RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<ComposeUIRepositoryRoot>$(MSBuildThisFileDirectory.TrimEnd('/').TrimEnd('\'))</ComposeUIRepositoryRoot>
+		<PackageOutputPath>$(ComposeUIRepositoryRoot)/artifacts/packages/nuget</PackageOutputPath>
 	</PropertyGroup>
 
 	<Import Project="$([MSBuild]::GetPathOfFileAbove(Directory.Build.props, $(MSBuildThisFileDirectory)..))" Condition="Exists($([MSBuild]::GetPathOfFileAbove(Directory.Build.props, $(MSBuildThisFileDirectory)..)))"/>
@@ -40,10 +46,5 @@
         <RepositoryUrl>https://github.com/morganstanley/ComposeUI</RepositoryUrl>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     </PropertyGroup>
-
-	<PropertyGroup>
-		<ComposeUIRepositoryRoot>$(MSBuildThisFileDirectory.TrimEnd('/').TrimEnd('\'))</ComposeUIRepositoryRoot>
-		<PackageOutputPath>$(ComposeUIRepositoryRoot)/artifacts/packages/nuget</PackageOutputPath>
-	</PropertyGroup>
 	
 </Project>

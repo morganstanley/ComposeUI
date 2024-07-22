@@ -12,6 +12,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Text.Json;
@@ -60,11 +61,26 @@ internal sealed class ModuleCatalog : IModuleCatalog, IInitializeAsync
     private async Task LoadFromFile(string path)
     {
         await using var stream = _fileSystem.File.OpenRead(path);
-        _modules = (await JsonSerializer.DeserializeAsync<ModuleManifest[]>(
-                       stream,
-                       JsonSerializerOptions))
-                   ?.ToDictionary(m => m.Id)
-                   ?? new Dictionary<string, ModuleManifest>();
+
+        var moduleManifests = await JsonSerializer.DeserializeAsync<ModuleManifest[]>(
+                              stream,
+                              JsonSerializerOptions);
+
+        if (moduleManifests == null)
+        {
+            _modules = [];
+            return;
+        }
+
+        foreach (var moduleManifest in moduleManifests.OfType<NativeModuleManifest>())
+        {
+            if (!moduleManifest.Details.Path.IsAbsoluteUri)
+            {
+                moduleManifest.Details.Path = new Uri(Path.GetFullPath(moduleManifest.Details.Path.ToString(), Path.GetDirectoryName(path)!));
+            }
+        }
+
+        _modules = moduleManifests.ToDictionary(m => m.Id);
     }
 
     internal void Add(ModuleManifest manifest)

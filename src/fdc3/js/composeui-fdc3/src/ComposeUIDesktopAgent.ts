@@ -145,6 +145,8 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
                 const messageId = Math.floor(Math.random() * 10000);
                 const message = new Fdc3RaiseIntentRequest(messageId, window.composeui.fdc3.config!.instanceId!, intent, false, context, app);
                 const responseFromService = await this.messageRouterClient.invoke(ComposeUITopic.raiseIntent(), JSON.stringify(message));
+                
+                //The backend should care about the functionality of the ResolverUI
                 if (!responseFromService) {
                     return reject(new Error(ComposeUIErrors.NoAnswerWasProvided));
                 }
@@ -155,28 +157,9 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
                     return reject(new Error(response.error));
                 }
 
-                if (response.appMetadata!.length <= 1) {
-                    const intentResolution = new ComposeUIIntentResolution(response.messageId, this.messageRouterClient, response.intent!, response.appMetadata![0]);
-                    return resolve(intentResolution);
-                } else if (response.appMetadata!.length > 1) {
-                    //TODO: integrationtest
-                    //TODO: Now we are just selecting the first item
-                    //TODO: Show window where the user could select the app from response.appMetadatas, right now we are selecting the first item from the list
-                    //TODO: Handle cancel event by sending the ResolveError.UserCancelled error message in the error field
-                    const request = new Fdc3RaiseIntentRequest(messageId, window.composeui.fdc3.config!.instanceId!, intent, true, context, response.appMetadata![0]);
-                    const responseFromServiceSelectedApp = await this.messageRouterClient.invoke(ComposeUITopic.raiseIntent(), JSON.stringify(request));
-                    if (!responseFromServiceSelectedApp) {
-                        return reject(new Error(ResolveError.ResolverUnavailable));
-                    }
-
-                    const result = <Fdc3RaiseIntentResponse>JSON.parse(responseFromServiceSelectedApp);
-                    if (result.error) {
-                        return reject(new Error(result.error));
-                    }
-
-                    const intentResolution = new ComposeUIIntentResolution(result.messageId, this.messageRouterClient, result.intent!, result.appMetadata![0]);
-                    return resolve(intentResolution);
-                }
+                //At this point the AppMetadata should be set if it received no error.
+                const intentResolution = new ComposeUIIntentResolution(response.messageId, this.messageRouterClient, response.intent!, response.appMetadata!);
+                return resolve(intentResolution);
             }
             return reject(new Error("Using string type for app argument is not supported. Please use undefined | AppIdentifier types!"));
         });
@@ -190,24 +173,27 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     public addIntentListener(intent: string, handler: IntentHandler): Promise<Listener> {
         return new Promise<ComposeUIIntentListener>(async (resolve, reject) => {
             const listener = new ComposeUIIntentListener(this.messageRouterClient, intent, window.composeui.fdc3.config!.instanceId!, handler);
-            await listener.registerIntentHandler();
-
-            const message = new Fdc3IntentListenerRequest(intent, window.composeui.fdc3.config!.instanceId!, "Subscribe");
-            const response = await this.messageRouterClient.invoke(ComposeUITopic.addIntentListener(), JSON.stringify(message));
-            if (!response) {
-                return reject(new Error(ComposeUIErrors.NoAnswerWasProvided));
-            } else {
-                const result = <Fdc3IntentListenerResponse>JSON.parse(response);
-                if (result.error) {
-                    await this.unsubscribe(listener);
-                    return reject(new Error(result.error));
-                } else if (!result.stored) {
-                    await this.unsubscribe(listener);
-                    return reject(new Error(ComposeUIErrors.SubscribeFailure));
+            try {
+                await listener.registerIntentHandler();
+                const message = new Fdc3IntentListenerRequest(intent, window.composeui.fdc3.config!.instanceId!, "Subscribe");
+                const response = await this.messageRouterClient.invoke(ComposeUITopic.addIntentListener(), JSON.stringify(message));
+                if (!response) {
+                    return reject(new Error(ComposeUIErrors.NoAnswerWasProvided));
                 } else {
-                    this.intentListeners.push(listener);
-                    return resolve(listener);
+                    const result = <Fdc3IntentListenerResponse>JSON.parse(response);
+                    if (result.error) {
+                        await this.unsubscribe(listener);
+                        return reject(new Error(result.error));
+                    } else if (!result.stored) {
+                        await this.unsubscribe(listener);
+                        return reject(new Error(ComposeUIErrors.SubscribeFailure));
+                    } else {
+                        this.intentListeners.push(listener);
+                        return resolve(listener);
+                    }
                 }
+            } catch(err) {
+                return reject(err);
             }
         });
     }
@@ -225,13 +211,9 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
 
             const listener = <ComposeUIContextListener>await this.currentChannel!.addContextListener(contextType ?? null, handler!);
             const resultContext = await this.currentChannel!.getCurrentContext(contextType ?? undefined)
-            listener.latestContext = this.currentChannel!.retrieveCurrentContext(contextType ?? undefined);
-            if (resultContext != listener.latestContext) {
-                //TODO: integrationtest
-                await listener.handleContextMessage();
-            } else {
-                await listener.handleContextMessage(resultContext);
-            }
+            
+            await listener.handleContextMessage(resultContext);
+
             this.currentChannelListeners.push(listener);
             return resolve(listener);
         });
@@ -293,7 +275,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         });
     }
 
-    //TODO(Lilla): we should ask the backend to give the current appMetadata back
+    //TODO: we should ask the backend to give the current appMetadata back
     public getInfo(): Promise<ImplementationMetadata> {
         return new Promise<ImplementationMetadata>(async (resolve, reject) => {
             const metadata = {

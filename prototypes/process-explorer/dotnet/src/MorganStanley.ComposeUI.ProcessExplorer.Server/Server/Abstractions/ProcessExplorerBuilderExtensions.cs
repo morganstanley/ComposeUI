@@ -26,6 +26,13 @@ public static class ProcessExplorerBuilderExtensions
         if (options != null) builder.ServiceCollection.Configure(options);
 
         builder.ServiceCollection.AddGrpc();
+        builder.ServiceCollection.AddCors(o => o.AddPolicy("AllowAll", builder =>
+        {
+            builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
+        }));
 
         builder.ServiceCollection.AddSingleton<GrpcListenerService>();
         builder.ServiceCollection.AddSingleton<IHostedService>(provider => provider.GetRequiredService<GrpcListenerService>());

@@ -1,12 +1,12 @@
 {
-    "name": "MorganStanley.ComposeUI.ModulesPrototype",
+    "name": "MorganStanley.ComposeUI.ModulesPrototype.Prototype",
     "$schema": "../../../../../../node_modules/nx/schemas/project-schema.json",
     "targets": {
       "build": {
         "executor": "@nx-dotnet/core:build",
         "outputs": [
-          "{workspaceRoot}/dist/prototypes/multi-module-prototype/example/ModulesPrototype",
-          "{workspaceRoot}/dist/intermediates/prototypes/multi-module-prototype/example/ModulesPrototype"
+          "{workspaceRoot}/dist/prototypes/multi-module-prototype/example/ModulesPrototype.Prototype",
+          "{workspaceRoot}/dist/intermediates/prototypes/multi-module-prototype/example/ModulesPrototype.Prototype"
         ],
         "options": {
           "configuration": "Debug",
