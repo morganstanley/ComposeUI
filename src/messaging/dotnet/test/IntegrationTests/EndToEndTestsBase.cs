@@ -14,6 +14,7 @@ using System.Reactive.Linq;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 using Nito.AsyncEx;
 
 namespace MorganStanley.ComposeUI.Messaging;
@@ -73,7 +74,7 @@ public abstract class EndToEndTestsBase : IAsyncLifetime
 
         handlerMock
             .Setup(_ => _.Invoke("test-service", It.IsAny<MessageBuffer?>(), It.IsAny<MessageContext>()))
-            .Returns(new ValueTask<MessageBuffer?>(MessageBuffer.Create("test-response")));
+            .Returns(new ValueTask<IMessageBuffer?>(MessageBuffer.Create("test-response")));
 
         await service.RegisterServiceAsync(endpoint: "test-service", handlerMock.Object);
 

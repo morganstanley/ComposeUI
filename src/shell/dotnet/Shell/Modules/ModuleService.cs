@@ -70,15 +70,13 @@ internal sealed class ModuleService : IHostedService
             await _application.Dispatcher.InvokeAsync(
                 () =>
                 {
-                    var window = _application.CreateWindow<WebWindow>(
+                    var window = _application.CreateWebContent(
                         e.Instance,
                         webWindowOptions ?? new WebWindowOptions
                         {
                             Url = properties.Url.ToString(),
                             IconUrl = properties.IconUrl?.ToString()
                         });
-
-                    window.Show();
                 });
         }
         catch (Exception ex)

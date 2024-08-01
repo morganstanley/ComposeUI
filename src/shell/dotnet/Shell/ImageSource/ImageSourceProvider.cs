@@ -13,6 +13,7 @@
 //  */
 
 using System;
+using System.Drawing;
 using System.Windows.Media.Imaging;
 
 namespace MorganStanley.ComposeUI.Shell.ImageSource;
@@ -25,7 +26,7 @@ public class ImageSourceProvider
         _imageSourcePolicy = imageSourcePolicy;
     }
 
-    public System.Windows.Media.ImageSource? GetImageSource(Uri uri, Uri appUri)
+    public System.Windows.Media.ImageSource? GetImageSource(Uri uri, Uri appUri, Size? size = null)
     {
         if (!uri.IsAbsoluteUri)
         {
@@ -34,7 +35,19 @@ public class ImageSourceProvider
 
         if (_imageSourcePolicy.IsAllowed(uri, appUri))
         {
-            return BitmapFrame.Create(uri);
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+
+            if (size != null)
+            {
+                bitmap.DecodePixelHeight = size.Value.Height;
+                bitmap.DecodePixelWidth = size.Value.Width;
+            }
+            bitmap.UriSource = uri;
+
+            bitmap.EndInit();
+
+            return bitmap;
         }
         return null;
     }

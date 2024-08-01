@@ -30,10 +30,8 @@ export class ComposeUIContextListener implements Listener {
     constructor(messageRouterClient: MessageRouter, handler: ContextHandler, channelId: string, channelType: ChannelType, contextType?: string) {
         this.messageRouterClient = messageRouterClient;
         this.handler = handler;
-
         this.channelId = channelId;
         this.channelType = channelType;
-
         this.contextType = contextType;
     }
 
@@ -63,7 +61,7 @@ export class ComposeUIContextListener implements Listener {
                     } else {
                         resolve(this.handler({type: ""}));
                     }
-                }                
+                }            
             }
         });
     }

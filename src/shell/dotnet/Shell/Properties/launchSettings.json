@@ -1,8 +1,8 @@
-{
+﻿{
   "profiles": {
     "Chart and grid": {
       "commandName": "Project",
-      "commandLineArgs": "--url http://localhost:4200\r\n--FDC3:AppDirectory:Source $(ComposeUIRepositoryRoot)/examples/fdc3-appdirectory/apps.json"
+      "commandLineArgs": "--url http://localhost:4200\r\n --FDC3:AppDirectory:Source $(ComposeUIRepositoryRoot)/examples/fdc3-appdirectory/apps.json"
     },
     "Shell": {
       "commandName": "Project",

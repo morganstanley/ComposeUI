@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "ModulesPrototype": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

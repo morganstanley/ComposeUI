@@ -12,37 +12,38 @@
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Messaging.Protocol.Json;
 
 /// <summary>
-/// A JSON converter that reads and writes <see cref="MessageBuffer"/> objects.
+/// A JSON converter that reads and writes <see cref="IMessageBuffer"/> objects.
 /// </summary>
-internal class MessageBufferConverter : JsonConverter<MessageBuffer>
+internal class MessageBufferConverter : JsonConverter<IMessageBuffer>
 {
-    public override MessageBuffer? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override IMessageBuffer? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         switch (reader.TokenType)
         {
             case JsonTokenType.Null:
-                return null;
+                return default;
 
             case JsonTokenType.String:
-            {
-                var length = reader.HasValueSequence
-                    ? checked((int) reader.ValueSequence.Length)
-                    : reader.ValueSpan.Length;
-                var buffer = MessageBuffer.GetBuffer(length);
-                length = reader.CopyString(buffer);
+                {
+                    var length = reader.HasValueSequence
+                        ? checked((int) reader.ValueSequence.Length)
+                        : reader.ValueSpan.Length;
+                    var buffer = MessageBuffer.GetBuffer(length);
+                    length = reader.CopyString(buffer);
 
-                return new MessageBuffer(buffer, length);
-            }
+                    return new MessageBuffer(buffer, length);
+                }
         }
 
         throw new JsonException();
     }
 
-    public override void Write(Utf8JsonWriter writer, MessageBuffer value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, IMessageBuffer value, JsonSerializerOptions options)
     {
         writer.WriteStringValue(value.GetSpan());
     }
