@@ -2,7 +2,6 @@ import React from 'react';
 import { Link, graphql } from 'gatsby';
 
 import Layout from '../../components/layout';
-import Seo from '../../components/seo';
 
 import HeroContent from '../../../content/hero.mdx';
 
@@ -13,7 +12,6 @@ const NewsIndex = ({ data, location }) => {
     <Layout data={data} location={location}>
       <div className="main news-main">
         <HeroContent />
-        <Seo title="News" />
         {news.map((node) => {
           const title = node.frontmatter.title;
           const date = new Date(node.frontmatter.date);
@@ -33,6 +31,8 @@ const NewsIndex = ({ data, location }) => {
 };
 
 export default NewsIndex;
+
+export const Head = () => <title>News</title>;
 
 export const pageQuery = graphql`
   query {

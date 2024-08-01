@@ -16,7 +16,7 @@ function VersionSelect({ versions, selectedVersion, onChange, showLabel }) {
         value={selectedVersion}
         onChange={onChange}
       >
-        {versions.map((version, index) => (
+        {versions.reverse().map((version, index) => (
           <MenuItem
             selected={version === selectedVersion}
             value={version}

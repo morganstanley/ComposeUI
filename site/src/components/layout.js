@@ -8,10 +8,9 @@ import { theme } from '../utils/mui-theme';
 
 import Header from './header';
 import Footer from './footer';
-import Seo from './seo';
 
 function Layout({ data, location, children }) {
-  const { documentationUrl, title } = data.site.siteMetadata;
+  const { documentationUrl } = data.site.siteMetadata;
 
   if (documentationUrl) {
     HeaderLinks.Documentation = documentationUrl;
@@ -19,7 +18,6 @@ function Layout({ data, location, children }) {
 
   return (
     <ThemeProvider theme={theme}>
-      <Seo title={title} />
       <header className="header-main">
         <Header location={location} links={HeaderLinks} />
       </header>

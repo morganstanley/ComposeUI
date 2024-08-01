@@ -66,7 +66,6 @@ const plugins = [
       },
     },
   },
-  `gatsby-plugin-react-helmet`,
   {
     resolve: `gatsby-plugin-webfonts`,
     options: {

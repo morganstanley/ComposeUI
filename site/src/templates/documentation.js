@@ -3,7 +3,6 @@ import { Link, navigate, graphql } from 'gatsby';
 import { Box } from '@mui/material';
 
 import Layout from '../components/layout';
-import Seo from '../components/seo';
 import VersionSelect from '../components/version-select';
 import { getCurrentVersion, getDocsVersion } from '../utils/version-docs';
 
@@ -34,7 +33,6 @@ const DocumentationTemplate = ({ children, data, pageContext, location }) => {
 
   return (
     <Layout data={data} location={location}>
-      <Seo title={pageTitle} description={pageContext.description} />
       <article className="page-main content">
         <h3>{siteTitle}</h3>
       </article>
@@ -84,6 +82,13 @@ const DocumentationTemplate = ({ children, data, pageContext, location }) => {
 };
 
 export default DocumentationTemplate;
+
+export const Head = ({ pageContext }) => (
+  <>
+    <title>{pageContext.frontmatter.title}</title>
+    <meta name="description" content={pageContext.description} />
+  </>
+);
 
 export const pageQuery = graphql`
   query ($id: String!) {
