@@ -14,39 +14,83 @@ updates:
     directory: '/src/fdc3/dotnet/DesktopAgent/src/DesktopAgent'
     schedule:
       interval: 'monthly'
+    groups:
+      infragistics:
+        patterns:
+          - 'Infragistics*'
+      grpc:
+        patterns:
+          - 'Grpc*'
+          - 'Google.Protobuf*'
+      
 
   - package-ecosystem: 'nuget'
     directory: '/src/messaging/dotnet/src/Client'
     schedule:
       interval: 'monthly'
+    groups:
+      infragistics:
+        patterns:
+          - 'Infragistics*'
+      grpc:
+        patterns:
+          - 'Grpc*'
+          - 'Google.Protobuf*'
 
   - package-ecosystem: 'nuget'
     directory: '/src/messaging/dotnet/src/Core'
     schedule:
       interval: 'monthly'
+    groups:
+      infragistics:
+        patterns:
+          - 'Infragistics*'
+      grpc:
+        patterns:
+          - 'Grpc*'
+          - 'Google.Protobuf*'
 
   - package-ecosystem: 'nuget'
     directory: '/src/messaging/dotnet/src/Host'
     schedule:
       interval: 'monthly'
+    groups:
+      infragistics:
+        patterns:
+          - 'Infragistics*'
+      grpc:
+        patterns:
+          - 'Grpc*'
+          - 'Google.Protobuf*'
 
   - package-ecosystem: 'nuget'
     directory: '/src/messaging/dotnet/src/Server'
     schedule:
       interval: 'monthly'
+    groups:
+      infragistics:
+        patterns:
+          - 'Infragistics*'
+      grpc:
+        patterns:
+          - 'Grpc*'
+          - 'Google.Protobuf*'
 
   - package-ecosystem: 'nuget'
     directory: '/src/shell/dotnet/Shell'
     schedule:
       interval: 'monthly'
+    groups:
+      infragistics:
+        patterns:
+          - 'Infragistics*'
+      grpc:
+        patterns:
+          - 'Grpc*'
+          - 'Google.Protobuf*'
 
   - package-ecosystem: 'nuget'
     directory: '/prototypes/multi-module-prototype/examples/multi-module-example/ModulesPrototype'
-    schedule:
-      interval: 'monthly'
-
-  - package-ecosystem: 'nuget'
-    directory: '/'
     schedule:
       interval: 'monthly'
     groups:
