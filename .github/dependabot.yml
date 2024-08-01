@@ -46,7 +46,14 @@ updates:
       interval: 'monthly'
 
   - package-ecosystem: 'nuget'
-    directory: '/'
+    directories:
+      - '/src/fdc3/dotnet/DesktopAgent/src/DesktopAgent'
+      - '/src/messaging/dotnet/src/Client'
+      - '/src/messaging/dotnet/src/Core'
+      - '/src/messaging/dotnet/src/Host'
+      - '/src/messaging/dotnet/src/Server'
+      - '/src/shell/dotnet/Shell'
+      - '/prototypes/multi-module-prototype/examples/multi-module-example/ModulesPrototype'
     schedule:
       interval: 'monthly'
     groups:
