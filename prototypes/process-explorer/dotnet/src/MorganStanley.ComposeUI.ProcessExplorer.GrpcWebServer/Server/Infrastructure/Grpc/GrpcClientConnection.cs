@@ -14,7 +14,7 @@ using Grpc.Core;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Infrastructure;
 using ProcessExplorer.Abstractions.Infrastructure.Protos;
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.Server.Server.Infrastructure.Grpc;
+namespace MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.Infrastructure.Grpc;
 
 internal class GrpcClientConnection : IClientConnection<Message>
 {

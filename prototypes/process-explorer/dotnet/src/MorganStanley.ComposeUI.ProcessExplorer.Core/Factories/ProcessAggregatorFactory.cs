@@ -15,6 +15,7 @@ using MorganStanley.ComposeUI.ProcessExplorer.Abstractions;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Infrastructure;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Processes;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Subsystems;
+using MorganStanley.ComposeUI.ProcessExplorer.Core.Processes;
 
 namespace MorganStanley.ComposeUI.ProcessExplorer.Core.Factories;
 

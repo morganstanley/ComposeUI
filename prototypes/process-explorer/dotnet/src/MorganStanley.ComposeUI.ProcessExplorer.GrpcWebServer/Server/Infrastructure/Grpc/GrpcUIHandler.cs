@@ -13,7 +13,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Google.Protobuf.Collections;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Extensions;
@@ -21,10 +20,10 @@ using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Infrastructure;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Logging;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Processes;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Subsystems;
-using MorganStanley.ComposeUI.ProcessExplorer.Server.Logging;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Logging;
 using ProcessExplorer.Abstractions.Infrastructure.Protos;
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.Server.Server.Infrastructure.Grpc;
+namespace MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.Infrastructure.Grpc;
 
 [ExcludeFromCodeCoverage]
 internal class GrpcUiHandler : IUiHandler
@@ -141,7 +140,7 @@ internal class GrpcUiHandler : IUiHandler
         return Task.CompletedTask;
     }
 
-    public Task AddRuntimeInfo(string assemblyId, ProcessExplorer.Abstractions.Entities.ProcessInfoCollectorData runtimeInformation)
+    public Task AddRuntimeInfo(string assemblyId, MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.ProcessInfoCollectorData runtimeInformation)
     {
         lock (_uiHandlersLock)
         {

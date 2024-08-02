@@ -35,7 +35,7 @@ internal class WindowsProcessInfoMonitor : ProcessInfoMonitor
     private bool _disposed = false;
     private readonly object _lock = new();
     public WindowsProcessInfoMonitor(ILogger<ProcessInfoMonitor>? logger)
-        :base(logger)
+        : base(logger)
     {
         _logger = logger ?? NullLogger<WindowsProcessInfoMonitor>.Instance;
         _cpuPerformanceCounters = new();
@@ -56,7 +56,10 @@ internal class WindowsProcessInfoMonitor : ProcessInfoMonitor
 
         try
         {
-            if (Process.GetProcessById(processId) == null) return null;
+            if (Process.GetProcessById(processId) == null)
+            {
+                return null;
+            }
 
             var managementObjectSearcher = _managementPPidObjectSearchers.GetOrAdd(processId, _ => new ManagementObjectSearcher(
                 $"Select ParentProcessId From Win32_Process Where ProcessID={processId}"));
@@ -67,7 +70,10 @@ internal class WindowsProcessInfoMonitor : ProcessInfoMonitor
 
             mo.CopyTo(deviceArray, 0);
 
-            if (deviceArray.Length <= 0) return null;
+            if (deviceArray.Length <= 0)
+            {
+                return null;
+            }
 
             parentProcessId = Convert.ToInt32(deviceArray.First()["ParentProcessId"]);
         }
@@ -172,7 +178,7 @@ internal class WindowsProcessInfoMonitor : ProcessInfoMonitor
 
         try
         {
-            if(_watcher == null)
+            if (_watcher == null)
             {
                 var scope = new ManagementScope(@"\\.\root\CIMV2");
                 scope.Connect();
@@ -214,7 +220,7 @@ internal class WindowsProcessInfoMonitor : ProcessInfoMonitor
                 AddIfComposeProcess(childProcessId);
 
                 var childrenOfChildIds = AddChildProcesses(
-                        childProcessId, 
+                        childProcessId,
                         GetProcessIfProcessIdExists(childProcessId)?.ProcessName ?? null);
 
                 foreach (var childOfChildId in childrenOfChildIds)

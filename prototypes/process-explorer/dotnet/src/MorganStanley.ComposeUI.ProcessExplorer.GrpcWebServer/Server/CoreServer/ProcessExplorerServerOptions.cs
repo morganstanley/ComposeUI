@@ -10,16 +10,17 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using MorganStanley.ComposeUI.ProcessExplorer.Abstractions;
+using MorganStanley.ComposeUI.ProcessExplorer.Core.Processes;
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.Server.DependencyInjection;
+namespace MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.CoreServer;
 
-public sealed class ProcessExplorerBuilder
+public class ProcessExplorerServerOptions : IOptions<ProcessExplorerServerOptions>
 {
-    internal IServiceCollection ServiceCollection { get; }
-
-    public ProcessExplorerBuilder(IServiceCollection serviceCollection)
-    {
-        this.ServiceCollection = serviceCollection;
-    }
+    public bool EnableWatchingProcesses { get; set; }
+    public IEnumerable<KeyValuePair<Guid, Module>>? Modules { get; set; }
+    public IEnumerable<ProcessInformation>? Processes { get; set; }
+    public int? MainProcessId { get; set; }
+    public ProcessExplorerServerOptions Value => this;
 }

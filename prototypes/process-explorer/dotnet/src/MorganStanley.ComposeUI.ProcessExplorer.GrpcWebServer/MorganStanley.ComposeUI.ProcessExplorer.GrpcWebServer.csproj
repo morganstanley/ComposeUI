@@ -1,10 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Protos\**" />
+    <Content Remove="Protos\**" />
+    <EmbeddedResource Remove="Protos\**" />
+    <None Remove="Protos\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Grpc" />
@@ -14,11 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="$(AssemblyName).Tests" />
-  </ItemGroup>
-  
-  <ItemGroup>
     <ProjectReference Include="../MorganStanley.ComposeUI.ProcessExplorer.Core/MorganStanley.ComposeUI.ProcessExplorer.Core.csproj" />
+    <ProjectReference Include="../MorganStanley.ComposeUI.ProcessExplorer.Abstractions/MorganStanley.ComposeUI.ProcessExplorer.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

@@ -20,8 +20,6 @@ using System.Linq;
 using System.Windows;
 using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
 using System.Collections.Generic;
-using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities;
-using MorganStanley.ComposeUI.ProcessExplorer.Client.DependencyInjection;
 
 namespace WPFDataGrid.TestApp;
 
@@ -36,13 +34,12 @@ public partial class App : Application
     /// Url to connect
     /// </summary>
     public static Uri WebsocketURI { get; set; } = new("ws://localhost:5000/ws");
-    public static Guid WebsocketURIId { get; } = Guid.NewGuid();
 
     /// <summary>
     /// Overriding Statup so we can do DI.
     /// </summary>
     /// <param name="e"></param>
-    protected async override void OnStartup(StartupEventArgs e)
+    protected override void OnStartup(StartupEventArgs e)
     {
         ServiceCollection serviceCollection = new();
 
@@ -52,8 +49,6 @@ public partial class App : Application
         {
             WebsocketURI = uri;
         }
-
-        var loggerFactory = new LoggerFactory();
 
         var serilogger = new LoggerConfiguration()
             .WriteTo.File($"{Directory.GetCurrentDirectory()}/log.log")
@@ -68,23 +63,6 @@ public partial class App : Application
             .AddMessageRouter(
                 mr =>
                     mr.UseWebSocket(new MessageRouterWebSocketOptions { Uri = WebsocketURI }));
-
-        serviceCollection
-            .AddProcessExplorerClientWithGrpc(localCollector =>
-            localCollector.UseGrpc(new ClientServiceOptions
-            {
-                Connections = new List<IConnectionInfo>()
-                    {
-                        new ConnectionInfo(
-                            id: WebsocketURIId,
-                            name: nameof(WebsocketURI),
-                            status: ConnectionStatus.Running,
-                            remoteEndpoint: WebsocketURI.ToString())
-                    },
-                LoadedServices = serviceCollection,
-                Port = 5056,
-                Host = "localhost"
-            }));
 
         serviceCollection.AddSingleton(typeof(DataGridView));
 
