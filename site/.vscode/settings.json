@@ -1,0 +1,15 @@
+{
+  "diffEditor.codeLens": true,
+  "files.trimTrailingWhitespace": true,
+  "html.format.indentInnerHtml": true,
+  "html.format.wrapAttributes": "force-aligned",
+  "eslint.format.enable": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "eslint.validate": ["javascript"],
+  "editor.formatOnSave": true,
+  "search.exclude": {
+    "**/node_modules": true
+  }
+}

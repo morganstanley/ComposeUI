@@ -2,12 +2,10 @@ import React from 'react';
 import { graphql } from 'gatsby';
 
 import Layout from '../components/layout';
-import Seo from '../components/seo';
 
-const PageTemplate = ({ title, data, location, pageContext, children }) => {
+const PageTemplate = ({ title, data, location, children }) => {
   return (
     <Layout data={data} location={location}>
-      <Seo title={pageContext.title} description={pageContext.description} />
       <article className="page-main content">
         <header>
           <h2>{title}</h2>
@@ -19,6 +17,13 @@ const PageTemplate = ({ title, data, location, pageContext, children }) => {
 };
 
 export default PageTemplate;
+
+export const Head = ({ pageContext }) => (
+  <>
+    <title>{pageContext.title}</title>
+    <meta name="description" content={pageContext.description} />
+  </>
+);
 
 export const pageQuery = graphql`
   query ($id: String!) {

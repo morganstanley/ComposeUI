@@ -1,4 +1,8 @@
-module.exports = [
+export const versions = ['1.0', '2.0'];
+
+export const slug = '/documentation/2.0/components/';
+
+export const allDocs = [
   {
     id: '2a252835-849d-5e11-9b71-a4a18defc55b',
     excerpt:

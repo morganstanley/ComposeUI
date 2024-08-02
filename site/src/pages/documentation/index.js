@@ -3,7 +3,6 @@ import { Link, graphql } from 'gatsby';
 import Box from '@mui/material/Box';
 
 import Layout from '../../components/layout';
-import Seo from '../../components/seo';
 import VersionSelect from '../../components/version-select';
 import { getDocsVersion } from '../../utils/version-docs';
 
@@ -60,13 +59,14 @@ const DocumentationIndex = ({ data, location }) => {
             </article>
           );
         })}
-        <Seo title="Documentation" />
       </div>
     </Layout>
   );
 };
 
 export default DocumentationIndex;
+
+export const Head = () => <title>Documentation</title>;
 
 export const pageQuery = graphql`
   query {
