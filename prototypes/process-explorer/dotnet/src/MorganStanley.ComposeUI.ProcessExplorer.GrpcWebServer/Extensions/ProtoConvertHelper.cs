@@ -15,7 +15,7 @@ using ProcessExplorer.Abstractions.Infrastructure.Protos;
 using ProcessInfoCollectorData = MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Entities.ProcessInfoCollectorData;
 using ProtoProcessInfoCollectorData = ProcessExplorer.Abstractions.Infrastructure.Protos.ProcessInfoCollectorData;
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.Server.Extensions;
+namespace MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Extensions;
 
 internal static class ProtoConvertHelper
 {
@@ -46,7 +46,7 @@ internal static class ProtoConvertHelper
     public static IConnectionInfo DeriveConnectionInfo(
         this Connection protoConenctionInfo)
     {
-        return new ConnectionInfo(
+        return new Abstractions.Entities.ConnectionInfo(
             id: Guid.Parse(protoConenctionInfo.Id),
             name: protoConenctionInfo.Name,
             status: protoConenctionInfo.Status.DeriveConnectionStatus(),

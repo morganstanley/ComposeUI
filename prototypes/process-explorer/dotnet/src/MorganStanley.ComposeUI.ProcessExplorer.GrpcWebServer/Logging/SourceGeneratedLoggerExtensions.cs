@@ -12,11 +12,10 @@
 
 using Microsoft.Extensions.Logging;
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.Server.Logging;
+namespace MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Logging;
 
 internal static partial class SourceGeneratedLoggerExtensions
 {
-    //Debugs
     [LoggerMessage(Level = LogLevel.Debug, Message = "The Process Explorer list is initialized", SkipEnabledCheck = false)]
     public static partial void ProcessListIsInitializedDebug(this ILogger logger);
 
@@ -32,7 +31,6 @@ internal static partial class SourceGeneratedLoggerExtensions
     [LoggerMessage(Level = LogLevel.Debug, Message = "A gRPC client sent a message with topic: {topic}.", SkipEnabledCheck = false)]
     public static partial void GrpcClientMessageReceivedDebug(this ILogger logger, string topic);
 
-    //Errors
     [LoggerMessage(Level = LogLevel.Error, Message = "Sending connection information to the UI(s) was unsuccessful. Detailed axception: `{exception}`", SkipEnabledCheck = false)]
     public static partial void AddConnectionsError(this ILogger logger, Exception ex, Exception exception);
 

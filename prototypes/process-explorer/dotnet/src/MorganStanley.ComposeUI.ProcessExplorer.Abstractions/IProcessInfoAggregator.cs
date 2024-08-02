@@ -37,7 +37,7 @@ public interface IProcessInfoAggregator
     /// <summary>
     /// Handles the communication between the server and clients.
     /// </summary>
-    public IUiHandler UiHandler { get; }
+    public IUiHandler UIHandler { get; }
 
     /// <summary>
     /// Removes a module information from the collection.

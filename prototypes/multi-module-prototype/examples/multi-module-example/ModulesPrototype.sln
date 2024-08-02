@@ -17,19 +17,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComposeUI.Example.DataServi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WPFDataGrid", "ComposeUI.Example.WPFDataGrid\WPFDataGrid.csproj", "{EFF70E7E-C320-4F47-8A13-C1FE5C8F2982}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Process Explorer", "Process Explorer", "{BF3D9176-E2B0-4C87-9691-8288C257BFAF}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "modules", "modules", "{E761C6B7-625B-47D8-811B-A67B3E7221D5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ProcessExplorer.Abstractions", "..\..\..\process-explorer\dotnet\src\MorganStanley.ComposeUI.ProcessExplorer.Abstractions\MorganStanley.ComposeUI.ProcessExplorer.Abstractions.csproj", "{C82B3A79-82C7-409D-868E-0DF45C0DFB56}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ProcessExplorer.Core", "..\..\..\process-explorer\dotnet\src\MorganStanley.ComposeUI.ProcessExplorer.Core\MorganStanley.ComposeUI.ProcessExplorer.Core.csproj", "{AF8A1D0A-D20F-4853-89C0-C9C80F50C5ED}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ProcessExplorer.Server", "..\..\..\process-explorer\dotnet\src\MorganStanley.ComposeUI.ProcessExplorer.Server\MorganStanley.ComposeUI.ProcessExplorer.Server.csproj", "{D5327512-2467-4EE0-83F8-3630997703F2}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WPFDataGrid.TestApp", "ComposeUI.Example.WPFDataGrid.TestApp\WPFDataGrid.TestApp.csproj", "{DC7886A9-7639-4748-8FAE-D208672BAEB9}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ProcessExplorer.Client", "..\..\..\process-explorer\dotnet\src\MorganStanley.ComposeUI.ProcessExplorer.Client\MorganStanley.ComposeUI.ProcessExplorer.Client.csproj", "{047E4B24-FCFB-4DAE-8641-B07DA55A58D1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -65,26 +55,10 @@ Global
 		{EFF70E7E-C320-4F47-8A13-C1FE5C8F2982}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EFF70E7E-C320-4F47-8A13-C1FE5C8F2982}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EFF70E7E-C320-4F47-8A13-C1FE5C8F2982}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C82B3A79-82C7-409D-868E-0DF45C0DFB56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C82B3A79-82C7-409D-868E-0DF45C0DFB56}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C82B3A79-82C7-409D-868E-0DF45C0DFB56}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C82B3A79-82C7-409D-868E-0DF45C0DFB56}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AF8A1D0A-D20F-4853-89C0-C9C80F50C5ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AF8A1D0A-D20F-4853-89C0-C9C80F50C5ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AF8A1D0A-D20F-4853-89C0-C9C80F50C5ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AF8A1D0A-D20F-4853-89C0-C9C80F50C5ED}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D5327512-2467-4EE0-83F8-3630997703F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D5327512-2467-4EE0-83F8-3630997703F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D5327512-2467-4EE0-83F8-3630997703F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D5327512-2467-4EE0-83F8-3630997703F2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DC7886A9-7639-4748-8FAE-D208672BAEB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DC7886A9-7639-4748-8FAE-D208672BAEB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DC7886A9-7639-4748-8FAE-D208672BAEB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DC7886A9-7639-4748-8FAE-D208672BAEB9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{047E4B24-FCFB-4DAE-8641-B07DA55A58D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{047E4B24-FCFB-4DAE-8641-B07DA55A58D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{047E4B24-FCFB-4DAE-8641-B07DA55A58D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{047E4B24-FCFB-4DAE-8641-B07DA55A58D1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -92,12 +66,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{C20FA602-71E5-4383-8F8F-B966873EFA69} = {E761C6B7-625B-47D8-811B-A67B3E7221D5}
 		{EFF70E7E-C320-4F47-8A13-C1FE5C8F2982} = {E761C6B7-625B-47D8-811B-A67B3E7221D5}
-		{BF3D9176-E2B0-4C87-9691-8288C257BFAF} = {E761C6B7-625B-47D8-811B-A67B3E7221D5}
-		{C82B3A79-82C7-409D-868E-0DF45C0DFB56} = {BF3D9176-E2B0-4C87-9691-8288C257BFAF}
-		{AF8A1D0A-D20F-4853-89C0-C9C80F50C5ED} = {BF3D9176-E2B0-4C87-9691-8288C257BFAF}
-		{D5327512-2467-4EE0-83F8-3630997703F2} = {BF3D9176-E2B0-4C87-9691-8288C257BFAF}
 		{DC7886A9-7639-4748-8FAE-D208672BAEB9} = {E761C6B7-625B-47D8-811B-A67B3E7221D5}
-		{047E4B24-FCFB-4DAE-8641-B07DA55A58D1} = {BF3D9176-E2B0-4C87-9691-8288C257BFAF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {98497725-4038-46B9-910E-2BADC6FDC7E4}

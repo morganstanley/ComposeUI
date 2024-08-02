@@ -20,7 +20,6 @@ using System.Windows.Controls;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Messaging;
-using MorganStanley.ComposeUI.ProcessExplorer.Client;
 using WPFDataGrid.Models;
 
 namespace WPFDataGrid.Views;
@@ -33,7 +32,6 @@ public partial class DataGridView : Window
     private readonly ILogger<DataGridView> _logger;
     private readonly IMessageRouter _messageRouter;
     private readonly ObservableCollection<SymbolModel> _symbols;
-    private readonly IProcessInfoHandler _processInfoHandler;
 
     /// <summary>
     /// Constructor for the View.
@@ -41,29 +39,18 @@ public partial class DataGridView : Window
     /// <param name="logger"></param>
     /// <param name="messageRouter"></param>
     public DataGridView(
-        ILogger<DataGridView>? logger, 
-        IMessageRouter messageRouter,
-        IProcessInfoHandler processInfoHandler)
+        ILogger<DataGridView>? logger,
+        IMessageRouter messageRouter)
     {
         _logger = logger ?? NullLogger<DataGridView>.Instance;
         _messageRouter = messageRouter;
         _symbols = new(MarketDataAccess.MarketData);
-        _processInfoHandler = processInfoHandler;
         InitializeComponent();
     }
 
     private async void Window_Loaded(object sender, RoutedEventArgs e)
     {
         MyDataGridMarketData.ItemsSource = _symbols;
-
-        try
-        {
-            await _processInfoHandler.SendRuntimeInfo();
-        }
-        catch (Exception exception)
-        {
-            _logger.LogError($"Error occurred while sending information to the Process Explorer server. Detailed exception: {exception}");
-        }
     }
 
     private async void DataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)

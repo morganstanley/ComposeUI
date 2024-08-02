@@ -10,13 +10,12 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using Microsoft.Extensions.Logging;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Extensions;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Logging;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions;
-using MorganStanley.ComposeUI.ProcessExplorer.Server.Extensions;
-using MorganStanley.ComposeUI.ProcessExplorer.Server.Logging;
 using ProcessExplorer.Abstractions.Infrastructure.Protos;
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.Server.Server;
+namespace MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server;
 
 internal static class MessageHandler
 {

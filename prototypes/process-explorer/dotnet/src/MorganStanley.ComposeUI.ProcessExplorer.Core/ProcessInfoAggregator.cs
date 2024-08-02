@@ -37,7 +37,7 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
     private readonly ConcurrentQueue<KeyValuePair<Guid, string>> _subsystemStateChanges = new();
 
     public ISubsystemController SubsystemController => _subsystemController;
-    public IUiHandler UiHandler => _handler;
+    public IUiHandler UIHandler => _handler;
     public int TerminatingProcessDelay { get; private set; } = 1000;
     public int MainProcessId { get; set; }
 
@@ -57,11 +57,15 @@ internal class ProcessInfoAggregator : IProcessInfoAggregator
 
     private void SetProcessIdsNotificationMethods()
     {
-        if (_processInfoMonitor.ProcessIds == null) return;
+        if (_processInfoMonitor.ProcessIds == null)
+        {
+            return;
+        }
+
         _processInfoMonitor.ProcessIds
-        .Select(kvp => Observable.FromAsync(async () => await PushNotification(kvp)))
-        .Concat()
-        .Subscribe();
+            .Select(kvp => Observable.FromAsync(async () => await PushNotification(kvp)))
+            .Concat()
+            .Subscribe();
     }
 
     private async Task PushNotification(KeyValuePair<int, ProcessStatus> kvp)
