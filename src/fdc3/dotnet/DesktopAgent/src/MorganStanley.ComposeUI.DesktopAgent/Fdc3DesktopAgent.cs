@@ -433,31 +433,31 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
         return new()
         {
-                Response = RaiseIntentResponse.Failure(ResolveError.UserCancelledResolution)
-            };
-        }
+            Response = RaiseIntentResponse.Failure(ResolveError.UserCancelledResolution)
+        };
+    }
 
     private async Task<ResolverUIResponse?> WaitForResolverUIAsync(IEnumerable<AppMetadata> apps)
     {
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-        
+
         try
         {
             return await _resolverUI.SendResolverUIRequest(apps, cancellationTokenSource.Token);
         }
-        catch(TimeoutException exception)
-            {
+        catch (TimeoutException exception)
+        {
             if (_logger.IsEnabled(LogLevel.Debug))
-                {
+            {
                 _logger.LogDebug(exception, "MessageRouter didn't receive response from the ResolverUI.");
-                }
+            }
 
             return new ResolverUIResponse()
             {
                 Error = ResolveError.ResolverTimeout
-        };
-                }
-            }
+            };
+        }
+    }
 
     //Here we have a specific application which should either start or we should send a intent resolution request
     private async ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntentToApplication(
