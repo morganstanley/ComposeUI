@@ -12,10 +12,10 @@
  * and limitations under the License.
  */
 
-using System.Text.Json;
+using Finos.Fdc3.Context;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
-using Finos.Fdc3.Context;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
 
@@ -23,7 +23,7 @@ public class UserChannelTests
 {
     private const string TestChannel = "testChannel";
     UserChannel _channel = new UserChannel(TestChannel, new Mock<IMessagingService>().Object, null);
-    UserChannelTopics _topics = new UserChannelTopics(TestChannel);
+    ChannelTopics _topics = Fdc3Topic.UserChannel(TestChannel);
 
     [Theory]
     [InlineData(new object?[] { null })]

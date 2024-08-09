@@ -1,4 +1,4 @@
-﻿/* 
+/* 
  *  Morgan Stanley makes this available to you under the Apache License,
  *  Version 2.0 (the "License"). You may obtain a copy of the License at
  *       http://www.apache.org/licenses/LICENSE-2.0.
@@ -11,11 +11,12 @@
  *  
  */
 
+import { AppIdentifier, AppIntent, AppMetadata, Context, IntentResolution } from "@finos/fdc3";
 
-import { ComposeUIDesktopAgent } from "./ComposeUIDesktopAgent";
-import { createMessageRouter } from "@morgan-stanley/composeui-messaging-client";
+export interface IntentsClient {
+    findIntent(intent: string, context?: Context, resultType?: string): Promise<AppIntent>;
+    findIntentsByContext(context: Context, resultType?: string): Promise<Array<AppIntent>>;
+    raiseIntent(intent: string, context: Context, app?: string | AppIdentifier): Promise<IntentResolution>
 
-
-let fdc3 = new ComposeUIDesktopAgent("default", createMessageRouter());
-fdc3.joinUserChannel("default");
-export default fdc3;
+    getIntentResolution(messageId: string, intent: string, source: AppMetadata): Promise<IntentResolution>;
+}

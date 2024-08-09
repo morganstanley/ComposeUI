@@ -4,8 +4,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<LangVersion>preview</LangVersion>
-		<AssemblyName>MorganStanley.ComposeUI.Fdc3.$(MSBuildProjectName)</AssemblyName>
-		<RootNamespace>MorganStanley.ComposeUI.Fdc3.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+		<AssemblyName>MorganStanley.ComposeUI.Fdc3.DesktopAgent</AssemblyName>
+		<RootNamespace>MorganStanley.ComposeUI.Fdc3.DesktopAgent</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -23,7 +23,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<InternalsVisibleTo Include="$(AssemblyName).Tests" />
+		<InternalsVisibleTo Include="$(ProjectName).Tests" />
 		<InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
 	</ItemGroup>
 	

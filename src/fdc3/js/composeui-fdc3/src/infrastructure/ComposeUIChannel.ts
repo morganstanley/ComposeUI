@@ -23,7 +23,7 @@ export class ComposeUIChannel implements Channel {
     type: "user" | "app" | "private";
     displayMetadata?: DisplayMetadata;
 
-    private messageRouterClient: MessageRouter;
+    protected messageRouterClient: MessageRouter;
     private lastContexts: Map<string, Context> = new Map<string, Context>();
     private lastContext?: Context;
 
@@ -43,30 +43,24 @@ export class ComposeUIChannel implements Channel {
     }
 
     //TODO add error
-    public getCurrentContext(contextType?: string | undefined): Promise<Context | null> {
-        return new Promise<Context | null>(async (resolve, reject) => {
-            const message = JSON.stringify(new Fdc3GetCurrentContextRequest(contextType));
-            const response = await this.messageRouterClient.invoke(ComposeUITopic.getCurrentContext(this.id, this.type), message);
-            if (response) {
-                const context = <Context>JSON.parse(response);
-                if(context) {
-                    this.lastContext = context;
-                    this.lastContexts.set(context.type, context);
-                    resolve(context);
-                }
+    public async getCurrentContext(contextType?: string | undefined): Promise<Context | null> {
+        const message = JSON.stringify(new Fdc3GetCurrentContextRequest(contextType));
+        const response = await this.messageRouterClient.invoke(ComposeUITopic.getCurrentContext(this.id, this.type), message);
+        if (response) {
+            const context = <Context>JSON.parse(response);
+            if (context) {
+                this.lastContext = context;
+                this.lastContexts.set(context.type, context);
             }
-            
-            resolve(this.retrieveCurrentContext(contextType));
-        });
+        }
+        return this.retrieveCurrentContext(contextType);
+
     }
 
-    public retrieveCurrentContext(contextType?: string): Context | null {
+    private retrieveCurrentContext(contextType?: string): Context | null {
         let context;
         if (contextType) {
             context = this.lastContexts.get(contextType);
-            if (!context) {
-                return null;
-            }
         } else {
             context = this.lastContext;
         }
@@ -77,11 +71,11 @@ export class ComposeUIChannel implements Channel {
     public addContextListener(contextType: string | null, handler: ContextHandler): Promise<Listener>;
     public addContextListener(handler: ContextHandler): Promise<Listener>;
     public async addContextListener(contextType: any, handler?: any): Promise<Listener> {
-        if (contextType != null && typeof contextType != 'string') {            
+        if (contextType != null && typeof contextType != 'string') {
             handler = contextType;
             contextType = null;
         }
-        
+
         const listener = new ComposeUIContextListener(this.messageRouterClient, handler, this.id, this.type, contextType);
         await listener.subscribe();
         return listener;

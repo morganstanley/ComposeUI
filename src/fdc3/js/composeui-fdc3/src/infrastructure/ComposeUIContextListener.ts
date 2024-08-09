@@ -18,58 +18,60 @@ import { Unsubscribable } from "rxjs";
 import { ComposeUITopic } from "./ComposeUITopic";
 
 export class ComposeUIContextListener implements Listener {
-    private messageRouterClient: MessageRouter;
+    private readonly messageRouterClient: MessageRouter;
     private unsubscribable?: Unsubscribable;
-    private handler: ContextHandler;
-    private channelId: string;
-    private channelType: ChannelType;
-    private contextType?: string;
+    private readonly handler: ContextHandler;
+    private readonly channelId: string;
+    private readonly channelType: ChannelType;
+    public readonly contextType?: string;
     private isSubscribed: boolean = false;
-    public latestContext: Context | null = null;
+    private unsubscribeCallback?: (x: ComposeUIContextListener) => void;
 
     constructor(messageRouterClient: MessageRouter, handler: ContextHandler, channelId: string, channelType: ChannelType, contextType?: string) {
         this.messageRouterClient = messageRouterClient;
         this.handler = handler;
+
         this.channelId = channelId;
         this.channelType = channelType;
+
         this.contextType = contextType;
     }
 
-    public async subscribe(): Promise<void> { 
+    public async subscribe(): Promise<void> {
         const subscribeTopic = ComposeUITopic.broadcast(this.channelId, this.channelType);
         this.unsubscribable = await this.messageRouterClient.subscribe(subscribeTopic, (topicMessage: TopicMessage) => {
-            if(topicMessage.context.sourceId == this.messageRouterClient.clientId) return;
+            if (topicMessage.context.sourceId == this.messageRouterClient.clientId) return;
             //TODO: integration test
-            const context = <Context>JSON.parse(topicMessage.payload!);            
-            if(!this.contextType || this.contextType == context!.type) {                
+            const context = <Context>JSON.parse(topicMessage.payload!);
+            if (!this.contextType || this.contextType == context!.type) {
                 this.handler!(context!);
             }
         });
         this.isSubscribed = true;
     }
 
-    public handleContextMessage(context: Context | null = null): Promise<void> {
-        return new Promise((resolve, reject) => {
-            if (!this.isSubscribed ) {
-                reject(new Error("The current listener is not subscribed."));
-            } else {
-                if(context) {
-                    resolve(this.handler(context));
-                } else {
-                    if (this.latestContext) {
-                        resolve(this.handler(this.latestContext));
-                    } else {
-                        resolve(this.handler({type: ""}));
-                    }
-                }            
-            }
-        });
+    public async handleContextMessage(context: Context): Promise<void> {
+        if (!this.isSubscribed) {
+            throw new Error("The current listener is not subscribed.");
+        }
+        if (this.contextType && this.contextType != context.type) {
+            throw new Error(`The current listener is not able to handle context type ${context.type}. It is registered to handle ${this.contextType}.`)
+        }
+        this.handler(context);
     }
 
-    public unsubscribe(): Boolean {
-        if (!this.unsubscribable || !this.isSubscribed) return false;
+    public setUnsubscribeCallback(unsubscribeCallback: (x: ComposeUIContextListener) => void): void {
+        this.unsubscribeCallback = unsubscribeCallback;
+    }
+
+    public unsubscribe(): void {
+        if (!this.unsubscribable || !this.isSubscribed) {
+            return;
+        }
         this.unsubscribable.unsubscribe();
         this.isSubscribed = false;
-        return true;
+        if (this.unsubscribeCallback) {
+            this.unsubscribeCallback(this);
+        }
     }
 }

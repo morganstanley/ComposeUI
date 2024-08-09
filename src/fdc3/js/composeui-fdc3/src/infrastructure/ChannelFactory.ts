@@ -1,4 +1,4 @@
-﻿/* 
+/* 
  *  Morgan Stanley makes this available to you under the Apache License,
  *  Version 2.0 (the "License"). You may obtain a copy of the License at
  *       http://www.apache.org/licenses/LICENSE-2.0.
@@ -11,11 +11,11 @@
  *  
  */
 
+import { Channel, IntentHandler, Listener, PrivateChannel } from "@finos/fdc3";
+import { ChannelType } from "./ChannelType";
 
-import { ComposeUIDesktopAgent } from "./ComposeUIDesktopAgent";
-import { createMessageRouter } from "@morgan-stanley/composeui-messaging-client";
-
-
-let fdc3 = new ComposeUIDesktopAgent("default", createMessageRouter());
-fdc3.joinUserChannel("default");
-export default fdc3;
+export interface ChannelFactory {
+    getChannel(channelId: string, channelType: ChannelType): Promise<Channel>;
+    createPrivateChannel(): Promise<PrivateChannel>;
+    getIntentListener(intent: string, handler: IntentHandler): Promise<Listener>;
+}

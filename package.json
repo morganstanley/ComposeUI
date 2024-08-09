@@ -5,6 +5,7 @@
   "workspaces": [
     "examples/js-chart-and-grid-messagerouter/js-*",
     "examples/fdc3-chart-and-grid/js-*",
+    "examples/fdc3-pricing-and-chat/js-*",
     "src/messaging/js/*",
     "src/shell/js/*",
     "src/fdc3/js/*",

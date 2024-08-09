@@ -1,4 +1,4 @@
-﻿/* 
+/* 
  *  Morgan Stanley makes this available to you under the Apache License,
  *  Version 2.0 (the "License"). You may obtain a copy of the License at
  *       http://www.apache.org/licenses/LICENSE-2.0.
@@ -10,12 +10,17 @@
  *  and limitations under the License.
  *  
  */
+export type Fdc3PrivateChannelInternalEventType = "contextListenerAdded" | "unsubscribed" | "disconnected";
+export class Fdc3PrivateChannelInternalEvent {
 
+    /**
+     * Message representing events on the remote side of a PrivateChannel
+     */
+    constructor(event: Fdc3PrivateChannelInternalEventType, contextType?: string) {
+        this.event = event;
+        this.contextType = contextType;
+    }
 
-import { ComposeUIDesktopAgent } from "./ComposeUIDesktopAgent";
-import { createMessageRouter } from "@morgan-stanley/composeui-messaging-client";
-
-
-let fdc3 = new ComposeUIDesktopAgent("default", createMessageRouter());
-fdc3.joinUserChannel("default");
-export default fdc3;
+    public event: Fdc3PrivateChannelInternalEventType;
+    public contextType: string | undefined;
+}

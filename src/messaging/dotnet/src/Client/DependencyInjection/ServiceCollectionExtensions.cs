@@ -36,8 +36,9 @@ public static class ServiceCollectionExtensions
     {
         var builder = new MessageRouterBuilder(serviceCollection);
         builderAction(builder);
-        serviceCollection.AddSingleton<IMessagingService, MessageRouterClient>();
+
         serviceCollection.AddSingleton<IMessageRouter, MessageRouterClient>();
+        serviceCollection.AddTransient<IMessagingService>(p => p.GetRequiredService<IMessageRouter>());
 
         serviceCollection.AddSingleton(
             new MessageRouterOptions { AccessToken = builder.AccessToken });

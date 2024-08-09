@@ -1,4 +1,4 @@
-﻿/* 
+/* 
  *  Morgan Stanley makes this available to you under the Apache License,
  *  Version 2.0 (the "License"). You may obtain a copy of the License at
  *       http://www.apache.org/licenses/LICENSE-2.0.
@@ -11,11 +11,6 @@
  *  
  */
 
+export class Fdc3CreatePrivateChannelRequest {
 
-import { ComposeUIDesktopAgent } from "./ComposeUIDesktopAgent";
-import { createMessageRouter } from "@morgan-stanley/composeui-messaging-client";
-
-
-let fdc3 = new ComposeUIDesktopAgent("default", createMessageRouter());
-fdc3.joinUserChannel("default");
-export default fdc3;
+}
