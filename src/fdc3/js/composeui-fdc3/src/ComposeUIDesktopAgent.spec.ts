@@ -22,7 +22,6 @@ import { ComposeUIErrors } from './infrastructure/ComposeUIErrors';
 import { ChannelFactory } from './infrastructure/ChannelFactory';
 import { ComposeUIPrivateChannel } from './infrastructure/ComposeUIPrivateChannel';
 import { ChannelType } from './infrastructure/ChannelType';
-import { it } from 'node:test';
 
 const dummyContext = { type: "dummyContextType" };
 const dummyChannelId = "dummyId";
@@ -72,14 +71,13 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
             createPrivateChannel: jest.fn(() => { return Promise.resolve(new ComposeUIPrivateChannel("privateId", messageRouterClient, true)) }),
             getChannel: jest.fn(async (channelId: string, channelType: ChannelType) => {
                 if (channelId == dummyChannelId) { return new ComposeUIChannel(channelId, channelType, messageRouterClient); }
-                else { throw new Error("Channel not found"); }
+                else { throw new Error(ChannelError.NoChannelFound); }
             }),
             getIntentListener: jest.fn(() => Promise.reject("Not implemented")),
-            getUserChannels: jest.fn(() => { return Promise.resolve([new ComposeUIChannel(dummyChannelId, "user", messageRouterClient)]) })
         };
 
         desktopAgent = new ComposeUIDesktopAgent(dummyChannelId, messageRouterClient, channelFactory);
-
+        await desktopAgent.joinUserChannel(dummyChannelId);
         await new Promise(f => setTimeout(f, 100));
     });
 
@@ -90,7 +88,6 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
     });
 
     it('broadcast will trigger publish method of the messageRouter', async () => {
-        await desktopAgent.joinUserChannel(dummyChannelId);
         await desktopAgent.broadcast(testInstrument);
         expect(messageRouterClient.publish).toBeCalledTimes(1);
         expect(messageRouterClient.publish).toHaveBeenCalledWith(ComposeUITopic.broadcast(dummyChannelId, "user"), JSON.stringify(testInstrument));
@@ -141,11 +138,14 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
     });
 
     it('leaveCurrentChannel will trigger the current channel listeners to unsubscribe', async () => {
-        const listener = <ComposeUIContextListener>await desktopAgent.addContextListener("fdc3.instrument", contextMessageHandlerMock);
+        const listener = <ComposeUIContextListener>await desktopAgent.addContextListener("fdc3.instrument", contextMessageHandlerMock)
+
         await desktopAgent.leaveCurrentChannel();
         var result = await desktopAgent.getCurrentChannel();
         expect(result).toBeFalsy();
-        expect(async () => await listener.handleContextMessage(dummyContext)).toThrow("The current listener is not subscribed.");
+        expect(listener.handleContextMessage(dummyContext))
+            .rejects
+            .toThrow("The current listener is not subscribed.");
     });
 
     it('getInfo will provide information of ComposeUI', async () => {
@@ -161,13 +161,15 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
     });
 
     it('joinUserChannel will fail as the channelId is not found', async () => {
-        await expect(async () => await desktopAgent.joinUserChannel("dummyNewNewId"))
-            .resolves
-            .toThrow("Channel not found");
+        await desktopAgent.leaveCurrentChannel();
+        await expect(desktopAgent.joinUserChannel("dummyNewNewId"))
+            .rejects
+            .toThrow(ChannelError.NoChannelFound);
     });
 
     it('createPrivateChannel returns the channel', async () => {
         let channel = await desktopAgent.createPrivateChannel();
-        expect(channel).toBe(ComposeUIPrivateChannel);
+        expect(channel).toBeInstanceOf(ComposeUIPrivateChannel);
+        expect(channel.type).toBe("private");
     })
 });
