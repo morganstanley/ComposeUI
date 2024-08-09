@@ -37,7 +37,7 @@ export class MessageRouterChannelFactory implements ChannelFactory {
         this.fdc3instanceId = fdc3instanceId;
     }
 
-    public async GetChannel(channelId: string, channelType: ChannelType): Promise<Channel> {
+    public async getChannel(channelId: string, channelType: ChannelType): Promise<Channel> {
         const topic = ComposeUITopic.findChannel();
         const message = JSON.stringify(new Fdc3FindChannelRequest(channelId, channelType));
         const response = await this.messageRouterClient.invoke(topic, message);
@@ -58,7 +58,7 @@ export class MessageRouterChannelFactory implements ChannelFactory {
         return new ComposeUIChannel(channelId, channelType, this.messageRouterClient);
     }
 
-    public async CreatePrivateChannel(): Promise<PrivateChannel> {
+    public async createPrivateChannel(): Promise<PrivateChannel> {
         // TODO: how to properly identify the other participant of the channel if the interface is parameterless?
         const message = JSON.stringify(new Fdc3CreatePrivateChannelRequest());
         const response = await this.messageRouterClient.invoke(ComposeUITopic.createPrivateChannel(), message);
@@ -73,7 +73,7 @@ export class MessageRouterChannelFactory implements ChannelFactory {
         throw new Error(ChannelError.CreationFailed);
     }
 
-    public async GetIntentListener(intent: string, handler: IntentHandler): Promise<Listener> {
+    public async getIntentListener(intent: string, handler: IntentHandler): Promise<Listener> {
         const listener = new ComposeUIIntentListener(this.messageRouterClient, intent, this.fdc3instanceId, handler);
         await listener.registerIntentHandler();
 

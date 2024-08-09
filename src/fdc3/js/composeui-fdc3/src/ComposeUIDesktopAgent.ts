@@ -16,6 +16,7 @@ import {
     AppIntent,
     AppMetadata,
     Channel,
+    ChannelError,
     Context,
     ContextHandler,
     DesktopAgent,
@@ -56,13 +57,13 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     private intentsClient: IntentsClient;
 
     //TODO: we should enable passing multiple channelId to the ctor.
-    constructor(channelId: string, messageRouterClient: MessageRouter) {
+    constructor(channelId: string, messageRouterClient: MessageRouter, channelFactory?: ChannelFactory) {
         if (!window.composeui.fdc3.config || !window.composeui.fdc3.config.instanceId) {
             throw new Error(ComposeUIErrors.InstanceIdNotFound);
         }
 
         // TODO: inject this directly instead of the messageRouter
-        this.channelFactory = new MessageRouterChannelFactory(messageRouterClient, window.composeui.fdc3.config.instanceId);
+        this.channelFactory = channelFactory ?? new MessageRouterChannelFactory(messageRouterClient, window.composeui.fdc3.config.instanceId);
         this.intentsClient = new MessageRouterIntentsClient(messageRouterClient, this.channelFactory);
 
 
@@ -109,7 +110,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     }
 
     public async addIntentListener(intent: string, handler: IntentHandler): Promise<Listener> {
-        var listener = await this.channelFactory.GetIntentListener(intent, handler);
+        var listener = await this.channelFactory.getIntentListener(intent, handler);
         this.intentListeners.push(listener);
         return listener;
     }
@@ -148,9 +149,14 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
 
         let channel = this.userChannels.find(innerChannel => innerChannel.id == channelId);
         if (!channel) {
-            channel = await this.channelFactory.GetChannel(channelId, "user");
+            channel = await this.channelFactory.getChannel(channelId, "user");
             this.addChannel(channel);
         }
+
+        if (!channel) {
+            throw new Error(ChannelError.NoChannelFound);
+        }
+
         this.currentChannel = channel;
     }
 
@@ -162,7 +168,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
 
     //TODO
     public async createPrivateChannel(): Promise<PrivateChannel> {
-        return this.channelFactory.CreatePrivateChannel();
+        return this.channelFactory.createPrivateChannel();
     }
 
     public async getCurrentChannel(): Promise<Channel | null> {
