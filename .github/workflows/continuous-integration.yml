@@ -74,13 +74,13 @@ jobs:
            powershell ./build/dotnet-pack.ps1
 
     - name: Upload Nuget Packages
-      uses: actions/upload-artifact@89ef406dd8d7e03cfd12d9e0a4a378f454709029 # v4.3.5
+      uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4.3.6
       with:
         name: packages
         path: ${{ github.workspace }}/packages
 
     - name: Upload Shell Binaries
-      uses: actions/upload-artifact@89ef406dd8d7e03cfd12d9e0a4a378f454709029 # v4.3.5
+      uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4.3.6
       with:
         name: shell-binaries
         path: ${{ github.workspace }}/src/shell/dotnet/Shell/bin/Release/net6.0-windows/
