@@ -37,10 +37,8 @@
     "style-to-object": "^1.0.6"
   },
   "overrides": {
-    "gatsby": {
-      "axios": "^1.7.4",
-      "webpack-dev-middleware": "^5.3.4"
-    }
+    "axios": "^1.7.4",
+    "webpack-dev-middleware": "^5.3.4"
   },
   "scripts": {
     "develop": "gatsby develop -H 0.0.0.0",
