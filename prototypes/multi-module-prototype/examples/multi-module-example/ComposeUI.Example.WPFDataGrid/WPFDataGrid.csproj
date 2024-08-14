@@ -23,6 +23,5 @@
 
   <ItemGroup>
     <ProjectReference Include="../../../../../src/messaging/dotnet/src/Client/MorganStanley.ComposeUI.Messaging.Client.csproj" />
-    <ProjectReference Include="../../../../process-explorer/dotnet/src/MorganStanley.ComposeUI.ProcessExplorer.Client/MorganStanley.ComposeUI.ProcessExplorer.Client.csproj" />
   </ItemGroup>
 </Project>

@@ -12,13 +12,12 @@
 
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
-using Microsoft.Extensions.Logging;
+using MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.ProcessExplorer.Abstractions;
-using MorganStanley.ComposeUI.ProcessExplorer.Server.Logging;
 using ProcessExplorer.Abstractions.Infrastructure.Protos;
 
-namespace MorganStanley.ComposeUI.ProcessExplorer.Server.Server.Infrastructure.Grpc;
+namespace MorganStanley.ComposeUI.ProcessExplorer.GrpcWebServer.Server.Infrastructure.Grpc;
 
 public class ProcessExplorerMessageHandlerService : ProcessExplorerMessageHandler.ProcessExplorerMessageHandlerBase
 {
@@ -43,16 +42,18 @@ public class ProcessExplorerMessageHandlerService : ProcessExplorerMessageHandle
 
         try
         {
-            _processInfoAggregator.UiHandler.AddClientConnection(id, connection);
-            await _processInfoAggregator.UiHandler.SubscriptionIsAliveUpdate();
-            await _processInfoAggregator.UiHandler.AddProcesses(_processInfoAggregator.GetProcesses());
-            await _processInfoAggregator.UiHandler.AddRuntimeInfo(_processInfoAggregator.GetRuntimeInformation());
-            await _processInfoAggregator.UiHandler.AddSubsystems(
-                _processInfoAggregator.SubsystemController.GetSubsystems());
+            _processInfoAggregator.UIHandler.AddClientConnection(id, connection);
+
+            await _processInfoAggregator.UIHandler.SubscriptionIsAliveUpdate();
+            await _processInfoAggregator.UIHandler.AddProcesses(_processInfoAggregator.GetProcesses());
+            await _processInfoAggregator.UIHandler.AddRuntimeInfo(_processInfoAggregator.GetRuntimeInformation());
+            await _processInfoAggregator.UIHandler.AddSubsystems(_processInfoAggregator.SubsystemController.GetSubsystems());
 
             //wait here until the user is connected to the service
             while (!context.CancellationToken.IsCancellationRequested)
+            {
                 continue;
+            }
         }
         catch (Exception exception)
         {
@@ -60,7 +61,7 @@ public class ProcessExplorerMessageHandlerService : ProcessExplorerMessageHandle
         }
         finally
         {
-            _processInfoAggregator.UiHandler.RemoveClientConnection(id);
+            _processInfoAggregator.UIHandler.RemoveClientConnection(id);
         }
     }
 

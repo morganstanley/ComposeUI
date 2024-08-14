@@ -10,6 +10,8 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Processes;
+
 namespace MorganStanley.ComposeUI.ProcessExplorer.Abstractions.Processes;
 
 public interface IProcessInfoMonitor : IDisposable

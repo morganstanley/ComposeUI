@@ -58,7 +58,7 @@ public class ProcessInfoAggregatorTests
         processInfoAggregator.ScheduleSubsystemStateChanged(id, SubsystemState.Started);
 
         //Add a mock ui connection to send to.
-        processInfoAggregator.UiHandler.AddClientConnection(id, clientMock.Object);
+        processInfoAggregator.UIHandler.AddClientConnection(id, clientMock.Object);
 
         //Wait for the task to finish
         await task;
