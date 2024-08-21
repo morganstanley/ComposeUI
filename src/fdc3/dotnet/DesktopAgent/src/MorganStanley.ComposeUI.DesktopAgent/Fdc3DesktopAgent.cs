@@ -281,7 +281,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
         //This function returns null, if the app could not be accepted based on the intent (required), context (optional in request), resultType (optional in request)
         //else for consistency it will return a single element array containing the intentMetadata which is allowed by the request.
-        Func<Fdc3App, Dictionary<string, AppIntent>, IEnumerable<IntentMetadata>?> selector = (fdc3App, _) =>
+        Func<Fdc3App, Dictionary<string, AppIntent>, IEnumerable<KeyValuePair<string, IntentMetadata>>?> selector = (fdc3App, _) =>
         {
             if (fdc3App.Interop?.Intents?.ListensFor == null
                 || !fdc3App.Interop.Intents.ListensFor.TryGetValue(request.Intent!, out var intentMetadata))
@@ -302,7 +302,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
                 return null;
             }
 
-            return [intentMetadata];
+            return new Dictionary<string, IntentMetadata> { { request.Intent, intentMetadata } };
         };
 
         var appIntents = await GetAppIntentsByRequest(selector, null);
@@ -324,28 +324,26 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
         //This function returns null, if the app could not be accepted based on the context(optional in request), resultType (optional in request)
         //else for consistency it will return a collection containing the intentMetadata which is allowed by the request.
-        Func<Fdc3App, Dictionary<string, AppIntent>, IEnumerable<IntentMetadata>?> selector = (fdc3App, _) =>
+        Func<Fdc3App, Dictionary<string, AppIntent>, IEnumerable<KeyValuePair<string, IntentMetadata>>?> selector = (fdc3App, _) =>
         {
-            var intentMetadataCollection = new List<IntentMetadata>();
+            var intentMetadataCollection = new Dictionary<string, IntentMetadata>();
             if (fdc3App.Interop?.Intents?.ListensFor?.Values != null)
             {
-                foreach (var intentMetadata in fdc3App.Interop.Intents.ListensFor.Values)
+                foreach (var intentMetadata in fdc3App.Interop.Intents.ListensFor)
                 {
-                    if (intentMetadata.Contexts == null
-                        || !intentMetadata.Contexts.Contains(request.Context?.Type)
+                    if (intentMetadata.Value.Contexts == null
+                        || !intentMetadata.Value.Contexts.Contains(request.Context?.Type)
                         && request.Context?.Type != ContextTypes.Nothing)
                     {
                         continue;
                     }
-
                     if (request.ResultType != null
-                        && (intentMetadata.ResultType == null
-                            || !intentMetadata.ResultType.Contains(request.ResultType)))
+                        && (intentMetadata.Value.ResultType == null
+                            || !intentMetadata.Value.ResultType.Contains(request.ResultType)))
                     {
                         continue;
                     }
-
-                    intentMetadataCollection.Add(intentMetadata);
+                    intentMetadataCollection.Add(intentMetadata.Key, intentMetadata.Value);
                 }
             }
 
@@ -580,7 +578,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
         //This function returns null, if the app could not be accepted based on the intent (required), context (optional in request), appIdentifier (optional in request)
         //else for consistency it will return a single element array containing the intentMetadata which is allowed by the request.
-        Func<Fdc3App, Dictionary<string, AppIntent>, IEnumerable<IntentMetadata>?> selector = (fdc3App, appIntents) =>
+        Func<Fdc3App, Dictionary<string, AppIntent>, IEnumerable<KeyValuePair<string, IntentMetadata>>?> selector = (fdc3App, appIntents) =>
         {
             //If the user selects an application from the AppDirectory instead of the its running instance
             if (request.Selected && appIntents.TryGetValue(request.Intent, out var result) && result.Apps.Any())
@@ -606,7 +604,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
                 return null;
             }
 
-            return [intentMetadata];
+            return new Dictionary<string, IntentMetadata> { { request.Intent, intentMetadata } };
         };
 
         var appIntents = await GetAppIntentsByRequest(selector, request.TargetAppIdentifier);
@@ -856,7 +854,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     }
 
     private async Task<Dictionary<string, AppIntent>> GetAppIntentsByRequest(
-        Func<Fdc3App, Dictionary<string, AppIntent>, IEnumerable<IntentMetadata>?> selector,
+        Func<Fdc3App, Dictionary<string, AppIntent>, IEnumerable<KeyValuePair<string, IntentMetadata>>?> selector,
         IAppIdentifier? targetAppIdentifier)
     {
         var appIntents = new Dictionary<string, AppIntent>();
@@ -884,7 +882,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     }
 
     private Dictionary<string, AppIntent> GetAppIntentsFromRunningModules(
-        Func<Fdc3App, Dictionary<string, AppIntent>, IEnumerable<IntentMetadata>?> selector,
+        Func<Fdc3App, Dictionary<string, AppIntent>, IEnumerable<KeyValuePair<string, IntentMetadata>>?> selector,
         IAppIdentifier? targetAppIdentifier,
         Dictionary<string, AppIntent> appIntents)
     {
@@ -915,7 +913,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     }
 
     private async Task<Dictionary<string, AppIntent>> GetAppIntentsFromAppDirectory(
-        Func<Fdc3App, Dictionary<string, AppIntent>, IEnumerable<IntentMetadata>?> selector,
+        Func<Fdc3App, Dictionary<string, AppIntent>, IEnumerable<KeyValuePair<string, IntentMetadata>>?> selector,
         IAppIdentifier? targetAppIdentifier,
         Dictionary<string, AppIntent> appIntents)
     {
@@ -942,7 +940,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     private Dictionary<string, AppIntent> GetAppIntentsFromIntentMetadataCollection(
         Fdc3App app,
         string? instanceId,
-        IEnumerable<IntentMetadata> intentMetadataCollection,
+        IEnumerable<KeyValuePair<string, IntentMetadata>> intentMetadataCollection,
         Dictionary<string, AppIntent> appIntents)
     {
         foreach (var intentMetadata in intentMetadataCollection)
@@ -961,19 +959,19 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
                     Screenshots = app.Screenshots == null
                         ? Enumerable.Empty<Screenshot>()
                         : app.Screenshots.Select(Screenshot.GetScreenshot),
-                    ResultType = intentMetadata.ResultType
+                    ResultType = intentMetadata.Value.ResultType
                 };
 
-            if (!appIntents.TryGetValue(intentMetadata.Name, out var appIntent))
+            if (!appIntents.TryGetValue(intentMetadata.Key, out var appIntent)) //Name is null
             {
                 appIntent = new AppIntent
                 {
                     Intent = new Protocol.IntentMetadata
-                    { Name = intentMetadata.Name, DisplayName = intentMetadata.DisplayName },
+                    { Name = intentMetadata.Key, DisplayName = intentMetadata.Value.DisplayName },
                     Apps = Enumerable.Empty<AppMetadata>()
                 };
 
-                appIntents.Add(intentMetadata.Name, appIntent);
+                appIntents.Add(intentMetadata.Key, appIntent);
             }
 
             appIntent.Apps = appIntent.Apps.Append(appMetadata);
