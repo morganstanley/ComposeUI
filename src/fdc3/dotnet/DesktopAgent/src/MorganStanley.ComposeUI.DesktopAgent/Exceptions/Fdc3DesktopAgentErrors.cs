@@ -35,4 +35,9 @@ public static class Fdc3DesktopAgentErrors
     /// Indicates that getting the IntentResult from the backend, has no appropriate attribute.
     /// </summary>
     public const string ResponseHasNoAttribute = $"{nameof(ResponseHasNoAttribute)}";
+
+    /// <summary>
+    /// Indicates that no user channel set was configured.
+    /// </summary>
+    public const string NoUserChannelSetFound = $"{nameof(NoUserChannelSetFound)}";
 }

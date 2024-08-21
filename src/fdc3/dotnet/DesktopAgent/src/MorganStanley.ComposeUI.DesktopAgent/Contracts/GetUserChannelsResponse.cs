@@ -12,17 +12,25 @@
  * and limitations under the License.
  */
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
 
-internal class Fdc3StartupProperties
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
+
+/// <summary>
+/// Response for the `fdc3.getUserChannels()`
+/// </summary>
+internal sealed class GetUserChannelsResponse
 {
     /// <summary>
-    /// Fdc3 DesktopAgent's specific identifier for the created application instance.
+    /// Available user channel set.
     /// </summary>
-    public string InstanceId { get; init; }
+    public IEnumerable<ChannelItem>? Channels { get; set; }
 
     /// <summary>
-    /// Id of the channel the opened app should join
+    /// Error, while executing the `fdc3.getUserChannels` method.
     /// </summary>
-    public string ChannelId { get; init; }
+    public string? Error { get; set; }
+
+    public static GetUserChannelsResponse Success(IEnumerable<ChannelItem> channels) => new() { Channels = channels };
+    public static GetUserChannelsResponse Failure(string error) => new() { Error = error };
 }

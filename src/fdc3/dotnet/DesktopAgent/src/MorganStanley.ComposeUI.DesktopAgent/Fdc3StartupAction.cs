@@ -16,19 +16,24 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 using MorganStanley.ComposeUI.ModuleLoader;
 using Finos.Fdc3.AppDirectory;
 using ResourceReader = MorganStanley.ComposeUI.Utilities.ResourceReader;
+using Microsoft.Extensions.Options;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 
 namespace MorganStanley.ComposeUI.Shell.Fdc3;
 
 internal sealed class Fdc3StartupAction : IStartupAction
 {
     private readonly IAppDirectory _appDirectory;
+    private readonly Fdc3DesktopAgentOptions _options;
     private readonly ILogger<Fdc3StartupAction> _logger;
 
     public Fdc3StartupAction(
         IAppDirectory appDirectory,
+        IOptions<Fdc3DesktopAgentOptions> options,
         ILogger<Fdc3StartupAction>? logger = null)
     {
         _appDirectory = appDirectory;
+        _options = options.Value;
         _logger = logger ?? NullLogger<Fdc3StartupAction>.Instance;
     }
 
@@ -41,7 +46,8 @@ internal sealed class Fdc3StartupAction : IStartupAction
             {
                 var appId = (await _appDirectory.GetApp(startupContext.StartRequest.ModuleId)).AppId;
                 var fdc3InstanceId = startupContext.StartRequest.Parameters.FirstOrDefault(parameter => parameter.Key == Fdc3StartupParameters.Fdc3InstanceId).Value ?? Guid.NewGuid().ToString();
-                var fdc3StartupProperties = new Fdc3StartupProperties() { InstanceId = fdc3InstanceId };
+                var channelId = _options.ChannelId ?? "default";
+                var fdc3StartupProperties = new Fdc3StartupProperties() { InstanceId = fdc3InstanceId, ChannelId = channelId };
                 fdc3InstanceId = startupContext.GetOrAddProperty<Fdc3StartupProperties>(_ => fdc3StartupProperties).InstanceId;
 
                 var webProperties = startupContext.GetOrAddProperty<WebStartupProperties>();
@@ -55,7 +61,8 @@ internal sealed class Fdc3StartupAction : IStartupAction
                             config: {
                                 appId: "{{appId}}",
                                 instanceId: "{{fdc3InstanceId}}"
-                            }
+                            },
+                            channelId: "{{channelId}}"
                         };
                         """));
 

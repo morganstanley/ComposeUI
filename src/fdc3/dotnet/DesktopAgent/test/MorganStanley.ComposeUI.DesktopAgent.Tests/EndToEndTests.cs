@@ -29,12 +29,14 @@ using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIden
 using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
 using IntentMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.IntentMetadata;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
+using DisplayMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.DisplayMetadata;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
 
 public class EndToEndTests : IAsyncLifetime
 {
-    private const string TestChannel = "testChannel";
+    private const string TestChannel = "fdc3.channel.1";
     private const string AccessToken = "token";
     private readonly List<IModuleInstance> _runningApps = new();
     private readonly object _runningAppsLock = new();
@@ -983,6 +985,165 @@ public class EndToEndTests : IAsyncLifetime
 
         var result = response?.ReadJson<CreateAppChannelResponse>(_options);
         result.Should().BeEquivalentTo(CreateAppChannelResponse.Failed(ChannelError.CreationFailed));
+    }
+
+    [Fact]
+    public async Task GetUserChannelsReturnsPayloadNullError()
+    {
+        GetUserChannelsRequest? request = null;
+
+        var response = await _messageRouter.InvokeAsync(
+            Fdc3Topic.GetUserChannels,
+            MessageBuffer.Factory.CreateJson(request, _options));
+
+        var result = response!.ReadJson<GetUserChannelsResponse>(_options);
+
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(GetUserChannelsResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull));
+    }
+
+    [Fact]
+    public async Task GetUserChannelsReturnsMissingIdError()
+    {
+        var request = new GetUserChannelsRequest
+        {
+            InstanceId = "NotValidId"
+        };
+
+        var response = await _messageRouter.InvokeAsync(
+            Fdc3Topic.GetUserChannels,
+            MessageBuffer.Factory.CreateJson(request, _options));
+
+        var result = response!.ReadJson<GetUserChannelsResponse>(_options);
+
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(GetUserChannelsResponse.Failure(Fdc3DesktopAgentErrors.MissingId));
+    }
+
+    [Fact]
+    public async Task GetUserChannelsReturnsAccessDeniedAsTheInstanceIdNotFound()
+    {
+        var request = new GetUserChannelsRequest
+        {
+            InstanceId = Guid.NewGuid().ToString()
+        };
+
+        var response = await _messageRouter.InvokeAsync(
+            Fdc3Topic.GetUserChannels,
+            MessageBuffer.Factory.CreateJson(request, _options));
+
+        var result = response!.ReadJson<GetUserChannelsResponse>(_options);
+
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(GetUserChannelsResponse.Failure(ChannelError.AccessDenied));
+    }
+
+    [Fact]
+    public async Task GetUserChannelsSucceeds()
+    {
+        //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
+        var origin = await _moduleLoader.StartModule(new StartRequest("appId1"));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+
+        var request = new GetUserChannelsRequest
+        {
+            InstanceId = originFdc3InstanceId
+        };
+
+        var response = await _messageRouter.InvokeAsync(
+            Fdc3Topic.GetUserChannels,
+            MessageBuffer.Factory.CreateJson(request, _options));
+
+        var result = response!.ReadJson<GetUserChannelsResponse>(_options);
+
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(GetUserChannelsResponse.Success(new List<ChannelItem>() 
+        { 
+            new() { Id = "fdc3.channel.1", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 1", Color = "red", Glyph = "1" } },
+            new() { Id = "fdc3.channel.2", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 2", Color = "orange", Glyph = "2" } }, 
+            new() { Id = "fdc3.channel.3", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 3", Color = "yellow", Glyph = "3" } }, 
+            new() { Id = "fdc3.channel.4", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 4", Color = "green", Glyph = "4" }}, 
+            new() { Id = "fdc3.channel.5", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 5", Color = "cyan", Glyph = "5" } }, 
+            new() { Id = "fdc3.channel.6", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 6", Color = "blue", Glyph = "6" } }, 
+            new() { Id = "fdc3.channel.7", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 7", Color = "magenta", Glyph = "7" } }, 
+            new() { Id = "fdc3.channel.8", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 8", Color = "purple", Glyph = "8" } } 
+        }));
+
+        await _moduleLoader.StopModule(new(origin.InstanceId));
+    }
+
+
+    [Fact]
+    public async Task JoinUserChannelReturnsAccessDenied()
+    {
+        var request = new JoinUserChannelRequest
+        {
+            ChannelId = "test",
+            InstanceId = "NotValidId"
+        };
+
+        var response = await _messageRouter.InvokeAsync(
+            Fdc3Topic.JoinUserChannel,
+            MessageBuffer.Factory.CreateJson(request, _options));
+
+        var result = response!.ReadJson<JoinUserChannelResponse>(_options);
+
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(JoinUserChannelResponse.Failed(ChannelError.AccessDenied));
+    }
+
+    [Fact]
+    public async Task JoinUserChannelReturnsCreationFailedError()
+    {
+        //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
+        var origin = await _moduleLoader.StartModule(new StartRequest("appId1"));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+
+        var request = new JoinUserChannelRequest
+        {
+            ChannelId = "test",
+            InstanceId = originFdc3InstanceId
+        };
+
+        var response = await _messageRouter.InvokeAsync(
+            Fdc3Topic.JoinUserChannel,
+            MessageBuffer.Factory.CreateJson(request, _options));
+
+        var result = response!.ReadJson<JoinUserChannelResponse>(_options);
+
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(JoinUserChannelResponse.Failed(ChannelError.CreationFailed));
+
+        await _moduleLoader.StopModule(new(origin.InstanceId));
+    }
+
+    [Fact]
+    public async Task JoinUserChannel_succeeds()
+    {
+        //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
+        var origin = await _moduleLoader.StartModule(new StartRequest("appId1"));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+
+        var request = new JoinUserChannelRequest
+        {
+            ChannelId = "fdc3.channel.1",
+            InstanceId = originFdc3InstanceId
+        };
+
+        var response = await _messageRouter.InvokeAsync(
+            Fdc3Topic.JoinUserChannel,
+            MessageBuffer.Factory.CreateJson(request, _options));
+
+        var result = response!.ReadJson<JoinUserChannelResponse>(_options);
+
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(JoinUserChannelResponse.Joined(new DisplayMetadata() {
+            Color = "red",
+            Glyph = "1",
+            Name = "Channel 1"
+        }));
+
+        await _moduleLoader.StopModule(new(origin.InstanceId));
     }
 
     private MessageBuffer GetContext()

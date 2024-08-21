@@ -35,6 +35,12 @@ using IntentMetadata = Finos.Fdc3.AppDirectory.IntentMetadata;
 using Screenshot = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Screenshot;
 using AppChannel = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels.AppChannel;
 using MorganStanley.ComposeUI.Messaging;
+using System.Text.Json;
+using System.IO.Abstractions;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
+using System.Text.Json.Serialization;
+using DisplayMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.DisplayMetadata;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
@@ -53,24 +59,39 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     private readonly ConcurrentDictionary<Guid, RaisedIntentRequestHandler> _raisedIntentResolutions = new();
     private readonly ConcurrentDictionary<StartRequest, TaskCompletionSource<IModuleInstance>> _pendingStartRequests = new();
     private IAsyncDisposable? _subscription;
+    private readonly IFileSystem _fileSystem;
+    private readonly HttpClient _httpClient = new();
+    private ConcurrentDictionary<string, ChannelItem>? _userChannelSet;
+    private readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
+    {
+        Converters = { new DisplayMetadataJsonConverter(), new JsonStringEnumConverter() }
+    };
 
     public Fdc3DesktopAgent(
         IAppDirectory appDirectory,
         IModuleLoader moduleLoader,
         IOptions<Fdc3DesktopAgentOptions> options,
         IResolverUICommunicator resolverUI,
+        IFileSystem? fileSystem = null,
         ILoggerFactory? loggerFactory = null)
     {
         _appDirectory = appDirectory;
         _moduleLoader = moduleLoader;
         _options = options.Value;
         _resolverUI = resolverUI;
+        _fileSystem = fileSystem ?? new FileSystem();
         _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
         _logger = _loggerFactory.CreateLogger<Fdc3DesktopAgent>() ?? NullLogger<Fdc3DesktopAgent>.Instance;
     }
 
     public async ValueTask AddUserChannel(UserChannel userChannel)
     {
+        //TODO: Decide if we need to check from the existing userchannel set if the id is contained
+        //if (_userChannelSet != null && !_userChannelSet.TryGetValue(userChannel.Id, out _))
+        //{
+        //    return;
+        //}
+
         if (!_userChannels.TryAdd(userChannel.Id, userChannel))
         {
             if (_logger.IsEnabled(LogLevel.Debug))
@@ -205,6 +226,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         });
 
         _subscription = subscription;
+        _userChannelSet = await ReadUserChannelSet(cancellationToken);
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
@@ -232,6 +254,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         _userChannels.Clear();
         _privateChannels.Clear();
         _appChannels.Clear();
+        _httpClient.Dispose();
     }
 
     public bool FindChannel(string channelId, ChannelType channelType)
@@ -460,6 +483,68 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         {
             Response = IntentListenerResponse.Failure(Fdc3DesktopAgentErrors.MissingId)
         };
+    }
+
+    public ValueTask<GetUserChannelsResponse> GetUserChannels(GetUserChannelsRequest? request)
+    {
+        if (request == null)
+        {
+            return ValueTask.FromResult(GetUserChannelsResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull));
+        }
+
+        if (!Guid.TryParse(request.InstanceId, out var instanceId))
+        {
+            return ValueTask.FromResult(GetUserChannelsResponse.Failure(Fdc3DesktopAgentErrors.MissingId));
+        }
+
+        if (!_runningModules.TryGetValue(instanceId, out _))
+        {
+            return ValueTask.FromResult(GetUserChannelsResponse.Failure(ChannelError.AccessDenied));
+        }
+
+        var result = _userChannelSet?.Values;
+        if (result == null)
+        {
+            return ValueTask.FromResult(GetUserChannelsResponse.Failure(Fdc3DesktopAgentErrors.NoUserChannelSetFound));
+        }
+
+        return ValueTask.FromResult(GetUserChannelsResponse.Success(result));
+    }
+
+    public async ValueTask<JoinUserChannelResponse?> JoinUserChannel(UserChannel channel, string instanceId)
+    {
+        if (!Guid.TryParse(instanceId, out var id) || !_runningModules.TryGetValue(id, out _))
+        {
+            return JoinUserChannelResponse.Failed(ChannelError.AccessDenied);
+        }
+
+        //TODO remove if regarding this
+        ChannelItem? channelItem = null;
+        if (_userChannelSet != null && !_userChannelSet.TryGetValue(channel.Id, out channelItem))
+        {
+            //TODO delete this if statement
+            if (!_userChannels.TryGetValue(channel.Id, out _))
+            {
+                return JoinUserChannelResponse.Failed(ChannelError.CreationFailed);
+            }
+        }
+
+        try
+        {
+            await AddUserChannel(channel);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, $"Exception is thrown while executing {nameof(JoinUserChannel)}.");
+            return JoinUserChannelResponse.Failed(ChannelError.CreationFailed);
+        }
+
+        if (channelItem != null)
+        {
+            return JoinUserChannelResponse.Joined((DisplayMetadata)channelItem.DisplayMetadata);
+        }
+
+        return JoinUserChannelResponse.Joined();
     }
 
     public async ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntent(RaiseIntentRequest? request)
@@ -953,6 +1038,34 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         }
 
         return appIntents;
+    }
+
+    private async Task<ConcurrentDictionary<string, ChannelItem>?> ReadUserChannelSet(CancellationToken cancellationToken = default)
+    {
+        var uri = _options.UserChannelConfigFile ?? new Uri($"file://{Directory.GetCurrentDirectory()}/userChannelSet.json");
+        IEnumerable<ChannelItem>? userChannelSet = null;
+
+        if (uri.IsFile)
+        {
+            var path = uri.IsAbsoluteUri ? uri.AbsolutePath : Path.GetFullPath(uri.ToString());
+
+            if (!_fileSystem.File.Exists(path))
+            {
+                _logger.LogError($"{Fdc3DesktopAgentErrors.NoUserChannelSetFound}, no user channel set was configured.");
+                return null;
+            }
+
+            await using var stream = _fileSystem.File.OpenRead(path);
+            userChannelSet = JsonSerializer.Deserialize<ChannelItem[]>(stream, _jsonSerializerOptions);
+        }
+        else if (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+        {
+            var response = await _httpClient.GetAsync(uri, cancellationToken);
+            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            userChannelSet = JsonSerializer.Deserialize<ChannelItem[]>(stream, _jsonSerializerOptions);
+        }
+
+        return new((userChannelSet ?? Array.Empty<ChannelItem>()).ToDictionary(x => x.Id, y => y));
     }
 
     private Task RemoveModuleAsync(IModuleInstance instance)

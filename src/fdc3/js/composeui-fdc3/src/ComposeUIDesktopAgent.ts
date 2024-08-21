@@ -40,6 +40,7 @@ declare global {
         composeui: {
             fdc3: {
                 config: AppIdentifier | undefined;
+                channelId : string;
             }
         }
         fdc3: DesktopAgent;
@@ -130,7 +131,8 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         const lastContext = await this.currentChannel!.getCurrentContext(contextType ?? undefined)
 
         if (lastContext) {
-            await listener.handleContextMessage(lastContext);
+            //TODO: timing issue
+            setTimeout(async() => await listener.handleContextMessage(lastContext), 100);
         }
 
         this.currentChannelListeners.push(listener);
@@ -138,10 +140,9 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     }
 
     public async getUserChannels(): Promise<Array<Channel>> {
-        return new Array(...this.userChannels);
+        return await this.channelFactory.getUserChannels();
     }
 
-    //TODO: should return AccessDenied error when a channel object is denied?
     public async joinUserChannel(channelId: string): Promise<void> {
         if (this.currentChannel) {
             return;
@@ -149,14 +150,14 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
 
         let channel = this.userChannels.find(innerChannel => innerChannel.id == channelId);
         if (!channel) {
-            channel = await this.channelFactory.getChannel(channelId, "user");
-            this.addChannel(channel);
+            channel = await this.channelFactory.joinUserChannel(channelId);
         }
 
         if (!channel) {
             throw new Error(ChannelError.NoChannelFound);
         }
 
+        this.addChannel(channel);
         this.currentChannel = channel;
     }
 

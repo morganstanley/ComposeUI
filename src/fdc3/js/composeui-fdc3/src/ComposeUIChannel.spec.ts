@@ -54,7 +54,6 @@ describe('Tests for ComposeUIChannel implementation API', () => {
     });
 
     it('broadcast will call messageRouters publish method', async () => {
-
         await testChannel.broadcast(testInstrument);
         expect(messageRouterClient.publish).toHaveBeenCalledTimes(1);
         expect(messageRouterClient.publish).toHaveBeenCalledWith(ComposeUITopic.broadcast(dummyChannelId, "user"), JSON.stringify(testInstrument));
@@ -116,7 +115,8 @@ describe("AppChanel tests", () => {
                 config: {
                     appId: "testAppId",
                     instanceId: "testInstanceId"
-                }
+                },
+                channelId : "test"
             }
         };
     });

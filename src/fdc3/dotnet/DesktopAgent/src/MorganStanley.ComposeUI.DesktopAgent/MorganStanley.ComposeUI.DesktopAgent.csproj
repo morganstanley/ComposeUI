@@ -14,6 +14,8 @@
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+		<PackageReference Include="TestableIO.System.IO.Abstractions" />
+		<PackageReference Include="TestableIO.System.IO.Abstractions.Wrappers" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -33,6 +35,12 @@
 
 	<ItemGroup>
 		<EmbeddedResource Include="$(Fdc3BundleOutput)" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="userChannelSet.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 	
 	<Target Name="InstallMonoRepoDependencies" Condition="!Exists('$(ComposeUIRepositoryRoot)\node_modules')">

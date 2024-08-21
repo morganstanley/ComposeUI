@@ -24,6 +24,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Helpers;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.TestUtils;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
@@ -32,6 +33,7 @@ using AppChannel = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels.AppChannel
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIdentifier;
 using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
+using DisplayMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.DisplayMetadata;
 using IntentMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.IntentMetadata;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
@@ -55,6 +57,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             _mockModuleLoader.Object,
             new Fdc3DesktopAgentOptions(),
             _mockResolverUICommunicator.Object,
+            null,
             NullLoggerFactory.Instance);
     }
 
@@ -76,14 +79,14 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             .Returns((CancellationToken cancellationToken) => ValueTask.CompletedTask);
 
         var mockUserChannel = new Mock<UserChannel>(
-            "test",
+            "fdc3.channel.1",
             mockMessageService.Object,
             NullLogger<UserChannel>.Instance);
 
         var action = async () => await _fdc3.AddUserChannel(mockUserChannel.Object);
         await action.Should().NotThrowAsync();
 
-        var channelExists = _fdc3.FindChannel(channelId: "test", ChannelType.User);
+        var channelExists = _fdc3.FindChannel(channelId: "fdc3.channel.1", ChannelType.User);
         channelExists.Should().BeTrue();
     }
 
@@ -102,12 +105,12 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             .Returns((CancellationToken cancellationToken) => ValueTask.CompletedTask);
 
         var mockUserChannel = new Mock<UserChannel>(
-            "testChannelId",
+            "fdc3.channel.1",
             mockMessageService.Object,
             NullLogger<UserChannel>.Instance);
 
         await _fdc3.AddUserChannel(mockUserChannel.Object);
-        var result = _fdc3.FindChannel(channelId: "testChannelId", ChannelType.User);
+        var result = _fdc3.FindChannel(channelId: "fdc3.channel.1", ChannelType.User);
         result.Should().BeTrue();
     }
 
@@ -251,6 +254,8 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
         var result = await _fdc3.GetIntentResult(getIntentResultRequest);
         result.Should().NotBeNull();
         result.Context.Should().Be(context);
+
+        await _mockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
 
     [Fact]
@@ -299,6 +304,8 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
 
         var result = await _fdc3.GetIntentResult(getIntentResultRequest);
         result.Should().BeEquivalentTo(new GetIntentResultResponse {Error = ResolveError.IntentDeliveryFailed});
+
+        await _mockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
 
     [Fact]
@@ -352,6 +359,8 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
         var result = await _fdc3.StoreIntentResult(storeIntentRequest);
         result.Should().NotBeNull();
         result.Should().BeEquivalentTo(new StoreIntentResultResponse {Stored = true});
+
+        await _mockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
 
     [Fact]
@@ -396,6 +405,9 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
 
         addIntentListenerResponse.Response.Stored.Should().BeTrue();
         addIntentListenerResponse.RaiseIntentResolutionMessages.Should().NotBeEmpty();
+
+        await _mockModuleLoader.Object.StopModule(new(origin.InstanceId));
+        await _mockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
 
     [Fact]
@@ -451,6 +463,9 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
         addIntentListenerResponse2.Should().NotBeNull();
         addIntentListenerResponse2.Response.Stored.Should().BeFalse();
         addIntentListenerResponse2.RaiseIntentResolutionMessages.Should().BeEmpty();
+
+        await _mockModuleLoader.Object.StopModule(new(origin.InstanceId));
+        await _mockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
 
     [Fact]
@@ -548,6 +563,9 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
         result.Response.Intent.Should().Be("intentMetadataCustom");
         result.RaiseIntentResolutionMessages.Should().HaveCount(1);
         result.RaiseIntentResolutionMessages.First().TargetModuleInstanceId.Should().Be(targetFdc3InstanceId);
+
+        await _mockModuleLoader.Object.StopModule(new(origin.InstanceId));
+        await _mockModuleLoader.Object.StopModule(new(target.InstanceId));
     }
 
     [Fact]
@@ -590,5 +608,169 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
 
         var result = await _fdc3.AddAppChannel(appChannel, originFdc3InstanceId);
         result.Should().BeEquivalentTo(new CreateAppChannelResponse { Success = false, Error = ChannelError.CreationFailed });
+
+        await _mockModuleLoader.Object.StopModule(new(origin.InstanceId));
+    }
+
+    [Fact]
+    public async Task GetUserChannels_returns_payload_null_error()
+    {
+        GetUserChannelsRequest? request = null;
+        var result = await _fdc3.GetUserChannels(request);
+
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(GetUserChannelsResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull));
+    }
+
+    [Fact]
+    public async Task GetUserChannels_returns_missing_id_error()
+    {
+        var request = new GetUserChannelsRequest
+        {
+            InstanceId = "NotValidId"
+        };
+
+        var result = await _fdc3.GetUserChannels(request);
+
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(GetUserChannelsResponse.Failure(Fdc3DesktopAgentErrors.MissingId));
+    }
+
+    [Fact]
+    public async Task GetUserChannels_returns_access_denied_error()
+    {
+        var request = new GetUserChannelsRequest
+        {
+            InstanceId = Guid.NewGuid().ToString()
+        };
+
+        var result = await _fdc3.GetUserChannels(request);
+
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(GetUserChannelsResponse.Failure(ChannelError.AccessDenied));
+    }
+
+    [Fact]
+    public async Task GetUserChannels_returns_no_user_channel_set_configured_error()
+    {
+        var fdc3 = new Fdc3DesktopAgent(
+            _appDirectory,
+            _mockModuleLoader.Object,
+            new Fdc3DesktopAgentOptions
+            {
+                UserChannelConfigFile = new Uri("C://hello/world/test.json"),
+            }, _mockResolverUICommunicator.Object);
+
+        await fdc3.StartAsync(CancellationToken.None);
+
+        //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
+        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+
+        var request = new GetUserChannelsRequest
+        {
+            InstanceId = originFdc3InstanceId
+        };
+
+        var result = await fdc3.GetUserChannels(request);
+
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(GetUserChannelsResponse.Failure(Fdc3DesktopAgentErrors.NoUserChannelSetFound));
+    }
+
+    [Fact]
+    public async Task GetUserChannels_succeeds()
+    {
+        await _fdc3.StartAsync(CancellationToken.None);
+
+        //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
+        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+
+        var request = new GetUserChannelsRequest
+        {
+            InstanceId = originFdc3InstanceId
+        };
+
+        var result = await _fdc3.GetUserChannels(request);
+
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(GetUserChannelsResponse.Success(new List<ChannelItem>() {
+            new() { Id = "fdc3.channel.1", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 1", Color = "red", Glyph = "1" } },
+            new() { Id = "fdc3.channel.2", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 2", Color = "orange", Glyph = "2" } },
+            new() { Id = "fdc3.channel.3", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 3", Color = "yellow", Glyph = "3" } },
+            new() { Id = "fdc3.channel.4", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 4", Color = "green", Glyph = "4" }},
+            new() { Id = "fdc3.channel.5", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 5", Color = "cyan", Glyph = "5" } },
+            new() { Id = "fdc3.channel.6", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 6", Color = "blue", Glyph = "6" } },
+            new() { Id = "fdc3.channel.7", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 7", Color = "magenta", Glyph = "7" } },
+            new() { Id = "fdc3.channel.8", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 8", Color = "purple", Glyph = "8" } }
+        }));
+    }
+
+    [Fact]
+    public async Task JoinUserChannel_returns_access_denied_error_as_instance_id_not_found()
+    {
+        var channel = new UserChannel("test", new Mock<IMessagingService>().Object, null);
+        var result = await _fdc3.JoinUserChannel(channel, Guid.NewGuid().ToString());
+
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(JoinUserChannelResponse.Failed(ChannelError.AccessDenied));
+    }
+
+    [Fact]
+    public async Task JoinUserChannel_returns_creation_failed_error_as_channel_id_not_found()
+    {
+        await _fdc3.StartAsync(CancellationToken.None);
+
+        //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
+        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+
+        var channel = new UserChannel("test", new Mock<IMessagingService>().Object, null);
+        var result = await _fdc3.JoinUserChannel(channel, originFdc3InstanceId);
+
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(JoinUserChannelResponse.Failed(ChannelError.CreationFailed));
+    }
+
+    [Fact]
+    public async Task JoinUserChannel_returns_creation_failed_error_as_couldnt_connect()
+    {
+        await _fdc3.StartAsync(CancellationToken.None);
+
+        //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
+        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+
+        var mockMessagingService = new Mock<IMessagingService>();
+        mockMessagingService.Setup(_ => _.ConnectAsync(It.IsAny<CancellationToken>()))
+            .Throws(new Exception("DummyException"));
+
+        var channel = new UserChannel("fdc3.channel.1", mockMessagingService.Object, null);
+        var result = await _fdc3.JoinUserChannel(channel, originFdc3InstanceId);
+
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(JoinUserChannelResponse.Failed(ChannelError.CreationFailed));
+    }
+
+    [Fact]
+    public async Task JoinUserChannel_succeeds()
+    {
+        await _fdc3.StartAsync(CancellationToken.None);
+
+        //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
+        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+
+        var channel = new UserChannel("fdc3.channel.1", new Mock<IMessagingService>().Object, null);
+        var result = await _fdc3.JoinUserChannel(channel, originFdc3InstanceId);
+
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(JoinUserChannelResponse.Joined(new DisplayMetadata()
+        {
+            Color = "red",
+            Glyph = "1",
+            Name = "Channel 1"
+        }));
     }
 }

@@ -27,10 +27,11 @@ export class ComposeUIChannel implements Channel {
     private lastContexts: Map<string, Context> = new Map<string, Context>();
     private lastContext?: Context;
 
-    constructor(id: string, type: ChannelType, messageRouterClient: MessageRouter) {
+    constructor(id: string, type: ChannelType, messageRouterClient: MessageRouter, displayMetadata?: DisplayMetadata) {
         this.id = id;
         this.type = type;
         this.messageRouterClient = messageRouterClient;
+        this.displayMetadata = displayMetadata;
     }
 
     //Broadcasting on the composeui/fdc3/v2.0/broadcast topic
