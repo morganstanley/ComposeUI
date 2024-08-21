@@ -34,6 +34,8 @@ import { ChannelFactory } from './infrastructure/ChannelFactory';
 import { MessageRouterChannelFactory } from './infrastructure/MessageRouterChannelFactory';
 import { MessageRouterIntentsClient } from './infrastructure/MessageRouterIntentsClient';
 import { IntentsClient } from './infrastructure/IntentsClient';
+import { MetadataClient } from './infrastructure/MetadataClient';
+import { MessageRouterMetadataClient } from './infrastructure/MessageRouterMetadataClient';
 
 declare global {
     interface Window {
@@ -56,6 +58,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     private intentListeners: Listener[] = [];
     private channelFactory: ChannelFactory;
     private intentsClient: IntentsClient;
+    private metadataClient: MetadataClient;
 
     //TODO: we should enable passing multiple channelId to the ctor.
     constructor(channelId: string, messageRouterClient: MessageRouter, channelFactory?: ChannelFactory) {
@@ -66,7 +69,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         // TODO: inject this directly instead of the messageRouter
         this.channelFactory = channelFactory ?? new MessageRouterChannelFactory(messageRouterClient, window.composeui.fdc3.config.instanceId);
         this.intentsClient = new MessageRouterIntentsClient(messageRouterClient, this.channelFactory);
-
+        this.metadataClient = new MessageRouterMetadataClient(messageRouterClient, window.composeui.fdc3.config);
 
         setTimeout(
             async () => {
@@ -197,18 +200,8 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         this.currentChannelListeners = [];
     }
 
-    //TODO: we should ask the backend to give the current appMetadata back
     public async getInfo(): Promise<ImplementationMetadata> {
-        const metadata = {
-            fdc3Version: "2.0",
-            provider: "ComposeUI",
-            providerVersion: "0.1.0-alpha.1", //TODO: version check
-            optionalFeatures: {
-                OriginatingAppMetadata: false,
-                UserChannelMembershipAPIs: false
-            }
-        };
-        return <ImplementationMetadata>metadata;
+        return this.metadataClient.getInfo();
     }
 
     //TODO

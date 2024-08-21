@@ -147,12 +147,6 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
             .toThrow("The current listener is not subscribed.");
     });
 
-    it('getInfo will provide information of ComposeUI', async () => {
-        var result = await desktopAgent.getInfo();
-        expect(result.fdc3Version).toBe("2.0");
-        expect(result.provider).toBe("ComposeUI");
-    });
-
     it('joinChannel will set the current user channel', async () => {
         await desktopAgent.joinChannel(dummyChannelId);
         var result = await desktopAgent.getCurrentChannel();

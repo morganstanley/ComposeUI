@@ -31,6 +31,8 @@ using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetada
 using IntentMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.IntentMetadata;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
 using DisplayMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.DisplayMetadata;
+using Icon = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Icon;
+using ImplementationMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.ImplementationMetadata;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
 
@@ -1144,6 +1146,145 @@ public class EndToEndTests : IAsyncLifetime
         }));
 
         await _moduleLoader.StopModule(new(origin.InstanceId));
+    }
+
+    [Fact]
+    public async Task GetInfoReturnsPayLoadNullError()
+    {
+        GetInfoRequest? request = null;
+
+        var response = await _messageRouter.InvokeAsync(
+            Fdc3Topic.GetInfo,
+            MessageBuffer.Factory.CreateJson(request, _options));
+
+        response.Should().NotBeNull();
+
+        var result = response!.ReadJson<GetInfoResponse>(_options);
+        result.Should().NotBeNull();
+        result!.Error.Should().Be(Fdc3DesktopAgentErrors.PayloadNull);
+    }
+
+    [Fact]
+    public async Task GetInfoReturnsMissingIdErrorAsRequestDidNotContain()
+    {
+        var request = new GetInfoRequest
+        {
+            AppIdentifier = new AppIdentifier
+            {
+                AppId = "appId1"
+            }
+        };
+
+        var response = await _messageRouter.InvokeAsync(
+            Fdc3Topic.GetInfo,
+            MessageBuffer.Factory.CreateJson(request, _options));
+
+        response.Should().NotBeNull();
+
+        var result = response!.ReadJson<GetInfoResponse>(_options);
+        result.Should().NotBeNull();
+        result!.Error.Should().Be(Fdc3DesktopAgentErrors.MissingId);
+    }
+
+    [Fact]
+    public async Task GetInfoReturnsMissingIdErrorAsTheRequestContainedNotValidInstanceId()
+    {
+        var request = new GetInfoRequest
+        {
+            AppIdentifier = new AppIdentifier
+            {
+                AppId = "appId1",
+                InstanceId = "NotValidInstanceId"
+            }
+        };
+
+        var response = await _messageRouter.InvokeAsync(
+            Fdc3Topic.GetInfo,
+            MessageBuffer.Factory.CreateJson(request, _options));
+
+        response.Should().NotBeNull();
+
+        var result = response!.ReadJson<GetInfoResponse>(_options);
+        result.Should().NotBeNull();
+        result!.Error.Should().Be(Fdc3DesktopAgentErrors.MissingId);
+    }
+
+    [Fact]
+    public async Task GetInfoReturnsMissingIdErrorAsTheGivenInstanceIdIsNotFound()
+    {
+        var request = new GetInfoRequest
+        {
+            AppIdentifier = new AppIdentifier
+            {
+                AppId = "appId1",
+                InstanceId = Guid.NewGuid().ToString()
+            }
+        };
+
+        var response = await _messageRouter.InvokeAsync(
+            Fdc3Topic.GetInfo,
+            MessageBuffer.Factory.CreateJson(request, _options));
+
+        response.Should().NotBeNull();
+
+        var result = response!.ReadJson<GetInfoResponse>(_options);
+        result.Should().NotBeNull();
+        result!.Error.Should().Be(Fdc3DesktopAgentErrors.MissingId);
+    }
+
+    [Fact]
+    public async Task GetInfoSuccessfullyReturns()
+    {
+        //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
+        var origin = await _moduleLoader.StartModule(new StartRequest("appId1"));
+        var instanceId = Fdc3InstanceIdRetriever.Get(origin);
+
+        var request = new GetInfoRequest
+        {
+            AppIdentifier = new AppIdentifier
+            {
+                AppId = "appId1",
+                InstanceId = instanceId
+            }
+        };
+
+        var response = await _messageRouter.InvokeAsync(
+            Fdc3Topic.GetInfo,
+            MessageBuffer.Factory.CreateJson(request, _options));
+
+        response.Should().NotBeNull();
+
+        var result = response!.ReadJson<GetInfoResponse>(_options);
+        result.Should().NotBeNull();
+        result!.ImplementationMetadata.Should().NotBeNull();
+        result!.ImplementationMetadata!
+            .Should()
+            .BeEquivalentTo(new ImplementationMetadata
+            {
+                AppMetadata = new AppMetadata
+                {
+                    AppId = "appId1",
+                    InstanceId = instanceId,
+                    Description = null,
+                    Icons = Enumerable.Empty<Icon>(),
+                    Name = "app1",
+                    ResultType = null,
+                    Screenshots = Enumerable.Empty<Screenshot>(),
+                    Title = null,
+                    Tooltip = null,
+                    Version = null
+                },
+                Fdc3Version = Constants.SupportedFdc3Version,
+                OptionalFeatures = new OptionalDesktopAgentFeatures
+                {
+                    OriginatingAppMetadata = false,
+                    UserChannelMembershipAPIs = Constants.SupportUserChannelMembershipAPI
+                },
+                Provider = Constants.DesktopAgentProvider,
+                ProviderVersion = Constants.ComposeUIVersion ?? "0.0.0"
+            });
+
+        _moduleLoader.StopModule(new(origin.InstanceId));
     }
 
     private MessageBuffer GetContext()

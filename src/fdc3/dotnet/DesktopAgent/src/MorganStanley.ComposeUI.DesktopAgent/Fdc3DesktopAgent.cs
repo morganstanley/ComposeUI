@@ -41,6 +41,10 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
 using System.Text.Json.Serialization;
 using DisplayMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.DisplayMetadata;
+using ImplementationMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.ImplementationMetadata;
+using Microsoft.VisualBasic;
+using Constants = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal.Constants;
+using FileSystem = System.IO.Abstractions.FileSystem;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
@@ -547,6 +551,23 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         return JoinUserChannelResponse.Joined();
     }
 
+    public async ValueTask<GetInfoResponse> GetInfo(GetInfoRequest? request)
+    {
+        if (request == null)
+        {
+            return GetInfoResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull);
+        }
+
+        if (request.AppIdentifier.InstanceId == null)
+        {
+            return GetInfoResponse.Failure(Fdc3DesktopAgentErrors.MissingId);
+        }
+
+        var result = await GetAppInfo(request.AppIdentifier);
+
+        return result;
+    }
+
     public async ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntent(RaiseIntentRequest? request)
     {
         if (request == null)
@@ -993,51 +1014,61 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         }
     }
 
-    private Dictionary<string, AppIntent> GetAppIntentsFromIntentMetadataCollection(
-        Fdc3App app,
-        string? instanceId,
-        IEnumerable<IntentMetadata> intentMetadataCollection,
-        ref Dictionary<string, AppIntent> appIntents)
+    private ValueTask<GetInfoResponse> GetAppInfo(IAppIdentifier appIdentifier)
     {
-        foreach (var intentMetadata in intentMetadataCollection)
+        if (!Guid.TryParse(appIdentifier.InstanceId!, out var instanceId))
         {
-            var appMetadata =
-                new AppMetadata
-                {
-                    AppId = app.AppId,
-                    InstanceId = instanceId,
-                    Name = app.Name,
-                    Version = app.Version,
-                    Title = app.Title,
-                    Tooltip = app.ToolTip,
-                    Description = app.Description,
-                    Icons = app.Icons == null ? Enumerable.Empty<Icon>() : app.Icons.Select(Icon.GetIcon),
-                    Screenshots = app.Screenshots == null ? Enumerable.Empty<Screenshot>() : app.Screenshots.Select(Screenshot.GetScreenshot),
-                    ResultType = intentMetadata.ResultType
-                };
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug($"Instance id: {appIdentifier.InstanceId} cannot be parsed to {typeof(Guid)}.");
+            }
 
-            // request.Intent and intentMetadata.Name should be equal: https://github.com/finos/fdc3-dotnet/blob/main/src/Fdc3.Json/Serialization/IntentsConverter.cs#L29-L32
-            if (appIntents.ContainsKey(intentMetadata.Name))
-            {
-                appIntents[intentMetadata.Name] = new AppIntent
-                {
-                    Intent = new Protocol.IntentMetadata { Name = intentMetadata.Name, DisplayName = intentMetadata.DisplayName },
-                    Apps = appIntents[intentMetadata.Name].Apps.Append(appMetadata)
-                };
-            }
-            else
-            {
-                appIntents.Add(
-                    intentMetadata.Name,
-                    new AppIntent
-                    {
-                        Intent = new Protocol.IntentMetadata { Name = intentMetadata.Name, DisplayName = intentMetadata.DisplayName },
-                        Apps = [appMetadata]
-                    });
-            }
+            return ValueTask.FromResult<GetInfoResponse>(GetInfoResponse.Failure(Fdc3DesktopAgentErrors.MissingId));
         }
 
-        return appIntents;
+        if (!_runningModules.TryGetValue(instanceId, out var app))
+        {
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug($"Instance id: {instanceId} is missing from the tracked modules of {Constants.DesktopAgentProvider}.");
+            }
+
+            return ValueTask.FromResult<GetInfoResponse>(GetInfoResponse.Failure(Fdc3DesktopAgentErrors.MissingId));
+        }
+
+        var implementationMetadata = new ImplementationMetadata
+        {
+            AppMetadata = GetAppMetadata(app, appIdentifier.InstanceId, null),
+            Fdc3Version = Constants.SupportedFdc3Version,
+            OptionalFeatures = new OptionalDesktopAgentFeatures
+            {
+                OriginatingAppMetadata = false, //TODO
+                UserChannelMembershipAPIs = Constants.SupportUserChannelMembershipAPI
+            },
+            Provider = Constants.DesktopAgentProvider,
+            ProviderVersion = Constants.ComposeUIVersion ?? "0.0.0"
+        };
+
+        return ValueTask.FromResult<GetInfoResponse>(GetInfoResponse.Success(implementationMetadata));
+    }
+
+    private AppMetadata GetAppMetadata(Fdc3App app, string? instanceId, IntentMetadata? intentMetadata)
+    {
+        return new AppMetadata
+        {
+            AppId = app.AppId,
+            InstanceId = instanceId,
+            Description = app.Description,
+            Icons = app.Icons == null ? Enumerable.Empty<Icon>() : app.Icons.Select(Icon.GetIcon),
+            Name = app.Name,
+            ResultType = intentMetadata?.ResultType,
+            Screenshots = app.Screenshots == null
+                ? Enumerable.Empty<Screenshot>()
+                : app.Screenshots.Select(Screenshot.GetScreenshot),
+            Title = app.Title,
+            Tooltip = app.ToolTip,
+            Version = app.Version,
+        };
     }
 
     private async Task<ConcurrentDictionary<string, ChannelItem>?> ReadUserChannelSet(CancellationToken cancellationToken = default)
