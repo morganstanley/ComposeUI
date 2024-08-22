@@ -127,4 +127,18 @@ internal interface IFdc3DesktopAgentBridge
     /// <param name="request"></param>
     /// <returns></returns>
     public ValueTask<GetInfoResponse> GetInfo(GetInfoRequest? request);
+
+    /// <summary>
+    /// Handles the FindInstances call in the bridge.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    public ValueTask<FindInstancesResponse> FindInstances(FindInstancesRequest? request);
+
+    /// <summary>
+    /// Handles the GetAppMetadata call in the bridge.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    public ValueTask<GetAppMetadataResponse> GetAppMetadata(GetAppMetadataRequest? request);
 }

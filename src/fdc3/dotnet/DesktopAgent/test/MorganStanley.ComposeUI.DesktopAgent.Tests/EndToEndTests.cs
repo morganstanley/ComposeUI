@@ -33,6 +33,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
 using DisplayMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.DisplayMetadata;
 using Icon = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Icon;
 using ImplementationMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.ImplementationMetadata;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.TestUtils;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
 

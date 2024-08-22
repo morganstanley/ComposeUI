@@ -91,9 +91,8 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         return this.intentsClient.findIntentsByContext(context, resultType);
     }
 
-    //TODO
-    public findInstances(app: AppIdentifier): Promise<Array<AppIdentifier>> {
-        throw new Error("Not implemented");
+    public async findInstances(app: AppIdentifier): Promise<Array<AppIdentifier>> {
+        return await this.metadataClient.findInstances(app);
     }
 
     public async broadcast(context: Context): Promise<void> {
@@ -204,9 +203,8 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         return this.metadataClient.getInfo();
     }
 
-    //TODO
-    public getAppMetadata(app: AppIdentifier): Promise<AppMetadata> {
-        throw new Error("Not implemented");
+    public async getAppMetadata(app: AppIdentifier): Promise<AppMetadata> {
+        return await this.metadataClient.getAppMetadata(app);
     }
 
     // Deprecated, alias to getUserChannels

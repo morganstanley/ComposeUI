@@ -10,10 +10,8 @@
  *  and limitations under the License.
  */
 
-import { AppIdentifier, AppMetadata, ImplementationMetadata } from "@finos/fdc3";
+import { AppIdentifier } from "@finos/fdc3";
 
-export interface MetadataClient {
-    getInfo(): Promise<ImplementationMetadata>;
-    findInstances(app: AppIdentifier): Promise<Array<AppIdentifier>>;
-    getAppMetadata(app: AppIdentifier): Promise<AppMetadata>;
+export class Fdc3GetAppMetadataRequest {
+    constructor(public readonly fdc3InstanceId: string, public readonly appIdentifier: AppIdentifier) { }
 }

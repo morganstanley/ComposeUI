@@ -42,7 +42,6 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
 using System.Text.Json.Serialization;
 using DisplayMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.DisplayMetadata;
 using ImplementationMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.ImplementationMetadata;
-using Microsoft.VisualBasic;
 using Constants = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal.Constants;
 using FileSystem = System.IO.Abstractions.FileSystem;
 
@@ -596,6 +595,81 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         var result = await GetAppInfo(request.AppIdentifier);
 
         return result;
+    }
+
+    public async ValueTask<FindInstancesResponse> FindInstances(FindInstancesRequest? request)
+    {
+        if (request == null)
+        {
+            return FindInstancesResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull);
+        }
+
+        if (!Guid.TryParse(request.Fdc3InstanceId, out var instanceId) || !_runningModules.TryGetValue(instanceId, out _))
+        {
+            return FindInstancesResponse.Failure(Fdc3DesktopAgentErrors.MissingId); //AccessDenied?
+        }
+
+        try
+        {
+            await _appDirectory.GetApp(request.AppIdentifier.AppId!);
+        }
+        catch (AppNotFoundException)
+        {
+            return FindInstancesResponse.Failure(ResolveError.NoAppsFound);
+        }
+
+        var apps = _runningModules
+            .Where(app => app.Value.AppId == request.AppIdentifier.AppId)
+            .Select(x => new AppIdentifier() { AppId = x.Value.AppId, InstanceId = x.Key.ToString() });
+
+        if (apps.Any())
+        {
+            return FindInstancesResponse.Success(apps);
+        }
+        else
+        {
+            return FindInstancesResponse.Success(Enumerable.Empty<AppIdentifier>());
+        }
+    }
+
+    public async ValueTask<GetAppMetadataResponse> GetAppMetadata(GetAppMetadataRequest? request)
+    {
+        if (request == null)
+        {
+            return GetAppMetadataResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull);
+        }
+
+        if (!Guid.TryParse(request.Fdc3InstanceId, out var instanceId) || !_runningModules.TryGetValue(instanceId, out _))
+        {
+            return GetAppMetadataResponse.Failure(Fdc3DesktopAgentErrors.MissingId); //AccessDenied?
+        }
+
+        if (request.AppIdentifier.InstanceId != null)
+        {
+            if (!Guid.TryParse(request.AppIdentifier.InstanceId, out var fdc3InstanceId))
+            {
+                return GetAppMetadataResponse.Failure(Fdc3DesktopAgentErrors.MissingId); //AccessDenied?
+            }
+
+            if (!_runningModules.TryGetValue(fdc3InstanceId, out var app))
+            {
+                return GetAppMetadataResponse.Failure(ResolveError.TargetInstanceUnavailable);
+            }
+
+            var appMetadata = GetAppMetadata(app, request.AppIdentifier.InstanceId, null);
+            return GetAppMetadataResponse.Success(appMetadata);
+        }
+
+        try
+        {
+            var app = await _appDirectory.GetApp(request.AppIdentifier.AppId);
+            var appMetadata = GetAppMetadata(app, null, null);
+            return GetAppMetadataResponse.Success(appMetadata);
+        }
+        catch (AppNotFoundException)
+        {
+            return GetAppMetadataResponse.Failure(ResolveError.TargetAppUnavailable);
+        }
     }
 
     public async ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntent(RaiseIntentRequest? request)

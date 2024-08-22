@@ -174,7 +174,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         return await _desktopAgent.GetUserChannels(request);
     }
 
-    internal async ValueTask<GetInfoResponse?> HandleGetInfo(GetInfoRequest? request, MessageContext context)
+    internal async ValueTask<GetInfoResponse?> HandleGetInfo(GetInfoRequest? request, MessageContext? context)
     {
         return await _desktopAgent.GetInfo(request);
     }
@@ -188,6 +188,16 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
 
         var channel = new UserChannel(request.ChannelId, _messageRouter, _loggerFactory.CreateLogger<UserChannel>());
         return await _desktopAgent.JoinUserChannel(channel, request.InstanceId);
+    }
+
+    internal async ValueTask<FindInstancesResponse?> HandleFindInstances(FindInstancesRequest? request, MessageContext? context)
+    {
+        return await _desktopAgent.FindInstances(request);
+    }
+
+    internal async ValueTask<GetAppMetadataResponse> HandleGetAppMetadata(GetAppMetadataRequest? request, MessageContext? context)
+    {
+        return await _desktopAgent.GetAppMetadata(request);
     }
 
     private async ValueTask SafeWaitAsync(IEnumerable<ValueTask> tasks)
@@ -230,6 +240,8 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         await RegisterHandler<GetUserChannelsRequest, GetUserChannelsResponse>(Fdc3Topic.GetUserChannels, HandleGetUserChannels);
         await RegisterHandler<JoinUserChannelRequest, JoinUserChannelResponse>(Fdc3Topic.JoinUserChannel, HandleJoinUserChannel);
         await RegisterHandler<GetInfoRequest, GetInfoResponse>(Fdc3Topic.GetInfo, HandleGetInfo);
+        await RegisterHandler<FindInstancesRequest, FindInstancesResponse>(Fdc3Topic.FindInstances, HandleFindInstances);
+        await RegisterHandler<GetAppMetadataRequest, GetAppMetadataResponse>(Fdc3Topic.GetAppMetadata, HandleGetAppMetadata);
 
         await _desktopAgent.StartAsync(cancellationToken);
 
@@ -255,6 +267,8 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
             _messageRouter.UnregisterServiceAsync(Fdc3Topic.GetUserChannels, cancellationToken),
             _messageRouter.UnregisterServiceAsync(Fdc3Topic.JoinUserChannel, cancellationToken),
             _messageRouter.UnregisterServiceAsync(Fdc3Topic.GetInfo, cancellationToken),
+            _messageRouter.UnregisterServiceAsync(Fdc3Topic.FindInstances, cancellationToken),
+            _messageRouter.UnregisterServiceAsync(Fdc3Topic.GetAppMetadata, cancellationToken),
         };
 
         await SafeWaitAsync(unregisteringTasks);
