@@ -24,7 +24,7 @@
     "@finos/fdc3": "2.1.1",
     "material-icons": "1.13.12",
     "rxjs": "7.8.1",
-    "tslib": "2.6.3",
+    "tslib": "2.7.0",
     "zone.js": "0.14.5"
   },
   "devDependencies": {
