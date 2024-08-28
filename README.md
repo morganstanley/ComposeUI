@@ -150,3 +150,19 @@ The necessary solutions have to be built in the following order:
 1. Open the Shell Solution
 2. Choose "Shell" as the startup project
 3. Run
+
+### Running FDC3 sikuli e2e tests
+#### Prerequisite
+1. Java version 8 or later
+
+#### IDE setup
+1. [Download](https://launchpad.net/sikuli/+download) sikuli IDE jar file.
+2. [Download](https://repo1.maven.org/maven2/org/python/jython-standalone/2.7.1/jython-standalone-2.7.1.jar) jython standalone jar file. 
+3. Have Sikuli IDE jar file and the jython standalone jar file in the same directory.
+4. Launch the IDE with a double click on the sikuli IDE jar file
+
+#### Run tests
+1. Launch FDC3-Chart-and-Grid
+2. On the Sikuli IDE click on file -> open
+3. Locate the test file and select
+4. Click on run(Make sure FDC3-Chart-and-Grid is running in the background and the next application after the IDE)
