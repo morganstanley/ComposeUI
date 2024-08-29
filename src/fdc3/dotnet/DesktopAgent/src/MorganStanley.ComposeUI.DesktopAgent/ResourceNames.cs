@@ -19,4 +19,5 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 public static class ResourceNames
 {
     public static readonly string Fdc3Bundle = @$"{Assembly.GetCallingAssembly().ManifestModule.Assembly.GetName()?.Name}.fdc3-iife-bundle.js";
+    public static readonly string DefaultUserChannelSet = @$"{Assembly.GetCallingAssembly().ManifestModule.Assembly.GetName()?.Name}.userChannelSet.json";
 }

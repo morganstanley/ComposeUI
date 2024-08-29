@@ -16,7 +16,7 @@ import "bootstrap/dist/css/bootstrap.css";
 
 window.addEventListener('load', async function () {
     const pricingForm = document.querySelector("#pricing");
-    await this.window.fdc3.joinUserChannel("default");
+    await this.window.fdc3.joinUserChannel("fdc3.channel.1");
     pricingForm.addEventListener('submit', app.submitPrice);
 });
 

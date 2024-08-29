@@ -44,6 +44,8 @@ using DisplayMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Displ
 using ImplementationMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.ImplementationMetadata;
 using Constants = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal.Constants;
 using FileSystem = System.IO.Abstractions.FileSystem;
+using System.Reflection;
+using System;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
@@ -87,128 +89,107 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         _logger = _loggerFactory.CreateLogger<Fdc3DesktopAgent>() ?? NullLogger<Fdc3DesktopAgent>.Instance;
     }
 
-    public async ValueTask AddUserChannel(UserChannel userChannel)
+    public async ValueTask<UserChannel?> AddUserChannel(Func<string, UserChannel> addUserChannelFactory, string channelId)
     {
-        //TODO: Decide if we need to check from the existing userchannel set if the id is contained
-        //if (_userChannelSet != null && !_userChannelSet.TryGetValue(userChannel.Id, out _))
-        //{
-        //    return;
-        //}
-
-        if (!_userChannels.TryAdd(userChannel.Id, userChannel))
+        ChannelItem? channelItem = null;
+        if (_userChannelSet != null && !_userChannelSet.TryGetValue(channelId, out channelItem) || channelItem == null)
         {
-            if (_logger.IsEnabled(LogLevel.Debug))
-            {
-                _logger.LogDebug($"User channel with id: {userChannel.Id} cannot be added.");
-            }
-
-            return;
+            return null;
         }
+
+        //Checking if the endpoint is already registered, because it can cause issues with multiple threads executing this same task to register the appropriate services storing the latest context messages, etc on the Channel objects.
+        if (_userChannels.TryGetValue(channelId, out var userChannel))
+        {
+            return userChannel;
+        }
+
+        userChannel = _userChannels.GetOrAdd(channelId, addUserChannelFactory(channelId));
 
         try
         {
-            await userChannel.Connect();
+            await userChannel!.Connect();
+            return userChannel;
         }
-        catch (MessageRouterException exception)
+        catch (MessageRouterDuplicateEndpointException exception)
         {
-            if (!exception.Message.Contains("Duplicate endpoint"))
-            {
-                throw;
-            }
-
             if (_logger.IsEnabled(LogLevel.Warning))
             {
-                _logger.LogWarning(exception, $"Endpoint is already registered {userChannel.Id}.");
+                _logger.LogWarning(exception, $"{channelId} is already registed as service endpoint.");
             }
+
+            return userChannel;
         }
         catch (Exception exception)
         {
             _logger.LogError(exception, $"Exception thrown while executing {nameof(AddUserChannel)}.");
-            _userChannels.TryRemove(userChannel.Id, out _);
+            _userChannels.TryRemove(channelId, out _);
             throw;
         }
     }
 
-    public async ValueTask AddPrivateChannel(PrivateChannel privateChannel)
+    public async ValueTask AddPrivateChannel(Func<string, PrivateChannel> addPrivateChannelFactory, string privateChannelId)
     {
-        if (!_privateChannels.TryAdd(privateChannel.Id, privateChannel))
+        //Checking if the endpoint is already registered, because it can cause issues while registering services storing the latest context messages, etc on the Channel objects.
+        if (_privateChannels.TryGetValue(privateChannelId, out var privateChannel))
         {
-            if (_logger.IsEnabled(LogLevel.Debug))
-            {
-                _logger.LogDebug($"Private channel with id: {privateChannel.Id} cannot be added.");
-            }
-
             return;
         }
 
+        privateChannel = _privateChannels.GetOrAdd(privateChannelId, addPrivateChannelFactory(privateChannelId));
+
         try
         {
-            await privateChannel.Connect();
+            await privateChannel!.Connect();
         }
-        catch (MessageRouterException exception)
+        catch (MessageRouterDuplicateEndpointException exception)
         {
-            if (!exception.Message.Contains("Duplicate endpoint"))
-            {
-                throw;
-            }
-
             if (_logger.IsEnabled(LogLevel.Warning))
             {
-                _logger.LogWarning(exception, $"Endpoint is already registered {privateChannel.Id}.");
+                _logger.LogWarning(exception, $"{privateChannelId} is already registed as service endpoint.");
             }
         }
         catch (Exception exception)
         {
             _logger.LogError(exception, $"Exception thrown while executing {nameof(AddPrivateChannel)}.");
-            _privateChannels.TryRemove(privateChannel.Id, out _);
+            _privateChannels.TryRemove(privateChannelId, out _);
             throw;
         }
     }
 
-    public async ValueTask<CreateAppChannelResponse> AddAppChannel(
-        AppChannel appChannel,
-        string instanceId)
+    public async ValueTask<CreateAppChannelResponse> AddAppChannel(Func<string, AppChannel> addAppChannelFactory, CreateAppChannelRequest request)
     {
-        if (!_runningModules.TryGetValue(new Guid(instanceId), out _))
+        if (!_runningModules.TryGetValue(new Guid(request.InstanceId), out _))
         {
             return CreateAppChannelResponse.Failed(ChannelError.CreationFailed);
         }
 
-        if (!_appChannels.TryAdd(appChannel.Id, appChannel))
+        //Checking if the endpoint is already registered, because it can cause issues while registering services storing the latest context messages, etc on the Channel objects.
+        if (_appChannels.TryGetValue(request.ChannelId, out var appChannel))
         {
-            if (_logger.IsEnabled(LogLevel.Debug))
-            {
-                _logger.LogDebug($"App channel with id: {appChannel.Id} cannot be added.");
-            }
-
             return CreateAppChannelResponse.Created();
         }
+
+        appChannel = _appChannels.GetOrAdd(request.ChannelId, addAppChannelFactory(request.ChannelId));
 
         try
         {
-            await appChannel.Connect();
-            return CreateAppChannelResponse.Created();
+            await appChannel!.Connect();
         }
-        catch (MessageRouterException exception)
+        catch (MessageRouterDuplicateEndpointException exception)
         {
-            if (!exception.Message.Contains("Duplicate endpoint"))
-            {
-                throw;
-            }
-
             if (_logger.IsEnabled(LogLevel.Warning))
             {
-                _logger.LogWarning(exception, $"Endpoint is already registered {appChannel.Id}.");
+                _logger.LogWarning(exception, $"{request.ChannelId} is already registed as service endpoint.");
             }
-
-            return CreateAppChannelResponse.Created();
         }
         catch (Exception exception)
         {
             _logger.LogError(exception, $"An exception was thrown while executing {nameof(AddAppChannel)}.");
-            _appChannels.TryRemove(appChannel.Id, out _);
+            _appChannels.TryRemove(request.ChannelId, out _);
             return CreateAppChannelResponse.Failed(ChannelError.CreationFailed);
         }
+
+        return CreateAppChannelResponse.Created();
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -544,27 +525,22 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         return ValueTask.FromResult(GetUserChannelsResponse.Success(result));
     }
 
-    public async ValueTask<JoinUserChannelResponse?> JoinUserChannel(UserChannel channel, string instanceId)
+    public async ValueTask<JoinUserChannelResponse?> JoinUserChannel(Func<string, UserChannel> addUserChannelFactory, JoinUserChannelRequest request)
     {
-        if (!Guid.TryParse(instanceId, out var id) || !_runningModules.TryGetValue(id, out _))
+        if (!Guid.TryParse(request.InstanceId, out var id) || !_runningModules.TryGetValue(id, out _))
         {
             return JoinUserChannelResponse.Failed(ChannelError.AccessDenied);
         }
 
-        //TODO remove if regarding this
         ChannelItem? channelItem = null;
-        if (_userChannelSet != null && !_userChannelSet.TryGetValue(channel.Id, out channelItem))
+        if (_userChannelSet != null && !_userChannelSet.TryGetValue(request.ChannelId, out channelItem))
         {
-            //TODO delete this if statement
-            if (!_userChannels.TryGetValue(channel.Id, out _))
-            {
-                return JoinUserChannelResponse.Failed(ChannelError.CreationFailed);
-            }
+            return JoinUserChannelResponse.Failed(ChannelError.NoChannelFound);
         }
 
         try
         {
-            await AddUserChannel(channel);
+            await AddUserChannel(addUserChannelFactory, request.ChannelId);
         }
         catch (Exception exception)
         {
@@ -606,7 +582,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
         if (!Guid.TryParse(request.Fdc3InstanceId, out var instanceId) || !_runningModules.TryGetValue(instanceId, out _))
         {
-            return FindInstancesResponse.Failure(Fdc3DesktopAgentErrors.MissingId); //AccessDenied?
+            return FindInstancesResponse.Failure(Fdc3DesktopAgentErrors.MissingId);
         }
 
         try
@@ -641,14 +617,14 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
         if (!Guid.TryParse(request.Fdc3InstanceId, out var instanceId) || !_runningModules.TryGetValue(instanceId, out _))
         {
-            return GetAppMetadataResponse.Failure(Fdc3DesktopAgentErrors.MissingId); //AccessDenied?
+            return GetAppMetadataResponse.Failure(Fdc3DesktopAgentErrors.MissingId);
         }
 
         if (request.AppIdentifier.InstanceId != null)
         {
             if (!Guid.TryParse(request.AppIdentifier.InstanceId, out var fdc3InstanceId))
             {
-                return GetAppMetadataResponse.Failure(Fdc3DesktopAgentErrors.MissingId); //AccessDenied?
+                return GetAppMetadataResponse.Failure(Fdc3DesktopAgentErrors.MissingId);
             }
 
             if (!_runningModules.TryGetValue(fdc3InstanceId, out var app))
@@ -1146,62 +1122,6 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         return result;
     }
 
-    private Dictionary<string, AppIntent> GetAppIntentsFromRunningModules(
-        Func<Fdc3App, Dictionary<string, AppIntent>, IEnumerable<KeyValuePair<string, IntentMetadata>>?> selector,
-        IAppIdentifier? targetAppIdentifier,
-        Dictionary<string, AppIntent> appIntents)
-    {
-        foreach (var app in _runningModules)
-        {
-            if (targetAppIdentifier?.InstanceId != null
-                && Guid.TryParse(targetAppIdentifier.InstanceId, out var instanceId)
-                && instanceId != app.Key)
-            {
-                continue;
-            }
-
-            var intentMetadataCollection = selector(app.Value, appIntents);
-
-            if (intentMetadataCollection == null)
-            {
-                continue;
-            }
-
-            appIntents = GetAppIntentsFromIntentMetadataCollection(
-                app.Value,
-                app.Key.ToString(),
-                intentMetadataCollection,
-                appIntents);
-        }
-
-        return appIntents;
-    }
-
-    private async Task<Dictionary<string, AppIntent>> GetAppIntentsFromAppDirectory(
-        Func<Fdc3App, Dictionary<string, AppIntent>, IEnumerable<KeyValuePair<string, IntentMetadata>>?> selector,
-        IAppIdentifier? targetAppIdentifier,
-        Dictionary<string, AppIntent> appIntents)
-    {
-        foreach (var app in await _appDirectory.GetApps())
-        {
-            if (targetAppIdentifier != null && targetAppIdentifier.AppId != app.AppId)
-            {
-                continue;
-            }
-
-            var intentMetadataCollection = selector(app, appIntents);
-
-            if (intentMetadataCollection == null)
-            {
-                continue;
-            }
-
-            appIntents = GetAppIntentsFromIntentMetadataCollection(app, null, intentMetadataCollection, appIntents);
-        }
-
-        return appIntents;
-    }
-
     private Dictionary<string, AppIntent> GetAppIntentsFromIntentMetadataCollection(
         Fdc3App app,
         string? instanceId,
@@ -1245,38 +1165,6 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         return appIntents;
     }
 
-    private async Task GetAppIntentsFromAppDirectory(
-        Action<Fdc3App, string?> selector,
-        IAppIdentifier? targetAppIdentifier)
-    {
-        foreach (var app in await _appDirectory.GetApps())
-        {
-            if (targetAppIdentifier != null && targetAppIdentifier.AppId != app.AppId)
-            {
-                continue;
-            }
-
-            selector(app, null);
-        }
-    }
-
-    private void GetAppIntentsFromRunningModules(
-        Action<Fdc3App, string?> selector,
-        IAppIdentifier? targetAppIdentifier)
-    {
-        foreach (var app in _runningModules)
-        {
-            if (targetAppIdentifier?.InstanceId != null
-                && Guid.TryParse(targetAppIdentifier.InstanceId, out var instanceId)
-                && instanceId != app.Key)
-            {
-                continue;
-            }
-
-            selector(app.Value, app.Key.ToString());
-        }
-    }
-
     private ValueTask<GetInfoResponse> GetAppInfo(IAppIdentifier appIdentifier)
     {
         if (!Guid.TryParse(appIdentifier.InstanceId!, out var instanceId))
@@ -1305,7 +1193,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             Fdc3Version = Constants.SupportedFdc3Version,
             OptionalFeatures = new OptionalDesktopAgentFeatures
             {
-                OriginatingAppMetadata = false, //TODO
+                OriginatingAppMetadata = false,
                 UserChannelMembershipAPIs = Constants.SupportUserChannelMembershipAPI
             },
             Provider = Constants.DesktopAgentProvider,
@@ -1336,27 +1224,48 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
     private async Task<ConcurrentDictionary<string, ChannelItem>?> ReadUserChannelSet(CancellationToken cancellationToken = default)
     {
-        var uri = _options.UserChannelConfigFile ?? new Uri($"file://{Directory.GetCurrentDirectory()}/userChannelSet.json");
+        var uri = _options.UserChannelConfigFile;
         IEnumerable<ChannelItem>? userChannelSet = null;
 
-        if (uri.IsFile)
+        if (uri == null && _options.UserChannelConfig == null)
         {
-            var path = uri.IsAbsoluteUri ? uri.AbsolutePath : Path.GetFullPath(uri.ToString());
-
-            if (!_fileSystem.File.Exists(path))
+            var assembly = Assembly.GetExecutingAssembly();
+            using var stream = assembly.GetManifestResourceStream(ResourceNames.DefaultUserChannelSet);
+            if (stream == null)
             {
-                _logger.LogError($"{Fdc3DesktopAgentErrors.NoUserChannelSetFound}, no user channel set was configured.");
-                return null;
+                return null;    
             }
+            
+            using var streamReader = new StreamReader(stream);
 
-            await using var stream = _fileSystem.File.OpenRead(path);
-            userChannelSet = JsonSerializer.Deserialize<ChannelItem[]>(stream, _jsonSerializerOptions);
+            var result = streamReader.ReadToEnd();
+            userChannelSet = JsonSerializer.Deserialize<ChannelItem[]>(result, _jsonSerializerOptions);
         }
-        else if (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+        else if (_options.UserChannelConfig != null)
         {
-            var response = await _httpClient.GetAsync(uri, cancellationToken);
-            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            userChannelSet = JsonSerializer.Deserialize<ChannelItem[]>(stream, _jsonSerializerOptions);
+            userChannelSet = _options.UserChannelConfig;
+        }
+        else if (uri != null)
+        {
+            if (uri.IsFile)
+            {
+                var path = uri.IsAbsoluteUri ? uri.AbsolutePath : Path.GetFullPath(uri.ToString());
+
+                if (!_fileSystem.File.Exists(path))
+                {
+                    _logger.LogError($"{Fdc3DesktopAgentErrors.NoUserChannelSetFound}, no user channel set was configured.");
+                    return null;
+                }
+
+                await using var stream = _fileSystem.File.OpenRead(path);
+                userChannelSet = JsonSerializer.Deserialize<ChannelItem[]>(stream, _jsonSerializerOptions);
+            }
+            else if (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+            {
+                var response = await _httpClient.GetAsync(uri, cancellationToken);
+                await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+                userChannelSet = JsonSerializer.Deserialize<ChannelItem[]>(stream, _jsonSerializerOptions);
+            }
         }
 
         return new((userChannelSet ?? Array.Empty<ChannelItem>()).ToDictionary(x => x.Id, y => y));

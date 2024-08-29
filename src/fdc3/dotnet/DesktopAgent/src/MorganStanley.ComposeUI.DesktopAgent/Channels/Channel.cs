@@ -50,12 +50,12 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
 
             await MessagingService.ConnectAsync();
 
+            await MessagingService.RegisterServiceAsync(_topics.GetCurrentContext, GetCurrentContext);
+
             var broadcastHandler = new Func<IMessageBuffer, ValueTask>(HandleBroadcast);
             var broadcastSubscription = MessagingService.SubscribeAsync(_topics.Broadcast, broadcastHandler);
 
-            await MessagingService.RegisterServiceAsync(_topics.GetCurrentContext, GetCurrentContext);
             _broadcastSubscription = await broadcastSubscription;
-
 
             LogConnected();
         }

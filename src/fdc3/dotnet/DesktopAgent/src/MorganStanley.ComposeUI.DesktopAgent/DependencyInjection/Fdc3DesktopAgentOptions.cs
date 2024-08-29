@@ -13,6 +13,7 @@
  */
 
 using Microsoft.Extensions.Options;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 
@@ -27,6 +28,11 @@ public sealed class Fdc3DesktopAgentOptions : IOptions<Fdc3DesktopAgentOptions>
     /// Gets or sets the source URL of a static JSON file, indicating what User Channel set is being supported by the DesktopAgent.
     /// </summary>
     public Uri? UserChannelConfigFile { get; set; }
+
+    /// <summary>
+    /// Sets the UserChannel set.
+    /// </summary>
+    public ChannelItem[]? UserChannelConfig { get; set; }
 
     /// <summary>
     /// Indicates a timeout value for getting the IntentResult from the backend in milliseconds.

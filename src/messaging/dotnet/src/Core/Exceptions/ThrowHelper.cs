@@ -19,7 +19,7 @@ namespace MorganStanley.ComposeUI.Messaging.Exceptions;
 /// </summary>
 public static class ThrowHelper
 {
-    public static MessageRouterException DuplicateEndpoint(string endpoint) =>
+    public static MessageRouterDuplicateEndpointException DuplicateEndpoint(string endpoint) =>
         new(MessageRouterErrors.DuplicateEndpoint, $"Duplicate endpoint registration: '{endpoint}'");
 
     public static MessageRouterException DuplicateRequestId() =>

@@ -69,10 +69,9 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         _logger = _loggerFactory.CreateLogger<Fdc3DesktopAgentMessageRouterService>() ?? NullLogger<Fdc3DesktopAgentMessageRouterService>.Instance;
     }
 
-    public async ValueTask<UserChannel> HandleAddUserChannel(string id)
+    public async ValueTask<UserChannel?> HandleAddUserChannel(string id)
     {
-        var userChannel = new UserChannel(id, _messageRouter, _loggerFactory.CreateLogger<UserChannel>());
-        await _desktopAgent.AddUserChannel(userChannel);
+        var userChannel = await _desktopAgent.AddUserChannel((channelId) => new UserChannel(channelId, _messageRouter, _loggerFactory.CreateLogger<UserChannel>()), id);
         return userChannel;
     }
 
@@ -141,11 +140,10 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
     {
         try
         {
-            var channel = new PrivateChannel(Guid.NewGuid().ToString(), _messageRouter, _loggerFactory.CreateLogger<PrivateChannel>());
+            var privateChannelId = Guid.NewGuid().ToString();
+            await _desktopAgent.AddPrivateChannel((channelId) => new PrivateChannel(channelId, _messageRouter, _loggerFactory.CreateLogger<PrivateChannel>()), privateChannelId);
 
-            await _desktopAgent.AddPrivateChannel(channel);
-
-            return CreatePrivateChannelResponse.Created(channel.Id);
+            return CreatePrivateChannelResponse.Created(privateChannelId);
         }
         catch (Exception ex)
         {
@@ -163,8 +161,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
             return CreateAppChannelResponse.Failed(ChannelError.CreationFailed);
         }
 
-        var channel = new AppChannel(request.ChannelId, _messageRouter, _loggerFactory.CreateLogger<AppChannel>());
-        return await _desktopAgent.AddAppChannel(channel, request.InstanceId);
+        return await _desktopAgent.AddAppChannel((channelId) => new AppChannel(channelId, _messageRouter, _loggerFactory.CreateLogger<AppChannel>()), request);
     }
 
     internal async ValueTask<GetUserChannelsResponse?> HandleGetUserChannels(
@@ -186,8 +183,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
             return JoinUserChannelResponse.Failed(Fdc3DesktopAgentErrors.PayloadNull);
         }
 
-        var channel = new UserChannel(request.ChannelId, _messageRouter, _loggerFactory.CreateLogger<UserChannel>());
-        return await _desktopAgent.JoinUserChannel(channel, request.InstanceId);
+        return await _desktopAgent.JoinUserChannel((channelId) => new UserChannel(channelId, _messageRouter, _loggerFactory.CreateLogger<UserChannel>()), request);
     }
 
     internal async ValueTask<FindInstancesResponse?> HandleFindInstances(FindInstancesRequest? request, MessageContext? context)

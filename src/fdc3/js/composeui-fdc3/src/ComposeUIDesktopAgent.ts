@@ -1,4 +1,4 @@
-/* 
+﻿/* 
  *  Morgan Stanley makes this available to you under the Apache License,
  *  Version 2.0 (the "License"). You may obtain a copy of the License at
  *       http://www.apache.org/licenses/LICENSE-2.0.
@@ -83,12 +83,12 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         throw new Error("Not implemented");
     }
 
-    public findIntent(intent: string, context?: Context, resultType?: string): Promise<AppIntent> {
-        return this.intentsClient.findIntent(intent, context, resultType);
+    public async findIntent(intent: string, context?: Context, resultType?: string): Promise<AppIntent> {
+        return await this.intentsClient.findIntent(intent, context, resultType);
     }
 
-    public findIntentsByContext(context: Context, resultType?: string): Promise<Array<AppIntent>> {
-        return this.intentsClient.findIntentsByContext(context, resultType);
+    public async findIntentsByContext(context: Context, resultType?: string): Promise<Array<AppIntent>> {
+        return await this.intentsClient.findIntentsByContext(context, resultType);
     }
 
     public async findInstances(app: AppIdentifier): Promise<Array<AppIdentifier>> {
@@ -104,7 +104,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     }
 
     public async raiseIntent(intent: string, context: Context, app?: string | AppIdentifier): Promise<IntentResolution> {
-        return this.intentsClient.raiseIntent(intent, context, app);
+        return await this.intentsClient.raiseIntent(intent, context, app);
     }
 
     //TODO
@@ -181,9 +181,8 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         return appChannel!;
     }
 
-    //TODO
     public async createPrivateChannel(): Promise<PrivateChannel> {
-        return this.channelFactory.createPrivateChannel();
+        return await this.channelFactory.createPrivateChannel();
     }
 
     public async getCurrentChannel(): Promise<Channel | null> {
@@ -200,7 +199,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     }
 
     public async getInfo(): Promise<ImplementationMetadata> {
-        return this.metadataClient.getInfo();
+        return await this.metadataClient.getInfo();
     }
 
     public async getAppMetadata(app: AppIdentifier): Promise<AppMetadata> {

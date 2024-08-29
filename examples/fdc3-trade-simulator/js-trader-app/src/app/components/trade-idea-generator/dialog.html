@@ -4,7 +4,6 @@
     <p>Please confirm your intent to this symbol {{data.symbol}} with quantity: {{data.quantity}}</p>
 </mat-dialog-content>
 <mat-dialog-actions>
-    <button mat-button [mat-dialog-close]="'BUY'" cdkFocusInitial>Buy</button>
-    <button mat-button [mat-dialog-close]="'SELL'">Sell</button>
-    <button class="dialog-close" mat-button mat-dialog-close [style.color]="'red'" [style.position]="'absolute'" [style.right]="'20px'">Cancel</button>
+    <button mat-button [mat-dialog-close]="true" cdkFocusInitial>Confirm</button>
+    <button class="dialog-close" mat-button [mat-dialog-close]="false" [style.color]="'red'" [style.position]="'absolute'" [style.right]="'20px'">Cancel</button>
 </mat-dialog-actions>

@@ -1064,7 +1064,7 @@ public class EndToEndTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task JoinUserChannelReturnsCreationFailedError()
+    public async Task JoinUserChannelReturnsNoChannelFoundError()
     {
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
         var origin = await _moduleLoader.StartModule(new StartRequest("appId1"));

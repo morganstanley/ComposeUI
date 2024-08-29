@@ -15,8 +15,10 @@
 using Finos.Fdc3.Context;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Channels;
+
 public abstract class ChannelTestBase
 {
     internal Channel Channel { get; init; }

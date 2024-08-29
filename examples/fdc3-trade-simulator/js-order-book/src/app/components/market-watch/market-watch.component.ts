@@ -231,10 +231,7 @@ export class MarketWatchComponent implements OnInit, OnDestroy{
               type: topic,
               result: {
                 success: false,
-<<<<<<< HEAD
                 action: "BUY",
-=======
->>>>>>> f312aa3 (feat(app-channels) - Implement fdc3.getOrCreateChannel(), stopping started instances in the tests, refactored channel tests)
                 error: "No symbol found."
               }
             });
@@ -244,8 +241,6 @@ export class MarketWatchComponent implements OnInit, OnDestroy{
 
         if (data.action === 'BUY') {
           const sumQuantity = symbols.reduce((sum, current) => {
-            console.log(current);
-            console.log(sum);
             if (current.Children && current.Children.length > 0) {
               let s: number = current.Children.reduce((t, currentSymbol) => {
                 if(currentSymbol.AskSize) {
@@ -259,7 +254,6 @@ export class MarketWatchComponent implements OnInit, OnDestroy{
             return sum + 0;
           }, 0);
 
-          console.log("Sum of the available symbols on the market:", sumQuantity);
   
           if (sumQuantity < data.quantity) {
             await this.channel!.broadcast(
@@ -267,10 +261,7 @@ export class MarketWatchComponent implements OnInit, OnDestroy{
                 type: topic,
                 result: {
                   success: false,
-<<<<<<< HEAD
                   action: "BUY",
-=======
->>>>>>> f312aa3 (feat(app-channels) - Implement fdc3.getOrCreateChannel(), stopping started instances in the tests, refactored channel tests)
                   error: "Too much ticks were requested; not enough symbols are available on the target."
                 }
               });
@@ -281,7 +272,6 @@ export class MarketWatchComponent implements OnInit, OnDestroy{
           let price: number = 0;
           let size = data.quantity;
           for (let element of ELEMENT_DATA) {
-            console.log("current size:", size);
             if (size == 0) {
               break;
             }
@@ -300,10 +290,7 @@ export class MarketWatchComponent implements OnInit, OnDestroy{
                 type: topic,
                 result: {
                   success: true,
-<<<<<<< HEAD
                   action: "BUY",
-=======
->>>>>>> f312aa3 (feat(app-channels) - Implement fdc3.getOrCreateChannel(), stopping started instances in the tests, refactored channel tests)
                   tradePrice: price
                 }
               });
@@ -312,7 +299,6 @@ export class MarketWatchComponent implements OnInit, OnDestroy{
             }
             
             for (let innerElement of element.Children) {
-              console.log("current size:", size);
               if (innerElement.Symbol != data.symbol) {
                 continue;
               }
@@ -327,7 +313,6 @@ export class MarketWatchComponent implements OnInit, OnDestroy{
                 price = price + innerElement.AskSize * (innerElement.AskPrice == undefined ? 0 : innerElement.AskPrice);
                 size = size - innerElement.AskSize;
                 innerElement.AskSize = 0;
-                console.log("current size: hello", size);
                 innerElement.LastTrade = data.timestamp;
               }
             }
@@ -337,10 +322,7 @@ export class MarketWatchComponent implements OnInit, OnDestroy{
             type: topic,
             result: {
               success: true,
-<<<<<<< HEAD
               action: "BUY",
-=======
->>>>>>> f312aa3 (feat(app-channels) - Implement fdc3.getOrCreateChannel(), stopping started instances in the tests, refactored channel tests)
               tradePrice: price
             }
           });
@@ -376,7 +358,6 @@ export class MarketWatchComponent implements OnInit, OnDestroy{
         if(symbolElement) {
           symbolElement.BidSize = symbolElement.BidSize + data.quantity;
           symbolElement.LastTrade = data.timestamp;
-<<<<<<< HEAD
           await this.channel!.broadcast(
             {
               type: topic,
@@ -385,14 +366,11 @@ export class MarketWatchComponent implements OnInit, OnDestroy{
                 action: "SELL",
               }
             });
-=======
->>>>>>> f312aa3 (feat(app-channels) - Implement fdc3.getOrCreateChannel(), stopping started instances in the tests, refactored channel tests)
           this.subject.next(
           {
             Symbol: data.symbol,
             DataSource: [...ELEMENT_DATA]
           });
-<<<<<<< HEAD
         } else {
           await this.channel!.broadcast(
             {
@@ -403,8 +381,6 @@ export class MarketWatchComponent implements OnInit, OnDestroy{
                 error: "Trader is not able to place its symbol for selling."
               }
             });
-=======
->>>>>>> f312aa3 (feat(app-channels) - Implement fdc3.getOrCreateChannel(), stopping started instances in the tests, refactored channel tests)
         }
 
         return;

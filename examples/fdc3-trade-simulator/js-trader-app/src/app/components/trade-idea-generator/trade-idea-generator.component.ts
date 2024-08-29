@@ -46,8 +46,8 @@ export class TradeIdeaGeneratorComponent implements OnDestroy {
   }
 
   async ngOnDestroy() {
-    this.listeners.forEach(async (listener, _) => {
-      await listener.unsubscribe();
+    this.listeners.forEach((listener, _) => {
+      listener.unsubscribe();
     });
 
     this.listeners.clear();
@@ -130,7 +130,7 @@ export class TradeIdeaGeneratorComponent implements OnDestroy {
     return !this.wrapValue && inputValue >= this.maximumValue;
   }
 
-  public async broadcastTradeIdea() : Promise<void> {
+  private async broadcastTradeIdea(action: string) : Promise<void> {
     if (!this.currentValue || this.currentValue <= 0) {
       this.feedbackSubject.next('Please select at least 1 quantity.');
       return;
@@ -150,12 +150,10 @@ export class TradeIdeaGeneratorComponent implements OnDestroy {
       data: {trader: this.trader!, quantity: this.currentValue, symbol: this.symbols.value as string}
     });
 
-    dialogRef.afterClosed().subscribe(async result => {
+    dialogRef.afterClosed().subscribe(async (result: boolean) => {
       if (!result) {
         return;
       }
-
-      const action = result as string;
 
       const context: Context = {
         type: "fdc3.trade",
@@ -182,7 +180,6 @@ export class TradeIdeaGeneratorComponent implements OnDestroy {
               return;
             }
 
-<<<<<<< HEAD
             const result = context['result'];
             if (result.action as string == "BUY") {
               const price: number = result.tradePrice as number;
@@ -190,11 +187,6 @@ export class TradeIdeaGeneratorComponent implements OnDestroy {
             } else {
               this.feedbackSubject.next(this.trader + " has indicated that " + this.currentValue + " symbol of: " + this.symbols.value as string + " is/are available for buying.");
             }
-=======
-            const price: number = context['result'].tradePrice as number;
-            this.feedbackSubject.next(this.trader + " has bought " + this.currentValue + " symbol of: " + this.symbols.value as string + " for $" + price + ".");
-            console.log(this.feedback);
->>>>>>> f312aa3 (feat(app-channels) - Implement fdc3.getOrCreateChannel(), stopping started instances in the tests, refactored channel tests)
           });
           this.listeners.set(topic, listener);
         }
@@ -206,6 +198,14 @@ export class TradeIdeaGeneratorComponent implements OnDestroy {
         console.error('Error is thrown while broadcasting trade idea:', error);
       }
     });
+  }
+
+  public async buySymbol() : Promise<void> {
+    await this.broadcastTradeIdea("BUY");
+  }
+
+  public async sellSymbol() : Promise<void> {
+    await this.broadcastTradeIdea("SELL");
   }
 }
 

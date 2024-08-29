@@ -37,24 +37,25 @@ internal interface IFdc3DesktopAgentBridge
     /// <summary>
     /// Handles the AddUserChannel call in the bridge.
     /// </summary>
-    /// <param name="userChannel"></param>
+    /// <param name="addUserChannelFactory"></param>
+    /// <param name="channelId"></param>
     /// <returns></returns>
-    public ValueTask AddUserChannel(UserChannel userChannel);
+    public ValueTask<UserChannel?> AddUserChannel(Func<string, UserChannel> addUserChannelFactory, string channelId);
 
     /// <summary>
     /// Handles the AddPrivateChannel call in the bridge.
     /// </summary>
-    /// <param name="privateChannel"></param>
+    /// <param name="addPrivateChannelFactory"></param>
     /// <returns></returns>
-    public ValueTask AddPrivateChannel(PrivateChannel privateChannel);
+    public ValueTask AddPrivateChannel(Func<string, PrivateChannel> addPrivateChannelFactory, string privateChannelId);
 
     /// <summary>
     /// Handles the AddAppChannel call in the bridge.
     /// </summary>
-    /// <param name="appChannel"></param>
-    /// <param name="instanceId">The instanceId of the app which requested the response from the server.</param>
+    /// <param name="addAppChannelFactory"></param>
+    /// <param name="request"></param>
     /// <returns></returns>
-    public ValueTask<CreateAppChannelResponse> AddAppChannel(AppChannel appChannel, string instanceId);
+    public ValueTask<CreateAppChannelResponse> AddAppChannel(Func<string, AppChannel> addAppChannelFactory, CreateAppChannelRequest request);
 
     /// <summary>
     /// Handles the FindChannel call in the bridge.
@@ -116,10 +117,10 @@ internal interface IFdc3DesktopAgentBridge
     /// <summary>
     /// Handles the JoinUserChannel call in the bridge.
     /// </summary>
-    /// <param name="channel"></param>
-    /// <param name="instanceId"></param>
+    /// <param name="addUserChannelFactory"></param>
+    /// <param name="request"></param>
     /// <returns></returns>
-    public ValueTask<JoinUserChannelResponse?> JoinUserChannel(UserChannel channel, string instanceId);
+    public ValueTask<JoinUserChannelResponse?> JoinUserChannel(Func<string, UserChannel> addUserChannelFactory, JoinUserChannelRequest request);
 
     /// <summary>
     /// Handles the GetInfo call in the bridge.

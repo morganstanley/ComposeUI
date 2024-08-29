@@ -16,6 +16,6 @@ import { ComposeUIDesktopAgent } from "./ComposeUIDesktopAgent";
 import { createMessageRouter } from "@morgan-stanley/composeui-messaging-client";
 
 
-let fdc3 = new ComposeUIDesktopAgent("default", createMessageRouter());
-fdc3.joinUserChannel("default");
+let fdc3 = new ComposeUIDesktopAgent("fdc3.channel.1", createMessageRouter());
+fdc3.joinUserChannel("fdc3.channel.1");
 export default fdc3;

@@ -43,9 +43,8 @@
         </mat-select>
     </mat-form-field>
 
-    <button mat-icon-button class="sendButton" (click)="broadcastTradeIdea()">
-        <mat-icon>send</mat-icon>
-    </button>
+    <button mat-button class="buyButton" cdkFocusInitial (click)="buySymbol()">Buy</button>
+    <button mat-button class="sellButton" (click)="sellSymbol()">Sell</button>
 
     <div class="feedback">{{ feedback }}</div>
 </div>
