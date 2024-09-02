@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Channels;
 
 public class UserChannelErrorsAndDiagnosticsTests
 {

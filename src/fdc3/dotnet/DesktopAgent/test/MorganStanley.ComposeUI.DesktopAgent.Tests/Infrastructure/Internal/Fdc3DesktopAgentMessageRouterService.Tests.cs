@@ -847,6 +847,36 @@ public class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
         addIntentListenerResult.Error.Should().BeNull();
     }
 
+    [Fact]
+    public async Task HandleCreateAppChannel_fails_due_request_is_null()
+    {
+        CreateAppChannelRequest? request = null;
+
+        var result = await _fdc3.HandleCreateAppChannel(request, new MessageContext());
+
+        result.Should().BeEquivalentTo(CreateAppChannelResponse.Failed(ChannelError.CreationFailed));
+    }
+
+    [Fact]
+    public async Task HandleCreateAppChannel_returns_successful_response()
+    {
+        await _fdc3.StartAsync(CancellationToken.None);
+
+        //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
+        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+
+        var request = new CreateAppChannelRequest
+        {
+            ChannelId = "my.channel",
+            InstanceId = originFdc3InstanceId,
+        };
+
+        var result = await _fdc3.HandleCreateAppChannel(request, new MessageContext());
+
+        result.Should().BeEquivalentTo(CreateAppChannelResponse.Created());
+    }
+
 
     [Theory]
     [ClassData(typeof(FindIntentTheoryData))]

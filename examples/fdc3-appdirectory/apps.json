@@ -43,6 +43,22 @@
 			"version":"1.0.0",
 			"publisher":"FINOS",
 			"icons":[{"src":"https://fdc3.finos.org/assets/fdc3-logo.png"}]
+		},
+		{
+		  "appId": "js-trader-app",
+		  "name": "Js Trader App Example",
+		  "type": "web",
+		  "details": {
+			"url": "http://localhost:4201/"
+		  }
+		},
+		{
+		  "appId": "js-order-book",
+		  "name": "Js Order Book Example",
+		  "type": "web",
+		  "details": {
+			"url": "http://localhost:4202/"
+		  }
 		}
     ]
 }

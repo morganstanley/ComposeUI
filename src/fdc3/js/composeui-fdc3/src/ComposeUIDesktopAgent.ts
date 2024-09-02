@@ -160,10 +160,22 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         this.currentChannel = channel;
     }
 
-    //TODO: should return AccessDenied error when a channel object is denied
-    //TODO: should return a CreationFailed error when a channel cannot be created or retrieved (channelId failure)
-    public getOrCreateChannel(channelId: string): Promise<Channel> {
-        throw new Error("Not implemented.");
+    public async getOrCreateChannel(channelId: string): Promise<Channel> {
+        let appChannel = this.appChannels.find(channel => channel.id == channelId);
+        if (appChannel) {
+            return appChannel;
+        }
+
+        try {
+            appChannel = await this.channelFactory.getChannel(channelId, "app");
+        } catch (err) {
+            if (!appChannel) {
+                appChannel = await this.channelFactory.createAppChannel(channelId);            
+            }
+        }
+
+        this.addChannel(appChannel!);
+        return appChannel!;
     }
 
     //TODO

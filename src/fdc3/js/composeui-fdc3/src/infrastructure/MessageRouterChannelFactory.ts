@@ -27,6 +27,8 @@ import { ComposeUIErrors } from "./ComposeUIErrors";
 import { Fdc3IntentListenerResponse } from "./messages/Fdc3IntentListenerResponse";
 import { Fdc3IntentListenerRequest } from "./messages/Fdc3IntentListenerRequest";
 import { ChannelType } from "./ChannelType";
+import { Fdc3CreateAppChannelRequest } from "./messages/Fdc3CreateAppChannelRequest";
+import { Fdc3CreateAppChannelResponse } from "./messages/Fdc3CreateAppChannelResponse";
 
 export class MessageRouterChannelFactory implements ChannelFactory {
     private messageRouterClient: MessageRouter;
@@ -71,6 +73,25 @@ export class MessageRouterChannelFactory implements ChannelFactory {
             return channel;
         }
         throw new Error(ChannelError.CreationFailed);
+    }
+
+    public async createAppChannel(channelId: string): Promise<Channel> {
+        var request = JSON.stringify(new Fdc3CreateAppChannelRequest(channelId, this.fdc3instanceId));
+        var result = await this.messageRouterClient.invoke(ComposeUITopic.createAppChannel(), request);
+        if (!result) {
+            throw new Error(ChannelError.CreationFailed);
+        }
+
+        const response = <Fdc3CreateAppChannelResponse>JSON.parse(result);
+        if (response.error) {
+            throw new Error(response.error);
+        }
+
+        if (!response.success) {
+            throw new Error(ChannelError.CreationFailed);
+        }
+
+        return new ComposeUIChannel(channelId, "app", this.messageRouterClient);
     }
 
     public async getIntentListener(intent: string, handler: IntentHandler): Promise<Listener> {

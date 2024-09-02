@@ -87,5 +87,22 @@
     "Details": {
       "Url": "http://localhost:8080/"
     }
+  },
+
+  {
+    "Id": "js-trader-app",
+    "Name": "Js Trader App Example",
+    "ModuleType": "web",
+    "Details": {
+      "Url": "http://localhost:4201/"
+    }
+  },
+  {
+    "Id": "js-order-book",
+    "Name": "Js Order Book Example",
+    "ModuleType": "web",
+    "Details": {
+      "Url": "http://localhost:4202/"
+    }
   }
 ]

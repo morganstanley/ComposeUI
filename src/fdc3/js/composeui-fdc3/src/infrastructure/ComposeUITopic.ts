@@ -30,6 +30,7 @@ export class ComposeUITopic {
     private static readonly findIntentsByContextSuffix = "findIntentsByContext";
     private static readonly sendIntentResultSuffix = "sendIntentResult";
     private static readonly findChannelSuffix = "findChannel";
+    private static readonly createAppChannelSuffix = "createAppChannel";
 
     public static broadcast(channelId: string, channelType: ChannelType = "user"): string {
         return `${this.getChannelsTopicRootWithChannelId(channelId, channelType)}/${this.broadcastSuffix}`;
@@ -81,6 +82,10 @@ export class ComposeUITopic {
 
     public static privateChannelGetContextHandlers(channelId: string, isOriginalCreator: boolean) {
         return `${this.getChannelsTopicRootWithChannelId(channelId, "private")}/${isOriginalCreator ? "creator" : "listener"}/getContextHandlers`
+    }
+
+    public static createAppChannel(): string {
+        return `${this.topicRoot}/${this.createAppChannelSuffix}`;
     }
 
     private static getChannelsTopicRootWithChannelId(channelId: string, channelType: ChannelType): string {

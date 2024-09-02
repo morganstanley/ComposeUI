@@ -74,6 +74,7 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
                 else { throw new Error(ChannelError.NoChannelFound); }
             }),
             getIntentListener: jest.fn(() => Promise.reject("Not implemented")),
+            createAppChannel: jest.fn(() => Promise.reject("Not implemented"))
         };
 
         desktopAgent = new ComposeUIDesktopAgent(dummyChannelId, messageRouterClient, channelFactory);

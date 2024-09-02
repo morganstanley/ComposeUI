@@ -16,7 +16,8 @@ import { ComposeUIChannel } from './infrastructure/ComposeUIChannel';
 import { MessageRouter } from '@morgan-stanley/composeui-messaging-client';
 import { ComposeUIContextListener } from './infrastructure/ComposeUIContextListener';
 import { ComposeUITopic } from './infrastructure/ComposeUITopic';
-import { Channel, Context } from '@finos/fdc3';
+import { Channel, ChannelError, Context } from '@finos/fdc3';
+import { ComposeUIDesktopAgent } from './ComposeUIDesktopAgent';
 
 const dummyChannelId = "dummyId";
 let messageRouterClient: MessageRouter;
@@ -104,5 +105,101 @@ describe('Tests for ComposeUIChannel implementation API', () => {
         const resultListener = await testChannel.addContextListener(null, contextMessageHandlerMock);
         expect(resultListener).toBeInstanceOf(ComposeUIContextListener);
         expect(messageRouterClient.subscribe).toBeCalledTimes(1);
+    });
+});
+
+describe("AppChanel tests", () => {
+
+    beforeEach(() =>{
+        window.composeui = {
+            fdc3: {
+                config: {
+                    appId: "testAppId",
+                    instanceId: "testInstanceId"
+                }
+            }
+        };
+    });
+    
+    it("getOrCreateChannel returns successfully after it found the AppChannel in the cache", async () => {
+        const messageRouterClientMock = {
+            clientId: "dummy",
+            subscribe: jest.fn(() => {
+                return Promise.resolve({unsubscribe: () => {}});}),
+
+            publish: jest.fn(() => { return Promise.resolve() }),
+            connect: jest.fn(() => { return Promise.resolve() }),
+            registerEndpoint: jest.fn(() => { return Promise.resolve() }),
+            unregisterEndpoint: jest.fn(() => { return Promise.resolve() }),
+            registerService: jest.fn(() => { return Promise.resolve() }),
+            unregisterService: jest.fn(() => { return Promise.resolve() }),
+            invoke: jest.fn(() => { return Promise.resolve(`${JSON.stringify({ found: true })}`) })
+        };
+
+        const desktopAgent = new ComposeUIDesktopAgent('dummyPath', messageRouterClientMock);
+        const channel1 = await desktopAgent.getOrCreateChannel("hello.world");
+        const channel2 = await desktopAgent.getOrCreateChannel("hello.world");
+        expect(channel2).toBe(channel1);
+    });
+
+    it("getOrCreateChannel creates a channel", async () => {
+        let messageRouterClientMock: MessageRouter = {
+            clientId: "dummy",
+            subscribe: jest.fn(() => { return Promise.resolve({unsubscribe: () => {}});}),
+            publish: jest.fn(() => { return Promise.resolve() }),
+            connect: jest.fn(() => { return Promise.resolve() }),
+            registerEndpoint: jest.fn(() => { return Promise.resolve() }),
+            unregisterEndpoint: jest.fn(() => { return Promise.resolve() }),
+            registerService: jest.fn(() => { return Promise.resolve() }),
+            unregisterService: jest.fn(() => { return Promise.resolve() }),
+            invoke: jest.fn(() => { return Promise.resolve<string | undefined>(undefined)})
+                .mockImplementationOnce(() => Promise.resolve(JSON.stringify({ found: false })))
+                .mockImplementationOnce(() => Promise.resolve(JSON.stringify({ success: true })))
+        };
+        const desktopAgent = new ComposeUIDesktopAgent('dummyPath', messageRouterClientMock);
+        const channel = await desktopAgent.getOrCreateChannel("hello.world");
+        expect(channel).toBeInstanceOf(ComposeUIChannel);
+    });
+
+    it("getOrCreateChannel throws error as it received error from the DesktopAgent", async () => {
+        let messageRouterClientMock: MessageRouter = {
+            clientId: "dummy",
+            subscribe: jest.fn(() => { return Promise.resolve({unsubscribe: () => {}});}),
+            publish: jest.fn(() => { return Promise.resolve() }),
+            connect: jest.fn(() => { return Promise.resolve() }),
+            registerEndpoint: jest.fn(() => { return Promise.resolve() }),
+            unregisterEndpoint: jest.fn(() => { return Promise.resolve() }),
+            registerService: jest.fn(() => { return Promise.resolve() }),
+            unregisterService: jest.fn(() => { return Promise.resolve() }),
+            invoke: jest.fn(() => { return Promise.resolve<string | undefined>(undefined)})
+                .mockImplementationOnce(() => Promise.resolve(JSON.stringify({ found: false })))
+                .mockImplementationOnce(() => Promise.resolve(JSON.stringify({ success: false, error: "dummy" })))
+        };
+
+        const desktopAgent = new ComposeUIDesktopAgent('dummyPath', messageRouterClientMock);
+        await expect(desktopAgent.getOrCreateChannel("hello.world"))
+            .rejects
+            .toThrow("dummy");
+    });
+
+    it("getOrCreateChannel throws error as it received no success without error message from the DesktopAgent", async () => {
+        let messageRouterClientMock: MessageRouter = {
+            clientId: "dummy",
+            subscribe: jest.fn(() => { return Promise.resolve({unsubscribe: () => {}});}),
+            publish: jest.fn(() => { return Promise.resolve() }),
+            connect: jest.fn(() => { return Promise.resolve() }),
+            registerEndpoint: jest.fn(() => { return Promise.resolve() }),
+            unregisterEndpoint: jest.fn(() => { return Promise.resolve() }),
+            registerService: jest.fn(() => { return Promise.resolve() }),
+            unregisterService: jest.fn(() => { return Promise.resolve() }),
+            invoke: jest.fn(() => { return Promise.resolve<string | undefined>(undefined)})
+                .mockImplementationOnce(() => Promise.resolve(JSON.stringify({ found: false })))
+                .mockImplementationOnce(() => Promise.resolve(JSON.stringify({ success: false })))
+        };
+
+        const desktopAgent = new ComposeUIDesktopAgent('dummyPath', messageRouterClientMock);
+        await expect(desktopAgent.getOrCreateChannel("hello.world"))
+            .rejects
+            .toThrow(ChannelError.CreationFailed);
     });
 });

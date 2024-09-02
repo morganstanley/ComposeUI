@@ -19,7 +19,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 public sealed class Fdc3DesktopAgentOptions : IOptions<Fdc3DesktopAgentOptions>
 {
     /// <summary>
-    /// When set to any value, the Desktop Agent will create the specified user channel on startup.
+    /// When set to any value, the Desktop Agent will create the specified user channel on startup and will join to it.
     /// </summary>
     public string? ChannelId { get; set; }
 

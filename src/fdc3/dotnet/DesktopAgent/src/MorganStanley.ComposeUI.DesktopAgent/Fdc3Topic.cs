@@ -30,6 +30,7 @@ internal static class Fdc3Topic
     internal static string AddIntentListener => TopicRoot + "addIntentListener";
     internal static string ResolverUI => TopicRoot + "resolverUI";
     internal static string CreatePrivateChannel => TopicRoot + "createPrivateChannel";
+    internal static string CreateAppChannel => TopicRoot + "createAppChannel";
 
     //IntentListeners will be listening at this endpoint
     internal static string RaiseIntentResolution(string intent, string instanceId)
@@ -38,8 +39,8 @@ internal static class Fdc3Topic
     }
 
     internal static ChannelTopics UserChannel(string id) => new ChannelTopics(id, ChannelType.User);
-
     internal static ChannelTopics PrivateChannel(string id) => new ChannelTopics(id, ChannelType.Private);
+    internal static ChannelTopics AppChannel(string id) => new ChannelTopics(id, ChannelType.App);
 }
 
 internal class ChannelTopics
@@ -47,18 +48,13 @@ internal class ChannelTopics
     private readonly string _channelRoot;
     internal ChannelTopics(string id, ChannelType type)
     {
-        string channelTypeString;
-        switch (type)
+        var channelTypeString = type switch
         {
-            case ChannelType.User:
-                channelTypeString = "userChannels";
-                break;
-            case ChannelType.Private:
-                channelTypeString = "privateChannels";
-                break;
-            default:
-                throw new NotImplementedException("Channel type not implemented yet");
-        }
+            ChannelType.User => "userChannels",
+            ChannelType.Private => "privateChannels",
+            ChannelType.App => "appChannels",
+            _ => throw new NotSupportedException($"{nameof(type)}")
+        };
 
         _channelRoot = $"{Fdc3Topic.TopicRoot}{channelTypeString}/{id}/";
         Broadcast = _channelRoot + "broadcast";

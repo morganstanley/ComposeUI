@@ -16,6 +16,7 @@
 using Finos.Fdc3;
 using Finos.Fdc3.AppDirectory;
 using Finos.Fdc3.Context;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Fdc3.AppDirectory;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
@@ -25,7 +26,9 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Helpers;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.TestUtils;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 using MorganStanley.ComposeUI.ModuleLoader;
+using AppChannel = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels.AppChannel;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIdentifier;
 using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
@@ -213,7 +216,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             new RaiseIntentRequest
             {
                 MessageId = int.MaxValue,
-                Fdc3InstanceId = Guid.NewGuid().ToString(),
+                Fdc3InstanceId = originFdc3InstanceId,
                 Intent = "intentMetadata4",
                 Selected = false,
                 Context = new Context("context2"),
@@ -263,7 +266,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
         var raiseIntentRequest = new RaiseIntentRequest
         {
             MessageId = int.MaxValue,
-            Fdc3InstanceId = Guid.NewGuid().ToString(),
+            Fdc3InstanceId = originFdc3InstanceId,
             Intent = "intentMetadata4",
             Selected = false,
             Context = new Context("context2"),
@@ -545,5 +548,47 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
         result.Response.Intent.Should().Be("intentMetadataCustom");
         result.RaiseIntentResolutionMessages.Should().HaveCount(1);
         result.RaiseIntentResolutionMessages.First().TargetModuleInstanceId.Should().Be(targetFdc3InstanceId);
+    }
+
+    [Fact]
+    public async Task AppChannel_is_created()
+    {
+        await _fdc3.StartAsync(CancellationToken.None);
+
+        //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
+        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+
+        var mockMessaging = new Mock<IMessagingService>();
+
+        var appChannel = new AppChannel(
+            "my.channelId",
+            mockMessaging.Object,
+            new Mock<ILogger<AppChannel>>().Object);
+
+        var result = await _fdc3.AddAppChannel(appChannel, originFdc3InstanceId);
+        result.Should().BeEquivalentTo(CreateAppChannelResponse.Created());
+    }
+
+    [Fact]
+    public async Task AppChannel_is_failed_while_creation_request()
+    {
+        await _fdc3.StartAsync(CancellationToken.None);
+
+        //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
+        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+
+        var mockMessaging = new Mock<IMessagingService>();
+        mockMessaging.Setup(_ => _.ConnectAsync(It.IsAny<CancellationToken>()))
+            .Throws(new Exception("dummy"));
+
+        var appChannel = new AppChannel(
+            "my.channelId",
+            mockMessaging.Object,
+            new Mock<ILogger<AppChannel>>().Object);
+
+        var result = await _fdc3.AddAppChannel(appChannel, originFdc3InstanceId);
+        result.Should().BeEquivalentTo(new CreateAppChannelResponse { Success = false, Error = ChannelError.CreationFailed });
     }
 }

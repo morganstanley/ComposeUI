@@ -49,6 +49,14 @@ internal interface IFdc3DesktopAgentBridge
     public ValueTask AddPrivateChannel(PrivateChannel privateChannel);
 
     /// <summary>
+    /// Handles the AddAppChannel call in the bridge.
+    /// </summary>
+    /// <param name="appChannel"></param>
+    /// <param name="instanceId">The instanceId of the app which requested the response from the server.</param>
+    /// <returns></returns>
+    public ValueTask<CreateAppChannelResponse> AddAppChannel(AppChannel appChannel, string instanceId);
+
+    /// <summary>
     /// Handles the FindChannel call in the bridge.
     /// </summary>
     /// <param name="channelId"></param>

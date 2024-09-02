@@ -71,7 +71,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         return userChannel;
     }
 
-    internal ValueTask<FindChannelResponse?> HandleFindChannel(FindChannelRequest? request, MessageContext context)
+    internal ValueTask<FindChannelResponse?> HandleFindChannel(FindChannelRequest? request, MessageContext? context)
     {
         return ValueTask.FromResult<FindChannelResponse?>(
             _desktopAgent.FindChannel(request!.ChannelId, request!.ChannelType)
@@ -79,17 +79,17 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
                 : FindChannelResponse.Failure(ChannelError.NoChannelFound));
     }
 
-    internal async ValueTask<FindIntentResponse?> HandleFindIntent(FindIntentRequest? request, MessageContext context)
+    internal async ValueTask<FindIntentResponse?> HandleFindIntent(FindIntentRequest? request, MessageContext? context)
     {
         return await _desktopAgent.FindIntent(request);
     }
 
-    internal async ValueTask<FindIntentsByContextResponse?> HandleFindIntentsByContext(FindIntentsByContextRequest? request, MessageContext context)
+    internal async ValueTask<FindIntentsByContextResponse?> HandleFindIntentsByContext(FindIntentsByContextRequest? request, MessageContext? context)
     {
         return await _desktopAgent.FindIntentsByContext(request);
     }
 
-    internal async ValueTask<RaiseIntentResponse?> HandleRaiseIntent(RaiseIntentRequest? request, MessageContext context)
+    internal async ValueTask<RaiseIntentResponse?> HandleRaiseIntent(RaiseIntentRequest? request, MessageContext? context)
     {
         var result = await _desktopAgent.RaiseIntent(request);
         if (result.RaiseIntentResolutionMessages.Any())
@@ -105,7 +105,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         return result.Response;
     }
 
-    internal async ValueTask<IntentListenerResponse?> HandleAddIntentListener(IntentListenerRequest? request, MessageContext context)
+    internal async ValueTask<IntentListenerResponse?> HandleAddIntentListener(IntentListenerRequest? request, MessageContext? context)
     {
         var result = await _desktopAgent.AddIntentListener(request);
 
@@ -122,17 +122,17 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         return result.Response;
     }
 
-    internal async ValueTask<StoreIntentResultResponse?> HandleStoreIntentResult(StoreIntentResultRequest? request, MessageContext context)
+    internal async ValueTask<StoreIntentResultResponse?> HandleStoreIntentResult(StoreIntentResultRequest? request, MessageContext? context)
     {
         return await _desktopAgent.StoreIntentResult(request);
     }
 
-    internal async ValueTask<GetIntentResultResponse?> HandleGetIntentResult(GetIntentResultRequest? request, MessageContext context)
+    internal async ValueTask<GetIntentResultResponse?> HandleGetIntentResult(GetIntentResultRequest? request, MessageContext? context)
     {
         return await _desktopAgent.GetIntentResult(request);
     }
 
-    internal async ValueTask<CreatePrivateChannelResponse> HandleCreatePrivateChannel(CreatePrivateChannelRequest request, MessageContext context)
+    internal async ValueTask<CreatePrivateChannelResponse> HandleCreatePrivateChannel(CreatePrivateChannelRequest request, MessageContext? context)
     {
         try
         {
@@ -147,6 +147,19 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
             // TODO: better exception
             return CreatePrivateChannelResponse.Failed(ex.Message);
         }
+    }
+
+    internal async ValueTask<CreateAppChannelResponse?> HandleCreateAppChannel(
+        CreateAppChannelRequest? request,
+        MessageContext? context)
+    {
+        if (request == null)
+        {
+            return CreateAppChannelResponse.Failed(ChannelError.CreationFailed);
+        }
+
+        var channel = new AppChannel(request.ChannelId, _messageRouter, _loggerFactory.CreateLogger<AppChannel>());
+        return await _desktopAgent.AddAppChannel(channel, request.InstanceId);
     }
 
     private async ValueTask SafeWaitAsync(IEnumerable<ValueTask> tasks)
@@ -166,7 +179,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        async Task RegisterHandler<TRequest, TResponse>(string topic, Func<TRequest?, MessageContext, ValueTask<TResponse?>> handler) where TRequest : class
+        async Task RegisterHandler<TRequest, TResponse>(string topic, Func<TRequest?, MessageContext?, ValueTask<TResponse?>> handler) where TRequest : class
         {
             await _messageRouter.RegisterServiceAsync(topic,
                 async (endpoint, payload, context) =>
@@ -185,6 +198,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         await RegisterHandler<StoreIntentResultRequest, StoreIntentResultResponse>(Fdc3Topic.SendIntentResult, HandleStoreIntentResult);
         await RegisterHandler<IntentListenerRequest, IntentListenerResponse>(Fdc3Topic.AddIntentListener, HandleAddIntentListener);
         await RegisterHandler<CreatePrivateChannelRequest, CreatePrivateChannelResponse>(Fdc3Topic.CreatePrivateChannel, HandleCreatePrivateChannel);
+        await RegisterHandler<CreateAppChannelRequest, CreateAppChannelResponse>(Fdc3Topic.CreateAppChannel, HandleCreateAppChannel);
 
         await _desktopAgent.StartAsync(cancellationToken);
 
@@ -205,7 +219,8 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
             _messageRouter.UnregisterServiceAsync(Fdc3Topic.GetIntentResult, cancellationToken),
             _messageRouter.UnregisterServiceAsync(Fdc3Topic.SendIntentResult, cancellationToken),
             _messageRouter.UnregisterServiceAsync(Fdc3Topic.AddIntentListener, cancellationToken),
-            _messageRouter.UnregisterServiceAsync(Fdc3Topic.CreatePrivateChannel, cancellationToken)
+            _messageRouter.UnregisterServiceAsync(Fdc3Topic.CreatePrivateChannel, cancellationToken),
+            _messageRouter.UnregisterServiceAsync(Fdc3Topic.CreateAppChannel, cancellationToken),
         };
 
         await SafeWaitAsync(unregisteringTasks);
