@@ -305,14 +305,11 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             return new Dictionary<string, IntentMetadata> { { request.Intent, intentMetadata } };
         };
 
-        var appIntents = await GetAppIntentsByRequest(selector, null);
+        var result = await GetAppIntentsByRequest(selector, null);
 
-        if (!appIntents.TryGetValue(request.Intent, out var appIntent))
-        {
-            return FindIntentResponse.Failure(ResolveError.NoAppsFound);
-        }
-
-        return FindIntentResponse.Success(appIntent);
+        return !result.AppIntents.TryGetValue(request.Intent, out var appIntent)
+            ? FindIntentResponse.Failure(ResolveError.NoAppsFound)
+            : FindIntentResponse.Success(appIntent);
     }
 
     public async ValueTask<FindIntentsByContextResponse> FindIntentsByContext(FindIntentsByContextRequest? request)
@@ -355,14 +352,11 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             return null;
         };
 
-        var appIntents = await GetAppIntentsByRequest(selector, null);
+        var result = await GetAppIntentsByRequest(selector, null);
 
-        if (!appIntents.Any())
-        {
-            return FindIntentsByContextResponse.Failure(ResolveError.NoAppsFound);
-        }
-
-        return FindIntentsByContextResponse.Success(appIntents.Values);
+        return !result.AppIntents.Any()
+            ? FindIntentsByContextResponse.Failure(ResolveError.NoAppsFound)
+            : FindIntentsByContextResponse.Success(result.AppIntents.Values);
     }
 
     public async ValueTask<GetIntentResultResponse> GetIntentResult(GetIntentResultRequest? request)
@@ -381,6 +375,26 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         {
             var intentResolution = await GetIntentResolutionResult(request).WaitAsync(_options.IntentResultTimeout);
 
+            if (intentResolution == null)
+            {
+                return GetIntentResultResponse.Failure(ResolveError.ResolverUnavailable);
+            }
+
+            if (intentResolution.ResultError != null)
+            {
+                return GetIntentResultResponse.Failure(intentResolution.ResultError);
+            }
+
+            if (!intentResolution.IsResolved
+                && ((_raisedIntentResolutions.TryGetValue(
+                         new Guid(request.TargetAppIdentifier.InstanceId!),
+                         out var handler)
+                        && !handler.IsIntentListenerRegistered(request.Intent))
+                    || intentResolution.ResultError == null))
+            {
+                return GetIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed);
+            }
+
             return GetIntentResultResponse.Success(
                 intentResolution!.ResultChannelId,
                 intentResolution!.ResultChannelType,
@@ -395,24 +409,32 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
     public ValueTask<StoreIntentResultResponse> StoreIntentResult(StoreIntentResultRequest? request)
     {
-        if (request == null)
+        try
         {
-            return ValueTask.FromResult(StoreIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed));
+            if (request == null)
+            {
+                return ValueTask.FromResult(StoreIntentResultResponse.Failure(ResolveError.IntentDeliveryFailed));
+            }
+
+            _raisedIntentResolutions.AddOrUpdate(
+                new Guid(request.OriginFdc3InstanceId),
+                _ => throw ThrowHelper.MissingAppFromRaisedIntentInvocations(request.OriginFdc3InstanceId),
+                (key, oldValue) => oldValue.AddIntentResult(
+                    messageId: request.MessageId,
+                    intent: request.Intent,
+                    channelId: request.ChannelId,
+                    channelType: request.ChannelType,
+                    context: request.Context,
+                    voidResult: request.VoidResult,
+                    error: request.Error));
+
+            return ValueTask.FromResult(StoreIntentResultResponse.Success());
         }
-
-        _raisedIntentResolutions.AddOrUpdate(
-            new Guid(request.OriginFdc3InstanceId),
-            _ => throw ThrowHelper.MissingAppFromRaisedIntentInvocations(request.OriginFdc3InstanceId),
-            (key, oldValue) => oldValue.AddIntentResult(
-                messageId: request.MessageId,
-                intent: request.Intent,
-                channelId: request.ChannelId,
-                channelType: request.ChannelType,
-                context: request.Context,
-                voidResult: request.VoidResult,
-                error: request.Error));
-
-        return ValueTask.FromResult(StoreIntentResultResponse.Success());
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, $"Exception was thrown while executing {nameof(StoreIntentResult)} call.");
+            return ValueTask.FromResult(StoreIntentResultResponse.Failure(Fdc3DesktopAgentErrors.MissingId));
+        }
     }
 
     public async ValueTask<RaiseIntentResult<IntentListenerResponse>> AddIntentListener(IntentListenerRequest? request)
@@ -434,14 +456,24 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
                     var resolutions = new List<RaiseIntentResolutionMessage>();
                     foreach (var raisedIntent in resolver.RaiseIntentResolutions.Where(
-                        invocation => invocation.Intent == request.Intent && !invocation.IsResolved))
+                                 invocation => invocation.Intent == request.Intent && !invocation.IsResolved))
                     {
+                        if (!_runningModules.TryGetValue(new(request.Fdc3InstanceId), out var app))
+                        {
+                            continue;
+                        }
+
+                        var specification = new RaiseIntentSpecification
+                        {
+                            Intent = raisedIntent.Intent,
+                            Context = raisedIntent.Context,
+                            SourceAppInstanceId = new(raisedIntent.OriginFdc3InstanceId),
+                            TargetAppMetadata = GetAppMetadata(app, request.Fdc3InstanceId, null),
+                        };
+
                         var resolution = await GetRaiseIntentResolutionMessage(
-                                                        raisedIntent.RaiseIntentMessageId,
-                                                        raisedIntent.Intent,
-                                                        raisedIntent.Context,
-                                                        request.Fdc3InstanceId,
-                                                        raisedIntent.OriginFdc3InstanceId);
+                            raisedIntent.RaiseIntentMessageId,
+                            specification);
 
                         if (resolution != null)
                         {
@@ -594,7 +626,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
             if (request.Context != null
                 && (intentMetadata.Contexts == null || !intentMetadata.Contexts.Contains(request.Context.Type))
-                && request.Context?.Type != ContextTypes.Nothing)
+                && request.Context.Type != ContextTypes.Nothing)
             {
                 return null;
             }
@@ -607,10 +639,18 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             return new Dictionary<string, IntentMetadata> { { request.Intent, intentMetadata } };
         };
 
-        var appIntents = await GetAppIntentsByRequest(selector, request.TargetAppIdentifier);
+        var intentQueryResult = await GetAppIntentsByRequest(selector, request.TargetAppIdentifier);
+
+        if (intentQueryResult.Error != null)
+        {
+            return new()
+            {
+                Response = RaiseIntentResponse.Failure(intentQueryResult.Error)
+            };
+        }
 
         //No intents were found which would have the right information to handle the raised intent
-        if (!appIntents.TryGetValue(request.Intent, out var appIntent) || !appIntent.Apps.Any())
+        if (!intentQueryResult.AppIntents.TryGetValue(request.Intent, out var appIntent) || !appIntent.Apps.Any())
         {
             return new()
             {
@@ -618,14 +658,19 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             };
         }
 
+        RaiseIntentSpecification raiseIntentSpecification = new()
+        {
+            Context = request.Context,
+            Intent = request.Intent,
+            RaisedIntentMessageId = request.MessageId,
+            SourceAppInstanceId = new(request.Fdc3InstanceId)
+        };
+
         if (appIntent.Apps.Count() == 1)
         {
-            return await RaiseIntentToApplication(
-                request.MessageId,
-                appIntent.Apps.ElementAt(0),
-                request.Intent,
-                request.Context,
-                request.Fdc3InstanceId);
+            raiseIntentSpecification.TargetAppMetadata = appIntent.Apps.ElementAt(0);
+
+            return await RaiseIntentToApplication(raiseIntentSpecification);
         }
 
         //Resolve to one app via ResolverUI.
@@ -633,12 +678,8 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
         if (result != null && result.Error == null)
         {
-            return await RaiseIntentToApplication(
-                request.MessageId,
-                result.AppMetadata!,
-                request.Intent,
-                request.Context,
-                request.Fdc3InstanceId);
+            raiseIntentSpecification.TargetAppMetadata = (AppMetadata) result.AppMetadata!;
+            return await RaiseIntentToApplication(raiseIntentSpecification);
         }
 
         if (result?.Error != null)
@@ -678,100 +719,157 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     }
 
     //Here we have a specific application which should either start or we should send a intent resolution request
-    private async ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntentToApplication(
-        int messageId,
-        IAppMetadata targetAppMetadata,
-        string intent,
-        Context context,
-        string sourceFdc3InstanceId)
+    private async ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntentToApplication(RaiseIntentSpecification raiseIntentSpecification)
     {
-        RaiseIntentResolutionMessage? resolution = null;
-        if (!string.IsNullOrEmpty(targetAppMetadata.InstanceId))
+        async Task<RaiseIntentResult<RaiseIntentResponse>?> GetRaiseIntentResponse(RaiseIntentSpecification raiseIntentSpecification, string messageId)
         {
-            var raisedIntentMessageId = StoreRaisedIntentForTarget(messageId, targetAppMetadata.InstanceId, intent, context, sourceFdc3InstanceId);
+            RaiseIntentResult<RaiseIntentResponse>? response = null;
 
-            if (!_raisedIntentResolutions.TryGetValue(new(targetAppMetadata.InstanceId), out var registeredFdc3App))
+            while (response == null && response?.Response.AppMetadata == null)
             {
-                return new()
+                if (!_raisedIntentResolutions.TryGetValue(new(raiseIntentSpecification.TargetAppMetadata.InstanceId!), out var registeredFdc3App))
                 {
-                    Response = RaiseIntentResponse.Failure(ResolveError.TargetInstanceUnavailable)
+                    response = new()
+                    {
+                        Response = RaiseIntentResponse.Failure(ResolveError.TargetInstanceUnavailable)
+                    };
+
+                    await Task.Delay(1);
+                    continue;
+                }
+
+                if (!registeredFdc3App.IsIntentListenerRegistered(raiseIntentSpecification.Intent))
+                {
+                    response = null;
+                    await Task.Delay(1);
+                    continue;
+                }
+
+                var resolution = await GetRaiseIntentResolutionMessage(messageId, raiseIntentSpecification);
+                response = new()
+                {
+                    Response = RaiseIntentResponse.Success(messageId, raiseIntentSpecification.Intent, raiseIntentSpecification.TargetAppMetadata),
+                    RaiseIntentResolutionMessages = resolution == null
+                        ? Enumerable.Empty<RaiseIntentResolutionMessage>()
+                        : [resolution]
                 };
+
+                return response;
             }
 
-            if (registeredFdc3App.IsIntentListenerRegistered(intent))
-            {
-                resolution = await GetRaiseIntentResolutionMessage(raisedIntentMessageId, intent, context, targetAppMetadata.InstanceId, sourceFdc3InstanceId);
-            }
-
-            return new()
-            {
-                Response = RaiseIntentResponse.Success(raisedIntentMessageId, intent, targetAppMetadata),
-                RaiseIntentResolutionMessages = resolution != null
-                    ? [resolution]
-                    : Enumerable.Empty<RaiseIntentResolutionMessage>()
-            };
+            return response;
         }
 
         try
         {
-            var fdc3InstanceId = Guid.NewGuid();
-            var startRequest = new StartRequest(
-                targetAppMetadata.AppId, //TODO: possible remove some identifier like @"fdc3."
-                [
-                    new(Fdc3StartupParameters.Fdc3InstanceId, fdc3InstanceId.ToString())
-                ]);
-
-            var taskCompletionSource = new TaskCompletionSource<IModuleInstance>();
-
-            if (_pendingStartRequests.TryAdd(startRequest, taskCompletionSource))
+            if (!string.IsNullOrEmpty(raiseIntentSpecification.TargetAppMetadata.InstanceId))
             {
-                var moduleInstance = await _moduleLoader.StartModule(startRequest);
+                var raisedIntentMessageId = StoreRaisedIntentForTarget(raiseIntentSpecification);
 
-                if (moduleInstance == null)
+                var response = await GetRaiseIntentResponse(raiseIntentSpecification, raisedIntentMessageId).WaitAsync(_options.ListenerRegistrationTimeout);
+                if (response != null)
                 {
-                    var exception = ThrowHelper.TargetInstanceUnavailable();
-
-                    if (!_pendingStartRequests.TryRemove(startRequest, out _))
-                    {
-                        _logger.LogWarning($"Could not remove {nameof(StartRequest)} from the pending requests. ModuleId: {startRequest.ModuleId}.");
-                    }
-
-                    taskCompletionSource.TrySetException(exception);
+                    return response;
                 }
 
-                await taskCompletionSource.Task;
+                return new()
+                {
+                    Response = RaiseIntentResponse.Failure(ResolveError.IntentDeliveryFailed)
+                };
             }
 
-            var raisedIntentMessageId = StoreRaisedIntentForTarget(messageId, fdc3InstanceId.ToString(), intent, context, sourceFdc3InstanceId);
-
-            var target = new AppMetadata
+            try
             {
-                AppId = targetAppMetadata.AppId,
-                InstanceId = fdc3InstanceId.ToString(),
-                Name = targetAppMetadata.Name,
-                Version = targetAppMetadata.Version,
-                Title = targetAppMetadata.Title,
-                Tooltip = targetAppMetadata.Tooltip,
-                Description = targetAppMetadata.Description,
-                Icons = targetAppMetadata.Icons.Select(Icon.GetIcon),
-                Screenshots = targetAppMetadata.Screenshots.Select(Screenshot.GetScreenshot),
-                ResultType = targetAppMetadata.ResultType
-            };
+                var module = await StartModule(raiseIntentSpecification.TargetAppMetadata);
 
-            return new()
+                raiseIntentSpecification.TargetAppMetadata = module;
+
+                var raisedIntentMessageId = StoreRaisedIntentForTarget(raiseIntentSpecification);
+
+                if (!_raisedIntentResolutions.TryGetValue(new Guid(module.InstanceId!), out _))
+                {
+                    return new()
+                    {
+                        Response = RaiseIntentResponse.Failure(ResolveError.TargetInstanceUnavailable)
+                    };
+                }
+
+                var response = await GetRaiseIntentResponse(raiseIntentSpecification, raisedIntentMessageId).WaitAsync(_options.ListenerRegistrationTimeout);
+
+                if (response != null)
+                {
+                    return response;
+                }
+
+                return new()
+                {
+                    Response = RaiseIntentResponse.Failure(ResolveError.IntentDeliveryFailed)
+                };
+            }
+            catch (Fdc3DesktopAgentException exception)
             {
-                Response = RaiseIntentResponse.Success(raisedIntentMessageId, intent, target)
-            };
-        }
-        catch (Fdc3DesktopAgentException exception)
+                _logger.LogError(exception, "Error while starting module.");
+
+                return new()
+                {
+                    Response = RaiseIntentResponse.Failure(exception.ToString()),
+                };
+            }
+        } 
+        catch (TimeoutException)
         {
-            _logger.LogError(exception, "Error while starting module.");
-
             return new()
             {
-                Response = RaiseIntentResponse.Failure(exception.ToString()),
+                Response = RaiseIntentResponse.Failure(ResolveError.IntentDeliveryFailed)
             };
         }
+    }
+
+    private async ValueTask<AppMetadata> StartModule(AppMetadata targetAppMetadata, IEnumerable<KeyValuePair<string, string>>? additionalStartupParameters = null)
+    {
+        var startupParameters = additionalStartupParameters?.ToDictionary(x => x.Key, y => y.Value) ?? new Dictionary<string, string>();
+
+        var fdc3InstanceId = Guid.NewGuid().ToString();
+        startupParameters.Add(Fdc3StartupParameters.Fdc3InstanceId, fdc3InstanceId);
+
+        var startRequest = new StartRequest(
+            targetAppMetadata.AppId, //TODO: possible remove some identifier like @"fdc3."
+            startupParameters);
+
+        var taskCompletionSource = new TaskCompletionSource<IModuleInstance>();
+
+        if (_pendingStartRequests.TryAdd(startRequest, taskCompletionSource))
+        {
+            var moduleInstance = await _moduleLoader.StartModule(startRequest);
+
+            if (moduleInstance == null)
+            {
+                var exception = ThrowHelper.TargetInstanceUnavailable();
+
+                if (!_pendingStartRequests.TryRemove(startRequest, out _))
+                {
+                    _logger.LogWarning($"Could not remove {nameof(StartRequest)} from the pending requests. ModuleId: {startRequest.ModuleId}.");
+                }
+
+                taskCompletionSource.TrySetException(exception);
+            }
+
+            await taskCompletionSource.Task;
+        }
+
+        return new AppMetadata
+        {
+            AppId = targetAppMetadata.AppId,
+            InstanceId = fdc3InstanceId,
+            Name = targetAppMetadata.Name,
+            Version = targetAppMetadata.Version,
+            Title = targetAppMetadata.Title,
+            Tooltip = targetAppMetadata.Tooltip,
+            Description = targetAppMetadata.Description,
+            Icons = targetAppMetadata.Icons.Select(Icon.GetIcon),
+            Screenshots = targetAppMetadata.Screenshots.Select(Screenshot.GetScreenshot),
+            ResultType = targetAppMetadata.ResultType
+        };
     }
 
     private async Task<RaiseIntentResolutionInvocation?> GetIntentResolutionResult(GetIntentResultRequest request)
@@ -791,21 +889,17 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         return resolution;
     }
 
-    private string StoreRaisedIntentForTarget(
-        int messageId,
-        string targetFdc3InstanceId,
-        string intent,
-        Context context,
-        string sourceFdc3InstanceId)
+    private string StoreRaisedIntentForTarget(RaiseIntentSpecification raiseIntentSpecification)
     {
         var invocation = new RaiseIntentResolutionInvocation(
-            raiseIntentMessageId: messageId,
-            intent: intent,
-            originFdc3InstanceId: sourceFdc3InstanceId,
-            contextToHandle: context);
+            raiseIntentMessageId: raiseIntentSpecification.RaisedIntentMessageId,
+            intent: raiseIntentSpecification.Intent,
+            originFdc3InstanceId: raiseIntentSpecification.SourceAppInstanceId.ToString(),
+            contextToHandle: raiseIntentSpecification.Context);
 
+        //At this point the InstanceId should be not null.
         _raisedIntentResolutions.AddOrUpdate(
-            new(targetFdc3InstanceId),
+            new(raiseIntentSpecification.TargetAppMetadata.InstanceId!),
             _ =>
             {
                 var resolver = new RaisedIntentRequestHandler(_loggerFactory.CreateLogger<RaisedIntentRequestHandler>());
@@ -820,28 +914,25 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     //Publishing intent resolution request to the fdc3 clients, they will receive the message and start their IntentHandler appropriately, and send a store request back to the backend.
     private Task<RaiseIntentResolutionMessage?> GetRaiseIntentResolutionMessage(
         string raisedIntentMessageId,
-        string intent,
-        Context context,
-        string targetId,
-        string sourceFdc3InstanceId)
+        RaiseIntentSpecification raiseIntentSpecification)
     {
-        if (_runningModules.TryGetValue(new(sourceFdc3InstanceId), out var sourceApp))
+        if (_runningModules.TryGetValue(raiseIntentSpecification.SourceAppInstanceId, out var sourceApp))
         {
             var sourceAppIdentifier = new AppIdentifier
             {
                 AppId = sourceApp.AppId,
-                InstanceId = sourceFdc3InstanceId
+                InstanceId = raiseIntentSpecification.SourceAppInstanceId.ToString()
             };
 
             return Task.FromResult<RaiseIntentResolutionMessage?>(
                 new()
                 {
-                    Intent = intent,
-                    TargetModuleInstanceId = targetId,
+                    Intent = raiseIntentSpecification.Intent,
+                    TargetModuleInstanceId = raiseIntentSpecification.TargetAppMetadata.InstanceId!,
                     Request = new RaiseIntentResolutionRequest
                     {
                         MessageId = raisedIntentMessageId,
-                        Context = context,
+                        Context = raiseIntentSpecification.Context,
                         ContextMetadata = new ContextMetadata
                         {
                             Source = sourceAppIdentifier
@@ -853,32 +944,132 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         return Task.FromResult<RaiseIntentResolutionMessage?>(null);
     }
 
-    private async Task<Dictionary<string, AppIntent>> GetAppIntentsByRequest(
+    private async Task<IntentQueryResult> GetAppIntentsByRequest(
         Func<Fdc3App, Dictionary<string, AppIntent>, IEnumerable<KeyValuePair<string, IntentMetadata>>?> selector,
         IAppIdentifier? targetAppIdentifier)
     {
-        var appIntents = new Dictionary<string, AppIntent>();
+        var result = new IntentQueryResult();
 
         if (targetAppIdentifier?.InstanceId == null)
         {
-            appIntents = await GetAppIntentsFromAppDirectory(selector, targetAppIdentifier, appIntents);
+            result = await GetAppIntentsFromAppDirectory(selector, targetAppIdentifier, result);
         }
 
-        appIntents = GetAppIntentsFromRunningModules(selector, targetAppIdentifier, appIntents);
+        result = await GetAppIntentsFromRunningModules(selector, targetAppIdentifier, result);
 
-        return appIntents;
+        return result;
     }
 
-    private async Task GetAppIntentsByRequest(
-        Action<Fdc3App, string?> selector,
-        IAppIdentifier? targetAppIdentifier)
+    private async Task<IntentQueryResult> GetAppIntentsFromRunningModules(
+        Func<Fdc3App, Dictionary<string, AppIntent>, IEnumerable<KeyValuePair<string, IntentMetadata>>?> selector,
+        IAppIdentifier? targetAppIdentifier,
+        IntentQueryResult result)
     {
-        if (targetAppIdentifier?.InstanceId == null)
+        void FilterAppIntents(Fdc3App app, string id)
         {
-            await GetAppIntentsFromAppDirectory(selector, targetAppIdentifier);
+            var intentMetadataCollection = selector(app, result.AppIntents);
+
+            if (intentMetadataCollection == null)
+            {
+                return;
+            }
+
+            result.AppIntents = GetAppIntentsFromIntentMetadataCollection(
+                app,
+                id,
+                intentMetadataCollection,
+                result.AppIntents);
         }
 
-        GetAppIntentsFromRunningModules(selector, targetAppIdentifier);
+        var validInstanceId = Guid.TryParse(targetAppIdentifier?.InstanceId, out var id);
+
+        if (validInstanceId)
+        {
+            if (_runningModules.TryGetValue(id, out var fdc3App))
+            {
+                FilterAppIntents(fdc3App, targetAppIdentifier!.InstanceId!);
+                return result;
+            }
+
+            try
+            {
+                //If the app exists, but the specified instance id does not.
+                await _appDirectory.GetApp(targetAppIdentifier!.AppId);
+                result.Error = ResolveError.TargetInstanceUnavailable;
+                return result;
+            }
+            catch (AppNotFoundException)
+            {
+                result.Error = ResolveError.IntentDeliveryFailed;
+                return result;
+            }
+        }
+
+        if (targetAppIdentifier?.InstanceId != null && !validInstanceId)
+        {
+            result.Error = ResolveError.TargetInstanceUnavailable;
+            return result;
+        }
+
+        //foreach is safe to do on a concurrent dictionary, it might involve the later added items, but would not throw an exception
+        foreach (var app in _runningModules)
+        {
+            if (targetAppIdentifier?.InstanceId != null
+                && Guid.TryParse(targetAppIdentifier.InstanceId, out var instanceId)
+                && instanceId != app.Key)
+            {
+                continue;
+            }
+
+            FilterAppIntents(app.Value, app.Key.ToString());
+        }
+
+        return result;
+    }
+
+    private async Task<IntentQueryResult> GetAppIntentsFromAppDirectory(
+        Func<Fdc3App, Dictionary<string, AppIntent>, IEnumerable<KeyValuePair<string, IntentMetadata>>?> selector,
+        IAppIdentifier? targetAppIdentifier,
+        IntentQueryResult result)
+    {
+        var apps = (await _appDirectory.GetApps()).ToArray();
+
+        void FilterAppIntents(Fdc3App app)
+        {
+            var intentMetadataCollection = selector(app, result.AppIntents);
+
+            if (intentMetadataCollection == null)
+            {
+                return;
+            }
+
+            result.AppIntents = GetAppIntentsFromIntentMetadataCollection(app, null, intentMetadataCollection, result.AppIntents);
+        }
+
+        if (targetAppIdentifier != null)
+        {
+            var fdc3App = apps.FirstOrDefault(x => x.AppId == targetAppIdentifier.AppId);
+            if (fdc3App == default)
+            {
+                result.Error = ResolveError.TargetAppUnavailable;
+                return result;
+            }
+
+            FilterAppIntents(fdc3App);
+            return result;
+        }
+
+        foreach (var app in apps)
+        {
+            if (targetAppIdentifier != null && targetAppIdentifier.AppId != app.AppId)
+            {
+                continue;
+            }
+
+            FilterAppIntents(app);
+        }
+
+        return result;
     }
 
     private Dictionary<string, AppIntent> GetAppIntentsFromRunningModules(
@@ -967,7 +1158,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
                 appIntent = new AppIntent
                 {
                     Intent = new Protocol.IntentMetadata
-                    { Name = intentMetadata.Key, DisplayName = intentMetadata.Value.DisplayName },
+                        { Name = intentMetadata.Key, DisplayName = intentMetadata.Value.DisplayName },
                     Apps = Enumerable.Empty<AppMetadata>()
                 };
 

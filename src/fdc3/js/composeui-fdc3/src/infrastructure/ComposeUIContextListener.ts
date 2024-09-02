@@ -44,6 +44,7 @@ export class ComposeUIContextListener implements Listener {
             //TODO: integration test
             const context = <Context>JSON.parse(topicMessage.payload!);
             if (!this.contextType || this.contextType == context!.type) {
+                console.log("ContextListener received context to handle: ", context);
                 this.handler!(context!);
             }
         });

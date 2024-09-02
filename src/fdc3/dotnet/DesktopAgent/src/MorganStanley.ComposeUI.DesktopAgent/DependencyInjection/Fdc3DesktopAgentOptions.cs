@@ -35,5 +35,10 @@ public sealed class Fdc3DesktopAgentOptions : IOptions<Fdc3DesktopAgentOptions>
     /// </summary>
     public TimeSpan IntentResultTimeout { get; set; } = TimeSpan.FromSeconds(5);
 
+    /// <summary>
+    /// Indicates timeout value for registering the listeners when a new instance of an FDC3 app is launched.
+    /// </summary>
+    public TimeSpan ListenerRegistrationTimeout { get; set; } = TimeSpan.FromSeconds(5);
+
     Fdc3DesktopAgentOptions IOptions<Fdc3DesktopAgentOptions>.Value => this;
 }

@@ -40,6 +40,7 @@ export class ComposeUIChannel implements Channel {
         this.lastContexts.set(context.type, context);
         this.lastContext = context;
         const topic = ComposeUITopic.broadcast(this.id, this.type);
+        console.log("Broadcast from channel: ", this.id, this.type, topic, context);
         await this.messageRouterClient.publish(topic, JSON.stringify(context));
     }
 
@@ -79,6 +80,7 @@ export class ComposeUIChannel implements Channel {
 
         const listener = new ComposeUIContextListener(this.messageRouterClient, handler, this.id, this.type, contextType);
         await listener.subscribe();
+        console.log("ContextListener has been added through channel:", contextType);
         return listener;
     }
 }
