@@ -157,12 +157,10 @@ The necessary solutions have to be built in the following order:
 
 #### IDE setup
 1. [Download](https://launchpad.net/sikuli/+download) sikuli IDE jar file.
-2. [Download](https://repo1.maven.org/maven2/org/python/jython-standalone/2.7.1/jython-standalone-2.7.1.jar) jython standalone jar file. 
-3. Have Sikuli IDE jar file and the jython standalone jar file in the same directory.
-4. Launch the IDE with a double click on the sikuli IDE jar file
+2. Launch the IDE with a double click on the sikuli IDE jar file
 
 #### Run tests
-1. Launch FDC3-Chart-and-Grid
+1. Launch [FDC3 Chart and Grid Example](####FDC3-Chart-and-Grid-Example)
 2. On the Sikuli IDE click on file -> open
-3. Locate the test file and select
-4. Click on run(Make sure FDC3-Chart-and-Grid is running in the background and the next application after the IDE)
+3. Locate the test file and select.
+4. Click on the "Run" button in sikuli IDE to execute the script. Ensure that [FDC3 Chart and Grid Example](####FDC3-Chart-and-Grid-Example) is running in the background as Sikuli script will interact with it directly.
