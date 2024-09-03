@@ -3,7 +3,7 @@
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.2.2" />
     <PackageVersion Include="coverlet.collector" Version="6.0.0" />
     <PackageVersion Include="coverlet.msbuild" Version="6.0.0" />
-    <PackageVersion Include="CommunityToolkit.HighPerformance" Version="8.2.2" />
+    <PackageVersion Include="CommunityToolkit.HighPerformance" Version="8.3.0" />
     <PackageVersion Include="Finos.Fdc3" Version="2.0.0" />
     <PackageVersion Include="Finos.Fdc3.NewtonsoftJson" Version="2.0.0" />
     <PackageVersion Include="Finos.Fdc3.AppDirectory" Version="2.0.0" />
