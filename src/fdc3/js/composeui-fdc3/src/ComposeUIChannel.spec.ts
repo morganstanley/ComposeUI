@@ -136,7 +136,7 @@ describe("AppChanel tests", () => {
             invoke: jest.fn(() => { return Promise.resolve(`${JSON.stringify({ found: true })}`) })
         };
 
-        const desktopAgent = new ComposeUIDesktopAgent('dummyPath', messageRouterClientMock);
+        const desktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
         const channel1 = await desktopAgent.getOrCreateChannel("hello.world");
         const channel2 = await desktopAgent.getOrCreateChannel("hello.world");
         expect(channel2).toBe(channel1);
@@ -156,7 +156,7 @@ describe("AppChanel tests", () => {
                 .mockImplementationOnce(() => Promise.resolve(JSON.stringify({ found: false })))
                 .mockImplementationOnce(() => Promise.resolve(JSON.stringify({ success: true })))
         };
-        const desktopAgent = new ComposeUIDesktopAgent('dummyPath', messageRouterClientMock);
+        const desktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
         const channel = await desktopAgent.getOrCreateChannel("hello.world");
         expect(channel).toBeInstanceOf(ComposeUIChannel);
     });
@@ -176,7 +176,7 @@ describe("AppChanel tests", () => {
                 .mockImplementationOnce(() => Promise.resolve(JSON.stringify({ success: false, error: "dummy" })))
         };
 
-        const desktopAgent = new ComposeUIDesktopAgent('dummyPath', messageRouterClientMock);
+        const desktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
         await expect(desktopAgent.getOrCreateChannel("hello.world"))
             .rejects
             .toThrow("dummy");
@@ -197,7 +197,7 @@ describe("AppChanel tests", () => {
                 .mockImplementationOnce(() => Promise.resolve(JSON.stringify({ success: false })))
         };
 
-        const desktopAgent = new ComposeUIDesktopAgent('dummyPath', messageRouterClientMock);
+        const desktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
         await expect(desktopAgent.getOrCreateChannel("hello.world"))
             .rejects
             .toThrow(ChannelError.CreationFailed);

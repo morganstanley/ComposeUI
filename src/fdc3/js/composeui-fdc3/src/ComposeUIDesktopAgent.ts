@@ -37,18 +37,6 @@ import { IntentsClient } from './infrastructure/IntentsClient';
 import { MetadataClient } from './infrastructure/MetadataClient';
 import { MessageRouterMetadataClient } from './infrastructure/MessageRouterMetadataClient';
 
-declare global {
-    interface Window {
-        composeui: {
-            fdc3: {
-                config: AppIdentifier | undefined;
-                channelId : string;
-            }
-        }
-        fdc3: DesktopAgent;
-    }
-}
-
 export class ComposeUIDesktopAgent implements DesktopAgent {
     private appChannels: Channel[] = [];
     private userChannels: Channel[] = [];
@@ -61,7 +49,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     private metadataClient: MetadataClient;
 
     //TODO: we should enable passing multiple channelId to the ctor.
-    constructor(channelId: string, messageRouterClient: MessageRouter, channelFactory?: ChannelFactory) {
+    constructor(messageRouterClient: MessageRouter, channelFactory?: ChannelFactory) {
         if (!window.composeui.fdc3.config || !window.composeui.fdc3.config.instanceId) {
             throw new Error(ComposeUIErrors.InstanceIdNotFound);
         }
@@ -70,12 +58,6 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         this.channelFactory = channelFactory ?? new MessageRouterChannelFactory(messageRouterClient, window.composeui.fdc3.config.instanceId);
         this.intentsClient = new MessageRouterIntentsClient(messageRouterClient, this.channelFactory);
         this.metadataClient = new MessageRouterMetadataClient(messageRouterClient, window.composeui.fdc3.config);
-
-        setTimeout(
-            async () => {
-                window.fdc3 = this;
-                window.dispatchEvent(new Event("fdc3Ready"));
-            }, 0);
     }
 
     //TODO
@@ -145,9 +127,11 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         return await this.channelFactory.getUserChannels();
     }
 
+    //TODO: add pending context listeners which were registered via the fdc3.addContextListener
     public async joinUserChannel(channelId: string): Promise<void> {
         if (this.currentChannel) {
-            return;
+            //DesktopAgnet clients can listen on only one channel
+            await this.leaveCurrentChannel();
         }
 
         let channel = this.userChannels.find(innerChannel => innerChannel.id == channelId);
@@ -190,6 +174,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     }
 
     //TODO: add messageRouter message that we are leaving the current channel to notify the backend.
+    //TODO: leave the curent channel's listsners added via fdc3.addContextListener.
     public async leaveCurrentChannel(): Promise<void> {
         this.currentChannel = undefined;
         this.currentChannelListeners.forEach(listener => {

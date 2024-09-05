@@ -1045,7 +1045,7 @@ public class EndToEndTests : IAsyncLifetime
 
 
     [Fact]
-    public async Task JoinUserChannelReturnsAccessDenied()
+    public async Task JoinUserChannelReturnsMissingId()
     {
         var request = new JoinUserChannelRequest
         {
@@ -1060,7 +1060,7 @@ public class EndToEndTests : IAsyncLifetime
         var result = response!.ReadJson<JoinUserChannelResponse>(_options);
 
         result.Should().NotBeNull();
-        result.Should().BeEquivalentTo(JoinUserChannelResponse.Failed(ChannelError.AccessDenied));
+        result.Should().BeEquivalentTo(JoinUserChannelResponse.Failed(Fdc3DesktopAgentErrors.MissingId));
     }
 
     [Fact]

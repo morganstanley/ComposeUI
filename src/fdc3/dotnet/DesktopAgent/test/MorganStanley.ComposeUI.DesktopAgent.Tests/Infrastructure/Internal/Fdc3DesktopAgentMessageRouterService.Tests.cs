@@ -1091,7 +1091,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task HandleJoinUserChannel_returns_access_denied_error_as_instance_id_not_found()
+    public async Task HandleJoinUserChannel_returns_missing_Id_error_as_instance_id_not_found()
     {
         var request = new JoinUserChannelRequest
         {
@@ -1101,7 +1101,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
         var result = await _fdc3.HandleJoinUserChannel(request, new());
 
         result.Should().NotBeNull();
-        result.Should().BeEquivalentTo(JoinUserChannelResponse.Failed(ChannelError.AccessDenied));
+        result.Should().BeEquivalentTo(JoinUserChannelResponse.Failed(Fdc3DesktopAgentErrors.MissingId));
     }
 
     [Fact]

@@ -529,7 +529,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     {
         if (!Guid.TryParse(request.InstanceId, out var id) || !_runningModules.TryGetValue(id, out _))
         {
-            return JoinUserChannelResponse.Failed(ChannelError.AccessDenied);
+            return JoinUserChannelResponse.Failed(Fdc3DesktopAgentErrors.MissingId);
         }
 
         ChannelItem? channelItem = null;
@@ -550,7 +550,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
         if (channelItem != null)
         {
-            return JoinUserChannelResponse.Joined((DisplayMetadata)channelItem.DisplayMetadata);
+            return JoinUserChannelResponse.Joined(channelItem.DisplayMetadata);
         }
 
         return JoinUserChannelResponse.Joined();

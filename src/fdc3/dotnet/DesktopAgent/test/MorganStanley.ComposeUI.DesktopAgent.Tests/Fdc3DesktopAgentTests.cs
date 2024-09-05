@@ -749,12 +749,12 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task JoinUserChannel_returns_access_denied_error_as_instance_id_not_found()
+    public async Task JoinUserChannel_returns_missing_id_error_as_instance_id_not_found()
     {
         var result = await _fdc3.JoinUserChannel((channelId) => new UserChannel(channelId, new Mock<IMessagingService>().Object, null), new() { InstanceId = Guid.NewGuid().ToString(), ChannelId = "test"});
 
         result.Should().NotBeNull();
-        result.Should().BeEquivalentTo(JoinUserChannelResponse.Failed(ChannelError.AccessDenied));
+        result.Should().BeEquivalentTo(JoinUserChannelResponse.Failed(Fdc3DesktopAgentErrors.MissingId));
     }
 
     [Fact]

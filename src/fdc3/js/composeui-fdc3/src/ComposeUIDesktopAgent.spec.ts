@@ -80,14 +80,14 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
             getUserChannels: jest.fn(() => Promise.reject("Not implemented")),
         };
 
-        desktopAgent = new ComposeUIDesktopAgent(dummyChannelId, messageRouterClient, channelFactory);
+        desktopAgent = new ComposeUIDesktopAgent(messageRouterClient, channelFactory);
         await desktopAgent.joinUserChannel(dummyChannelId);
         await new Promise(f => setTimeout(f, 100));
     });
 
     it('ComposeUIDesktopAgent could not be created as no instanceId found on window object', async () => {
         window.composeui.fdc3.config = undefined;
-        expect(() => new ComposeUIDesktopAgent(dummyChannelId, messageRouterClient))
+        expect(() => new ComposeUIDesktopAgent(messageRouterClient))
             .toThrowError(ComposeUIErrors.InstanceIdNotFound);
     });
 
