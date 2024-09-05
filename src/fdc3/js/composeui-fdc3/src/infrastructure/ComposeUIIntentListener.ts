@@ -46,9 +46,11 @@ export class ComposeUIIntentListener implements Listener {
                 let request: Fdc3StoreIntentResultRequest;
                 try {
                     const result = this.intentHandler(message.context, message.contextMetadata);
-                    if (result && (typeof result === 'object' || typeof result === 'function') && typeof result.then === 'function') {
+                    if (result && result instanceof Promise) {
                         const intentResult = <object>await result;
-                        if ('id' in intentResult) {
+                        if (!intentResult) {
+                            request = new Fdc3StoreIntentResultRequest(message.messageId, this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, undefined, true);
+                        } else if ('id' in intentResult) {
                             const channel = <Channel>intentResult;
                             request = new Fdc3StoreIntentResultRequest(message.messageId, this.intent, this.instanceId, message.contextMetadata.source.instanceId!, channel.id, channel.type);
                         } else if ('type' in intentResult) {
@@ -57,11 +59,11 @@ export class ComposeUIIntentListener implements Listener {
                         } else {
                             throw new Error("Cannot detect the return type of the IntentHandler.");
                         }
-                    } else { //it's a void
+                    } else {
                         request = new Fdc3StoreIntentResultRequest(message.messageId, this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, undefined, true);
                     }
-
                 } catch (error) {
+                    console.error(error);
                     request = new Fdc3StoreIntentResultRequest(message.messageId, this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, undefined, false, ResultError.IntentHandlerRejected);
                 }
 
@@ -72,6 +74,7 @@ export class ComposeUIIntentListener implements Listener {
                     const response = <Fdc3StoreIntentResultResponse>(JSON.parse(result));
                     if (response.error || !response.stored) {
                         console.log("Error while resolving the intent.", response.error);
+                        throw new Error(response.error);
                     }
                 }
             });

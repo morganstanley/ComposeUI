@@ -1,4 +1,4 @@
-/* 
+﻿/* 
  *  Morgan Stanley makes this available to you under the Apache License,
  *  Version 2.0 (the "License"). You may obtain a copy of the License at
  *       http://www.apache.org/licenses/LICENSE-2.0.
@@ -34,12 +34,15 @@ import { ChannelFactory } from './infrastructure/ChannelFactory';
 import { MessageRouterChannelFactory } from './infrastructure/MessageRouterChannelFactory';
 import { MessageRouterIntentsClient } from './infrastructure/MessageRouterIntentsClient';
 import { IntentsClient } from './infrastructure/IntentsClient';
+import { MetadataClient } from './infrastructure/MetadataClient';
+import { MessageRouterMetadataClient } from './infrastructure/MessageRouterMetadataClient';
 
 declare global {
     interface Window {
         composeui: {
             fdc3: {
                 config: AppIdentifier | undefined;
+                channelId : string;
             }
         }
         fdc3: DesktopAgent;
@@ -55,6 +58,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     private intentListeners: Listener[] = [];
     private channelFactory: ChannelFactory;
     private intentsClient: IntentsClient;
+    private metadataClient: MetadataClient;
 
     //TODO: we should enable passing multiple channelId to the ctor.
     constructor(channelId: string, messageRouterClient: MessageRouter, channelFactory?: ChannelFactory) {
@@ -65,7 +69,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         // TODO: inject this directly instead of the messageRouter
         this.channelFactory = channelFactory ?? new MessageRouterChannelFactory(messageRouterClient, window.composeui.fdc3.config.instanceId);
         this.intentsClient = new MessageRouterIntentsClient(messageRouterClient, this.channelFactory);
-
+        this.metadataClient = new MessageRouterMetadataClient(messageRouterClient, window.composeui.fdc3.config);
 
         setTimeout(
             async () => {
@@ -79,17 +83,16 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         throw new Error("Not implemented");
     }
 
-    public findIntent(intent: string, context?: Context, resultType?: string): Promise<AppIntent> {
-        return this.intentsClient.findIntent(intent, context, resultType);
+    public async findIntent(intent: string, context?: Context, resultType?: string): Promise<AppIntent> {
+        return await this.intentsClient.findIntent(intent, context, resultType);
     }
 
-    public findIntentsByContext(context: Context, resultType?: string): Promise<Array<AppIntent>> {
-        return this.intentsClient.findIntentsByContext(context, resultType);
+    public async findIntentsByContext(context: Context, resultType?: string): Promise<Array<AppIntent>> {
+        return await this.intentsClient.findIntentsByContext(context, resultType);
     }
 
-    //TODO
-    public findInstances(app: AppIdentifier): Promise<Array<AppIdentifier>> {
-        throw new Error("Not implemented");
+    public async findInstances(app: AppIdentifier): Promise<Array<AppIdentifier>> {
+        return await this.metadataClient.findInstances(app);
     }
 
     public async broadcast(context: Context): Promise<void> {
@@ -101,7 +104,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     }
 
     public async raiseIntent(intent: string, context: Context, app?: string | AppIdentifier): Promise<IntentResolution> {
-        return this.intentsClient.raiseIntent(intent, context, app);
+        return await this.intentsClient.raiseIntent(intent, context, app);
     }
 
     //TODO
@@ -130,7 +133,8 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         const lastContext = await this.currentChannel!.getCurrentContext(contextType ?? undefined)
 
         if (lastContext) {
-            await listener.handleContextMessage(lastContext);
+            //TODO: timing issue
+            setTimeout(async() => await listener.handleContextMessage(lastContext), 100);
         }
 
         this.currentChannelListeners.push(listener);
@@ -138,10 +142,9 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     }
 
     public async getUserChannels(): Promise<Array<Channel>> {
-        return new Array(...this.userChannels);
+        return await this.channelFactory.getUserChannels();
     }
 
-    //TODO: should return AccessDenied error when a channel object is denied?
     public async joinUserChannel(channelId: string): Promise<void> {
         if (this.currentChannel) {
             return;
@@ -149,26 +152,37 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
 
         let channel = this.userChannels.find(innerChannel => innerChannel.id == channelId);
         if (!channel) {
-            channel = await this.channelFactory.getChannel(channelId, "user");
-            this.addChannel(channel);
+            channel = await this.channelFactory.joinUserChannel(channelId);
         }
 
         if (!channel) {
             throw new Error(ChannelError.NoChannelFound);
         }
 
+        this.addChannel(channel);
         this.currentChannel = channel;
     }
 
-    //TODO: should return AccessDenied error when a channel object is denied
-    //TODO: should return a CreationFailed error when a channel cannot be created or retrieved (channelId failure)
-    public getOrCreateChannel(channelId: string): Promise<Channel> {
-        throw new Error("Not implemented.");
+    public async getOrCreateChannel(channelId: string): Promise<Channel> {
+        let appChannel = this.appChannels.find(channel => channel.id == channelId);
+        if (appChannel) {
+            return appChannel;
+        }
+
+        try {
+            appChannel = await this.channelFactory.getChannel(channelId, "app");
+        } catch (err) {
+            if (!appChannel) {
+                appChannel = await this.channelFactory.createAppChannel(channelId);            
+            }
+        }
+
+        this.addChannel(appChannel!);
+        return appChannel!;
     }
 
-    //TODO
     public async createPrivateChannel(): Promise<PrivateChannel> {
-        return this.channelFactory.createPrivateChannel();
+        return await this.channelFactory.createPrivateChannel();
     }
 
     public async getCurrentChannel(): Promise<Channel | null> {
@@ -184,23 +198,12 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         this.currentChannelListeners = [];
     }
 
-    //TODO: we should ask the backend to give the current appMetadata back
     public async getInfo(): Promise<ImplementationMetadata> {
-        const metadata = {
-            fdc3Version: "2.0",
-            provider: "ComposeUI",
-            providerVersion: "0.1.0-alpha.1", //TODO: version check
-            optionalFeatures: {
-                OriginatingAppMetadata: false,
-                UserChannelMembershipAPIs: false
-            }
-        };
-        return <ImplementationMetadata>metadata;
+        return await this.metadataClient.getInfo();
     }
 
-    //TODO
-    public getAppMetadata(app: AppIdentifier): Promise<AppMetadata> {
-        throw new Error("Not implemented");
+    public async getAppMetadata(app: AppIdentifier): Promise<AppMetadata> {
+        return await this.metadataClient.getAppMetadata(app);
     }
 
     // Deprecated, alias to getUserChannels

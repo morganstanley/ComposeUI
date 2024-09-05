@@ -94,5 +94,5 @@ window.app = function () {
 window.addEventListener('load', async function () {
     intentListener = await window.fdc3.addIntentListener("StartChat", window.app.handleChatIntent);
 
-    await window.fdc3.joinUserChannel("default");
+    await window.fdc3.joinUserChannel("fdc3.channel.1");
 });

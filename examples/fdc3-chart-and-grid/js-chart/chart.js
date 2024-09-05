@@ -61,7 +61,7 @@ async function requestData() {
     currentChannel = await window.fdc3.getCurrentChannel();
   
     if(!currentChannel) {
-      await window.fdc3.joinUserChannel("default");
+      await window.fdc3.joinUserChannel("fdc3.channel.1");
     }
 
     contextListener = await window.fdc3.addContextListener(ContextTypes.Instrument, (context, metadata) => {

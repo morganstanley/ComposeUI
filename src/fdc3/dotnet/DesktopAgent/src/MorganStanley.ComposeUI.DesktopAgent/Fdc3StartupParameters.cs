@@ -15,9 +15,10 @@
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
 /// <summary>
-/// This class is for setting internally the Fdc3InstanceId via the Fdc3DesktopAgent client's raiseIntent call.
+/// This class is for setting internally the properties that should be injected to the opened app.
 /// </summary>
 internal class Fdc3StartupParameters
 {
     public static string Fdc3InstanceId = nameof(Fdc3InstanceId);
+    public static string Fdc3ChannelId = nameof(Fdc3ChannelId);
 }

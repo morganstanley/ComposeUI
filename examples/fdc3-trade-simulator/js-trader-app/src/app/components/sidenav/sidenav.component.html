@@ -1,0 +1,31 @@
+<!-- Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. -->
+<mat-toolbar>
+    <button mat-icon-button (click)="sidenav.toggle()">
+        <mat-icon>menu</mat-icon>
+    </button>
+
+    <span>Trading Application</span>
+
+    <div class="theme-control">
+        <button mat-icon-button checked (click)="toggleThemeWithButton()">
+            @if (themeService.themeSignal() === 'dark') {
+                <mat-icon>bedtime</mat-icon>
+            } @else {
+                <mat-icon>brightness_5</mat-icon>
+            }
+        </button>
+    </div>
+</mat-toolbar>
+
+<mat-sidenav-container class="traderApp-container">
+    <mat-sidenav #sidenav mode="side" class="app-sidenav" [class.mat-elevation-z4]="true" closed>
+        <mat-nav-list>
+            <mat-list-item [routerLink]="'/trade-idea-generator'">
+                <div class="app-sidenav-content">Trading Simulator</div>
+            </mat-list-item>
+        </mat-nav-list>
+    </mat-sidenav>
+    <mat-sidenav-content class="content">
+        <router-outlet></router-outlet>
+    </mat-sidenav-content>
+</mat-sidenav-container>

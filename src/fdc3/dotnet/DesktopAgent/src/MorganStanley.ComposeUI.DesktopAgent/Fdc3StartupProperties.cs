@@ -20,4 +20,9 @@ internal class Fdc3StartupProperties
     /// Fdc3 DesktopAgent's specific identifier for the created application instance.
     /// </summary>
     public string InstanceId { get; init; }
+
+    /// <summary>
+    /// Id of the channel the opened app should join
+    /// </summary>
+    public string ChannelId { get; init; }
 }

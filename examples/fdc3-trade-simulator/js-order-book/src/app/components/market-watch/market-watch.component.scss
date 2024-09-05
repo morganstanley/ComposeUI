@@ -1,0 +1,45 @@
+/* Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */
+.market-table {
+    width: 100%;
+    min-height: 200vh;
+}
+
+.mat-mdc-row .mat-mdc-cell {
+    border-bottom: 1px solid;
+    border-top: 1px solid;
+    border-right: 1px solid;
+    cursor: pointer;
+    align-items: center;
+    align-content: center;
+}
+
+.mat-mdc-row:hover .mat-mdc-cell {
+    border-color: rgb(32, 32, 191);
+}
+
+.mat-mdc-row {
+    height: 0.55cm;
+}
+
+.mat-mdc-header-row {
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+    font-weight: bold;
+    border: 1px solid;
+    border-bottom: 1px solid white;
+    border-top: 1px solid white;
+    border-right: 1px solid white;
+    background-color: rgb(4, 10, 128);
+    height: 5px;
+}
+
+.row-is-clicked {
+    font-weight: bold;
+    color: yellow;
+    border-style: double;
+}
+
+.hidden-text {
+    display: none;
+}

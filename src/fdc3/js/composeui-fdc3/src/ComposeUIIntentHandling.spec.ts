@@ -29,7 +29,8 @@ describe("Tests for ComposeUIDesktopAgent's intent handling", () => {
                 config: {
                     appId: "testAppId",
                     instanceId: "testInstanceId"
-                }
+                },
+                channelId : "test"
             }
         };
     });

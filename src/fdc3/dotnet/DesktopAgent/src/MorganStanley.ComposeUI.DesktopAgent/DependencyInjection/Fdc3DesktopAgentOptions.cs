@@ -13,22 +13,38 @@
  */
 
 using Microsoft.Extensions.Options;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 
 public sealed class Fdc3DesktopAgentOptions : IOptions<Fdc3DesktopAgentOptions>
 {
     /// <summary>
-    /// When set to any value, the Desktop Agent will create the specified user channel on startup.
+    /// When set to any value, the Desktop Agent will create the specified user channel on startup and will join to it.
     /// </summary>
     public string? ChannelId { get; set; }
 
     /// <summary>
+    /// Gets or sets the source URL of a static JSON file, indicating what User Channel set is being supported by the DesktopAgent.
+    /// </summary>
+    public Uri? UserChannelConfigFile { get; set; }
+
+    /// <summary>
+    /// Sets the UserChannel set.
+    /// </summary>
+    public ChannelItem[]? UserChannelConfig { get; set; }
+
+    /// <summary>
     /// Indicates a timeout value for getting the IntentResult from the backend in milliseconds.
     /// When set to any value, it sets the timeout for the getResult() client calls, which should wait either for this timeout or the task which gets the appropriate resolved IntentResolution.
-    /// Timeout by default is 1000 milliseconds. 
+    /// Timeout by default is 5 seconds. 
     /// </summary>
-    public TimeSpan IntentResultTimeout { get; set; } = TimeSpan.FromMilliseconds(1000);
+    public TimeSpan IntentResultTimeout { get; set; } = TimeSpan.FromSeconds(5);
+
+    /// <summary>
+    /// Indicates timeout value for registering the listeners when a new instance of an FDC3 app is launched.
+    /// </summary>
+    public TimeSpan ListenerRegistrationTimeout { get; set; } = TimeSpan.FromSeconds(5);
 
     Fdc3DesktopAgentOptions IOptions<Fdc3DesktopAgentOptions>.Value => this;
 }

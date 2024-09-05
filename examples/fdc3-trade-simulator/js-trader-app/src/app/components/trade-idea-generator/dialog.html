@@ -1,0 +1,9 @@
+<!-- Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. -->
+<h2 mat-dialog-title>Hi {{data.trader}}</h2>
+<mat-dialog-content>
+    <p>Please confirm your intent to this symbol {{data.symbol}} with quantity: {{data.quantity}}</p>
+</mat-dialog-content>
+<mat-dialog-actions>
+    <button mat-button [mat-dialog-close]="true" cdkFocusInitial>Confirm</button>
+    <button class="dialog-close" mat-button [mat-dialog-close]="false" [style.color]="'red'" [style.position]="'absolute'" [style.right]="'20px'">Cancel</button>
+</mat-dialog-actions>

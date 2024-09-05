@@ -514,7 +514,7 @@ public class MessageRouterClientTests : IAsyncLifetime
         _connectionMock.Handle<RegisterServiceRequest, RegisterServiceResponse>();
         await _messageRouter.RegisterServiceAsync("test-service", Mock.Of<MessageHandler>());
 
-        var exception = await Assert.ThrowsAsync<MessageRouterException>(
+        var exception = await Assert.ThrowsAsync<MessageRouterDuplicateEndpointException>(
             async () => await _messageRouter.RegisterServiceAsync("test-service", Mock.Of<MessageHandler>())).WaitAsync(TestTimeout);
 
         exception.Name.Should().Be(MessageRouterErrors.DuplicateEndpoint);

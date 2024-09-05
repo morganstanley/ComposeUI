@@ -19,26 +19,26 @@ export class MockDataService{
   private connecting: Promise<void>;
 
   constructor(){
-    this.market = new Market();
-    this.connecting = new Promise(async(resolve, reject) => {
-      try{
-        resolve(await this.checkFdc3Connection());
-      } catch(err) {
-        reject(err);
-      };
-    });
+      this.market = new Market();
+      this.connecting = new Promise(async(resolve, reject) => {
+        try{
+          resolve(await this.checkFdc3Connection());
+        } catch(err) {
+          reject(err);
+        };
+      });
 
-    interval(1000).subscribe(() => {
-      this.marketData = this.market.generateNewMarketNumbers();
-      this.subject.next(this.marketData);
-    });
+      interval(1000).subscribe(() => {
+        this.marketData = this.market.generateNewMarketNumbers();
+        this.subject.next(this.marketData);
+      });
   }
 
   private async checkFdc3Connection(): Promise<void> {
     if(!this.connected) {
       this.currentChannel = await window.fdc3.getCurrentChannel();
       if (!this.currentChannel) {
-        await window.fdc3.joinUserChannel("default");
+        await window.fdc3.joinUserChannel("fdc3.channel.1");
       }
       this.connected = true;
     }

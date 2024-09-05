@@ -10,7 +10,9 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using System.Text.Json.Serialization;
 using Finos.Fdc3;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
@@ -23,6 +25,7 @@ public class ImplementationMetadata : IImplementationMetadata
 
     public string ProviderVersion { get; set; }
 
+    [JsonConverter(typeof(OptionalDesktopAgentFeaturesJsonConverter))]
     public OptionalDesktopAgentFeatures OptionalFeatures { get; set; }
 
     public AppMetadata AppMetadata {  get; set; }

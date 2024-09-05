@@ -30,7 +30,6 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
         private readonly ChannelTopics _topics;
         private readonly ConcurrentDictionary<string, IMessageBuffer> _contexts = new ConcurrentDictionary<string, IMessageBuffer>();
         private IMessageBuffer? _lastContext = null;
-
         private IAsyncDisposable? _broadcastSubscription;
         private bool _disposed = false;
 
@@ -40,7 +39,6 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
             MessagingService = messagingService;
             _logger = logger;
             _topics = topics;
-
         }
 
         public async ValueTask Connect()
@@ -52,12 +50,12 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
 
             await MessagingService.ConnectAsync();
 
+            await MessagingService.RegisterServiceAsync(_topics.GetCurrentContext, GetCurrentContext);
+
             var broadcastHandler = new Func<IMessageBuffer, ValueTask>(HandleBroadcast);
             var broadcastSubscription = MessagingService.SubscribeAsync(_topics.Broadcast, broadcastHandler);
 
-            await MessagingService.RegisterServiceAsync(_topics.GetCurrentContext, GetCurrentContext);
             _broadcastSubscription = await broadcastSubscription;
-
 
             LogConnected();
         }
@@ -76,6 +74,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
                 LogNullOrEmptyBroadcast();
                 return ValueTask.CompletedTask;
             }
+
             LogPayload(payloadBuffer);
             JsonNode ctx;
             try
@@ -87,6 +86,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
                 LogInvalidPayloadJson();
                 return ValueTask.CompletedTask;
             }
+
             var contextType = (string?) ctx!["type"];
 
             if (string.IsNullOrEmpty(contextType))
@@ -95,7 +95,11 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
                 return ValueTask.CompletedTask;
             }
 
-            _contexts[contextType] = payloadBuffer;
+            _contexts.AddOrUpdate(
+                contextType,
+                _ => payloadBuffer,
+                (_, _) => payloadBuffer);
+
             _lastContext = payloadBuffer;
 
             return ValueTask.CompletedTask;
@@ -114,11 +118,9 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
                 return ValueTask.FromResult(_lastContext);
             }
 
-            if (_contexts.TryGetValue(payload.ContextType, out var messageBuffer))
-            {
-                return ValueTask.FromResult<IMessageBuffer?>(messageBuffer);
-            }
-            return ValueTask.FromResult<IMessageBuffer?>(null);
+            return _contexts.TryGetValue(payload.ContextType, out var messageBuffer)
+                ? ValueTask.FromResult<IMessageBuffer?>(messageBuffer)
+                : ValueTask.FromResult<IMessageBuffer?>(null);
         }
 
         public virtual async ValueTask DisposeAsync()

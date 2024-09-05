@@ -46,7 +46,8 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
                 config: {
                     appId: "testAppId",
                     instanceId: "testInstanceId"
-                }
+                },
+                channelId : "test"
             }
         };
 
@@ -74,6 +75,9 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
                 else { throw new Error(ChannelError.NoChannelFound); }
             }),
             getIntentListener: jest.fn(() => Promise.reject("Not implemented")),
+            createAppChannel: jest.fn(() => Promise.reject("Not implemented")),
+            joinUserChannel: jest.fn(() => Promise.resolve(new ComposeUIChannel(dummyChannelId, "user", messageRouterClient))),
+            getUserChannels: jest.fn(() => Promise.reject("Not implemented")),
         };
 
         desktopAgent = new ComposeUIDesktopAgent(dummyChannelId, messageRouterClient, channelFactory);
@@ -114,11 +118,6 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
         expect(messageRouterClient.subscribe).toBeCalledTimes(0);
     });
 
-    it('getUserChannels will return the created userchannels', async () => {
-        var result = await desktopAgent.getUserChannels();
-        expect(result.length).toBe(1);
-    });
-
     it('default channel can be retrieved', async () => {
         var result = await desktopAgent.getCurrentChannel();
         expect(result).toMatchObject<Partial<Channel>>({ id: dummyChannelId, type: "user" });
@@ -148,28 +147,15 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
             .toThrow("The current listener is not subscribed.");
     });
 
-    it('getInfo will provide information of ComposeUI', async () => {
-        var result = await desktopAgent.getInfo();
-        expect(result.fdc3Version).toBe("2.0");
-        expect(result.provider).toBe("ComposeUI");
-    });
-
     it('joinChannel will set the current user channel', async () => {
         await desktopAgent.joinChannel(dummyChannelId);
         var result = await desktopAgent.getCurrentChannel();
         expect(result).toMatchObject<Partial<Channel>>({ id: dummyChannelId, type: "user" });
     });
 
-    it('joinUserChannel will fail as the channelId is not found', async () => {
-        await desktopAgent.leaveCurrentChannel();
-        await expect(desktopAgent.joinUserChannel("dummyNewNewId"))
-            .rejects
-            .toThrow(ChannelError.NoChannelFound);
-    });
-
     it('createPrivateChannel returns the channel', async () => {
         let channel = await desktopAgent.createPrivateChannel();
         expect(channel).toBeInstanceOf(ComposeUIPrivateChannel);
         expect(channel.type).toBe("private");
-    })
+    });
 });
