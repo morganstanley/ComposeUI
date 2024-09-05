@@ -1209,4 +1209,148 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
                 Name = "app1"
             });
     }
+
+    [Fact]
+    public async Task AddContextListener_returns_payload_null_error()
+    {
+        AddContextListenerRequest? request = null;
+
+        var response = await _fdc3.AddContextListener(request);
+
+        response.Should().NotBeNull();
+        response!.Error.Should().Be(Fdc3DesktopAgentErrors.PayloadNull);
+    }
+
+    [Fact]
+    public async Task AddContextListener_returns_missing_id_error()
+    {
+        var request = new AddContextListenerRequest
+        {
+            Fdc3InstanceId = "dummyId",
+            ChannelId = "fdc3.channel.1",
+            ChannelType = ChannelType.User
+        };
+
+        var response = await _fdc3.AddContextListener(request);
+
+        response.Should().NotBeNull();
+        response!.Error.Should().Be(Fdc3DesktopAgentErrors.MissingId);
+    }
+
+    [Fact]
+    public async Task AddContextListener_successfully_registers_context_listener()
+    {
+        await _fdc3.StartAsync(CancellationToken.None);
+
+        //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
+        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+
+        var request = new AddContextListenerRequest
+        {
+            Fdc3InstanceId = originFdc3InstanceId,
+            ChannelId = "fdc3.channel.1",
+            ChannelType = ChannelType.User
+        };
+
+        var response = await _fdc3.AddContextListener(request);
+
+        response.Should().NotBeNull();
+        response!.Success.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task RemoveContextListener_returns_payload_null_error()
+    {
+        RemoveContextListenerRequest? request = null;
+
+        var response = await _fdc3.RemoveContextListener(request);
+
+        response.Should().NotBeNull();
+        response!.Error.Should().Be(Fdc3DesktopAgentErrors.PayloadNull);
+    }
+
+    [Fact]
+    public async Task RemoveContextListener_returns_missing_id_error()
+    {
+        var request = new RemoveContextListenerRequest
+        {
+            ContextType = null,
+            Fdc3InstanceId = "dummyId",
+            ListenerId = Guid.NewGuid().ToString(),
+        };
+
+        var response = await _fdc3.RemoveContextListener(request);
+
+        response.Should().NotBeNull();
+        response!.Error.Should().Be(Fdc3DesktopAgentErrors.MissingId);
+    }
+
+    [Fact]
+    public async Task RemoveContextListener_returns_listener_not_found_error()
+    {
+        await _fdc3.StartAsync(CancellationToken.None);
+
+        //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
+        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+
+        var addContextListenerRequest = new AddContextListenerRequest
+        {
+            Fdc3InstanceId = originFdc3InstanceId,
+            ChannelId = "fdc3.channel.1",
+            ChannelType = ChannelType.User,
+            ContextType = "fdc3.instrument"
+        };
+
+        var addContextListenerResponse = await _fdc3.AddContextListener(addContextListenerRequest);
+        addContextListenerResponse.Should().NotBeNull();
+        addContextListenerResponse!.Success.Should().BeTrue();
+
+        var request = new RemoveContextListenerRequest
+        {
+            ContextType = null,
+            Fdc3InstanceId = originFdc3InstanceId,
+            ListenerId = addContextListenerResponse.Id!,
+        };
+
+        var response = await _fdc3.RemoveContextListener(request);
+
+        response.Should().NotBeNull();
+        response!.Error.Should().Be(Fdc3DesktopAgentErrors.ListenerNotFound);
+    }
+
+    [Fact]
+    public async Task RemoveContextListener_successfully_removes_context_listener()
+    {
+        await _fdc3.StartAsync(CancellationToken.None);
+
+        //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
+        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+
+        var addContextListenerRequest = new AddContextListenerRequest
+        {
+            Fdc3InstanceId = originFdc3InstanceId,
+            ChannelId = "fdc3.channel.1",
+            ChannelType = ChannelType.User,
+            ContextType = null
+        };
+
+        var addContextListenerResponse = await _fdc3.AddContextListener(addContextListenerRequest);
+        addContextListenerResponse.Should().NotBeNull();
+        addContextListenerResponse!.Success.Should().BeTrue();
+
+        var request = new RemoveContextListenerRequest
+        {
+            ContextType = null,
+            Fdc3InstanceId = originFdc3InstanceId,
+            ListenerId = addContextListenerResponse.Id!,
+        };
+
+        var response = await _fdc3.RemoveContextListener(request);
+
+        response.Should().NotBeNull();
+        response!.Success.Should().BeTrue();
+    }
 }

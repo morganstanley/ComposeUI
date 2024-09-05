@@ -196,6 +196,16 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         return await _desktopAgent.GetAppMetadata(request);
     }
 
+    internal async ValueTask<AddContextListenerResponse?> HandleAddContextListener(AddContextListenerRequest? request, MessageContext? context)
+    {
+        return await _desktopAgent.AddContextListener(request);
+    }
+
+    internal async ValueTask<RemoveContextListenerResponse?> HandleRemoveContextListener(RemoveContextListenerRequest? request, MessageContext? context)
+    {
+        return await _desktopAgent.RemoveContextListener(request);
+    }
+
     private async ValueTask SafeWaitAsync(IEnumerable<ValueTask> tasks)
     {
         foreach (var task in tasks)
@@ -238,6 +248,8 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         await RegisterHandler<GetInfoRequest, GetInfoResponse>(Fdc3Topic.GetInfo, HandleGetInfo);
         await RegisterHandler<FindInstancesRequest, FindInstancesResponse>(Fdc3Topic.FindInstances, HandleFindInstances);
         await RegisterHandler<GetAppMetadataRequest, GetAppMetadataResponse>(Fdc3Topic.GetAppMetadata, HandleGetAppMetadata);
+        await RegisterHandler<AddContextListenerRequest, AddContextListenerResponse>(Fdc3Topic.AddContextListener, HandleAddContextListener);
+        await RegisterHandler<RemoveContextListenerRequest, RemoveContextListenerResponse>(Fdc3Topic.RemoveContextListener, HandleRemoveContextListener);
 
         await _desktopAgent.StartAsync(cancellationToken);
 
@@ -265,6 +277,8 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
             _messageRouter.UnregisterServiceAsync(Fdc3Topic.GetInfo, cancellationToken),
             _messageRouter.UnregisterServiceAsync(Fdc3Topic.FindInstances, cancellationToken),
             _messageRouter.UnregisterServiceAsync(Fdc3Topic.GetAppMetadata, cancellationToken),
+            _messageRouter.UnregisterServiceAsync(Fdc3Topic.AddContextListener, cancellationToken),
+            _messageRouter.UnregisterServiceAsync(Fdc3Topic.RemoveContextListener, cancellationToken),
         };
 
         await SafeWaitAsync(unregisteringTasks);

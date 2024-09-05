@@ -18,6 +18,7 @@ import { ComposeUIContextListener } from './infrastructure/ComposeUIContextListe
 import { ComposeUITopic } from './infrastructure/ComposeUITopic';
 import { Channel, ChannelError, Context } from '@finos/fdc3';
 import { ComposeUIDesktopAgent } from './ComposeUIDesktopAgent';
+import { Fdc3AddContextListenerResponse } from './infrastructure/messages/Fdc3AddContextListenerResponse';
 
 const dummyChannelId = "dummyId";
 let messageRouterClient: MessageRouter;
@@ -35,6 +36,22 @@ const contextMessageHandlerMock = jest.fn((_) => {
 
 describe('Tests for ComposeUIChannel implementation API', () => {
     beforeEach(() => {
+
+        window.composeui = {
+            fdc3: {
+                config: {
+                    appId: "testAppId",
+                    instanceId: "testInstanceId"
+                },
+                channelId : "test"
+            }
+        };
+
+        const response: Fdc3AddContextListenerResponse = {
+            success: true,
+            id: "testListenerId"
+        };
+        
         messageRouterClient = {
             clientId: "dummy",
             subscribe: jest.fn(() => {
@@ -47,7 +64,8 @@ describe('Tests for ComposeUIChannel implementation API', () => {
             unregisterEndpoint: jest.fn(() => { return Promise.resolve() }),
             registerService: jest.fn(() => { return Promise.resolve() }),
             unregisterService: jest.fn(() => { return Promise.resolve() }),
-            invoke: jest.fn(() => Promise.resolve(""))
+            invoke: jest.fn(() => { return Promise.resolve(`${JSON.stringify(undefined)}`) })
+                .mockImplementationOnce(() => Promise.resolve(`${JSON.stringify(response)}`))
         };
 
         testChannel = new ComposeUIChannel(dummyChannelId, "user", messageRouterClient);
@@ -60,27 +78,65 @@ describe('Tests for ComposeUIChannel implementation API', () => {
     });
 
     it('broadcast will set the lastContext to test instrument', async () => {
+        const messageRouterClientMock = {
+            clientId: "dummy",
+            subscribe: jest.fn(() => {
+                return Promise.resolve({ unsubscribe: () => { } });
+            }),
+
+            publish: jest.fn(() => { return Promise.resolve() }),
+            connect: jest.fn(() => { return Promise.resolve() }),
+            registerEndpoint: jest.fn(() => { return Promise.resolve() }),
+            unregisterEndpoint: jest.fn(() => { return Promise.resolve() }),
+            registerService: jest.fn(() => { return Promise.resolve() }),
+            unregisterService: jest.fn(() => { return Promise.resolve() }),
+            invoke: jest.fn(() => { return Promise.resolve(`${JSON.stringify(testInstrument)}`) })
+        };
+
+        testChannel = new ComposeUIChannel(dummyChannelId, "user", messageRouterClientMock);
+
         await testChannel.broadcast(testInstrument);
         const resultContext = await testChannel.getCurrentContext();
-        expect(messageRouterClient.publish).toHaveBeenCalledTimes(1);
-        expect(messageRouterClient.publish).toHaveBeenCalledWith(ComposeUITopic.broadcast(dummyChannelId, "user"), JSON.stringify(testInstrument));
+        expect(messageRouterClientMock.publish).toHaveBeenCalledTimes(1);
+        expect(messageRouterClientMock.publish).toHaveBeenCalledWith(ComposeUITopic.broadcast(dummyChannelId, "user"), JSON.stringify(testInstrument));
         expect(resultContext).toMatchObject(testInstrument);
     });
 
     it('getCurrentContext will overwrite the lastContext of the same type', async () => {
-        await testChannel.broadcast(testInstrument);
         const testInstrument2 = {
             type: 'fdc3.instrument',
             id: {
                 ticker: 'SMSN'
             }
         };
+
+        const messageRouterClientMock = {
+            clientId: "dummy",
+            subscribe: jest.fn(() => {
+                return Promise.resolve({ unsubscribe: () => { } });
+            }),
+
+            publish: jest.fn(() => { return Promise.resolve() }),
+            connect: jest.fn(() => { return Promise.resolve() }),
+            registerEndpoint: jest.fn(() => { return Promise.resolve() }),
+            unregisterEndpoint: jest.fn(() => { return Promise.resolve() }),
+            registerService: jest.fn(() => { return Promise.resolve() }),
+            unregisterService: jest.fn(() => { return Promise.resolve() }),
+            invoke: jest.fn(() => { return Promise.resolve(`${JSON.stringify(testInstrument)}`) })
+                .mockImplementationOnce(() => {return Promise.resolve(`${JSON.stringify(testInstrument2)}`)})
+                .mockImplementationOnce(() => {return Promise.resolve(`${JSON.stringify(testInstrument2)}`)})
+        };
+
+        testChannel = new ComposeUIChannel(dummyChannelId, "user", messageRouterClientMock);
+
+        await testChannel.broadcast(testInstrument);
         await testChannel.broadcast(testInstrument2);
+
         const resultContext = await testChannel.getCurrentContext();
         const resultContextWithContextType = await testChannel.getCurrentContext(testInstrument2.type);
-        expect(messageRouterClient.publish).toBeCalledTimes(2);
-        expect(messageRouterClient.publish).toHaveBeenCalledWith(ComposeUITopic.broadcast(dummyChannelId, "user"), JSON.stringify(testInstrument));
-        expect(messageRouterClient.publish).toHaveBeenCalledWith(ComposeUITopic.broadcast(dummyChannelId, "user"), JSON.stringify(testInstrument2));
+        expect(messageRouterClientMock.publish).toBeCalledTimes(2);
+        expect(messageRouterClientMock.publish).toHaveBeenCalledWith(ComposeUITopic.broadcast(dummyChannelId, "user"), JSON.stringify(testInstrument));
+        expect(messageRouterClientMock.publish).toHaveBeenCalledWith(ComposeUITopic.broadcast(dummyChannelId, "user"), JSON.stringify(testInstrument2));
         expect(resultContext).toMatchObject(testInstrument2);
         expect(resultContextWithContextType).toMatchObject<Partial<Context>>(testInstrument2);
     });
@@ -96,11 +152,11 @@ describe('Tests for ComposeUIChannel implementation API', () => {
         await testChannel.broadcast(testInstrument);
         const resultListener = await testChannel.addContextListener('fdc3.instrument', contextMessageHandlerMock);
         expect(resultListener).toBeInstanceOf(ComposeUIContextListener);
-        expect(contextMessageHandlerMock).toHaveBeenCalledTimes(0); //as per the standard
+        expect(contextMessageHandlerMock).toHaveBeenCalledTimes(0);
     });
 
     // TODO: This doesn't test what it sais it tests
-    it('addContextListener will treat contexType is ContextHandler as all types', async () => {
+    it('addContextListener will treat contextType is ContextHandler as all types', async () => {
         const resultListener = await testChannel.addContextListener(null, contextMessageHandlerMock);
         expect(resultListener).toBeInstanceOf(ComposeUIContextListener);
         expect(messageRouterClient.subscribe).toBeCalledTimes(1);

@@ -18,7 +18,7 @@ using System.Runtime.Serialization;
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
 /// <summary>
-/// Indicates the state of the IntentListener which was sent to the DesktopAgent backend.
+/// Indicates the state of the Listener which was sent to the DesktopAgent backend.
 /// </summary>
 internal enum SubscribeState
 {

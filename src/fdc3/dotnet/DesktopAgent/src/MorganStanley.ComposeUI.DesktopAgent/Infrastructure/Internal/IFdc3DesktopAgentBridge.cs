@@ -142,4 +142,18 @@ internal interface IFdc3DesktopAgentBridge
     /// <param name="request"></param>
     /// <returns></returns>
     public ValueTask<GetAppMetadataResponse> GetAppMetadata(GetAppMetadataRequest? request);
+
+    /// <summary>
+    /// Handles the AddContextListener call in the bridge. It enables tracking the added contextListeners using the `fdc3.addContextListener`.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    public ValueTask<AddContextListenerResponse?> AddContextListener(AddContextListenerRequest? request);
+
+    /// <summary>
+    /// Handles the ContextListener action (join/unsubscribe to a channel) call in the bridge.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    public ValueTask<RemoveContextListenerResponse?> RemoveContextListener(RemoveContextListenerRequest? request);
 }

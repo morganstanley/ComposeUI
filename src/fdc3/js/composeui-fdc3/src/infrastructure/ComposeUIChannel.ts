@@ -17,6 +17,9 @@ import { ChannelType } from "./ChannelType";
 import { ComposeUIContextListener } from "./ComposeUIContextListener";
 import { Fdc3GetCurrentContextRequest } from "./messages/Fdc3GetCurrentContextRequest";
 import { ComposeUITopic } from "./ComposeUITopic";
+import { ComposeUIErrors } from "./ComposeUIErrors";
+import { Fdc3AddContextListenerResponse } from "./messages/Fdc3AddContextListenerResponse";
+import { Fdc3AddContextListenerRequest } from "./messages/Fdc3AddContextListenerRequest";
 
 export class ComposeUIChannel implements Channel {
     id: string;
@@ -43,7 +46,6 @@ export class ComposeUIChannel implements Channel {
         await this.messageRouterClient.publish(topic, JSON.stringify(context));
     }
 
-    //TODO add error
     public async getCurrentContext(contextType?: string | undefined): Promise<Context | null> {
         const message = JSON.stringify(new Fdc3GetCurrentContextRequest(contextType));
         const response = await this.messageRouterClient.invoke(ComposeUITopic.getCurrentContext(this.id, this.type), message);
@@ -77,8 +79,8 @@ export class ComposeUIChannel implements Channel {
             contextType = null;
         }
 
-        const listener = new ComposeUIContextListener(this.messageRouterClient, handler, this.id, this.type, contextType);
-        await listener.subscribe();
+        const listener = new ComposeUIContextListener(this.messageRouterClient, handler, contextType);
+        await listener.subscribe(this.id, this.type);
         return listener;
     }
 }
