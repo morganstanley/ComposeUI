@@ -669,11 +669,6 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         //else for consistency it will return a single element array containing the intentMetadata which is allowed by the request.
         Func<Fdc3App, Dictionary<string, AppIntent>, IEnumerable<KeyValuePair<string, IntentMetadata>>?> selector = (fdc3App, appIntents) =>
         {
-            //If the user selects an application from the AppDirectory instead of the its running instance
-            if (request.Selected && appIntents.TryGetValue(request.Intent, out var result) && result.Apps.Any())
-            {
-                return null;
-            }
 
             if (fdc3App.Interop?.Intents?.ListensFor == null
                 || !fdc3App.Interop.Intents.ListensFor.TryGetValue(request.Intent!, out var intentMetadata))

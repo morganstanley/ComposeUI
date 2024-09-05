@@ -39,11 +39,6 @@ internal sealed class RaiseIntentRequest
     public string Intent { get; set; }
 
     /// <summary>
-    /// Indicates that the client selected an instance or an app to start and resolve the raised intent.
-    /// </summary>
-    public bool Selected { get; set; }
-
-    /// <summary>
     /// Context for identifying more the specific app that should handle the raised intent.
     /// </summary>
     public Context Context { get; set; }

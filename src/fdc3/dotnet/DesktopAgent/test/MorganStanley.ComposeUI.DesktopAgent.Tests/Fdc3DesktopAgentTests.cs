@@ -258,7 +258,6 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
                 MessageId = int.MaxValue,
                 Fdc3InstanceId = Guid.NewGuid().ToString(),
                 Intent = "intentMetadata4",
-                Selected = false,
                 Context = new Context("context2"),
                 TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
             };
@@ -320,7 +319,6 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             MessageId = int.MaxValue,
             Fdc3InstanceId = Guid.NewGuid().ToString(),
             Intent = "intentMetadata4",
-            Selected = false,
             Context = new Context("context2"),
             TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
         };
@@ -395,7 +393,6 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             MessageId = int.MaxValue,
             Fdc3InstanceId = Guid.NewGuid().ToString(),
             Intent = "intentMetadata4",
-            Selected = false,
             Context = new Context("context2"),
             TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
         };
@@ -448,7 +445,6 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             MessageId = 1,
             Fdc3InstanceId = originFdc3InstanceId,
             Intent = "intentMetadataCustom",
-            Selected = false,
             Context = new Context("contextCustom"),
             TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
         };
@@ -490,7 +486,6 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             MessageId = 1,
             Fdc3InstanceId = originFdc3InstanceId,
             Intent = "intentMetadataCustom",
-            Selected = false,
             Context = new Context("contextCustom"),
             TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
         };
@@ -540,7 +535,6 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             MessageId = 1,
             Fdc3InstanceId = Guid.NewGuid().ToString(),
             Intent = "noAppShouldReturn",
-            Selected = false,
             Context = new Context("context2")
         };
 
@@ -557,7 +551,6 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             MessageId = 1,
             Fdc3InstanceId = Guid.NewGuid().ToString(),
             Intent = "intentMetadata4",
-            Selected = false,
             Context = new Context(ContextTypes.Nothing)
         };
 
@@ -595,7 +588,6 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             MessageId = 1,
             Fdc3InstanceId = originFdc3InstanceId,
             Intent = "intentMetadataCustom",
-            Selected = false,
             Context = new Context("contextCustom"),
             TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
         };
