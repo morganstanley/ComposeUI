@@ -11,7 +11,7 @@
  *  
  */
 
-import { ChannelError, IntentHandler, Listener, PrivateChannel } from "@finos/fdc3";
+import { ChannelError, ContextHandler, IntentHandler, Listener, PrivateChannel } from "@finos/fdc3";
 import { MessageRouter } from "@morgan-stanley/composeui-messaging-client";
 import { Channel } from "@finos/fdc3";
 import { ChannelFactory } from "./ChannelFactory";
@@ -33,7 +33,10 @@ import { Fdc3GetUserChannelsRequest } from "./messages/Fdc3GetUserChannelsReques
 import { Fdc3GetUserChannelsResponse } from "./messages/Fdc3GetUserChannelsResponse";
 import { Fdc3JoinUserChannelRequest } from "./messages/Fdc3JoinUserChannelRequest";
 import { Fdc3JoinUserChannelResponse } from "./messages/Fdc3JoinUserChannelResponse";
+import { Fdc3AddContextListenerRequest } from "./messages/Fdc3AddContextListenerRequest";
+import { Fdc3AddContextListenerResponse } from "./messages/Fdc3AddContextListenerResponse";
 import { ChannelItem } from "./ChannelItem";
+import { ComposeUIContextListener } from "./ComposeUIContextListener";
 
 export class MessageRouterChannelFactory implements ChannelFactory {
     private messageRouterClient: MessageRouter;
@@ -161,6 +164,16 @@ export class MessageRouterChannelFactory implements ChannelFactory {
             throw new Error(ComposeUIErrors.SubscribeFailure);
         }
 
+        return listener;
+    }
+
+    public async getContextListener(channel?: Channel, handler?: ContextHandler, contextType?: string | null): Promise<Listener> {
+        if (channel) {
+            const listener = <ComposeUIContextListener>await channel.addContextListener(contextType ?? null, handler!);
+            return listener;
+        }
+
+        const listener = new ComposeUIContextListener(this.messageRouterClient, handler!, contextType ?? undefined);
         return listener;
     }
 }

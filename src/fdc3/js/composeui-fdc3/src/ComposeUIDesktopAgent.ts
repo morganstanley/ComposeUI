@@ -42,7 +42,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     private userChannels: Channel[] = [];
     private privateChannels: Channel[] = [];
     private currentChannel?: Channel;
-    private currentChannelListeners: ComposeUIContextListener[] = [];
+    private topLevelContextListeners: ComposeUIContextListener[] = [];
     private intentListeners: Listener[] = [];
     private channelFactory: ChannelFactory;
     private intentsClient: IntentsClient;
@@ -101,25 +101,20 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     }
 
     public async addContextListener(contextType?: string | null | ContextHandler, handler?: ContextHandler): Promise<Listener> {
-        if (!this.currentChannel) {
-            throw new Error(ComposeUIErrors.CurrentChannelNotSet);
-        }
-
         if (contextType && typeof contextType != 'string') {
             handler = contextType;
             contextType = null;
         }
 
-        const listener = <ComposeUIContextListener>await this.currentChannel!.addContextListener(contextType ?? null, handler!);
+        const listener = <ComposeUIContextListener>await this.channelFactory.getContextListener(this.currentChannel, handler, contextType);
+        this.topLevelContextListeners.push(listener);
 
-        const lastContext = await this.currentChannel!.getCurrentContext(contextType ?? undefined)
-
-        if (lastContext) {
-            //TODO: timing issue
-            setTimeout(async() => await listener.handleContextMessage(lastContext), 100);
+        if (!this.currentChannel) {
+            return listener;
         }
 
-        this.currentChannelListeners.push(listener);
+        await this.getLastContext(listener);
+
         return listener;
     }
 
@@ -127,7 +122,6 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         return await this.channelFactory.getUserChannels();
     }
 
-    //TODO: add pending context listeners which were registered via the fdc3.addContextListener
     public async joinUserChannel(channelId: string): Promise<void> {
         if (this.currentChannel) {
             //DesktopAgnet clients can listen on only one channel
@@ -145,6 +139,11 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
 
         this.addChannel(channel);
         this.currentChannel = channel;
+
+        for (const listener of this.topLevelContextListeners) {
+            await listener.subscribe(this.currentChannel.id, this.currentChannel.type);
+            await this.getLastContext(listener);
+        }
     }
 
     public async getOrCreateChannel(channelId: string): Promise<Channel> {
@@ -167,14 +166,13 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         return this.currentChannel ?? null;
     }
 
-    //TODO: add messageRouter message that we are leaving the current channel to notify the backend.
-    //TODO: leave the current channel's listeners added via fdc3.addContextListener.
     public async leaveCurrentChannel(): Promise<void> {
+        //The context listeners, that have been added through the `fdc3.addContextListener()` should unsubscribe
+        for (const listener of this.topLevelContextListeners) {
+            await listener.unsubscribe();
+        }
+        
         this.currentChannel = undefined;
-        this.currentChannelListeners.forEach(listener => {
-            listener.unsubscribe();
-        });
-        this.currentChannelListeners = [];
     }
 
     public async getInfo(): Promise<ImplementationMetadata> {
@@ -209,6 +207,15 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
             case "private":
                 this.privateChannels.push(channel);
                 break;
+        }
+    }
+
+    private async getLastContext(listener: ComposeUIContextListener) : Promise<void> {
+        const lastContext = await this.currentChannel!.getCurrentContext(listener.contextType);
+
+        if (lastContext) {
+            //TODO: timing issue
+            setTimeout(async() => await listener.handleContextMessage(lastContext), 100);
         }
     }
 }

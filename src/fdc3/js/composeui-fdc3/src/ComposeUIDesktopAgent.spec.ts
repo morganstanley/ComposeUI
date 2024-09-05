@@ -17,7 +17,7 @@ import { MessageRouter } from '@morgan-stanley/composeui-messaging-client';
 import { ComposeUIContextListener } from './infrastructure/ComposeUIContextListener';
 import { ComposeUIDesktopAgent } from './ComposeUIDesktopAgent';
 import { ComposeUITopic } from './infrastructure/ComposeUITopic';
-import { Channel, ChannelError, DesktopAgent } from '@finos/fdc3';
+import { Channel, ChannelError, ContextHandler, DesktopAgent } from '@finos/fdc3';
 import { ComposeUIErrors } from './infrastructure/ComposeUIErrors';
 import { ChannelFactory } from './infrastructure/ChannelFactory';
 import { ComposeUIPrivateChannel } from './infrastructure/ComposeUIPrivateChannel';
@@ -78,6 +78,7 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
             createAppChannel: jest.fn(() => Promise.reject("Not implemented")),
             joinUserChannel: jest.fn(() => Promise.resolve(new ComposeUIChannel(dummyChannelId, "user", messageRouterClient))),
             getUserChannels: jest.fn(() => Promise.reject("Not implemented")),
+            getContextListener: jest.fn((channel: Channel, handler: ContextHandler, contextType?: string) => {return Promise.resolve(new ComposeUIContextListener(messageRouterClient, handler, contextType))})
         };
 
         desktopAgent = new ComposeUIDesktopAgent(messageRouterClient, channelFactory);
@@ -102,20 +103,6 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
         await expect(desktopAgent.broadcast(testInstrument))
             .rejects
             .toThrow("The current channel has not been set.");
-    });
-
-    it('addContextListener will trigger messageRouter subscribe method', async () => {
-        const resultListener = await desktopAgent.addContextListener("fdc3.instrument", contextMessageHandlerMock);
-        expect(resultListener).toBeInstanceOf(ComposeUIContextListener);
-        expect(messageRouterClient.subscribe).toBeCalledTimes(1);
-    });
-
-    it('addContextListener will fail as the current channel is not defined', async () => {
-        await desktopAgent.leaveCurrentChannel();
-        await expect(desktopAgent.addContextListener("fdc3.instrument", contextMessageHandlerMock))
-            .rejects
-            .toThrow("The current channel has not been set.");
-        expect(messageRouterClient.subscribe).toBeCalledTimes(0);
     });
 
     it('default channel can be retrieved', async () => {

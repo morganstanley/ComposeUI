@@ -56,7 +56,9 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     private readonly ConcurrentDictionary<Guid, Fdc3App> _runningModules = new();
     private readonly ConcurrentDictionary<Guid, RaisedIntentRequestHandler> _raisedIntentResolutions = new();
     private readonly ConcurrentDictionary<StartRequest, TaskCompletionSource<IModuleInstance>> _pendingStartRequests = new();
+    private readonly ConcurrentDictionary<Guid, List<ContextListener>> _contextListeners = new();
     private IAsyncDisposable? _subscription;
+    private readonly object _contextListenerLock = new();
 
     public Fdc3DesktopAgent(
         IAppDirectory appDirectory,
@@ -102,7 +104,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         {
             if (_logger.IsEnabled(LogLevel.Warning))
             {
-                _logger.LogWarning(exception, $"{channelId} is already registed as service endpoint.");
+                _logger.LogWarning(exception, $"{channelId} is already registered as service endpoint.");
             }
 
             return userChannel;
@@ -133,7 +135,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         {
             if (_logger.IsEnabled(LogLevel.Warning))
             {
-                _logger.LogWarning(exception, $"{privateChannelId} is already registed as service endpoint.");
+                _logger.LogWarning(exception, $"{privateChannelId} is already registered as service endpoint.");
             }
         }
         catch (Exception exception)
@@ -174,7 +176,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         {
             if (_logger.IsEnabled(LogLevel.Warning))
             {
-                _logger.LogWarning(exception, $"{request.ChannelId} is already registed as service endpoint.");
+                _logger.LogWarning(exception, $"{request.ChannelId} is already registered as service endpoint.");
             }
         }
         catch (Exception exception)
@@ -232,6 +234,13 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         _userChannels.Clear();
         _privateChannels.Clear();
         _appChannels.Clear();
+        lock (_contextListenerLock)
+        {
+            _contextListeners.Clear();
+        }
+
+        _pendingStartRequests.Clear();
+        _raisedIntentResolutions.Clear();
     }
 
     public bool FindChannel(string channelId, ChannelType channelType)
@@ -639,6 +648,72 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         catch (AppNotFoundException)
         {
             return GetAppMetadataResponse.Failure(ResolveError.TargetAppUnavailable);
+        }
+    }
+
+    public ValueTask<AddContextListenerResponse?> AddContextListener(AddContextListenerRequest? request)
+    {
+        if (request == null)
+        {
+            return ValueTask.FromResult<AddContextListenerResponse?>(AddContextListenerResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull));
+        }
+
+        if (!Guid.TryParse(request.Fdc3InstanceId, out var originFdc3InstanceId) || !_runningModules.TryGetValue(originFdc3InstanceId, out _))
+        {
+            return ValueTask.FromResult<AddContextListenerResponse?>(AddContextListenerResponse.Failure(Fdc3DesktopAgentErrors.MissingId));
+        }
+
+        lock (_contextListenerLock)
+        {
+            var contextListener = new ContextListener(
+                request.ContextType,
+                request.ChannelId,
+                request.ChannelType);
+
+            _contextListeners.AddOrUpdate(
+                originFdc3InstanceId,
+                _ => new List<ContextListener> { contextListener },
+                (_, contextListeners) =>
+                {
+                    contextListeners.Add(contextListener);
+                    return contextListeners;
+                });
+
+            return ValueTask.FromResult<AddContextListenerResponse?>(AddContextListenerResponse.Added(contextListener.Id.ToString()));
+        }
+    }
+
+    public ValueTask<RemoveContextListenerResponse?> RemoveContextListener(RemoveContextListenerRequest? request)
+    {
+        if (request == null)
+        {
+            return ValueTask.FromResult<RemoveContextListenerResponse?>(RemoveContextListenerResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull));
+        }
+
+        lock (_contextListenerLock)
+        {
+            if (!Guid.TryParse(request.Fdc3InstanceId, out var originFdc3InstanceId)
+                || !_runningModules.TryGetValue(originFdc3InstanceId, out _)
+                || !_contextListeners.TryGetValue(originFdc3InstanceId, out var listeners)
+                || request.ListenerId == null
+                || !Guid.TryParse(request.ListenerId, out var listenerId))
+            {
+                return ValueTask.FromResult<RemoveContextListenerResponse?>(RemoveContextListenerResponse.Failure(Fdc3DesktopAgentErrors.MissingId));
+            }
+
+            var listener = listeners.FirstOrDefault(x => x.Id == listenerId && x.ContextType == request.ContextType);
+            if (listener == null)
+            {
+                return ValueTask.FromResult<RemoveContextListenerResponse?>(RemoveContextListenerResponse.Failure(Fdc3DesktopAgentErrors.ListenerNotFound));
+            }
+            
+            listeners.Remove(listener);
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("ContextListener has been successfully unsubscribed.");
+            }
+
+            return ValueTask.FromResult<RemoveContextListenerResponse?>(RemoveContextListenerResponse.Executed());
         }
     }
 
@@ -1218,7 +1293,12 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             return Task.CompletedTask;
         }
 
-        if (!_runningModules.TryRemove(new(fdc3InstanceId!), out _)) //At this point the fdc3InstanceId shouldn't be null
+        if (!Guid.TryParse(fdc3InstanceId, out var id))
+        {
+            return Task.CompletedTask;
+        }
+
+        if (!_runningModules.TryRemove(id, out _)) //At this point the fdc3InstanceId shouldn't be null
         {
             _logger.LogError($"Could not remove the closed window with instanceId: {fdc3InstanceId}.");
         }
@@ -1226,6 +1306,19 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         if (_pendingStartRequests.TryRemove(instance.StartRequest, out var taskCompletionSource))
         {
             taskCompletionSource.SetException(ThrowHelper.TargetInstanceUnavailable());
+        }
+
+        lock (_contextListenerLock)
+        {
+            if (!_contextListeners.TryRemove(id, out _))
+            {
+                _logger.LogError($"Could not remove the registered context listeners of id: {fdc3InstanceId}.");
+            }
+        }
+
+        if (!_raisedIntentResolutions.TryRemove(id, out _))
+        {
+            _logger.LogError($"Could not remove the stored intent resolutions of id: {fdc3InstanceId} which raised the intents.");
         }
 
         return Task.CompletedTask;

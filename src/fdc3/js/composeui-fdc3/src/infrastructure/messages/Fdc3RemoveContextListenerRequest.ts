@@ -8,13 +8,12 @@
  *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  *  or implied. See the License for the specific language governing permissions
  *  and limitations under the License.
- *  
  */
 
-export enum ComposeUIErrors {
-    NoAnswerWasProvided = 'No answer was provided by the DesktopAgent backend.',
-    InstanceIdNotFound = 'InstanceId was not found on window object. To run Fdc3\'s ComposeUI implementation instance config should be set on window config.',
-    CurrentChannelNotSet = 'The current channel has not been set.',
-    UnsubscribeFailure = 'The Listener could not unsubscribe.',
-    SubscribeFailure = 'The Listener could not subscribe.'
+export class Fdc3RemoveContextListenerRequest {
+    constructor(
+        public readonly fdc3InstanceId: string,
+        public readonly listenerId: string,
+        public readonly contextType?: string,
+    ) {}
 }

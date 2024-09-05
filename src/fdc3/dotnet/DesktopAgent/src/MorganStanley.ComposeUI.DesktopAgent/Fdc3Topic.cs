@@ -12,9 +12,7 @@
  * and limitations under the License.
  */
 
-using System.Threading.Tasks.Dataflow;
 using Finos.Fdc3;
-using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
@@ -36,6 +34,8 @@ internal static class Fdc3Topic
     internal static string GetInfo => TopicRoot + "getInfo";
     internal static string FindInstances => TopicRoot + "findInstances";
     internal static string GetAppMetadata => TopicRoot + "getAppMetadata";
+    internal static string AddContextListener => TopicRoot + "addContextListener";
+    internal static string RemoveContextListener => TopicRoot + "removeContextListener";
 
     //IntentListeners will be listening at this endpoint
     internal static string RaiseIntentResolution(string intent, string instanceId)

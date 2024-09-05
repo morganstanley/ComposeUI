@@ -14,6 +14,8 @@
 import { jest } from '@jest/globals';
 import { MessageRouter } from '@morgan-stanley/composeui-messaging-client';
 import { ComposeUIContextListener } from './infrastructure/ComposeUIContextListener';
+import { Fdc3AddContextListenerResponse } from './infrastructure/messages/Fdc3AddContextListenerResponse';
+import { Fdc3RemoveContextListenerResponse } from './infrastructure/messages/Fdc3RemoveContextListenerResponse';
 
 const dummyContext = { type: "dummyContextType" };
 const dummyChannelId = "dummyId";
@@ -37,6 +39,21 @@ const contextMessageHandlerMock = jest.fn((something) => {
 
 describe('Tests for ComposeUIContextListener implementation API', () => {
     beforeEach(async () => {
+        window.composeui = {
+            fdc3: {
+                config: {
+                    appId: "testAppId",
+                    instanceId: "testInstanceId"
+                },
+                channelId : "test"
+            }
+        };
+
+        const response: Fdc3AddContextListenerResponse = {
+            success: true,
+            id: "testListenerId"
+        };
+
         messageRouterClient = {
             clientId: "dummy",
             subscribe: jest.fn(() => {
@@ -49,11 +66,13 @@ describe('Tests for ComposeUIContextListener implementation API', () => {
             unregisterEndpoint: jest.fn(() => { return Promise.resolve() }),
             registerService: jest.fn(() => { return Promise.resolve() }),
             unregisterService: jest.fn(() => { return Promise.resolve() }),
-            invoke: jest.fn(() => { return Promise.resolve(JSON.stringify({ context: "", payload: `${JSON.stringify(dummyContext)}` })) })
+            invoke: jest.fn(() => { return Promise.resolve(`${JSON.stringify(undefined)}`) })
+                .mockImplementationOnce(() => Promise.resolve(`${JSON.stringify(response)}`))
+                .mockImplementationOnce(() => Promise.resolve(JSON.stringify({ context: "", payload: `${JSON.stringify(dummyContext)}` })))
         };
 
-        testListener = new ComposeUIContextListener(messageRouterClient, contextMessageHandlerMock, dummyChannelId, "user", "fdc3.instrument");
-        await testListener.subscribe();
+        testListener = new ComposeUIContextListener(messageRouterClient, contextMessageHandlerMock, "fdc3.instrument");
+        await testListener.subscribe(dummyChannelId, "user");
     });
 
     it('subscribe will call messagerouter subscribe method', async () => {
@@ -66,6 +85,7 @@ describe('Tests for ComposeUIContextListener implementation API', () => {
     });
 
     it('handleContextMessage will be rejected with Error if unsubscribed', async () => {
+        testListener = new ComposeUIContextListener(messageRouterClient, contextMessageHandlerMock, "fdc3.instrument");
         testListener.unsubscribe();
         await expect(testListener.handleContextMessage(testInstrument))
             .rejects

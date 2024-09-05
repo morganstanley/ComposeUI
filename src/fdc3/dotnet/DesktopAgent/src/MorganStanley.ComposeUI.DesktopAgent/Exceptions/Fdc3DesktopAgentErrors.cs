@@ -40,4 +40,9 @@ public static class Fdc3DesktopAgentErrors
     /// Indicates that no user channel set was configured.
     /// </summary>
     public const string NoUserChannelSetFound = $"{nameof(NoUserChannelSetFound)}";
+
+    /// <summary>
+    /// Indicates that the listener was not found for execution.
+    /// </summary>
+    public const string ListenerNotFound = $"{nameof(ListenerNotFound)}";
 }
