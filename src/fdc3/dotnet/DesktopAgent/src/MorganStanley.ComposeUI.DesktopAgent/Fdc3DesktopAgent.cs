@@ -163,6 +163,13 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             return CreateAppChannelResponse.Failed(ChannelError.CreationFailed);
         }
 
+        //Conformance tests are expecting to reject the getOrCreateChannel call when we try to create an app channel with an id of a private channel
+        //however we do have separate topics for channeltypes
+        if (_privateChannels.TryGetValue(request.ChannelId, out _))
+        {
+            return CreateAppChannelResponse.Failed(ChannelError.AccessDenied);
+        }
+
         //Checking if the endpoint is already registered, because it can cause issues while registering services storing the latest context messages, etc on the Channel objects.
         if (_appChannels.TryGetValue(request.ChannelId, out var appChannel))
         {

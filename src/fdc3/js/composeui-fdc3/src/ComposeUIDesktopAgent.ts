@@ -153,13 +153,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
             return appChannel;
         }
 
-        try {
-            appChannel = await this.channelFactory.getChannel(channelId, "app");
-        } catch (err) {
-            if (!appChannel) {
-                appChannel = await this.channelFactory.createAppChannel(channelId);            
-            }
-        }
+        appChannel = await this.channelFactory.createAppChannel(channelId);
 
         this.addChannel(appChannel!);
         return appChannel!;
@@ -174,7 +168,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     }
 
     //TODO: add messageRouter message that we are leaving the current channel to notify the backend.
-    //TODO: leave the curent channel's listsners added via fdc3.addContextListener.
+    //TODO: leave the current channel's listeners added via fdc3.addContextListener.
     public async leaveCurrentChannel(): Promise<void> {
         this.currentChannel = undefined;
         this.currentChannelListeners.forEach(listener => {
