@@ -18,21 +18,25 @@ using Finos.Fdc3.AppDirectory;
 using ResourceReader = MorganStanley.ComposeUI.Utilities.ResourceReader;
 using Microsoft.Extensions.Options;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
+using System.Text;
 
 namespace MorganStanley.ComposeUI.Shell.Fdc3;
 
 internal sealed class Fdc3StartupAction : IStartupAction
 {
     private readonly IAppDirectory _appDirectory;
+    private readonly IUserChannelSetReader _userChannelSetReader;
     private readonly Fdc3DesktopAgentOptions _options;
     private readonly ILogger<Fdc3StartupAction> _logger;
 
     public Fdc3StartupAction(
         IAppDirectory appDirectory,
+        IUserChannelSetReader userChannelSetReader,
         IOptions<Fdc3DesktopAgentOptions> options,
         ILogger<Fdc3StartupAction>? logger = null)
     {
         _appDirectory = appDirectory;
+        _userChannelSetReader = userChannelSetReader;
         _options = options.Value;
         _logger = logger ?? NullLogger<Fdc3StartupAction>.Instance;
     }
@@ -45,29 +49,43 @@ internal sealed class Fdc3StartupAction : IStartupAction
             try
             {
                 var appId = (await _appDirectory.GetApp(startupContext.StartRequest.ModuleId)).AppId;
+                var userChannelSet = await _userChannelSetReader.GetUserChannelSet();
                 var fdc3InstanceId = startupContext.StartRequest.Parameters.FirstOrDefault(parameter => parameter.Key == Fdc3StartupParameters.Fdc3InstanceId).Value ?? Guid.NewGuid().ToString();
-                var channelId = _options.ChannelId ?? "fdc3.channel.1";
+                
+                //TODO: decide if we want to join to a channel automatically on startup of an fdc3 module
+                var channelId = _options.ChannelId ?? userChannelSet.FirstOrDefault().Key;
+                
                 var fdc3StartupProperties = new Fdc3StartupProperties() { InstanceId = fdc3InstanceId, ChannelId = channelId };
                 fdc3InstanceId = startupContext.GetOrAddProperty<Fdc3StartupProperties>(_ => fdc3StartupProperties).InstanceId;
 
                 var webProperties = startupContext.GetOrAddProperty<WebStartupProperties>();
 
-                webProperties
-                    .ScriptProviders.Add(_ =>
-                        new ValueTask<string>(
-                            $$"""
-                        window.composeui.fdc3 = {
-                            ...window.composeui.fdc3, 
-                            config: {
-                                appId: "{{appId}}",
-                                instanceId: "{{fdc3InstanceId}}"
-                            },
-                            channelId: "{{channelId}}"
-                        };
-                        """));
+                var stringBuilder = new StringBuilder();
+                stringBuilder.Append($$"""
+                            window.composeui.fdc3 = {
+                                ...window.composeui.fdc3, 
+                                config: {
+                                    appId: "{{appId}}",
+                                    instanceId: "{{fdc3InstanceId}}"
+                                }
+                          """);
 
-                webProperties
-                    .ScriptProviders.Add(_ => new ValueTask<string>(ResourceReader.ReadResource(ResourceNames.Fdc3Bundle)));
+                if (channelId != null)
+                {
+                    stringBuilder.Append($$"""
+                        ,
+                        channelId: "{{channelId}}"
+                        """);
+                }
+
+                stringBuilder.Append($$"""
+                    };
+                    """);
+
+                stringBuilder.AppendLine();
+                stringBuilder.Append(ResourceReader.ReadResource(ResourceNames.Fdc3Bundle));
+
+                webProperties.ScriptProviders.Add(_ => new ValueTask<string>(stringBuilder.ToString()));
             }
             catch (AppNotFoundException exception)
             {

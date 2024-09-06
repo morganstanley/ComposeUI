@@ -20,12 +20,15 @@ export class MockDataService{
 
   constructor(){
       this.market = new Market();
-      this.connecting = new Promise(async(resolve, reject) => {
-        try{
-          resolve(await this.checkFdc3Connection());
-        } catch(err) {
-          reject(err);
-        };
+
+      window.addEventListener('fdc3Ready', () => {
+        this.connecting = new Promise(async(resolve, reject) => {
+          try{
+            resolve(await this.checkFdc3Connection());
+          } catch(err) {
+            reject(err);
+          };
+        });
       });
 
       interval(1000).subscribe(() => {

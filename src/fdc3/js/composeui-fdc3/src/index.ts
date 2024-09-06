@@ -32,7 +32,7 @@ declare global {
 async function initialize(): Promise<void> {
     //TODO: decide if we want to join to a channel by default.
     let channelId: string | undefined = window.composeui.fdc3.channelId;
-    let fdc3 = new ComposeUIDesktopAgent(createMessageRouter());
+    const fdc3 = new ComposeUIDesktopAgent(createMessageRouter());
 
     if (channelId) {
         await fdc3.joinUserChannel(channelId)

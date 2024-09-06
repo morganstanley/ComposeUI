@@ -38,6 +38,7 @@ using IntentMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Intent
 using Icon = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Icon;
 using ImplementationMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.ImplementationMetadata;
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
 
@@ -57,12 +58,14 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
 
     public Fdc3DesktopAgentTests()
     {
+        var options = new Fdc3DesktopAgentOptions();
+
         _fdc3 = new Fdc3DesktopAgent(
             _appDirectory,
             _mockModuleLoader.Object,
-            new Fdc3DesktopAgentOptions(),
+            options,
             _mockResolverUICommunicator.Object,
-            null,
+            new UserChannelSetReader(options),
             NullLoggerFactory.Instance);
     }
 
@@ -684,15 +687,19 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task GetUserChannels_returns_no_user_channel_set_configured_error()
+    public async Task GetUserChannels_returns_empty_userChannel_set()
     {
+        var options = new Fdc3DesktopAgentOptions
+        {
+            UserChannelConfigFile = new Uri("C://hello/world/test.json"),
+        };
+
         var fdc3 = new Fdc3DesktopAgent(
             _appDirectory,
             _mockModuleLoader.Object,
-            new Fdc3DesktopAgentOptions
-            {
-                UserChannelConfigFile = new Uri("C://hello/world/test.json"),
-            }, _mockResolverUICommunicator.Object);
+            options, 
+            _mockResolverUICommunicator.Object,
+            new UserChannelSetReader(options));
 
         await fdc3.StartAsync(CancellationToken.None);
 
@@ -708,7 +715,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
         var result = await fdc3.GetUserChannels(request);
 
         result.Should().NotBeNull();
-        result.Should().BeEquivalentTo(GetUserChannelsResponse.Failure(Fdc3DesktopAgentErrors.NoUserChannelSetFound));
+        result.Should().BeEquivalentTo(GetUserChannelsResponse.Success(Enumerable.Empty<ChannelItem>()));
     }
 
     [Fact]

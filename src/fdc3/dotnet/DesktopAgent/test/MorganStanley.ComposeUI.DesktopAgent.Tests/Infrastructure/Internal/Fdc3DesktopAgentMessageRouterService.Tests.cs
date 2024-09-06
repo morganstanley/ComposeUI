@@ -56,18 +56,20 @@ public class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
 
     public Fdc3DesktopAgentMessageRouterServiceTests()
     {
+        var options = new Fdc3DesktopAgentOptions()
+        {
+            IntentResultTimeout = TimeSpan.FromMilliseconds(100),
+            ListenerRegistrationTimeout = TimeSpan.FromMilliseconds(100)
+        };
+
         _fdc3 = new Fdc3DesktopAgentMessageRouterService(
             _mockMessageRouter.Object,
             new Fdc3DesktopAgent(
                 _appDirectory,
                 _mockModuleLoader.Object,
-                new Fdc3DesktopAgentOptions()
-                {
-                    IntentResultTimeout = TimeSpan.FromMilliseconds(100),
-                    ListenerRegistrationTimeout = TimeSpan.FromMilliseconds(100)
-                },
+                options,
                 _mockResolverUICommunicator.Object,
-                null,
+                new UserChannelSetReader(options),
                 NullLoggerFactory.Instance),
             new Fdc3DesktopAgentOptions(),
             NullLoggerFactory.Instance);
