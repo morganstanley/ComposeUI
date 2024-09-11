@@ -150,3 +150,22 @@ The necessary solutions have to be built in the following order:
 1. Open the Shell Solution
 2. Choose "Shell" as the startup project
 3. Run
+
+### Running FDC3 sikuli e2e tests
+#### Prerequisite
+1. Java version 8 or later
+
+#### IDE setup
+1. [Download](https://launchpad.net/sikuli/+download) sikuli IDE jar file.
+2. Launch the IDE with a double click on the sikuli IDE jar file
+
+#### Run tests from sikuli IDE
+1. Launch [FDC3 Chart and Grid Example](####FDC3-Chart-and-Grid-Example)
+2. On the Sikuli IDE click on file -> open
+3. Locate the test file and select.
+4. Click on the "Run" button in sikuli IDE to execute the script. Ensure that [FDC3 Chart and Grid Example](####FDC3-Chart-and-Grid-Example) is running in the background as Sikuli script will interact with it directly.
+
+#### Run tests from CLI
+1. Launch [FDC3 Chart and Grid Example](####FDC3-Chart-and-Grid-Example)
+2. Open your terminal and run `java -jar PATH-TO-SIKULI/sikuli-ide.exe -r PATH-TO-TEST_FILE`
+3. Example `java -jar ./sikulixide-2.0.5-win.jar -r ./grid-and-chat-display-automated-test.py`
