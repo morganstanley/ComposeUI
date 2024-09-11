@@ -12,17 +12,16 @@
  * and limitations under the License.
  */
 
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
+
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
-internal class Fdc3StartupProperties
+public interface IUserChannelSetReader
 {
     /// <summary>
-    /// Fdc3 DesktopAgent's specific identifier for the created application instance.
+    /// Reads the defined user channel set.
     /// </summary>
-    public string InstanceId { get; init; }
-
-    /// <summary>
-    /// Id of the channel the opened app should join
-    /// </summary>
-    public string? ChannelId { get; init; }
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public Task<IReadOnlyDictionary<string, ChannelItem>> GetUserChannelSet(CancellationToken cancellationToken = default);
 }

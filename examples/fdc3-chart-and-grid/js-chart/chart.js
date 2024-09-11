@@ -12,14 +12,11 @@ let currentChannel;
 
 NoDataToDisplay(Highcharts);
 
-window.addEventListener('load', function() {
+window.addEventListener('fdc3Ready', async() => {
   chart = Highcharts.chart('container', {
 
       chart: {
         type: 'column',
-        events: {
-          load: requestData
-        }
       },
       title: {
         text: 'Monthly Sales Data'
@@ -43,6 +40,8 @@ window.addEventListener('load', function() {
         data: []
       }]
     });
+
+    await requestData();
 });
 
 window.addEventListener('close', async function(){

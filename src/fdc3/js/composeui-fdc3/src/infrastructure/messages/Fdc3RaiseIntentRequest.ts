@@ -19,7 +19,6 @@ export class Fdc3RaiseIntentRequest {
         public readonly messageId: number,
         public readonly fdc3InstanceId: string,
         public readonly intent: string,
-        public readonly selected: boolean,
         public readonly context: Context,
         public readonly targetAppIdentifier?: AppIdentifier) {
     }

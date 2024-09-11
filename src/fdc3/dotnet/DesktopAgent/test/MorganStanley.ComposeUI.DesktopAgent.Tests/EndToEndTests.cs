@@ -460,7 +460,6 @@ public class EndToEndTests : IAsyncLifetime
             MessageId = 2,
             Fdc3InstanceId = originFdc3InstanceId,
             Intent = "noIntentShouldHandle",
-            Selected = false,
             Context = new Context(ContextTypes.Nothing)
         };
 
@@ -509,7 +508,6 @@ public class EndToEndTests : IAsyncLifetime
             MessageId = 2,
             Fdc3InstanceId = originFdc3InstanceId,
             Intent = "intentMetadataCustom",
-            Selected = false,
             Context = new Context("contextCustom"),
             TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
         };
@@ -575,7 +573,6 @@ public class EndToEndTests : IAsyncLifetime
             MessageId = 2,
             Fdc3InstanceId = originFdc3InstanceId,
             Intent = "intentMetadataCustom",
-            Selected = false,
             Context = new Context("contextCustom"),
             TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
         };
@@ -708,7 +705,6 @@ public class EndToEndTests : IAsyncLifetime
             MessageId = 2,
             Fdc3InstanceId = originFdc3InstanceId,
             Intent = "intentMetadataCustom",
-            Selected = false,
             Context = new Context("contextCustom"),
             TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
         };
@@ -819,7 +815,6 @@ public class EndToEndTests : IAsyncLifetime
                 MessageId = 1,
                 Fdc3InstanceId = originFdc3InstanceId,
                 Intent = "intentMetadataCustom",
-                Selected = false,
                 Context = new Context("contextCustom"),
                 TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
             },
@@ -1045,7 +1040,7 @@ public class EndToEndTests : IAsyncLifetime
 
 
     [Fact]
-    public async Task JoinUserChannelReturnsAccessDenied()
+    public async Task JoinUserChannelReturnsMissingId()
     {
         var request = new JoinUserChannelRequest
         {
@@ -1060,7 +1055,7 @@ public class EndToEndTests : IAsyncLifetime
         var result = response!.ReadJson<JoinUserChannelResponse>(_options);
 
         result.Should().NotBeNull();
-        result.Should().BeEquivalentTo(JoinUserChannelResponse.Failed(ChannelError.AccessDenied));
+        result.Should().BeEquivalentTo(JoinUserChannelResponse.Failed(Fdc3DesktopAgentErrors.MissingId));
     }
 
     [Fact]

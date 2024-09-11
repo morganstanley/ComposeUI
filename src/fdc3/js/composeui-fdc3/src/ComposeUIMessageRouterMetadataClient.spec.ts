@@ -43,7 +43,7 @@ describe('MessageRouterMetadataClient tests', () => {
             invoke: jest.fn(() => { return Promise.resolve(undefined) }) 
         };
 
-        const desktopAgent = new ComposeUIDesktopAgent("testChannelId", messageRouterClientMock);
+        const desktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
 
         await expect(desktopAgent.getInfo())
             .rejects
@@ -63,7 +63,7 @@ describe('MessageRouterMetadataClient tests', () => {
             invoke: jest.fn(() => { return Promise.resolve(`${JSON.stringify({ error: "dummyError" })}`) }) 
         };
 
-        const desktopAgent = new ComposeUIDesktopAgent("testChannelId", messageRouterClientMock);
+        const desktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
 
         await expect(desktopAgent.getInfo())
             .rejects
@@ -101,7 +101,7 @@ describe('MessageRouterMetadataClient tests', () => {
             invoke: jest.fn(() => { return Promise.resolve(`${JSON.stringify(response)}`) }) 
         };
 
-        const desktopAgent = new ComposeUIDesktopAgent("testChannelId", messageRouterClientMock);
+        const desktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
 
         var result = await desktopAgent.getInfo();
         expect(result).toMatchObject(implementationMetadata);
@@ -121,7 +121,7 @@ describe('MessageRouterMetadataClient tests', () => {
             invoke: jest.fn(() => { return Promise.resolve(undefined) }) 
         };
 
-        const desktopAgent = new ComposeUIDesktopAgent("testChannelId", messageRouterClientMock);
+        const desktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
 
         await expect(desktopAgent.findInstances({appId: "test"}))
             .rejects
@@ -141,7 +141,7 @@ describe('MessageRouterMetadataClient tests', () => {
             invoke: jest.fn(() => { return Promise.resolve(`${JSON.stringify({ error: "dummyError" })}`) }) 
         };
 
-        const desktopAgent = new ComposeUIDesktopAgent("testChannelId", messageRouterClientMock);
+        const desktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
 
         await expect(desktopAgent.findInstances({appId: "test"}))
             .rejects
@@ -166,7 +166,7 @@ describe('MessageRouterMetadataClient tests', () => {
             invoke: jest.fn(() => { return Promise.resolve(`${JSON.stringify(response)}`) }) 
         };
 
-        const desktopAgent = new ComposeUIDesktopAgent("testChannelId", messageRouterClientMock);
+        const desktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
 
         var result = await desktopAgent.findInstances({appId: "test"});
         expect(result).toMatchObject([{appId: "test", instanceId: "id"}]);
@@ -185,7 +185,7 @@ describe('MessageRouterMetadataClient tests', () => {
             invoke: jest.fn(() => { return Promise.resolve(undefined) }) 
         };
 
-        const desktopAgent = new ComposeUIDesktopAgent("testChannelId", messageRouterClientMock);
+        const desktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
 
         await expect(desktopAgent.getAppMetadata({appId: "test"}))
             .rejects
@@ -205,7 +205,7 @@ describe('MessageRouterMetadataClient tests', () => {
             invoke: jest.fn(() => { return Promise.resolve(`${JSON.stringify({ error: "dummyError" })}`) }) 
         };
 
-        const desktopAgent = new ComposeUIDesktopAgent("testChannelId", messageRouterClientMock);
+        const desktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
 
         await expect(desktopAgent.getAppMetadata({appId: "test"}))
             .rejects
@@ -230,7 +230,7 @@ describe('MessageRouterMetadataClient tests', () => {
             invoke: jest.fn(() => { return Promise.resolve(`${JSON.stringify(response)}`) }) 
         };
 
-        const desktopAgent = new ComposeUIDesktopAgent("testChannelId", messageRouterClientMock);
+        const desktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
 
         var result = await desktopAgent.getAppMetadata({appId: "test"});
         expect(result).toMatchObject({appId: "test"});

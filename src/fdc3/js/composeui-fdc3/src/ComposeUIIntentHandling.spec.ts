@@ -51,7 +51,7 @@ describe("Tests for ComposeUIDesktopAgent's intent handling", () => {
             invoke: jest.fn(() => { return Promise.resolve(undefined) })
         };
 
-        const testDesktopAgent = new ComposeUIDesktopAgent("dummyPath", messageRouterClientMock);
+        const testDesktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
         await expect(testDesktopAgent.findIntent("testIntent"))
             .rejects
             .toThrow(ComposeUIErrors.NoAnswerWasProvided);
@@ -76,7 +76,7 @@ describe("Tests for ComposeUIDesktopAgent's intent handling", () => {
             unregisterService: jest.fn(() => { return Promise.resolve() }),
             invoke: jest.fn(() => { return Promise.resolve(`${JSON.stringify(fdc3IntentResponse)}`) })
         };
-        const testDesktopAgent = new ComposeUIDesktopAgent("dummyPath", messageRouterClientMock);
+        const testDesktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
         await expect(testDesktopAgent.findIntent("testIntent"))
             .rejects
             .toThrow("Error happens...");
@@ -99,7 +99,7 @@ describe("Tests for ComposeUIDesktopAgent's intent handling", () => {
             unregisterService: jest.fn(() => { return Promise.resolve() }),
             invoke: jest.fn(() => { return Promise.resolve(`${JSON.stringify({ appIntent: { itent: "dummyIntent", apps: [{ appId: "appId1" }, { appId: "appdId2" }] } })}`) })
         };
-        const testDesktopAgent = new ComposeUIDesktopAgent("dummyPath", messageRouterClientMock);
+        const testDesktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
         var resultAppIntent = await testDesktopAgent.findIntent("dummyIntent");
         expect(messageRouterClientMock.invoke).toHaveBeenCalledWith(ComposeUITopic.findIntent(), JSON.stringify({ fdc3InstanceId: window?.composeui?.fdc3.config?.instanceId, intent: "dummyIntent" }));
         expect(resultAppIntent).toMatchObject({ itent: "dummyIntent", apps: [{ appId: "appId1" }, { appId: "appdId2" }] });
@@ -121,7 +121,7 @@ describe("Tests for ComposeUIDesktopAgent's intent handling", () => {
             invoke: jest.fn(() => { return Promise.resolve(undefined) })
         };
 
-        const testDesktopAgent = new ComposeUIDesktopAgent("dummyPath", messageRouterClientMock);
+        const testDesktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
         await expect(testDesktopAgent.findIntentsByContext({ type: "fdc3.Instrument" }))
             .rejects
             .toThrow(ComposeUIErrors.NoAnswerWasProvided);
@@ -146,7 +146,7 @@ describe("Tests for ComposeUIDesktopAgent's intent handling", () => {
             unregisterService: jest.fn(() => { return Promise.resolve() }),
             invoke: jest.fn(() => { return Promise.resolve(`${JSON.stringify(fdc3IntentResponse)}`) })
         };
-        const testDesktopAgent = new ComposeUIDesktopAgent("dummyPath", messageRouterClientMock);
+        const testDesktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
         await expect(testDesktopAgent.findIntentsByContext({ type: "testType" }))
             .rejects
             .toThrow(fdc3IntentResponse.error);
@@ -195,7 +195,7 @@ describe("Tests for ComposeUIDesktopAgent's intent handling", () => {
             unregisterService: jest.fn(() => { return Promise.resolve() }),
             invoke: jest.fn(() => { return Promise.resolve(`${JSON.stringify(response)}`) })
         };
-        const testDesktopAgent = new ComposeUIDesktopAgent("dummyPath", messageRouterClientMock);
+        const testDesktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
         var resultAppIntent = await testDesktopAgent.findIntentsByContext({ type: "fdc3.Instrument" });
 
         expect(messageRouterClientMock.invoke).toHaveBeenCalledWith(ComposeUITopic.findIntentsByContext(), JSON.stringify(request));
@@ -218,7 +218,7 @@ describe("Tests for ComposeUIDesktopAgent's intent handling", () => {
             invoke: jest.fn(() => { return Promise.resolve(undefined) })
         };
 
-        const testDesktopAgent = new ComposeUIDesktopAgent("dummyPath", messageRouterClientMock);
+        const testDesktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
         await expect(testDesktopAgent.raiseIntent("testIntent", { type: "fdc3.Instrument" }))
             .rejects
             .toThrow(ComposeUIErrors.NoAnswerWasProvided);
@@ -245,7 +245,7 @@ describe("Tests for ComposeUIDesktopAgent's intent handling", () => {
             unregisterService: jest.fn(() => { return Promise.resolve() }),
             invoke: jest.fn(() => { return Promise.resolve(`${JSON.stringify(fdc3IntentResponse)}`) })
         };
-        const testDesktopAgent = new ComposeUIDesktopAgent("dummyPath", messageRouterClientMock);
+        const testDesktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
         await expect(testDesktopAgent.raiseIntent("testIntent", { type: "testType" }))
             .rejects
             .toThrow(fdc3IntentResponse.error);
@@ -281,7 +281,7 @@ describe("Tests for ComposeUIDesktopAgent's intent handling", () => {
             getIntentListener: jest.fn((intent: string, handler: IntentHandler) => { return <Promise<Listener>>Promise.reject("not implemented") })
         };
 
-        const testDesktopAgent = new ComposeUIDesktopAgent("dummyPath", messageRouterClientMock);
+        const testDesktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
         var result = await testDesktopAgent.raiseIntent("test", { type: "test" });
         expect(messageRouterClientMock.invoke).toHaveBeenCalledTimes(1);
         expect(result.intent).toMatch("test");
@@ -304,7 +304,7 @@ describe("Tests for ComposeUIDesktopAgent's intent handling", () => {
             unregisterService: jest.fn(() => { return Promise.resolve() }),
             invoke: jest.fn(() => { return Promise.resolve(`${JSON.stringify({ stored: true })}`) })
         };
-        const testDesktopAgent = new ComposeUIDesktopAgent('dummyPath', messageRouterClientMock);
+        const testDesktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
         const intentHandler: IntentHandler = (context, metadata) => {
             return;
         };
@@ -329,7 +329,7 @@ describe("Tests for ComposeUIDesktopAgent's intent handling", () => {
             unregisterService: jest.fn(() => { return Promise.resolve() }),
             invoke: jest.fn(() => { return Promise.resolve("") })
         };
-        const testDesktopAgent = new ComposeUIDesktopAgent('dummyPath', messageRouterClientMock);
+        const testDesktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
         const intentHandler: IntentHandler = (context, metadata) => {
             return;
         };
@@ -354,7 +354,7 @@ describe("Tests for ComposeUIDesktopAgent's intent handling", () => {
             unregisterService: jest.fn(() => { return Promise.resolve() }),
             invoke: jest.fn(() => { return Promise.resolve(`${JSON.stringify({ stored: false, error: undefined })}`) })
         };
-        const testDesktopAgent = new ComposeUIDesktopAgent('dummyPath', messageRouterClientMock);
+        const testDesktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
         const intentHandler: IntentHandler = (context, metadata) => {
             return;
         };

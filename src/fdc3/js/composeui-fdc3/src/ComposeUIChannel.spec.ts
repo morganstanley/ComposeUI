@@ -120,27 +120,6 @@ describe("AppChanel tests", () => {
             }
         };
     });
-    
-    it("getOrCreateChannel returns successfully after it found the AppChannel in the cache", async () => {
-        const messageRouterClientMock = {
-            clientId: "dummy",
-            subscribe: jest.fn(() => {
-                return Promise.resolve({unsubscribe: () => {}});}),
-
-            publish: jest.fn(() => { return Promise.resolve() }),
-            connect: jest.fn(() => { return Promise.resolve() }),
-            registerEndpoint: jest.fn(() => { return Promise.resolve() }),
-            unregisterEndpoint: jest.fn(() => { return Promise.resolve() }),
-            registerService: jest.fn(() => { return Promise.resolve() }),
-            unregisterService: jest.fn(() => { return Promise.resolve() }),
-            invoke: jest.fn(() => { return Promise.resolve(`${JSON.stringify({ found: true })}`) })
-        };
-
-        const desktopAgent = new ComposeUIDesktopAgent('dummyPath', messageRouterClientMock);
-        const channel1 = await desktopAgent.getOrCreateChannel("hello.world");
-        const channel2 = await desktopAgent.getOrCreateChannel("hello.world");
-        expect(channel2).toBe(channel1);
-    });
 
     it("getOrCreateChannel creates a channel", async () => {
         let messageRouterClientMock: MessageRouter = {
@@ -153,10 +132,9 @@ describe("AppChanel tests", () => {
             registerService: jest.fn(() => { return Promise.resolve() }),
             unregisterService: jest.fn(() => { return Promise.resolve() }),
             invoke: jest.fn(() => { return Promise.resolve<string | undefined>(undefined)})
-                .mockImplementationOnce(() => Promise.resolve(JSON.stringify({ found: false })))
                 .mockImplementationOnce(() => Promise.resolve(JSON.stringify({ success: true })))
         };
-        const desktopAgent = new ComposeUIDesktopAgent('dummyPath', messageRouterClientMock);
+        const desktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
         const channel = await desktopAgent.getOrCreateChannel("hello.world");
         expect(channel).toBeInstanceOf(ComposeUIChannel);
     });
@@ -172,11 +150,10 @@ describe("AppChanel tests", () => {
             registerService: jest.fn(() => { return Promise.resolve() }),
             unregisterService: jest.fn(() => { return Promise.resolve() }),
             invoke: jest.fn(() => { return Promise.resolve<string | undefined>(undefined)})
-                .mockImplementationOnce(() => Promise.resolve(JSON.stringify({ found: false })))
                 .mockImplementationOnce(() => Promise.resolve(JSON.stringify({ success: false, error: "dummy" })))
         };
 
-        const desktopAgent = new ComposeUIDesktopAgent('dummyPath', messageRouterClientMock);
+        const desktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
         await expect(desktopAgent.getOrCreateChannel("hello.world"))
             .rejects
             .toThrow("dummy");
@@ -193,11 +170,10 @@ describe("AppChanel tests", () => {
             registerService: jest.fn(() => { return Promise.resolve() }),
             unregisterService: jest.fn(() => { return Promise.resolve() }),
             invoke: jest.fn(() => { return Promise.resolve<string | undefined>(undefined)})
-                .mockImplementationOnce(() => Promise.resolve(JSON.stringify({ found: false })))
                 .mockImplementationOnce(() => Promise.resolve(JSON.stringify({ success: false })))
         };
 
-        const desktopAgent = new ComposeUIDesktopAgent('dummyPath', messageRouterClientMock);
+        const desktopAgent = new ComposeUIDesktopAgent(messageRouterClientMock);
         await expect(desktopAgent.getOrCreateChannel("hello.world"))
             .rejects
             .toThrow(ChannelError.CreationFailed);

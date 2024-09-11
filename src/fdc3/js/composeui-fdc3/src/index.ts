@@ -12,10 +12,38 @@
  */
 
 
+import { AppIdentifier, DesktopAgent } from "@finos/fdc3";
 import { ComposeUIDesktopAgent } from "./ComposeUIDesktopAgent";
 import { createMessageRouter } from "@morgan-stanley/composeui-messaging-client";
 
 
-let fdc3 = new ComposeUIDesktopAgent("fdc3.channel.1", createMessageRouter());
-fdc3.joinUserChannel("fdc3.channel.1");
-export default fdc3;
+declare global {
+    interface Window {
+        composeui: {
+            fdc3: {
+                config: AppIdentifier | undefined;
+                channelId : string | undefined;
+            }
+        }
+        fdc3: DesktopAgent;
+    }
+}
+
+async function initialize(): Promise<void> {
+    //TODO: decide if we want to join to a channel by default.
+    let channelId: string | undefined = window.composeui.fdc3.channelId;
+    const fdc3 = new ComposeUIDesktopAgent(createMessageRouter());
+
+    if (channelId) {
+        await fdc3.joinUserChannel(channelId)
+            .then(() => {
+                window.fdc3 = fdc3;
+                window.dispatchEvent(new Event("fdc3Ready"));
+            });
+    } else {
+        window.fdc3 = fdc3;
+        window.dispatchEvent(new Event("fdc3Ready"));
+    }
+}
+
+initialize();

@@ -38,6 +38,7 @@ using IntentMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Intent
 using Icon = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Icon;
 using ImplementationMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.ImplementationMetadata;
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
 
@@ -57,12 +58,14 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
 
     public Fdc3DesktopAgentTests()
     {
+        var options = new Fdc3DesktopAgentOptions();
+
         _fdc3 = new Fdc3DesktopAgent(
             _appDirectory,
             _mockModuleLoader.Object,
-            new Fdc3DesktopAgentOptions(),
+            options,
             _mockResolverUICommunicator.Object,
-            null,
+            new UserChannelSetReader(options),
             NullLoggerFactory.Instance);
     }
 
@@ -258,7 +261,6 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
                 MessageId = int.MaxValue,
                 Fdc3InstanceId = Guid.NewGuid().ToString(),
                 Intent = "intentMetadata4",
-                Selected = false,
                 Context = new Context("context2"),
                 TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
             };
@@ -320,7 +322,6 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             MessageId = int.MaxValue,
             Fdc3InstanceId = Guid.NewGuid().ToString(),
             Intent = "intentMetadata4",
-            Selected = false,
             Context = new Context("context2"),
             TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
         };
@@ -395,7 +396,6 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             MessageId = int.MaxValue,
             Fdc3InstanceId = Guid.NewGuid().ToString(),
             Intent = "intentMetadata4",
-            Selected = false,
             Context = new Context("context2"),
             TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
         };
@@ -448,7 +448,6 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             MessageId = 1,
             Fdc3InstanceId = originFdc3InstanceId,
             Intent = "intentMetadataCustom",
-            Selected = false,
             Context = new Context("contextCustom"),
             TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
         };
@@ -490,7 +489,6 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             MessageId = 1,
             Fdc3InstanceId = originFdc3InstanceId,
             Intent = "intentMetadataCustom",
-            Selected = false,
             Context = new Context("contextCustom"),
             TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
         };
@@ -540,7 +538,6 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             MessageId = 1,
             Fdc3InstanceId = Guid.NewGuid().ToString(),
             Intent = "noAppShouldReturn",
-            Selected = false,
             Context = new Context("context2")
         };
 
@@ -557,7 +554,6 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             MessageId = 1,
             Fdc3InstanceId = Guid.NewGuid().ToString(),
             Intent = "intentMetadata4",
-            Selected = false,
             Context = new Context(ContextTypes.Nothing)
         };
 
@@ -595,7 +591,6 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             MessageId = 1,
             Fdc3InstanceId = originFdc3InstanceId,
             Intent = "intentMetadataCustom",
-            Selected = false,
             Context = new Context("contextCustom"),
             TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
         };
@@ -692,15 +687,19 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task GetUserChannels_returns_no_user_channel_set_configured_error()
+    public async Task GetUserChannels_returns_empty_userChannel_set()
     {
+        var options = new Fdc3DesktopAgentOptions
+        {
+            UserChannelConfigFile = new Uri("C://hello/world/test.json"),
+        };
+
         var fdc3 = new Fdc3DesktopAgent(
             _appDirectory,
             _mockModuleLoader.Object,
-            new Fdc3DesktopAgentOptions
-            {
-                UserChannelConfigFile = new Uri("C://hello/world/test.json"),
-            }, _mockResolverUICommunicator.Object);
+            options, 
+            _mockResolverUICommunicator.Object,
+            new UserChannelSetReader(options));
 
         await fdc3.StartAsync(CancellationToken.None);
 
@@ -716,7 +715,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
         var result = await fdc3.GetUserChannels(request);
 
         result.Should().NotBeNull();
-        result.Should().BeEquivalentTo(GetUserChannelsResponse.Failure(Fdc3DesktopAgentErrors.NoUserChannelSetFound));
+        result.Should().BeEquivalentTo(GetUserChannelsResponse.Success(Enumerable.Empty<ChannelItem>()));
     }
 
     [Fact]
@@ -749,12 +748,12 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task JoinUserChannel_returns_access_denied_error_as_instance_id_not_found()
+    public async Task JoinUserChannel_returns_missing_id_error_as_instance_id_not_found()
     {
         var result = await _fdc3.JoinUserChannel((channelId) => new UserChannel(channelId, new Mock<IMessagingService>().Object, null), new() { InstanceId = Guid.NewGuid().ToString(), ChannelId = "test"});
 
         result.Should().NotBeNull();
-        result.Should().BeEquivalentTo(JoinUserChannelResponse.Failed(ChannelError.AccessDenied));
+        result.Should().BeEquivalentTo(JoinUserChannelResponse.Failed(Fdc3DesktopAgentErrors.MissingId));
     }
 
     [Fact]

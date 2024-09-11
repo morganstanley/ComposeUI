@@ -81,7 +81,7 @@ export class MessageRouterIntentsClient implements IntentsClient {
         }
 
         const messageId = Math.floor(Math.random() * 10000);
-        const message = new Fdc3RaiseIntentRequest(messageId, window.composeui.fdc3.config!.instanceId!, intent, false, context, app);
+        const message = new Fdc3RaiseIntentRequest(messageId, window.composeui.fdc3.config!.instanceId!, intent, context, app);
         const responseFromService = await this.messageRouterClient.invoke(ComposeUITopic.raiseIntent(), JSON.stringify(message));
         if (!responseFromService) {
             throw new Error(ComposeUIErrors.NoAnswerWasProvided);
