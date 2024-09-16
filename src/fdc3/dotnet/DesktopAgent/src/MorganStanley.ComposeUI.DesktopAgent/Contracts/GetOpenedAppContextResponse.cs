@@ -12,22 +12,21 @@
  * and limitations under the License.
  */
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
-internal class Fdc3StartupProperties
+internal sealed class GetOpenedAppContextResponse
 {
     /// <summary>
-    /// Fdc3 DesktopAgent's specific identifier for the created application instance.
+    /// Indicates if error happened during the execution.
     /// </summary>
-    public string InstanceId { get; init; }
+    public string? Error { get; set; }
 
+    //TODO: proper deserialization.
     /// <summary>
-    /// Id of the channel the opened app should join
+    /// Context that should be sent directly to the opened app via the fdc3.open().
     /// </summary>
-    public string? ChannelId { get; init; }
+    public string? Context { get; set; }
 
-    /// <summary>
-    /// This implies that the opened app was started via using the fdc3.open() call. Thi id ensures that if the app opens and it's available on the object then the opened app can request the context and handle it when its context listener is being registered for the right context type.
-    /// </summary>
-    public string? OpenedAppContextId { get; set; }
+    public static GetOpenedAppContextResponse Failure(string error) => new() {Error = error};
+    public static GetOpenedAppContextResponse Success(string context) => new() {Context = context};
 }

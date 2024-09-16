@@ -55,7 +55,6 @@ export class MessageRouterIntentsClient implements IntentsClient {
         }
     }
 
-
     public async findIntentsByContext(context: Context, resultType?: string): Promise<Array<AppIntent>> {
         const request = new Fdc3FindIntentsByContextRequest(window.composeui.fdc3.config!.instanceId!, context, resultType);
         const message = await this.messageRouterClient.invoke(ComposeUITopic.findIntentsByContext(), JSON.stringify(request));

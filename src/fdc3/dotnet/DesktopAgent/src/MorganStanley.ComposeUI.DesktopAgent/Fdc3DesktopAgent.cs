@@ -14,6 +14,7 @@
 
 using System.Collections.Concurrent;
 using System.Reactive.Linq;
+using System.Text.Json;
 using Finos.Fdc3;
 using Finos.Fdc3.AppDirectory;
 using Finos.Fdc3.Context;
@@ -57,6 +58,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     private readonly ConcurrentDictionary<Guid, RaisedIntentRequestHandler> _raisedIntentResolutions = new();
     private readonly ConcurrentDictionary<StartRequest, TaskCompletionSource<IModuleInstance>> _pendingStartRequests = new();
     private readonly ConcurrentDictionary<Guid, List<ContextListener>> _contextListeners = new();
+    private readonly ConcurrentDictionary<Guid, string> _openedAppContexts = new ();
     private IAsyncDisposable? _subscription;
     private readonly object _contextListenerLock = new();
 
@@ -717,6 +719,89 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         }
     }
 
+    //TODO: https://github.com/finos/FDC3/issues/1350
+    //Queueing up open context, deliver that first, after that we should send other contexts.
+    public async ValueTask<OpenResponse?> Open(OpenRequest? request, IContext? context = null)
+    {
+        if (request == null)
+        {
+            return OpenResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull);
+        }
+
+        if (!Guid.TryParse(request.InstanceId, out var fdc3InstanceId)
+            || !_runningModules.ContainsKey(fdc3InstanceId))
+        {
+            return OpenResponse.Failure(Fdc3DesktopAgentErrors.MissingId);
+        }
+
+        try
+        {
+            var fdc3App = await _appDirectory.GetApp(request.AppIdentifier.AppId);
+            var appMetadata = GetAppMetadata(fdc3App, null, null);
+            var parameters = new Dictionary<string, string>();
+            
+            if (request.Context != null)
+            {
+                var id = Guid.NewGuid();
+
+                parameters.Add(Fdc3StartupParameters.OpenedAppContextId, id.ToString());
+                _openedAppContexts.TryAdd(id, request.Context);
+            }
+
+            if (request.ChannelId != null)
+            {
+                parameters.Add(Fdc3StartupParameters.Fdc3ChannelId, request.ChannelId);
+            }
+
+            var target = await StartModule(appMetadata, parameters);
+
+            if (!Guid.TryParse(target.InstanceId, out var targetInstanceId))
+            {
+                return OpenResponse.Failure(OpenError.ErrorOnLaunch);
+            }
+
+            if (request.Context == null)
+            {
+                return OpenResponse.Success(new AppIdentifier { AppId = target.AppId, InstanceId = target.InstanceId });
+            }
+
+            var cancellationToken = new CancellationToken();
+            _ = await GetContextListener(targetInstanceId, context!.Type, cancellationToken).WaitAsync(_options.ListenerRegistrationTimeout, cancellationToken);
+
+            return OpenResponse.Success(new AppIdentifier { AppId = target.AppId, InstanceId = target.InstanceId });
+        }
+        catch (AppNotFoundException exception)
+        {
+            _logger.LogError(exception, $"Exception is thrown while executing the {nameof(Open)} request.");
+            return OpenResponse.Failure(OpenError.AppNotFound);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, $"Exception is thrown while executing the {nameof(Open)} request.");
+            return OpenResponse.Failure(OpenError.AppTimeout);
+        }
+    }
+
+    public ValueTask<GetOpenedAppContextResponse?> GetOpenedAppContext(GetOpenedAppContextRequest? request)
+    {
+        if (request == null)
+        {
+            return ValueTask.FromResult<GetOpenedAppContextResponse?>(GetOpenedAppContextResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull));
+        }
+
+        if (!Guid.TryParse(request.ContextId, out var contextId))
+        {
+            return ValueTask.FromResult<GetOpenedAppContextResponse?>(GetOpenedAppContextResponse.Failure(Fdc3DesktopAgentErrors.IdNotParsable));
+        }
+
+        if (!_openedAppContexts.TryRemove(contextId, out var context))
+        {
+            return ValueTask.FromResult<GetOpenedAppContextResponse?>(GetOpenedAppContextResponse.Failure(Fdc3DesktopAgentErrors.OpenedAppContextNotFound));
+        }
+
+        return ValueTask.FromResult<GetOpenedAppContextResponse?>(GetOpenedAppContextResponse.Success(context));
+    }
+
     public async ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntent(RaiseIntentRequest? request)
     {
         if (request == null)
@@ -1284,6 +1369,33 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             Tooltip = app.ToolTip,
             Version = app.Version,
         };
+    }
+
+    private async Task<ContextListener> GetContextListener(Guid instanceId, string contextType, CancellationToken cancellationToken = default)
+    {
+        while (true)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                throw new TimeoutException(
+                    $"ContextListener is not registered in time for context type {contextType}");
+            }
+
+            lock (_contextListenerLock)
+            {
+                if (_contextListeners.TryGetValue(instanceId, out var listeners))
+                {
+                    var listener = listeners.FirstOrDefault(x => x.ContextType == contextType);
+
+                    if (listener != null)
+                    {
+                        return listener;
+                    }
+                }
+            }
+
+            await Task.Delay(1);
+        }
     }
 
     private Task RemoveModuleAsync(IModuleInstance instance)

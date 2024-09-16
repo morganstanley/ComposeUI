@@ -1,4 +1,4 @@
-/* 
+﻿/* 
  *  Morgan Stanley makes this available to you under the Apache License,
  *  Version 2.0 (the "License"). You may obtain a copy of the License at
  *       http://www.apache.org/licenses/LICENSE-2.0.
@@ -17,9 +17,6 @@ import { ChannelType } from "./ChannelType";
 import { ComposeUIContextListener } from "./ComposeUIContextListener";
 import { Fdc3GetCurrentContextRequest } from "./messages/Fdc3GetCurrentContextRequest";
 import { ComposeUITopic } from "./ComposeUITopic";
-import { ComposeUIErrors } from "./ComposeUIErrors";
-import { Fdc3AddContextListenerResponse } from "./messages/Fdc3AddContextListenerResponse";
-import { Fdc3AddContextListenerRequest } from "./messages/Fdc3AddContextListenerRequest";
 
 export class ComposeUIChannel implements Channel {
     id: string;
@@ -44,6 +41,9 @@ export class ComposeUIChannel implements Channel {
         this.lastContext = context;
         const topic = ComposeUITopic.broadcast(this.id, this.type);
         await this.messageRouterClient.publish(topic, JSON.stringify(context));
+        
+        //TODO:Remove
+        console.log("Broadcasted on channel:", this.id, ", context:", context, ", on topic: ", topic, ", time: ", new Date().toISOString());
     }
 
     public async getCurrentContext(contextType?: string | undefined): Promise<Context | null> {
@@ -54,10 +54,11 @@ export class ComposeUIChannel implements Channel {
             if (context) {
                 this.lastContext = context;
                 this.lastContexts.set(context.type, context);
+
+                return context;
             }
         }
         return this.retrieveCurrentContext(contextType);
-
     }
 
     private retrieveCurrentContext(contextType?: string): Context | null {

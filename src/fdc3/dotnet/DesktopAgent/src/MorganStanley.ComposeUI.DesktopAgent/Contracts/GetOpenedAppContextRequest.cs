@@ -12,14 +12,12 @@
  * and limitations under the License.
  */
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
-/// <summary>
-/// This class is for setting internally the properties that should be injected to the opened app.
-/// </summary>
-internal class Fdc3StartupParameters
+internal sealed class GetOpenedAppContextRequest
 {
-    public static string Fdc3InstanceId = nameof(Fdc3InstanceId);
-    public static string Fdc3ChannelId = nameof(Fdc3ChannelId);
-    public static string OpenedAppContextId = nameof(OpenedAppContextId);
+    /// <summary>
+    /// The id of the context that is defined for the opened app via the fdc3.open() call.
+    /// </summary>
+    public string ContextId { get; set; }
 }
