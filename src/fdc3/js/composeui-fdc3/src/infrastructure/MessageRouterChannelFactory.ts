@@ -33,8 +33,6 @@ import { Fdc3GetUserChannelsRequest } from "./messages/Fdc3GetUserChannelsReques
 import { Fdc3GetUserChannelsResponse } from "./messages/Fdc3GetUserChannelsResponse";
 import { Fdc3JoinUserChannelRequest } from "./messages/Fdc3JoinUserChannelRequest";
 import { Fdc3JoinUserChannelResponse } from "./messages/Fdc3JoinUserChannelResponse";
-import { Fdc3AddContextListenerRequest } from "./messages/Fdc3AddContextListenerRequest";
-import { Fdc3AddContextListenerResponse } from "./messages/Fdc3AddContextListenerResponse";
 import { ChannelItem } from "./ChannelItem";
 import { ComposeUIContextListener } from "./ComposeUIContextListener";
 

@@ -136,7 +136,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         return await _desktopAgent.GetIntentResult(request);
     }
 
-    internal async ValueTask<CreatePrivateChannelResponse> HandleCreatePrivateChannel(CreatePrivateChannelRequest request, MessageContext? context)
+    internal async ValueTask<CreatePrivateChannelResponse?> HandleCreatePrivateChannel(CreatePrivateChannelRequest? request, MessageContext? context)
     {
         try
         {
@@ -158,7 +158,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
     {
         if (request == null)
         {
-            return CreateAppChannelResponse.Failed(ChannelError.CreationFailed);
+            return CreateAppChannelResponse.Failed(Fdc3DesktopAgentErrors.PayloadNull);
         }
 
         return await _desktopAgent.AddAppChannel((channelId) => new AppChannel(channelId, _messageRouter, _loggerFactory.CreateLogger<AppChannel>()), request);
@@ -191,7 +191,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         return await _desktopAgent.FindInstances(request);
     }
 
-    internal async ValueTask<GetAppMetadataResponse> HandleGetAppMetadata(GetAppMetadataRequest? request, MessageContext? context)
+    internal async ValueTask<GetAppMetadataResponse?> HandleGetAppMetadata(GetAppMetadataRequest? request, MessageContext? context)
     {
         return await _desktopAgent.GetAppMetadata(request);
     }
@@ -204,6 +204,20 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
     internal async ValueTask<RemoveContextListenerResponse?> HandleRemoveContextListener(RemoveContextListenerRequest? request, MessageContext? context)
     {
         return await _desktopAgent.RemoveContextListener(request);
+    }
+
+    internal async ValueTask<OpenResponse?> HandleOpen(OpenRequest? request, MessageContext? context)
+    {
+        var response = await _desktopAgent.Open(request);
+        //TODO: either send the context for the user channel (if channelId is not null) or to specific topic like ComposeUI/fdc3/2.0/open/instanceId/contextType
+        if (string.IsNullOrEmpty(response?.Error) && request?.Context != null && request?.ChannelId != null)
+        {
+            //TODO: Context handling
+            var topic = Fdc3Topic.UserChannel(request.ChannelId).Broadcast;
+            await _messageRouter.PublishAsync(topic, MessageBuffer.Create(request.Context));
+        }
+
+        return response;
     }
 
     private async ValueTask SafeWaitAsync(IEnumerable<ValueTask> tasks)
@@ -250,6 +264,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         await RegisterHandler<GetAppMetadataRequest, GetAppMetadataResponse>(Fdc3Topic.GetAppMetadata, HandleGetAppMetadata);
         await RegisterHandler<AddContextListenerRequest, AddContextListenerResponse>(Fdc3Topic.AddContextListener, HandleAddContextListener);
         await RegisterHandler<RemoveContextListenerRequest, RemoveContextListenerResponse>(Fdc3Topic.RemoveContextListener, HandleRemoveContextListener);
+        await RegisterHandler<OpenRequest, OpenResponse>(Fdc3Topic.Open, HandleOpen);
 
         await _desktopAgent.StartAsync(cancellationToken);
 
@@ -279,6 +294,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
             _messageRouter.UnregisterServiceAsync(Fdc3Topic.GetAppMetadata, cancellationToken),
             _messageRouter.UnregisterServiceAsync(Fdc3Topic.AddContextListener, cancellationToken),
             _messageRouter.UnregisterServiceAsync(Fdc3Topic.RemoveContextListener, cancellationToken),
+            _messageRouter.UnregisterServiceAsync(Fdc3Topic.Open, cancellationToken),
         };
 
         await SafeWaitAsync(unregisteringTasks);

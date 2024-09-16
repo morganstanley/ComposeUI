@@ -53,7 +53,8 @@ internal sealed class Fdc3StartupAction : IStartupAction
                 var fdc3InstanceId = startupContext.StartRequest.Parameters.FirstOrDefault(parameter => parameter.Key == Fdc3StartupParameters.Fdc3InstanceId).Value ?? Guid.NewGuid().ToString();
                 
                 //TODO: decide if we want to join to a channel automatically on startup of an fdc3 module
-                var channelId = _options.ChannelId ?? userChannelSet.FirstOrDefault().Key;
+                //First we inject the channel id if we set as startup parameter eg.: when we open an app with `fdc3.open`
+                var channelId = startupContext.StartRequest.Parameters.FirstOrDefault(parameter => parameter.Key == Fdc3StartupParameters.Fdc3ChannelId).Value ?? _options.ChannelId ?? userChannelSet.FirstOrDefault().Key;
                 
                 var fdc3StartupProperties = new Fdc3StartupProperties() { InstanceId = fdc3InstanceId, ChannelId = channelId };
                 fdc3InstanceId = startupContext.GetOrAddProperty<Fdc3StartupProperties>(_ => fdc3StartupProperties).InstanceId;

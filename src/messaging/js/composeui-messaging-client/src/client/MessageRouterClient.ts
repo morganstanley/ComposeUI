@@ -82,20 +82,19 @@ export class MessageRouterClient implements MessageRouter {
 
         const subscription = topic.subscribe(subscriber);
 
-        if (needsSubscription) {
-            await this.sendRequest<messages.SubscribeMessage, messages.SubscribeResponse>(
-                {
-                    requestId: this.getRequestId(),
-                    type: "Subscribe",
-                    topic: topicName
-                });
-        }
+        await this.sendRequest<messages.SubscribeMessage, messages.SubscribeResponse>(
+        {
+            requestId: this.getRequestId(),
+            type: "Subscribe",
+            topic: topicName
+        });
 
+        console.log("MessageRouter Subscribe is executed:", topicName, ", topic: ", topic, ", at : ", new Date().toISOString());
         return subscription;
     }
 
     async publish(topic: string, payload?: MessageBuffer, options?: PublishOptions): Promise<void> {
-        await this.checkState();
+        this.checkState();
 
         await this.sendRequest<messages.PublishMessage, messages.PublishResponse>(
             {
@@ -105,6 +104,15 @@ export class MessageRouterClient implements MessageRouter {
                 payload,
                 correlationId: options?.correlationId
             });
+
+        console.log("MessageRouter publish message is sent: ", 
+        {
+            type: "Publish",
+            requestId: this.getRequestId(),
+            topic,
+            payload,
+            correlationId: options?.correlationId
+        }, ", at: ", new Date().toISOString());
     }
 
     async invoke(endpoint: string, payload?: MessageBuffer, options?: InvokeOptions): Promise<MessageBuffer | undefined> {
@@ -466,7 +474,9 @@ class Topic {
     }
 
     next(message: TopicMessage): void {
-        if (this.isCompleted) return;
+        if (this.isCompleted) {
+            return;
+        }
 
         for (let subscriber of this.subscribers) {
             try {

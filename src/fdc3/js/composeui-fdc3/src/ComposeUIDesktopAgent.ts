@@ -36,6 +36,8 @@ import { MessageRouterIntentsClient } from './infrastructure/MessageRouterIntent
 import { IntentsClient } from './infrastructure/IntentsClient';
 import { MetadataClient } from './infrastructure/MetadataClient';
 import { MessageRouterMetadataClient } from './infrastructure/MessageRouterMetadataClient';
+import { OpenClient } from "./infrastructure/OpenClient";
+import { MessageRouterOpenClient } from "./infrastructure/MessageRouterOpenClient";
 
 export class ComposeUIDesktopAgent implements DesktopAgent {
     private appChannels: Channel[] = [];
@@ -47,6 +49,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     private channelFactory: ChannelFactory;
     private intentsClient: IntentsClient;
     private metadataClient: MetadataClient;
+    private openClient: OpenClient;
 
     //TODO: we should enable passing multiple channelId to the ctor.
     constructor(messageRouterClient: MessageRouter, channelFactory?: ChannelFactory) {
@@ -58,11 +61,11 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         this.channelFactory = channelFactory ?? new MessageRouterChannelFactory(messageRouterClient, window.composeui.fdc3.config.instanceId);
         this.intentsClient = new MessageRouterIntentsClient(messageRouterClient, this.channelFactory);
         this.metadataClient = new MessageRouterMetadataClient(messageRouterClient, window.composeui.fdc3.config);
+        this.openClient = new MessageRouterOpenClient(window.composeui.fdc3.config.instanceId!, messageRouterClient);
     }
 
-    //TODO
-    public open(app?: string | AppIdentifier, context?: Context): Promise<AppIdentifier> {
-        throw new Error("Not implemented");
+    public async open(app?: string | AppIdentifier, context?: Context): Promise<AppIdentifier> {
+        return await this.openClient.open(app, context);
     }
 
     public async findIntent(intent: string, context?: Context, resultType?: string): Promise<AppIntent> {
