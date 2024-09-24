@@ -22,7 +22,7 @@
     "@rollup/plugin-node-resolve": "15.2.3",
     "http-server": "14.1.1",
     "rimraf": "6.0.1",
-    "rollup": "4.21.2",
+    "rollup": "4.22.4",
     "rollup-plugin-import-css": "^3.5.0"
   }
 }
