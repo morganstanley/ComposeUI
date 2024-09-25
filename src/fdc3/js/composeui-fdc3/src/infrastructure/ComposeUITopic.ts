@@ -40,6 +40,7 @@ export class ComposeUITopic {
     private static readonly removeContextListenerSuffix = "removeContextListener";
     private static readonly openSuffix = "open";
     private static readonly getOpenedAppContextSuffix = "getOpenedAppContext";
+    private static readonly raiseIntentForContextSuffix = "raiseIntentForContext";
 
     public static broadcast(channelId: string, channelType: ChannelType = "user"): string {
         return `${this.getChannelsTopicRootWithChannelId(channelId, channelType)}/${this.broadcastSuffix}`;
@@ -135,6 +136,10 @@ export class ComposeUITopic {
 
     public static getOpenedAppContext(): string {
         return `${this.topicRoot}/${this.getOpenedAppContextSuffix}`;
+    }
+
+    public static raiseIntentForContext(): string {
+        return `${this.topicRoot}/${this.raiseIntentForContextSuffix}`;
     }
 
     private static getChannelsTopicRoot(channelType: ChannelType): string {

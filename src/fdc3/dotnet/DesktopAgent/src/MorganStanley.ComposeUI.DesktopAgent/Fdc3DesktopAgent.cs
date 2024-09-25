@@ -802,6 +802,128 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         return ValueTask.FromResult<GetOpenedAppContextResponse?>(GetOpenedAppContextResponse.Success(context));
     }
 
+    public async ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntentForContext(RaiseIntentForContextRequest? request, IContext context)
+    {
+        if (request == null)
+        {
+            return new()
+            {
+                Response = RaiseIntentResponse.Failure(ResolveError.IntentDeliveryFailed)
+            };
+        }
+
+        var findIntentsByContextResult = await FindIntentsByContext(new FindIntentsByContextRequest() { Context = context as Context, Fdc3InstanceId = request.Fdc3InstanceId });
+        if (findIntentsByContextResult.AppIntents == null || !findIntentsByContextResult.AppIntents.Any())
+        {
+            return new()
+            {
+                Response = RaiseIntentResponse.Failure(ResolveError.NoAppsFound)
+            };
+        }
+
+        RaiseIntentSpecification raiseIntentSpecification;
+
+        var result = findIntentsByContextResult.AppIntents.ToList();
+        if (result.Count > 1)
+        {
+            //TODO: use the same ResolverUI 
+
+            using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+
+            try
+            {
+                var resolverUIIntentResponse = await _resolverUI.SendResolverUIIntentRequest(result.Select(x => x.Intent.Name), cancellationTokenSource.Token);
+
+                if (resolverUIIntentResponse == null)
+                {
+                    return new()
+                    {
+                        Response = new()
+                        {
+                            Error = Fdc3DesktopAgentErrors.PayloadNull,
+                        }
+                    };
+                }
+
+                if (resolverUIIntentResponse.Error != null)
+                {
+                    return new()
+                    {
+                        Response = new()
+                        {
+                            Error = resolverUIIntentResponse.Error,
+                        }
+                    };
+                }
+
+                raiseIntentSpecification = new()
+                {
+                    Context = context as Context,
+                    Intent = resolverUIIntentResponse.SelectedIntent!,
+                    RaisedIntentMessageId = request.MessageId,
+                    SourceAppInstanceId = new(request.Fdc3InstanceId)
+                };
+            }
+            catch (TimeoutException exception)
+            {
+                if (_logger.IsEnabled(LogLevel.Debug))
+                {
+                    _logger.LogDebug(exception, "MessageRouter didn't receive response from the ResolverUI.");
+                }
+
+                return new RaiseIntentResult<RaiseIntentResponse>()
+                {
+                    Response = RaiseIntentResponse.Failure(ResolveError.ResolverTimeout)
+                };
+            }
+        }
+        else
+        {
+            raiseIntentSpecification = new()
+            {
+                Context = context as Context,
+                Intent = result.ElementAt(0).Intent.Name,
+                RaisedIntentMessageId = request.MessageId,
+                SourceAppInstanceId = new(request.Fdc3InstanceId)
+            };
+        }
+
+        var appIntent = result.FirstOrDefault(x => x.Intent.Name == raiseIntentSpecification.Intent);
+        if (appIntent == null)
+        {
+            return new()
+            {
+                Response = RaiseIntentResponse.Failure(ResolveError.IntentDeliveryFailed)
+            };
+        }
+
+        if (appIntent.Apps.Count() == 1)
+        {
+            raiseIntentSpecification.TargetAppMetadata = appIntent.Apps.ElementAt(0);
+            return await RaiseIntentToApplication(raiseIntentSpecification);
+        }
+        
+        var resolverUIResult = await WaitForResolverUIAsync(appIntent.Apps);
+        if (resolverUIResult != null && resolverUIResult.Error == null)
+        {
+            raiseIntentSpecification.TargetAppMetadata = (AppMetadata) resolverUIResult.AppMetadata!;
+            return await RaiseIntentToApplication(raiseIntentSpecification);
+        }
+        
+        if (resolverUIResult?.Error != null)
+        {
+            return new()
+            {
+                Response = RaiseIntentResponse.Failure(resolverUIResult.Error)
+            };
+        }
+        
+        return new()
+        {
+            Response = RaiseIntentResponse.Failure(ResolveError.UserCancelledResolution)
+        };
+    }
+
     public async ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntent(RaiseIntentRequest? request)
     {
         if (request == null)
