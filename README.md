@@ -26,10 +26,101 @@ It supports desktop and web applications in order to provide an evergreen altern
 # Development Setup
 ## Prerequisites
 * Node.js 18
-* .NET 6
-* Visual Studio: 2022
+* .NET 6 (SDK 6.0.x, Desktop Runtime 6.0.x)
+* Visual Studio 2022 Community Edition
 
-## Building the dependencies with Lerna
+## Building the ComposeUI Container
+
+
+Clone the main repository:
+```
+git clone https://github.com/morganstanley/ComposeUI.git
+```
+
+### From Visual Studio IDE
+
+Build the "Shell.sln" solution.
+
+By doing this the build is kicked off to all the other solutions it depends on.
+
+### From Terminal
+
+To build the Nuget and NPM packages without an IDE open Powershell in the ComposeUI folder.
+
+1. Build javascript (with Lerna)
+
+```
+C:\projects\ComposeUI> .\build\lerna-build.ps1
+```
+
+If you only want to build a specific package see [how to build packages with Lerna](#building-the-javascript-dependencies-with-lerna)
+
+
+2. Restore nuget packages:
+
+```
+C:\projects\ComposeUI> .\build\dotnet-restore.ps1
+```
+
+3. Build .NET solutions:
+
+```
+C:\projects\ComposeUI> .\build\dotnet-build.ps1
+```
+
+Now the necessary artifacts have been built.
+
+## Building the Examples
+
+### FDC3 Chart and Grid Example
+
+From the ComposeUI folder:
+
+```
+.\examples\fdc3-chart-and-grid\serve-chart-and-grid.ps1
+```
+Now the development servers are running:
+* Chart: localhost:8080
+* Grid: localhost:4200
+
+### Launching the Shell with the Examples
+
+#### From Visual Studio
+
+Start the "Shell" project.
+
+You can add a new launch setting in the IDE or by adding a new entry to the `$(ProjectRoot))\src\shell\dotnet\Shell\Properties\launchSettings.json` file
+
+### From Terminal
+
+1. It's recommended to add the shell binary to your PATH environment variable so you can use a shorthand:
+
+```
+cd .src\shell\dotnet\
+```
+```
+.\add-to-path.ps1
+```
+2. Launch the FDC3 Example in the ComposeUI Shell:
+
+```
+MorganStanley.ComposeUI.Shell --ModuleCatalog:CatalogUrl file:///C:/ComposeUI/src/Shell/dotnet/examples/module-catalog.json --FDC3:AppDirectory:Source C:/ComposeUI/examples/fdc3-appdirectory/apps-with-intents.json
+```
+
+### Serving web application
+
+[See](#fdc3-chart-and-grid-example)
+ 
+
+### Running the Shell
+1. Open the Shell Solution
+2. Choose "Shell" as the startup project
+3. Run
+
+
+
+
+## Building the JavaScript Dependencies with Lerna
 
 The javascript dependencies are managed by a lerna monorepo. To build them separately follow the steps below.
 
@@ -64,89 +155,14 @@ npx lerna list
 
 For more information check the [documentation](https://lerna.js.org/docs/api-reference/commands).
 
+## How to Run the FDC3 Conformance test Locally
 
-# Building the Experimental Artifacts
-
-The following steps are for building the experimental artifacts and shell for ComposeUI
-
-Clone the main repository:
-```
-git clone https://github.com/morganstanley/ComposeUI.git
-```
-## Terminal
-
-### Building Nuget and NPM packages
-
-Open Powershell in the ComposeUI folder.
-
-Restore nuget packages:
+1. Clone the [FDC3 Conformance Framework](https://github.com/finos/FDC3-conformance-framework) and build it: 
+2.add the following to the `$((ProjectRoot))\src\shell\dotnet\Shell\Properties\launchSettings.json` file:
 
 ```
-PS C:\projects\ComposeUI> .\build\dotnet-restore.ps1
+    "FDC3-Local": {
+      "commandName": "Project",
+      "commandLineArgs": "--ModuleCatalog:CatalogUrl \"file:///$(ProjectDir)..\\examples\\module-catalog.json\" --FDC3:AppDirectory:Source $((FDC3ConformanceRoot))\\FDC3-conformance-framework\\directories\\local-conformance-2_0.v2.json"
+    }
 ```
-
-Build .NET solutions:
-
-```
-PS C:\projects\ComposeUI> .\build\dotnet-build.ps1
-```
-Build javascript (with Lerna)
-
-```
-PS C:\projects\ComposeUI> .\build\lerna-build.ps1
-```
-
-Now the necessary artifacts have been built.
-
-### Building the Examples
-
-#### FDC3 Chart and Grid Example
-
-From the ComposeUI folder:
-
-```
-.\examples\fdc3-chart-and-grid\serve-chart-and-grid.ps1
-```
-Now the development servers are running:
-* Chart: localhost:8080
-* Grid: localhost:4200
-
-### Launching the Shell with the Examples
-
-1. It's recommended to add the shell binary to your PATH environment variable so you can use a shorthand:
-
-```
-cd .src\shell\dotnet\
-```
-```
-.\add-to-path.ps1
-```
-2. Launch the FDC3 Example in the ComposeUI Shell:
-
-```
-MorganStanley.ComposeUI.Shell --ModuleCatalog:CatalogUrl file:///C:/ComposeUI/src/Shell/dotnet/examples/module-catalog.json --FDC3:AppDirectory:Source C:/ComposeUI/examples/fdc3-appdirectory/apps-with-intents.json
-```
-
-## Visual Studio
-
-Similar steps can be taken in Visual Studio to have the same affect.
- [See Prerequisites](##Prerequisites)
-
-### Building Solutions
-#### For the FDC3 Samples
-
-The necessary solutions have to be built in the following order:
-1. Message Router
-2. ModuleLoader
-3. DesktopAgent
-4. AppDirectory
-5. Shell
-
-### Serving web application
-
-[See FDC3 Chart and Grid Example](####FDC3-Chart-and-Grid-Example)
-
-### Running the Shell
-1. Open the Shell Solution
-2. Choose "Shell" as the startup project
-3. Run
