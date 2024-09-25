@@ -218,6 +218,24 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         return await _desktopAgent.Open(request, fdc3Context);
     }
 
+    public async ValueTask<RaiseIntentResponse?> HandleRaiseIntentForContext(RaiseIntentForContextRequest? request, MessageContext? context)
+    {
+        //TODO: Handle context messages appropriately
+        var fdc3Context = JsonSerializer.Deserialize<Context>(request!.Context, _jsonSerializerOptions);
+
+        var result = await _desktopAgent.RaiseIntentForContext(request, fdc3Context!);
+        if (result.RaiseIntentResolutionMessages.Any())
+        {
+            foreach (var message in result.RaiseIntentResolutionMessages)
+            {
+                await _messageRouter.PublishAsync(
+                    Fdc3Topic.RaiseIntentResolution(message.Intent, message.TargetModuleInstanceId),
+                    MessageBuffer.Factory.CreateJson(message.Request, _jsonSerializerOptions));
+            }
+        }
+        return result.Response;
+    }
+
     internal async ValueTask<GetOpenedAppContextResponse?> HandleGetOpenedAppContext(
         GetOpenedAppContextRequest? request,
         MessageContext? context)
@@ -271,6 +289,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         await RegisterHandler<RemoveContextListenerRequest, RemoveContextListenerResponse>(Fdc3Topic.RemoveContextListener, HandleRemoveContextListener);
         await RegisterHandler<OpenRequest, OpenResponse>(Fdc3Topic.Open, HandleOpen);
         await RegisterHandler<GetOpenedAppContextRequest, GetOpenedAppContextResponse>(Fdc3Topic.GetOpenedAppContext, HandleGetOpenedAppContext);
+        await RegisterHandler<RaiseIntentForContextRequest, RaiseIntentResponse>(Fdc3Topic.RaiseIntentForContext, HandleRaiseIntentForContext);
 
         await _desktopAgent.StartAsync(cancellationToken);
 
@@ -302,6 +321,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
             _messageRouter.UnregisterServiceAsync(Fdc3Topic.RemoveContextListener, cancellationToken),
             _messageRouter.UnregisterServiceAsync(Fdc3Topic.Open, cancellationToken),
             _messageRouter.UnregisterServiceAsync(Fdc3Topic.GetOpenedAppContext, cancellationToken),
+            _messageRouter.UnregisterServiceAsync(Fdc3Topic.RaiseIntentForContext, cancellationToken),
         };
 
         await SafeWaitAsync(unregisteringTasks);

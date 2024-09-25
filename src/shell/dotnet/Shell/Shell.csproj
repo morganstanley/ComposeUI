@@ -12,6 +12,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<None Remove="Fdc3\ResolverUI\ResolverUIIntent.xaml" />
 		<None Remove="MainWindow.xaml" />
 		<None Remove="WebContent.xaml" />
 	</ItemGroup>
@@ -28,6 +29,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Page Include="Fdc3\ResolverUI\ResolverUIIntent.xaml">
+		  <Generator>MSBuild:Compile</Generator>
+		</Page>
 		<Page Include="WebContent.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		</Page>

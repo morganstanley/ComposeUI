@@ -13,9 +13,12 @@
  */
 
 using System.Text.Json;
+using System.Threading;
 using Finos.Fdc3;
+using Finos.Fdc3.AppDirectory;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
 using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 
@@ -24,7 +27,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 internal class ResolverUIMessageRouterCommunicator : IResolverUICommunicator
 {
     private readonly IMessageRouter _messageRouter;
-    private readonly JsonSerializerOptions _jsonMessageSerializerOptions = new()
+    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         Converters = { new AppMetadataJsonConverter() }
     };
@@ -44,7 +47,7 @@ internal class ResolverUIMessageRouterCommunicator : IResolverUICommunicator
 
         var responseBuffer = await _messageRouter.InvokeAsync(
             Fdc3Topic.ResolverUI,
-            MessageBuffer.Factory.CreateJson(request, _jsonMessageSerializerOptions), 
+            MessageBuffer.Factory.CreateJson(request, _jsonSerializerOptions), 
             cancellationToken: cancellationToken);
 
         if (responseBuffer == null)
@@ -52,7 +55,29 @@ internal class ResolverUIMessageRouterCommunicator : IResolverUICommunicator
             return null;
         }
 
-        var response = responseBuffer.ReadJson<ResolverUIResponse>(_jsonMessageSerializerOptions);
+        var response = responseBuffer.ReadJson<ResolverUIResponse>(_jsonSerializerOptions);
+
+        return response;
+    }
+
+    public async Task<ResolverUIIntentResponse?> SendResolverUIIntentRequest(IEnumerable<string> intents, CancellationToken cancellationToken = default)
+    {
+        var request = new ResolverUIIntentRequest
+        {
+            Intents = intents
+        };
+
+        var responseBuffer = await _messageRouter.InvokeAsync(
+            Fdc3Topic.ResolverUIIntent,
+            MessageBuffer.Factory.CreateJson(request, _jsonSerializerOptions),
+            cancellationToken: cancellationToken);
+
+        if (responseBuffer == null)
+        {
+            return null;
+        }
+
+        var response = responseBuffer.ReadJson<ResolverUIIntentResponse>(_jsonSerializerOptions);
 
         return response;
     }
