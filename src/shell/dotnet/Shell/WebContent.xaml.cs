@@ -131,8 +131,19 @@ public partial class WebContent : ContentPresenter, IDisposable
         Debug.WriteLine($"WindowCloseRequested EventHandler was added at: {DateTime.Now}");
         coreWebView.NavigationStarting += (sender, args) => OnNavigationStarting(args);
         coreWebView.DocumentTitleChanged += (sender, args) => OnDocumentTitleChanged(args);
+        coreWebView.WebMessageReceived += (sender, args) => OnWebMessageReceived(args);
 
         return Task.CompletedTask;
+    }
+
+    private void OnWebMessageReceived(CoreWebView2WebMessageReceivedEventArgs args)
+    {
+
+        var message = args.TryGetWebMessageAsString();
+        if (message == "closeWindow")
+        {
+            CloseRequested.Invoke(this, EventArgs.Empty);
+        }
     }
 
     private void OnDocumentTitleChanged(object args)
