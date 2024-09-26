@@ -8,14 +8,11 @@
  *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  *  or implied. See the License for the specific language governing permissions
  *  and limitations under the License.
- *  
  */
 
-export enum ComposeUIErrors {
-    NoAnswerWasProvided = 'No answer was provided by the DesktopAgent backend.',
-    InstanceIdNotFound = 'InstanceId was not found on window object. To run Fdc3\'s ComposeUI implementation instance config should be set on window config.',
-    CurrentChannelNotSet = 'The current channel has not been set.',
-    UnsubscribeFailure = 'The Listener could not unsubscribe.',
-    SubscribeFailure = 'The Listener could not subscribe.',
-    AppIdentifierTypeFailure = 'Using string type for app argument is not supported. Please use undefined | AppIdentifier types!'
+import { AppIdentifier } from "@finos/fdc3";
+
+export interface Fdc3OpenResponse {
+    appIdentifier?: AppIdentifier;
+    error?: string;
 }

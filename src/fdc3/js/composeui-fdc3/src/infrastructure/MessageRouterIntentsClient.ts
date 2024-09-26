@@ -24,6 +24,7 @@ import { Fdc3FindIntentsByContextRequest } from "./messages/Fdc3FindIntentsByCon
 import { Fdc3FindIntentsByContextResponse } from "./messages/Fdc3FindIntentsByContextResponse";
 import { Fdc3RaiseIntentRequest } from "./messages/Fdc3RaiseIntentRequest";
 import { Fdc3RaiseIntentResponse } from "./messages/Fdc3RaiseIntentResponse";
+import { Fdc3RaiseIntentForContextRequest } from "./messages/Fdc3RaiseIntentForContextRequest";
 
 export class MessageRouterIntentsClient implements IntentsClient {
 
@@ -55,7 +56,6 @@ export class MessageRouterIntentsClient implements IntentsClient {
         }
     }
 
-
     public async findIntentsByContext(context: Context, resultType?: string): Promise<Array<AppIntent>> {
         const request = new Fdc3FindIntentsByContextRequest(window.composeui.fdc3.config!.instanceId!, context, resultType);
         const message = await this.messageRouterClient.invoke(ComposeUITopic.findIntentsByContext(), JSON.stringify(request));
@@ -77,7 +77,7 @@ export class MessageRouterIntentsClient implements IntentsClient {
 
     public async raiseIntent(intent: string, context: Context, app?: string | AppIdentifier): Promise<IntentResolution> {
         if (typeof app == 'string') {
-            throw new Error("Using string type for app argument is not supported. Please use undefined | AppIdentifier types!");
+            throw new Error(ComposeUIErrors.AppIdentifierTypeFailure);
         }
 
         const messageId = Math.floor(Math.random() * 10000);
@@ -94,6 +94,32 @@ export class MessageRouterIntentsClient implements IntentsClient {
         }
 
         const intentResolution = new ComposeUIIntentResolution(response.messageId, this.messageRouterClient, this.channelFactory, response.intent!, response.appMetadata!);
+        return intentResolution;
+    }
+
+    public async raiseIntentForContext(context: Context, app?: string | AppIdentifier): Promise<IntentResolution> {
+        if (typeof app == "string") {
+            throw new Error(ComposeUIErrors.AppIdentifierTypeFailure);
+        }
+
+        const messageId = Math.floor(Math.random() * 10000);
+        const request = new Fdc3RaiseIntentForContextRequest(
+            messageId,
+            window.composeui.fdc3.config!.instanceId!,
+            JSON.stringify(context),
+            app);
+
+        const responseFromService = await this.messageRouterClient.invoke(ComposeUITopic.raiseIntentForContext(), JSON.stringify(request));
+        if (!responseFromService) {
+            throw new Error(ComposeUIErrors.NoAnswerWasProvided);
+        }
+
+        const response = <Fdc3RaiseIntentResponse>JSON.parse(responseFromService);
+        if (response.error) {
+            throw new Error(response.error);
+        }
+        
+        const intentResolution = new ComposeUIIntentResolution(response.messageId!, this.messageRouterClient, this.channelFactory, response.intent!, response.appMetadata!);
         return intentResolution;
     }
 }

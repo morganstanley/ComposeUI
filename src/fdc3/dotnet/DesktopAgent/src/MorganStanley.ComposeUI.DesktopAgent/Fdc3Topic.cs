@@ -36,6 +36,10 @@ internal static class Fdc3Topic
     internal static string GetAppMetadata => TopicRoot + "getAppMetadata";
     internal static string AddContextListener => TopicRoot + "addContextListener";
     internal static string RemoveContextListener => TopicRoot + "removeContextListener";
+    internal static string Open => TopicRoot + "open";
+    internal static string GetOpenedAppContext => TopicRoot + "getOpenedAppContext";
+    internal static string RaiseIntentForContext => TopicRoot + "raiseIntentForContext";
+    internal static string ResolverUIIntent => TopicRoot + "resolverUIIntent";
 
     //IntentListeners will be listening at this endpoint
     internal static string RaiseIntentResolution(string intent, string instanceId)

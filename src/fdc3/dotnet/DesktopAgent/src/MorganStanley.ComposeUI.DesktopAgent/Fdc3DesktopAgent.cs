@@ -14,6 +14,7 @@
 
 using System.Collections.Concurrent;
 using System.Reactive.Linq;
+using System.Text.Json;
 using Finos.Fdc3;
 using Finos.Fdc3.AppDirectory;
 using Finos.Fdc3.Context;
@@ -57,6 +58,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     private readonly ConcurrentDictionary<Guid, RaisedIntentRequestHandler> _raisedIntentResolutions = new();
     private readonly ConcurrentDictionary<StartRequest, TaskCompletionSource<IModuleInstance>> _pendingStartRequests = new();
     private readonly ConcurrentDictionary<Guid, List<ContextListener>> _contextListeners = new();
+    private readonly ConcurrentDictionary<Guid, string> _openedAppContexts = new ();
     private IAsyncDisposable? _subscription;
     private readonly object _contextListenerLock = new();
 
@@ -717,6 +719,211 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         }
     }
 
+    //TODO: https://github.com/finos/FDC3/issues/1350
+    //Queueing up open context, deliver that first, after that we should send other contexts.
+    public async ValueTask<OpenResponse?> Open(OpenRequest? request, IContext? context = null)
+    {
+        if (request == null)
+        {
+            return OpenResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull);
+        }
+
+        if (!Guid.TryParse(request.InstanceId, out var fdc3InstanceId)
+            || !_runningModules.ContainsKey(fdc3InstanceId))
+        {
+            return OpenResponse.Failure(Fdc3DesktopAgentErrors.MissingId);
+        }
+
+        try
+        {
+            var fdc3App = await _appDirectory.GetApp(request.AppIdentifier.AppId);
+            var appMetadata = GetAppMetadata(fdc3App, null, null);
+            var parameters = new Dictionary<string, string>();
+            
+            if (request.Context != null)
+            {
+                var id = Guid.NewGuid();
+
+                parameters.Add(Fdc3StartupParameters.OpenedAppContextId, id.ToString());
+                _openedAppContexts.TryAdd(id, request.Context);
+            }
+
+            if (request.ChannelId != null)
+            {
+                parameters.Add(Fdc3StartupParameters.Fdc3ChannelId, request.ChannelId);
+            }
+
+            var target = await StartModule(appMetadata, parameters);
+
+            if (!Guid.TryParse(target.InstanceId, out var targetInstanceId))
+            {
+                return OpenResponse.Failure(OpenError.ErrorOnLaunch);
+            }
+
+            if (request.Context == null)
+            {
+                return OpenResponse.Success(new AppIdentifier { AppId = target.AppId, InstanceId = target.InstanceId });
+            }
+
+            var cancellationToken = new CancellationToken();
+            _ = await GetContextListener(targetInstanceId, context!.Type, cancellationToken).WaitAsync(_options.ListenerRegistrationTimeout, cancellationToken);
+
+            return OpenResponse.Success(new AppIdentifier { AppId = target.AppId, InstanceId = target.InstanceId });
+        }
+        catch (AppNotFoundException exception)
+        {
+            _logger.LogError(exception, $"Exception is thrown while executing the {nameof(Open)} request.");
+            return OpenResponse.Failure(OpenError.AppNotFound);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, $"Exception is thrown while executing the {nameof(Open)} request.");
+            return OpenResponse.Failure(OpenError.AppTimeout);
+        }
+    }
+
+    public ValueTask<GetOpenedAppContextResponse?> GetOpenedAppContext(GetOpenedAppContextRequest? request)
+    {
+        if (request == null)
+        {
+            return ValueTask.FromResult<GetOpenedAppContextResponse?>(GetOpenedAppContextResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull));
+        }
+
+        if (!Guid.TryParse(request.ContextId, out var contextId))
+        {
+            return ValueTask.FromResult<GetOpenedAppContextResponse?>(GetOpenedAppContextResponse.Failure(Fdc3DesktopAgentErrors.IdNotParsable));
+        }
+
+        if (!_openedAppContexts.TryRemove(contextId, out var context))
+        {
+            return ValueTask.FromResult<GetOpenedAppContextResponse?>(GetOpenedAppContextResponse.Failure(Fdc3DesktopAgentErrors.OpenedAppContextNotFound));
+        }
+
+        return ValueTask.FromResult<GetOpenedAppContextResponse?>(GetOpenedAppContextResponse.Success(context));
+    }
+
+    public async ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntentForContext(RaiseIntentForContextRequest? request, IContext context)
+    {
+        if (request == null)
+        {
+            return new()
+            {
+                Response = RaiseIntentResponse.Failure(ResolveError.IntentDeliveryFailed)
+            };
+        }
+
+        var findIntentsByContextResult = await FindIntentsByContext(new FindIntentsByContextRequest() { Context = context as Context, Fdc3InstanceId = request.Fdc3InstanceId });
+        if (findIntentsByContextResult.AppIntents == null || !findIntentsByContextResult.AppIntents.Any())
+        {
+            return new()
+            {
+                Response = RaiseIntentResponse.Failure(ResolveError.NoAppsFound)
+            };
+        }
+
+        RaiseIntentSpecification raiseIntentSpecification;
+
+        var result = findIntentsByContextResult.AppIntents.ToList();
+        if (result.Count > 1)
+        {
+            //TODO: use the same ResolverUI 
+
+            using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+
+            try
+            {
+                var resolverUIIntentResponse = await _resolverUI.SendResolverUIIntentRequest(result.Select(x => x.Intent.Name), cancellationTokenSource.Token);
+
+                if (resolverUIIntentResponse == null)
+                {
+                    return new()
+                    {
+                        Response = new()
+                        {
+                            Error = Fdc3DesktopAgentErrors.PayloadNull,
+                        }
+                    };
+                }
+
+                if (resolverUIIntentResponse.Error != null)
+                {
+                    return new()
+                    {
+                        Response = new()
+                        {
+                            Error = resolverUIIntentResponse.Error,
+                        }
+                    };
+                }
+
+                raiseIntentSpecification = new()
+                {
+                    Context = context as Context,
+                    Intent = resolverUIIntentResponse.SelectedIntent!,
+                    RaisedIntentMessageId = request.MessageId,
+                    SourceAppInstanceId = new(request.Fdc3InstanceId)
+                };
+            }
+            catch (TimeoutException exception)
+            {
+                if (_logger.IsEnabled(LogLevel.Debug))
+                {
+                    _logger.LogDebug(exception, "MessageRouter didn't receive response from the ResolverUI.");
+                }
+
+                return new RaiseIntentResult<RaiseIntentResponse>()
+                {
+                    Response = RaiseIntentResponse.Failure(ResolveError.ResolverTimeout)
+                };
+            }
+        }
+        else
+        {
+            raiseIntentSpecification = new()
+            {
+                Context = context as Context,
+                Intent = result.ElementAt(0).Intent.Name,
+                RaisedIntentMessageId = request.MessageId,
+                SourceAppInstanceId = new(request.Fdc3InstanceId)
+            };
+        }
+
+        var appIntent = result.FirstOrDefault(x => x.Intent.Name == raiseIntentSpecification.Intent);
+        if (appIntent == null)
+        {
+            return new()
+            {
+                Response = RaiseIntentResponse.Failure(ResolveError.IntentDeliveryFailed)
+            };
+        }
+
+        if (appIntent.Apps.Count() == 1)
+        {
+            raiseIntentSpecification.TargetAppMetadata = appIntent.Apps.ElementAt(0);
+            return await RaiseIntentToApplication(raiseIntentSpecification);
+        }
+        
+        var resolverUIResult = await WaitForResolverUIAsync(appIntent.Apps);
+        if (resolverUIResult != null && resolverUIResult.Error == null)
+        {
+            raiseIntentSpecification.TargetAppMetadata = (AppMetadata) resolverUIResult.AppMetadata!;
+            return await RaiseIntentToApplication(raiseIntentSpecification);
+        }
+        
+        if (resolverUIResult?.Error != null)
+        {
+            return new()
+            {
+                Response = RaiseIntentResponse.Failure(resolverUIResult.Error)
+            };
+        }
+        
+        return new()
+        {
+            Response = RaiseIntentResponse.Failure(ResolveError.UserCancelledResolution)
+        };
+    }
+
     public async ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntent(RaiseIntentRequest? request)
     {
         if (request == null)
@@ -1284,6 +1491,33 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             Tooltip = app.ToolTip,
             Version = app.Version,
         };
+    }
+
+    private async Task<ContextListener> GetContextListener(Guid instanceId, string contextType, CancellationToken cancellationToken = default)
+    {
+        while (true)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                throw new TimeoutException(
+                    $"ContextListener is not registered in time for context type {contextType}");
+            }
+
+            lock (_contextListenerLock)
+            {
+                if (_contextListeners.TryGetValue(instanceId, out var listeners))
+                {
+                    var listener = listeners.FirstOrDefault(x => x.ContextType == contextType);
+
+                    if (listener != null)
+                    {
+                        return listener;
+                    }
+                }
+            }
+
+            await Task.Delay(1);
+        }
     }
 
     private Task RemoveModuleAsync(IModuleInstance instance)

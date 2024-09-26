@@ -20,6 +20,13 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 public interface IResolverUICommunicator
 {
     /// <summary>
+    /// Sends request for the shell to show a window for the user to select the wished intent for resolving the RaiseIntentForContext.
+    /// </summary>
+    /// <param name="intents"></param>
+    /// <returns></returns>
+    public Task<ResolverUIIntentResponse?> SendResolverUIIntentRequest(IEnumerable<string> intents, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Sends a request for the shell to show a window, aka ResolverUI, with the appropriate AppMetadata that can solve the raised intent.
     /// </summary>
     /// <param name="appMetadata"></param>

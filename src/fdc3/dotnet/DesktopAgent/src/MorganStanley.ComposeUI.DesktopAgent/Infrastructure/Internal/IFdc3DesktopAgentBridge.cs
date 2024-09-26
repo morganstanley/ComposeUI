@@ -13,6 +13,7 @@
  */
 
 using Finos.Fdc3;
+using Finos.Fdc3.Context;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
@@ -156,4 +157,28 @@ internal interface IFdc3DesktopAgentBridge
     /// <param name="request"></param>
     /// <returns></returns>
     public ValueTask<RemoveContextListenerResponse?> RemoveContextListener(RemoveContextListenerRequest? request);
+
+    //TODO:Context deserialization
+    /// <summary>
+    /// Handles the Open call in the bridge.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    public ValueTask<OpenResponse?> Open(OpenRequest? request, IContext? context = null);
+
+    /// <summary>
+    /// Handles the GetOpenedAppContext call in the bridge.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    public ValueTask<GetOpenedAppContextResponse?> GetOpenedAppContext(GetOpenedAppContextRequest? request);
+
+    //TODO:Context deserialization
+    /// <summary>
+    /// Handles the RaiseIntentForContext call in the bridge.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    public ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntentForContext(RaiseIntentForContextRequest? request, IContext context);
 }

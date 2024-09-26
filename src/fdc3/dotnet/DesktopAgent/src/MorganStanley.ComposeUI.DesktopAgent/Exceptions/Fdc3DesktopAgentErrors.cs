@@ -45,4 +45,14 @@ public static class Fdc3DesktopAgentErrors
     /// Indicates that the listener was not found for execution.
     /// </summary>
     public const string ListenerNotFound = $"{nameof(ListenerNotFound)}";
+
+    /// <summary>
+    /// Indicates that the given id is not the expected type.
+    /// </summary>
+    public const string IdNotParsable = $"{nameof(IdNotParsable)}";
+
+    /// <summary>
+    /// Indicates that the context for the given context id is not found during the GetOpenedAppContext call.
+    /// </summary>
+    public const string OpenedAppContextNotFound = $"{nameof(OpenedAppContextNotFound)}";
 }

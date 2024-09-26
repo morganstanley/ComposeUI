@@ -12,22 +12,20 @@
  * and limitations under the License.
  */
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
-internal class Fdc3StartupProperties
+public class ResolverUIIntentResponse
 {
     /// <summary>
-    /// Fdc3 DesktopAgent's specific identifier for the created application instance.
+    /// Error while executing the JoinUserChannel call.
     /// </summary>
-    public string InstanceId { get; init; }
+    public string? Error { get; set; }
 
     /// <summary>
-    /// Id of the channel the opened app should join
+    /// The selected intent using the ResolverUI.
     /// </summary>
-    public string? ChannelId { get; init; }
+    public string? SelectedIntent { get; set; }
 
-    /// <summary>
-    /// This implies that the opened app was started via using the fdc3.open() call. Thi id ensures that if the app opens and it's available on the object then the opened app can request the context and handle it when its context listener is being registered for the right context type.
-    /// </summary>
-    public string? OpenedAppContextId { get; set; }
+    public static ResolverUIIntentResponse Selected(string intent) => new() { SelectedIntent = intent };
+    public static ResolverUIIntentResponse Failed(string error) => new() { Error = error };
 }

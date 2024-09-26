@@ -102,4 +102,81 @@ internal class Fdc3ResolverUIWindow(ILogger<Fdc3ResolverUIWindow>? logger = null
                 });
         }
     }
+
+    //TODO: Refactor this
+    public ValueTask<ResolverUIIntentResponse> ShowResolverUI(IEnumerable<string> intents, TimeSpan timeout)
+    {
+        try
+        {
+            var dispatcher = Application.Current.Dispatcher;
+
+            ResolverUIIntent? resolverUI = null;
+            Task? timeoutTask = null;
+
+            dispatcher.Invoke(
+                () =>
+                {
+                    if (dispatcher.HasShutdownStarted
+                        || dispatcher.HasShutdownFinished)
+                    {
+                        return;
+                    }
+
+                    resolverUI = new ResolverUIIntent(intents);
+
+                    timeoutTask = Task.Delay(timeout)
+                        .ContinueWith(task => resolverUI?.Close(), TaskScheduler.FromCurrentSynchronizationContext());
+
+                    resolverUI.ShowDialog();
+                });
+
+            //First we need to check if the timeout happened
+            if (timeoutTask != null
+                && timeoutTask.IsCompletedSuccessfully)
+            {
+                return ValueTask.FromResult(
+                    new ResolverUIIntentResponse
+                    {
+                        Error = ResolveError.ResolverTimeout
+                    });
+            }
+
+            if (resolverUI?.UserCancellationToken != null
+                && resolverUI.UserCancellationToken.IsCancellationRequested)
+            {
+                return ValueTask.FromResult(
+                    new ResolverUIIntentResponse
+                    {
+                        Error = ResolveError.UserCancelledResolution
+                    });
+            }
+
+            return ValueTask.FromResult(
+                new ResolverUIIntentResponse
+                {
+                    SelectedIntent = resolverUI?.Intent
+                });
+        }
+        catch (TimeoutException)
+        {
+            return ValueTask.FromResult(
+                new ResolverUIIntentResponse
+                {
+                    Error = ResolveError.ResolverTimeout
+                });
+        }
+        catch (Exception exception)
+        {
+            if (_logger.IsEnabled(LogLevel.Error))
+            {
+                _logger.LogError(exception, message: "Exception thrown while showing ResolverUi.");
+            }
+
+            return ValueTask.FromResult(
+                new ResolverUIIntentResponse
+                {
+                    Error = ResolveError.ResolverUnavailable
+                });
+        }
+    }
 }

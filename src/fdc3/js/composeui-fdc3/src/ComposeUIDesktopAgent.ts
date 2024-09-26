@@ -36,6 +36,8 @@ import { MessageRouterIntentsClient } from './infrastructure/MessageRouterIntent
 import { IntentsClient } from './infrastructure/IntentsClient';
 import { MetadataClient } from './infrastructure/MetadataClient';
 import { MessageRouterMetadataClient } from './infrastructure/MessageRouterMetadataClient';
+import { OpenClient } from "./infrastructure/OpenClient";
+import { MessageRouterOpenClient } from "./infrastructure/MessageRouterOpenClient";
 
 export class ComposeUIDesktopAgent implements DesktopAgent {
     private appChannels: Channel[] = [];
@@ -47,6 +49,9 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     private channelFactory: ChannelFactory;
     private intentsClient: IntentsClient;
     private metadataClient: MetadataClient;
+    private openClient: OpenClient;
+    private openedAppContext?: Context;
+    private openedAppContextHandled: boolean = false;
 
     //TODO: we should enable passing multiple channelId to the ctor.
     constructor(messageRouterClient: MessageRouter, channelFactory?: ChannelFactory) {
@@ -58,11 +63,11 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         this.channelFactory = channelFactory ?? new MessageRouterChannelFactory(messageRouterClient, window.composeui.fdc3.config.instanceId);
         this.intentsClient = new MessageRouterIntentsClient(messageRouterClient, this.channelFactory);
         this.metadataClient = new MessageRouterMetadataClient(messageRouterClient, window.composeui.fdc3.config);
+        this.openClient = new MessageRouterOpenClient(window.composeui.fdc3.config.instanceId!, messageRouterClient, window.composeui.fdc3.openAppIdentifier);
     }
 
-    //TODO
-    public open(app?: string | AppIdentifier, context?: Context): Promise<AppIdentifier> {
-        throw new Error("Not implemented");
+    public async open(app?: string | AppIdentifier, context?: Context): Promise<AppIdentifier> {
+        return await this.openClient.open(app, context);
     }
 
     public async findIntent(intent: string, context?: Context, resultType?: string): Promise<AppIntent> {
@@ -90,8 +95,8 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     }
 
     //TODO
-    public raiseIntentForContext(context: Context, app?: string | AppIdentifier): Promise<IntentResolution> {
-        throw new Error("Not implemented");
+    public async raiseIntentForContext(context: Context, app?: string | AppIdentifier): Promise<IntentResolution> {
+        return await this.intentsClient.raiseIntentForContext(context, app);
     }
 
     public async addIntentListener(intent: string, handler: IntentHandler): Promise<Listener> {
@@ -104,6 +109,19 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         if (contextType && typeof contextType != 'string') {
             handler = contextType;
             contextType = null;
+        }
+
+        //TODO: The opened app context now is received even though the DA is not joined to a userchannel. 
+        // We call its handler after we go through the same process without queueing the received contexts.
+        if (this.openedAppContext 
+            && handler 
+            && (contextType == this.openedAppContext?.type || this.openedAppContext.type == null || !this.openedAppContext.type)) {
+                console.log("Calling the handler for the opened App context.");
+                
+                if (!this.openedAppContextHandled) {
+                    handler(this.openedAppContext);
+                    this.openedAppContextHandled = true;
+                }
         }
 
         const listener = <ComposeUIContextListener>await this.channelFactory.getContextListener(this.currentChannel, handler, contextType);
@@ -193,6 +211,14 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     // https://fdc3.finos.org/docs/2.0/api/ref/DesktopAgent#joinchannel-deprecated
     public joinChannel(channelId: string): Promise<void> {
         return this.joinUserChannel(channelId);
+    }
+
+    public async getOpenedAppContext(): Promise<void> {
+        try {
+            this.openedAppContext = await this.openClient.getOpenedAppContext();
+        } catch (err) {
+            console.error("The opened app via fdc3.open() could not retrieve the context: ", err);
+        }
     }
 
     private addChannel(channel: Channel): void {
