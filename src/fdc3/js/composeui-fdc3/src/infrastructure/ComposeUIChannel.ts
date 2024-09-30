@@ -26,6 +26,7 @@ export class ComposeUIChannel implements Channel {
     protected messageRouterClient: MessageRouter;
     private lastContexts: Map<string, Context> = new Map<string, Context>();
     private lastContext?: Context;
+    private openHandled: boolean = true; //by default true so if a channel was created then it has no effect
 
     constructor(id: string, type: ChannelType, messageRouterClient: MessageRouter, displayMetadata?: DisplayMetadata) {
         this.id = id;
@@ -75,8 +76,12 @@ export class ComposeUIChannel implements Channel {
             contextType = null;
         }
 
-        const listener = new ComposeUIContextListener(this.messageRouterClient, handler, contextType);
+        const listener = new ComposeUIContextListener(this.openHandled, this.messageRouterClient, handler, contextType);
         await listener.subscribe(this.id, this.type);
         return listener;
+    }
+
+    public setOpenHandled(openHandled: boolean): void {
+        this.openHandled = openHandled;
     }
 }

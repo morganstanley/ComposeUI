@@ -74,7 +74,7 @@ describe('Tests for ComposeUIContextListener implementation API', () => {
                 .mockImplementationOnce(() => Promise.resolve(JSON.stringify({ context: "", payload: `${JSON.stringify(dummyContext)}` })))
         };
 
-        testListener = new ComposeUIContextListener(messageRouterClient, contextMessageHandlerMock, "fdc3.instrument");
+        testListener = new ComposeUIContextListener(true, messageRouterClient, contextMessageHandlerMock, "fdc3.instrument");
         await testListener.subscribe(dummyChannelId, "user");
     });
 
@@ -88,7 +88,7 @@ describe('Tests for ComposeUIContextListener implementation API', () => {
     });
 
     it('handleContextMessage will be rejected with Error if unsubscribed', async () => {
-        testListener = new ComposeUIContextListener(messageRouterClient, contextMessageHandlerMock, "fdc3.instrument");
+        testListener = new ComposeUIContextListener(true, messageRouterClient, contextMessageHandlerMock, "fdc3.instrument");
         testListener.unsubscribe();
         await expect(testListener.handleContextMessage(testInstrument))
             .rejects
@@ -99,5 +99,11 @@ describe('Tests for ComposeUIContextListener implementation API', () => {
         await expect(testListener.handleContextMessage(wrongContext))
             .rejects
             .toThrow(Error);
+    });
+
+    it('handleContextMessage wont call the handler as the context from the open call was not handled yet', async() => {
+        testListener.setOpenHandled(false);
+        await testListener.handleContextMessage(testInstrument);
+        expect(contextMessageHandlerMock).toHaveBeenCalledTimes(0);
     });
 });
