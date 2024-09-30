@@ -115,9 +115,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         // We call its handler after we go through the same process without queueing the received contexts.
         if (this.openedAppContext 
             && handler 
-            && (contextType == this.openedAppContext?.type || this.openedAppContext.type == null || !this.openedAppContext.type)) {
-                console.log("Calling the handler for the opened App context.");
-                
+            && (contextType == this.openedAppContext?.type || this.openedAppContext.type == null || !this.openedAppContext.type)) {                
                 if (!this.openedAppContextHandled) {
                     handler(this.openedAppContext);
                     this.openedAppContextHandled = true;
@@ -149,13 +147,14 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         let channel = this.userChannels.find(innerChannel => innerChannel.id == channelId);
         if (!channel) {
             channel = await this.channelFactory.joinUserChannel(channelId);
+            
+            if (!channel) {
+                throw new Error(ChannelError.NoChannelFound);
+            }
+    
+            this.addChannel(channel);
         }
 
-        if (!channel) {
-            throw new Error(ChannelError.NoChannelFound);
-        }
-
-        this.addChannel(channel);
         this.currentChannel = channel;
 
         for (const listener of this.topLevelContextListeners) {

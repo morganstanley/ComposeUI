@@ -24,7 +24,7 @@ import { ComposeUIPrivateChannel } from './infrastructure/ComposeUIPrivateChanne
 import { ChannelType } from './infrastructure/ChannelType';
 
 const dummyContext = { type: "dummyContextType" };
-const dummyChannelId = "dummyId";
+const dummyChannelId = "dummy";
 let messageRouterClient: MessageRouter;
 let desktopAgent: DesktopAgent;
 
@@ -47,7 +47,10 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
                     appId: "testAppId",
                     instanceId: "testInstanceId"
                 },
-                channelId : "test"
+                channelId : "test",
+                openAppIdentifier: {
+                    openedAppContextId: "test"
+                }
             }
         };
 
@@ -123,10 +126,9 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
         expect(result).toMatchObject<Partial<Channel>>({ id: dummyChannelId, type: "user" });
     });
 
-    it('leaveCurrentChannel will trigger the current channel listeners to unsubscribe', async () => {
-        const listener = <ComposeUIContextListener>await desktopAgent.addContextListener("fdc3.instrument", contextMessageHandlerMock)
-
+    it('listener could not handle context message as its not subscribed', async () => {
         await desktopAgent.leaveCurrentChannel();
+        const listener = <ComposeUIContextListener>await desktopAgent.addContextListener("fdc3.instrument", contextMessageHandlerMock)
         var result = await desktopAgent.getCurrentChannel();
         expect(result).toBeFalsy();
         expect(listener.handleContextMessage(dummyContext))

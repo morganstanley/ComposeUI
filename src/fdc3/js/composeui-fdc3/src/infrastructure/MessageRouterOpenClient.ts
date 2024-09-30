@@ -100,7 +100,6 @@ export class MessageRouterOpenClient implements OpenClient{
         }
 
         const context = <Context>JSON.parse(response.context);
-        console.log("RETRIEVED FROM CLIENT FOR THE OPENED APP: ", context);
         return context;
     }
 }

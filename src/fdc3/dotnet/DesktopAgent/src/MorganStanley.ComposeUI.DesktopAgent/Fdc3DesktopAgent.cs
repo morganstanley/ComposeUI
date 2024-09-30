@@ -719,8 +719,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         }
     }
 
-    //TODO: https://github.com/finos/FDC3/issues/1350
-    //Queueing up open context, deliver that first, after that we should send other contexts.
+    //https://github.com/finos/FDC3/issues/1350
     public async ValueTask<OpenResponse?> Open(OpenRequest? request, IContext? context = null)
     {
         if (request == null)
@@ -794,12 +793,9 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             return ValueTask.FromResult<GetOpenedAppContextResponse?>(GetOpenedAppContextResponse.Failure(Fdc3DesktopAgentErrors.IdNotParsable));
         }
 
-        if (!_openedAppContexts.TryRemove(contextId, out var context))
-        {
-            return ValueTask.FromResult<GetOpenedAppContextResponse?>(GetOpenedAppContextResponse.Failure(Fdc3DesktopAgentErrors.OpenedAppContextNotFound));
-        }
-
-        return ValueTask.FromResult<GetOpenedAppContextResponse?>(GetOpenedAppContextResponse.Success(context));
+        return !_openedAppContexts.TryRemove(contextId, out var context) 
+            ? ValueTask.FromResult<GetOpenedAppContextResponse?>(GetOpenedAppContextResponse.Failure(Fdc3DesktopAgentErrors.OpenedAppContextNotFound)) 
+            : ValueTask.FromResult<GetOpenedAppContextResponse?>(GetOpenedAppContextResponse.Success(context));
     }
 
     public async ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntentForContext(RaiseIntentForContextRequest? request, IContext context)

@@ -41,9 +41,6 @@ export class ComposeUIChannel implements Channel {
         this.lastContext = context;
         const topic = ComposeUITopic.broadcast(this.id, this.type);
         await this.messageRouterClient.publish(topic, JSON.stringify(context));
-        
-        //TODO:Remove
-        console.log("Broadcasted on channel:", this.id, ", context:", context, ", on topic: ", topic, ", time: ", new Date().toISOString());
     }
 
     public async getCurrentContext(contextType?: string | undefined): Promise<Context | null> {
@@ -54,8 +51,6 @@ export class ComposeUIChannel implements Channel {
             if (context) {
                 this.lastContext = context;
                 this.lastContexts.set(context.type, context);
-
-                return context;
             }
         }
         return this.retrieveCurrentContext(contextType);

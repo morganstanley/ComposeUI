@@ -45,7 +45,10 @@ describe('Tests for ComposeUIContextListener implementation API', () => {
                     appId: "testAppId",
                     instanceId: "testInstanceId"
                 },
-                channelId : "test"
+                channelId : "test",
+                openAppIdentifier: {
+                    openedAppContextId: "test"
+                }
             }
         };
 

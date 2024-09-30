@@ -934,7 +934,7 @@ public class EndToEndTests : IAsyncLifetime
             MessageBuffer.Factory.CreateJson(request, _options));
         var result = response?.ReadJson<CreateAppChannelResponse>(_options);
 
-        result.Should().BeEquivalentTo(CreateAppChannelResponse.Failed(ChannelError.CreationFailed));
+        result.Should().BeEquivalentTo(CreateAppChannelResponse.Failed(Fdc3DesktopAgentErrors.PayloadNull));
     }
 
     [Fact]
