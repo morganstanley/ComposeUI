@@ -25,7 +25,10 @@ describe('MessageRouterMetadataClient tests', () => {
                     appId: "testAppId",
                     instanceId: "testInstanceId"
                 },
-                channelId: "test"
+                channelId: "test",
+                openAppIdentifier: {
+                    openedAppContextId: "test"
+                }
             }
         };
     });

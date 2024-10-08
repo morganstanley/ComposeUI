@@ -30,8 +30,11 @@ export class ComposeUIContextListener implements Listener {
     private isSubscribed: boolean = false;
     private id?: string;
     private unsubscribeCallback?: (x: ComposeUIContextListener) => void;
+    private openHandled: boolean;
+    private contexts: Context[] = [];
 
-    constructor(messageRouterClient: MessageRouter, handler: ContextHandler, contextType?: string) {
+    constructor(openHandled: boolean, messageRouterClient: MessageRouter, handler: ContextHandler, contextType?: string) {
+        this.openHandled = openHandled;
         this.messageRouterClient = messageRouterClient;
         this.handler = handler;
         this.contextType = contextType;
@@ -46,20 +49,18 @@ export class ComposeUIContextListener implements Listener {
                 return;
             }
 
-            //TODO:Remove
-            console.log("Context message received, to handle:", topicMessage.payload, ", at:", new Date().toISOString());
-
             //TODO: integration test
             const context = <Context>JSON.parse(topicMessage.payload!);
             if (!this.contextType || this.contextType == context!.type) {
-                console.log("ComposeUIContextListener's handler is being called:", this.contextType, ", at: ", new Date().toISOString());
-                this.handler!(context!);
+
+                if (this.openHandled === true) {
+                    this.handler!(context!);
+                } else {
+                    this.contexts.push(context);
+                }
             }
         });
         this.isSubscribed = true;
-
-        //TODO:Remove
-        console.log("ContextListener is subscribed to topic:", subscribeTopic, ", contextType: ", this.contextType, "time:", new Date().toISOString());
     }
 
     public async handleContextMessage(context: Context): Promise<void> {
@@ -67,16 +68,33 @@ export class ComposeUIContextListener implements Listener {
             throw new Error("The current listener is not subscribed.");
         }
 
-        console.log("The current contextType: ", this.contextType);
         if (this.contextType && this.contextType != null && this.contextType != context.type) {
             throw new Error(`The current listener is not able to handle context type ${context.type}. It is registered to handle ${this.contextType}.`)
         }
         
+        //If the opened app did not resolved the context that was received by the fdc3.open call, we cache the item.
+        if (this.openHandled !== true) {
+            this.contexts.push(context);
+            return;
+        }
+
         this.handler(context);
     }
 
     public setUnsubscribeCallback(unsubscribeCallback: (x: ComposeUIContextListener) => void): void {
         this.unsubscribeCallback = unsubscribeCallback;
+    }
+
+    public setOpenHandled(openHandled: boolean): void {
+        this.openHandled = openHandled;
+
+        if (this.openHandled === true) {
+            this.contexts.forEach(context => {
+                this.handler(context)
+            });
+
+            this.contexts = [];
+        }
     }
 
     public async unsubscribe(): Promise<void> {

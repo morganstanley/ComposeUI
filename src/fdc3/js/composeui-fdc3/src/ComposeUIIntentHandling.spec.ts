@@ -30,7 +30,10 @@ describe("Tests for ComposeUIDesktopAgent's intent handling", () => {
                     appId: "testAppId",
                     instanceId: "testInstanceId"
                 },
-                channelId : "test"
+                channelId : "test",
+                openAppIdentifier: {
+                    openedAppContextId: "test"
+                }
             }
         };
     });

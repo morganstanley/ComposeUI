@@ -719,8 +719,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         }
     }
 
-    //TODO: https://github.com/finos/FDC3/issues/1350
-    //Queueing up open context, deliver that first, after that we should send other contexts.
+    //https://github.com/finos/FDC3/issues/1350
     public async ValueTask<OpenResponse?> Open(OpenRequest? request, IContext? context = null)
     {
         if (request == null)
@@ -734,18 +733,19 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             return OpenResponse.Failure(Fdc3DesktopAgentErrors.MissingId);
         }
 
+        var contextId = Guid.NewGuid();
+
         try
         {
             var fdc3App = await _appDirectory.GetApp(request.AppIdentifier.AppId);
             var appMetadata = GetAppMetadata(fdc3App, null, null);
             var parameters = new Dictionary<string, string>();
             
+
             if (request.Context != null)
             {
-                var id = Guid.NewGuid();
-
-                parameters.Add(Fdc3StartupParameters.OpenedAppContextId, id.ToString());
-                _openedAppContexts.TryAdd(id, request.Context);
+                parameters.Add(Fdc3StartupParameters.OpenedAppContextId, contextId.ToString());
+                _openedAppContexts.TryAdd(contextId, request.Context);
             }
 
             if (request.ChannelId != null)
@@ -757,6 +757,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
             if (!Guid.TryParse(target.InstanceId, out var targetInstanceId))
             {
+                _openedAppContexts.TryRemove(contextId, out _);
                 return OpenResponse.Failure(OpenError.ErrorOnLaunch);
             }
 
@@ -778,6 +779,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         catch (Exception exception)
         {
             _logger.LogError(exception, $"Exception is thrown while executing the {nameof(Open)} request.");
+            _openedAppContexts.TryRemove(contextId, out _);
             return OpenResponse.Failure(OpenError.AppTimeout);
         }
     }
@@ -794,12 +796,9 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             return ValueTask.FromResult<GetOpenedAppContextResponse?>(GetOpenedAppContextResponse.Failure(Fdc3DesktopAgentErrors.IdNotParsable));
         }
 
-        if (!_openedAppContexts.TryRemove(contextId, out var context))
-        {
-            return ValueTask.FromResult<GetOpenedAppContextResponse?>(GetOpenedAppContextResponse.Failure(Fdc3DesktopAgentErrors.OpenedAppContextNotFound));
-        }
-
-        return ValueTask.FromResult<GetOpenedAppContextResponse?>(GetOpenedAppContextResponse.Success(context));
+        return !_openedAppContexts.TryRemove(contextId, out var context) 
+            ? ValueTask.FromResult<GetOpenedAppContextResponse?>(GetOpenedAppContextResponse.Failure(Fdc3DesktopAgentErrors.OpenedAppContextNotFound)) 
+            : ValueTask.FromResult<GetOpenedAppContextResponse?>(GetOpenedAppContextResponse.Success(context));
     }
 
     public async ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntentForContext(RaiseIntentForContextRequest? request, IContext context)

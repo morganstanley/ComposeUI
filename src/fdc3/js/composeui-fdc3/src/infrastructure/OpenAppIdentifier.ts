@@ -10,6 +10,9 @@
  *  and limitations under the License.
  */
 
+/**
+* This type stores the app's context id (given by the backend) which was opened via the `fdc3.open()` call.
+*/
 export interface OpenAppIdentifier {
     openedAppContextId?: string;
 }

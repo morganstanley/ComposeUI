@@ -45,7 +45,9 @@ export class MessageRouterOpenClient implements OpenClient{
             throw new Error(OpenError.MalformedContext);
         }
 
-        this.channel = await window.fdc3.getCurrentChannel();
+        if (window.fdc3) {
+            this.channel = await window.fdc3.getCurrentChannel();
+        }
 
         //TODO:proper context handling
         const request = new Fdc3OpenRequest(
@@ -100,7 +102,6 @@ export class MessageRouterOpenClient implements OpenClient{
         }
 
         const context = <Context>JSON.parse(response.context);
-        console.log("RETRIEVED FROM CLIENT FOR THE OPENED APP: ", context);
         return context;
     }
 }

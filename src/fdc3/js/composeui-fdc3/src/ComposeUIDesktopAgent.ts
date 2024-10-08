@@ -111,20 +111,22 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
             contextType = null;
         }
 
-        //TODO: The opened app context now is received even though the DA is not joined to a userchannel. 
-        // We call its handler after we go through the same process without queueing the received contexts.
         if (this.openedAppContext 
             && handler 
-            && (contextType == this.openedAppContext?.type || this.openedAppContext.type == null || !this.openedAppContext.type)) {
-                console.log("Calling the handler for the opened App context.");
+            && (contextType == this.openedAppContext?.type || this.openedAppContext.type == null || !this.openedAppContext.type)) {                
                 
-                if (!this.openedAppContextHandled) {
+                if (this.openedAppContextHandled === false) {
                     handler(this.openedAppContext);
                     this.openedAppContextHandled = true;
                 }
+        } 
+        
+        if (!this.openedAppContext && this.openedAppContextHandled !== true) {
+            //There is no context to handle -aka app was not opened via the fdc3.open
+            this.openedAppContextHandled = true;
         }
 
-        const listener = <ComposeUIContextListener>await this.channelFactory.getContextListener(this.currentChannel, handler, contextType);
+        const listener = <ComposeUIContextListener>await this.channelFactory.getContextListener(this.openedAppContextHandled, this.currentChannel, handler, contextType);
         this.topLevelContextListeners.push(listener);
 
         if (!this.currentChannel) {
@@ -149,13 +151,14 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         let channel = this.userChannels.find(innerChannel => innerChannel.id == channelId);
         if (!channel) {
             channel = await this.channelFactory.joinUserChannel(channelId);
+            
+            if (!channel) {
+                throw new Error(ChannelError.NoChannelFound);
+            }
+    
+            this.addChannel(channel);
         }
 
-        if (!channel) {
-            throw new Error(ChannelError.NoChannelFound);
-        }
-
-        this.addChannel(channel);
         this.currentChannel = channel;
 
         for (const listener of this.topLevelContextListeners) {

@@ -89,7 +89,6 @@ export class MessageRouterClient implements MessageRouter {
             topic: topicName
         });
 
-        console.log("MessageRouter Subscribe is executed:", topicName, ", topic: ", topic, ", at : ", new Date().toISOString());
         return subscription;
     }
 
@@ -104,15 +103,6 @@ export class MessageRouterClient implements MessageRouter {
                 payload,
                 correlationId: options?.correlationId
             });
-
-        console.log("MessageRouter publish message is sent: ", 
-        {
-            type: "Publish",
-            requestId: this.getRequestId(),
-            topic,
-            payload,
-            correlationId: options?.correlationId
-        }, ", at: ", new Date().toISOString());
     }
 
     async invoke(endpoint: string, payload?: MessageBuffer, options?: InvokeOptions): Promise<MessageBuffer | undefined> {
