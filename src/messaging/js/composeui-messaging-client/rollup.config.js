@@ -32,7 +32,7 @@ const config = [
         input: inputFileName,
         output: [
             {
-                file: "dist/esm/index.js",
+                file: "dist/index.js",
                 format: "es",
                 sourcemap: "inline",
                 banner: banner,

@@ -7,8 +7,8 @@ export default {
     input: 'chart.js',
     output: {
         file: 'dist/bundle.js',
-        format: 'iife',
-        name: 'chart'
+        format: 'iife'
+        ,name: 'chart'
     },
     plugins: [
         resolve(),
