@@ -16,6 +16,6 @@ export class Fdc3OpenRequest {
     constructor(
         public readonly instanceId: string, 
         public readonly appIdentifier: AppIdentifier, 
-        public readonly context?: string, 
+        public readonly context?: Context, 
         public readonly channelId?: string) {}
 }

@@ -13,6 +13,7 @@
 */
 
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Finos.Fdc3;
 using Finos.Fdc3.Context;
@@ -86,17 +87,21 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
 
     internal async ValueTask<FindIntentResponse?> HandleFindIntent(FindIntentRequest? request, MessageContext? context)
     {
-        return await _desktopAgent.FindIntent(request);
+        var contextType = request?.Context != null ? JsonSerializer.Deserialize<Context>(request.Context, _jsonSerializerOptions)?.Type : null;
+        return await _desktopAgent.FindIntent(request, contextType);
     }
 
     internal async ValueTask<FindIntentsByContextResponse?> HandleFindIntentsByContext(FindIntentsByContextRequest? request, MessageContext? context)
     {
-        return await _desktopAgent.FindIntentsByContext(request);
+        var contextType = request?.Context != null ? JsonSerializer.Deserialize<Context>(request.Context, _jsonSerializerOptions)?.Type : null;
+        return await _desktopAgent.FindIntentsByContext(request, contextType);
     }
 
-    internal async ValueTask<RaiseIntentResponse?> HandleRaiseIntent(RaiseIntentRequest? request, MessageContext? context)
+    internal async ValueTask<RaiseIntentResponse?> HandleRaiseIntent(RaiseIntentRequest request, MessageContext context)
     {
-        var result = await _desktopAgent.RaiseIntent(request);
+        var contextType = request?.Context != null ? JsonSerializer.Deserialize<Context>(request.Context, _jsonSerializerOptions)?.Type : null;
+
+        var result = await _desktopAgent.RaiseIntent(request, contextType!);
         if (result.RaiseIntentResolutionMessages.Any())
         {
             foreach (var message in result.RaiseIntentResolutionMessages)
@@ -209,21 +214,19 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
 
     internal async ValueTask<OpenResponse?> HandleOpen(OpenRequest? request, MessageContext? context)
     {
-        //TODO: Context parsing
-        IContext? fdc3Context = null;
+        string? contextType = null;
         if (!string.IsNullOrEmpty(request?.Context))
         {
-            fdc3Context = JsonSerializer.Deserialize<Context>(request.Context, _jsonSerializerOptions);
+            contextType = JsonObject.Parse(request.Context)?["type"]?.GetValue<string>();
         }
-        return await _desktopAgent.Open(request, fdc3Context);
+        return await _desktopAgent.Open(request, contextType);
     }
 
-    public async ValueTask<RaiseIntentResponse?> HandleRaiseIntentForContext(RaiseIntentForContextRequest? request, MessageContext? context)
+    public async ValueTask<RaiseIntentResponse> HandleRaiseIntentForContext(RaiseIntentForContextRequest request, MessageContext context)
     {
-        //TODO: Handle context messages appropriately
-        var fdc3Context = JsonSerializer.Deserialize<Context>(request!.Context, _jsonSerializerOptions);
+        var contextType = request?.Context != null ? JsonSerializer.Deserialize<Context>(request.Context, _jsonSerializerOptions)?.Type : null;
 
-        var result = await _desktopAgent.RaiseIntentForContext(request, fdc3Context!);
+        var result = await _desktopAgent.RaiseIntentForContext(request, contextType!);
         if (result.RaiseIntentResolutionMessages.Any())
         {
             foreach (var message in result.RaiseIntentResolutionMessages)

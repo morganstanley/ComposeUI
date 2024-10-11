@@ -41,7 +41,7 @@ public class ResolverUIMessageRouterCommunicatorTests
                     It.IsAny<CancellationToken>()))
             .Returns(null);
 
-        var resolverUIMessageRouterCommunicator = new ResolverUIMessageRouterCommunicator(messageRouterMock.Object);
+        var resolverUIMessageRouterCommunicator = new ResolverUIMessageRouterCommunicator(messageRouterMock.Object, null);
 
         var response = await resolverUIMessageRouterCommunicator.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>());
 
@@ -61,10 +61,10 @@ public class ResolverUIMessageRouterCommunicatorTests
             .Returns(ValueTask.FromResult<IMessageBuffer?>(
                 MessageBuffer.Factory.CreateJson(new ResolverUIResponse()
                 {
-                    AppMetadata = new AppMetadata(){ AppId = "testAppId" }
+                    AppMetadata = new AppMetadata() { AppId = "testAppId" }
                 }, _jsonSerializerOptions)));
 
-        var resolverUIMessageRouterCommunicator = new ResolverUIMessageRouterCommunicator(messageRouterMock.Object);
+        var resolverUIMessageRouterCommunicator = new ResolverUIMessageRouterCommunicator(messageRouterMock.Object, null);
 
         var response = await resolverUIMessageRouterCommunicator.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>());
 

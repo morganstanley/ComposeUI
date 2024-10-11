@@ -1,0 +1,177 @@
+﻿/*
+ * Morgan Stanley makes this available to you under the Apache License,
+ * Version 2.0 (the "License"). You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership. Unless required by applicable law or agreed
+ * to in writing, software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions
+ * and limitations under the License.
+ */
+
+{
+  "applications": [
+    {
+      "appId": "appId1",
+      "name": "app1",
+      "type": 1,
+      "details": {
+        "url": "http://customurl.com"
+      },
+      "interop": {
+        "intents": {
+          "listensFor": {
+            "intent1": {
+              "name": "intent1",
+              "displayName": "Intent resolved only by app 1",
+              "contexts": [
+                "singleContext"
+              ],
+              "resultType": "resultType1"
+            }
+          }
+        }
+      }
+    },
+    {
+      "appId": "appId2",
+      "name": "app2",
+      "type": 1,
+      "details": {
+        "url": "http://customurl.com"
+      },
+      "interop": {
+        "intents": {
+          "listensFor": {
+            "intent2": {
+              "name": "intent2",
+              "displayName": "Intent resolved by apps 2 and 3",
+              "contexts": [
+                "intent2Context",
+                "multipleContext",
+                "otherContext"
+              ],
+              "resultType": "resultType2"
+            }
+          }
+        }
+      }
+    },
+    {
+      "appId": "appId3",
+      "name": "app3",
+      "type": 1,
+      "details": {
+        "url": "http://customurl.com"
+      },
+      "interop": {
+        "intents": {
+          "listensFor": {
+            "intent2": {
+              "name": "intent2",
+              "displayName": "Intent resolved by apps 2 and 3",
+              "contexts": [
+                "intent2Context",
+                "multipleContext",
+                "onlyApp3Context"
+              ],
+              "resultType": "resultType1"
+            },
+            "intent3": {
+              "name": "intent3",
+              "displayName": "Intent resolved only by app 3",
+              "contexts": [
+                "multipleContext",
+                "otherContext",
+                "onlyApp3Context"
+              ],
+              "resultType": "resultType2"
+            }
+          }
+        }
+      }
+    },
+    {
+      "appId": "appId4",
+      "name": "app4",
+      "type": 1,
+      "details": {
+        "url": "http://customurl.com"
+      },
+      "interop": {
+        "intents": {
+          "listensFor": {
+            "intentWithNoResult": {
+              "name": "intentWithNoResult",
+              "displayName": "Intent that has no result type",
+              "contexts": [],
+              "resultType": "fdc3.nothing"
+            }
+          }
+        }
+      }
+    },
+    {
+      "appId": "appId5",
+      "name": "app5",
+      "type": 1,
+      "details": {
+        "url": "http://customurl.com"
+      },
+      "interop": {
+        "intents": {
+          "listensFor": {
+            "intentWithNoResult": {
+              "name": "intentWithNoResult",
+              "displayName": "Intent that has no result type",
+              "contexts": [ "fdc3.nothing" ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "appId": "appId6",
+      "name": "app6",
+      "type": 1,
+      "details": {
+        "url": "http://customurl.com"
+      },
+      "interop": {
+        "intents": {
+          "listensFor": {
+            "intentWithChannelResult": {
+              "name": "intentWithChannelResult",
+              "displayName": "Intent that returns a channel",
+              "contexts": [ "genericChannelContext", "channelContext" ],
+              "resultType": "channel"
+            }
+          }
+        }
+      }
+    },
+    {
+      "appId": "appId7",
+      "name": "app7",
+      "type": 1,
+      "details": {
+        "url": "http://customurl.com"
+      },
+      "interop": {
+        "intents": {
+          "listensFor": {
+            "intentWithChannelResult": {
+              "name": "intentWithChannelResult",
+              "displayName": "Intent that returns a channel",
+              "contexts": [ "channelContext" ],
+              "resultType": "channel<ctx>"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

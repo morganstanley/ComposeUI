@@ -53,7 +53,7 @@ export class MessageRouterOpenClient implements OpenClient{
         const request = new Fdc3OpenRequest(
             this.instanceId,
             appIdentifier,
-            JSON.stringify(context),
+            context,
             this.channel?.id);
 
         const result = await this.messageRouterClient.invoke(ComposeUITopic.open(), JSON.stringify(request));
@@ -101,7 +101,7 @@ export class MessageRouterOpenClient implements OpenClient{
             throw new Error(ComposeUIErrors.NoAnswerWasProvided);
         }
 
-        const context = <Context>JSON.parse(response.context);
+        const context = response.context;
         return context;
     }
 }

@@ -12,7 +12,9 @@
 * and limitations under the License.
 */
 
+using System.Text.Json.Serialization;
 using Finos.Fdc3.Context;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIdentifier;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
@@ -36,6 +38,7 @@ internal sealed class OpenRequest
     /// <summary>
     /// Context meant to be passed to the opened application.
     /// </summary>
+    [JsonConverter(typeof(ContextJsonConverter))]
     public string? Context { get; set; }
 
     /// <summary>

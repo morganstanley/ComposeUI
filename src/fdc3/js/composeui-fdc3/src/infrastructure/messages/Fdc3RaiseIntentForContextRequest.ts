@@ -15,6 +15,6 @@ export class Fdc3RaiseIntentForContextRequest {
     constructor(
         public readonly messageId: number,
         public readonly fdc3InstanceId: string, 
-        public readonly context: string, 
+        public readonly context: Context, 
         public readonly targetAppIdentifier?: AppIdentifier) {}
 }
