@@ -58,7 +58,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     private readonly ConcurrentDictionary<Guid, RaisedIntentRequestHandler> _raisedIntentResolutions = new();
     private readonly ConcurrentDictionary<StartRequest, TaskCompletionSource<IModuleInstance>> _pendingStartRequests = new();
     private readonly ConcurrentDictionary<Guid, List<ContextListener>> _contextListeners = new();
-    private readonly ConcurrentDictionary<Guid, string> _openedAppContexts = new ();
+    private readonly ConcurrentDictionary<Guid, string> _openedAppContexts = new();
     private IAsyncDisposable? _subscription;
     private readonly object _contextListenerLock = new();
 
@@ -263,41 +263,34 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             return FindIntentResponse.Failure(ResolveError.IntentDeliveryFailed);
         }
 
-        //This function returns null, if the app could not be accepted based on the intent (required), context (optional in request), resultType (optional in request)
-        //else for consistency it will return a single element array containing the intentMetadata which is allowed by the request.
-        Func<Fdc3App, Dictionary<string, AppIntent>, IEnumerable<KeyValuePair<string, IntentMetadata>>?> selector = (fdc3App, _) =>
+        // Filter by the request types
+        Func<Fdc3App, bool> filter = app =>
         {
-            if (fdc3App.Interop?.Intents?.ListensFor == null
-                || !fdc3App.Interop.Intents.ListensFor.TryGetValue(request.Intent!, out var intentMetadata))
-            {
-                return null;
-            }
+            bool result = true;
 
-            if (request.Context != null
-                && (intentMetadata.Contexts == null || !intentMetadata.Contexts.Contains(request.Context.Type))
-                && request.Context?.Type != ContextTypes.Nothing)
-            {
-                return null;
-            }
+            result &= app.DoesListenForIntent(request.Intent);
 
-            if (request.ResultType != null
-                && (intentMetadata.ResultType == null || !intentMetadata.ResultType.Contains(request.ResultType)))
+            if (request.Context != null && request.Context.Type != ContextTypes.Nothing)
             {
-                return null;
+                result &= app.DoesAcceptContextType(request.Context.Type);
             }
-
-            return new Dictionary<string, IntentMetadata> { { request.Intent, intentMetadata } };
+            if (request.ResultType != null)
+            {
+                result &= app.HasResultType(request.ResultType);
+            }
+            return result;
         };
 
-        var result = await GetAppIntentsByRequest(selector, null);
+        var result = await GetAppIntentsByRequest(filter, null);
 
-        return !result.AppIntents.TryGetValue(request.Intent, out var appIntent)
-            ? FindIntentResponse.Failure(ResolveError.NoAppsFound)
-            : FindIntentResponse.Success(appIntent);
+        return result.AppIntents.TryGetValue(request.Intent, out var appIntent)
+            ? FindIntentResponse.Success(appIntent)
+            : FindIntentResponse.Failure(ResolveError.NoAppsFound);
     }
 
     public async ValueTask<FindIntentsByContextResponse> FindIntentsByContext(FindIntentsByContextRequest? request)
     {
+        // TODO: look into if null or fdc3.Nothing contexts are acceptable as parameters
         if (request == null)
         {
             return FindIntentsByContextResponse.Failure(ResolveError.IntentDeliveryFailed);
@@ -305,35 +298,31 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
         //This function returns null, if the app could not be accepted based on the context(optional in request), resultType (optional in request)
         //else for consistency it will return a collection containing the intentMetadata which is allowed by the request.
-        Func<Fdc3App, Dictionary<string, AppIntent>, IEnumerable<KeyValuePair<string, IntentMetadata>>?> selector = (fdc3App, _) =>
+        Func<Fdc3App, bool> selector = app =>
         {
-            var intentMetadataCollection = new Dictionary<string, IntentMetadata>();
-            if (fdc3App.Interop?.Intents?.ListensFor?.Values != null)
+            if (app.Interop?.Intents?.ListensFor?.Values == null)
             {
-                foreach (var intentMetadata in fdc3App.Interop.Intents.ListensFor)
+                return false;
+            }
+
+            foreach (var intentMetadata in app.Interop.Intents.ListensFor)
+            {
+                // TODO: Check how querying for Nothing or listing Nothing in the Contexts should behave
+                if (intentMetadata.Value.Contexts == null
+                    || !intentMetadata.Value.Contexts.Contains(request.Context?.Type)
+                    && request.Context?.Type != ContextTypes.Nothing)
                 {
-                    if (intentMetadata.Value.Contexts == null
-                        || !intentMetadata.Value.Contexts.Contains(request.Context?.Type)
-                        && request.Context?.Type != ContextTypes.Nothing)
-                    {
-                        continue;
-                    }
-                    if (request.ResultType != null
-                        && (intentMetadata.Value.ResultType == null
-                            || !intentMetadata.Value.ResultType.Contains(request.ResultType)))
-                    {
-                        continue;
-                    }
-                    intentMetadataCollection.Add(intentMetadata.Key, intentMetadata.Value);
+                    continue;
                 }
+                if (request.ResultType != null
+                    && (intentMetadata.Value.ResultType == null
+                        || !intentMetadata.Value.ResultType.Contains(request.ResultType)))
+                {
+                    continue;
+                }
+                return true;
             }
-
-            if (intentMetadataCollection.Any())
-            {
-                return intentMetadataCollection;
-            }
-
-            return null;
+            return false;
         };
 
         var result = await GetAppIntentsByRequest(selector, null);
@@ -708,7 +697,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             {
                 return ValueTask.FromResult<RemoveContextListenerResponse?>(RemoveContextListenerResponse.Failure(Fdc3DesktopAgentErrors.ListenerNotFound));
             }
-            
+
             listeners.Remove(listener);
             if (_logger.IsEnabled(LogLevel.Debug))
             {
@@ -739,7 +728,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             var fdc3App = await _appDirectory.GetApp(request.AppIdentifier.AppId);
             var appMetadata = GetAppMetadata(fdc3App, null, null);
             var parameters = new Dictionary<string, string>();
-            
+
             if (request.Context != null)
             {
                 var id = Guid.NewGuid();
@@ -813,17 +802,26 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         }
 
         var findIntentsByContextResult = await FindIntentsByContext(new FindIntentsByContextRequest() { Context = context as Context, Fdc3InstanceId = request.Fdc3InstanceId });
+
         if (findIntentsByContextResult.AppIntents == null || !findIntentsByContextResult.AppIntents.Any())
         {
             return new()
             {
-                Response = RaiseIntentResponse.Failure(ResolveError.NoAppsFound)
+                Response = RaiseIntentResponse.Failure(request.TargetAppIdentifier == null ? ResolveError.NoAppsFound : ResolveError.TargetAppUnavailable) // TODO: do for instance as well
             };
         }
 
-        RaiseIntentSpecification raiseIntentSpecification;
+        List<AppIntent> result;
+        if (request.TargetAppIdentifier != null)
+        {
+            result = FilterAppIntentsByAppId(findIntentsByContextResult.AppIntents, request.TargetAppIdentifier).ToList();
+        }
+        else
+        {
+            result = findIntentsByContextResult.AppIntents.ToList();
+        }
 
-        var result = findIntentsByContextResult.AppIntents.ToList();
+        RaiseIntentSpecification raiseIntentSpecification;
         if (result.Count > 1)
         {
             //TODO: use the same ResolverUI 
@@ -902,14 +900,14 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             raiseIntentSpecification.TargetAppMetadata = appIntent.Apps.ElementAt(0);
             return await RaiseIntentToApplication(raiseIntentSpecification);
         }
-        
+
         var resolverUIResult = await WaitForResolverUIAsync(appIntent.Apps);
         if (resolverUIResult != null && resolverUIResult.Error == null)
         {
             raiseIntentSpecification.TargetAppMetadata = (AppMetadata) resolverUIResult.AppMetadata!;
             return await RaiseIntentToApplication(raiseIntentSpecification);
         }
-        
+
         if (resolverUIResult?.Error != null)
         {
             return new()
@@ -917,11 +915,37 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
                 Response = RaiseIntentResponse.Failure(resolverUIResult.Error)
             };
         }
-        
+
         return new()
         {
             Response = RaiseIntentResponse.Failure(ResolveError.UserCancelledResolution)
         };
+    }
+
+    private IEnumerable<AppIntent> FilterAppIntentsByAppId(IEnumerable<AppIntent> source, AppIdentifier appId)
+    {
+        // Semantically we know this is not null or empty
+        foreach (var intent in source)
+        {
+            foreach (var app in intent.Apps)
+            {
+                var matches = true;
+                if (appId.AppId != null && appId.AppId != app.AppId)
+                {
+                    matches = false;
+                }
+                if (appId.InstanceId != null && appId.InstanceId != app.InstanceId)
+                {
+                    matches = false;
+                }
+
+                if (matches)
+                {
+                    yield return intent;
+                    break;
+                }
+            }
+        }
     }
 
     public async ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntent(RaiseIntentRequest? request)
@@ -936,28 +960,15 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
         //This function returns null, if the app could not be accepted based on the intent (required), context (optional in request), appIdentifier (optional in request)
         //else for consistency it will return a single element array containing the intentMetadata which is allowed by the request.
-        Func<Fdc3App, Dictionary<string, AppIntent>, IEnumerable<KeyValuePair<string, IntentMetadata>>?> selector = (fdc3App, appIntents) =>
+        Func<Fdc3App, bool> selector = app =>
         {
+            var result = app.DoesListenForIntent(request.Intent);
 
-            if (fdc3App.Interop?.Intents?.ListensFor == null
-                || !fdc3App.Interop.Intents.ListensFor.TryGetValue(request.Intent!, out var intentMetadata))
+            if (result && request.Context != null)
             {
-                return null;
+                return app.DoesAcceptContextType(request.Context.Type);
             }
-
-            if (request.Context != null
-                && (intentMetadata.Contexts == null || !intentMetadata.Contexts.Contains(request.Context.Type))
-                && request.Context.Type != ContextTypes.Nothing)
-            {
-                return null;
-            }
-
-            if (request.TargetAppIdentifier != null && (fdc3App.AppId != request.TargetAppIdentifier.AppId))
-            {
-                return null;
-            }
-
-            return new Dictionary<string, IntentMetadata> { { request.Intent, intentMetadata } };
+            return result;
         };
 
         var intentQueryResult = await GetAppIntentsByRequest(selector, request.TargetAppIdentifier);
@@ -1136,7 +1147,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
                     Response = RaiseIntentResponse.Failure(exception.ToString()),
                 };
             }
-        } 
+        }
         catch (TimeoutException)
         {
             return new()
@@ -1266,7 +1277,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     }
 
     private async Task<IntentQueryResult> GetAppIntentsByRequest(
-        Func<Fdc3App, Dictionary<string, AppIntent>, IEnumerable<KeyValuePair<string, IntentMetadata>>?> selector,
+        Func<Fdc3App, bool> selector,
         IAppIdentifier? targetAppIdentifier)
     {
         var result = new IntentQueryResult();
@@ -1282,114 +1293,88 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     }
 
     private async Task<IntentQueryResult> GetAppIntentsFromRunningModules(
-        Func<Fdc3App, Dictionary<string, AppIntent>, IEnumerable<KeyValuePair<string, IntentMetadata>>?> selector,
+        Func<Fdc3App, bool> selector,
         IAppIdentifier? targetAppIdentifier,
         IntentQueryResult result)
     {
-        void FilterAppIntents(Fdc3App app, string id)
+        if (targetAppIdentifier?.InstanceId != null)
         {
-            var intentMetadataCollection = selector(app, result.AppIntents);
-
-            if (intentMetadataCollection == null)
+            if (Guid.TryParse(targetAppIdentifier?.InstanceId, out var instanceId) && _runningModules.TryGetValue(instanceId, out var runningInstance))
             {
-                return;
+                if (selector(runningInstance))
+                {
+                    // Semantically we know the app listens for the required intent
+                    result.AppIntents = GetAppIntentsFromIntentMetadataCollection(runningInstance, targetAppIdentifier.InstanceId, runningInstance.Interop!.Intents!.ListensFor!, result.AppIntents);
+                }
             }
-
-            result.AppIntents = GetAppIntentsFromIntentMetadataCollection(
-                app,
-                id,
-                intentMetadataCollection,
-                result.AppIntents);
-        }
-
-        var validInstanceId = Guid.TryParse(targetAppIdentifier?.InstanceId, out var id);
-
-        if (validInstanceId)
-        {
-            if (_runningModules.TryGetValue(id, out var fdc3App))
+            else
             {
-                FilterAppIntents(fdc3App, targetAppIdentifier!.InstanceId!);
-                return result;
+                try
+                {
+                    //If the app exists, but the specified instance id does not.
+                    await _appDirectory.GetApp(targetAppIdentifier!.AppId);
+                    result.Error = ResolveError.TargetInstanceUnavailable;
+                }
+                catch (AppNotFoundException)
+                {
+                    result.Error = ResolveError.IntentDeliveryFailed;
+                }
             }
-
-            try
-            {
-                //If the app exists, but the specified instance id does not.
-                await _appDirectory.GetApp(targetAppIdentifier!.AppId);
-                result.Error = ResolveError.TargetInstanceUnavailable;
-                return result;
-            }
-            catch (AppNotFoundException)
-            {
-                result.Error = ResolveError.IntentDeliveryFailed;
-                return result;
-            }
-        }
-
-        if (targetAppIdentifier?.InstanceId != null && !validInstanceId)
-        {
-            result.Error = ResolveError.TargetInstanceUnavailable;
             return result;
         }
 
-        //foreach is safe to do on a concurrent dictionary, it might involve the later added items, but would not throw an exception
-        foreach (var app in _runningModules)
+        var apps = _runningModules.AsEnumerable();
+        if (targetAppIdentifier?.AppId != null)
         {
-            if (targetAppIdentifier?.InstanceId != null
-                && Guid.TryParse(targetAppIdentifier.InstanceId, out var instanceId)
-                && instanceId != app.Key)
-            {
-                continue;
-            }
+            apps = apps.Where(x => x.Value.AppId == targetAppIdentifier.AppId);
+        }
+        apps = apps.Where(x => selector(x.Value));
 
-            FilterAppIntents(app.Value, app.Key.ToString());
+        //foreach is safe to do on a concurrent dictionary, it might involve the later added items, but would not throw an exception
+        foreach (var app in apps)
+        {
+            result.AppIntents = GetAppIntentsFromIntentMetadataCollection(
+                            app.Value,
+                            app.Key.ToString(),
+                            // Semantically we know the app listens for the required intent
+                            app.Value.Interop!.Intents!.ListensFor!,
+                            result.AppIntents);
         }
 
         return result;
     }
 
     private async Task<IntentQueryResult> GetAppIntentsFromAppDirectory(
-        Func<Fdc3App, Dictionary<string, AppIntent>, IEnumerable<KeyValuePair<string, IntentMetadata>>?> selector,
+        Func<Fdc3App, bool> selector,
         IAppIdentifier? targetAppIdentifier,
         IntentQueryResult result)
     {
-        var apps = (await _appDirectory.GetApps()).ToArray();
-
-        void FilterAppIntents(Fdc3App app)
-        {
-            var intentMetadataCollection = selector(app, result.AppIntents);
-
-            if (intentMetadataCollection == null)
-            {
-                return;
-            }
-
-            result.AppIntents = GetAppIntentsFromIntentMetadataCollection(app, null, intentMetadataCollection, result.AppIntents);
-        }
+        var apps = await _appDirectory.GetApps() ?? Array.Empty<Fdc3App>();
 
         if (targetAppIdentifier != null)
         {
-            var fdc3App = apps.FirstOrDefault(x => x.AppId == targetAppIdentifier.AppId);
-            if (fdc3App == default)
+            // This assumes the same appId only exists once and not with multiple versions.
+            // TODO: check if this assumption is correct.
+            var targetApp = apps.FirstOrDefault(x => x.AppId == targetAppIdentifier.AppId);
+
+            if (targetApp == default)
             {
                 result.Error = ResolveError.TargetAppUnavailable;
                 return result;
             }
 
-            FilterAppIntents(fdc3App);
-            return result;
+            // TODO: directly check if the result matches and return appropriately
+            apps = [targetApp];
         }
 
-        foreach (var app in apps)
+        var filteredApps = apps.Where(app => selector(app));
+
+        foreach (Fdc3App app in filteredApps)
         {
-            if (targetAppIdentifier != null && targetAppIdentifier.AppId != app.AppId)
-            {
-                continue;
-            }
-
-            FilterAppIntents(app);
+            // While only semantically, at this point we know the app listens for intents as we filter for that.
+            // TODO: this could probably be made more obvious from the code as well.
+            GetAppIntentsFromIntentMetadataCollection(app, null, app.Interop!.Intents!.ListensFor!, result.AppIntents);
         }
-
         return result;
     }
 
@@ -1423,7 +1408,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
                 appIntent = new AppIntent
                 {
                     Intent = new Protocol.IntentMetadata
-                        { Name = intentMetadata.Key, DisplayName = intentMetadata.Value.DisplayName },
+                    { Name = intentMetadata.Key, DisplayName = intentMetadata.Value.DisplayName },
                     Apps = Enumerable.Empty<AppMetadata>()
                 };
 
