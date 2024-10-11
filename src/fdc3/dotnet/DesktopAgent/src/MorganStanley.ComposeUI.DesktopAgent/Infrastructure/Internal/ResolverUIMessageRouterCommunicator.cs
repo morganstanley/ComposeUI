@@ -12,13 +12,13 @@
  * and limitations under the License.
  */
 
+using System;
 using System.Text.Json;
-using System.Threading;
 using Finos.Fdc3;
-using Finos.Fdc3.AppDirectory;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
 using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 
@@ -26,19 +26,44 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
 internal class ResolverUIMessageRouterCommunicator : IResolverUICommunicator
 {
+    private readonly ILogger<ResolverUIMessageRouterCommunicator> _logger;
     private readonly IMessageRouter _messageRouter;
+    private readonly TimeSpan _defaultTimeout = TimeSpan.FromMinutes(2);
+
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         Converters = { new AppMetadataJsonConverter() }
     };
 
     public ResolverUIMessageRouterCommunicator(
-        IMessageRouter messageRouter)
+        IMessageRouter messageRouter,
+        ILogger<ResolverUIMessageRouterCommunicator>? logger = null)
     {
         _messageRouter = messageRouter;
+        _logger = logger ?? NullLogger<ResolverUIMessageRouterCommunicator>.Instance;
     }
 
     public async Task<ResolverUIResponse?> SendResolverUIRequest(IEnumerable<IAppMetadata> appMetadata, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await SendResolverUIRequestCore(appMetadata, cancellationToken);
+        }
+        catch (TimeoutException ex)
+        {
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug(ex, "MessageRouter didn't receive response from the ResolverUI.");
+            }
+
+            return new ResolverUIResponse()
+            {
+                Error = ResolveError.ResolverTimeout
+            };
+        }
+    }
+
+    private async Task<ResolverUIResponse?> SendResolverUIRequestCore(IEnumerable<IAppMetadata> appMetadata, CancellationToken cancellationToken = default)
     {
         var request = new ResolverUIRequest
         {
@@ -47,7 +72,7 @@ internal class ResolverUIMessageRouterCommunicator : IResolverUICommunicator
 
         var responseBuffer = await _messageRouter.InvokeAsync(
             Fdc3Topic.ResolverUI,
-            MessageBuffer.Factory.CreateJson(request, _jsonSerializerOptions), 
+            MessageBuffer.Factory.CreateJson(request, _jsonSerializerOptions),
             cancellationToken: cancellationToken);
 
         if (responseBuffer == null)
@@ -60,7 +85,29 @@ internal class ResolverUIMessageRouterCommunicator : IResolverUICommunicator
         return response;
     }
 
+
     public async Task<ResolverUIIntentResponse?> SendResolverUIIntentRequest(IEnumerable<string> intents, CancellationToken cancellationToken = default)
+    {
+        //TODO: use the same ResolverUI
+        try
+        {
+            return await SendResolverUIIntentRequestCore(intents, cancellationToken);
+        }
+        catch (TimeoutException ex)
+        {
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug(ex, "MessageRouter didn't receive response from the ResolverUI.");
+            }
+
+            return new ResolverUIIntentResponse
+            {
+                Error = ResolveError.ResolverTimeout
+            };
+        }
+    }
+
+    private async Task<ResolverUIIntentResponse?> SendResolverUIIntentRequestCore(IEnumerable<string> intents, CancellationToken cancellationToken = default)
     {
         var request = new ResolverUIIntentRequest
         {
@@ -81,4 +128,5 @@ internal class ResolverUIMessageRouterCommunicator : IResolverUICommunicator
 
         return response;
     }
+
 }

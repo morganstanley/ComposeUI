@@ -10,8 +10,10 @@
  *  and limitations under the License.
  */
 
+import { Context } from "@finos/fdc3";
+
 export interface Fdc3GetOpenedAppContextResponse {
     error?: string;
     //TODO: properly deserializing the contexts.
-    context?: string;
+    context?: Context;
 }

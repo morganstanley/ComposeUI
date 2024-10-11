@@ -23,6 +23,7 @@ public interface IResolverUICommunicator
     /// Sends request for the shell to show a window for the user to select the wished intent for resolving the RaiseIntentForContext.
     /// </summary>
     /// <param name="intents"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public Task<ResolverUIIntentResponse?> SendResolverUIIntentRequest(IEnumerable<string> intents, CancellationToken cancellationToken = default);
 

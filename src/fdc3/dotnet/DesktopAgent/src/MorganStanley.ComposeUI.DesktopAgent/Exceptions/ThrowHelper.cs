@@ -32,4 +32,7 @@ public static class ThrowHelper
 
     public static Fdc3DesktopAgentException TargetAppUnavailable() =>
         new(ResolveError.TargetAppUnavailable, "Target app was unavailable when intent was raised");
+
+    public static Fdc3DesktopAgentException NoAppsFound() =>
+        new(ResolveError.NoAppsFound, "No app matched the filter criteria.");
 }

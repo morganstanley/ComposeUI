@@ -106,7 +106,7 @@ export class MessageRouterIntentsClient implements IntentsClient {
         const request = new Fdc3RaiseIntentForContextRequest(
             messageId,
             window.composeui.fdc3.config!.instanceId!,
-            JSON.stringify(context),
+            context,
             app);
 
         const responseFromService = await this.messageRouterClient.invoke(ComposeUITopic.raiseIntentForContext(), JSON.stringify(request));

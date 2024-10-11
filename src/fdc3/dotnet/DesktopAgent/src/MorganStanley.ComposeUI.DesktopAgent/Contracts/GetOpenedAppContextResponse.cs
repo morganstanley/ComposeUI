@@ -12,6 +12,9 @@
  * and limitations under the License.
  */
 
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
+using System.Text.Json.Serialization;
+
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
 internal sealed class GetOpenedAppContextResponse
@@ -25,6 +28,7 @@ internal sealed class GetOpenedAppContextResponse
     /// <summary>
     /// Context that should be sent directly to the opened app via the fdc3.open().
     /// </summary>
+    [JsonConverter(typeof(ContextJsonConverter))]
     public string? Context { get; set; }
 
     public static GetOpenedAppContextResponse Failure(string error) => new() {Error = error};

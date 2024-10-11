@@ -9,9 +9,12 @@
  *  or implied. See the License for the specific language governing permissions
  *  and limitations under the License.
  */
-using Finos.Fdc3.Context;
+using System.Text.Json.Serialization;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
+
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
+
 internal sealed class RaiseIntentForContextRequest
 {
     /// <summary>
@@ -24,10 +27,10 @@ internal sealed class RaiseIntentForContextRequest
     /// </summary>
     public string Fdc3InstanceId { get; set; }
 
-    //TODO: deserializing Context
     /// <summary>
     /// Context for identifying more the specific app that should handle the raised intent.
     /// </summary>
+    [JsonConverter(typeof(ContextJsonConverter))]
     public string Context { get; set; }
 
     /// <summary>

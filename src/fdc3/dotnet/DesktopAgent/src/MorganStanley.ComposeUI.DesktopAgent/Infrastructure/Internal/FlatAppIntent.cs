@@ -12,15 +12,13 @@
  * and limitations under the License.
  */
 
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
+using Finos.Fdc3.AppDirectory;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
-internal class RaiseIntentSpecification
+internal class FlatAppIntent
 {
-    public AppMetadata TargetAppMetadata { get; set; }
-    public string Intent { get; set; }
-    public int RaisedIntentMessageId { get; set; }
-    public string Context { get; set; }
-    public Guid SourceAppInstanceId { get; set; }
+    public Guid? InstanceId { get; init; }
+    public IntentMetadata Intent { get; init; }
+    public Fdc3App App { get; init; }
 }
