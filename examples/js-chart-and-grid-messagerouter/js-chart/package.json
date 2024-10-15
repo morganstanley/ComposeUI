@@ -3,7 +3,7 @@
   "version": "0.1.0-alpha.1",
   "private": true,
   "description": "Example Web Application",
-  "main": "chat.js",
+  "main": "chart.js",
   "type": "module",
   "scripts": {
     "clean": "rimraf dist",
@@ -21,7 +21,7 @@
   "devDependencies": {
     "http-server": "14.1.1",
     "rimraf": "^6.0.1",
-    "rollup": "^4.18.1",
+    "rollup": "^4.24.0",
     "@rollup/plugin-commonjs": "28.0.0",
     "@rollup/plugin-node-resolve": "15.3.0"
   }
