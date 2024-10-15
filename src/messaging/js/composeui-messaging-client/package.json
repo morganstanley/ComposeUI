@@ -5,11 +5,11 @@
     "description": "JavaScript client for ComposeUI's Message Router",
     "type": "module",
     "files": [
-        "dist/esm/**/*"
+        "dist/**/*"
     ],
-    "main": "dist/esm/index.js",
-    "module": "dist/esm/index.js",
-    "types": "dist/esm/index.d.ts",
+    "main": "dist/index.js",
+    "module": "dist/index.js",
+    "types": "dist/index.d.ts",
     "scripts": {
         "build": "npm run build:clean && npm run build:rollup",
         "build:clean": "rimraf dist",
@@ -29,7 +29,7 @@
     "devDependencies": {
         "@jest/expect-utils": "^29.4.1",
         "@rollup/plugin-node-resolve": "^15.0.1",
-        "@rollup/plugin-typescript": "^11.0.0",
+        "@rollup/plugin-typescript": "^12.1.0",
         "@types/jest": "^29.4.0",
         "expect": "^29.4.1",
         "glob": "^11.0.0",
