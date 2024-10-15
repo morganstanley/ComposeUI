@@ -1,13 +1,11 @@
-﻿﻿/*import Chart from 'highcharts/es-modules/Core/Chart/Chart.js';
-import ColumnSeries from 'highcharts/es-modules/Series/Column/ColumnSeries.js';
-import * as Highcharts from 'highcharts';
+﻿﻿import * as Highcharts from 'highcharts';
 import { createMessageRouter } from "@morgan-stanley/composeui-messaging-client";
 
-let varChart;
+let chart;
 let client;
 
 window.addEventListener('load', function () {
-  varChart = Highcharts.chart('container', {
+  chart = Highcharts.chart('container', {
     chart: {
       type: 'column',
       events: {
@@ -38,13 +36,7 @@ window.addEventListener('load', function () {
   });
 });
 
-  window.document.getElementById("close-button").onclick =
-    async ev => {
-      if (!client) return;
-      const tmpClient = client;
-      client = undefined;
-      tmpClient.close();
-    };
+  
 
 
 async function requestData() {
@@ -63,56 +55,19 @@ async function requestData() {
       const buyData = payload.buy;
       const sellData = payload.sell;
 
-      varChart.setTitle({ text: "Monthly sales for " + symbol });
-      varChart.series[0].setData([]);
-      varChart.series[1].setData([]);
+      chart.setTitle({ text: "Monthly sales for " + symbol });
+      chart.series[0].setData([]);
+      chart.series[1].setData([]);
 
       buyData.forEach(function (p) {
-        varChart.series[0].addPoint(p, false);
+        chart.series[0].addPoint(p, false);
       });
 
       sellData.forEach(function (p) {
-        varChart.series[1].addPoint(p, false);
+        chart.series[1].addPoint(p, false);
       });
 
-      varChart.redraw();
+      chart.redraw();
     });
   })();
-}*/
-
-import {chart} from 'highcharts';
-
-let varChart;
-
-
-window.addEventListener('load', function () {
-  varChart = chart('container', {
-    chart: {
-      type: 'column',
-      events: {
-        load: requestData
-      }
-    },
-    title: {
-      text: 'Monthly Sales Data'
-    },
-    yAxis: {
-      minPadding: 0.2,
-      maxPadding: 0.2,
-      title: {
-        text: 'Value',
-        margin: 80,
-      }
-    },
-    xAxis: {
-      categories: ['Jan','Feb','March','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
-    },
-    series: [{
-      name: 'Buy',
-      data: [] 
-    }, {
-      name: 'Sell',
-      data: []
-    }]
-  });
-});
+}
