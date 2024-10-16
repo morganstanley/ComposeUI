@@ -40,7 +40,6 @@ async function initialize(): Promise<void> {
         await fdc3.joinUserChannel(channelId)
             .then(async() => {
                 if (openAppIdentifier) {
-                    console.log("CALLING GET OPENED APP CONTEXT.");
                     await fdc3.getOpenedAppContext()
                         .then(() => {
                             window.fdc3 = fdc3;
