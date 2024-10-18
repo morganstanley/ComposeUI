@@ -1,0 +1,27 @@
+{
+  "name": "example-chart",  
+  "version": "0.1.0-alpha.1",
+  "private": true,
+  "description": "Repro example for rollup bug",
+  "main": "chart.js",
+  "type": "module",
+  "scripts": {
+    "clean": "rimraf dist",
+    "bundle": "rollup -c",
+    "build": "npm run clean && npm run bundle",
+    "start": "http-server"
+  },
+  "dependencies": {
+    "bootstrap": "5.3.3",
+    "highcharts": "11.4.8",
+    "jquery": "3.7.1",
+    "tslib": "2.7.0"
+  },
+  "devDependencies": {
+    "http-server": "14.1.1",
+    "rimraf": "^6.0.1",
+    "rollup": "^4.0.0",
+    "@rollup/plugin-commonjs": "25.0.8",
+    "@rollup/plugin-node-resolve": "15.2.3"
+  }
+}
