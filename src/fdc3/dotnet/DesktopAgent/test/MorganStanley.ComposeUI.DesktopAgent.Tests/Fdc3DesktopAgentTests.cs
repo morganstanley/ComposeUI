@@ -75,7 +75,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
 
         _disposable = _mockModuleLoader.Object.LifetimeEvents.Subscribe(x =>
         {
-            switch(x.EventType)
+            switch (x.EventType)
             {
                 case LifetimeEventType.Started:
                     _modules.TryAdd(x.Instance.InstanceId, x.Instance);
@@ -92,7 +92,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     {
         await _fdc3.StopAsync(CancellationToken.None);
 
-        foreach(var module in _modules)
+        foreach (var module in _modules)
         {
             await _mockModuleLoader.Object.StopModule(new(module.Key));
         }
@@ -173,7 +173,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             .BeEquivalentTo(
                 new AppIntent
                 {
-                    Intent = new IntentMetadata {Name = "intentMetadata4", DisplayName = "displayName4"},
+                    Intent = new IntentMetadata { Name = "intentMetadata4", DisplayName = "displayName4" },
                     Apps = new[]
                     {
                         new AppMetadata {AppId = "appId5", Name = "app5", ResultType = "resultType<specified>"},
@@ -558,7 +558,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
         };
 
         var result = await _fdc3.RaiseIntent(request);
-        _mockResolverUICommunicator.Verify(_ => _.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()));
+        _mockResolverUICommunicator.Verify(_ => _.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<TimeSpan?>()));
     }
 
     [Fact]
@@ -622,7 +622,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
         var result = await _fdc3.AddAppChannel((channelId) => new AppChannel(
             channelId,
             mockMessaging.Object,
-            new Mock<ILogger<AppChannel>>().Object), new CreateAppChannelRequest() {  ChannelId = "my.channelId" , InstanceId = originFdc3InstanceId});
+            new Mock<ILogger<AppChannel>>().Object), new CreateAppChannelRequest() { ChannelId = "my.channelId", InstanceId = originFdc3InstanceId });
 
         result.Should().BeEquivalentTo(CreateAppChannelResponse.Created());
     }
@@ -697,7 +697,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
         var fdc3 = new Fdc3DesktopAgent(
             _appDirectory,
             _mockModuleLoader.Object,
-            options, 
+            options,
             _mockResolverUICommunicator.Object,
             new UserChannelSetReader(options));
 
@@ -750,7 +750,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     [Fact]
     public async Task JoinUserChannel_returns_missing_id_error_as_instance_id_not_found()
     {
-        var result = await _fdc3.JoinUserChannel((channelId) => new UserChannel(channelId, new Mock<IMessagingService>().Object, null), new() { InstanceId = Guid.NewGuid().ToString(), ChannelId = "test"});
+        var result = await _fdc3.JoinUserChannel((channelId) => new UserChannel(channelId, new Mock<IMessagingService>().Object, null), new() { InstanceId = Guid.NewGuid().ToString(), ChannelId = "test" });
 
         result.Should().NotBeNull();
         result.Should().BeEquivalentTo(JoinUserChannelResponse.Failed(Fdc3DesktopAgentErrors.MissingId));
@@ -1178,7 +1178,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
         var result = await _fdc3.GetAppMetadata(request);
 
         result.Error.Should().NotBeNull();
-        result.Error.Should().Be(ResolveError.TargetAppUnavailable);
+        result.Error.Should().Be(ResolveError.TargetInstanceUnavailable);
     }
 
     [Fact]

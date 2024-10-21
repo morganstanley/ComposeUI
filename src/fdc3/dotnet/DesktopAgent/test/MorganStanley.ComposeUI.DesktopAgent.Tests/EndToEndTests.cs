@@ -1550,7 +1550,7 @@ public class EndToEndTests : IAsyncLifetime
         var result = response!.ReadJson<GetAppMetadataResponse>(_options);
 
         result!.Error.Should().NotBeNull();
-        result!.Error.Should().Be(ResolveError.TargetAppUnavailable);
+        result!.Error.Should().Be(ResolveError.TargetInstanceUnavailable);
     }
 
     [Fact]

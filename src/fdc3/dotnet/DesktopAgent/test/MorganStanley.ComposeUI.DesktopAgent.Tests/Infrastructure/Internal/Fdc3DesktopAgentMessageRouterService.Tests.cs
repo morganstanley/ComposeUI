@@ -290,7 +290,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
         };
 
         var result = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
-        _mockResolverUICommunicator.Verify(_ => _.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()));
+        _mockResolverUICommunicator.Verify(_ => _.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<TimeSpan?>()));
     }
 
     [Fact]
@@ -306,7 +306,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
         };
 
         var result = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
-        _mockResolverUICommunicator.Verify(_ => _.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()));
+        _mockResolverUICommunicator.Verify(_ => _.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<TimeSpan?>()));
     }
 
     [Fact]
@@ -323,7 +323,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
 
         var result = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
         result.Should().NotBeNull();
-        result!.Error.Should().Be(ResolveError.TargetAppUnavailable);
+        result!.Error.Should().Be(ResolveError.TargetInstanceUnavailable);
     }
 
     [Fact]
@@ -1508,7 +1508,7 @@ public class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
         var result = await _fdc3.HandleGetAppMetadata(request, null);
 
         result.Error.Should().NotBeNull();
-        result.Error.Should().Be(ResolveError.TargetAppUnavailable);
+        result.Error.Should().Be(ResolveError.TargetInstanceUnavailable);
     }
 
     [Fact]

@@ -12,6 +12,7 @@
  * and limitations under the License.
  */
 
+using System.ComponentModel.DataAnnotations;
 using Finos.Fdc3;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
@@ -24,7 +25,7 @@ public interface IResolverUICommunicator
     /// </summary>
     /// <param name="intents"></param>
     /// <returns></returns>
-    public Task<ResolverUIIntentResponse?> SendResolverUIIntentRequest(IEnumerable<string> intents, CancellationToken cancellationToken = default);
+    public Task<ResolverUIIntentResponse?> SendResolverUIIntentRequest(IEnumerable<string> intents, TimeSpan? timeout = null);
 
     /// <summary>
     /// Sends a request for the shell to show a window, aka ResolverUI, with the appropriate AppMetadata that can solve the raised intent.
@@ -32,5 +33,5 @@ public interface IResolverUICommunicator
     /// <param name="appMetadata"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task<ResolverUIResponse?> SendResolverUIRequest(IEnumerable<IAppMetadata> appMetadata, CancellationToken cancellationToken = default);
+    public Task<ResolverUIResponse?> SendResolverUIRequest(IEnumerable<IAppMetadata> appMetadata, TimeSpan? timeout = null);
 }

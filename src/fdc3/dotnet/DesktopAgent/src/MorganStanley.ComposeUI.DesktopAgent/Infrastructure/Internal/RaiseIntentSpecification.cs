@@ -22,6 +22,6 @@ internal class RaiseIntentSpecification
     public AppMetadata TargetAppMetadata { get; set; }
     public string Intent { get; set; }
     public int RaisedIntentMessageId { get; set; }
-    public Context Context { get; set; }
+    public Context? Context { get; set; }
     public Guid SourceAppInstanceId { get; set; }
 }

@@ -61,6 +61,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     private readonly ConcurrentDictionary<Guid, string> _openedAppContexts = new();
     private IAsyncDisposable? _subscription;
     private readonly object _contextListenerLock = new();
+    private readonly IntentResolver _intentResolver;
 
     public Fdc3DesktopAgent(
         IAppDirectory appDirectory,
@@ -77,6 +78,8 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         _userChannelSetReader = userChannelSetReader;
         _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
         _logger = _loggerFactory.CreateLogger<Fdc3DesktopAgent>() ?? NullLogger<Fdc3DesktopAgent>.Instance;
+
+        _intentResolver = new(appDirectory, _runningModules);
     }
 
     public async ValueTask<UserChannel?> AddUserChannel(Func<string, UserChannel> addUserChannelFactory, string channelId)
@@ -263,25 +266,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             return FindIntentResponse.Failure(ResolveError.IntentDeliveryFailed);
         }
 
-        // Filter by the request types
-        Func<Fdc3App, bool> filter = app =>
-        {
-            bool result = true;
-
-            result &= app.DoesListenForIntent(request.Intent);
-
-            if (request.Context != null && request.Context.Type != ContextTypes.Nothing)
-            {
-                result &= app.DoesAcceptContextType(request.Context.Type);
-            }
-            if (request.ResultType != null)
-            {
-                result &= app.HasResultType(request.ResultType);
-            }
-            return result;
-        };
-
-        var result = await GetAppIntentsByRequest(filter, null);
+        var result = await GetAppIntentsByRequest(request.Intent, request.Context?.Type, request.ResultType, null);
 
         return result.AppIntents.TryGetValue(request.Intent, out var appIntent)
             ? FindIntentResponse.Success(appIntent)
@@ -296,36 +281,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             return FindIntentsByContextResponse.Failure(ResolveError.IntentDeliveryFailed);
         }
 
-        //This function returns null, if the app could not be accepted based on the context(optional in request), resultType (optional in request)
-        //else for consistency it will return a collection containing the intentMetadata which is allowed by the request.
-        Func<Fdc3App, bool> selector = app =>
-        {
-            if (app.Interop?.Intents?.ListensFor?.Values == null)
-            {
-                return false;
-            }
-
-            foreach (var intentMetadata in app.Interop.Intents.ListensFor)
-            {
-                // TODO: Check how querying for Nothing or listing Nothing in the Contexts should behave
-                if (intentMetadata.Value.Contexts == null
-                    || !intentMetadata.Value.Contexts.Contains(request.Context?.Type)
-                    && request.Context?.Type != ContextTypes.Nothing)
-                {
-                    continue;
-                }
-                if (request.ResultType != null
-                    && (intentMetadata.Value.ResultType == null
-                        || !intentMetadata.Value.ResultType.Contains(request.ResultType)))
-                {
-                    continue;
-                }
-                return true;
-            }
-            return false;
-        };
-
-        var result = await GetAppIntentsByRequest(selector, null);
+        var result = await GetAppIntentsByRequest(contextType: request.Context?.Type, resultType: request.ResultType);
 
         return !result.AppIntents.Any()
             ? FindIntentsByContextResponse.Failure(ResolveError.NoAppsFound)
@@ -824,56 +780,37 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         RaiseIntentSpecification raiseIntentSpecification;
         if (result.Count > 1)
         {
-            //TODO: use the same ResolverUI 
+            var resolverUIIntentResponse = await _resolverUI.SendResolverUIIntentRequest(result.Select(x => x.Intent.Name));
 
-            using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-
-            try
+            if (resolverUIIntentResponse == null)
             {
-                var resolverUIIntentResponse = await _resolverUI.SendResolverUIIntentRequest(result.Select(x => x.Intent.Name), cancellationTokenSource.Token);
-
-                if (resolverUIIntentResponse == null)
+                return new()
                 {
-                    return new()
+                    Response = new()
                     {
-                        Response = new()
-                        {
-                            Error = Fdc3DesktopAgentErrors.PayloadNull,
-                        }
-                    };
-                }
-
-                if (resolverUIIntentResponse.Error != null)
-                {
-                    return new()
-                    {
-                        Response = new()
-                        {
-                            Error = resolverUIIntentResponse.Error,
-                        }
-                    };
-                }
-
-                raiseIntentSpecification = new()
-                {
-                    Context = context as Context,
-                    Intent = resolverUIIntentResponse.SelectedIntent!,
-                    RaisedIntentMessageId = request.MessageId,
-                    SourceAppInstanceId = new(request.Fdc3InstanceId)
+                        Error = Fdc3DesktopAgentErrors.PayloadNull,
+                    }
                 };
             }
-            catch (TimeoutException exception)
-            {
-                if (_logger.IsEnabled(LogLevel.Debug))
-                {
-                    _logger.LogDebug(exception, "MessageRouter didn't receive response from the ResolverUI.");
-                }
 
-                return new RaiseIntentResult<RaiseIntentResponse>()
+            if (resolverUIIntentResponse.Error != null)
+            {
+                return new()
                 {
-                    Response = RaiseIntentResponse.Failure(ResolveError.ResolverTimeout)
+                    Response = new()
+                    {
+                        Error = resolverUIIntentResponse.Error,
+                    }
                 };
             }
+
+            raiseIntentSpecification = new()
+            {
+                Context = context as Context,
+                Intent = resolverUIIntentResponse.SelectedIntent!,
+                RaisedIntentMessageId = request.MessageId,
+                SourceAppInstanceId = new(request.Fdc3InstanceId)
+            };
         }
         else
         {
@@ -901,7 +838,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             return await RaiseIntentToApplication(raiseIntentSpecification);
         }
 
-        var resolverUIResult = await WaitForResolverUIAsync(appIntent.Apps);
+        var resolverUIResult = await _resolverUI.SendResolverUIRequest(appIntent.Apps);
         if (resolverUIResult != null && resolverUIResult.Error == null)
         {
             raiseIntentSpecification.TargetAppMetadata = (AppMetadata) resolverUIResult.AppMetadata!;
@@ -958,20 +895,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             };
         }
 
-        //This function returns null, if the app could not be accepted based on the intent (required), context (optional in request), appIdentifier (optional in request)
-        //else for consistency it will return a single element array containing the intentMetadata which is allowed by the request.
-        Func<Fdc3App, bool> selector = app =>
-        {
-            var result = app.DoesListenForIntent(request.Intent);
-
-            if (result && request.Context != null)
-            {
-                return app.DoesAcceptContextType(request.Context.Type);
-            }
-            return result;
-        };
-
-        var intentQueryResult = await GetAppIntentsByRequest(selector, request.TargetAppIdentifier);
+        var intentQueryResult = await GetAppIntentsByRequest(request.Intent, request.Context?.Type, targetAppIdentifier: request.TargetAppIdentifier);
 
         if (intentQueryResult.Error != null)
         {
@@ -1006,7 +930,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         }
 
         //Resolve to one app via ResolverUI.
-        var result = await WaitForResolverUIAsync(appIntent.Apps);
+        var result = await _resolverUI.SendResolverUIRequest(appIntent.Apps);
 
         if (result != null && result.Error == null)
         {
@@ -1026,28 +950,6 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         {
             Response = RaiseIntentResponse.Failure(ResolveError.UserCancelledResolution)
         };
-    }
-
-    private async Task<ResolverUIResponse?> WaitForResolverUIAsync(IEnumerable<AppMetadata> apps)
-    {
-        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-
-        try
-        {
-            return await _resolverUI.SendResolverUIRequest(apps, cancellationTokenSource.Token);
-        }
-        catch (TimeoutException exception)
-        {
-            if (_logger.IsEnabled(LogLevel.Debug))
-            {
-                _logger.LogDebug(exception, "MessageRouter didn't receive response from the ResolverUI.");
-            }
-
-            return new ResolverUIResponse()
-            {
-                Error = ResolveError.ResolverTimeout
-            };
-        }
     }
 
     //Here we have a specific application which should either start or we should send a intent resolution request
@@ -1277,17 +1179,54 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     }
 
     private async Task<IntentQueryResult> GetAppIntentsByRequest(
-        Func<Fdc3App, bool> selector,
-        IAppIdentifier? targetAppIdentifier)
+        string? intent = null,
+        string? contextType = null,
+        string? resultType = null,
+        IAppIdentifier? targetAppIdentifier = null)
     {
         var result = new IntentQueryResult();
 
         if (targetAppIdentifier?.InstanceId == null)
         {
-            result = await GetAppIntentsFromAppDirectory(selector, targetAppIdentifier, result);
+            var filteredApps = await _intentResolver.GetMatchingAppsFromAppDirectory(intent, contextType, resultType, targetAppIdentifier?.AppId);
+
+            foreach (Fdc3App app in filteredApps)
+            {
+                // While only semantically, at this point we know the app listens for intents as we filter for that.
+                // TODO: this could probably be made more obvious from the code as well.
+                GetAppIntentsFromIntentMetadataCollection(app, null, app.Interop!.Intents!.ListensFor!, result.AppIntents);
+            }
         }
 
-        result = await GetAppIntentsFromRunningModules(selector, targetAppIdentifier, result);
+        try
+        {
+            Guid instanceId = Guid.Empty;
+            if (targetAppIdentifier?.InstanceId != null && !Guid.TryParse(targetAppIdentifier.InstanceId, out instanceId))
+            {
+                result.Error = ResolveError.TargetInstanceUnavailable;
+                return result;
+            }
+
+
+            var filteredInstances = await _intentResolver.GetMatchingAppInstances(intent, contextType, resultType, targetAppIdentifier?.AppId, targetAppIdentifier?.InstanceId == null ? null : instanceId);
+            foreach (var app in filteredInstances)
+            {
+                // While only semantically, at this point we know the app listens for intents as we filter for that.
+                // TODO: this could probably be made more obvious from the code as well.
+                GetAppIntentsFromIntentMetadataCollection(app.Value, targetAppIdentifier?.InstanceId, app.Value.Interop!.Intents!.ListensFor!, result.AppIntents);
+            }
+        }
+        catch (Fdc3DesktopAgentException fdc3ex)
+        {
+            if (fdc3ex.ErrorType == ResolveError.TargetAppUnavailable)
+            {
+                result.Error = ResolveError.IntentDeliveryFailed;
+            }
+            else
+            {
+                result.Error = fdc3ex.ErrorType;
+            }
+        }
 
         return result;
     }
@@ -1341,40 +1280,6 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
                             result.AppIntents);
         }
 
-        return result;
-    }
-
-    private async Task<IntentQueryResult> GetAppIntentsFromAppDirectory(
-        Func<Fdc3App, bool> selector,
-        IAppIdentifier? targetAppIdentifier,
-        IntentQueryResult result)
-    {
-        var apps = await _appDirectory.GetApps() ?? Array.Empty<Fdc3App>();
-
-        if (targetAppIdentifier != null)
-        {
-            // This assumes the same appId only exists once and not with multiple versions.
-            // TODO: check if this assumption is correct.
-            var targetApp = apps.FirstOrDefault(x => x.AppId == targetAppIdentifier.AppId);
-
-            if (targetApp == default)
-            {
-                result.Error = ResolveError.TargetAppUnavailable;
-                return result;
-            }
-
-            // TODO: directly check if the result matches and return appropriately
-            apps = [targetApp];
-        }
-
-        var filteredApps = apps.Where(app => selector(app));
-
-        foreach (Fdc3App app in filteredApps)
-        {
-            // While only semantically, at this point we know the app listens for intents as we filter for that.
-            // TODO: this could probably be made more obvious from the code as well.
-            GetAppIntentsFromIntentMetadataCollection(app, null, app.Interop!.Intents!.ListensFor!, result.AppIntents);
-        }
         return result;
     }
 
