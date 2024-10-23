@@ -1,13 +1,14 @@
 import React, { useCallback, useState } from 'react';
 import { Link, graphql } from 'gatsby';
 import Box from '@mui/material/Box';
+import Toolbar from '@mui/material/Toolbar';
 
+import PageHead from '../../components/page-head';
 import Layout from '../../components/layout';
 import VersionSelect from '../../components/version-select';
 import { getDocsVersion } from '../../utils/version-docs';
 
 import HeroContent from '../../../content/hero.mdx';
-import { Toolbar } from '@mui/material';
 
 const DocumentationIndex = ({ data, location }) => {
   const allDocs = data.allMdx.nodes;
@@ -66,7 +67,10 @@ const DocumentationIndex = ({ data, location }) => {
 
 export default DocumentationIndex;
 
-export const Head = () => <title>Documentation</title>;
+export const Head = ({ data }) => {
+  const title = `Documentation | ${data.site.siteMetadata.title}`;
+  return <PageHead title={title} />;
+};
 
 export const pageQuery = graphql`
   query {

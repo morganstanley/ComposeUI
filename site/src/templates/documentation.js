@@ -3,6 +3,7 @@ import { Link, navigate, graphql } from 'gatsby';
 import { Box } from '@mui/material';
 
 import Layout from '../components/layout';
+import PageHead from '../components/page-head';
 import VersionSelect from '../components/version-select';
 import { getCurrentVersion, getDocsVersion } from '../utils/version-docs';
 
@@ -83,12 +84,14 @@ const DocumentationTemplate = ({ children, data, pageContext, location }) => {
 
 export default DocumentationTemplate;
 
-export const Head = ({ pageContext }) => (
-  <>
-    <title>{pageContext.frontmatter.title}</title>
-    <meta name="description" content={pageContext.description} />
-  </>
-);
+export const Head = ({ data, pageContext }) => {
+  const title = `${pageContext.frontmatter.title} | ${data.site.siteMetadata.title}`;
+  return (
+    <PageHead title={title}>
+      <meta name="description" content={pageContext.description} />
+    </PageHead>
+  );
+};
 
 export const pageQuery = graphql`
   query ($id: String!) {
