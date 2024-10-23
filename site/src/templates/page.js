@@ -2,6 +2,7 @@ import React from 'react';
 import { graphql } from 'gatsby';
 
 import Layout from '../components/layout';
+import PageHead from '../components/page-head';
 
 const PageTemplate = ({ title, data, location, children }) => {
   return (
@@ -18,12 +19,14 @@ const PageTemplate = ({ title, data, location, children }) => {
 
 export default PageTemplate;
 
-export const Head = ({ pageContext }) => (
-  <>
-    <title>{pageContext.title}</title>
-    <meta name="description" content={pageContext.description} />
-  </>
-);
+export const Head = ({ data, pageContext }) => {
+  const title = `${pageContext.frontmatter.title} | ${data.site.siteMetadata.title}`;
+  return (
+    <PageHead title={title}>
+      <meta name="description" content={pageContext.description} />
+    </PageHead>
+  );
+};
 
 export const pageQuery = graphql`
   query ($id: String!) {

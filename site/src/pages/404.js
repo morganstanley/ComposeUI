@@ -3,6 +3,7 @@ import { graphql } from 'gatsby';
 
 import Hero from '../components/hero';
 import Layout from '../components/layout';
+import PageHead from '../components/page-head';
 
 const NotFoundPage = ({ data, location }) => {
   return (
@@ -18,7 +19,10 @@ const NotFoundPage = ({ data, location }) => {
 
 export default NotFoundPage;
 
-export const Head = () => <title>404: Not Found</title>;
+export const Head = ({ data }) => {
+  const title = `404: Not Found | ${data.site.siteMetadata.title}`;
+  return <PageHead title={title} />;
+};
 
 export const pageQuery = graphql`
   query {

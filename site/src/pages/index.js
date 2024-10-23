@@ -8,6 +8,7 @@ import HeroContent from '../../content/hero.mdx';
 import UseCases from '../../content/use-cases.mdx';
 
 import Article from '../components/article';
+import PageHead from '../components/page-head';
 import Layout from '../components/layout';
 
 const SiteIndex = ({ data, location }) => {
@@ -33,6 +34,10 @@ const SiteIndex = ({ data, location }) => {
     </Layout>
   );
 };
+
+export const Head = ({ data }) => (
+  <PageHead title={data.site.siteMetadata.title} />
+);
 
 export default SiteIndex;
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, graphql } from 'gatsby';
 
 import Layout from '../../components/layout';
+import PageHead from '../../components/page-head';
 
 import HeroContent from '../../../content/hero.mdx';
 
@@ -32,7 +33,9 @@ const NewsIndex = ({ data, location }) => {
 
 export default NewsIndex;
 
-export const Head = () => <title>News</title>;
+export const Head = ({ data }) => (
+  <PageHead title={data.site.siteMetadata.title} />
+);
 
 export const pageQuery = graphql`
   query {
