@@ -4,7 +4,7 @@ module.exports = {
   siteMetadata: {
     title: `ComposeUI`,
     description: `ComposeUI is a .NET based general UI Container and Unified UI and App host which enables the hosting of Web and desktop content.`,
-    siteUrl: 'http://opensource.morganstanley.com/ComposeUI',
+    siteUrl: 'https://morganstanley.github.io/ComposeUI',
     documentationUrl: false,
     //  documentationUrl: url-of.documentation.site,
   },

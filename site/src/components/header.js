@@ -19,7 +19,7 @@ const Header = ({ location, links }) => {
   return (
     <div className="content">
       <h1 className="logo">
-        <Link className="logo-link" to={`//opensource.morganstanley.com`}>
+        <Link className="logo-link" to={`//morganstanley.github.io`}>
           <StaticImage
             width={267}
             src="../images/logo-black.png"
