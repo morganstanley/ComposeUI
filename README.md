@@ -9,7 +9,7 @@ ComposeUI
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/morganstanley/ComposeUI/badge)](https://securityscorecards.dev/viewer/?uri=github.com/morganstanley/ComposeUI)
 [![codecov](https://codecov.io/gh/MorganStanley/ComposeUI/branch/main/graph/badge.svg)](https://codecov.io/gh/MorganStanley/ComposeUI)
 [![GitHub Repo stars](https://img.shields.io/github/stars/morganstanley/ComposeUI?style=social)](https://github.com/morganstanley/ComposeUI)
-
+<div data-iframe-width="150" data-iframe-height="270" data-share-badge-id="39ad8155-f380-44c4-a196-9819ff6fd075" data-share-badge-host="https://wwww.credly.com"></div><script type="text/javascript" async src="//cdn.credly.com/assets/utilies/embed.js"></script>
 
 ComposeUI is a A .NET Core based general UI Container and Unified UI and App host which enables the hosting of Web and desktop content.
 
