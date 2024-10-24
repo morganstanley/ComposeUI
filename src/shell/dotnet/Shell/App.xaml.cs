@@ -29,7 +29,6 @@ using MorganStanley.ComposeUI.Fdc3.AppDirectory;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 using MorganStanley.ComposeUI.LayoutPersistence;
 using MorganStanley.ComposeUI.LayoutPersistence.Abstractions;
-using MorganStanley.ComposeUI.LayoutPersistence.Serializers;
 using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.Abstractions;
@@ -153,13 +152,7 @@ public partial class App : Application
 
         services.Configure<LoggerFactoryOptions>(context.Configuration.GetSection("Logging"));
 
-        services.AddSingleton<ILayoutSerializer<string>, XmlLayoutSerializer<string>>();
-
-        services.AddSingleton<ILayoutPersistence<string>>(serviceProvider =>
-        {
-            var serializer = serviceProvider.GetRequiredService<ILayoutSerializer<string>>();
-            return new FileLayoutPersistence<string>(".\\layouts", serializer);
-        });
+        services.AddSingleton<ILayoutPersistence<string>>(new FileLayoutPersistence(".\\layouts"));
 
         ConfigureMessageRouter();
 

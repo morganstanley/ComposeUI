@@ -208,7 +208,7 @@ namespace MorganStanley.ComposeUI.Shell.Layout
                         var tcs = new TaskCompletionSource<bool>();
                         _moduleReadyTasks[moduleId] = tcs;
 
-                        _ = _moduleLoader.StartModule(new StartRequest(moduleStates[moduleId], new Dictionary<string, string>
+                        await _moduleLoader.StartModule(new StartRequest(moduleStates[moduleId], new Dictionary<string, string>
                     {
                         { SerializationId, moduleId }
                     }));
