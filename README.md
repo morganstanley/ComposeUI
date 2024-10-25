@@ -9,7 +9,6 @@ ComposeUI
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/morganstanley/ComposeUI/badge)](https://securityscorecards.dev/viewer/?uri=github.com/morganstanley/ComposeUI)
 [![codecov](https://codecov.io/gh/MorganStanley/ComposeUI/branch/main/graph/badge.svg)](https://codecov.io/gh/MorganStanley/ComposeUI)
 [![GitHub Repo stars](https://img.shields.io/github/stars/morganstanley/ComposeUI?style=social)](https://github.com/morganstanley/ComposeUI)
-[![FDC3 2.0 certified](site/static/images/certified-2.0.png)](https://www.finos.org/press/fdc3-2.0-blackrock-morgan-stanley-lead-charge)
 
 ComposeUI is a A .NET Core based general UI Container and Unified UI and App host which enables the hosting of Web and desktop content.
 
