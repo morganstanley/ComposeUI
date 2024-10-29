@@ -9,11 +9,14 @@
     "clean": "rimraf dist",
     "bundle": "rollup -c",
     "build": "npm run clean && npm run bundle",
-    "start": "http-server"
+    "start": "http-server -p 6060"
   },
   "devDependencies": {
     "http-server": "14.1.1",
     "rimraf": "^6.0.1",
     "rollup": "^4.24.0"
-    }
+  },
+  "dependencies": {
+    "adaptivecards": "^1.3.1"
+  }
 }

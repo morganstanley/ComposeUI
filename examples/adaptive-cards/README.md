@@ -6,6 +6,6 @@ This application loads into the container when the user executes ComposeUI from 
 
 npm i
 
-npx lerna run start --stream --scope=@morgan-stanley/composeui-example-default
+npx lerna run start --stream --scope=@morgan-stanley/composeui-example-adaptive-cards
 
 composeui .\Tryouts\Plugins\ApplicationPlugins\defaultApp\app.js
