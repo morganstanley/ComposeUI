@@ -42,7 +42,7 @@ using System.Collections.Immutable;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
 
-public class Fdc3DesktopAgentTests : IAsyncLifetime
+public partial class Fdc3DesktopAgentTests : IAsyncLifetime
 {
     private readonly IAppDirectory _appDirectory = new AppDirectory.AppDirectory(
         new AppDirectoryOptions
@@ -141,47 +141,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
         var result = _fdc3.FindChannel(channelId: "fdc3.channel.1", ChannelType.User);
         result.Should().BeTrue();
     }
-
-    [Fact]
-    public async Task FindIntent_returns_NoAppsFound()
-    {
-        var request = new FindIntentRequest
-        {
-            Intent = "testIntent",
-            Fdc3InstanceId = Guid.NewGuid().ToString()
-        };
-
-        var result = await _fdc3.FindIntent(request);
-        result.Should().NotBeNull();
-        result.Error.Should().Be(ResolveError.NoAppsFound);
-    }
-
-    [Fact]
-    public async Task FindIntent_returns()
-    {
-        var request = new FindIntentRequest
-        {
-            Intent = "intentMetadata4",
-            Context = new Context("context2"),
-            ResultType = "resultType",
-            Fdc3InstanceId = Guid.NewGuid().ToString()
-        };
-
-        var result = await _fdc3.FindIntent(request);
-        result.Should().NotBeNull();
-        result.AppIntent.Should()
-            .BeEquivalentTo(
-                new AppIntent
-                {
-                    Intent = new IntentMetadata { Name = "intentMetadata4", DisplayName = "displayName4" },
-                    Apps = new[]
-                    {
-                        new AppMetadata {AppId = "appId5", Name = "app5", ResultType = "resultType<specified>"},
-                        new AppMetadata {AppId = "appId6", Name = "app6", ResultType = "resultType"}
-                    }
-                });
-    }
-
+    
     [Fact]
     public async Task FindIntentsByContext_returns_NoAppsFound()
     {

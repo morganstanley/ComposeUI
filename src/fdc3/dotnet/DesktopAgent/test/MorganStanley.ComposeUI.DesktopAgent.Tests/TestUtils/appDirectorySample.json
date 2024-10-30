@@ -10,12 +10,13 @@
       "interop": {
         "intents": {
           "listensFor": {
-            "intentMetadata1": {
-              "name": "intentMetadata1",
-              "displayName": "displayName1",
+            "singleAppIntent": {
+              "name": "singleAppIntent",
+              "displayName": "Intent resolved by a single app",
               "contexts": [
-                "context1"
-              ]
+                "singleContext"
+              ],
+              "resultType":  "singleResultType"
             }
           }
         }
@@ -31,11 +32,11 @@
       "interop": {
         "intents": {
           "listensFor": {
-            "intentMetadata2": {
-              "name": "intentMetadata2",
-              "displayName": "displayName2",
+            "multipleAppsIntent": {
+              "name": "multipleAppsIntent",
+              "displayName": "Intent resolved by multiple apps",
               "contexts": [
-                "dummyContext"
+                "multipleContext"
               ]
             }
           }
@@ -50,12 +51,33 @@
         "url": "http://customurl.com"
       },
       "interop": {
-        "intents": {}
+        "intents": {
+          "listensFor": {
+            "multipleAppsIntent": {
+              "name": "multipleAppsIntent",
+              "displayName": "Intent resolved by multiple apps",
+              "contexts": [
+                "multipleContext"
+              ]
+            }
+          }
+        }
       }
     },
     {
       "appId": "appId4",
       "name": "app4",
+      "type": 1,
+      "details": {
+        "url": "http://customurl.com"
+      },
+      "interop": {
+        "intents": {}
+      }
+    },
+    {
+      "appId": "appId5",
+      "name": "app5",
       "type": 1,
       "details": {
         "url": "http://customurl.com"
@@ -80,177 +102,6 @@
           }
         }
       }
-    },
-    {
-      "appId": "appId5",
-      "name": "app5",
-      "type": 1,
-      "details": {
-        "url": "http://customurl.com"
-      },
-      "interop": {
-        "intents": {
-          "listensFor": {
-            "intentMetadata4": {
-              "name": "intentMetadata4",
-              "displayName": "displayName4",
-              "contexts": [
-                "context2",
-                "context5"
-              ],
-              "resultType": "resultType<specified>"
-            }
-          }
-        }
-      }
-    },
-    {
-      "appId": "appId6",
-      "name": "app6",
-      "type": 1,
-      "details": {
-        "url": "http://customurl.com"
-      },
-      "interop": {
-        "intents": {
-          "listensFor": {
-            "intentMetadata1": {
-              "name": "intentMetadata1",
-              "displayName": "displayName1",
-              "contexts": [
-                "context6"
-              ],
-              "resultType": "res66"
-            },
-            "intentMetadata4": {
-              "name": "intentMetadata4",
-              "displayName": "displayName4",
-              "contexts": [
-                "context2"
-              ],
-              "resultType": "resultType"
-            }
-          }
-        }
-      }
-    },
-    {
-      "appId": "appId7",
-      "name": "app7",
-      "type": 1,
-      "details": {
-        "url": "http://customurl.com"
-      },
-      "interop": {
-        "intents": {
-          "listensFor": {
-            "intentMetadata7": {
-              "name": "intentMetadata7",
-              "displayName": "displayName7",
-              "contexts": [
-                "context8"
-              ],
-              "resultType": "resultType2<specified2>"
-            },
-            "intentMetadata8": {
-              "name": "intentMetadata8",
-              "displayName": "displayName8",
-              "contexts": [
-                "context7"
-              ],
-              "resultType": "resultType2<specified>"
-            }
-          }
-        }
-      }
-    },
-    {
-      "appId": "appId8",
-      "name": "app8",
-      "type": 1,
-      "details": {
-        "url": "http://customurl.com"
-      },
-      "interop": {
-        "intents": {
-          "listensFor": {
-            "intentMetadata8": {
-              "name": "intentMetadata8",
-              "displayName": "displayName8",
-              "contexts": [
-                "context7"
-              ],
-              "resultType": "resultType2<specified>"
-            }
-          }
-        }
-      }
-    },
-    {
-      "appId": "wrongappId9",
-      "name": "app9",
-      "type": 1,
-      "details": {
-        "url": "http://customurl.com"
-      },
-      "interop": {
-        "intents": {
-          "listensFor": {
-            "intentMetadata9": {
-              "name": "intentMetadata9",
-              "displayName": "displayName9",
-              "contexts": [
-                "context9"
-              ],
-              "resultType": "resultWrongApp"
-            }
-          }
-        }
-      }
-    },
-    {
-      "appId": "appId11",
-      "name": "app11",
-      "type": 1,
-      "details": {
-        "url": "http://customurl.com"
-      },
-      "interop": {
-        "intents": {
-          "listensFor": {
-            "intentMetadata10": {
-              "name": "intentMetadata10",
-              "displayName": "displayName10",
-              "contexts": [
-                "context9"
-              ],
-              "resultType": "channel<specified>"
-            }
-          }
-        }
-      }
-    },
-    {
-      "appId": "appId12",
-      "name": "app12",
-      "type": 1,
-      "details": {
-        "url": "http://customurl.com"
-      },
-      "interop": {
-        "intents": {
-          "listensFor": {
-            "intentMetadata11": {
-              "name": "intentMetadata11",
-              "displayName": "displayName11",
-              "contexts": [
-                "context9"
-              ],
-              "resultType": "resultWrongApp"
-            }
-          }
-        }
-      }
     }
-  ]
+  ]    
 }
