@@ -397,7 +397,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
                             Intent = raisedIntent.Intent,
                             Context = raisedIntent.Context,
                             SourceAppInstanceId = new(raisedIntent.OriginFdc3InstanceId),
-                            TargetAppMetadata = GetAppMetadata(app, request.Fdc3InstanceId, null),
+                            TargetAppMetadata = app.ToAppMetadata(request.Fdc3InstanceId),
                         };
 
                         var resolution = await GetRaiseIntentResolutionMessage(
@@ -582,14 +582,14 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
                 return GetAppMetadataResponse.Failure(ResolveError.TargetInstanceUnavailable);
             }
 
-            var appMetadata = GetAppMetadata(app, request.AppIdentifier.InstanceId, null);
+            var appMetadata = app.ToAppMetadata(request.AppIdentifier.InstanceId);
             return GetAppMetadataResponse.Success(appMetadata);
         }
 
         try
         {
             var app = await _appDirectory.GetApp(request.AppIdentifier.AppId);
-            var appMetadata = GetAppMetadata(app, null, null);
+            var appMetadata = app.ToAppMetadata();
             return GetAppMetadataResponse.Success(appMetadata);
         }
         catch (AppNotFoundException)
@@ -682,7 +682,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         try
         {
             var fdc3App = await _appDirectory.GetApp(request.AppIdentifier.AppId);
-            var appMetadata = GetAppMetadata(fdc3App, null, null);
+            var appMetadata = fdc3App.ToAppMetadata();
             var parameters = new Dictionary<string, string>();
 
             if (request.Context != null)
@@ -1291,22 +1291,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     {
         foreach (var intentMetadata in intentMetadataCollection)
         {
-            var appMetadata =
-                new AppMetadata()
-                {
-                    AppId = app.AppId,
-                    InstanceId = instanceId,
-                    Name = app.Name,
-                    Version = app.Version,
-                    Title = app.Title,
-                    Tooltip = app.ToolTip,
-                    Description = app.Description,
-                    Icons = app.Icons == null ? Enumerable.Empty<Icon>() : app.Icons.Select(Icon.GetIcon),
-                    Screenshots = app.Screenshots == null
-                        ? Enumerable.Empty<Screenshot>()
-                        : app.Screenshots.Select(Screenshot.GetScreenshot),
-                    ResultType = intentMetadata.Value.ResultType
-                };
+            var appMetadata = app.ToAppMetadata(instanceId, intentMetadata.Value.ResultType);
 
             if (!appIntents.TryGetValue(intentMetadata.Key, out var appIntent)) //Name is null
             {
@@ -1350,7 +1335,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
         var implementationMetadata = new ImplementationMetadata
         {
-            AppMetadata = GetAppMetadata(app, appIdentifier.InstanceId, null),
+            AppMetadata = app.ToAppMetadata(appIdentifier.InstanceId),
             Fdc3Version = Constants.SupportedFdc3Version,
             OptionalFeatures = new OptionalDesktopAgentFeatures
             {
@@ -1362,25 +1347,6 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         };
 
         return ValueTask.FromResult<GetInfoResponse>(GetInfoResponse.Success(implementationMetadata));
-    }
-
-    private AppMetadata GetAppMetadata(Fdc3App app, string? instanceId, IntentMetadata? intentMetadata)
-    {
-        return new AppMetadata
-        {
-            AppId = app.AppId,
-            InstanceId = instanceId,
-            Description = app.Description,
-            Icons = app.Icons == null ? Enumerable.Empty<Icon>() : app.Icons.Select(Icon.GetIcon),
-            Name = app.Name,
-            ResultType = intentMetadata?.ResultType,
-            Screenshots = app.Screenshots == null
-                ? Enumerable.Empty<Screenshot>()
-                : app.Screenshots.Select(Screenshot.GetScreenshot),
-            Title = app.Title,
-            Tooltip = app.ToolTip,
-            Version = app.Version,
-        };
     }
 
     private async Task<ContextListener> GetContextListener(Guid instanceId, string contextType, CancellationToken cancellationToken = default)
