@@ -1,5 +1,6 @@
 ﻿using Finos.Fdc3;
 using Finos.Fdc3.AppDirectory;
+using Finos.Fdc3.Context;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
 using Icon = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Icon;
@@ -31,7 +32,9 @@ public static class Fdc3AppExtensions
     /// </summary>
     /// <remarks>
     /// In case of filtering for a generic channel, specific channels need to be returned as well. These are marked as "channel<contextType>"
+    /// Filtering for fdc3.nothing will match both omitted resultType and fdc3.nothing result type
     /// <see cref="https://fdc3.finos.org/docs/api/ref/DesktopAgent#findintent"/>
+    /// <seealso cref="https://github.com/finos/FDC3/issues/1410"/>
     /// </remarks>    
     public static bool HasResultType(this Fdc3App app, string resultType)
     {
@@ -39,7 +42,12 @@ public static class Fdc3AppExtensions
         {
             return false;
         }
-                
+
+        if (resultType == ContextTypes.Nothing)
+        {
+            return app.Interop.Intents.ListensFor.Values.Any(intent => intent.ResultType == null || intent.ResultType == ContextTypes.Nothing);
+        }
+
         if (resultType == "channel")
         {
             return app.Interop.Intents.ListensFor.Values.Any(intent => intent.ResultType != null && intent.ResultType.StartsWith("channel"));

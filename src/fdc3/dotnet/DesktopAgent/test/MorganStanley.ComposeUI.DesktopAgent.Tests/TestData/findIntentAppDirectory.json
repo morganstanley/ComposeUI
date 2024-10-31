@@ -16,7 +16,7 @@
               "contexts": [
                 "singleContext"
               ],
-              "resultType":  "singleResultType"
+              "resultType": "singleResultType"
             }
           }
         }
@@ -36,8 +36,19 @@
               "name": "multipleAppsIntent",
               "displayName": "Intent resolved by multiple apps",
               "contexts": [
-                "multipleContext"
-              ]
+                "multipleContext",
+                "otherContext"
+              ],
+              "resultType": "multipleResultType"
+            },
+            "otherIntent": {
+              "name": "otherIntent",
+              "displayName": "Some intent that should not be matched",
+              "contexts": [
+                "multipleContext",
+                "singleContext"
+              ],
+              "resultType": "multipleResultType"
             }
           }
         }
@@ -58,7 +69,8 @@
               "displayName": "Intent resolved by multiple apps",
               "contexts": [
                 "multipleContext"
-              ]
+              ],
+              "resultType": "multipleResultType"
             }
           }
         }
@@ -72,7 +84,16 @@
         "url": "http://customurl.com"
       },
       "interop": {
-        "intents": {}
+        "intents": {
+          "listensFor": {
+            "intentWithNoResult": {
+              "name": "intentWithNoResult",
+              "displayName": "Intent that has no result type",
+              "contexts": [],
+              "resultType": "fdc3.nothing"
+            }
+          }
+        }
       }
     },
     {
@@ -85,23 +106,15 @@
       "interop": {
         "intents": {
           "listensFor": {
-            "intentMetadata4": {
-              "name": "intentMetadata4",
-              "displayName": "displayName4",
-              "contexts": [
-                "context2"
-              ]
-            },
-            "intentMetadataCustom": {
-              "name": "intentMetadataCustom",
-              "displayName": "intentMetadataCustom",
-              "contexts": [
-                "contextCustom"
-              ]
+            "intentWithNoResult": {
+              "name": "intentWithNoResult",
+              "displayName": "Intent that has no result type",
+              "contexts": [ "fdc3.nothing" ]
             }
           }
         }
       }
     }
-  ]    
+
+  ]
 }

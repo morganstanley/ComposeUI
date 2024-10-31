@@ -1,36 +1,51 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Finos.Fdc3.Context;
-using Finos.Fdc3;
+﻿using Finos.Fdc3;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
-
-using AppChannel = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels.AppChannel;
-using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIdentifier;
 using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
-using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
-using DisplayMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.DisplayMetadata;
-using IntentMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.IntentMetadata;
-using Icon = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Icon;
-using ImplementationMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.ImplementationMetadata;
+using static MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.TestData.FindIntentAppDirectoryData;
+using Finos.Fdc3.Context;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
 {
-    public partial class Fdc3DesktopAgentTests
+    public class FindIntentTests : Fdc3DesktopAgentTestsBase
     {
+        public FindIntentTests() : base(@$"file:\\{Directory.GetCurrentDirectory()}\TestData\findIntentAppDirectory.json") { }
+
         [Fact]
         public async Task FindIntent_returns_NoAppsFound()
         {
             var request = new FindIntentRequest
             {
-                Intent = "nosuchintent",
-                Fdc3InstanceId = Guid.NewGuid().ToString()
+                Intent = "nosuchintent"
             };
 
-            var result = await _fdc3.FindIntent(request);
+            var result = await Fdc3.FindIntent(request);
+            result.Should().NotBeNull();
+            result.Error.Should().Be(ResolveError.NoAppsFound);
+        }
+
+        [Fact]
+        public async Task FindIntent_returns_NoAppsFound_for_context()
+        {
+            var request = new FindIntentRequest
+            {
+                Intent = SingleAppIntent.Name,
+                Context = MultipleContext
+            };
+            var result = await Fdc3.FindIntent(request);
+            result.Should().NotBeNull();
+            result.Error.Should().Be(ResolveError.NoAppsFound);
+        }
+
+        [Fact]
+        public async Task FindIntent_returns_NoAppsFound_for_resultType()
+        {
+            var request = new FindIntentRequest
+            {
+                Intent = SingleAppIntent.Name,
+                ResultType = MultipleResultType
+            };
+            var result = await Fdc3.FindIntent(request);
             result.Should().NotBeNull();
             result.Error.Should().Be(ResolveError.NoAppsFound);
         }
@@ -40,20 +55,17 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
         {
             var request = new FindIntentRequest
             {
-                Intent = "singleAppIntent"
+                Intent = SingleAppIntent.Name
             };
 
-            var result = await _fdc3.FindIntent(request);
+            var result = await Fdc3.FindIntent(request);
             result.Should().NotBeNull();
             result.AppIntent.Should()
                 .BeEquivalentTo(
                     new AppIntent
                     {
-                        Intent = new IntentMetadata { Name = "singleAppIntent", DisplayName = "Intent resolved by a single app" },
-                        Apps = new[]
-                        {
-                        new AppMetadata {AppId = "appId1", Name = "app1", ResultType = "singleResultType"}
-                        }
+                        Intent = SingleAppIntent,
+                        Apps = new[] { App1 }
                     });
         }
 
@@ -62,22 +74,17 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
         {
             var request = new FindIntentRequest
             {
-                Intent = "singleAppIntent",
-                Context = new Context("singleContext")
+                Intent = SingleAppIntent.Name,
+                Context = SingleContext
             };
 
-            var result = await _fdc3.FindIntent(request);
+            var result = await Fdc3.FindIntent(request);
             result.Should().NotBeNull();
-            result.AppIntent.Should()
-                .BeEquivalentTo(
-                    new AppIntent
-                    {
-                        Intent = new IntentMetadata { Name = "singleAppIntent", DisplayName = "Intent resolved by a single app" },
-                        Apps = new[]
-                        {
-                        new AppMetadata {AppId = "appId1", Name = "app1", ResultType = "singleResultType"}
-                        }
-                    });
+            result.AppIntent.Should().BeEquivalentTo(new AppIntent()
+            {
+                Intent = SingleAppIntent,
+                Apps = new[] { App1 }
+            });
         }
 
         [Fact]
@@ -85,22 +92,18 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
         {
             var request = new FindIntentRequest
             {
-                Intent = "singleAppIntent",
-                ResultType = "singleResultType"
+                Intent = SingleAppIntent.Name,
+                ResultType = SingleResultType
             };
 
-            var result = await _fdc3.FindIntent(request);
+            var result = await Fdc3.FindIntent(request);
             result.Should().NotBeNull();
-            result.AppIntent.Should()
-                .BeEquivalentTo(
-                    new AppIntent
-                    {
-                        Intent = new IntentMetadata { Name = "singleAppIntent", DisplayName = "Intent resolved by a single app" },
-                        Apps = new[]
-                        {
-                        new AppMetadata {AppId = "appId1", Name = "app1", ResultType = "singleResultType"}
-                        }
-                    });
+            result.AppIntent.Should().BeEquivalentTo(
+                new AppIntent()
+                {
+                    Intent = SingleAppIntent,
+                    Apps = new[] { App1 }
+                });
         }
 
         [Fact]
@@ -108,22 +111,98 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
         {
             var request = new FindIntentRequest
             {
-                Intent = "multipleAppsIntent"
+                Intent = MultipleAppsIntent.Name
             };
 
-            var result = await _fdc3.FindIntent(request);
+            var result = await Fdc3.FindIntent(request);
             result.Should().NotBeNull();
             result.AppIntent.Should()
                 .BeEquivalentTo(
                     new AppIntent
                     {
-                        Intent = new IntentMetadata { Name = "multipleAppsIntent", DisplayName = "Intent resolved by multiple apps" },
-                        Apps = new[]
-                        {
-                        new AppMetadata {AppId = "appId2", Name = "app2", ResultType = null},
-                        new AppMetadata {AppId = "appId3", Name = "app3", ResultType = null}
-                        }
+                        Intent = MultipleAppsIntent,
+                        Apps = new[] { App2, App3 }
                     });
+        }
+
+        [Fact]
+        public async Task FindIntent_returns_multiple_apps_with_context()
+        {
+            var request = new FindIntentRequest
+            {
+                Intent = MultipleAppsIntent.Name,
+                Context = MultipleContext
+            };
+
+            var result = await Fdc3.FindIntent(request);
+            result.Should().NotBeNull();
+            result.AppIntent.Should()
+                .BeEquivalentTo(
+                    new AppIntent
+                    {
+                        Intent = MultipleAppsIntent,
+                        Apps = new[] { App2, App3 }
+                    });
+        }
+
+        [Fact]
+        public async Task FindIntent_returns_multiple_apps_with_resultType()
+        {
+            var request = new FindIntentRequest
+            {
+                Intent = MultipleAppsIntent.Name,
+                ResultType = MultipleResultType
+            };
+
+            var result = await Fdc3.FindIntent(request);
+            result.Should().NotBeNull();
+            result.AppIntent.Should()
+                .BeEquivalentTo(
+                    new AppIntent
+                    {
+                        Intent = MultipleAppsIntent,
+                        Apps = new[] { App2, App3 }
+                    });
+        }
+
+        [Fact]
+        public async Task FindIntent_returns_apps_with_no_result()
+        {
+            var request = new FindIntentRequest
+            {
+                Intent = IntentWithNoResult.Name,
+                ResultType = "fdc3.nothing"
+            };
+            var result = await Fdc3.FindIntent(request);
+
+            result.Should().NotBeNull();
+            result.AppIntent.Should().BeEquivalentTo(
+                new AppIntent
+                {
+                    Intent = IntentWithNoResult,
+                    Apps = new[] { App4, App5 }
+                });
+        }
+
+        // According to the current state of discussion in https://github.com/finos/FDC3/issues/1410 querying for fdc3.nothing should only match intents that have this explicitly stated.
+        // I asked for confirmation as this leads to anomalies in case of an empty contexts array
+        [Fact]
+        public async Task FindIntent_returns_apps_with_nothing_context()
+        {
+            var request = new FindIntentRequest
+            {
+                Intent = IntentWithNoResult.Name,
+                Context = ContextType.Nothing
+            };
+            var result = await Fdc3.FindIntent(request);
+
+            result.Should().NotBeNull();
+            result.AppIntent.Should().BeEquivalentTo(
+                new AppIntent
+                {
+                    Intent = IntentWithNoResult,
+                    Apps = new[] { App4, App5 }
+                });
         }
     }
 }
