@@ -16,6 +16,16 @@ Our goal is to fill the feature gaps with respect to UI components, layout manag
 
 It supports desktop and web applications in order to provide an evergreen alternative to Electron, OpenFin and similar by the use of WebView2.
 
+# FDC3 2.0 Compliance
+<p align="center">
+<a href="https://fdc3.finos.org/docs/2.0/fdc3-intro"><img src=site/static/images/certified-2.0.png width="25%" height="25%"/></a>
+</p>
+
+As [announced](https://www.finos.org/press/fdc3-2.0-blackrock-morgan-stanley-lead-charge) at OSSF NY '24 ComposeUI has successfully achieved the **FDC3 2.0** Conformance on **9/30/2024** certified by FINOS.
+FDC3 is an open standard for applications on financial desktop to interoperate and exchange data with each other. Learn More https://fdc3.finos.org/
+
+We're planning to release the FDC3 2.0 compliant container in **v0.1.0-alpha.5** with an enhanced FDC3 Channel Selector and IPC related bug fixes. The pre-release artifacts can be found on the [fdc3-2_0-conformance feature branch](https://github.com/morganstanley/ComposeUI/tree/feat/fdc3-2_0-conformance) until the release. 
+
 # Releases
 ## @morgan-stanley/composeui-node-launcher
 
