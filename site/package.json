@@ -16,7 +16,7 @@
     "@emotion/styled": "^11.13.0",
     "@mdx-js/react": "^2.3.0",
     "@mui/material": "^5.16.6",
-    "gatsby": "^5.13.7",
+    "gatsby": "^5.14.0",
     "gatsby-plugin-image": "^3.13.1",
     "gatsby-plugin-manifest": "^5.13.1",
     "gatsby-plugin-mdx": "^5.13.1",
