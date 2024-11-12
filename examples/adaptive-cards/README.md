@@ -11,6 +11,3 @@ This is a simple webpage that loads adaptive-cards and showcases a button which 
 
 npx lerna run start --stream --scope=@morgan-stanley/composeui-example-adaptive-cards
 ```
-
-<!---
-composeui .\Tryouts\Plugins\ApplicationPlugins\defaultApp\app.js --->
