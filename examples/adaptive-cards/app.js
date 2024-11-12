@@ -2,6 +2,22 @@
 
 import * as AdaptiveCards from "adaptivecards";
 
+import { BrowserWindow } from '@morgan-stanley/composeui-node-launcher';
+
+function windowOpenExample() {
+    const window = new BrowserWindow({
+        url: "http://localhost:8080",
+        title: "ComposeUI",
+        width: 1600,
+        height: 800
+    });
+
+    window.open();
+    console.log(window);
+}
+
+windowOpenExample();
+
 // Author a card
 var card = {
     "type": "AdaptiveCard",
