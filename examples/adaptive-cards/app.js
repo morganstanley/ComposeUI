@@ -1,22 +1,43 @@
 // Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
-
 import * as AdaptiveCards from "adaptivecards";
 
-import { BrowserWindow } from '@morgan-stanley/composeui-node-launcher';
-
-function windowOpenExample() {
-    const window = new BrowserWindow({
-        url: "http://localhost:8080",
-        title: "ComposeUI",
-        width: 1600,
-        height: 800
-    });
-
-    window.open();
-    console.log(window);
+const notif = (type) => {
+    return {
+        "type": "AdaptiveCard",
+        "body": [
+            {
+                "type": "Container",
+                "items": [
+                    {
+                        "type": "TextBlock",
+                        "text": `${type} Notification`
+                    }
+                ]
+            }
+        ]
+    }
 }
 
-windowOpenExample();
+const hostConfig = (bgColor) => {
+    return { 
+        fontFamily: "Segoe UI, Helvetica Neue, sans-serif",
+        containerStyles: {
+            default: {
+                "backgroundColor": `${bgColor}`
+            }
+        }}
+}
+
+const renderNotif = (notifType, bgColor ) => {
+    let notifCard = new AdaptiveCards.AdaptiveCard();
+    notifCard.parse(notif(notifType));
+    notifCard.hostConfig = new AdaptiveCards.HostConfig(hostConfig(bgColor));
+    let result = notifCard.render(document.body);
+
+    setTimeout(() => {
+        result.remove();
+      }, 3000);
+}
 
 // Author a card
 var card = {
@@ -24,14 +45,33 @@ var card = {
     "version": "1.6",
     "body": [
         {
-            "type": "TextBlock",
-            "text": "Clicking on the button below will cause an alert"
+            "type": "Container",
+            "style": "default",
+            "id": "mainContainer",
+            "items": [
+                    {
+                    "type": "TextBlock",
+                    "text": "Click a button below to send a notification"
+                }
+            ]            
         }
     ],
     "actions": [
         {
-            "type": "Action.OpenUrl",
-            "title": "Click me"      
+            "type": "Action.Submit",
+            "title": "Info",
+            "id": "infoButton",
+        },
+        {
+            "type": "Action.Submit",
+            "title": "Error",
+            "style": "destructive",
+            "id": "errorButton",
+        },
+        {
+            "type": "Action.Submit",
+            "title": "Success",
+            "id": "successButton",
         }
     ]
 };
@@ -39,21 +79,20 @@ var card = {
 // Create an AdaptiveCard instance
 var adaptiveCard = new AdaptiveCards.AdaptiveCard();
 
-// Set its hostConfig property unless you want to use the default Host Config
-// Host Config defines the style and behavior of a card
-adaptiveCard.hostConfig = new AdaptiveCards.HostConfig({
-    fontFamily: "Segoe UI, Helvetica Neue, sans-serif"
-});
-
 // Set the adaptive card's event handlers. onExecuteAction is invoked
-// whenever an action is clicked in the card
-adaptiveCard.onExecuteAction = function(action) { alert("Ow! "); }
+adaptiveCard.onExecuteAction = function(action) { 
+    if(action.id === 'errorButton') {
+        renderNotif('Error','#ed8c8c');
+    }
+    else if (action.id === 'successButton') {
+        renderNotif('Success','#c9f5d4');
+    } else {
+        renderNotif('Info','#a5b0fa');
+    }
+ }
 
 // Parse the card payload
 adaptiveCard.parse(card);
 
 // Render the card to an HTML element:
-var renderedCard = adaptiveCard.render();
-
-// And finally insert it somewhere in your page:
-document.body.appendChild(renderedCard);
+var renderedCard = adaptiveCard.render(document.body);

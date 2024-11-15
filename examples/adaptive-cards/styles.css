@@ -1,0 +1,10 @@
+html, body {
+    display: flex;
+    flex-direction: column;
+    flex-basis: auto;
+}
+
+.ac-container {
+    height: auto;
+    width: 300px;
+}
