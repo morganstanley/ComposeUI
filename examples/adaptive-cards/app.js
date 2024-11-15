@@ -10,7 +10,10 @@ const notif = (type) => {
                 "items": [
                     {
                         "type": "TextBlock",
-                        "text": `${type} Notification`
+                        "text": `${type} Notification`,
+                        "size": "large",
+                        "weight": "default"
+
                     }
                 ]
             }
@@ -51,7 +54,8 @@ var card = {
             "items": [
                     {
                     "type": "TextBlock",
-                    "text": "Click a button below to send a notification"
+                    "text": "Click a button below to send a notification",
+                    "size": "large"
                 }
             ]            
         }
