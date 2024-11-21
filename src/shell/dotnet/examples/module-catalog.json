@@ -103,5 +103,13 @@
     "Details": {
       "Url": "http://localhost:4202/"
     }
+  },
+  {
+    "Id": "js-adaptive-card",
+    "Name": "A JS based adaptive card example",
+    "ModuleType": "web",
+    "Details": {
+      "Url": "http://localhost:6060/"
+    }
   }
 ]
