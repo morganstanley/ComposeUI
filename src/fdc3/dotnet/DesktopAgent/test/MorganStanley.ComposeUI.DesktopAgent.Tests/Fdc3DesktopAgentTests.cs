@@ -14,11 +14,9 @@
 
 
 using Finos.Fdc3;
-using Finos.Fdc3.AppDirectory;
 using Finos.Fdc3.Context;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using MorganStanley.ComposeUI.Fdc3.AppDirectory;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
@@ -30,10 +28,8 @@ using MorganStanley.ComposeUI.Messaging.Abstractions;
 using MorganStanley.ComposeUI.ModuleLoader;
 using AppChannel = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels.AppChannel;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIdentifier;
-using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
 using DisplayMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.DisplayMetadata;
-using IntentMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.IntentMetadata;
 using Icon = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Icon;
 using ImplementationMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.ImplementationMetadata;
 
@@ -85,45 +81,6 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
         result.Should().BeTrue();
     }
 
-    
-
-    [Fact]
-    public async Task FindIntentsByContext_returns()
-    {
-        var request = new FindIntentsByContextRequest
-        {
-            Fdc3InstanceId = Guid.NewGuid().ToString(),
-            Context = new Context(ContextTypes.Nothing),
-            ResultType = "resultWrongApp"
-        };
-
-        var result = await Fdc3.FindIntentsByContext(request);
-        result.Should().NotBeNull();
-
-        result.AppIntents.Should()
-            .BeEquivalentTo(
-                new[]
-                {
-                    new AppIntent
-                    {
-                        Intent = new IntentMetadata {Name = "intentMetadata9", DisplayName = "displayName9"},
-                        Apps = new[]
-                        {
-                            new AppMetadata {AppId = "wrongappId9", Name = "app9", ResultType = "resultWrongApp"}
-                        }
-                    },
-
-                    new AppIntent
-                    {
-                        Intent = new IntentMetadata {Name = "intentMetadata11", DisplayName = "displayName11"},
-                        Apps = new[]
-                        {
-                            new AppMetadata {AppId = "appId12", Name = "app12", ResultType = "resultWrongApp"}
-                        }
-                    }
-                });
-    }
-
     [Fact]
     public async Task GetIntentResult_returns()
     {
@@ -131,12 +88,12 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
 
         var originFdc3InstanceId = Guid.NewGuid().ToString();
         var context = new Context("test");
-        var target = await ModuleLoader.Object.StartModule(new StartRequest("appId4"));
+        var target = await ModuleLoader.Object.StartModule(new StartRequest("appId1"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
         var addIntentListenerRequest = new IntentListenerRequest
         {
-            Intent = "intentMetadata4",
+            Intent = "intent1",
             Fdc3InstanceId = targetFdc3InstanceId,
             State = SubscribeState.Subscribe
         };
@@ -151,9 +108,9 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
             {
                 MessageId = int.MaxValue,
                 Fdc3InstanceId = Guid.NewGuid().ToString(),
-                Intent = "intentMetadata4",
-                Context = new Context("context2"),
-                TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
+                Intent = "intent1",
+                Context = new Context("singleContext"),
+                TargetAppIdentifier = new AppIdentifier { AppId = "appId1", InstanceId = targetFdc3InstanceId }
             };
 
         var raiseIntentResponse = await Fdc3.RaiseIntent(raiseIntentRequest);
