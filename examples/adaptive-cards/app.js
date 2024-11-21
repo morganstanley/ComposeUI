@@ -31,11 +31,11 @@ const hostConfig = (bgColor) => {
         }}
 }
 
-const renderNotif = (notifType, bgColor ) => {
-    let notifCard = new AdaptiveCards.AdaptiveCard();
-    notifCard.parse(notif(notifType));
-    notifCard.hostConfig = new AdaptiveCards.HostConfig(hostConfig(bgColor));
-    let result = notifCard.render(document.body);
+const renderNotification = (notificationType, bgColor ) => {
+    let notificationCard = new AdaptiveCards.AdaptiveCard();
+    notificationCard.parse(notif(notificationType));
+    notificationCard.hostConfig = new AdaptiveCards.HostConfig(hostConfig(bgColor));
+    let result = notificationCard.render(document.body);
 
     setTimeout(() => {
         result.remove();
