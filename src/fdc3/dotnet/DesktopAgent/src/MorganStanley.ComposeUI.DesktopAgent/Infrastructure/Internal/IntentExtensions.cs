@@ -12,6 +12,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal
             {
                 yield return new FlatAppIntent()
                 {
+                    InstanceId = instanceId,
                     Intent = intent,
                     App = app
                 };

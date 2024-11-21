@@ -16,10 +16,10 @@ internal static class FindIntentAppDirectoryData
     public const string ResultType1 = "resultType1";
     public const string ResultType2 = "resultType2";
 
-    public static AppMetadata App1 { get; } = new AppMetadata { AppId = "appId1", Name = "app1", ResultType = "resultType1" };
-    public static AppMetadata App2 { get; } = new AppMetadata { AppId = "appId2", Name = "app2", ResultType = "resultType2" };
-    public static AppMetadata App3ForIntent2 { get; } = new AppMetadata { AppId = "appId3", Name = "app3", ResultType = "resultType1" };
-    public static AppMetadata App3ForIntent3 { get; } = new AppMetadata { AppId = "appId3", Name = "app3", ResultType = "resultType2" };
-    public static AppMetadata App4 { get; } = new AppMetadata { AppId = "appId4", Name = "app4", ResultType = "fdc3.nothing" };
-    public static AppMetadata App5 { get; } = new AppMetadata { AppId = "appId5", Name = "app5", ResultType = null };
+    public static AppMetadata App1 => new AppMetadata { AppId = "appId1", Name = "app1", ResultType = "resultType1" };
+    public static AppMetadata App2 => new AppMetadata { AppId = "appId2", Name = "app2", ResultType = "resultType2" };
+    public static AppMetadata App3ForIntent2 => new AppMetadata { AppId = "appId3", Name = "app3", ResultType = "resultType1" };
+    public static AppMetadata App3ForIntent3 => new AppMetadata { AppId = "appId3", Name = "app3", ResultType = "resultType2" };
+    public static AppMetadata App4 => new AppMetadata { AppId = "appId4", Name = "app4", ResultType = "fdc3.nothing" };
+    public static AppMetadata App5 => new AppMetadata { AppId = "appId5", Name = "app5", ResultType = null };
 }

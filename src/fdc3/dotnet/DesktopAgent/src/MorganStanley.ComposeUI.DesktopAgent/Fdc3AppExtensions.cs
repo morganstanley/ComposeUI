@@ -15,7 +15,8 @@ public static class Fdc3AppExtensions
     /// </summary>    
     internal static bool DoesAcceptContextType(this FlatAppIntent app, string contextType)
     {
-        if (app?.Intent?.Contexts == null) { return false; }
+        var contexts = app?.Intent?.Contexts;
+        if (contexts == null || !contexts.Any()) { return contextType == ContextType.Nothing.Type; }
         return app.Intent.Contexts.Any(x => x == contextType);
     }
 

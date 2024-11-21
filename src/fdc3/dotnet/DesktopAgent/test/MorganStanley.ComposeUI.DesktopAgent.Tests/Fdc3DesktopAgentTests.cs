@@ -87,7 +87,7 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
         await Fdc3.StartAsync(CancellationToken.None);
 
         var originFdc3InstanceId = Guid.NewGuid().ToString();
-        var context = new Context("test");
+        var resultContext = new Context("resultType1");
         var target = await ModuleLoader.Object.StartModule(new StartRequest("appId1"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
@@ -121,10 +121,10 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
         var storeIntentRequest = new StoreIntentResultRequest
         {
             MessageId = raiseIntentResponse.Response.MessageId!,
-            Intent = "intentMetadata4",
+            Intent = "intent1",
             OriginFdc3InstanceId = raiseIntentResponse.Response.AppMetadata!.InstanceId!,
             TargetFdc3InstanceId = originFdc3InstanceId,
-            Context = context
+            Context = resultContext
         };
 
         var storeResult = await Fdc3.StoreIntentResult(storeIntentRequest);
@@ -133,14 +133,14 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
         var getIntentResultRequest = new GetIntentResultRequest
         {
             MessageId = raiseIntentResponse.Response.MessageId!,
-            Intent = "intentMetadata4",
+            Intent = "intent1",
             TargetAppIdentifier = new AppIdentifier
             { AppId = "appId1", InstanceId = raiseIntentResponse.Response.AppMetadata!.InstanceId! }
         };
 
         var result = await Fdc3.GetIntentResult(getIntentResultRequest);
         result.Should().NotBeNull();
-        result.Context.Should().Be(context);
+        result.Context.Should().Be(resultContext);
     }
 
     [Fact]
@@ -148,14 +148,14 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
     {
         await Fdc3.StartAsync(CancellationToken.None);
         var originFdc3InstanceId = Guid.NewGuid().ToString();
-        var target = await ModuleLoader.Object.StartModule(new StartRequest("appId4"));
+        var target = await ModuleLoader.Object.StartModule(new StartRequest("appId1"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
-        var context = new Context("test");
+        var resultContext = new Context("resultType1");
 
         var addIntentListenerRequest = new IntentListenerRequest
         {
-            Intent = "intentMetadata4",
+            Intent = "intent1",
             Fdc3InstanceId = targetFdc3InstanceId,
             State = SubscribeState.Subscribe
         };
@@ -169,9 +169,9 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
         {
             MessageId = int.MaxValue,
             Fdc3InstanceId = Guid.NewGuid().ToString(),
-            Intent = "intentMetadata4",
-            Context = new Context("context2"),
-            TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
+            Intent = "intent1",
+            Context = new Context("singleContext"),
+            TargetAppIdentifier = new AppIdentifier { AppId = "appId1", InstanceId = targetFdc3InstanceId }
         };
 
         var raiseIntentResponse = await Fdc3.RaiseIntent(raiseIntentRequest);
@@ -180,10 +180,10 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
         var storeIntentRequest = new StoreIntentResultRequest
         {
             MessageId = raiseIntentResponse.Response.MessageId!,
-            Intent = "intentMetadata4",
+            Intent = "intent1",
             OriginFdc3InstanceId = raiseIntentResponse.Response.AppMetadata!.InstanceId!,
             TargetFdc3InstanceId = originFdc3InstanceId,
-            Context = context
+            Context = resultContext
         };
 
         var storeResponse = await Fdc3.StoreIntentResult(storeIntentRequest);
@@ -224,12 +224,12 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
     public async Task StoreIntentResult_returns()
     {
         await Fdc3.StartAsync(CancellationToken.None);
-        var target = await ModuleLoader.Object.StartModule(new StartRequest("appId4"));
+        var target = await ModuleLoader.Object.StartModule(new StartRequest("appId2"));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
         var addIntentListenerRequest = new IntentListenerRequest
         {
-            Intent = "intentMetadata4",
+            Intent = "intent2",
             Fdc3InstanceId = targetFdc3InstanceId,
             State = SubscribeState.Subscribe
         };
@@ -243,9 +243,9 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
         {
             MessageId = int.MaxValue,
             Fdc3InstanceId = Guid.NewGuid().ToString(),
-            Intent = "intentMetadata4",
-            Context = new Context("context2"),
-            TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
+            Intent = "intent2",
+            Context = new Context("multipleContext"),
+            TargetAppIdentifier = new AppIdentifier { AppId = "appId2", InstanceId = targetFdc3InstanceId }
         };
 
         var raiseIntentResponse = await Fdc3.RaiseIntent(raiseIntentRequest);
@@ -254,7 +254,7 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
         var storeIntentRequest = new StoreIntentResultRequest
         {
             MessageId = raiseIntentResponse!.Response.MessageId!,
-            Intent = "intentMetadata4",
+            Intent = "intent2",
             OriginFdc3InstanceId = raiseIntentResponse.Response.AppMetadata!.InstanceId!,
             TargetFdc3InstanceId = Guid.NewGuid().ToString(),
             ChannelId = "dummyChannelId",
@@ -281,7 +281,7 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
 
         var addIntentListenerRequest = new IntentListenerRequest
         {
-            Intent = "intentMetadataCustom",
+            Intent = "intentWithNoResult",
             Fdc3InstanceId = targetFdc3InstanceId,
             State = SubscribeState.Subscribe
         };
@@ -295,8 +295,8 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
         {
             MessageId = 1,
             Fdc3InstanceId = originFdc3InstanceId,
-            Intent = "intentMetadataCustom",
-            Context = new Context("contextCustom"),
+            Intent = "intentWithNoResult",
+            Context = ContextType.Nothing,
             TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
         };
 
@@ -323,7 +323,7 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
 
         var addIntentListenerRequest1 = new IntentListenerRequest
         {
-            Intent = "intentMetadataCustom",
+            Intent = "intentWithNoResult",
             Fdc3InstanceId = targetFdc3InstanceId,
             State = SubscribeState.Subscribe
         };
@@ -336,8 +336,8 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
         {
             MessageId = 1,
             Fdc3InstanceId = originFdc3InstanceId,
-            Intent = "intentMetadataCustom",
-            Context = new Context("contextCustom"),
+            Intent = "intentWithNoResult",
+            Context = ContextType.Nothing,
             TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
         };
 
@@ -350,7 +350,7 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
 
         var addIntentListenerRequest2 = new IntentListenerRequest
         {
-            Intent = "intentMetadataCustom",
+            Intent = "intentWithNoResult",
             Fdc3InstanceId = targetFdc3InstanceId,
             State = SubscribeState.Unsubscribe
         };
@@ -401,8 +401,8 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
         {
             MessageId = 1,
             Fdc3InstanceId = Guid.NewGuid().ToString(),
-            Intent = "intentMetadata4",
-            Context = new Context(ContextTypes.Nothing)
+            Intent = "intent2",
+            Context = new Context("multipleContext")
         };
 
         var result = await Fdc3.RaiseIntent(request);
@@ -424,7 +424,7 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
 
         var addIntentListenerRequest = new IntentListenerRequest
         {
-            Intent = "intentMetadataCustom",
+            Intent = "intentWithNoResult",
             Fdc3InstanceId = targetFdc3InstanceId,
             State = SubscribeState.Subscribe
         };
@@ -438,8 +438,8 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
         {
             MessageId = 1,
             Fdc3InstanceId = originFdc3InstanceId,
-            Intent = "intentMetadataCustom",
-            Context = new Context("contextCustom"),
+            Intent = "intentWithNoResult",
+            Context = new Context(ContextTypes.Nothing),
             TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
         };
 
@@ -450,7 +450,7 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
         result.Response.AppMetadata!.AppId.Should().Be("appId4");
         result.Response.AppMetadata!.InstanceId.Should().Be(targetFdc3InstanceId);
         result.RaiseIntentResolutionMessages.Should().NotBeEmpty();
-        result.Response.Intent.Should().Be("intentMetadataCustom");
+        result.Response.Intent.Should().Be("intentWithNoResult");
         result.RaiseIntentResolutionMessages.Should().HaveCount(1);
         result.RaiseIntentResolutionMessages.First().TargetModuleInstanceId.Should().Be(targetFdc3InstanceId);
     }
@@ -1026,7 +1026,7 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
         var result = await Fdc3.GetAppMetadata(request);
 
         result.Error.Should().NotBeNull();
-        result.Error.Should().Be(ResolveError.TargetInstanceUnavailable);
+        result.Error.Should().Be(ResolveError.TargetAppUnavailable);
     }
 
     [Fact]

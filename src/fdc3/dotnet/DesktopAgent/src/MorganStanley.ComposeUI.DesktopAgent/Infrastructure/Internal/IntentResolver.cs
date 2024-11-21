@@ -66,7 +66,7 @@ internal class IntentResolver
         var apps = Enumerable.Empty<FlatAppIntent>();
         foreach (var module in _runningModules)
         {
-            var appIntents = module.Value.AsFlatAppIntents();
+            var appIntents = module.Value.AsFlatAppIntents(module.Key);
 
             if (appIdentifier != null)
             {

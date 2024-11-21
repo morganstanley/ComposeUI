@@ -34,6 +34,7 @@ using DisplayMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Displ
 using Icon = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Icon;
 using ImplementationMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.ImplementationMetadata;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.TestUtils;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.TestData;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
 
@@ -57,16 +58,16 @@ public class EndToEndTests : IAsyncLifetime
     private MessageBuffer EmptyContextType => MessageBuffer.Factory.CreateJson(new GetCurrentContextRequest());
 
     private MessageBuffer ContextType =>
-        MessageBuffer.Factory.CreateJson(new GetCurrentContextRequest {ContextType = new Contact().Type});
+        MessageBuffer.Factory.CreateJson(new GetCurrentContextRequest { ContextType = new Contact().Type });
 
     private MessageBuffer OtherContextType =>
-        MessageBuffer.Factory.CreateJson(new GetCurrentContextRequest {ContextType = new Email(null).Type});
+        MessageBuffer.Factory.CreateJson(new GetCurrentContextRequest { ContextType = new Email(null).Type });
 
     private MessageBuffer FindRequest => MessageBuffer.Factory.CreateJson(
-        new FindChannelRequest {ChannelId = TestChannel, ChannelType = ChannelType.User});
+        new FindChannelRequest { ChannelId = TestChannel, ChannelType = ChannelType.User });
 
     private MessageBuffer FindNonExistingRequest => MessageBuffer.Factory.CreateJson(
-        new FindChannelRequest {ChannelId = "nonexisting", ChannelType = ChannelType.User});
+        new FindChannelRequest { ChannelId = "nonexisting", ChannelType = ChannelType.User });
 
     public async Task InitializeAsync()
     {
@@ -86,7 +87,7 @@ public class EndToEndTests : IAsyncLifetime
 
                 services.AddFdc3AppDirectory(
                     _ => _.Source = new Uri(
-                        $"file:\\\\{Directory.GetCurrentDirectory()}\\TestUtils\\appDirectorySample.json"));
+                        $"file:\\\\{Directory.GetCurrentDirectory()}\\TestData\\findIntentAppDirectory.json"));
 
                 services.AddModuleLoader();
 
@@ -233,24 +234,21 @@ public class EndToEndTests : IAsyncLifetime
         var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
 
-        var appId4IntentMetadata = new IntentMetadata {Name = "intentMetadata4", DisplayName = "displayName4"};
-
         var request = new FindIntentRequest
         {
             Fdc3InstanceId = originFdc3InstanceId,
-            Intent = "intentMetadata4"
+            Intent = FindIntentAppDirectoryData.Intent2.Name
         };
 
         var expectedResponse = new FindIntentResponse
         {
             AppIntent = new AppIntent
             {
-                Intent = appId4IntentMetadata,
+                Intent = FindIntentAppDirectoryData.Intent2,
                 Apps = new AppMetadata[]
                 {
-                    new() {AppId = "appId4", Name = "app4", ResultType = null},
-                    new() {AppId = "appId5", Name = "app5", ResultType = "resultType<specified>"},
-                    new() {AppId = "appId6", Name = "app6", ResultType = "resultType"}
+                    FindIntentAppDirectoryData.App2,
+                    FindIntentAppDirectoryData.App3ForIntent2
                 }
             }
         };
@@ -314,11 +312,9 @@ public class EndToEndTests : IAsyncLifetime
         var request = new FindIntentsByContextRequest
         {
             Fdc3InstanceId = originFdc3InstanceId,
-            Context = new Context("context2"),
-            ResultType = "resultType"
+            Context = FindIntentAppDirectoryData.SingleContext,
+            ResultType=FindIntentAppDirectoryData.ResultType2
         };
-
-        var appId5IntentMetadata = new IntentMetadata {Name = "intentMetadata4", DisplayName = "displayName4"};
 
         var expectedResponse = new FindIntentsByContextResponse
         {
@@ -326,11 +322,10 @@ public class EndToEndTests : IAsyncLifetime
             {
                 new()
                 {
-                    Intent = appId5IntentMetadata,
-                    Apps = new AppMetadata[]
+                    Intent=FindIntentAppDirectoryData.Intent3,
+                    Apps=new AppMetadata[]
                     {
-                        new() {AppId = "appId5", Name = "app5", ResultType = "resultType<specified>"},
-                        new() {AppId = "appId6", Name = "app6", ResultType = "resultType"}
+                        FindIntentAppDirectoryData.App3ForIntent3
                     }
                 }
             }
@@ -348,36 +343,34 @@ public class EndToEndTests : IAsyncLifetime
     [Fact]
     public async Task FindIntentsByContextReturnsMultipleAppIntents()
     {
-        var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
+        var instance = await _moduleLoader.StartModule(new StartRequest(FindIntentAppDirectoryData.App1.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
 
         var request = new FindIntentsByContextRequest
         {
             Fdc3InstanceId = originFdc3InstanceId,
-            Context = new Context("context9"),
-            ResultType = "resultWrongApp"
+            Context = FindIntentAppDirectoryData.MultipleContext,
+            ResultType = FindIntentAppDirectoryData.ResultType2
         };
 
-        var appId9IntentMetadata = new IntentMetadata {Name = "intentMetadata9", DisplayName = "displayName9"};
-        var appId12IntentMetadata = new IntentMetadata {Name = "intentMetadata11", DisplayName = "displayName11"};
         var expectedResponse = new FindIntentsByContextResponse
         {
             AppIntents = new[]
             {
                 new AppIntent
                 {
-                    Intent = appId9IntentMetadata,
+                    Intent = FindIntentAppDirectoryData.Intent2,
                     Apps = new[]
                     {
-                        new AppMetadata {AppId = "wrongappId9", Name = "app9", ResultType = "resultWrongApp"}
+                        FindIntentAppDirectoryData.App2
                     }
                 },
                 new AppIntent
                 {
-                    Intent = appId12IntentMetadata,
+                    Intent = FindIntentAppDirectoryData.Intent3,
                     Apps = new[]
                     {
-                        new AppMetadata {AppId = "appId12", Name = "app12", ResultType = "resultWrongApp"}
+                        FindIntentAppDirectoryData.App3ForIntent3
                     }
                 }
             }
@@ -480,8 +473,8 @@ public class EndToEndTests : IAsyncLifetime
     [Fact]
     public async Task RaiseIntentReturnsAppIntentWithOneExistingAppAndPublishesContextToHandle()
     {
-        var origin = await _moduleLoader.StartModule(new StartRequest("appId1"));
-        var target = await _moduleLoader.StartModule(new StartRequest("appId4"));
+        var origin = await _moduleLoader.StartModule(new StartRequest(FindIntentAppDirectoryData.App1.AppId));
+        var target = await _moduleLoader.StartModule(new StartRequest(FindIntentAppDirectoryData.App2.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
@@ -489,7 +482,7 @@ public class EndToEndTests : IAsyncLifetime
             MessageBuffer.Factory.CreateJson(
                 new IntentListenerRequest
                 {
-                    Intent = "intentMetadataCustom",
+                    Intent = FindIntentAppDirectoryData.Intent2.Name,
                     Fdc3InstanceId = targetFdc3InstanceId,
                     State = SubscribeState.Subscribe
                 },
@@ -507,9 +500,9 @@ public class EndToEndTests : IAsyncLifetime
         {
             MessageId = 2,
             Fdc3InstanceId = originFdc3InstanceId,
-            Intent = "intentMetadataCustom",
-            Context = new Context("contextCustom"),
-            TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
+            Intent = FindIntentAppDirectoryData.Intent2.Name,
+            Context = FindIntentAppDirectoryData.MultipleContext,
+            TargetAppIdentifier = new AppIdentifier { AppId = FindIntentAppDirectoryData.App2.AppId, InstanceId = targetFdc3InstanceId }
         };
 
         var resultBuffer = await _messageRouter.InvokeAsync(
@@ -523,9 +516,10 @@ public class EndToEndTests : IAsyncLifetime
         var expectedResponse = new RaiseIntentResponse
         {
             MessageId = result!.MessageId,
-            Intent = "intentMetadataCustom",
-            AppMetadata = new() { AppId = "appId4", InstanceId = targetFdc3InstanceId, Name = "app4", ResultType = null }
+            Intent = FindIntentAppDirectoryData.Intent2.Name,
+            AppMetadata = FindIntentAppDirectoryData.App2
         };
+        expectedResponse.AppMetadata.InstanceId = targetFdc3InstanceId;
 
         result.Should().BeEquivalentTo(expectedResponse);
     }
@@ -547,15 +541,15 @@ public class EndToEndTests : IAsyncLifetime
     [Fact]
     public async Task StoreIntentResultReturnsSuccessfully()
     {
-        var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
+        var instance = await _moduleLoader.StartModule(new StartRequest(FindIntentAppDirectoryData.App1.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
 
-        var targetInstance = await _moduleLoader.StartModule(new StartRequest("appId4"));
+        var targetInstance = await _moduleLoader.StartModule(new StartRequest(FindIntentAppDirectoryData.App2.AppId));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(targetInstance);
 
         var addIntentListenerRequest = new IntentListenerRequest
         {
-            Intent = "intentMetadataCustom",
+            Intent = FindIntentAppDirectoryData.Intent2.Name,
             Fdc3InstanceId = targetFdc3InstanceId,
             State = SubscribeState.Subscribe
         };
@@ -572,9 +566,9 @@ public class EndToEndTests : IAsyncLifetime
         {
             MessageId = 2,
             Fdc3InstanceId = originFdc3InstanceId,
-            Intent = "intentMetadataCustom",
-            Context = new Context("contextCustom"),
-            TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
+            Intent = FindIntentAppDirectoryData.Intent2.Name,
+            Context = FindIntentAppDirectoryData.MultipleContext,
+            TargetAppIdentifier = new AppIdentifier { AppId = FindIntentAppDirectoryData.App2.AppId, InstanceId = targetFdc3InstanceId }
         };
 
         var raiseIntentResultBuffer = await _messageRouter.InvokeAsync(
@@ -585,15 +579,15 @@ public class EndToEndTests : IAsyncLifetime
         raiseIntentResult!.AppMetadata.Should().NotBeNull();
         raiseIntentResult.AppMetadata!.InstanceId.Should().NotBeNull();
 
-        var testContext = new Context("testContextType");
+        var resultContext = new Context(FindIntentAppDirectoryData.ResultType2);
 
         var request = new StoreIntentResultRequest
         {
             MessageId = raiseIntentResult.MessageId!,
-            Intent = "intentMetadataCustom",
+            Intent = FindIntentAppDirectoryData.Intent2.Name,
             OriginFdc3InstanceId = raiseIntentResult.AppMetadata!.InstanceId!,
             TargetFdc3InstanceId = originFdc3InstanceId,
-            Context = testContext
+            Context = resultContext
         };
 
         var expectedResponse = new StoreIntentResultResponse
@@ -601,9 +595,9 @@ public class EndToEndTests : IAsyncLifetime
             Stored = true
         };
 
-        var app4 = _runningApps.First(application => application.Manifest.Id == "appId4");
-        var app4Fdc3InstanceId = Fdc3InstanceIdRetriever.Get(app4);
-        app4Fdc3InstanceId.Should().Be(raiseIntentResult!.AppMetadata!.InstanceId);
+        var app2 = _runningApps.First(application => application.Manifest.Id == FindIntentAppDirectoryData.App2.AppId);
+        var app2Fdc3InstanceId = Fdc3InstanceIdRetriever.Get(app2);
+        app2Fdc3InstanceId.Should().Be(raiseIntentResult!.AppMetadata!.InstanceId);
 
         var resultBuffer = await _messageRouter.InvokeAsync(
             Fdc3Topic.SendIntentResult,
@@ -679,15 +673,15 @@ public class EndToEndTests : IAsyncLifetime
     [Fact]
     public async Task GetIntentResultReturnsSuccessfully()
     {
-        var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
+        var instance = await _moduleLoader.StartModule(new StartRequest(FindIntentAppDirectoryData.App1.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
 
-        var targetInstance = await _moduleLoader.StartModule(new StartRequest("appId4"));
+        var targetInstance = await _moduleLoader.StartModule(new StartRequest(FindIntentAppDirectoryData.App2.AppId));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(targetInstance);
 
         var addIntentListenerRequest = new IntentListenerRequest
         {
-            Intent = "intentMetadataCustom",
+            Intent = FindIntentAppDirectoryData.Intent2.Name,
             Fdc3InstanceId = targetFdc3InstanceId,
             State = SubscribeState.Subscribe
         };
@@ -704,9 +698,9 @@ public class EndToEndTests : IAsyncLifetime
         {
             MessageId = 2,
             Fdc3InstanceId = originFdc3InstanceId,
-            Intent = "intentMetadataCustom",
-            Context = new Context("contextCustom"),
-            TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
+            Intent = FindIntentAppDirectoryData.Intent2.Name,
+            Context = FindIntentAppDirectoryData.MultipleContext,
+            TargetAppIdentifier = new AppIdentifier { AppId = FindIntentAppDirectoryData.App2.AppId, InstanceId = targetFdc3InstanceId }
         };
 
         var resultRaiseIntentBuffer = await _messageRouter.InvokeAsync(
@@ -714,12 +708,12 @@ public class EndToEndTests : IAsyncLifetime
             MessageBuffer.Factory.CreateJson(raiseIntentRequest, _options));
         var raiseIntentResult = resultRaiseIntentBuffer!.ReadJson<RaiseIntentResponse>(_options);
 
-        var testContext = new Context("testContextType");
+        var testContext = new Context(FindIntentAppDirectoryData.ResultType2);
 
         var storeIntentRequest = new StoreIntentResultRequest
         {
             MessageId = raiseIntentResult!.MessageId!,
-            Intent = "intentMetadataCustom",
+            Intent = FindIntentAppDirectoryData.Intent2.Name,
             OriginFdc3InstanceId = raiseIntentResult!.AppMetadata!.InstanceId!,
             TargetFdc3InstanceId = originFdc3InstanceId,
             Context = testContext
@@ -732,9 +726,9 @@ public class EndToEndTests : IAsyncLifetime
         var request = new GetIntentResultRequest
         {
             MessageId = raiseIntentResult!.MessageId!,
-            Intent = "intentMetadataCustom",
+            Intent = FindIntentAppDirectoryData.Intent2.Name,
             TargetAppIdentifier = new AppIdentifier
-            { AppId = "appId4", InstanceId = raiseIntentResult!.AppMetadata!.InstanceId! }
+            { AppId = FindIntentAppDirectoryData.App2.AppId, InstanceId = raiseIntentResult!.AppMetadata!.InstanceId! }
         };
 
         var expectedResponse = new GetIntentResultResponse
@@ -742,9 +736,9 @@ public class EndToEndTests : IAsyncLifetime
             Context = testContext
         };
 
-        var app4 = _runningApps.First(application => application.Manifest.Id == "appId4");
-        var app4Fdc3InstanceId = Fdc3InstanceIdRetriever.Get(app4);
-        app4Fdc3InstanceId.Should().Be(raiseIntentResult!.AppMetadata!.InstanceId);
+        var app2 = _runningApps.First(application => application.Manifest.Id == FindIntentAppDirectoryData.App2.AppId);
+        var app2Fdc3InstanceId = Fdc3InstanceIdRetriever.Get(app2);
+        app2Fdc3InstanceId.Should().Be(raiseIntentResult!.AppMetadata!.InstanceId);
 
         var resultBuffer = await _messageRouter.InvokeAsync(
             Fdc3Topic.GetIntentResult,
@@ -794,7 +788,7 @@ public class EndToEndTests : IAsyncLifetime
         var addIntentListenerRequest = MessageBuffer.Factory.CreateJson(
             new IntentListenerRequest
             {
-                Intent = "intentMetadataCustom",
+                Intent = "intentWithNoResult",
                 Fdc3InstanceId = targetFdc3InstanceId,
                 State = SubscribeState.Subscribe
             },
@@ -814,8 +808,8 @@ public class EndToEndTests : IAsyncLifetime
             {
                 MessageId = 1,
                 Fdc3InstanceId = originFdc3InstanceId,
-                Intent = "intentMetadataCustom",
-                Context = new Context("contextCustom"),
+                Intent = "intentWithNoResult",
+                Context = new Context(ContextTypes.Nothing),
                 TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
             },
             _options);
@@ -934,7 +928,7 @@ public class EndToEndTests : IAsyncLifetime
             MessageBuffer.Factory.CreateJson(request, _options));
         var result = response?.ReadJson<CreateAppChannelResponse>(_options);
 
-        result.Should().BeEquivalentTo(CreateAppChannelResponse.Failed(ChannelError.CreationFailed));
+        result.Should().BeEquivalentTo(CreateAppChannelResponse.Failed(Fdc3DesktopAgentErrors.PayloadNull));
     }
 
     [Fact]
@@ -1024,16 +1018,16 @@ public class EndToEndTests : IAsyncLifetime
         var result = response!.ReadJson<GetUserChannelsResponse>(_options);
 
         result.Should().NotBeNull();
-        result.Should().BeEquivalentTo(GetUserChannelsResponse.Success(new List<ChannelItem>() 
-        { 
+        result.Should().BeEquivalentTo(GetUserChannelsResponse.Success(new List<ChannelItem>()
+        {
             new() { Id = "fdc3.channel.1", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 1", Color = "red", Glyph = "1" } },
-            new() { Id = "fdc3.channel.2", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 2", Color = "orange", Glyph = "2" } }, 
-            new() { Id = "fdc3.channel.3", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 3", Color = "yellow", Glyph = "3" } }, 
-            new() { Id = "fdc3.channel.4", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 4", Color = "green", Glyph = "4" }}, 
-            new() { Id = "fdc3.channel.5", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 5", Color = "cyan", Glyph = "5" } }, 
-            new() { Id = "fdc3.channel.6", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 6", Color = "blue", Glyph = "6" } }, 
-            new() { Id = "fdc3.channel.7", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 7", Color = "magenta", Glyph = "7" } }, 
-            new() { Id = "fdc3.channel.8", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 8", Color = "purple", Glyph = "8" } } 
+            new() { Id = "fdc3.channel.2", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 2", Color = "orange", Glyph = "2" } },
+            new() { Id = "fdc3.channel.3", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 3", Color = "yellow", Glyph = "3" } },
+            new() { Id = "fdc3.channel.4", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 4", Color = "green", Glyph = "4" }},
+            new() { Id = "fdc3.channel.5", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 5", Color = "cyan", Glyph = "5" } },
+            new() { Id = "fdc3.channel.6", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 6", Color = "blue", Glyph = "6" } },
+            new() { Id = "fdc3.channel.7", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 7", Color = "magenta", Glyph = "7" } },
+            new() { Id = "fdc3.channel.8", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata() { Name = "Channel 8", Color = "purple", Glyph = "8" } }
         }));
     }
 
@@ -1100,7 +1094,8 @@ public class EndToEndTests : IAsyncLifetime
         var result = response!.ReadJson<JoinUserChannelResponse>(_options);
 
         result.Should().NotBeNull();
-        result.Should().BeEquivalentTo(JoinUserChannelResponse.Joined(new DisplayMetadata() {
+        result.Should().BeEquivalentTo(JoinUserChannelResponse.Joined(new DisplayMetadata()
+        {
             Color = "red",
             Glyph = "1",
             Name = "Channel 1"
@@ -1550,7 +1545,7 @@ public class EndToEndTests : IAsyncLifetime
         var result = response!.ReadJson<GetAppMetadataResponse>(_options);
 
         result!.Error.Should().NotBeNull();
-        result!.Error.Should().Be(ResolveError.TargetInstanceUnavailable);
+        result!.Error.Should().Be(ResolveError.TargetAppUnavailable);
     }
 
     [Fact]
@@ -1699,7 +1694,7 @@ public class EndToEndTests : IAsyncLifetime
             MessageBuffer.Factory.CreateJson(addContextListenerRequest, _options));
 
         var addContextListenerResponse = addContextListenerResult!.ReadJson<AddContextListenerResponse>(_options);
-        
+
         addContextListenerResponse.Should().NotBeNull();
         addContextListenerResponse!.Success.Should().BeTrue();
 
@@ -1763,7 +1758,7 @@ public class EndToEndTests : IAsyncLifetime
     {
         return MessageBuffer.Factory.CreateJson(
             new Contact(
-                new ContactID {Email = $"test{_counter}@test.org", FdsId = $"test{_counter++}"},
+                new ContactID { Email = $"test{_counter}@test.org", FdsId = $"test{_counter++}" },
                 name: "Testy Tester"), _options);
     }
 }
