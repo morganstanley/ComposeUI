@@ -1186,34 +1186,37 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     {
         var result = new IntentQueryResult();
 
+        Guid instanceId = Guid.Empty;
         if (targetAppIdentifier?.InstanceId == null)
         {
             var filteredApps = await _intentResolver.GetMatchingAppsFromAppDirectory(intent, contextType, resultType, targetAppIdentifier?.AppId);
 
-            foreach (Fdc3App app in filteredApps)
-            {
-                // While only semantically, at this point we know the app listens for intents as we filter for that.
-                // TODO: this could probably be made more obvious from the code as well.
-                GetAppIntentsFromIntentMetadataCollection(app, null, app.Interop!.Intents!.ListensFor!, result.AppIntents);
-            }
+            var appIntents = GetAppIntentsFromIntentMetadataCollection(filteredApps);
+            result.AppIntents = appIntents;
+        }
+        else if (!Guid.TryParse(targetAppIdentifier.InstanceId, out instanceId))
+        {
+            result.Error = ResolveError.TargetInstanceUnavailable;
+            return result;
         }
 
         try
         {
-            Guid instanceId = Guid.Empty;
-            if (targetAppIdentifier?.InstanceId != null && !Guid.TryParse(targetAppIdentifier.InstanceId, out instanceId))
-            {
-                result.Error = ResolveError.TargetInstanceUnavailable;
-                return result;
-            }
-
-
             var filteredInstances = await _intentResolver.GetMatchingAppInstances(intent, contextType, resultType, targetAppIdentifier?.AppId, targetAppIdentifier?.InstanceId == null ? null : instanceId);
-            foreach (var app in filteredInstances)
+            var appIntents = GetAppIntentsFromIntentMetadataCollection(filteredInstances);
+            foreach (var app in appIntents)
             {
                 // While only semantically, at this point we know the app listens for intents as we filter for that.
                 // TODO: this could probably be made more obvious from the code as well.
-                GetAppIntentsFromIntentMetadataCollection(app.Value, targetAppIdentifier?.InstanceId, app.Value.Interop!.Intents!.ListensFor!, result.AppIntents);
+
+                if (result.AppIntents.TryGetValue(app.Key, out var appIntent))
+                {
+                    appIntent.Apps = appIntent.Apps.Concat(app.Value.Apps);
+                }
+                else
+                {
+                    result.AppIntents.Add(app.Key, app.Value);
+                }
             }
         }
         catch (Fdc3DesktopAgentException fdc3ex)
@@ -1231,78 +1234,25 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         return result;
     }
 
-    private async Task<IntentQueryResult> GetAppIntentsFromRunningModules(
-        Func<Fdc3App, bool> selector,
-        IAppIdentifier? targetAppIdentifier,
-        IntentQueryResult result)
-    {
-        if (targetAppIdentifier?.InstanceId != null)
-        {
-            if (Guid.TryParse(targetAppIdentifier?.InstanceId, out var instanceId) && _runningModules.TryGetValue(instanceId, out var runningInstance))
-            {
-                if (selector(runningInstance))
-                {
-                    // Semantically we know the app listens for the required intent
-                    result.AppIntents = GetAppIntentsFromIntentMetadataCollection(runningInstance, targetAppIdentifier.InstanceId, runningInstance.Interop!.Intents!.ListensFor!, result.AppIntents);
-                }
-            }
-            else
-            {
-                try
-                {
-                    //If the app exists, but the specified instance id does not.
-                    await _appDirectory.GetApp(targetAppIdentifier!.AppId);
-                    result.Error = ResolveError.TargetInstanceUnavailable;
-                }
-                catch (AppNotFoundException)
-                {
-                    result.Error = ResolveError.IntentDeliveryFailed;
-                }
-            }
-            return result;
-        }
-
-        var apps = _runningModules.AsEnumerable();
-        if (targetAppIdentifier?.AppId != null)
-        {
-            apps = apps.Where(x => x.Value.AppId == targetAppIdentifier.AppId);
-        }
-        apps = apps.Where(x => selector(x.Value));
-
-        //foreach is safe to do on a concurrent dictionary, it might involve the later added items, but would not throw an exception
-        foreach (var app in apps)
-        {
-            result.AppIntents = GetAppIntentsFromIntentMetadataCollection(
-                            app.Value,
-                            app.Key.ToString(),
-                            // Semantically we know the app listens for the required intent
-                            app.Value.Interop!.Intents!.ListensFor!,
-                            result.AppIntents);
-        }
-
-        return result;
-    }
-
     private Dictionary<string, AppIntent> GetAppIntentsFromIntentMetadataCollection(
-        Fdc3App app,
-        string? instanceId,
-        IEnumerable<KeyValuePair<string, IntentMetadata>> intentMetadataCollection,
-        Dictionary<string, AppIntent> appIntents)
+        IEnumerable<FlatAppIntent> intentMetadataCollection)
     {
+        Dictionary<string, AppIntent> appIntents = new Dictionary<string, AppIntent>();
+
         foreach (var intentMetadata in intentMetadataCollection)
         {
-            var appMetadata = app.ToAppMetadata(instanceId, intentMetadata.Value.ResultType);
+            var appMetadata = intentMetadata.App.ToAppMetadata(intentMetadata.InstanceId?.ToString(), intentMetadata.Intent.ResultType);
 
-            if (!appIntents.TryGetValue(intentMetadata.Key, out var appIntent)) //Name is null
+            if (!appIntents.TryGetValue(intentMetadata.Intent.Name, out var appIntent)) //Name is null
             {
                 appIntent = new AppIntent
                 {
                     Intent = new Protocol.IntentMetadata
-                    { Name = intentMetadata.Key, DisplayName = intentMetadata.Value.DisplayName },
+                    { Name = intentMetadata.Intent.Name, DisplayName = intentMetadata.Intent.DisplayName },
                     Apps = Enumerable.Empty<AppMetadata>()
                 };
 
-                appIntents.Add(intentMetadata.Key, appIntent);
+                appIntents.Add(intentMetadata.Intent.Name, appIntent);
             }
 
             appIntent.Apps = appIntent.Apps.Append(appMetadata);

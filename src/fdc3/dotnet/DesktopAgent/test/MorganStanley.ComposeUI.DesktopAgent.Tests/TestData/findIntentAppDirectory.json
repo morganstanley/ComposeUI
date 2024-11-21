@@ -10,13 +10,13 @@
       "interop": {
         "intents": {
           "listensFor": {
-            "singleAppIntent": {
-              "name": "singleAppIntent",
-              "displayName": "Intent resolved by a single app",
+            "intent1": {
+              "name": "intent1",
+              "displayName": "Intent resolved only by app 1",
               "contexts": [
                 "singleContext"
               ],
-              "resultType": "singleResultType"
+              "resultType": "resultType1"
             }
           }
         }
@@ -32,23 +32,14 @@
       "interop": {
         "intents": {
           "listensFor": {
-            "multipleAppsIntent": {
-              "name": "multipleAppsIntent",
-              "displayName": "Intent resolved by multiple apps",
+            "intent2": {
+              "name": "intent2",
+              "displayName": "Intent resolved by apps 2 and 3",
               "contexts": [
                 "multipleContext",
                 "otherContext"
               ],
-              "resultType": "multipleResultType"
-            },
-            "otherIntent": {
-              "name": "otherIntent",
-              "displayName": "Some intent that should not be matched",
-              "contexts": [
-                "multipleContext",
-                "singleContext"
-              ],
-              "resultType": "multipleResultType"
+              "resultType": "resultType2"
             }
           }
         }
@@ -64,13 +55,22 @@
       "interop": {
         "intents": {
           "listensFor": {
-            "multipleAppsIntent": {
-              "name": "multipleAppsIntent",
-              "displayName": "Intent resolved by multiple apps",
+            "intent2": {
+              "name": "intent2",
+              "displayName": "Intent resolved by apps 2 and 3",
               "contexts": [
                 "multipleContext"
               ],
-              "resultType": "multipleResultType"
+              "resultType": "resultType1"
+            },
+            "intent3": {
+              "name": "intent3",
+              "displayName": "Intent resolved only by app 3",
+              "contexts": [
+                "multipleContext",
+                "singleContext"
+              ],
+              "resultType": "resultType2"
             }
           }
         }

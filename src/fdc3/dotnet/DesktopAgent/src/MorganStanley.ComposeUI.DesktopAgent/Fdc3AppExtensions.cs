@@ -1,6 +1,7 @@
 ﻿using Finos.Fdc3;
 using Finos.Fdc3.AppDirectory;
 using Finos.Fdc3.Context;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
 using Icon = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Icon;
@@ -10,21 +11,12 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 public static class Fdc3AppExtensions
 {
     /// <summary>
-    /// Determines if the app listens to the specified intent
-    /// </summary>    
-    public static bool DoesListenForIntent(this Fdc3App app, string intentName)
-    {
-        if (app?.Interop?.Intents?.ListensFor == null) { return false; }
-        return app.Interop.Intents.ListensFor.Keys.Contains(intentName);
-    }
-
-    /// <summary>
     /// Determines if the app can accept the desired context in response to a raised intent.
     /// </summary>    
-    public static bool DoesAcceptContextType(this Fdc3App app, string contextType)
+    internal static bool DoesAcceptContextType(this FlatAppIntent app, string contextType)
     {
-        if (app?.Interop?.Intents?.ListensFor == null) { return false; }
-        return app.Interop.Intents.ListensFor.SelectMany(x => x.Value.Contexts).Any(x => x == contextType);
+        if (app?.Intent?.Contexts == null) { return false; }
+        return app.Intent.Contexts.Any(x => x == contextType);
     }
 
     /// <summary>
@@ -36,24 +28,24 @@ public static class Fdc3AppExtensions
     /// <see cref="https://fdc3.finos.org/docs/api/ref/DesktopAgent#findintent"/>
     /// <seealso cref="https://github.com/finos/FDC3/issues/1410"/>
     /// </remarks>    
-    public static bool HasResultType(this Fdc3App app, string resultType)
+    internal static bool HasResultType(this FlatAppIntent app, string resultType)
     {
-        if (app?.Interop?.Intents?.ListensFor == null)
+        if (app?.Intent == null)
         {
             return false;
         }
 
         if (resultType == ContextTypes.Nothing)
         {
-            return app.Interop.Intents.ListensFor.Values.Any(intent => intent.ResultType == null || intent.ResultType == ContextTypes.Nothing);
+            return app.Intent.ResultType == null || app.Intent.ResultType == ContextTypes.Nothing;
         }
 
         if (resultType == "channel")
         {
-            return app.Interop.Intents.ListensFor.Values.Any(intent => intent.ResultType != null && intent.ResultType.StartsWith("channel"));
+            return app.Intent.ResultType != null && app.Intent.ResultType.StartsWith("channel");
         }
 
-        return app.Interop.Intents.ListensFor.Values.Any(intent => intent.ResultType == resultType);
+        return app.Intent.ResultType == resultType;
     }
 
     /// <summary>

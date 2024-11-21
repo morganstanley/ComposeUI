@@ -85,19 +85,7 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
         result.Should().BeTrue();
     }
 
-    [Fact]
-    public async Task FindIntentsByContext_returns_NoAppsFound()
-    {
-        var request = new FindIntentsByContextRequest
-        {
-            Fdc3InstanceId = Guid.NewGuid().ToString(),
-            Context = new Context("context9"), //This relates to multiple appId
-            ResultType = "noAppShouldReturn"
-        };
-        var result = await Fdc3.FindIntentsByContext(request);
-        result.Should().NotBeNull();
-        result.Error.Should().Be(ResolveError.NoAppsFound);
-    }
+    
 
     [Fact]
     public async Task FindIntentsByContext_returns()

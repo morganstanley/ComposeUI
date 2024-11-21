@@ -1,15 +1,7 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Finos.Fdc3;
+﻿using System.Collections.Concurrent;
 using Finos.Fdc3.AppDirectory;
 using Finos.Fdc3.Context;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
@@ -24,39 +16,41 @@ internal class IntentResolver
         _runningModules = runningModules;
     }
 
-    public async Task<IEnumerable<Fdc3App>> GetMatchingAppsFromAppDirectory(string? intent = null, string? contextType = null, string? resultType = null, string? appIdentifier = null)
-    {
-        var apps = await _appDirectory.GetApps();
 
-        if (apps == null)
+
+    public async Task<IEnumerable<FlatAppIntent>> GetMatchingAppsFromAppDirectory(string? intent = null, string? contextType = null, string? resultType = null, string? appIdentifier = null)
+    {
+        var appIntents = (await _appDirectory.GetApps()).AsFlatAppIntents();
+
+        if (appIntents == null)
         {
-            return Enumerable.Empty<Fdc3App>();
+            return [];
         }
 
         if (appIdentifier != null)
         {
-            apps = apps.Where(app => app.AppId == appIdentifier);
+            appIntents = appIntents.Where(ai => ai.App.AppId == appIdentifier);
         }
 
         if (intent != null)
         {
-            apps = apps.Where(app => app.DoesListenForIntent(intent));
+            appIntents = appIntents.Where(ai => ai.Intent.Name == intent);
         }
 
         if (contextType != null && contextType != ContextTypes.Nothing)
         {
-            apps = apps.Where(app => app.DoesAcceptContextType(contextType));
+            appIntents = appIntents.Where(ai => ai.DoesAcceptContextType(contextType));
         }
 
         if (resultType != null)
         {
-            apps = apps.Where(app => app.HasResultType(resultType));
+            appIntents = appIntents.Where(ai => ai.HasResultType(resultType));
         }
 
-        return apps;
+        return appIntents;
     }
 
-    public async Task<IEnumerable<KeyValuePair<Guid, Fdc3App>>> GetMatchingAppInstances(
+    public async Task<IEnumerable<FlatAppIntent>> GetMatchingAppInstances(
         string? intent = null,
         string? contextType = null,
         string? resultType = null,
@@ -64,37 +58,41 @@ internal class IntentResolver
         Guid? instanceId = null
         )
     {
-        IEnumerable<KeyValuePair<Guid, Fdc3App>> apps = _runningModules;
-
         if (instanceId != null)
         {
-            return new[] { await MatchSpecificInstance(instanceId.Value, intent, contextType, resultType, appIdentifier) };
+            return await MatchSpecificInstance(instanceId.Value, intent, contextType, resultType, appIdentifier);
         }
 
-        if (appIdentifier != null)
+        var apps = Enumerable.Empty<FlatAppIntent>();
+        foreach (var module in _runningModules)
         {
-            apps = apps.Where(app => app.Value.AppId == appIdentifier);
-        }
+            var appIntents = module.Value.AsFlatAppIntents();
 
-        if (intent != null)
-        {
-            apps = apps.Where(app => app.Value.DoesListenForIntent(intent));
-        }
+            if (appIdentifier != null)
+            {
+                appIntents = appIntents.Where(ai => ai.App.AppId == appIdentifier);
+            }
 
-        if (contextType != null && contextType != ContextTypes.Nothing)
-        {
-            apps = apps.Where(app => app.Value.DoesAcceptContextType(contextType));
-        }
+            if (intent != null)
+            {
+                appIntents = appIntents.Where(ai => ai.Intent.Name == intent);
+            }
 
-        if (resultType != null)
-        {
-            apps = apps.Where(app => app.Value.HasResultType(resultType));
-        }
+            if (contextType != null && contextType != ContextTypes.Nothing)
+            {
+                appIntents = appIntents.Where(ai => ai.DoesAcceptContextType(contextType));
+            }
 
+            if (resultType != null)
+            {
+                appIntents = appIntents.Where(ai => ai.HasResultType(resultType));
+            }
+            apps = apps.Concat(appIntents);
+        }
         return apps;
     }
 
-    private async Task<KeyValuePair<Guid, Fdc3App>> MatchSpecificInstance(
+    private async Task<IEnumerable<FlatAppIntent>> MatchSpecificInstance(
         Guid instanceId,
         string? intent = null,
         string? contextType = null,
@@ -102,15 +100,29 @@ internal class IntentResolver
         string? appIdentifier = null
         )
     {
+        List<FlatAppIntent> appIntents = [];
+
         if (_runningModules.TryGetValue(instanceId, out var runningInstance)
-                && (appIdentifier == null || runningInstance.AppId == appIdentifier)
-                && (intent == null || runningInstance.DoesListenForIntent(intent))
-                && (contextType == null || contextType == ContextTypes.Nothing || runningInstance.DoesAcceptContextType(contextType))
-                && (resultType == null || runningInstance.HasResultType(resultType)))
+            && (appIdentifier == null || runningInstance.AppId == appIdentifier))
         {
-            return new KeyValuePair<Guid, Fdc3App>(instanceId, runningInstance);
+            var fai = runningInstance.AsFlatAppIntents(instanceId);
+            if (intent != null)
+            {
+                fai = fai.Where(f => f.Intent.Name == intent);
+            }
+            if (contextType != null)
+            {
+                fai = fai.Where(f => f.DoesAcceptContextType(contextType));
+            }
+            if (resultType != null)
+            {
+                fai = fai.Where(f => f.HasResultType(resultType));
+            }
+
+            appIntents.AddRange(fai);
         }
-        else
+
+        if (!appIntents.Any())
         {
             try
             {
@@ -126,5 +138,6 @@ internal class IntentResolver
                 throw ThrowHelper.TargetAppUnavailable();
             }
         }
+        return appIntents;
     }
 }

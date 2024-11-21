@@ -1,208 +1,206 @@
 ﻿using Finos.Fdc3;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
-
-using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
-using static MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.TestData.FindIntentAppDirectoryData;
 using Finos.Fdc3.Context;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
+using static MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.TestData.FindIntentAppDirectoryData;
+using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
+
+public class FindIntentTests : Fdc3DesktopAgentTestsBase
 {
-    public class FindIntentTests : Fdc3DesktopAgentTestsBase
+    public FindIntentTests() : base(@$"file:\\{Directory.GetCurrentDirectory()}\TestData\findIntentAppDirectory.json") { }
+
+    [Fact]
+    public async Task FindIntent_returns_NoAppsFound()
     {
-        public FindIntentTests() : base(@$"file:\\{Directory.GetCurrentDirectory()}\TestData\findIntentAppDirectory.json") { }
-
-        [Fact]
-        public async Task FindIntent_returns_NoAppsFound()
+        var request = new FindIntentRequest
         {
-            var request = new FindIntentRequest
-            {
-                Intent = "nosuchintent"
-            };
+            Intent = "nosuchintent"
+        };
 
-            var result = await Fdc3.FindIntent(request);
-            result.Should().NotBeNull();
-            result.Error.Should().Be(ResolveError.NoAppsFound);
-        }
+        var result = await Fdc3.FindIntent(request);
+        result.Should().NotBeNull();
+        result.Error.Should().Be(ResolveError.NoAppsFound);
+    }
 
-        [Fact]
-        public async Task FindIntent_returns_NoAppsFound_for_context()
+    [Fact]
+    public async Task FindIntent_returns_NoAppsFound_for_context()
+    {
+        var request = new FindIntentRequest
         {
-            var request = new FindIntentRequest
-            {
-                Intent = SingleAppIntent.Name,
-                Context = MultipleContext
-            };
-            var result = await Fdc3.FindIntent(request);
-            result.Should().NotBeNull();
-            result.Error.Should().Be(ResolveError.NoAppsFound);
-        }
+            Intent = Intent1.Name,
+            Context = MultipleContext
+        };
+        var result = await Fdc3.FindIntent(request);
+        result.Should().NotBeNull();
+        result.Error.Should().Be(ResolveError.NoAppsFound);
+    }
 
-        [Fact]
-        public async Task FindIntent_returns_NoAppsFound_for_resultType()
+    [Fact]
+    public async Task FindIntent_returns_NoAppsFound_for_resultType()
+    {
+        var request = new FindIntentRequest
         {
-            var request = new FindIntentRequest
-            {
-                Intent = SingleAppIntent.Name,
-                ResultType = MultipleResultType
-            };
-            var result = await Fdc3.FindIntent(request);
-            result.Should().NotBeNull();
-            result.Error.Should().Be(ResolveError.NoAppsFound);
-        }
+            Intent = Intent1.Name,
+            ResultType = ResultType2
+        };
+        var result = await Fdc3.FindIntent(request);
+        result.Should().NotBeNull();
+        result.Error.Should().Be(ResolveError.NoAppsFound);
+    }
 
-        [Fact]
-        public async Task FindIntent_returns_single_app_for_intent()
+    [Fact]
+    public async Task FindIntent_returns_single_app_for_intent()
+    {
+        var request = new FindIntentRequest
         {
-            var request = new FindIntentRequest
-            {
-                Intent = SingleAppIntent.Name
-            };
+            Intent = Intent1.Name
+        };
 
-            var result = await Fdc3.FindIntent(request);
-            result.Should().NotBeNull();
-            result.AppIntent.Should()
-                .BeEquivalentTo(
-                    new AppIntent
-                    {
-                        Intent = SingleAppIntent,
-                        Apps = new[] { App1 }
-                    });
-        }
-
-        [Fact]
-        public async Task FindIntent_returns_single_app_with_context()
-        {
-            var request = new FindIntentRequest
-            {
-                Intent = SingleAppIntent.Name,
-                Context = SingleContext
-            };
-
-            var result = await Fdc3.FindIntent(request);
-            result.Should().NotBeNull();
-            result.AppIntent.Should().BeEquivalentTo(new AppIntent()
-            {
-                Intent = SingleAppIntent,
-                Apps = new[] { App1 }
-            });
-        }
-
-        [Fact]
-        public async Task FindIntent_returns_single_app_with_resultType()
-        {
-            var request = new FindIntentRequest
-            {
-                Intent = SingleAppIntent.Name,
-                ResultType = SingleResultType
-            };
-
-            var result = await Fdc3.FindIntent(request);
-            result.Should().NotBeNull();
-            result.AppIntent.Should().BeEquivalentTo(
-                new AppIntent()
+        var result = await Fdc3.FindIntent(request);
+        result.Should().NotBeNull();
+        result.AppIntent.Should()
+            .BeEquivalentTo(
+                new AppIntent
                 {
-                    Intent = SingleAppIntent,
+                    Intent = Intent1,
                     Apps = new[] { App1 }
                 });
-        }
+    }
 
-        [Fact]
-        public async Task FindIntent_returns_multiple_apps_for_intent()
+    [Fact]
+    public async Task FindIntent_returns_single_app_with_context()
+    {
+        var request = new FindIntentRequest
         {
-            var request = new FindIntentRequest
-            {
-                Intent = MultipleAppsIntent.Name
-            };
+            Intent = Intent1.Name,
+            Context = SingleContext
+        };
 
-            var result = await Fdc3.FindIntent(request);
-            result.Should().NotBeNull();
-            result.AppIntent.Should()
-                .BeEquivalentTo(
-                    new AppIntent
-                    {
-                        Intent = MultipleAppsIntent,
-                        Apps = new[] { App2, App3 }
-                    });
-        }
-
-        [Fact]
-        public async Task FindIntent_returns_multiple_apps_with_context()
+        var result = await Fdc3.FindIntent(request);
+        result.Should().NotBeNull();
+        result.AppIntent.Should().BeEquivalentTo(new AppIntent()
         {
-            var request = new FindIntentRequest
-            {
-                Intent = MultipleAppsIntent.Name,
-                Context = MultipleContext
-            };
+            Intent = Intent1,
+            Apps = new[] { App1 }
+        });
+    }
 
-            var result = await Fdc3.FindIntent(request);
-            result.Should().NotBeNull();
-            result.AppIntent.Should()
-                .BeEquivalentTo(
-                    new AppIntent
-                    {
-                        Intent = MultipleAppsIntent,
-                        Apps = new[] { App2, App3 }
-                    });
-        }
-
-        [Fact]
-        public async Task FindIntent_returns_multiple_apps_with_resultType()
+    [Fact]
+    public async Task FindIntent_returns_single_app_with_resultType()
+    {
+        var request = new FindIntentRequest
         {
-            var request = new FindIntentRequest
+            Intent = Intent1.Name,
+            ResultType = ResultType1
+        };
+
+        var result = await Fdc3.FindIntent(request);
+        result.Should().NotBeNull();
+        result.AppIntent.Should().BeEquivalentTo(
+            new AppIntent()
             {
-                Intent = MultipleAppsIntent.Name,
-                ResultType = MultipleResultType
-            };
+                Intent = Intent1,
+                Apps = new[] { App1 }
+            });
+    }
 
-            var result = await Fdc3.FindIntent(request);
-            result.Should().NotBeNull();
-            result.AppIntent.Should()
-                .BeEquivalentTo(
-                    new AppIntent
-                    {
-                        Intent = MultipleAppsIntent,
-                        Apps = new[] { App2, App3 }
-                    });
-        }
-
-        [Fact]
-        public async Task FindIntent_returns_apps_with_no_result()
+    [Fact]
+    public async Task FindIntent_returns_multiple_apps_for_intent()
+    {
+        var request = new FindIntentRequest
         {
-            var request = new FindIntentRequest
-            {
-                Intent = IntentWithNoResult.Name,
-                ResultType = "fdc3.nothing"
-            };
-            var result = await Fdc3.FindIntent(request);
+            Intent = Intent2.Name
+        };
 
-            result.Should().NotBeNull();
-            result.AppIntent.Should().BeEquivalentTo(
+        var result = await Fdc3.FindIntent(request);
+        result.Should().NotBeNull();
+        result.AppIntent.Should()
+            .BeEquivalentTo(
                 new AppIntent
                 {
-                    Intent = IntentWithNoResult,
-                    Apps = new[] { App4, App5 }
+                    Intent = Intent2,
+                    Apps = new[] { App2, App3ForIntent2 }
                 });
-        }
+    }
 
-        // According to the current state of discussion in https://github.com/finos/FDC3/issues/1410 querying for fdc3.nothing should only match intents that have this explicitly stated.
-        // I asked for confirmation as this leads to anomalies in case of an empty contexts array
-        [Fact]
-        public async Task FindIntent_returns_apps_with_nothing_context()
+    [Fact]
+    public async Task FindIntent_returns_multiple_apps_with_context()
+    {
+        var request = new FindIntentRequest
         {
-            var request = new FindIntentRequest
-            {
-                Intent = IntentWithNoResult.Name,
-                Context = ContextType.Nothing
-            };
-            var result = await Fdc3.FindIntent(request);
+            Intent = Intent2.Name,
+            Context = MultipleContext
+        };
 
-            result.Should().NotBeNull();
-            result.AppIntent.Should().BeEquivalentTo(
+        var result = await Fdc3.FindIntent(request);
+        result.Should().NotBeNull();
+        result.AppIntent.Should()
+            .BeEquivalentTo(
                 new AppIntent
                 {
-                    Intent = IntentWithNoResult,
-                    Apps = new[] { App4, App5 }
+                    Intent = Intent2,
+                    Apps = new[] { App2, App3ForIntent2 }
                 });
-        }
+    }
+
+    [Fact]
+    public async Task FindIntent_returns_multiple_apps_with_resultType()
+    {
+        var request = new FindIntentRequest
+        {
+            Intent = Intent2.Name,
+            ResultType = ResultType2
+        };
+
+        var result = await Fdc3.FindIntent(request);
+        result.Should().NotBeNull();
+        result.AppIntent.Should()
+            .BeEquivalentTo(
+                new AppIntent
+                {
+                    Intent = Intent2,
+                    Apps = new[] { App2 }
+                });
+    }
+
+    [Fact]
+    public async Task FindIntent_returns_apps_with_no_result()
+    {
+        var request = new FindIntentRequest
+        {
+            Intent = IntentWithNoResult.Name,
+            ResultType = "fdc3.nothing"
+        };
+        var result = await Fdc3.FindIntent(request);
+
+        result.Should().NotBeNull();
+        result.AppIntent.Should().BeEquivalentTo(
+            new AppIntent
+            {
+                Intent = IntentWithNoResult,
+                Apps = new[] { App4, App5 }
+            });
+    }
+
+    // According to the current state of discussion in https://github.com/finos/FDC3/issues/1410 querying for fdc3.nothing should only match intents that have this explicitly stated.
+    // I asked for confirmation as this leads to anomalies in case of an empty contexts array
+    [Fact]
+    public async Task FindIntent_returns_apps_with_nothing_context()
+    {
+        var request = new FindIntentRequest
+        {
+            Intent = IntentWithNoResult.Name,
+            Context = ContextType.Nothing
+        };
+        var result = await Fdc3.FindIntent(request);
+
+        result.Should().NotBeNull();
+        result.AppIntent.Should().BeEquivalentTo(
+            new AppIntent
+            {
+                Intent = IntentWithNoResult,
+                Apps = new[] { App4, App5 }
+            });
     }
 }
