@@ -39,7 +39,7 @@ const renderNotification = (notificationType, bgColor ) => {
 
     setTimeout(() => {
         result.remove();
-      }, 3000);
+      }, 6000);
 }
 
 // Author a card
@@ -86,12 +86,12 @@ var adaptiveCard = new AdaptiveCards.AdaptiveCard();
 // Set the adaptive card's event handlers. onExecuteAction is invoked
 adaptiveCard.onExecuteAction = function(action) { 
     if(action.id === 'errorButton') {
-        renderNotif('Error','#ed8c8c');
+        renderNotification('Error','#ed8c8c');
     }
     else if (action.id === 'successButton') {
-        renderNotif('Success','#c9f5d4');
+        renderNotification('Success','#c9f5d4');
     } else {
-        renderNotif('Info','#a5b0fa');
+        renderNotification('Info','#a5b0fa');
     }
  }
 
