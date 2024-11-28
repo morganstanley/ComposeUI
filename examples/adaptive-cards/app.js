@@ -47,7 +47,7 @@ const renderNotification = (notificationType, bgColor ) => {
         if(result) {
             result.remove();
         }
-      }, 30000);
+      }, 7000);
 }
 
 // Author a card
