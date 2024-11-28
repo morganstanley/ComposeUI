@@ -6,16 +6,17 @@ const notif = (type) => {
         "type": "AdaptiveCard",
         "body": [
             {
-                "type": "Container",
-                "items": [
-                    {
-                        "type": "TextBlock",
-                        "text": `${type} Notification`,
-                        "size": "large",
-                        "weight": "default"
-
-                    }
-                ]
+                "type": "TextBlock",
+                "text": `${type} Notification`,
+                "size": "large",
+                "weight": "default"
+            }
+        ],
+        "actions": [
+            {
+                "type": "Action.Submit",
+                "iconUrl": "/img/close.png",
+                "id": "closeButton"
             }
         ]
     }
@@ -37,9 +38,16 @@ const renderNotification = (notificationType, bgColor ) => {
     notificationCard.hostConfig = new AdaptiveCards.HostConfig(hostConfig(bgColor));
     let result = notificationCard.render(document.body);
 
-    setTimeout(() => {
+
+    notificationCard.onExecuteAction = function(action) {
         result.remove();
-      }, 6000);
+    }
+
+    setTimeout(() => {
+        if(result) {
+            result.remove();
+        }
+      }, 30000);
 }
 
 // Author a card
@@ -86,12 +94,12 @@ var adaptiveCard = new AdaptiveCards.AdaptiveCard();
 // Set the adaptive card's event handlers. onExecuteAction is invoked
 adaptiveCard.onExecuteAction = function(action) { 
     if(action.id === 'errorButton') {
-        renderNotification('Error','#ed8c8c');
+        renderNotification('Error','rgb(237 140 140 / 0.3)');
     }
     else if (action.id === 'successButton') {
-        renderNotification('Success','#c9f5d4');
+        renderNotification('Success','rgb(201 245 212 / 0.3)');
     } else {
-        renderNotification('Info','#a5b0fa');
+        renderNotification('Info','rgb(165 176 250 / 0.3)');
     }
  }
 
