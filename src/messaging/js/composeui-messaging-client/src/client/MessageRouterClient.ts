@@ -68,6 +68,10 @@ export class MessageRouterClient implements MessageRouter {
     async subscribe(topicName: string, subscriber: TopicSubscriber): Promise<Unsubscribable> {
         this.checkState();
 
+        if (this.pendingUnsubscriptions[topicName]) {
+            await this.pendingUnsubscriptions[topicName];
+        }
+
         let needsSubscription = false;
         let topic = this.topics[topicName];
 
@@ -82,12 +86,19 @@ export class MessageRouterClient implements MessageRouter {
 
         const subscription = topic.subscribe(subscriber);
 
-        await this.sendRequest<messages.SubscribeMessage, messages.SubscribeResponse>(
-        {
-            requestId: this.getRequestId(),
-            type: "Subscribe",
-            topic: topicName
-        });
+        if (needsSubscription) {
+            try {
+                await this.sendRequest<messages.SubscribeMessage, messages.SubscribeResponse>(
+                {
+                    requestId: this.getRequestId(),
+                    type: "Subscribe",
+                    topic: topicName
+                });
+            } catch (error) {
+                console.error("Failed to subscribe to topic '${topicName}'", error);
+                delete this.topics[topicName];
+            }
+        }
 
         return subscription;
     }
@@ -190,6 +201,7 @@ export class MessageRouterClient implements MessageRouter {
     private closed = new Deferred<void>();
     private pendingRequests: Record<string, Deferred<messages.AbstractResponse>> = {};
     private endpointHandlers: Record<string, MessageHandler> = {};
+    private pendingUnsubscriptions: Record<string, Promise<void> | undefined> = {};
 
     private async connectCore(): Promise<void> {
         this._state = ClientState.Connecting;
@@ -410,17 +422,27 @@ export class MessageRouterClient implements MessageRouter {
         if (!topic)
             return;
 
-        try {
-            await this.sendRequest<messages.UnsubscribeMessage, messages.UnsubscribeResponse>(
-                {
-                    requestId: this.getRequestId(),
-                    type: "Unsubscribe",
-                    topic: topicName
-                }
-            );
-        } catch (error) {
-            console.error("Exception thrown while unsubscribing.", error);
+        if (this.pendingUnsubscriptions[topicName]) {
+            await this.pendingUnsubscriptions[topicName];
         }
+
+        this.pendingUnsubscriptions[topicName] = this.sendRequest<messages.UnsubscribeMessage, messages.UnsubscribeResponse>({
+            requestId: this.getRequestId(),
+            type: "Unsubscribe",
+            topic: topicName
+        })
+        .then(() => {
+            delete this.topics[topicName];
+        })
+        .catch(error => {
+            console.error("Exception thrown while unsubscribing.", error);
+            throw error;
+        })
+        .finally(() => {
+            delete this.pendingUnsubscriptions[topicName];
+        });
+
+        await this.pendingUnsubscriptions[topicName];
     }
 
     private getRequestId(): string {
