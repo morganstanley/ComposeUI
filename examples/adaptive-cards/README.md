@@ -8,6 +8,6 @@ This is a simple webpage that loads adaptive-cards and showcases a button which 
 ## During Development
 
 ```npm i
-
+npx lerna run build --stream --scope=@morgan-stanley/composeui-example-adaptive-cards
 npx lerna run start --stream --scope=@morgan-stanley/composeui-example-adaptive-cards
 ```

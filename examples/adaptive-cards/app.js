@@ -1,26 +1,35 @@
 // Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 import * as AdaptiveCards from "adaptivecards";
+import markdownit from 'markdown-it';
 
-const notif = (type) => {
+const md = markdownit('commonmark');
+
+AdaptiveCards.AdaptiveCard.onProcessMarkdown = function(text, result) { 
+    result.outputHtml = md.render(text);
+	result.didProcess = true;
+ }
+
+const notificationTemplate = (type) => {
     return {
-        "type": "AdaptiveCard",
-        "body": [
-            {
-                "type": "TextBlock",
-                "text": `${type} Notification`,
-                "size": "large",
-                "weight": "default"
-            }
+    "type": "AdaptiveCard",
+    "version" : "1.6",
+    "body": [
+        {
+            "type": "TextBlock",
+            "text": `${type} Notification`,
+            "size": "large",
+            "weight": "default"
+        }
         ],
-        "actions": [
-            {
-                "type": "Action.Submit",
-                "iconUrl": "/img/close.png",
-                "id": "closeButton"
-            }
-        ]
-    }
+    "actions": [
+        {
+            "type": "Action.Submit",
+            "iconUrl": "/img/close.png",
+            "id": "closeButton"
+        }
+    ]
 }
+};
 
 const hostConfig = (bgColor) => {
     return { 
@@ -34,10 +43,9 @@ const hostConfig = (bgColor) => {
 
 const renderNotification = (notificationType, bgColor ) => {
     let notificationCard = new AdaptiveCards.AdaptiveCard();
-    notificationCard.parse(notif(notificationType));
+    notificationCard.parse(notificationTemplate(notificationType));
     notificationCard.hostConfig = new AdaptiveCards.HostConfig(hostConfig(bgColor));
     let result = notificationCard.render(document.body);
-
 
     notificationCard.onExecuteAction = function(action) {
         result.remove();
