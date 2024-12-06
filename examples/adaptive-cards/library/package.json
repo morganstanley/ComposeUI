@@ -6,7 +6,9 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prebuild": "rimraf --glob build/*",
+    "build": "tsc",
+    "postbuild": "rollup --config"
   },
   "keywords": [
     "adaptive-card",
@@ -19,5 +21,11 @@
   },
   "files": [
     "/dist"
-  ]
+  ],
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^12.1.1",
+    "rollup": "^4.28.0",
+    "rollup-plugin-dts": "^6.1.1",
+    "typescript": "^5.7.2"
+  }
 }

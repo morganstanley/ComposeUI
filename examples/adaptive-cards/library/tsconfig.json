@@ -1,14 +1,13 @@
 {
-    "compilerOptions": {
-      "module": "ESNext",
-      "moduleResolution": "node",
-      "types": ["node"],
-      "target": "es2019",
-      "declaration": true,
-      "outDir": "./dist",
-      "lib": ["DOM"]
-    },
-    "files": [
-      "src/index.ts"
-    ] 
-  }
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+      "types": [
+          "node",
+          "jest"
+      ]
+  },
+  "include": [
+      "src/**/*.ts",
+      "test/**/*.ts"
+  ]
+}
