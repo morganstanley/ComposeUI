@@ -28,6 +28,10 @@
 						}
 					],
 					"width": "stretch"
+				},
+				{
+					"type": "templateElement",
+					"templateString": "${template}"
 				}
 
 
