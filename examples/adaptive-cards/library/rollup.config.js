@@ -1,24 +1,26 @@
 // @ts-ignore
 import typescript from '@rollup/plugin-typescript';
 import json from '@rollup/plugin-json';
-import resolve from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
+import dts from 'rollup-plugin-dts';
+//import resolve from '@rollup/plugin-node-resolve';
+//import commonjs from '@rollup/plugin-commonjs';
 
  const config = [{
   input: 'src/index.ts',
   output: {
     file: 'dist/index.js',
-    format: 'iife',
+    format: 'umd',
     name: "toastNotification",
-    sourcemap: "inline",
-    exports: "named",
-    inlineDynamicImports: true,
-    globals: {
-        adaptivecards: 'AdaptiveCards'
-    }
   },
-  plugins: [ json(), typescript(), resolve(), commonjs()],
-  external: ['adaptivecards','markdown-it','sanitize-html'],
-}];
+  plugins: [ json(), typescript()]
+}, 
+ {
+    input: 'src/index.ts',
+  output: {
+    file: 'dist/index.d.ts',
+    format: 'umd',
+  },
+  plugins: [ dts()]
+ }];
 
 export default config;

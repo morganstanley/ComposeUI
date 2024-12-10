@@ -7,7 +7,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "prebuild": "rimraf --glob build/*",
-    "build": "tsc",
+    "build": "tsc --noEmit",
     "postbuild": "rollup --config"
   },
   "keywords": [
