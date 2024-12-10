@@ -1,8 +1,8 @@
-import * as Adaptive from "adaptivecards";
+import * as AdaptiveCards from "adaptivecards";
 import sanitizeHtml from 'sanitize-html';
 
 
-export class customTemplate extends Adaptive.CardElement {
+export class customTemplate extends AdaptiveCards.CardElement {
     private _id?: string;
     private _templateString!: string;
     private _templateElement?: HTMLElement;
@@ -37,14 +37,14 @@ export class customTemplate extends Adaptive.CardElement {
     toJSON(): any {
         let result = super.toJSON();
 
-        Adaptive.setProperty(result, "id", this._id);
+        AdaptiveCards.setProperty(result, "id", this._id);
         return result;
     }
 
-    parse(json: any, errors?: Array<Adaptive.IValidationError>) {
+    parse(json: any, errors?: Array<AdaptiveCards.IValidationError>) {
         super.parse(json, errors);
 
-        this.id = Adaptive.getValueOrDefault(json["id"], "templateId");
+        this.id = AdaptiveCards.getValueOrDefault(json["id"], "templateId");
     }
 
     updateLayout(processChildren: boolean = true) {
@@ -56,7 +56,7 @@ export class customTemplate extends Adaptive.CardElement {
     }
 
     renderSpeech(): string {
-        return (Adaptive.isNullOrEmpty(this.id) ? "Progress" : "whoAmi");
+        return (AdaptiveCards.isNullOrEmpty(this.id) ? "Progress" : "whoAmi");
     }
 
 
