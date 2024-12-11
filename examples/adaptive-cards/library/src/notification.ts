@@ -10,28 +10,44 @@ AdaptiveCards.AdaptiveCard.onProcessMarkdown = function(text, result) {
  }
 
 export class ToastNotification {
-    template:object=notificationTemplate;
+    template?:string;
     type!: string;
     icon?:string;
     card = new AdaptiveCards.AdaptiveCard();
+    adaptiveTemplate: object = notificationTemplate;
     
     
-    /*constructor(type:string, template?:string, icon?:string) {
+    constructor(type?:string, template?:string, icon?:string) {
 
         if(template) {
             //this.template = template;
             AdaptiveCards.AdaptiveCard.elementTypeRegistry.registerType("templateElement", () => { return new customTemplate(); });
-            console.log(template);
+
+            let mew = new customTemplate();
+            mew.templateString = '<p>I am a code cat </p>';
+            console.log(mew);
+
+            console.log(this.adaptiveTemplate);
         }
-        this.type = type;
+        this.type = type ? type : 'info';
         this.icon = icon;
-    }*/
+
+    this.card.parse(this.adaptiveTemplate);
+
+
+    }
 
     getCard() {
         return this.card;
     }
-  
-  //let adaptiveCard = new AdaptiveCards.AdaptiveCard();
+
+    get AdaptiveTemplate() : object {
+        return this.adaptiveTemplate;
+    }
+
+    set AdaptiveTemplate(acTemplate: object) {
+        this.adaptiveTemplate = { ...acTemplate };
+    }
 
     
   }

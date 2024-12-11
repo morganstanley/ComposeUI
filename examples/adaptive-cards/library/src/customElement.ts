@@ -64,7 +64,7 @@ export class customTemplate extends AdaptiveCards.CardElement {
         return this._templateString;
     }
 
-    set templateString(value: string) {
+    public set templateString(value: string) {
         let santitizedString = sanitizeHtml(value);
 
         if(santitizedString !== this._templateString) {
