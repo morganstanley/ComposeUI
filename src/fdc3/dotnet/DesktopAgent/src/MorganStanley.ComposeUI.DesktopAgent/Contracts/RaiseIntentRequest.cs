@@ -41,7 +41,7 @@ internal sealed class RaiseIntentRequest
     /// <summary>
     /// Context for identifying more the specific app that should handle the raised intent.
     /// </summary>
-    public Context Context { get; set; }
+    public Context? Context { get; set; }
 
     /// <summary>
     /// Information about the app that should resolve the raised intent.
