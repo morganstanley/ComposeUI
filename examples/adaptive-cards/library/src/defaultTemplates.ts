@@ -1,4 +1,7 @@
-export const defaultCard = (title: string, icon:any) => {
+import cancel from './img/cancel.png';
+
+export function defaultCard (context:any) {
+	const data = { ...context };
 	return {
 		"type": "AdaptiveCard",
 		"version": "1.6",
@@ -12,7 +15,7 @@ export const defaultCard = (title: string, icon:any) => {
 							{
 								"type": "Image",
 								"style": "Person",
-								"url": `${icon}`,
+								"url": `${data.icon}`,
 								"size": "Small"
 							}
 						],
@@ -24,8 +27,13 @@ export const defaultCard = (title: string, icon:any) => {
 							{
 								"type": "TextBlock",
 								"weight": "Bolder",
-								"text": `${title}`,
+								"text": `${data.title}`,
 								"wrap": true
+							},
+							{
+								"type": "TextBlock",
+								  "text": `${data.message}`,
+								  "wrap": true
 							}
 						],
 						"width": "stretch"
@@ -35,14 +43,18 @@ export const defaultCard = (title: string, icon:any) => {
 		],
 		"actions": [
 			{
-				"type": "Action.OpenUrl",
-				"title": "Click me"      
+				type: "Action.Submit",
+                iconUrl: cancel,
+                id: "closeButton",     
 			}
 		]
 	}
 } 
 
-export const defaultCardTemplate = {
+export function defaultCardTemplate(context:any) {
+	const data = { ...context };
+
+return {
     type: "AdaptiveCard",
     version: "1.6",
     body: [
@@ -55,7 +67,7 @@ export const defaultCardTemplate = {
 						{
 							"type": "Image",
 							"style": "Person",
-							"url": "/img/check.png",
+							"url": `${data.icon}`,
 							"size": "Small"
 						}
 					],
@@ -67,7 +79,7 @@ export const defaultCardTemplate = {
 						{
 							"type": "TextBlock",
 							"weight": "Bolder",
-							"text": "${title}",
+							"text": `${data.title}`,
 							"wrap": true
 						}
 					],
@@ -77,13 +89,18 @@ export const defaultCardTemplate = {
         },
 		{
 			type: "AdaptiveHTML",
-        	templateString: "<p>I am a code cat </p>"
+        	templateString: `${data.template}`
 		}
     ],
     actions: [
         {
             type: "Action.OpenUrl",
-            title: "Click me"      
+            title: "Cancel"      
+        },
+		{
+            type: "Action.OpenUrl",
+            title: "Ok"      
         }
     ]
+}
 }

@@ -5,6 +5,7 @@ import dts from "rollup-plugin-dts";
 //import resolve from '@rollup/plugin-node-resolve';
 import copy from "rollup-plugin-copy";
 import url from "@rollup/plugin-url";
+import css from "rollup-plugin-import-css";
 
 const config = [
   {
@@ -18,10 +19,11 @@ const config = [
     plugins: [
       json(),
       typescript(),
-      copy({
-        targets: [{ src: "src/img/*", dest: "dist/img/" }],
-      }),
+      //copy({
+      //  targets: [{ src: "src/img/*", dest: "dist/img/" }],
+      //}),
       url(),
+      css()
     ],
   },
   {
