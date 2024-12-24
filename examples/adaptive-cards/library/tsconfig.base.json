@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         /* Modules */
-      "module": "ES2022", 
+      "module": "ESNext", 
       "moduleResolution": "node",                        /* Specify what module code is generated. */
       "target": "ES2022",                                /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
       "types": ["node"],
