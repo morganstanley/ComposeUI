@@ -22,6 +22,9 @@ updates:
         patterns:
           - 'Grpc*'
           - 'Google.Protobuf*'
+      codeanalysis:
+        patterns:
+          - 'Microsoft.CodeAnalysis*'
           
   - package-ecosystem: 'nuget'
     directory: '/src/messaging/dotnet/src/Client'
@@ -35,6 +38,9 @@ updates:
         patterns:
           - 'Grpc*'
           - 'Google.Protobuf*'
+      codeanalysis:
+        patterns:
+          - 'Microsoft.CodeAnalysis*'
           
   - package-ecosystem: 'nuget'
     directory: '/src/messaging/dotnet/src/Core'
@@ -48,6 +54,9 @@ updates:
         patterns:
           - 'Grpc*'
           - 'Google.Protobuf*'
+      codeanalysis:
+        patterns:
+          - 'Microsoft.CodeAnalysis*'
           
   - package-ecosystem: 'nuget'
     directory: '/src/messaging/dotnet/src/Host'
@@ -61,6 +70,9 @@ updates:
         patterns:
           - 'Grpc*'
           - 'Google.Protobuf*'
+      codeanalysis:
+        patterns:
+          - 'Microsoft.CodeAnalysis*'
           
   - package-ecosystem: 'nuget'
     directory: '/src/messaging/dotnet/src/Server'
@@ -74,6 +86,9 @@ updates:
         patterns:
           - 'Grpc*'
           - 'Google.Protobuf*'
+      codeanalysis:
+        patterns:
+          - 'Microsoft.CodeAnalysis*'
           
   - package-ecosystem: 'nuget'
     directory: '/src/shell/dotnet/Shell'
@@ -87,6 +102,9 @@ updates:
         patterns:
           - 'Grpc*'
           - 'Google.Protobuf*'
+      codeanalysis:
+        patterns:
+          - 'Microsoft.CodeAnalysis*'
           
   - package-ecosystem: 'nuget'
     directory: '/prototypes/multi-module-prototype/examples/multi-module-example/ModulesPrototype'
@@ -100,6 +118,9 @@ updates:
         patterns:
           - 'Grpc*'
           - 'Google.Protobuf*'
+      codeanalysis:
+        patterns:
+          - 'Microsoft.CodeAnalysis*'
 
   - package-ecosystem: 'npm'
     directory: '/'
