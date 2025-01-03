@@ -15,7 +15,7 @@
   "dependencies": {
     "@morgan-stanley/composeui-messaging-client": "*",
     "bootstrap": "5.3.3",
-    "highcharts": "11.4.8",
+    "highcharts": "12.1.2",
     "jquery": "3.7.1",
     "tslib": "2.7.0"
   },
