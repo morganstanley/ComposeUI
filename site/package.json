@@ -12,33 +12,10 @@
     "npm": "^10.3.0"
   },
   "dependencies": {
-    "@emotion/react": "^11.13.0",
-    "@emotion/styled": "^11.13.0",
-    "@mdx-js/react": "^2.3.0",
-    "@mui/material": "^5.16.6",
-    "gatsby": "^5.14.0",
-    "gatsby-plugin-image": "^3.13.1",
-    "gatsby-plugin-manifest": "^5.13.1",
-    "gatsby-plugin-mdx": "^5.13.1",
-    "gatsby-plugin-sharp": "^5.13.1",
-    "gatsby-plugin-sitemap": "^6.13.1",
-    "gatsby-plugin-webfonts": "^2.3.2",
-    "gatsby-remark-autolink-headers": "^6.13.1",
-    "gatsby-remark-copy-linked-files": "^6.13.1",
-    "gatsby-remark-images": "^7.13.1",
-    "gatsby-remark-prismjs": "^7.13.1",
-    "gatsby-remark-responsive-iframe": "^6.13.1",
-    "gatsby-remark-smartypants": "^6.13.1",
-    "gatsby-source-filesystem": "^5.13.1",
-    "gatsby-transformer-sharp": "^5.13.1",
-    "prismjs": "^1.29.0",
+    "@morganstanley/gatsby-theme-ms-gh-pages": "^1.0.0",
+    "gatsby": "^5.13.7",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "style-to-object": "^1.0.6"
-  },
-  "overrides": {
-    "axios": "^1.7.4",
-    "webpack-dev-middleware": "^5.3.4"
+    "react-dom": "^18.3.1"
   },
   "scripts": {
     "develop": "gatsby develop -H 0.0.0.0",
