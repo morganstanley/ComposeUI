@@ -1,5 +1,3 @@
-const { plugins } = require('./src/config/base-gatsby-plugins');
-
 module.exports = {
   siteMetadata: {
     title: `ComposeUI`,
@@ -9,5 +7,12 @@ module.exports = {
     //  documentationUrl: url-of.documentation.site,
   },
   pathPrefix: `/ComposeUI`, // put GitHub project url slug here e.g. github.com/morganstanley/<project url slug>
-  plugins,
+  plugins: [
+    {
+      resolve: '@morganstanley/gatsby-theme-ms-gh-pages',
+      options: {
+        indexContent: 'content',
+      },
+    },
+  ],
 };
