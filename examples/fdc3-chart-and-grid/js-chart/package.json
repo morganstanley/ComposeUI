@@ -14,9 +14,9 @@
   "dependencies": {
     "@finos/fdc3": "^2.0.3",
     "bootstrap": "5.3.3",
-    "highcharts": "11.4.8",
+    "highcharts": "12.1.2",
     "jquery": "3.7.1",
-    "tslib": "2.7.0"
+    "tslib": "2.8.1"
   },
   "devDependencies": {
     "http-server": "14.1.1",

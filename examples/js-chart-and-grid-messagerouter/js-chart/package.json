@@ -15,15 +15,15 @@
   "dependencies": {
     "@morgan-stanley/composeui-messaging-client": "*",
     "bootstrap": "5.3.3",
-    "highcharts": "11.4.8",
+    "highcharts": "12.1.2",
     "jquery": "3.7.1",
-    "tslib": "2.7.0"
+    "tslib": "2.8.1"
   },
   "devDependencies": {
     "@webpack-cli/generators": "^3.0.7",
     "http-server": "14.1.1",
     "rimraf": "^6.0.1",
     "webpack": "^5.95.0",
-    "webpack-cli": "^5.1.4"
+    "webpack-cli": "^6.0.1"
   }
 }
