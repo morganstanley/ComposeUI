@@ -6,8 +6,14 @@
 # https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
 version: 2
-updates:
 
+registries:
+  npm-ghp:
+    type: npm-registry
+    url: 'https://npm.pkg.github.com'
+    token: ${{ secrets.GITHUB_TOKEN }}
+
+updates:
   # Dependabot doesn't support glob syntax. Every solution needs an entry
 
   - package-ecosystem: 'nuget'
@@ -41,7 +47,7 @@ updates:
       codeanalysis:
         patterns:
           - 'Microsoft.CodeAnalysis*'
-          
+
   - package-ecosystem: 'nuget'
     directory: '/src/messaging/dotnet/src/Core'
     schedule:
@@ -105,7 +111,7 @@ updates:
       codeanalysis:
         patterns:
           - 'Microsoft.CodeAnalysis*'
-          
+
   - package-ecosystem: 'nuget'
     directory: '/prototypes/multi-module-prototype/examples/multi-module-example/ModulesPrototype'
     schedule:
