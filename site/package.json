@@ -27,7 +27,7 @@
     "test": "jest"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.4.8",
+    "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.0.0",
     "babel-jest": "^29.7.0",
     "babel-preset-gatsby": "^3.13.2",
