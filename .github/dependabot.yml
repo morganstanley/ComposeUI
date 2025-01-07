@@ -8,7 +8,7 @@
 version: 2
 
 registries:
-  npm-ghp:
+  github-packages:
     type: npm-registry
     url: 'https://npm.pkg.github.com'
     token: ${{ secrets.GITHUB_TOKEN }}
@@ -31,7 +31,7 @@ updates:
       codeanalysis:
         patterns:
           - 'Microsoft.CodeAnalysis*'
-          
+
   - package-ecosystem: 'nuget'
     directory: '/src/messaging/dotnet/src/Client'
     schedule:
@@ -63,7 +63,7 @@ updates:
       codeanalysis:
         patterns:
           - 'Microsoft.CodeAnalysis*'
-          
+
   - package-ecosystem: 'nuget'
     directory: '/src/messaging/dotnet/src/Host'
     schedule:
@@ -79,7 +79,7 @@ updates:
       codeanalysis:
         patterns:
           - 'Microsoft.CodeAnalysis*'
-          
+
   - package-ecosystem: 'nuget'
     directory: '/src/messaging/dotnet/src/Server'
     schedule:
@@ -95,7 +95,7 @@ updates:
       codeanalysis:
         patterns:
           - 'Microsoft.CodeAnalysis*'
-          
+
   - package-ecosystem: 'nuget'
     directory: '/src/shell/dotnet/Shell'
     schedule:
@@ -157,6 +157,13 @@ updates:
     ignore:
       - dependency-name: '@angular*'
         update-types: ['version-update:semver-major']
+
+  - package-ecosystem: 'npm'
+    registries:
+      - 'github-packages'
+    directory: '/site'
+    schedule:
+      interval: 'monthly'
 
   - package-ecosystem: github-actions
     directory: /
