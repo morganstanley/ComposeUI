@@ -1,0 +1,27 @@
+name: Dependency Submission
+
+on:
+  workflow_dispatch:
+  schedule: 
+    - cron: 0 19 * * * #7 PM ET
+  
+
+permissions: 
+  id-token: write
+  contents: write
+
+jobs:
+  dependency-submission:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build Components
+        run: |
+              npm i
+              npx lerna run build --stream
+              powershell ./build/dotnet-restore.ps1
+              powershell ./build/dotnet-build.ps1
+      - name: Component detection 
+        uses: advanced-security/component-detection-dependency-submission-action@v0.0.4
+        with:
+          detectorsFilter: "Npm,NuGet"
