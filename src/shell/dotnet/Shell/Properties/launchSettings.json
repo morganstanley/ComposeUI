@@ -6,7 +6,7 @@
     },
     "Shell": {
       "commandName": "Project",
-      "commandLineArgs": "--ModuleCatalog:CatalogUrl \"file:///$(ProjectDir)..\\examples\\module-catalog.json\" --FDC3:AppDirectory:Source $(ComposeUIRepositoryRoot)/examples/fdc3-appdirectory/apps-with-intents.json"
+      "commandLineArgs": "--ModuleCatalog:CatalogUrl \"file:///$(ProjectDir)..\\examples\\module-catalog.json\" --FDC3:AppDirectory:Source $(ComposeUIRepositoryRoot)/examples/fdc3-appdirectory/apps.json"
     },
     "FINOS FDC3": {
       "commandName": "Project",
