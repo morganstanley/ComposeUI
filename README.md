@@ -10,7 +10,6 @@ ComposeUI
 [![codecov](https://codecov.io/gh/MorganStanley/ComposeUI/branch/main/graph/badge.svg)](https://codecov.io/gh/MorganStanley/ComposeUI)
 [![GitHub Repo stars](https://img.shields.io/github/stars/morganstanley/ComposeUI?style=social)](https://github.com/morganstanley/ComposeUI)
 
-
 ComposeUI is a A .NET Core based general UI Container and Unified UI and App host which enables the hosting of Web and desktop content.
 
 Our goal is to fill the feature gaps with respect to UI components, layout management, and subpar native hosting in other industry container solutions by providing a standard container as an open desktop platform. It is a hybrid solution that meets the needs of a diverse application catalog as well as a compelling opensource alternative.
@@ -25,14 +24,16 @@ It supports desktop and web applications in order to provide an evergreen altern
 
 # Development Setup
 ## Prerequisites
-* Node.js 18
-* .NET 6 (SDK 6.0.x, Desktop Runtime 6.0.x)
-* Visual Studio 2022 Community Edition
+
+- Node.js 18
+- .NET 6 (SDK 6.0.x, Desktop Runtime 6.0.x)
+- Visual Studio 2022 Community Edition
 
 ## Building the ComposeUI Container
 
 
 Clone the main repository:
+
 ```
 git clone https://github.com/morganstanley/ComposeUI.git
 ```
@@ -80,8 +81,9 @@ From the ComposeUI folder:
 .\examples\fdc3-chart-and-grid\serve-chart-and-grid.ps1
 ```
 Now the development servers are running:
-* Chart: localhost:8080
-* Grid: localhost:4200
+
+- Chart: localhost:8080
+- Grid: localhost:4200
 
 ### Launching the Shell with the Examples
 
@@ -113,6 +115,7 @@ MorganStanley.ComposeUI.Shell --ModuleCatalog:CatalogUrl file:///C:/ComposeUI/sr
  
 
 ### Running the Shell
+
 1. Open the Shell Solution
 2. Choose "Shell" as the startup project
 3. Run
@@ -127,26 +130,31 @@ The javascript dependencies are managed by a lerna monorepo. To build them separ
 ### Run scripts
 
 In the root folder
+
 ```
 npm i
 ```
 
 Build all modules:
+
 ```
 npx lerna run build --stream
 ```
 Test all modules:
+
 ```
 npx lerna run test --stream
 ```
 (If you don't want a detailed log, you can execute these without --stream)
 
 Building a specific module:
+
 ```
 npx lerna run build --stream --scope=@morgan-stanley/composeui-messaging-client
 ```
 
 List all modules in the workspace
+
 ```
 npx lerna list
 ```
