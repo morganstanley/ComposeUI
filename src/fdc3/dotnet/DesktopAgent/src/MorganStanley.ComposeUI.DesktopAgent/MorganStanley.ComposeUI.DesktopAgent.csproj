@@ -2,7 +2,6 @@
 	<PropertyGroup>
 		<TargetFramework>$(TargetFrameworkVersion)</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<LangVersion>preview</LangVersion>
 		<AssemblyName>MorganStanley.ComposeUI.Fdc3.DesktopAgent</AssemblyName>
 		<RootNamespace>MorganStanley.ComposeUI.Fdc3.DesktopAgent</RootNamespace>
 	</PropertyGroup>
