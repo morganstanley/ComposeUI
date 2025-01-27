@@ -229,14 +229,14 @@ public class WindowsProcessInfoManagerTests
     {
         var folder = GetEnvironmentFolder();
 
-        return Path.GetFullPath($@"../../../../MorganStanley.ComposeUI.TestConsoleApp/bin/{folder}/net6.0/MorganStanley.ComposeUI.TestConsoleApp.exe");
+        return Path.GetFullPath($@"../../../../MorganStanley.ComposeUI.TestConsoleApp/bin/{folder}/net8.0/MorganStanley.ComposeUI.TestConsoleApp.exe");
     }
 
     private static string GetSimpleTestApplicationPath()
     {
         var folder = GetEnvironmentFolder();
 
-        return Path.GetFullPath($"../../../../MorganStanley.ComposeUI.TestConsoleApp2/bin/{folder}/net6.0/MorganStanley.ComposeUI.TestConsoleApp2.exe");
+        return Path.GetFullPath($"../../../../MorganStanley.ComposeUI.TestConsoleApp2/bin/{folder}/net8.0/MorganStanley.ComposeUI.TestConsoleApp2.exe");
     }
 
     private static string GetEnvironmentFolder()
