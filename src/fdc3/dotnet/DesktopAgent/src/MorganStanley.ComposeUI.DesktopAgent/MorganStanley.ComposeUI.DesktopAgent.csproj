@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFramework>$(TargetFrameworkVersion)</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
 		<LangVersion>preview</LangVersion>
 		<AssemblyName>MorganStanley.ComposeUI.Fdc3.DesktopAgent</AssemblyName>
 		<RootNamespace>MorganStanley.ComposeUI.Fdc3.DesktopAgent</RootNamespace>

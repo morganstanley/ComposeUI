@@ -27,4 +27,10 @@
         <RepositoryUrl>https://github.com/morganstanley/ComposeUI</RepositoryUrl>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     </PropertyGroup>
+	
+	<PropertyGroup>
+		<TargetFrameworkVersion>net8.0</TargetFrameworkVersion>
+		<LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+	</PropertyGroup>
 </Project>

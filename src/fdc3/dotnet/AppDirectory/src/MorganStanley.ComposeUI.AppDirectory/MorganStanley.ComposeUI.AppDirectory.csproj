@@ -1,11 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFramework>$(TargetFrameworkVersion)</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
 		<AssemblyName>MorganStanley.ComposeUI.Fdc3.AppDirectory</AssemblyName>
 		<RootNamespace>MorganStanley.ComposeUI.Fdc3.AppDirectory</RootNamespace>
-		<LangVersion>preview</LangVersion>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
-		<Nullable>enable</Nullable>
+		<TargetFramework>$(TargetFrameworkVersion)</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<RootNamespace>MorganStanley.ComposeUI.Messaging</RootNamespace>
 		<Description>.NET Server Package for ComposeUI's Message Router. More Details: https://morganstanley.github.io/ComposeUI/</Description>
