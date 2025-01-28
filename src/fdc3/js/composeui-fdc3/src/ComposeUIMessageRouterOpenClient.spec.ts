@@ -213,7 +213,7 @@ describe('MessageRouter OpenClient tests', () => {
 
     it('getOpenedAppContext returns context', async() => {
         const response: Fdc3GetOpenedAppContextResponse = {
-            context: JSON.stringify({type: "fdc3.instrument"})
+            context: {type: "fdc3.instrument"}
         };
 
         messageRouterClient = {

@@ -95,8 +95,8 @@ export class MessageRouterClient implements MessageRouter {
                     topic: topicName
                 });
             } catch (error) {
-                console.error("Failed to subscribe to topic '${topicName}'", error);
                 delete this.topics[topicName];
+                throw error;
             }
         }
 

@@ -151,7 +151,7 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
 
     it('addContextListener handles openAppContext', async() => {
         const response: Fdc3GetOpenedAppContextResponse = {
-            context: JSON.stringify({type: "fdc3.instrument"})
+            context: {type: "fdc3.instrument"}
         };
 
         messageRouterClient = {
