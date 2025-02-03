@@ -212,6 +212,25 @@ export class MarketWatchComponent implements OnInit, OnDestroy{
   }
 
   async ngOnInit() {
+    if (window.fdc3) {
+      await this.simulateTrading();
+    } else {
+      window.addEventListener('fdc3Ready', async() => {
+        await this.simulateTrading();
+      });
+    }
+  }
+
+  public displayedColumns: string[] = ['Symbol', 'Description', 'AskPrice', 'AskSize', 'BidPrice', 'BidSize', 'LastTrade'];
+  public marketData: MatTableDataSource<SymbolElement> = new MatTableDataSource(ELEMENT_DATA);
+  public currentRow: SymbolElement | undefined;
+  private channel: Channel | undefined;
+
+  public selectSymbol(symbolRow: SymbolElement) {
+    this.currentRow === symbolRow ? this.currentRow = undefined : this.currentRow = symbolRow;
+  }
+
+  public async simulateTrading() {
     this.subject.next(
       { 
         Symbol: undefined,
@@ -391,14 +410,5 @@ export class MarketWatchComponent implements OnInit, OnDestroy{
     } catch (err) {
       console.error(err);
     }
-  }
-
-  public displayedColumns: string[] = ['Symbol', 'Description', 'AskPrice', 'AskSize', 'BidPrice', 'BidSize', 'LastTrade'];
-  public marketData: MatTableDataSource<SymbolElement> = new MatTableDataSource(ELEMENT_DATA);
-  public currentRow: SymbolElement | undefined;
-  private channel: Channel | undefined;
-
-  public selectSymbol(symbolRow: SymbolElement) {
-    this.currentRow === symbolRow ? this.currentRow = undefined : this.currentRow = symbolRow;
   }
 }

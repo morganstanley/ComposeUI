@@ -14,11 +14,6 @@
 
 import "bootstrap/dist/css/bootstrap.css";
 
-window.addEventListener('fdc3Ready', async function () {
-    intentListener = await window.fdc3.addIntentListener("StartChat", window.app.handleChatIntent);
-    await window.fdc3.joinUserChannel("fdc3.channel.1");
-});
-
 window.app = function () {
     let channel;
     let contextListener;
@@ -95,3 +90,13 @@ window.app = function () {
         broadcast: broadcast
     }
 }();
+
+if (!window.fdc3) {
+    window.addEventListener('fdc3Ready', async function () {
+        intentListener = await window.fdc3.addIntentListener("StartChat", window.app.handleChatIntent);
+        await window.fdc3.joinUserChannel("fdc3.channel.1");
+    });
+} else {
+    intentListener = window.fdc3.addIntentListener("StartChat", window.app.handleChatIntent);
+    window.fdc3.joinUserChannel("fdc3.channel.1");
+}

@@ -21,7 +21,7 @@ export class MockDataService{
   constructor(){
       this.market = new Market();
 
-      window.addEventListener('fdc3Ready', () => {
+      if (window.fdc3) {
         this.connecting = new Promise(async(resolve, reject) => {
           try{
             resolve(await this.checkFdc3Connection());
@@ -29,7 +29,17 @@ export class MockDataService{
             reject(err);
           };
         });
-      });
+      } else {
+        window.addEventListener('fdc3Ready', () => {
+          this.connecting = new Promise(async(resolve, reject) => {
+            try{
+              resolve(await this.checkFdc3Connection());
+            } catch(err) {
+              reject(err);
+            };
+          });
+        });
+      }
 
       interval(1000).subscribe(() => {
         this.marketData = this.market.generateNewMarketNumbers();
