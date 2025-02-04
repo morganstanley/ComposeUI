@@ -26,7 +26,7 @@ It supports desktop and web applications in order to provide an evergreen altern
 # Development Setup
 ## Prerequisites
 * Node.js 18
-* .NET 6 (SDK 6.0.x, Desktop Runtime 6.0.x)
+* .NET 8 (SDK 8.0.x, Desktop Runtime 8.0.x)
 * Visual Studio 2022 Community Edition
 
 ## Building the ComposeUI Container
