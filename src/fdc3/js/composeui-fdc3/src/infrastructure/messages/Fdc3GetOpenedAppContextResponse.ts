@@ -14,6 +14,5 @@ import { Context } from "@finos/fdc3";
 
 export interface Fdc3GetOpenedAppContextResponse {
     error?: string;
-    //TODO: properly deserializing the contexts.
     context?: Context;
 }
