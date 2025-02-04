@@ -7,7 +7,7 @@ Accessing them can be done via the vars object.
 
 | Variable       | Description                                             | Example value |
 | -------------- | ------------------------------------------------------- | ------------- |
-| DOTNET_VERSION | The version of dotnet to load with actions/setup-dotnet | 6.0.x         |
+| DOTNET_VERSION | The version of dotnet to load with actions/setup-dotnet | 8.0.x         |
 | NODE_VERSION   | The version of node.js to load with actions/setup-node  | 18.x          |
 
 # Workflows

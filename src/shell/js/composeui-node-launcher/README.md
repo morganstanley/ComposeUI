@@ -5,7 +5,7 @@
 ## Pre-requisites
 
 ### For the shell:
-* [.Net Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-6.0.16-windows-x64-installer)
+* [.Net Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.12-windows-x64-installer)
 * [Edge WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section)
 
 ## Library
@@ -110,5 +110,5 @@ COMPOSEUI_CDN_URL='http://127.0.0.1:8080'
 To achieve this you can set the `COMPOSEUI_BINARY_FILE_PATH` variable to point to the exe compiled by Visual Studio:
 
 ```
-COMPOSEUI_BINARY_FILE_PATH='path\to\your\project\folder\ComposeUI\src\shell\dotnet\Shell\bin\Debug\net6.0-windows\ComposeUI-Shell.exe'
+COMPOSEUI_BINARY_FILE_PATH='path\to\your\project\folder\ComposeUI\src\shell\dotnet\Shell\bin\Debug\net8.0-windows\ComposeUI-Shell.exe'
 ```
