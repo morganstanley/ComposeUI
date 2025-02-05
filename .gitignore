@@ -1393,3 +1393,5 @@ $RECYCLE.BIN/
 .cache/
 public
 docs/
+
+**/*.bak

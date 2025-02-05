@@ -2,11 +2,9 @@
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<TargetFramework>net6.0-windows</TargetFramework>
-		<Nullable>enable</Nullable>
+		<TargetFramework>$(TargetFrameworkVersion)-windows</TargetFramework>
 		<UseWPF>true</UseWPF>
 		<EnableDefaultPageItems>false</EnableDefaultPageItems>
-		<LangVersion>preview</LangVersion>
 		<AssemblyName>MorganStanley.ComposeUI.Shell</AssemblyName>
 		<RootNamespace>MorganStanley.ComposeUI.Shell</RootNamespace>
 	</PropertyGroup>

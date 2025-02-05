@@ -44,6 +44,8 @@ public partial class AppDirectoryTests
     [Theory, CombinatorialData]
     public async Task GetApps_reloads_the_data_if_the_source_file_has_changed(bool useApiSchema)
     {
+        await Task.Yield(); // Finish other tests before running this one, as it uses the whole threadpool
+
         var source = "/apps.json";
         var json = useApiSchema ? GetAppsApiResponse : GetAppsJsonArray;
 
