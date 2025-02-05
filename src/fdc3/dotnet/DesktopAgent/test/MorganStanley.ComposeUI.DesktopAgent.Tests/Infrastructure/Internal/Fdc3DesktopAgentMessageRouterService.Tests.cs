@@ -35,6 +35,7 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.TestData;
 using static MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.TestData.TestAppDirectoryData;
+using System.Diagnostics;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Infrastructure.Internal;
 
@@ -733,6 +734,12 @@ public partial class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
 
         var raiseIntentResult = await _fdc3.HandleRaiseIntent(raiseIntentRequest, new MessageContext());
         raiseIntentResult.Should().NotBeNull();
+
+        if (raiseIntentResult?.Error != null)
+        {
+            Debug.WriteLine($"Error occurred while executing test: HandleGetIntentResult_succeeds_with_channel; error: {raiseIntentResult.Error}");
+            Console.WriteLine($"Error occurred while executing test: HandleGetIntentResult_succeeds_with_channel; error: {raiseIntentResult.Error}");
+        }
         raiseIntentResult!.AppMetadata.Should().NotBeNull();
 
         var storeIntentRequest = new StoreIntentResultRequest
