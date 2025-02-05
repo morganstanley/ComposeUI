@@ -14,6 +14,9 @@ updates:
     directory: '/src/fdc3/dotnet/DesktopAgent/src/DesktopAgent'
     schedule:
       interval: 'monthly'
+      ignore:
+        - dependency-name: 'Finos.Fdc3*'
+          versions: [ '>=2.1' ]
     groups:
       infragistics:
         patterns:
@@ -105,6 +108,9 @@ updates:
     directory: '/'
     schedule:
       interval: 'monthly'
+      ignore:
+        - dependency-name: '@finos/fdc3'
+          versions: [ '>=2.1' ]
     groups:
       react:
         patterns:
