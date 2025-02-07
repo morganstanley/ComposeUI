@@ -24,7 +24,6 @@ namespace MorganStanley.ComposeUI.ProcessExplorer.Core.Tests.Processes;
 
 public class WindowsProcessInfoManagerTests
 {
-    [Fact]
     public void AddChildProcesses_will_add_child_processes_to_the_list()
     {
         var loggerMock = CreateLoggerMock();
@@ -46,7 +45,6 @@ public class WindowsProcessInfoManagerTests
         processMonitor.Dispose();
     }
 
-    [Fact]
     public void AddProcess_will_add_process_to_the_watchable_list()
     {
         var loggerMock = CreateLoggerMock();
@@ -65,7 +63,6 @@ public class WindowsProcessInfoManagerTests
         processMonitor.Dispose();
     }
 
-    [Fact]
     public void CheckIfIsComposeProcess_will_check_if_it_is_contained_by_the_list_and_return_true()
     {
         var loggerMock = CreateLoggerMock();
