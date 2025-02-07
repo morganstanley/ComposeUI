@@ -4,9 +4,9 @@
 
 on:
   push:
-    branches: [ main, fix/tests ]
-  pull_request:
     branches: [ main ]
+  pull_request:
+    branches: [ main, feat/fdc3-2_0-conformance ]
   workflow_call:
   workflow_dispatch:
 
