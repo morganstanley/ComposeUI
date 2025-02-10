@@ -56,8 +56,8 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     private readonly ConcurrentDictionary<StartRequest, TaskCompletionSource<IModuleInstance>> _pendingStartRequests = new();
     private readonly ConcurrentDictionary<Guid, List<ContextListener>> _contextListeners = new();
     private readonly ConcurrentDictionary<Guid, string> _openedAppContexts = new();
-    private IDisposable _startedLifetimeEventSubscription;
-    private IDisposable _stoppedLifetimeEventSubscription;
+    private IDisposable? _startedLifetimeEventSubscription;
+    private IDisposable? _stoppedLifetimeEventSubscription;
     private readonly object _contextListenerLock = new();
     private readonly IntentResolver _intentResolver;
 
@@ -192,7 +192,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         return CreateAppChannelResponse.Created();
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public Task StartAsync(CancellationToken cancellationToken)
     {
         _startedLifetimeEventSubscription = _moduleLoader.LifetimeEvents
             .OfType<LifetimeEvent.Started>()
@@ -205,6 +205,8 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             .Select(lifetimeEvent => Observable.FromAsync(() => RemoveModuleAsync(lifetimeEvent.Instance)))
             .Merge()
             .Subscribe();
+
+        return Task.CompletedTask;
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
