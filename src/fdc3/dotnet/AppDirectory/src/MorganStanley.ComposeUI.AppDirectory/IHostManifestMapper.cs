@@ -13,28 +13,25 @@
 */
 
 using Finos.Fdc3.AppDirectory;
+using MorganStanley.ComposeUI.ModuleLoader;
+using Newtonsoft.Json;
 
 namespace MorganStanley.ComposeUI.Fdc3.AppDirectory;
 
-public partial class Fdc3ModuleCatalogTests
+/// <summary>
+/// Sets the container specific properties to manifest details.
+/// </summary>
+public interface IHostManifestMapper
 {
-    [Fact]
-    public async Task GetModuleIds_returns_available_appIds()
-    {
-        var moduleIds = await _catalog.GetModuleIds();
+    /// <summary>
+    /// <see cref="Newtonsoft.Json.JsonConverter"/> to enable container specific deserialization for <see cref="Finos.Fdc3.AppDirectory.Fdc3App.HostManifests"/>.
+    /// </summary>
+    public JsonConverter HostManifestJsonConverter { get; }
 
-        moduleIds.Should().HaveCount(3).And.Contain(new[] { "app1", "app2", "app3" });
-    }
-
-    [Fact]
-    public async Task GetModuleIds_returns_empty_collection_on_empty_directory()
-    {
-        var directory = new Mock<IAppDirectory>();
-        directory.Setup(x => x.GetApps()).Returns(Task.FromResult(Enumerable.Empty<Fdc3App>()));
-
-        var catalog = new Fdc3ModuleCatalog(directory.Object);
-
-        var moduleIds = await catalog.GetModuleIds();
-        moduleIds.Should().NotBeNull().And.BeEmpty();
-    }
+    /// <summary>
+    /// Maps the container specific information to web properties.
+    /// </summary>
+    /// <param name="fdc3App"></param>
+    /// <returns></returns>
+    public ModuleDetails MapModuleDetails (Fdc3App fdc3App);
 }

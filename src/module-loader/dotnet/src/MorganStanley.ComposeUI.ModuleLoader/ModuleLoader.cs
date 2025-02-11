@@ -40,7 +40,6 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
         _moduleCatalog = new AggregateModuleCatalog(moduleCatalogs, _logger);
         _moduleRunners = moduleRunners.GroupBy(runner => runner.ModuleType).ToDictionary(g => g.Key, g => g.First());
         _startupActions = new List<IStartupAction>(startupActions);
-        
     }
 
     public IObservable<LifetimeEvent> LifetimeEvents => _lifetimeEvents;
@@ -82,6 +81,7 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
 
     public async Task StopModule(StopRequest request)
     {
+        //TODO: decide if we want to remove it from the dictionary
         if (!_modules.TryGetValue(request.InstanceId, out var module))
         {
             return;

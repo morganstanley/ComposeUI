@@ -13,20 +13,27 @@
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
 /// <summary>
-/// Contains the manifest details for web modules.
+/// Common module properties.
 /// </summary>
-/// <remarks>
-/// Web modules should have <see cref="ModuleType.Web"/> as their <see cref="IModuleManifest.ModuleType"/>
-/// </remarks>
-public sealed class WebManifestDetails : ModuleDetails
+public class ModuleDetails
 {
     /// <summary>
-    /// The URL to open when this module is started.
+    /// Initial location of the module when it has been created.
     /// </summary>
-    public Uri Url { get; init; } = ModuleLoaderConstants.DefaultUri;
+    public InitialModulePosition? InitialModulePosition { get; init; }
 
     /// <summary>
-    /// The URL of the window icon, if any.
+    /// Default width size if the window is opened as floating window.
     /// </summary>
-    public Uri? IconUrl { get; init; }
+    public double? Width { get; init; }
+
+    /// <summary>
+    /// Default height size if the window is opened as floating window.
+    /// </summary>
+    public double? Height { get; init; }
+
+    /// <summary>
+    /// Initial coordinate positions of the window if it is opened as floating window.
+    /// </summary>
+    public Coordinates? Coordinates { get; init; }
 }

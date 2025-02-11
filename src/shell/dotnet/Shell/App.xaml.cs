@@ -71,7 +71,7 @@ public partial class App : Application
     {
         Dispatcher.VerifyAccess();
         var webContent = CreateInstance<WebContent>(parameters);
-        _shellWindow!.AddDockableFloatingContent(webContent);
+        _shellWindow!.ShowContentPane(webContent);
 
         return webContent;
     }
@@ -202,6 +202,7 @@ public partial class App : Application
             if (fdc3Options is { EnableFdc3: true })
             {
                 services.AddFdc3DesktopAgent(desktopAgent => desktopAgent.UseMessageRouter());
+                services.AddSingleton<IHostManifestMapper, ComposeUIHostManifestMapper>();
                 services.AddFdc3AppDirectory();
                 services.AddSingleton<Fdc3ResolverUIWindow>();
                 services.AddSingleton<IResolverUIProjector>(p => p.GetRequiredService<Fdc3ResolverUIWindow>());

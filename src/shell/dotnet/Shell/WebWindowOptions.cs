@@ -13,6 +13,7 @@
 //  */
 
 using System.ComponentModel.DataAnnotations;
+using MorganStanley.ComposeUI.ModuleLoader;
 
 namespace MorganStanley.ComposeUI.Shell;
 
@@ -32,6 +33,12 @@ public sealed class WebWindowOptions
 
     [Display(Description = $"Set the width of the window. Default: 800")]
     public double? Width { get; set; }
+
+    [Display(Description = $"Set the initial location of the created window.")]
+    public InitialModulePosition? InitialModulePostion { get; set; }
+
+    [Display(Description = $"Initial coordinate positions of the window if it is opened as floating window.")]
+    public Coordinates? Coordinates { get; set; }
 
     public const double DefaultHeight = 450;
     public const string DefaultTitle = "ComposeUI Web Container";
