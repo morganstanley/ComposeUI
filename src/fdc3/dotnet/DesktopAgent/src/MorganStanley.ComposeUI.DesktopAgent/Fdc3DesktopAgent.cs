@@ -56,7 +56,8 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     private readonly ConcurrentDictionary<StartRequest, TaskCompletionSource<IModuleInstance>> _pendingStartRequests = new();
     private readonly ConcurrentDictionary<Guid, List<ContextListener>> _contextListeners = new();
     private readonly ConcurrentDictionary<Guid, string> _openedAppContexts = new();
-    private IAsyncDisposable? _subscription;
+    private IDisposable? _startedLifetimeEventSubscription;
+    private IDisposable? _stoppedLifetimeEventSubscription;
     private readonly object _contextListenerLock = new();
     private readonly IntentResolver _intentResolver;
 
@@ -191,24 +192,21 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         return CreateAppChannelResponse.Created();
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public Task StartAsync(CancellationToken cancellationToken)
     {
-        var observable = _moduleLoader.LifetimeEvents.ToAsyncObservable();
-        var subscription = await observable.SubscribeAsync(async lifetimeEvent =>
-        {
-            switch (lifetimeEvent)
-            {
-                case LifetimeEvent.Stopped:
-                    await RemoveModuleAsync(lifetimeEvent.Instance);
-                    break;
+        _startedLifetimeEventSubscription = _moduleLoader.LifetimeEvents
+            .OfType<LifetimeEvent.Started>()
+            .Select(lifetimeEvent => Observable.FromAsync(() => AddOrUpdateModuleAsync(lifetimeEvent.Instance)))
+            .Merge()
+            .Subscribe();
 
-                case LifetimeEvent.Started:
-                    await AddOrUpdateModuleAsync(lifetimeEvent.Instance);
-                    break;
-            }
-        });
+        _stoppedLifetimeEventSubscription = _moduleLoader.LifetimeEvents
+            .OfType<LifetimeEvent.Stopped>()
+            .Select(lifetimeEvent => Observable.FromAsync(() => RemoveModuleAsync(lifetimeEvent.Instance)))
+            .Merge()
+            .Subscribe();
 
-        _subscription = subscription;
+        return Task.CompletedTask;
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
@@ -221,11 +219,10 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         await SafeWaitAsync(userChannelDisposeTasks);
         await SafeWaitAsync(appChannelDisposeTasks);
 
-        if (_subscription != null)
-        {
-            _runningModules.Clear();
-            await _subscription.DisposeAsync();
-        }
+        _startedLifetimeEventSubscription?.Dispose();
+        _stoppedLifetimeEventSubscription?.Dispose();
+
+        _runningModules.Clear();
 
         foreach (var pendingStartRequest in _pendingStartRequests)
         {

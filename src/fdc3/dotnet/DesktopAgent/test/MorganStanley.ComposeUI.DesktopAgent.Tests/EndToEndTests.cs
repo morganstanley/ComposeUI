@@ -133,6 +133,7 @@ public class EndToEndTests : IAsyncLifetime
 
         var fdc3DesktopAgentMessageRouterService =
             _host.Services.GetRequiredService<IHostedService>() as Fdc3DesktopAgentMessageRouterService;
+
         _options = fdc3DesktopAgentMessageRouterService!.JsonMessageSerializerOptions;
     }
 
