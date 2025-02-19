@@ -12,6 +12,12 @@
 * and limitations under the License.
 */
 
-global using Xunit;
-global using FluentAssertions;
-global using Moq;
+namespace MorganStanley.ComposeUI.Fdc3.AppDirectory.TestUtilities;
+
+/// <summary>
+/// Helper class for test cases. Helps setting up mocks to trigger the events.
+/// </summary>
+public interface IFileSystemWatcherMockHelper
+{
+    void TriggerChangedEvent();
+}
