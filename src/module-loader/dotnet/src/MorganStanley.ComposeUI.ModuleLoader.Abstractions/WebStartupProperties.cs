@@ -18,9 +18,40 @@ namespace MorganStanley.ComposeUI.ModuleLoader;
 /// </summary>
 public sealed class WebStartupProperties
 {
+    /// <summary>
+    /// Url of the web application.
+    /// </summary>
     public Uri Url { get; set; } = ModuleLoaderConstants.DefaultUri;
+
+    /// <summary>
+    /// URl of the module's icon.
+    /// </summary>
     public Uri? IconUrl { get; set; }
+
+    /// <summary>
+    /// List of the scripts that must be injected to the web module.
+    /// </summary>
     public List<WebModuleScriptProvider> ScriptProviders { get; } = new();
+
+    /// <summary>
+    /// Initial position of the module.
+    /// </summary>
+    public InitialModulePosition? InitialModulePosition { get; set; }
+
+    /// <summary>
+    /// Width of the opening floating window of the started app.
+    /// </summary>
+    public double? Width { get; set; }
+
+    /// <summary>
+    /// Height of the opening floating window of the started app.
+    /// </summary>
+    public double? Height { get; set; }
+
+    /// <summary>
+    /// Initial coordinate positions of the window if it is opened as floating window.
+    /// </summary>
+    public Coordinates? Coordinates { get; set; }
 }
 
 public delegate ValueTask<string> WebModuleScriptProvider(IModuleInstance moduleInstance);

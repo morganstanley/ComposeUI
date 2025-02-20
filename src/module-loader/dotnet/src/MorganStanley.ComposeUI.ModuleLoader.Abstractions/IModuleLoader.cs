@@ -14,9 +14,24 @@ namespace MorganStanley.ComposeUI.ModuleLoader;
 
 public interface IModuleLoader
 {
+    /// <summary>
+    /// Starts the module.
+    /// </summary>
+    /// <param name="startRequest">Provides possibility to pass different configuration for starting the module.</param>
+    /// <returns></returns>
     Task<IModuleInstance> StartModule(StartRequest startRequest);
 
+
+    /// <summary>
+    /// Stops the module by instance id.
+    /// </summary>
+    /// <param name="stopRequest"></param>
+    /// <returns></returns>
     Task StopModule(StopRequest stopRequest);
 
+
+    /// <summary>
+    /// The module's lifetime events through its lifetime.
+    /// </summary>
     IObservable<LifetimeEvent> LifetimeEvents { get; }
 }

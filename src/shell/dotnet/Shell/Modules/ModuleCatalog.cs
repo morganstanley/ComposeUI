@@ -111,15 +111,12 @@ internal sealed class ModuleCatalog : IModuleCatalog, IInitializeAsync
             var typeReader = reader;
             var header = JsonSerializer.Deserialize<ManifestTypeHelper>(ref typeReader, options);
 
-            switch (header.ModuleType)
+            return header.ModuleType switch
             {
-                case ModuleType.Web:
-                    return JsonSerializer.Deserialize<WebModuleManifest>(ref reader, options);
-                case ModuleType.Native:
-                    return JsonSerializer.Deserialize<NativeModuleManifest>(ref reader, options);
-                default:
-                    throw new InvalidOperationException("Unsupported module type: " + header.ModuleType);
-            }
+                ModuleType.Web => JsonSerializer.Deserialize<WebModuleManifest>(ref reader, options),
+                ModuleType.Native => JsonSerializer.Deserialize<NativeModuleManifest>(ref reader, options),
+                _ => throw new InvalidOperationException("Unsupported module type: " + header.ModuleType),
+            };
         }
 
         public override void Write(Utf8JsonWriter writer, ModuleManifest value, JsonSerializerOptions options)

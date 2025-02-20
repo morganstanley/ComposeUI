@@ -61,7 +61,10 @@ internal sealed class ModuleService : IHostedService
     private async void OnWebModuleStarted(LifetimeEvent.Started e)
     {
         var properties = e.Instance.GetProperties().OfType<WebStartupProperties>().FirstOrDefault();
-        if (properties == null) return;
+        if (properties == null)
+        {
+            return;
+        }
 
         var webWindowOptions = e.Instance.GetProperties().OfType<WebWindowOptions>().FirstOrDefault();
 
@@ -75,7 +78,11 @@ internal sealed class ModuleService : IHostedService
                         webWindowOptions ?? new WebWindowOptions
                         {
                             Url = properties.Url.ToString(),
-                            IconUrl = properties.IconUrl?.ToString()
+                            IconUrl = properties.IconUrl?.ToString(),
+                            InitialModulePostion = properties.InitialModulePosition,
+                            Width = properties.Width ?? WebWindowOptions.DefaultWidth,
+                            Height = properties.Height ?? WebWindowOptions.DefaultHeight,
+                            Coordinates = properties.Coordinates
                         });
                 });
         }

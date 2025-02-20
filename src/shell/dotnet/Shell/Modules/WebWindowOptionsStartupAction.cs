@@ -26,6 +26,7 @@ namespace MorganStanley.ComposeUI.Shell.Modules
             {
                 var webWindowOptions = startupContext.StartRequest.Parameters
                     .FirstOrDefault(p => p.Key == WebWindowOptions.ParameterName).Value;
+
                 if (webWindowOptions != null)
                 {
                     startupContext.AddProperty(JsonSerializer.Deserialize<WebWindowOptions>(webWindowOptions));
