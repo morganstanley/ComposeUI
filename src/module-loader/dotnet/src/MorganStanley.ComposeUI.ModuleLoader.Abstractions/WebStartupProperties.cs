@@ -52,6 +52,9 @@ public sealed class WebStartupProperties
     /// Initial coordinate positions of the window if it is opened as floating window.
     /// </summary>
     public Coordinates? Coordinates { get; set; }
+    public string? InstanceId { get; set; }
+    public string? ChannelColor { get; set; }
+    public object Fdc3ChannelSelectorControl { get; set; }
 }
 
 public delegate ValueTask<string> WebModuleScriptProvider(IModuleInstance moduleInstance);
