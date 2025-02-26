@@ -27,6 +27,7 @@ internal static class Fdc3Topic
     internal static string SendIntentResult => TopicRoot + "sendIntentResult";
     internal static string AddIntentListener => TopicRoot + "addIntentListener";
     internal static string ResolverUI => TopicRoot + "resolverUI";
+    internal static string ChangeChannel => TopicRoot + "changeChannel";
     internal static string CreatePrivateChannel => TopicRoot + "createPrivateChannel";
     internal static string CreateAppChannel => TopicRoot + "createAppChannel";
     internal static string GetUserChannels => TopicRoot + "getUserChannels";

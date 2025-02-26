@@ -21,6 +21,10 @@ public sealed class WebStartupProperties
     public Uri Url { get; set; } = ModuleLoaderConstants.DefaultUri;
     public Uri? IconUrl { get; set; }
     public List<WebModuleScriptProvider> ScriptProviders { get; } = new();
+
+    public string? InstanceId { get; set; }
+    public string? ChannelColor { get; set; }
+    public object Fdc3ChannelSelectorControl { get; set; }
 }
 
 public delegate ValueTask<string> WebModuleScriptProvider(IModuleInstance moduleInstance);

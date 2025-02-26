@@ -26,11 +26,13 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Fdc3.AppDirectory;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.Abstractions;
 using MorganStanley.ComposeUI.Shell.Fdc3;
+using MorganStanley.ComposeUI.Shell.Fdc3.ChannelSelector;
 using MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;
 using MorganStanley.ComposeUI.Shell.Messaging;
 using MorganStanley.ComposeUI.Shell.Modules;
@@ -200,13 +202,16 @@ public partial class App : Application
                 services.AddFdc3DesktopAgent(desktopAgent => desktopAgent.UseMessageRouter());
                 services.AddFdc3AppDirectory();
                 services.AddSingleton<Fdc3ResolverUIWindow>();
-                services.AddSingleton<IResolverUIProjector>(p => p.GetRequiredService<Fdc3ResolverUIWindow>());
-                services.AddHostedService<ResolverUIService>();
+                services.AddSingleton<IResolverUIProjector>(p => p.GetRequiredService<Fdc3ResolverUIWindow>());                
+                services.AddTransient<IChannelSelectorInstanceCommunicator, ChannelSelectorInstanceCommunicator>();
+                services.AddTransient<IChannelSelector, Fdc3ChannelSelectorViewModel>();
+                services.AddHostedService<ResolverUIService>();              
                 services.Configure<Fdc3Options>(fdc3ConfigurationSection);
                 services.Configure<Fdc3DesktopAgentOptions>(
                     fdc3ConfigurationSection.GetSection(nameof(fdc3Options.DesktopAgent)));
                 services.Configure<AppDirectoryOptions>(
                     fdc3ConfigurationSection.GetSection(nameof(fdc3Options.AppDirectory)));
+                services.AddTransient<IStartupAction, Fdc3ChannelSelectorStartupAction>();
             }
         }
     }
