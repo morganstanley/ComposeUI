@@ -21,7 +21,8 @@ See the License for the specific language governing permissions and limitations 
               Width="600"
               Background="{DynamicResource {x:Static SystemColors.AppWorkspaceBrushKey}}"
               WindowStartupLocation="CenterScreen"
-              Initialized="RibbonWindow_Initialized">
+              Initialized="RibbonWindow_Initialized"
+              Style="{StaticResource MaterialDesignWindow}">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -65,6 +66,13 @@ See the License for the specific language governing permissions and limitations 
                                    ShowFloatingWindowsInTaskbar="True"
                                    InitializePaneContent="XamDockManager_InitializePaneContent"
                                    LayoutMode="FillContainer">
+                <igDock:XamDockManager.Panes>
+                    <igDock:SplitPane x:Name="_verticalSplit" 
+                                      SplitterOrientation="Vertical" 
+                                      igDock:XamDockManager.InitialLocation="DockedLeft">
+                        
+                    </igDock:SplitPane>
+                </igDock:XamDockManager.Panes>
             </igDock:XamDockManager>
         </Grid>
     </Grid>
