@@ -14,7 +14,7 @@ jobs:
   dependency-submission:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build Components
         run: |
               npm i
@@ -23,5 +23,3 @@ jobs:
               powershell ./build/dotnet-build.ps1
       - name: Component detection 
         uses: advanced-security/component-detection-dependency-submission-action@v0.0.4
-        with:
-          detectorsFilter: "Npm,NuGet"

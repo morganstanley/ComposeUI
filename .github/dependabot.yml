@@ -20,6 +20,9 @@ updates:
     directory: '/src/fdc3/dotnet/DesktopAgent/src/DesktopAgent'
     schedule:
       interval: 'monthly'
+    ignore:
+      - dependency-name: 'FluentAssertions*'
+        versions: [ '>=8.0' ]
     groups:
       infragistics:
         patterns:
@@ -36,6 +39,9 @@ updates:
     directory: '/src/messaging/dotnet/src/Client'
     schedule:
       interval: 'monthly'
+    ignore:
+      - dependency-name: 'FluentAssertions*'
+        versions: [ '>=8.0' ]
     groups:
       infragistics:
         patterns:
@@ -52,6 +58,9 @@ updates:
     directory: '/src/messaging/dotnet/src/Core'
     schedule:
       interval: 'monthly'
+    ignore:
+      - dependency-name: 'FluentAssertions*'
+        versions: [ '>=8.0' ]
     groups:
       infragistics:
         patterns:
@@ -68,6 +77,9 @@ updates:
     directory: '/src/messaging/dotnet/src/Host'
     schedule:
       interval: 'monthly'
+    ignore:
+      - dependency-name: 'FluentAssertions*'
+        versions: [ '>=8.0' ]
     groups:
       infragistics:
         patterns:
@@ -84,6 +96,9 @@ updates:
     directory: '/src/messaging/dotnet/src/Server'
     schedule:
       interval: 'monthly'
+    ignore:
+      - dependency-name: 'FluentAssertions*'
+        versions: [ '>=8.0' ]
     groups:
       infragistics:
         patterns:
@@ -100,6 +115,9 @@ updates:
     directory: '/src/shell/dotnet/Shell'
     schedule:
       interval: 'monthly'
+    ignore:
+      - dependency-name: 'FluentAssertions*'
+        versions: [ '>=8.0' ]
     groups:
       infragistics:
         patterns:
@@ -116,6 +134,9 @@ updates:
     directory: '/prototypes/multi-module-prototype/examples/multi-module-example/ModulesPrototype'
     schedule:
       interval: 'monthly'
+    ignore:
+      - dependency-name: 'FluentAssertions*'
+        versions: [ '>=8.0' ]
     groups:
       infragistics:
         patterns:

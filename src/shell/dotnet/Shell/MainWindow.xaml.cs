@@ -70,16 +70,17 @@ public partial class MainWindow : RibbonWindow
         };
     }
 
-    public void AddDockableFloatingContent(WebContent webContent)
+    public void ShowContentPane(WebContent webContent)
     {
         if (_layoutManager.IsLayoutLoading)
         {
             _layoutManager.AddAndSetModuleContentState(webContent);
+            return;
         }
-        else
-        {
-            _verticalSplit.Panes.Add(new WebContentPane(webContent, _moduleLoader));
-        }
+
+        var webContentPane = new WebContentPane(webContent, _moduleLoader);
+
+        _xamDockManager.OpenLocatedWebContentPane(webContentPane);
     }
 
     internal MainWindowViewModel ViewModel
