@@ -12,7 +12,7 @@
 //  * and limitations under the License.
 //  */
 
-using System.Threading.Tasks;
+using System;
 using Infragistics.Windows.DockManager;
 using Infragistics.Windows.DockManager.Events;
 using MorganStanley.ComposeUI.ModuleLoader;
@@ -45,7 +45,7 @@ internal class WebContentPane : ContentPane
         WebContent.Dispose();
     }
 
-    private void Pane_Closing(object? sender, PaneClosingEventArgs e)
+    private async void Pane_Closing(object? sender, PaneClosingEventArgs e)
     {
         if (WebContent.ModuleInstance == null)
         {
@@ -63,11 +63,15 @@ internal class WebContentPane : ContentPane
                 return;
 
             default:
+                e.Cancel = true;
                 Visibility = System.Windows.Visibility.Hidden;
-                Task.Run(() => _moduleLoader.StopModule(new StopRequest(WebContent.ModuleInstance.InstanceId)));
+                await _moduleLoader.StopModule(new StopRequest(WebContent.ModuleInstance.InstanceId));
+                OnModuleStopped?.Invoke(this, EventArgs.Empty);
                 return;
         }
     }
+
+    public event EventHandler OnModuleStopped;
 
     public WebContent WebContent { get; }
 

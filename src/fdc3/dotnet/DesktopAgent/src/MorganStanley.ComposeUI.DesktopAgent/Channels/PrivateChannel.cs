@@ -21,8 +21,12 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
 
 internal class PrivateChannel : Channel, IAsyncDisposable
 {
-    public PrivateChannel(string id, IMessagingService messagingService, ILogger<PrivateChannel>? logger)
-        : base(id, messagingService, (ILogger?) logger ?? NullLogger.Instance, Fdc3Topic.PrivateChannel(id)) { }
+    public PrivateChannel(string id, IMessagingService messagingService, ILogger<PrivateChannel>? logger, string instanceId)
+        : base(id, messagingService, (ILogger?) logger ?? NullLogger.Instance, Fdc3Topic.PrivateChannel(id)) 
+    {
+        InstanceId = instanceId;
+    }
 
+    public string InstanceId { get; }
     protected override string ChannelTypeName => "PrivateChannel";
 }

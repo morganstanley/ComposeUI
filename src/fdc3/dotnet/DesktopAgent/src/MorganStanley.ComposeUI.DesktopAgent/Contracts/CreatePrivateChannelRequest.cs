@@ -16,4 +16,5 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
 internal class CreatePrivateChannelRequest
 {
+    public string InstanceId { get; set; }
 }

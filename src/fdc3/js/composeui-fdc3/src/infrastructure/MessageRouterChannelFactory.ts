@@ -68,7 +68,7 @@ export class MessageRouterChannelFactory implements ChannelFactory {
 
     public async createPrivateChannel(): Promise<PrivateChannel> {
         // TODO: how to properly identify the other participant of the channel if the interface is parameterless?
-        const message = JSON.stringify(new Fdc3CreatePrivateChannelRequest());
+        const message = JSON.stringify(new Fdc3CreatePrivateChannelRequest(this.fdc3instanceId));
         const response = await this.messageRouterClient.invoke(ComposeUITopic.createPrivateChannel(), message);
         if (response) {
             const fdc3response = <Fdc3CreatePrivateChannelResponse>JSON.parse(response);
