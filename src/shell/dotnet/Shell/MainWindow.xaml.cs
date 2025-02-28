@@ -70,7 +70,7 @@ public partial class MainWindow : RibbonWindow
         };
     }
 
-    public void ShowContentPane(WebContent webContent)
+    internal void ShowContentPane(WebContent webContent)
     {
         if (_layoutManager.IsLayoutLoading)
         {
