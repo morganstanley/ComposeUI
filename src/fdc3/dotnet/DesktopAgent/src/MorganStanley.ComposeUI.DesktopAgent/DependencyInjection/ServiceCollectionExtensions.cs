@@ -36,6 +36,7 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddSingleton<IUserChannelSetReader, UserChannelSetReader>();
         serviceCollection.AddSingleton<IFdc3DesktopAgentBridge, Fdc3DesktopAgent>();
         serviceCollection.AddTransient<IStartupAction, Fdc3StartupAction>();
+        serviceCollection.AddTransient<IShutdownAction, Fdc3ShutdownAction>();
 
         return serviceCollection;
     }

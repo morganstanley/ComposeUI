@@ -12,14 +12,7 @@
 
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
-public sealed class StopRequest
+public interface IShutdownAction
 {
-    public StopRequest(Guid instanceId, List<object>? properties = null)
-    {
-        InstanceId = instanceId;
-        Properties = properties;
-    }
-
-    public Guid InstanceId { get; }
-    public List<object>? Properties { get; }
+    Task InvokeAsync(ShutdownContext shutDownContext, Func<Task> next);
 }
