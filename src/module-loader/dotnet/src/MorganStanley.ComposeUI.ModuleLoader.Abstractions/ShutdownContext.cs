@@ -11,6 +11,8 @@
 // and limitations under the License.
 
 namespace MorganStanley.ComposeUI.ModuleLoader;
+
+///<inheritdoc/>
 public sealed class ShutdownContext
 {
     private readonly object _lock = new object();

@@ -152,7 +152,12 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
             if (privateChannel != null)
             {
-                _privateChannelsByInstanceId.TryRemove(privateChannel.InstanceId, out _);
+                privateChannels.Remove(privateChannel);
+
+                if (privateChannels.Count == 0)
+                {
+                    _privateChannelsByInstanceId.TryRemove(privateChannel.InstanceId, out _);
+                }
             }
             throw;
         }
@@ -254,14 +259,13 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
     public List<PrivateChannel>? GetPrivateChannelsByInstanceId(string instanceId)
     {
-        if (instanceId != null && _privateChannelsByInstanceId.ContainsKey(instanceId))
+        if (instanceId == null)
         {
-            _privateChannelsByInstanceId.TryGetValue(instanceId, out var privateChannels);
-
-            return privateChannels;
+            return null;
         }
 
-        return null;
+        _privateChannelsByInstanceId.TryGetValue(instanceId, out var privateChannels);
+        return privateChannels;
     }
 
     public bool FindChannel(string channelId, ChannelType channelType)
