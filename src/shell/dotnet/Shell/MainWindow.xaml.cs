@@ -10,6 +10,7 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -62,7 +63,18 @@ public partial class MainWindow : RibbonWindow
 
     public void AddDockableFloatingContent(WebContent webContent)
     {
-        _verticalSplit.Panes.Add(new WebContentPane(webContent, _moduleLoader));
+        var webContentPane = new WebContentPane(webContent, _moduleLoader);
+        webContentPane.OnModuleStopped += WebContentPane_OnModuleStopped;
+        _verticalSplit.Panes.Add(webContentPane);
+    }
+
+    private void WebContentPane_OnModuleStopped(object? sender, EventArgs e)
+    {
+        if (sender is WebContentPane webContentPane)
+        {
+            webContentPane.OnModuleStopped -= WebContentPane_OnModuleStopped;
+            _verticalSplit.Panes.Remove(webContentPane);
+        }
     }
 
     internal MainWindowViewModel ViewModel
