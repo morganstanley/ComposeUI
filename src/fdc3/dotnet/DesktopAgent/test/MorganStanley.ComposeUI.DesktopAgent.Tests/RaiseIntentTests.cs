@@ -29,10 +29,14 @@ public class RaiseIntentTests : Fdc3DesktopAgentTestsBase
     [Fact]
     public async Task RaiseIntent_returns_NoAppsFound()
     {
+        //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+
         var request = new RaiseIntentRequest
         {
             MessageId = 1,
-            Fdc3InstanceId = Guid.NewGuid().ToString(),
+            Fdc3InstanceId = originFdc3InstanceId,
             Intent = "noAppShouldReturn",
             Context = SingleContext.AsJson()
         };
@@ -45,10 +49,14 @@ public class RaiseIntentTests : Fdc3DesktopAgentTestsBase
     [Fact]
     public async Task RaiseIntent_calls_ResolverUI()
     {
+        //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+
         var request = new RaiseIntentRequest
         {
             MessageId = 1,
-            Fdc3InstanceId = Guid.NewGuid().ToString(),
+            Fdc3InstanceId = originFdc3InstanceId,
             Intent = Intent2.Name,
             Context = MultipleContext.AsJson()
         };
