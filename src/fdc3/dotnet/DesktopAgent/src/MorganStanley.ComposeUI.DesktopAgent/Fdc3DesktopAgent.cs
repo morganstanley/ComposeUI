@@ -83,6 +83,12 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
     public async ValueTask<UserChannel?> AddUserChannel(Func<string, UserChannel> addUserChannelFactory, string channelId)
     {
+        if (channelId == null)
+        {
+            _logger.LogError($"Could not create User channel while executing {nameof(AddUserChannel)} due user channel id is null.");
+            return null;
+        }
+
         ChannelItem? channelItem = null;
         var userChannelSet = await _userChannelSetReader.GetUserChannelSet();
 
@@ -123,6 +129,12 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
     public async ValueTask AddPrivateChannel(Func<string, PrivateChannel> addPrivateChannelFactory, string privateChannelId)
     {
+        if (privateChannelId == null)
+        {
+            _logger.LogError($"Could not create Private channel while executing {nameof(AddPrivateChannel)} due private channel id is null.");
+            return;
+        }
+
         //Checking if the endpoint is already registered, because it can cause issues while registering services storing the latest context messages, etc on the Channel objects.
         if (_privateChannels.TryGetValue(privateChannelId, out var privateChannel))
         {
@@ -154,6 +166,12 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     {
         if (!_runningModules.TryGetValue(new Guid(request.InstanceId), out _))
         {
+            return CreateAppChannelResponse.Failed(ChannelError.CreationFailed);
+        }
+
+        if (request.ChannelId == null)
+        {
+            _logger.LogError($"Could not create App channel while executing {nameof(AddAppChannel)} due app channel id is null.");
             return CreateAppChannelResponse.Failed(ChannelError.CreationFailed);
         }
 
@@ -234,6 +252,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         _userChannels.Clear();
         _privateChannels.Clear();
         _appChannels.Clear();
+
         lock (_contextListenerLock)
         {
             _contextListeners.Clear();
@@ -433,8 +452,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         }
 
         var userChannelSet = await _userChannelSetReader.GetUserChannelSet();
-        ChannelItem? channelItem = null;
-        if (!userChannelSet.TryGetValue(request.ChannelId, out channelItem))
+        if (!userChannelSet.TryGetValue(request.ChannelId, out var channelItem))
         {
             return JoinUserChannelResponse.Failed(ChannelError.NoChannelFound);
         }
