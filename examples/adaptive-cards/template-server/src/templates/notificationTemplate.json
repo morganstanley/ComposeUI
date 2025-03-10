@@ -1,0 +1,47 @@
+{
+    "type": "AdaptiveCard",
+    "version": "1.6",
+    "body": [
+      {
+        "type": "ColumnSet",
+        "columns": [
+          {
+            "type": "Column",
+            "items": [
+              {
+                "type": "Image",
+                "style": "Person",
+                "url": "${icon}",
+                "size": "Small"
+              }
+            ],
+            "width": "auto"
+          },
+          {
+            "type": "Column",
+            "items": [
+              {
+                "type": "TextBlock",
+                "weight": "Bolder",
+                "text": "${title}",
+                "wrap": true
+              },
+              {
+                "type": "TextBlock",
+                "text": "${message}",
+                "wrap": true
+              }
+            ],
+            "width": "stretch"
+          }
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "type": "Action.Submit",
+        "iconUrl": "${cancel}",
+        "id": "closeButton"
+      }
+    ]
+  }

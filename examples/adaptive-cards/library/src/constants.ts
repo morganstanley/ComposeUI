@@ -29,7 +29,7 @@ export enum Types {
 }
 
 export function checkType(type: string) {
-  switch (type) {
+  switch (type.toLocaleLowerCase()) {
     case "error":
       return Types.Err;
     case "success":
@@ -49,5 +49,3 @@ export function getIcon(type: Types) {
       return Icons.Info;
   }
 }
-
-export interface Window { adaptiveToast: any; }
