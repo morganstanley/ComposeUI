@@ -1,12 +1,15 @@
 {
-  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-      "types": [
-          "node"
-      ]
+    "moduleResolution": "bundler",
+    "module": "ES6",
+    "target": "ES6",
+    "lib": ["DOM","ES6"],
+    "allowJs": true,
+    "noImplicitAny": true,
+    "rootDir": "src",
+    "resolveJsonModule": true,
+    "experimentalDecorators": true
   },
-  "include": [
-      "src/**/*.ts",
-      "src/img/"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["dist","node_modules","rollup.config.js"]
 }

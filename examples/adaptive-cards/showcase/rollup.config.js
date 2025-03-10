@@ -3,17 +3,16 @@ import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
 
-
 export default {
     input: 'app.js',
     output: {
         file: 'dist/bundle.js',
-        format: 'iife',
-        name: 'app'
+        format: 'es',
+        name: 'app',
     },
     plugins: [
         json(),
-        resolve({browser:true}),
-        commonjs()
+        commonjs(),
+        resolve()
     ]
 };
