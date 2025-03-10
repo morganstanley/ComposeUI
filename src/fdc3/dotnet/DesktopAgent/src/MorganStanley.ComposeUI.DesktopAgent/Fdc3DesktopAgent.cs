@@ -23,6 +23,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Extensions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
 using MorganStanley.ComposeUI.Messaging;
@@ -706,6 +707,27 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             };
         }
 
+        if (request.Fdc3InstanceId == null
+            || !Guid.TryParse(request.Fdc3InstanceId, out var fdc3SourceInstanceId)
+            || !_runningModules.TryGetValue(fdc3SourceInstanceId, out var sourceApp))
+        {
+            return new()
+            {
+                //Source app is not identified.
+                Response = RaiseIntentResponse.Failure(Fdc3DesktopAgentErrors.MissingId)
+            };
+        }
+
+        //TODO: Decide if we want to allow apps to raise intent if they are not registering their intents into the Fdc3App.Interop.Intents.Raises collection.
+        //Throwing an error currently breaks the Conformance tests
+        if (!sourceApp.CanRaiseIntent(contextType: contextType))
+        {
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning($"Source app did not register its raiseable intent(s) for context: {contextType} in the `raises` section of AppDirectory.");
+            }
+        }
+
         var findIntentsByContextResult = await FindIntentsByContext(new FindIntentsByContextRequest() { Context = request.Context, Fdc3InstanceId = request.Fdc3InstanceId }, contextType);
 
         if (findIntentsByContextResult.AppIntents == null || !findIntentsByContextResult.AppIntents.Any())
@@ -730,8 +752,8 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         if (result.Count > 1)
         {
 
-            using var resolverUiIntentCancellationSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-            var resolverUIIntentResponse = await _resolverUI.SendResolverUIIntentRequest(result.Select(x => x.Intent.Name), resolverUiIntentCancellationSource.Token);
+            using var resolverUIIntentCancellationSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+            var resolverUIIntentResponse = await _resolverUI.SendResolverUIIntentRequest(result.Select(x => x.Intent.Name), resolverUIIntentCancellationSource.Token);
 
             if (resolverUIIntentResponse == null)
             {
@@ -812,32 +834,6 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         };
     }
 
-    private IEnumerable<AppIntent> FilterAppIntentsByAppId(IEnumerable<AppIntent> source, AppIdentifier appId)
-    {
-        // Semantically we know this is not null or empty
-        foreach (var intent in source)
-        {
-            foreach (var app in intent.Apps)
-            {
-                var matches = true;
-                if (appId.AppId != null && appId.AppId != app.AppId)
-                {
-                    matches = false;
-                }
-                if (appId.InstanceId != null && appId.InstanceId != app.InstanceId)
-                {
-                    matches = false;
-                }
-
-                if (matches)
-                {
-                    yield return intent;
-                    break;
-                }
-            }
-        }
-    }
-
     public async ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntent(RaiseIntentRequest request, string contextType)
     {
         if (request == null || contextType == null)
@@ -846,6 +842,27 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             {
                 Response = RaiseIntentResponse.Failure(ResolveError.IntentDeliveryFailed)
             };
+        }
+        
+        if (request.Fdc3InstanceId == null 
+            || !Guid.TryParse(request.Fdc3InstanceId, out var fdc3SourceInstanceId)
+            || !_runningModules.TryGetValue(fdc3SourceInstanceId, out var sourceApp))
+        {
+            return new()
+            {
+                //Source app is not identified.
+                Response = RaiseIntentResponse.Failure(Fdc3DesktopAgentErrors.MissingId)
+            };
+        }
+
+        //TODO: Decide if we want to allow apps to raise intent if they are not registering their intents into the Fdc3App.Interop.Intents.Raises collection
+        //Throwing an error currently breaks the Conformance tests
+        if (!sourceApp.CanRaiseIntent(request.Intent, contextType))
+        {
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning($"Source app did not register its raiseable intent(s) for context: {contextType} in the `raises` section of AppDirectory.");
+            }
         }
 
         var intentQueryResult = await GetAppIntentsByRequest(request.Intent, contextType, targetAppIdentifier: request.TargetAppIdentifier);
@@ -904,6 +921,32 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         {
             Response = RaiseIntentResponse.Failure(ResolveError.UserCancelledResolution)
         };
+    }
+
+    private IEnumerable<AppIntent> FilterAppIntentsByAppId(IEnumerable<AppIntent> source, AppIdentifier appId)
+    {
+        // Semantically we know this is not null or empty
+        foreach (var intent in source)
+        {
+            foreach (var app in intent.Apps)
+            {
+                var matches = true;
+                if (appId.AppId != null && appId.AppId != app.AppId)
+                {
+                    matches = false;
+                }
+                if (appId.InstanceId != null && appId.InstanceId != app.InstanceId)
+                {
+                    matches = false;
+                }
+
+                if (matches)
+                {
+                    yield return intent;
+                    break;
+                }
+            }
+        }
     }
 
     //Here we have a specific application which should either start or we should send a intent resolution request

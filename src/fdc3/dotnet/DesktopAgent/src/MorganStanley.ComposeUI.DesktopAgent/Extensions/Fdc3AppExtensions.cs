@@ -19,7 +19,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
 using Icon = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Icon;
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Extensions;
 
 public static class Fdc3AppExtensions
 {
@@ -83,11 +83,65 @@ public static class Fdc3AppExtensions
             Title = app.Title,
             Tooltip = app.ToolTip,
             Description = app.Description,
-            Icons = app.Icons == null ? Enumerable.Empty<Icon>() : app.Icons.Select(Icon.GetIcon),
+            Icons = app.Icons == null 
+                    ? Enumerable.Empty<Icon>() 
+                    : app.Icons.Select(Icon.GetIcon),
             Screenshots = app.Screenshots == null
                         ? Enumerable.Empty<Screenshot>()
                         : app.Screenshots.Select(Screenshot.GetScreenshot),
             ResultType = resultType
         };
+    }
+
+    /// <summary>
+    /// Determines if the app can raise the desired intent with the given context by checking the <see cref="Fdc3App.Interop"/> Intents.Raises section.
+    /// </summary>
+    /// <param name="app"></param>
+    /// <param name="intent"></param>
+    /// <param name="contextType"></param>
+    /// <returns></returns>
+    public static bool CanRaiseIntent(
+        this Fdc3App? app, 
+        string? intent = null, 
+        string? contextType = null)
+    {
+        if (app == null)
+        {
+            return false;
+        }
+
+        if (app.Interop?.Intents?.Raises == null)
+        {
+            return false;
+        }
+
+        if (contextType == null)
+        {
+            return false;
+        }
+
+        if (intent == null)
+        {
+            var contextTypes = app.Interop.Intents.Raises.Values.SelectMany(contextType => contextType);
+            return contextTypes.Contains(contextType);
+        }
+
+        if (!app.Interop.Intents.Raises.TryGetValue(intent, out var selectedContextTypes))
+        {
+            return false;
+        }
+
+        if (selectedContextTypes == null
+            || !selectedContextTypes.Any())
+        {
+            return contextType == ContextTypes.Nothing;
+        }
+
+        if (selectedContextTypes.Contains(contextType))
+        {
+            return true;
+        }
+
+        return contextType == ContextTypes.Nothing;
     }
 }

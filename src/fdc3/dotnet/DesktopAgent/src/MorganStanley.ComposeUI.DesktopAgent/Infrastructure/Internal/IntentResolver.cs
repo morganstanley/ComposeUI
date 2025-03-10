@@ -16,6 +16,7 @@ using System.Collections.Concurrent;
 using Finos.Fdc3.AppDirectory;
 using Finos.Fdc3.Context;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Extensions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
@@ -29,7 +30,6 @@ internal class IntentResolver
         _appDirectory = appDirectory;
         _runningModules = runningModules;
     }
-
 
 
     public async Task<IEnumerable<FlatAppIntent>> GetMatchingAppsFromAppDirectory(string? intent = null, string? contextType = null, string? resultType = null, string? appIdentifier = null)
@@ -107,6 +107,7 @@ internal class IntentResolver
             }
             apps = apps.Concat(appIntents);
         }
+
         return apps;
     }
 

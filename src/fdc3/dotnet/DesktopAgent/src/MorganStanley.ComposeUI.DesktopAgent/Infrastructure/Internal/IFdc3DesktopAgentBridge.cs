@@ -161,7 +161,6 @@ internal interface IFdc3DesktopAgentBridge
     /// <returns></returns>
     public ValueTask<RemoveContextListenerResponse?> RemoveContextListener(RemoveContextListenerRequest? request);
 
-    //TODO:Context deserialization
     /// <summary>
     /// Handles the Open call in the bridge.
     /// </summary>
@@ -177,7 +176,6 @@ internal interface IFdc3DesktopAgentBridge
     /// <returns></returns>
     public ValueTask<GetOpenedAppContextResponse?> GetOpenedAppContext(GetOpenedAppContextRequest? request);
 
-    //TODO:Context deserialization
     /// <summary>
     /// Handles the RaiseIntentForContext call in the bridge.
     /// </summary>

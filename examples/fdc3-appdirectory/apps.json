@@ -65,6 +65,7 @@
     {
       "appId": "js-trader-app",
       "name": "Js Trader App Example",
+      "description": "Example application for simulating the solution for AppChannels and communicating via that",
       "type": "web",
       "details": {
         "url": "http://localhost:4201/"
@@ -84,6 +85,7 @@
     {
       "appId": "js-order-book",
       "name": "Js Order Book Example",
+      "description": "Example application for simulating the solution for AppChannels and communicating via that",
       "type": "web",
       "details": {
         "url": "http://localhost:4202/"

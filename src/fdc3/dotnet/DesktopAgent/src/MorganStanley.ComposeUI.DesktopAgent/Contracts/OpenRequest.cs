@@ -34,7 +34,6 @@ internal sealed class OpenRequest
     /// </summary>
     public AppIdentifier AppIdentifier { get; set; }
 
-    //TODO: Context handling, serializing, deserializing
     /// <summary>
     /// Context meant to be passed to the opened application.
     /// </summary>
