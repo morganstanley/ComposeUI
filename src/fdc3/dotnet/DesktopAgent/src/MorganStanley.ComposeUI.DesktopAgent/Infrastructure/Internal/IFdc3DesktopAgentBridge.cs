@@ -102,7 +102,7 @@ internal interface IFdc3DesktopAgentBridge
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    public ValueTask<RaiseIntentResult<IntentListenerResponse>> AddIntentListener(IntentListenerRequest? request);
+    public ValueTask<IntentListenerResponse> AddIntentListener(IntentListenerRequest? request);
 
     /// <summary>
     /// Handles the StoreIntentResult call in the bridge.

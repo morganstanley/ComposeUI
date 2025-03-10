@@ -79,8 +79,7 @@ public class RaiseIntentTests : Fdc3DesktopAgentTestsBase
 
         var addIntentListenerResponse = await Fdc3.AddIntentListener(addIntentListenerRequest);
         addIntentListenerResponse.Should().NotBeNull();
-        addIntentListenerResponse.Response.Stored.Should().BeTrue();
-        addIntentListenerResponse.RaiseIntentResolutionMessages.Should().BeEmpty();
+        addIntentListenerResponse.Stored.Should().BeTrue();
 
         var request = new RaiseIntentRequest
         {

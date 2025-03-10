@@ -103,8 +103,7 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
 
         var addIntentListenerResponse = await Fdc3.AddIntentListener(addIntentListenerRequest);
         addIntentListenerResponse.Should().NotBeNull();
-        addIntentListenerResponse.Response.Stored.Should().BeTrue();
-        addIntentListenerResponse.RaiseIntentResolutionMessages.Should().BeEmpty();
+        addIntentListenerResponse.Stored.Should().BeTrue();
 
         var raiseIntentRequest =
             new RaiseIntentRequest
@@ -165,8 +164,7 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
 
         var addIntentListenerResponse = await Fdc3.AddIntentListener(addIntentListenerRequest);
         addIntentListenerResponse.Should().NotBeNull();
-        addIntentListenerResponse.Response.Stored.Should().BeTrue();
-        addIntentListenerResponse.RaiseIntentResolutionMessages.Should().BeEmpty();
+        addIntentListenerResponse.Stored.Should().BeTrue();
 
         var raiseIntentRequest = new RaiseIntentRequest
         {
@@ -239,8 +237,7 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
 
         var addIntentListenerResponse = await Fdc3.AddIntentListener(addIntentListenerRequest);
         addIntentListenerResponse.Should().NotBeNull();
-        addIntentListenerResponse.Response.Stored.Should().BeTrue();
-        addIntentListenerResponse.RaiseIntentResolutionMessages.Should().BeEmpty();
+        addIntentListenerResponse.Stored.Should().BeTrue();
 
         var raiseIntentRequest = new RaiseIntentRequest
         {
@@ -291,8 +288,7 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
 
         var addIntentListenerResponse = await Fdc3.AddIntentListener(addIntentListenerRequest);
         addIntentListenerResponse.Should().NotBeNull();
-        addIntentListenerResponse.Response.Stored.Should().BeTrue();
-        addIntentListenerResponse.RaiseIntentResolutionMessages.Should().BeEmpty();
+        addIntentListenerResponse.Stored.Should().BeTrue();
 
         var raiseIntentRequest = new RaiseIntentRequest
         {
@@ -333,7 +329,7 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
 
         var addIntentListenerResponse1 = await Fdc3.AddIntentListener(addIntentListenerRequest1);
         addIntentListenerResponse1.Should().NotBeNull();
-        addIntentListenerResponse1.Response.Stored.Should().BeTrue();
+        addIntentListenerResponse1.Stored.Should().BeTrue();
 
         var raiseIntentRequest = new RaiseIntentRequest
         {
@@ -360,8 +356,7 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
 
         var addIntentListenerResponse2 = await Fdc3.AddIntentListener(addIntentListenerRequest2);
         addIntentListenerResponse2.Should().NotBeNull();
-        addIntentListenerResponse2.Response.Stored.Should().BeFalse();
-        addIntentListenerResponse2.RaiseIntentResolutionMessages.Should().BeEmpty();
+        addIntentListenerResponse2.Stored.Should().BeFalse();
     }
 
     [Fact]
@@ -376,9 +371,8 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
 
         var addIntentListenerResponse = await Fdc3.AddIntentListener(addIntentListenerRequest);
         addIntentListenerResponse.Should().NotBeNull();
-        addIntentListenerResponse.Response.Stored.Should().BeFalse();
-        addIntentListenerResponse.RaiseIntentResolutionMessages.Should().BeEmpty();
-        addIntentListenerResponse.Response.Error.Should().Be(Fdc3DesktopAgentErrors.MissingId);
+        addIntentListenerResponse.Stored.Should().BeFalse();
+        addIntentListenerResponse.Error.Should().Be(Fdc3DesktopAgentErrors.MissingId);
     }
 
     [Fact]

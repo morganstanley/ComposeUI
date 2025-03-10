@@ -117,19 +117,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
 
     internal async ValueTask<IntentListenerResponse?> HandleAddIntentListener(IntentListenerRequest? request, MessageContext? context)
     {
-        var result = await _desktopAgent.AddIntentListener(request);
-
-        if (result.RaiseIntentResolutionMessages.Any())
-        {
-            foreach (var message in result.RaiseIntentResolutionMessages)
-            {
-                await _messageRouter.PublishAsync(
-                    Fdc3Topic.RaiseIntentResolution(message.Intent, message.TargetModuleInstanceId),
-                    MessageBuffer.Factory.CreateJson(message.Request, _jsonSerializerOptions));
-            }
-        }
-
-        return result.Response;
+        return await _desktopAgent.AddIntentListener(request);
     }
 
     internal async ValueTask<StoreIntentResultResponse?> HandleStoreIntentResult(StoreIntentResultRequest? request, MessageContext? context)

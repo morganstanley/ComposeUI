@@ -359,14 +359,11 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         }
     }
 
-    public async ValueTask<RaiseIntentResult<IntentListenerResponse>> AddIntentListener(IntentListenerRequest? request)
+    public ValueTask<IntentListenerResponse> AddIntentListener(IntentListenerRequest? request)
     {
         if (request == null)
         {
-            return new()
-            {
-                Response = IntentListenerResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull)
-            };
+            return ValueTask.FromResult(IntentListenerResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull));
         }
 
         switch (request.State)
@@ -375,70 +372,30 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
                 if (_raisedIntentResolutions.TryGetValue(new(request.Fdc3InstanceId), out var resolver))
                 {
                     resolver.AddIntentListener(request.Intent);
-
-                    var resolutions = new List<RaiseIntentResolutionMessage>();
-                    foreach (var raisedIntent in resolver.RaiseIntentResolutions.Where(
-                                 invocation => invocation.Intent == request.Intent && !invocation.IsResolved))
-                    {
-                        if (!_runningModules.TryGetValue(new(request.Fdc3InstanceId), out var app))
-                        {
-                            continue;
-                        }
-
-                        var specification = new RaiseIntentSpecification
-                        {
-                            Intent = raisedIntent.Intent,
-                            Context = raisedIntent.Context,
-                            SourceAppInstanceId = new(raisedIntent.OriginFdc3InstanceId),
-                            TargetAppMetadata = app.ToAppMetadata(request.Fdc3InstanceId),
-                        };
-
-                        var resolution = await GetRaiseIntentResolutionMessage(
-                            raisedIntent.RaiseIntentMessageId,
-                            specification);
-
-                        if (resolution != null)
-                        {
-                            resolutions.Add(resolution);
-                        }
-                    }
-
-                    return new()
-                    {
-                        Response = IntentListenerResponse.SubscribeSuccess(),
-                        RaiseIntentResolutionMessages = resolutions
-                    };
+                    return ValueTask.FromResult(IntentListenerResponse.SubscribeSuccess());
                 }
 
                 var createdResolver = _raisedIntentResolutions.GetOrAdd(
-                    new(request.Fdc3InstanceId),
-                    new RaisedIntentRequestHandler(_loggerFactory.CreateLogger<RaisedIntentRequestHandler>()));
+                        new(request.Fdc3InstanceId),
+                        new RaisedIntentRequestHandler(_loggerFactory.CreateLogger<RaisedIntentRequestHandler>()));
 
                 createdResolver.AddIntentListener(request.Intent);
 
-                return new()
-                {
-                    Response = IntentListenerResponse.SubscribeSuccess(),
-                };
+                return ValueTask.FromResult(IntentListenerResponse.SubscribeSuccess());
 
             case SubscribeState.Unsubscribe:
 
                 if (_raisedIntentResolutions.TryGetValue(new(request.Fdc3InstanceId), out var resolverToRemove))
                 {
                     resolverToRemove.RemoveIntentListener(request.Intent);
-                    return new()
-                    {
-                        Response = IntentListenerResponse.UnsubscribeSuccess()
-                    };
+                    return ValueTask.FromResult(IntentListenerResponse.UnsubscribeSuccess());
                 }
 
+                //Fall into the default case if the resolver is not found
                 break;
         }
 
-        return new()
-        {
-            Response = IntentListenerResponse.Failure(Fdc3DesktopAgentErrors.MissingId)
-        };
+        return ValueTask.FromResult(IntentListenerResponse.Failure(Fdc3DesktopAgentErrors.MissingId));
     }
 
     public async ValueTask<GetUserChannelsResponse> GetUserChannels(GetUserChannelsRequest? request)
