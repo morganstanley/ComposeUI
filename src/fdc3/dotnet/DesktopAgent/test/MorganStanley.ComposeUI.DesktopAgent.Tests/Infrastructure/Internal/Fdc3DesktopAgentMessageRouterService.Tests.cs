@@ -121,6 +121,14 @@ public partial class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task HandleAddUserChannelReturnsNullWithNoChannelIdPassed()
+    {
+        var result = await _fdc3.HandleAddUserChannel(null!);
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
     public async Task HandleRaiseIntent_returns_IntentDeliveryFailed_error_as_no_intent_listener_is_registered_after_starting_an_app()
     {
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
@@ -1038,6 +1046,24 @@ public partial class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
         var result = await _fdc3.HandleCreateAppChannel(request, new MessageContext());
 
         result.Should().BeEquivalentTo(CreateAppChannelResponse.Created());
+    }
+
+    [Fact]
+    public async Task HandleCreateAppChannel_returns_failed_response()
+    {
+        //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
+        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+
+        var request = new CreateAppChannelRequest
+        {
+            ChannelId = null,
+            InstanceId = originFdc3InstanceId,
+        };
+
+        var result = await _fdc3.HandleCreateAppChannel(request, new MessageContext());
+
+        result.Should().BeEquivalentTo(CreateAppChannelResponse.Failed(ChannelError.CreationFailed));
     }
 
     [Fact]

@@ -69,8 +69,6 @@ public class RaiseIntentTests : Fdc3DesktopAgentTestsBase
     [Fact]
     public async Task RaiseIntent_returns_one_running_app()
     {
-        await Fdc3.StartAsync(CancellationToken.None);
-
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
         var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);

@@ -97,9 +97,9 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         return await _desktopAgent.FindIntentsByContext(request, contextType);
     }
 
-    internal async ValueTask<RaiseIntentResponse?> HandleRaiseIntent(RaiseIntentRequest request, MessageContext context)
+    internal async ValueTask<RaiseIntentResponse?> HandleRaiseIntent(RaiseIntentRequest? request, MessageContext context)
     {
-        var contextType = request.Context != null ? JsonSerializer.Deserialize<Context>(request.Context, _jsonSerializerOptions)?.Type : null;
+        var contextType = request?.Context != null ? JsonSerializer.Deserialize<Context>(request.Context, _jsonSerializerOptions)?.Type : null;
 
         var result = await _desktopAgent.RaiseIntent(request, contextType!);
         if (result.RaiseIntentResolutionMessages.Any())

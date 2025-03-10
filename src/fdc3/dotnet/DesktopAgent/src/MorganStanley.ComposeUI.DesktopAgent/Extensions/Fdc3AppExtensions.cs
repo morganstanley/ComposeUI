@@ -19,7 +19,8 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
 using Icon = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Icon;
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Extensions;
+// ReSharper disable once CheckNamespace
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
 public static class Fdc3AppExtensions
 {
