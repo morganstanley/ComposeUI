@@ -1918,7 +1918,7 @@ public class EndToEndTests : IAsyncLifetime
     {
         return MessageBuffer.Factory.CreateJson(
             new Contact(
-                new ContactID {Email = $"test{_counter}@test.org", FDS_ID = $"test{_counter++}"},
+                new ContactID {Email = $"test{_counter}@test.org", FdsId = $"test{_counter++}"},
                 name: "Testy Tester"), _options);
     }
 }
