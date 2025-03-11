@@ -67,28 +67,27 @@ internal sealed class ModuleService : IHostedService
         var properties = e.Instance.GetProperties().OfType<WebStartupProperties>().FirstOrDefault();
         if (properties == null)
         {
-            return;
+            return Task.CompletedTask;
         }
 
         var webWindowOptions = e.Instance.GetProperties().OfType<WebWindowOptions>().FirstOrDefault();
 
         try
         {
-            await _application.Dispatcher.InvokeAsync(
-                () =>
-                {
-                    var window = _application.CreateWebContent(
-                        e.Instance,
-                        webWindowOptions ?? new WebWindowOptions
-                        {
-                            Url = properties.Url.ToString(),
-                            IconUrl = properties.IconUrl?.ToString(),
-                            InitialModulePostion = properties.InitialModulePosition,
-                            Width = properties.Width ?? WebWindowOptions.DefaultWidth,
-                            Height = properties.Height ?? WebWindowOptions.DefaultHeight,
-                            Coordinates = properties.Coordinates
-                        });
-                });
+            App.Current.Dispatcher.Invoke(() =>
+            {
+                App.Current.CreateWebContent(
+                    e.Instance,
+                    webWindowOptions ?? new WebWindowOptions
+                    {
+                        Url = properties.Url.ToString(),
+                        IconUrl = properties.IconUrl?.ToString(),
+                        InitialModulePostion = properties.InitialModulePosition,
+                        Width = properties.Width ?? WebWindowOptions.DefaultWidth,
+                        Height = properties.Height ?? WebWindowOptions.DefaultHeight,
+                        Coordinates = properties.Coordinates
+                    });
+            });
         }
         catch (Exception ex)
         {
