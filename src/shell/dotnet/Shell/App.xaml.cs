@@ -27,6 +27,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Fdc3.AppDirectory;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
+using MorganStanley.ComposeUI.LayoutPersistence;
+using MorganStanley.ComposeUI.LayoutPersistence.Abstractions;
 using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.Abstractions;
@@ -70,8 +72,9 @@ public partial class App : Application
         Dispatcher.VerifyAccess();
 
         var webContent = CreateInstance<WebContent>(parameters);
-        _shellWindow!.AddDockableFloatingContent(webContent);
-        return webContent!;
+        _shellWindow!.ShowContentPane(webContent);
+
+        return webContent;
     }
 
     public T? GetService<T>()
@@ -150,6 +153,8 @@ public partial class App : Application
 
         services.Configure<LoggerFactoryOptions>(context.Configuration.GetSection("Logging"));
 
+        services.AddSingleton<ILayoutPersistence<string>>(new FileLayoutPersistence(".\\layouts"));
+
         ConfigureMessageRouter();
 
         ConfigureModules();
@@ -198,6 +203,7 @@ public partial class App : Application
             if (fdc3Options is { EnableFdc3: true })
             {
                 services.AddFdc3DesktopAgent(desktopAgent => desktopAgent.UseMessageRouter());
+                services.AddSingleton<IHostManifestMapper, ComposeUIHostManifestMapper>();
                 services.AddFdc3AppDirectory();
                 services.AddSingleton<Fdc3ResolverUIWindow>();
                 services.AddSingleton<IResolverUIProjector>(p => p.GetRequiredService<Fdc3ResolverUIWindow>());

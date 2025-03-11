@@ -1,0 +1,26 @@
+name: Dependency Submission
+
+on:
+  workflow_dispatch:
+  schedule: 
+    - cron: 0 19 * * * #7 PM ET
+
+permissions: 
+  contents: read
+
+jobs:
+  dependency-submission:
+    permissions: 
+      id-token: write
+      contents: write
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Build Components
+        run: |
+              npm i
+              npx lerna run build --stream
+              powershell ./build/dotnet-restore.ps1
+              powershell ./build/dotnet-build.ps1
+      - name: Component detection 
+        uses: advanced-security/component-detection-dependency-submission-action@bcc5ca88e364e548ea6b6db45f9c298161e76911 # v0.0.4

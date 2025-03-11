@@ -20,10 +20,14 @@ namespace MorganStanley.ComposeUI.Fdc3.AppDirectory;
 public sealed class Fdc3ModuleCatalog : IModuleCatalog
 {
     private readonly IAppDirectory _appDirectory;
+    private readonly IHostManifestMapper? _hostManifestMapper;
 
-    public Fdc3ModuleCatalog(IAppDirectory fdc3AppDirectory)
+    public Fdc3ModuleCatalog(
+        IAppDirectory fdc3AppDirectory,
+        IHostManifestMapper? hostManifestMapper = null)
     {
         _appDirectory = fdc3AppDirectory;
+        _hostManifestMapper = hostManifestMapper;
     }
 
     public async Task<IModuleManifest> GetManifest(string moduleId)
@@ -33,7 +37,7 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
         switch (app.Type)
         {
             case AppType.Web:
-                return new Fdc3WebModuleManifest(app);
+                return new Fdc3WebModuleManifest(app, _hostManifestMapper);
 
             default:
                 throw new NotSupportedException($"Unsupported module type: {Enum.GetName(app.Type)}");
@@ -48,24 +52,39 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
 
     private class Fdc3WebModuleManifest : IModuleManifest<WebManifestDetails>
     {
-        public Fdc3WebModuleManifest(Fdc3App app)
+        private readonly IHostManifestMapper? _hostManifestMapper;
+
+        public Fdc3WebModuleManifest(
+            Fdc3App app, 
+            IHostManifestMapper? hostManifestMapper = null)
         {
             if (app.Type != AppType.Web)
             {
                 throw new ArgumentException("The provided app is not a web app.", nameof(app));
             }
 
+            _hostManifestMapper = hostManifestMapper;
+
             Id = app.AppId;
-            Name = app.Name;
+            Name = app.Name ?? app.Title;
 
-            var iconSrc = app.Icons?.FirstOrDefault()?.Src;
-            var url = new Uri(((WebAppDetails) app.Details).Url, UriKind.Absolute);
+            var details = _hostManifestMapper?.MapModuleDetails(app);
 
-            Details = new WebManifestDetails
+            if (details is WebManifestDetails webManifestDetails && webManifestDetails != default)
             {
-                Url = url,
-                IconUrl = iconSrc != null ? new Uri(iconSrc, UriKind.Absolute) : null
-            };
+                Details = webManifestDetails;
+            }
+            else
+            {
+                var iconSrc = app.Icons?.FirstOrDefault()?.Src;
+                var url = new Uri(((WebAppDetails) app.Details).Url, UriKind.Absolute);
+
+                Details = new WebManifestDetails
+                {
+                    Url = url,
+                    IconUrl = iconSrc != null ? new Uri(iconSrc, UriKind.Absolute) : null,
+                };
+            }
         }
 
         public WebManifestDetails Details { get; init; }

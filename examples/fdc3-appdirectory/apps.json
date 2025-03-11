@@ -1,73 +1,93 @@
 {
-	"applications": [
-		{
-			"appId": "js-chart",
-			"name": "js-chart",
-			"title": "JS Chart",
-			"type": "web",
-			"details": {
-				"url": "http://localhost:8080/"
-			}
-		},
-		{
-			"appId": "js-grid",
-			"name": "js-grid",
-			"title": "JS Grid",
-			"type": "web",
-			"details": {
-				"url": "http://localhost:4200/"
-			}
-		},
-		{
-			"appId": "Conformance2",
-			"name": "Conformance2",
-			"title": "FDC3 2.0 Conformance Framework",
-			"description": "FDC3 2.0 Conformance testing framework - developed for FINOS by Scott Logic",
-			"type": "web",
-			"details": {
-				"url": "https://finos.github.io/FDC3-conformance-framework/v2.0/app/"
-			},
-			"screenshots": [ { "src": "https://directory.fdc3.finos.org/assets/app/Conformance1.png" } ],
-			"hostManifests": {
-				"sail": { "inject-api": "2.0" },
-				"Finsemble": {
-					"window": {
-						"top": "center",
-						"left": "0",
-						"width": 800,
-						"height": 900
-					},
-					"foreign": {
-						"components": {
-							"App Launcher": { "launchableByUser": true },
-							"Window Manager": {
-								"FSBLHeader": true,
-								"titlebarType": "injected"
-							}
-						}
-					},
-					"interop": { "joinMultipleChannels": false }
-				}
-			},
-			"version": "1.0.0",
-			"publisher": "FINOS",
-			"icons": [ { "src": "https://fdc3.finos.org/assets/fdc3-logo.png" } ]
-		},
-		{
-			"appId": "js-trader-app",
-			"name": "Js Trader App Example",
-			"type": "web",
-			"details": {
-				"url": "http://localhost:4201/"
-			}
-		},
-		{
-			"appId": "js-order-book",
-			"name": "Js Order Book Example",
-			"type": "web",
-			"details": {
-				"url": "http://localhost:4202/"
-			}
-		}
-	]
+  "applications": [
+    {
+      "appId": "js-chart",
+      "name": "js-chart",
+      "title": "JS Chart",
+      "type": "web",
+      "details": {
+        "url": "http://localhost:8080/"
+      }
+    },
+    {
+      "appId": "js-grid",
+      "name": "js-grid",
+      "title": "JS Grid",
+      "type": "web",
+      "details": {
+        "url": "http://localhost:4200/"
+      }
+    },
+    {
+      "appId": "Conformance2",
+      "name": "Conformance2",
+      "title": "FDC3 2.0 Conformance Framework",
+      "description": "FDC3 2.0 Conformance testing framework - developed for FINOS by Scott Logic",
+      "type": "web",
+      "details": {
+        "url": "https://finos.github.io/FDC3-conformance-framework/v2.0/app/"
+      },
+      "screenshots": [ { "src": "https://directory.fdc3.finos.org/assets/app/Conformance1.png" } ],
+      "hostManifests": {
+        "sail": { "inject-api": "2.0" },
+        "ComposeUI": {
+          "initialModulePosition": "Floating",
+          "width": 506.2,
+          "height": 303.11,
+          "coordinates": {
+            "x": 89.5,
+            "y": 45.1
+          }
+        },
+        "Finsemble": {
+          "window": {
+            "top": "center",
+            "left": "0",
+            "width": 800,
+            "height": 900
+          },
+          "foreign": {
+            "components": {
+              "App Launcher": { "launchableByUser": true },
+              "Window Manager": {
+                "FSBLHeader": true,
+                "titlebarType": "injected"
+              }
+            }
+          },
+          "interop": { "joinMultipleChannels": false }
+        }
+      },
+      "version": "1.0.0",
+      "publisher": "FINOS",
+      "icons": [ { "src": "https://fdc3.finos.org/assets/fdc3-logo.png" } ]
+    },
+    {
+      "appId": "js-trader-app",
+      "name": "Js Trader App Example",
+      "type": "web",
+      "details": {
+        "url": "http://localhost:4201/"
+      },
+      "hostManifests": {
+        "ComposeUI": {
+          "initialModulePosition": "FloatingOnly",
+          "width": 506.2,
+          "height": 303.11,
+          "coordinates": {
+            "x": 89.5,
+            "y": 45.1
+          }
+        }
+      }
+    },
+    {
+      "appId": "js-order-book",
+      "name": "Js Order Book Example",
+      "type": "web",
+      "details": {
+        "url": "http://localhost:4202/"
+      }
+    }
+  ]
 }

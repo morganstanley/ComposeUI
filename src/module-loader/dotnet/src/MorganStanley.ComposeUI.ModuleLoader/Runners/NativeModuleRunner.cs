@@ -25,6 +25,7 @@ internal class NativeModuleRunner : IModuleRunner
             throw new Exception("Unable to get native manifest details");
         }
 
+        //TODO: Handle the ModuleDetails properties like Width; Height; InitialModulePosition
         startupContext.AddProperty(new EnvironmentVariables(details.EnvironmentVariables));
 
 
@@ -60,8 +61,6 @@ internal class NativeModuleRunner : IModuleRunner
         }
 
         mainProcess.Start();
-
-        
     }
 
     public async Task Stop(IModuleInstance moduleInstance)

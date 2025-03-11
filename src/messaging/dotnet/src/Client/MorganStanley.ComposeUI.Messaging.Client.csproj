@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<RootNamespace>MorganStanley.ComposeUI.Messaging</RootNamespace>
-		<Description>.NET Client for ComposeUI's Message Router. More Details: http://opensource.morganstanley.com/ComposeUI/</Description>
+		<Description>.NET Client for ComposeUI's Message Router. More Details: https://morganstanley.github.io/ComposeUI/</Description>
 		<Tags>ComposeUI</Tags>
 	</PropertyGroup>
 
