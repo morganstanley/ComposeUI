@@ -12,6 +12,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
@@ -25,14 +26,12 @@ namespace MorganStanley.ComposeUI.Shell.Modules;
 
 internal sealed class ModuleService : IHostedService
 {
-    private readonly App _application;
     private readonly IModuleLoader _moduleLoader;
     private ConcurrentBag<object> _disposables = new();
     private readonly ILogger<ModuleService> _logger;
 
-    public ModuleService(App application, IModuleLoader moduleLoader, ILogger<ModuleService>? logger = null)
+    public ModuleService(IModuleLoader moduleLoader, ILogger<ModuleService>? logger = null)
     {
-        _application = application;
         _moduleLoader = moduleLoader;
         _logger = logger ?? NullLogger<ModuleService>.Instance;
     }
@@ -68,22 +67,27 @@ internal sealed class ModuleService : IHostedService
 
         var webWindowOptions = e.Instance.GetProperties().OfType<WebWindowOptions>().FirstOrDefault();
 
+        var parameters = new List<object>
+        {
+            e.Instance,
+            webWindowOptions
+                ?? new WebWindowOptions
+                {
+                    Url = properties.Url.ToString(),
+                    IconUrl = properties.IconUrl?.ToString(),
+                    InitialModulePostion = properties.InitialModulePosition,
+                    Width = properties.Width ?? WebWindowOptions.DefaultWidth,
+                    Height = properties.Height ?? WebWindowOptions.DefaultHeight,
+                    Coordinates = properties.Coordinates
+                }
+        };
+
         try
         {
-            await _application.Dispatcher.InvokeAsync(
+            await App.Current.Dispatcher.InvokeAsync(
                 () =>
                 {
-                    var window = _application.CreateWebContent(
-                        e.Instance,
-                        webWindowOptions ?? new WebWindowOptions
-                        {
-                            Url = properties.Url.ToString(),
-                            IconUrl = properties.IconUrl?.ToString(),
-                            InitialModulePostion = properties.InitialModulePosition,
-                            Width = properties.Width ?? WebWindowOptions.DefaultWidth,
-                            Height = properties.Height ?? WebWindowOptions.DefaultHeight,
-                            Coordinates = properties.Coordinates
-                        });
+                    var window = App.Current.CreateWebContent(parameters.ToArray());
                 });
         }
         catch (Exception ex)

@@ -11,7 +11,6 @@
 // and limitations under the License.
 
 using System.Collections.Concurrent;
-using System.IO.Abstractions;
 using System.Reactive.Disposables;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -23,6 +22,7 @@ using Finos.Fdc3.NewtonsoftJson.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+using System.IO.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.AppDirectory;
 
