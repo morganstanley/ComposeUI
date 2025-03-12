@@ -49,7 +49,6 @@ export class MessageRouterOpenClient implements OpenClient{
             this.channel = await window.fdc3.getCurrentChannel();
         }
 
-        //TODO:proper context handling
         const request = new Fdc3OpenRequest(
             this.instanceId,
             appIdentifier,
