@@ -12,7 +12,7 @@
     "start": "http-server -p 8081"
   },
   "dependencies": {
-    "@finos/fdc3": "^2.0.3",
+    "@finos/fdc3": "~2.0.3",
     "bootstrap": "^5.3.3",
     "jquery": "3.7.1",
     "tslib": "2.8.1"

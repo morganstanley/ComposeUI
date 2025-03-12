@@ -13,7 +13,7 @@
 
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
-import pkg from "./package.json" assert { type: "json" };
+import pkg from "./package.json" with { type: "json" };
 
 const moduleName = pkg.name.replace(/^@.*\//, "");
 const inputFileName = "src/index.ts";

@@ -26,10 +26,18 @@ namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;
 public interface IResolverUIProjector
 {
     /// <summary>
-    ///     Shows ResolverUi for the user to select an module to resolve the raised intent.
+    /// Shows ResolverUI for the user to select an module to resolve the raised intent.
     /// </summary>
     /// <param name="apps">Possible modules to resolve the intent.</param>
     /// <param name="timeout">Configurable timeout to show the blocking window for the set of time.</param>
     /// <returns></returns>
     ValueTask<ResolverUIResponse> ShowResolverUI(IEnumerable<IAppMetadata> apps, TimeSpan timeout);
+
+    /// <summary>
+    /// Shows ResolverUI for the user for selecting an intent to resolve the raiseIntentForContext call
+    /// </summary>
+    /// <param name="intents"></param>
+    /// <param name="timeout">Configurable timeout to show the blocking window for the set of time.</param>
+    /// <returns></returns>
+    ValueTask<ResolverUIIntentResponse> ShowResolverUI(IEnumerable<string> intents, TimeSpan timeout);
 }

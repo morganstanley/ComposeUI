@@ -13,8 +13,9 @@
  */
 
 
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
+using System.Text.Json.Serialization;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
-using Finos.Fdc3.Context;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
@@ -31,7 +32,8 @@ internal sealed class RaiseIntentResolutionRequest
     /// <summary>
     /// Context which should be sent to the selected app via raiseIntent by the FDC3 client.
     /// </summary>
-    public Context Context { get; set; }
+    [JsonConverter(typeof(ContextJsonConverter))]
+    public string Context { get; set; }
 
     /// <summary>
     /// ContextMetadata which contains information about the source app, that raised the request.

@@ -70,6 +70,7 @@ public partial class App : Application
     public WebContent CreateWebContent(params object[] parameters)
     {
         Dispatcher.VerifyAccess();
+
         var webContent = CreateInstance<WebContent>(parameters);
         _shellWindow!.ShowContentPane(webContent);
 
@@ -229,6 +230,8 @@ public partial class App : Application
 
     private void OnAsyncStartupCompleted(StartupEventArgs e)
     {
+        _shellWindow = CreateWindow<MainWindow>();
+
         if (e.Args.Length != 0
             && CommandLineParser.TryParse<WebWindowOptions>(e.Args, out var webWindowOptions)
             && webWindowOptions.Url != null)
@@ -256,7 +259,7 @@ public partial class App : Application
         }
 
         ShutdownMode = ShutdownMode.OnMainWindowClose;
-        _shellWindow = CreateWindow<MainWindow>();
+
         _shellWindow.Show();
     }
 

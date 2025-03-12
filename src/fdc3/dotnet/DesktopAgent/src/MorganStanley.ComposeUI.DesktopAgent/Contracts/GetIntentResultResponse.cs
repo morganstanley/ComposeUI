@@ -14,7 +14,8 @@
 
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
 using Finos.Fdc3;
-using Finos.Fdc3.Context;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
+using System.Text.Json.Serialization;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
@@ -26,7 +27,8 @@ internal sealed class GetIntentResultResponse
     /// <summary>
     /// Indicates that the IntentResult is a typeof Context.
     /// </summary>
-    public Context? Context { get; set; }
+    [JsonConverter(typeof(ContextJsonConverter))]
+    public string? Context { get; set; }
 
     /// <summary>
     /// Indicates that the IntentResult is a typeof Channel.
@@ -51,7 +53,7 @@ internal sealed class GetIntentResultResponse
     public static GetIntentResultResponse Success(
         string? channelId = null,
         ChannelType? channelType = null,
-        Context? context = null,
+        string? context = null,
         bool? voidResult = null)
     {
         var response = new GetIntentResultResponse();

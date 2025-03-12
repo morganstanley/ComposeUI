@@ -52,7 +52,9 @@ internal class WebContentPane : ContentPane
     private void Pane_Closing(object? sender, PaneClosingEventArgs e)
     {
         if (WebContent.ModuleInstance == null)
+        {
             return;
+        }
 
         switch (WebContent.LifetimeEvent)
         {

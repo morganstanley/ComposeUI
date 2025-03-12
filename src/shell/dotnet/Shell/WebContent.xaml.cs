@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -108,7 +109,9 @@ public partial class WebContent : ContentPresenter, IDisposable
     private void TrySetIconUrl(WebWindowOptions webWindowOptions)
     {
         if (webWindowOptions.IconUrl == null)
+        {
             return;
+        }
 
         // TODO: What's the default URL if the app is running from a manifest? We should probably not allow relative urls in that case.
         var appUrl = new Uri(webWindowOptions.Url ?? WebWindowOptions.DefaultUrl);
@@ -123,14 +126,18 @@ public partial class WebContent : ContentPresenter, IDisposable
         }
     }
 
-    private Task InitializeCoreWebView2(CoreWebView2 coreWebView)
+    private async Task InitializeCoreWebView2(CoreWebView2 coreWebView)
     {
         coreWebView.NewWindowRequested += (sender, args) => OnNewWindowRequested(args);
         coreWebView.WindowCloseRequested += (sender, args) => OnWindowCloseRequested(args);
         coreWebView.NavigationStarting += (sender, args) => OnNavigationStarting(args);
         coreWebView.DocumentTitleChanged += (sender, args) => OnDocumentTitleChanged(args);
 
-        return Task.CompletedTask;
+        await Dispatcher.InvokeAsync(
+            async () =>
+            {
+                await InjectScriptsAsync(coreWebView);
+            });
     }
 
     private void OnDocumentTitleChanged(object args)
@@ -144,17 +151,13 @@ public partial class WebContent : ContentPresenter, IDisposable
     private void OnNavigationStarting(CoreWebView2NavigationStartingEventArgs args)
     {
         if (_scriptsInjected)
+        {
             return;
+        }
 
         args.Cancel = true;
 
-        Dispatcher.InvokeAsync(
-            async () =>
-            {
-                await InjectScriptsAsync(WebView.CoreWebView2);
-
-                WebView.CoreWebView2.Navigate(args.Uri);
-            });
+        WebView.CoreWebView2.Navigate(args.Uri);
     }
 
     private Task LoadWebContentAsync(WebWindowOptions options)
@@ -167,7 +170,9 @@ public partial class WebContent : ContentPresenter, IDisposable
     private async Task InjectScriptsAsync(CoreWebView2 coreWebView)
     {
         if (_scriptsInjected)
-            return;
+        { 
+            return; 
+        }
 
         _scriptsInjected = true;
         var webProperties = _moduleInstance?.GetProperties().OfType<WebStartupProperties>().FirstOrDefault();

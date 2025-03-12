@@ -11,8 +11,7 @@
  *  
  */
 
-import { AppIdentifier } from "@finos/fdc3";
-import { Context } from "vm";
+import { AppIdentifier, Context } from "@finos/fdc3";
 
 export class Fdc3RaiseIntentRequest {
     constructor(

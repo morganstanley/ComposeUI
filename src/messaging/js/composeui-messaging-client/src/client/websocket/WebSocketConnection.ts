@@ -55,7 +55,9 @@ export class WebSocketConnection implements Connection {
     }
     
     send(message: messages.Message): Promise<void> {
-        if (!this.websocket) return Promise.reject();
+        if (!this.websocket) {
+            return Promise.reject();
+        }
         this.websocket.send(JSON.stringify(message));
         return Promise.resolve();
     }

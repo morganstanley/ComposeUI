@@ -43,7 +43,10 @@ describe('Tests for ComposeUIChannel implementation API', () => {
                     appId: "testAppId",
                     instanceId: "testInstanceId"
                 },
-                channelId : "test"
+                channelId : "test",
+                openAppIdentifier: {
+                    openedAppContextId: "test"
+                }
             }
         };
 
@@ -147,7 +150,6 @@ describe('Tests for ComposeUIChannel implementation API', () => {
     });
 
     // TODO: Test broadcast/getLastContext with different context and contextType combinations
-
     it('addContextListener will result a ComposeUIContextListener', async () => {
         await testChannel.broadcast(testInstrument);
         const resultListener = await testChannel.addContextListener('fdc3.instrument', contextMessageHandlerMock);
@@ -172,7 +174,10 @@ describe("AppChanel tests", () => {
                     appId: "testAppId",
                     instanceId: "testInstanceId"
                 },
-                channelId : "test"
+                channelId : "test",
+                openAppIdentifier: {
+                    openedAppContextId: "test"
+                }
             }
         };
     });

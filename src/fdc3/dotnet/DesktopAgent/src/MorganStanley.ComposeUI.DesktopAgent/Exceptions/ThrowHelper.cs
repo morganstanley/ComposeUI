@@ -28,5 +28,11 @@ public static class ThrowHelper
         new(Fdc3DesktopAgentErrors.MultipleIntent, $"Multiple intents were registered to the running instance. Intent: {intent}.");
 
     public static Fdc3DesktopAgentException TargetInstanceUnavailable() =>
-        new(ResolveError.TargetAppUnavailable, $"Target app is unavailable when intent was raised.");
+        new(ResolveError.TargetInstanceUnavailable, "Target instance was unavailable when intent was raised.");
+
+    public static Fdc3DesktopAgentException TargetAppUnavailable() =>
+        new(ResolveError.TargetAppUnavailable, "Target app was unavailable when intent was raised");
+
+    public static Fdc3DesktopAgentException NoAppsFound() =>
+        new(ResolveError.NoAppsFound, "No app matched the filter criteria.");
 }
