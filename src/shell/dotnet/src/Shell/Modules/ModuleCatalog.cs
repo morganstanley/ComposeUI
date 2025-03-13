@@ -136,4 +136,6 @@ internal sealed class ModuleCatalog : IModuleCatalog, IInitializeAsync
             public string ModuleType { get; set; }
         }
     }
+
+    public Task<IEnumerable<IModuleManifest>> GetAllManifests() => Task.FromResult(_modules.Values.AsEnumerable<IModuleManifest>());
 }

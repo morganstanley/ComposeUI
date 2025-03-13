@@ -78,4 +78,35 @@ internal class AggregateModuleCatalog : IModuleCatalog
             }
         }
     }
+
+    private sealed class ModuleManifestIdComparer : IEqualityComparer<IModuleManifest>
+    {
+        public bool Equals(IModuleManifest x, IModuleManifest y)
+        {
+            if (x == null || y == null)
+                return false;
+
+            return x.Id == y.Id;
+        }
+
+        public int GetHashCode(IModuleManifest obj)
+        {
+            return obj.Id.GetHashCode();
+        }
+    }
+
+    /// <summary>
+    /// Returns all IModuleManifest-s across all catalogs with unique Id-s 
+    /// </summary>
+    /// <returns></returns>
+    public async Task<IEnumerable<IModuleManifest>> GetAllManifests()
+    {
+        var manifests = new HashSet<IModuleManifest>(new ModuleManifestIdComparer());
+        foreach (var catalog in _moduleCatalogs)
+        {
+            manifests.UnionWith(await catalog.GetAllManifests());
+        }
+
+        return manifests;
+    }
 }
