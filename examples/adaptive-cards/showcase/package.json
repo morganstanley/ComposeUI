@@ -3,7 +3,6 @@
   "version": "0.1.0-alpha.1",
   "private": true,
   "description": "ComposeUI Default App",
-  "main": "app.js",
   "type": "module",
   "scripts": {
     "clean": "rimraf dist",
@@ -14,7 +13,7 @@
   "devDependencies": {
     "http-server": "14.1.1",
     "rimraf": "^6.0.1",
-    "rollup": "^4.24.0"
+    "rollup": "^4.35.0"
   },
   "dependencies": {
     "@morgan-stanley/adaptive-card-notification": "*",

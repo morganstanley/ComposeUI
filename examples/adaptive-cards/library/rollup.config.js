@@ -2,34 +2,39 @@
 // @ts-ignore
 import typescript from "@rollup/plugin-typescript";
 import json from "@rollup/plugin-json";
-import dts from "rollup-plugin-dts";
+import commonjs from '@rollup/plugin-commonjs';
 import url from "@rollup/plugin-url";
+import { nodeResolve } from "@rollup/plugin-node-resolve";
+import nodePolyfills from "rollup-plugin-polyfill-node"
 import css from "rollup-plugin-import-css";
 
 const config = [
   {
+    external: ['AdaptiveCards', 'ACData', 'AEL', 'markdownit', 'DOMPurify'],
     input: "src/index.ts",
     output: {
       file: "dist/index.js",
       format: "umd",
-      name: "toastNotification",
-      sourcemap: "inline",
+      name: "window",
+      extend: true,
+      globals: {
+        'adaptivecards': 'AdaptiveCards',
+        'adaptivecards-templating': 'ACData',
+        'markdown-it': 'markdownit',
+        'dompurify': 'DOMPurify',
+        'adaptive-expressions': 'AEL'
+      }
     },
     plugins: [
       json(),
-      typescript(),
       url(),
-      css()
+      css(),
+      commonjs(),
+      nodePolyfills(),
+      nodeResolve({ extensions: ['.js', '.ts'] }),
+      typescript({ tsconfig: "./tsconfig.json" })
     ],
-  },
-  {
-    input: "src/index.ts",
-    output: {
-      file: "dist/index.d.ts",
-      format: "umd",
-    },
-    plugins: [dts()],
-  },
+  }
 ];
 
 export default config;
