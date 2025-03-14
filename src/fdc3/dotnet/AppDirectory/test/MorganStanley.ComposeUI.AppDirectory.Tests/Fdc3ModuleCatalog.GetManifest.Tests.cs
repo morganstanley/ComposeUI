@@ -103,7 +103,7 @@ public partial class Fdc3ModuleCatalogTests
         manifest.ModuleType.Should().Be(ModuleType.Web);
         manifest.Name.Should().Be(appName);
         manifest.Tags.Should().Contain(tag);
-        manifest.AdditionalProperties.Should().BeNull();
+        manifest.AdditionalProperties.Should().BeEmpty();
         manifest.TryGetDetails<WebManifestDetails>(out var details).Should().BeTrue();
         details.Should().NotBeNull();
         details.Url.Should().Be(appUri);

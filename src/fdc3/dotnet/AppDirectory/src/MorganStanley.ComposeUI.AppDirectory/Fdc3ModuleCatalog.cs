@@ -67,6 +67,7 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
             Name = app.Name ?? app.Title;
 
             Tags = app.Categories?.ToArray() ?? [];
+            AdditionalProperties = [];
 
             var details = _hostManifestMapper?.MapModuleDetails(app);
 
