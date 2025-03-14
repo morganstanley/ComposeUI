@@ -79,10 +79,13 @@ internal class AggregateModuleCatalog : IModuleCatalog
         }
     }
 
-    private sealed class ModuleManifestIdComparer : IEqualityComparer<IModuleManifest>
+    internal sealed class ModuleManifestIdComparer : IEqualityComparer<IModuleManifest>
     {
         public bool Equals(IModuleManifest x, IModuleManifest y)
         {
+            if (ReferenceEquals(x, y))
+                return true;
+
             if (x == null || y == null)
                 return false;
 
