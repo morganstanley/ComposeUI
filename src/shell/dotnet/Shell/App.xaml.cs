@@ -1,16 +1,16 @@
-﻿// /*
-//  * Morgan Stanley makes this available to you under the Apache License,
-//  * Version 2.0 (the "License"). You may obtain a copy of the License at
-//  *
-//  *      http://www.apache.org/licenses/LICENSE-2.0.
-//  *
-//  * See the NOTICE file distributed with this work for additional information
-//  * regarding copyright ownership. Unless required by applicable law or agreed
-//  * to in writing, software distributed under the License is distributed on an
-//  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
-//  * or implied. See the License for the specific language governing permissions
-//  * and limitations under the License.
-//  */
+﻿/*
+ * Morgan Stanley makes this available to you under the Apache License,
+ * Version 2.0 (the "License"). You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership. Unless required by applicable law or agreed
+ * to in writing, software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions
+ * and limitations under the License.
+ */
 
 using System;
 using System.Collections.Generic;
@@ -67,7 +67,7 @@ public partial class App : Application
         return CreateInstance<TWindow>(parameters);
     }
 
-    public WebContent CreateWebContent(params object[] parameters)
+    internal WebContent CreateWebContent(params object[] parameters)
     {
         Dispatcher.VerifyAccess();
         var webContent = CreateInstance<WebContent>(parameters);
@@ -233,31 +233,42 @@ public partial class App : Application
             && CommandLineParser.TryParse<WebWindowOptions>(e.Args, out var webWindowOptions)
             && webWindowOptions.Url != null)
         {
-            var moduleId = Guid.NewGuid().ToString();
-
-            var moduleCatalog = _host!.Services.GetRequiredService<ModuleCatalog>();
-            moduleCatalog.Add(new WebModuleManifest
-            {
-                Id = moduleId,
-                Name = webWindowOptions.Url,
-                ModuleType = ModuleType.Web,
-                Details = new WebManifestDetails
-                {
-                    Url = new Uri(webWindowOptions.Url),
-                    IconUrl = webWindowOptions.IconUrl == null ? null : new Uri(webWindowOptions.IconUrl)
-                }
-            });
-
-            var moduleLoader = _host.Services.GetRequiredService<IModuleLoader>();
-            moduleLoader.StartModule(new StartRequest(moduleId, new List<KeyValuePair<string, string>>
-            {
-                new(WebWindowOptions.ParameterName, JsonSerializer.Serialize(webWindowOptions))
-            }));
+            CreateAndStartNewWebModuleAsync(
+                webWindowOptions,
+                [
+                    new(WebWindowOptions.ParameterName, JsonSerializer.Serialize(webWindowOptions))
+                ]);
         }
 
         ShutdownMode = ShutdownMode.OnMainWindowClose;
         _shellWindow = CreateWindow<MainWindow>();
         _shellWindow.Show();
+    }
+
+    public async Task<IModuleInstance> CreateAndStartNewWebModuleAsync(
+        WebWindowOptions webWindowOptions,
+        IEnumerable<KeyValuePair<string, string>>? parameters = null)
+    {
+        var moduleId = Guid.NewGuid().ToString();
+
+        var moduleCatalog = _host!.Services.GetRequiredService<ModuleCatalog>();
+        moduleCatalog.Add(new WebModuleManifest
+        {
+            Id = moduleId,
+            Name = webWindowOptions.Url,
+            ModuleType = ModuleType.Web,
+            Details = new WebManifestDetails
+            {
+                Url = new Uri(webWindowOptions.Url),
+                IconUrl = webWindowOptions.IconUrl == null ? null : new Uri(webWindowOptions.IconUrl),
+                Width = webWindowOptions.Width,
+                Height = webWindowOptions.Height,
+                InitialModulePosition = webWindowOptions.InitialModulePostion,
+            }
+        });
+
+        var moduleLoader = _host.Services.GetRequiredService<IModuleLoader>();
+        return await moduleLoader.StartModule(new StartRequest(moduleId, parameters));
     }
 
     private async Task StopAsync()

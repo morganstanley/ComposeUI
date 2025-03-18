@@ -15,6 +15,7 @@
 		<PackageReference Include="Microsoft.NET.Test.Sdk" />
 		<PackageReference Include="Moq" />
 		<PackageReference Include="Moq.Contrib.HttpClient" />
+		<PackageReference Include="TestableIO.System.IO.Abstractions.TestingHelpers" />
 		<PackageReference Include="xunit" />
 		<PackageReference Include="Xunit.Combinatorial" />
 		<PackageReference Include="xunit.runner.visualstudio">
@@ -25,7 +26,6 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
-		<PackageReference Include="Testably.Abstractions.Testing" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -1326,7 +1326,6 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
     private async Task AddOrUpdateModuleAsync(IModuleInstance instance)
     {
-
         if (!IsFdc3StartedModule(instance, out var fdc3InstanceId))
         {
             return;
