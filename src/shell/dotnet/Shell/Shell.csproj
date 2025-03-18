@@ -2,16 +2,15 @@
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<TargetFramework>net6.0-windows</TargetFramework>
-		<Nullable>enable</Nullable>
+		<TargetFramework>$(TargetFrameworkVersion)-windows</TargetFramework>
 		<UseWPF>true</UseWPF>
 		<EnableDefaultPageItems>false</EnableDefaultPageItems>
-		<LangVersion>preview</LangVersion>
 		<AssemblyName>MorganStanley.ComposeUI.Shell</AssemblyName>
 		<RootNamespace>MorganStanley.ComposeUI.Shell</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>
+		<None Remove="Fdc3\ResolverUI\ResolverUIIntent.xaml" />
 		<None Remove="MainWindow.xaml" />
 		<None Remove="WebContent.xaml" />
 	</ItemGroup>
@@ -28,6 +27,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Page Include="Fdc3\ResolverUI\ResolverUIIntent.xaml">
+		  <Generator>MSBuild:Compile</Generator>
+		</Page>
 		<Page Include="WebContent.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		</Page>

@@ -84,7 +84,7 @@ internal class RaisedIntentRequestHandler
         string intent,
         string? channelId = null,
         ChannelType? channelType = null,
-        Context? context = null,
+        string? context = null,
         bool? voidResult = false,
         string? error = null)
     {

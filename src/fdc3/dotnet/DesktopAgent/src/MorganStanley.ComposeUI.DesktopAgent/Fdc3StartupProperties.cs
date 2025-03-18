@@ -25,4 +25,9 @@ internal class Fdc3StartupProperties
     /// Id of the channel the opened app should join
     /// </summary>
     public string? ChannelId { get; init; }
+
+    /// <summary>
+    /// This implies that the opened app was started via using the fdc3.open() call. Thi id ensures that if the app opens and it's available on the object then the opened app can request the context and handle it when its context listener is being registered for the right context type.
+    /// </summary>
+    public string? OpenedAppContextId { get; set; }
 }

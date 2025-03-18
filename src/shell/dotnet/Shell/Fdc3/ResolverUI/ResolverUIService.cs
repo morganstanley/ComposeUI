@@ -75,10 +75,9 @@ internal class ResolverUIService : IHostedService
     private async Task StartMessageRouterServiceAsync(CancellationToken cancellationToken)
     {
         var messageRouter = _host.Services.GetRequiredService<IMessageRouter>();
-        var topic = "ComposeUI/fdc3/v2.0/resolverUI";
 
         await messageRouter.RegisterServiceAsync(
-            topic,
+            "ComposeUI/fdc3/v2.0/resolverUI",
             async (endpoint, payload, context) =>
             {
                 var request = payload?.ReadJson<ResolverUIRequest>(_jsonSerializerOptions);
@@ -93,6 +92,22 @@ internal class ResolverUIService : IHostedService
             },
             cancellationToken: cancellationToken);
 
+        await messageRouter.RegisterServiceAsync(
+            "ComposeUI/fdc3/v2.0/resolverUIIntent",
+            async (endpoint, payload, context) =>
+            {
+                var request = payload?.ReadJson<ResolverUIIntentRequest>(_jsonSerializerOptions);
+                if (request == null)
+                {
+                    return null;
+                }
+
+                var response = await ShowResolverUI(request.Intents!);
+
+                return response is null ? null : MessageBuffer.Factory.CreateJson(response, _jsonSerializerOptions);
+            },
+            cancellationToken: cancellationToken);
+
         lock (_disposeLock)
         {
             _disposeTask.Add(
@@ -100,11 +115,17 @@ internal class ResolverUIService : IHostedService
                 {
                     if (messageRouter != null)
                     {
-                        await messageRouter.UnregisterServiceAsync(topic, cancellationToken);
+                        await messageRouter.UnregisterServiceAsync("ComposeUI/fdc3/v2.0/resolverUI", cancellationToken);
+                        await messageRouter.UnregisterServiceAsync("ComposeUI/fdc3/v2.0/resolverUIIntent", cancellationToken);
                         await messageRouter.DisposeAsync();
                     }
                 });
         }
+    }
+
+    private ValueTask<ResolverUIIntentResponse> ShowResolverUI(IEnumerable<string> intents)
+    {
+        return _resolverUIWindow.ShowResolverUI(intents, TimeSpan.FromMinutes(1));
     }
 
     private ValueTask<ResolverUIResponse> ShowResolverUI(IEnumerable<IAppMetadata> apps)

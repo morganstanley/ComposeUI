@@ -21,6 +21,7 @@ import { Fdc3StoreIntentResultResponse } from "./messages/Fdc3StoreIntentResultR
 import { Fdc3IntentListenerRequest } from "./messages/Fdc3IntentListenerRequest";
 import { Fdc3IntentListenerResponse } from "./messages/Fdc3IntentListenerResponse";
 import { ComposeUIErrors } from "./ComposeUIErrors";
+import { ComposeUIChannel } from "./ComposeUIChannel";
 
 export class ComposeUIIntentListener implements Listener {
     private unsubscribable?: Unsubscribable;
@@ -47,17 +48,15 @@ export class ComposeUIIntentListener implements Listener {
                 try {
                     const result = this.intentHandler(message.context, message.contextMetadata);
                     if (result && result instanceof Promise) {
-                        const intentResult = <object>await result;
+                        const intentResult = await result;
                         if (!intentResult) {
                             request = new Fdc3StoreIntentResultRequest(message.messageId, this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, undefined, true);
-                        } else if ('id' in intentResult) {
+                        } else if (intentResult instanceof ComposeUIChannel) {
                             const channel = <Channel>intentResult;
                             request = new Fdc3StoreIntentResultRequest(message.messageId, this.intent, this.instanceId, message.contextMetadata.source.instanceId!, channel.id, channel.type);
-                        } else if ('type' in intentResult) {
+                        } else {
                             const context = <Context>intentResult;
                             request = new Fdc3StoreIntentResultRequest(message.messageId, this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, context);
-                        } else {
-                            throw new Error("Cannot detect the return type of the IntentHandler.");
                         }
                     } else {
                         request = new Fdc3StoreIntentResultRequest(message.messageId, this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, undefined, true);

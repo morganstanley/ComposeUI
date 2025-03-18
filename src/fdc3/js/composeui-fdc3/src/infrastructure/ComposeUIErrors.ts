@@ -16,5 +16,6 @@ export enum ComposeUIErrors {
     InstanceIdNotFound = 'InstanceId was not found on window object. To run Fdc3\'s ComposeUI implementation instance config should be set on window config.',
     CurrentChannelNotSet = 'The current channel has not been set.',
     UnsubscribeFailure = 'The Listener could not unsubscribe.',
-    SubscribeFailure = 'The Listener could not subscribe.'
+    SubscribeFailure = 'The Listener could not subscribe.',
+    AppIdentifierTypeFailure = 'Using string type for app argument is not supported. Please use undefined | AppIdentifier types!'
 }

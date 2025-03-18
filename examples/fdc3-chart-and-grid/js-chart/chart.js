@@ -12,11 +12,19 @@ let currentChannel;
 
 NoDataToDisplay(Highcharts);
 
-window.addEventListener('fdc3Ready', async() => {
-  chart = Highcharts.chart('container', {
+if (window.fdc3) {
+	displayChart();
+} else {
+	window.addEventListener('fdc3Ready', async() => {
+		await displayChart();
+	});
+}
 
-      chart: {
-        type: 'column',
+async function displayChart() {
+	chart = Highcharts.chart('container', {
+
+	chart: {
+      type: 'column',
       },
       title: {
         text: 'Monthly Sales Data'
@@ -42,7 +50,8 @@ window.addEventListener('fdc3Ready', async() => {
     });
 
     await requestData();
-});
+}
+
 
 window.addEventListener('close', async function(){
   if (this.intentListener) {

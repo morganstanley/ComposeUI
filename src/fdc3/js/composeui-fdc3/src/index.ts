@@ -15,7 +15,7 @@
 import { AppIdentifier, DesktopAgent } from "@finos/fdc3";
 import { ComposeUIDesktopAgent } from "./ComposeUIDesktopAgent";
 import { createMessageRouter } from "@morgan-stanley/composeui-messaging-client";
-
+import { OpenAppIdentifier } from "./infrastructure/OpenAppIdentifier";
 
 declare global {
     interface Window {
@@ -23,6 +23,7 @@ declare global {
             fdc3: {
                 config: AppIdentifier | undefined;
                 channelId : string | undefined;
+                openAppIdentifier: OpenAppIdentifier | undefined;
             }
         }
         fdc3: DesktopAgent;
@@ -32,17 +33,33 @@ declare global {
 async function initialize(): Promise<void> {
     //TODO: decide if we want to join to a channel by default.
     let channelId: string | undefined = window.composeui.fdc3.channelId;
+    const openAppIdentifier: OpenAppIdentifier | undefined = window.composeui.fdc3.openAppIdentifier;
     const fdc3 = new ComposeUIDesktopAgent(createMessageRouter());
 
     if (channelId) {
         await fdc3.joinUserChannel(channelId)
-            .then(() => {
-                window.fdc3 = fdc3;
-                window.dispatchEvent(new Event("fdc3Ready"));
+            .then(async() => {
+                if (openAppIdentifier) {
+                    await fdc3.getOpenedAppContext()
+                        .then(() => {
+                            window.fdc3 = fdc3;
+                            window.dispatchEvent(new Event("fdc3Ready"));
+                        })
+                } else {
+                    window.fdc3 = fdc3;
+                    window.dispatchEvent(new Event("fdc3Ready"));
+                }
             });
     } else {
-        window.fdc3 = fdc3;
-        window.dispatchEvent(new Event("fdc3Ready"));
+        if (openAppIdentifier) {
+            await fdc3.getOpenedAppContext().then(() => {
+                window.fdc3 = fdc3;
+                window.dispatchEvent(new Event("fdc3Ready"));
+            })
+        } else {
+            window.fdc3 = fdc3;
+            window.dispatchEvent(new Event("fdc3Ready"));
+        }
     }
 }
 

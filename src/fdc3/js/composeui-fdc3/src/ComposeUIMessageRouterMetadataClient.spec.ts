@@ -25,7 +25,10 @@ describe('MessageRouterMetadataClient tests', () => {
                     appId: "testAppId",
                     instanceId: "testInstanceId"
                 },
-                channelId: "test"
+                channelId: "test",
+                openAppIdentifier: {
+                    openedAppContextId: "test"
+                }
             }
         };
     });
@@ -77,8 +80,7 @@ describe('MessageRouterMetadataClient tests', () => {
             providerVersion: '1.0.0',
             optionalFeatures: {
                 OriginatingAppMetadata: false,
-                UserChannelMembershipAPIs: true,
-                DesktopAgentBridging: false
+                UserChannelMembershipAPIs: true
             },
             appMetadata: {
                 appId: 'dummyAppId'

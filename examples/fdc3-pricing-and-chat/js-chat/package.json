@@ -12,7 +12,7 @@
     "start": "http-server -p 8082"
   },
   "dependencies": {
-    "@finos/fdc3": "^2.0.3",
+    "@finos/fdc3": "~2.0.3",
     "bootstrap": "^5.3.3",
     "jquery": "3.7.1",
     "rollup-plugin-import-css": "^3.5.0",

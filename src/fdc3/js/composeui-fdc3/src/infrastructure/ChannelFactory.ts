@@ -21,5 +21,5 @@ export interface ChannelFactory {
     joinUserChannel(channelId: string): Promise<Channel>;
     getUserChannels(): Promise<Channel[]>;
     getIntentListener(intent: string, handler: IntentHandler): Promise<Listener>;
-    getContextListener(channel?: Channel, handler?: ContextHandler, contextType?: string | null): Promise<Listener>;
+    getContextListener(openHandled: boolean, channel?: Channel, handler?: ContextHandler, contextType?: string | null): Promise<Listener>;
 }

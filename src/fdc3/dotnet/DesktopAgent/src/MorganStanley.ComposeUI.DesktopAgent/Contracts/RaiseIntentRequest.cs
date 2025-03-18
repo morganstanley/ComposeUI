@@ -12,7 +12,8 @@
  * and limitations under the License.
  */
 
-using Finos.Fdc3.Context;
+using System.Text.Json.Serialization;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIdentifier;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
@@ -41,7 +42,8 @@ internal sealed class RaiseIntentRequest
     /// <summary>
     /// Context for identifying more the specific app that should handle the raised intent.
     /// </summary>
-    public Context Context { get; set; }
+    [JsonConverter(typeof(ContextJsonConverter))]
+    public string Context { get; set; }
 
     /// <summary>
     /// Information about the app that should resolve the raised intent.

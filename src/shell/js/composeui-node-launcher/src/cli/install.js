@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-"use strict";
 
 import path from 'path';
 import fs from 'fs';
@@ -12,7 +11,7 @@ import extract from 'extract-zip';
 import * as stream from 'stream';
 import { promisify } from 'util';
 
-import pkg from './../../package.json' assert { type: "json" };
+import pkg from './../../package.json' with  { type: "json" };
 
 const DEFAULT_CDN_URL = 'https://github.com/morganstanley/ComposeUI/releases/download';
 

@@ -12,8 +12,9 @@
  * and limitations under the License.
  */
 
+using System.Text.Json.Serialization;
 using Finos.Fdc3;
-using Finos.Fdc3.Context;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
@@ -56,7 +57,8 @@ internal sealed class StoreIntentResultRequest
     /// <summary>
     /// Context indicating the result of the IntentListener was a context.
     /// </summary>
-    public Context? Context { get; set; }
+    [JsonConverter(typeof(ContextJsonConverter))]
+    public string? Context { get; set; }
 
     /// <summary>
     /// Indicates that the result of the IntentHandler is void type.

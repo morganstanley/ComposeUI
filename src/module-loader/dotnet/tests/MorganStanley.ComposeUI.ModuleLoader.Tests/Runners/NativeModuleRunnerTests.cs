@@ -40,9 +40,9 @@ public class NativeModuleRunnerTests : IDisposable
         var details = new NativeManifestDetails()
         {
 #if DEBUG
-            Path = new Uri(Path.GetFullPath(@"..\..\..\..\NativeRunnerTestApp\bin\Debug\net6.0\NativeRunnerTestApp.exe")),
+            Path = new Uri(Path.GetFullPath(@"..\..\..\..\NativeRunnerTestApp\bin\Debug\net8.0\NativeRunnerTestApp.exe")),
 #else
-            Path = new Uri(Path.GetFullPath(@"..\..\..\..\NativeRunnerTestApp\bin\Release\net6.0\NativeRunnerTestApp.exe")),
+            Path = new Uri(Path.GetFullPath(@"..\..\..\..\NativeRunnerTestApp\bin\Release\net8.0\NativeRunnerTestApp.exe")),
 #endif
 
             Arguments = new[] { "Hello", "ComposeUI!", "I am", randomString }
@@ -56,7 +56,7 @@ public class NativeModuleRunnerTests : IDisposable
         var processInfo = startupContext.GetOrAddProperty<MainProcessInfo>(() =>
         {
             Execute.Assertion.FailWith("No MainProcessInfo found");
-            return null;
+            return null!;
         });
 
         _mainProcess = processInfo.MainProcess;
@@ -74,9 +74,9 @@ public class NativeModuleRunnerTests : IDisposable
         var details = new NativeManifestDetails()
         {
 #if DEBUG
-            Path = new Uri(Path.GetFullPath(@"..\..\..\..\NativeRunnerTestApp\bin\Debug\net6.0\NativeRunnerTestApp.exe")),
+            Path = new Uri(Path.GetFullPath(@"..\..\..\..\NativeRunnerTestApp\bin\Debug\net8.0\NativeRunnerTestApp.exe")),
 #else
-            Path = new Uri(Path.GetFullPath(@"..\..\..\..\NativeRunnerTestApp\bin\Release\net6.0\NativeRunnerTestApp.exe")),
+            Path = new Uri(Path.GetFullPath(@"..\..\..\..\NativeRunnerTestApp\bin\Release\net8.0\NativeRunnerTestApp.exe")),
 #endif
             EnvironmentVariables = new Dictionary<string, string> { { variableName, randomString } }
         };
@@ -89,7 +89,7 @@ public class NativeModuleRunnerTests : IDisposable
         var processInfo = startupContext.GetOrAddProperty<MainProcessInfo>(() =>
         {
             Execute.Assertion.FailWith("No MainProcessInfo found");
-            return null;
+            return null!;
         });
 
         _mainProcess = processInfo.MainProcess;
@@ -107,9 +107,9 @@ public class NativeModuleRunnerTests : IDisposable
         var details = new NativeManifestDetails()
         {
 #if DEBUG
-            Path = new Uri(@"..\..\..\..\NativeRunnerTestApp\bin\Debug\net6.0\NativeRunnerTestApp.exe", UriKind.Relative),
+            Path = new Uri(@"..\..\..\..\NativeRunnerTestApp\bin\Debug\net8.0\NativeRunnerTestApp.exe", UriKind.Relative),
 #else
-            Path = new Uri(@"..\..\..\..\NativeRunnerTestApp\bin\Release\net6.0\NativeRunnerTestApp.exe", UriKind.Relative),
+            Path = new Uri(@"..\..\..\..\NativeRunnerTestApp\bin\Release\net8.0\NativeRunnerTestApp.exe", UriKind.Relative),
 #endif
             EnvironmentVariables = new Dictionary<string, string> { { variableName, randomString } }
         };
@@ -122,7 +122,7 @@ public class NativeModuleRunnerTests : IDisposable
         var processInfo = startupContext.GetOrAddProperty<MainProcessInfo>(() =>
         {
             Execute.Assertion.FailWith("No MainProcessInfo found");
-            return null;
+            return null!;
         });
 
         _mainProcess = processInfo.MainProcess;
@@ -140,9 +140,9 @@ public class NativeModuleRunnerTests : IDisposable
         var details = new NativeManifestDetails()
         {
 #if DEBUG
-            Path = new Uri(Path.GetFullPath(@"..\..\..\..\NativeRunnerTestApp\bin\Debug\net6.0\NativeRunnerTestApp.exe")),
+            Path = new Uri(Path.GetFullPath(@"..\..\..\..\NativeRunnerTestApp\bin\Debug\net8.0\NativeRunnerTestApp.exe")),
 #else
-            Path = new Uri(Path.GetFullPath(@"..\..\..\..\NativeRunnerTestApp\bin\Release\net6.0\NativeRunnerTestApp.exe")),
+            Path = new Uri(Path.GetFullPath(@"..\..\..\..\NativeRunnerTestApp\bin\Release\net8.0\NativeRunnerTestApp.exe")),
 #endif
             EnvironmentVariables = new Dictionary<string, string> { { variableName, randomString } }
         };
@@ -159,7 +159,7 @@ public class NativeModuleRunnerTests : IDisposable
         var processInfo = startupContext.GetOrAddProperty<MainProcessInfo>(() =>
         {
             Execute.Assertion.FailWith("No MainProcessInfo found");
-            return null;
+            return null!;
         });
 
         _mainProcess = processInfo.MainProcess;
@@ -167,7 +167,7 @@ public class NativeModuleRunnerTests : IDisposable
         result.Output.Should().Contain($"{variableName}={randomString}");
     }
 
-    private Task RedirectMainProcessOutput(StartupContext startupContext)
+    private static Task RedirectMainProcessOutput(StartupContext startupContext)
     {
         var mainProcessInfo = startupContext.GetProperties<MainProcessInfo>().First();
         mainProcessInfo.MainProcess.StartInfo.RedirectStandardOutput = true;
