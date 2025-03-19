@@ -17,6 +17,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls.Ribbon;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Infragistics.Windows.DockManager;
 using MorganStanley.ComposeUI.LayoutPersistence.Abstractions;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.ImageSource;
@@ -79,8 +80,26 @@ public partial class MainWindow : RibbonWindow
         }
 
         var webContentPane = new WebContentPane(webContent, _moduleLoader);
-
+        webContentPane.OnModuleStopped += WebContentPane_OnModuleStopped;
         _xamDockManager.OpenLocatedWebContentPane(webContentPane);
+    }
+
+    private void WebContentPane_OnModuleStopped(object? sender, EventArgs e)
+    {
+        if (sender is WebContentPane webContentPane)
+        {
+            webContentPane.OnModuleStopped -= WebContentPane_OnModuleStopped;
+
+            if (webContentPane.Parent is TabGroupPane tabGroupPane)
+            {       
+                tabGroupPane.Items.Remove(webContentPane);
+            }
+
+            else if (webContentPane.Parent is SplitPane parent)
+            {
+                _xamDockManager.Panes.Remove(parent);
+            }
+        }
     }
 
     internal MainWindowViewModel ViewModel
@@ -166,6 +185,7 @@ public partial class MainWindow : RibbonWindow
     {
         if (_layoutManager.WebContentPanes != null && _layoutManager.WebContentPanes.TryGetValue(e.NewPane.SerializationId, out var webContentPane))
         {
+            webContentPane.OnModuleStopped += WebContentPane_OnModuleStopped;
             e.NewPane = webContentPane;
         }
     }

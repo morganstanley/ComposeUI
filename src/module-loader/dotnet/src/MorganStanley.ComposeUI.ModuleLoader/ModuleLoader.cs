@@ -25,11 +25,13 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
     private readonly Dictionary<string, IModuleRunner> _moduleRunners;
     private readonly IModuleCatalog _moduleCatalog;
     private readonly IReadOnlyList<IStartupAction> _startupActions;
+    private readonly IReadOnlyList<IShutdownAction> _shutdownActions;
 
     public ModuleLoader(
         IEnumerable<IModuleCatalog> moduleCatalogs,
         IEnumerable<IModuleRunner> moduleRunners,
         IEnumerable<IStartupAction> startupActions,
+        IEnumerable<IShutdownAction> shutdownActions,
         ILogger<ModuleLoader>? logger = null)
     {
         ArgumentNullException.ThrowIfNull(moduleCatalogs);
@@ -40,6 +42,7 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
         _moduleCatalog = new AggregateModuleCatalog(moduleCatalogs, _logger);
         _moduleRunners = moduleRunners.GroupBy(runner => runner.ModuleType).ToDictionary(g => g.Key, g => g.First());
         _startupActions = new List<IStartupAction>(startupActions);
+        _shutdownActions = new List<IShutdownAction>(shutdownActions);
     }
 
     public IObservable<LifetimeEvent> LifetimeEvents => _lifetimeEvents;
@@ -87,7 +90,7 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
             return;
         }
 
-        await StopModuleInternal(module);
+        await StopModuleInternal(module, request.Properties);
     }
 
     public async ValueTask DisposeAsync()
@@ -100,9 +103,32 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
         _lifetimeEvents.Dispose();
     }
 
-    private async Task StopModuleInternal(IModuleInstance moduleInstance)
+    private async Task StopModuleInternal(IModuleInstance moduleInstance, List<object>? properties = null)
     {
         _lifetimeEvents.OnNext(new LifetimeEvent.Stopping(moduleInstance));
+
+        var shutdownContext = new ShutdownContext(moduleInstance);
+
+        if (properties != null)
+        {
+            foreach (var property in properties)
+            {
+                shutdownContext.AddProperty(property);
+            }
+        }
+
+        var pipeline = _shutdownActions
+            .Reverse()
+            .Aggregate(
+             () => Task.CompletedTask,
+                (next, action) => () => action.InvokeAsync(shutdownContext, next));
+
+        await Task.Run(async () => await pipeline());
+
+        if (!_modules.TryRemove(moduleInstance.InstanceId, out _))
+        {
+            _logger.LogError($"Could not remove module, instanceId: {moduleInstance.InstanceId}.");
+        }
 
         await _moduleRunners[moduleInstance.Manifest.ModuleType].Stop(moduleInstance);
 

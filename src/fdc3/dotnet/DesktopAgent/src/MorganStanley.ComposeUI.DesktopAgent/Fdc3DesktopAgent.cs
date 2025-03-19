@@ -46,6 +46,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     private readonly IUserChannelSetReader _userChannelSetReader;
     private readonly ConcurrentDictionary<string, UserChannel> _userChannels = new();
     private readonly ConcurrentDictionary<string, PrivateChannel> _privateChannels = new();
+    private readonly ConcurrentDictionary<string, List<PrivateChannel>> _privateChannelsByInstanceId = new();
     private readonly ConcurrentDictionary<string, AppChannel> _appChannels = new();
     private readonly ILoggerFactory _loggerFactory;
     private readonly Fdc3DesktopAgentOptions _options;
@@ -142,6 +143,9 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
         privateChannel = _privateChannels.GetOrAdd(privateChannelId, addPrivateChannelFactory(privateChannelId));
 
+        var privateChannels = _privateChannelsByInstanceId.GetOrAdd(privateChannel.InstanceId, []);
+        privateChannels.Add(privateChannel);
+
         try
         {
             await privateChannel!.Connect();
@@ -157,6 +161,16 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         {
             _logger.LogError(exception, $"Exception thrown while executing {nameof(AddPrivateChannel)}.");
             _privateChannels.TryRemove(privateChannelId, out _);
+
+            if (privateChannel != null)
+            {
+                privateChannels.Remove(privateChannel);
+
+                if (privateChannels.Count == 0)
+                {
+                    _privateChannelsByInstanceId.TryRemove(privateChannel.InstanceId, out _);
+                }
+            }
             throw;
         }
     }
@@ -250,6 +264,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         _pendingStartRequests.Clear();
         _userChannels.Clear();
         _privateChannels.Clear();
+        _privateChannelsByInstanceId.Clear();
         _appChannels.Clear();
 
         lock (_contextListenerLock)
@@ -259,6 +274,17 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
         _pendingStartRequests.Clear();
         _raisedIntentResolutions.Clear();
+    }
+
+    public List<PrivateChannel>? GetPrivateChannelsByInstanceId(string instanceId)
+    {
+        if (instanceId == null)
+        {
+            return null;
+        }
+
+        _privateChannelsByInstanceId.TryGetValue(instanceId, out var privateChannels);
+        return privateChannels;
     }
 
     public bool FindChannel(string channelId, ChannelType channelType)
@@ -1362,6 +1388,8 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         {
             _logger.LogError($"Could not remove the stored intent resolutions of id: {fdc3InstanceId} which raised the intents.");
         }
+
+        _privateChannelsByInstanceId.TryRemove(fdc3InstanceId, out _);
 
         return Task.CompletedTask;
     }

@@ -135,7 +135,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         try
         {
             var privateChannelId = Guid.NewGuid().ToString();
-            await _desktopAgent.AddPrivateChannel((channelId) => new PrivateChannel(channelId, _messageRouter, _loggerFactory.CreateLogger<PrivateChannel>()), privateChannelId);
+            await _desktopAgent.AddPrivateChannel((channelId) => new PrivateChannel(channelId, _messageRouter, _loggerFactory.CreateLogger<PrivateChannel>(), request.InstanceId), privateChannelId);
 
             return CreatePrivateChannelResponse.Created(privateChannelId);
         }
