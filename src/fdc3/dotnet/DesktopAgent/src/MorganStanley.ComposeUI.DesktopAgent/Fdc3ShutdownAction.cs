@@ -83,14 +83,7 @@ internal class Fdc3ShutdownAction : IShutdownAction
 
     private static string? GetInstanceId(IModuleInstance moduleInstance)
     {
-        if (moduleInstance == null)
-        {
-            return null;
-        }
-
-        return moduleInstance.StartRequest.Parameters
-            .Where(p => p.Key == "Fdc3InstanceId")
-            .Select(p => p.Value).FirstOrDefault();
+        return moduleInstance?.GetProperties().OfType<Fdc3StartupProperties>().FirstOrDefault()?.InstanceId;
     }
 
     private IAsyncObserver<string> CreateObserver()
