@@ -13,6 +13,7 @@
 //  */
 
 using System;
+using System.Threading.Tasks;
 using Infragistics.Windows.DockManager;
 using Infragistics.Windows.DockManager.Events;
 using MorganStanley.ComposeUI.ModuleLoader;
@@ -29,7 +30,10 @@ internal class WebContentPane : ContentPane
         Header = webContent.ModuleInstance?.Manifest.Name ?? WebContent.Title ?? "New tab";
         Content = webContent.Content;
         Image = WebContent.Icon;
+        Name = $"Pane_{DateTime.Now.Ticks}";
+        SerializationId = Name;
 
+        CloseAction = PaneCloseAction.RemovePane;
         Closing += Pane_Closing;
         Closed += Pane_Closed;
         WebContent.CloseRequested += WebContent_CloseRequested;

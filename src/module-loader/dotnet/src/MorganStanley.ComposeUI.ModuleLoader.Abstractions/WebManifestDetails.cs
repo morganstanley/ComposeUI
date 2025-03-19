@@ -18,7 +18,7 @@ namespace MorganStanley.ComposeUI.ModuleLoader;
 /// <remarks>
 /// Web modules should have <see cref="ModuleType.Web"/> as their <see cref="IModuleManifest.ModuleType"/>
 /// </remarks>
-public sealed class WebManifestDetails
+public sealed class WebManifestDetails : ModuleDetails
 {
     /// <summary>
     /// The URL to open when this module is started.

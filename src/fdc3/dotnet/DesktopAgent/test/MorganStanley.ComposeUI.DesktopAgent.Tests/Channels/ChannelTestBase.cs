@@ -38,7 +38,7 @@ public abstract class ChannelTestBase
     public void NewChannelCanHandleContext()
     {
         var context = GetContext();
-        new Action(() => Channel.HandleBroadcast(context)).Should().NotThrow();
+        new System.Action(() => Channel.HandleBroadcast(context)).Should().NotThrow();
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public abstract class ChannelTestBase
     {
         await PreBroadcastContext();
         var context = GetContext();
-        new Action(() => Channel.HandleBroadcast(context)).Should().NotThrow();
+        new System.Action(() => Channel.HandleBroadcast(context)).Should().NotThrow();
     }
 
     [Fact]
@@ -94,7 +94,7 @@ public abstract class ChannelTestBase
     public async void BroadcastedChannelCanHandleDifferentBroadcast()
     {
         await PreBroadcastContext();
-        new Action(() => Channel.HandleBroadcast(GetDifferentContext())).Should().NotThrow();
+        new System.Action(() => Channel.HandleBroadcast(GetDifferentContext())).Should().NotThrow();
     }
 
     [Fact]

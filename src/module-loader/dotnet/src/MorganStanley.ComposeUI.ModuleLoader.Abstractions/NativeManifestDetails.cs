@@ -14,10 +14,25 @@
 
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
-public sealed class NativeManifestDetails
+public sealed class NativeManifestDetails : ModuleDetails
 {
+    /// <summary>
+    /// Url of the module's executable.
+    /// </summary>
     public Uri Path { get; set; }
+
+    /// <summary>
+    /// Url of the module's icon.
+    /// </summary>
     public Uri? Icon { get; init; }
+
+    /// <summary>
+    /// Arguments that should be passed to the process when it is being started.
+    /// </summary>
     public string[] Arguments { get; init; } = Array.Empty<string>();
+
+    /// <summary>
+    /// Environment variables that should be set for the given module.
+    /// </summary>
     public Dictionary<string, string> EnvironmentVariables { get; init; } = new Dictionary<string, string>();
 }

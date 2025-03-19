@@ -77,11 +77,15 @@ internal sealed class ModuleService : IHostedService
             App.Current.Dispatcher.Invoke(() =>
             {
                 App.Current.CreateWebContent(
-                e.Instance,
+                    e.Instance,
                     webWindowOptions ?? new WebWindowOptions
                     {
                         Url = properties.Url.ToString(),
-                        IconUrl = properties.IconUrl?.ToString()
+                        IconUrl = properties.IconUrl?.ToString(),
+                        InitialModulePostion = properties.InitialModulePosition,
+                        Width = properties.Width ?? WebWindowOptions.DefaultWidth,
+                        Height = properties.Height ?? WebWindowOptions.DefaultHeight,
+                        Coordinates = properties.Coordinates
                     });
             });
         }

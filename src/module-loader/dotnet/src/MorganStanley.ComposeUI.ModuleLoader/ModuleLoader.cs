@@ -84,6 +84,7 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
 
     public async Task StopModule(StopRequest request)
     {
+        //TODO: decide if we want to remove it from the dictionary
         if (!_modules.TryGetValue(request.InstanceId, out var module))
         {
             return;

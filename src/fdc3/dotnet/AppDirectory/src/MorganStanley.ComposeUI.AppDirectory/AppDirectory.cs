@@ -21,6 +21,8 @@ using Microsoft.Extensions.Primitives;
 using Finos.Fdc3.AppDirectory;
 using Finos.Fdc3.NewtonsoftJson.Serialization;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Serialization;
 
 namespace MorganStanley.ComposeUI.Fdc3.AppDirectory;
 
@@ -31,12 +33,14 @@ public class AppDirectory : IAppDirectory
         IHttpClientFactory? httpClientFactory = null,
         IMemoryCache? cache = null,
         IFileSystem? fileSystem = null,
+        IHostManifestMapper? hostManifestMapper = null,
         ILogger<AppDirectory>? logger = null)
     {
         _httpClientFactory = httpClientFactory;
         _options = options.Value;
         _cache = cache ?? new MemoryCache(new MemoryCacheOptions());
         _fileSystem = fileSystem ?? new FileSystem();
+        _hostManifestMapper = hostManifestMapper;
         _logger = logger ?? NullLogger<AppDirectory>.Instance;
     }
 
@@ -56,6 +60,7 @@ public class AppDirectory : IAppDirectory
     private readonly IHttpClientFactory? _httpClientFactory;
     private HttpClient? _httpClient;
     private readonly IFileSystem _fileSystem;
+    private readonly IHostManifestMapper? _hostManifestMapper;
     private readonly ILogger<AppDirectory> _logger;
     private readonly AppDirectoryOptions _options;
     private readonly IMemoryCache _cache;
@@ -119,7 +124,7 @@ public class AppDirectory : IAppDirectory
 
         return Task.FromResult<(IEnumerable<Fdc3App>, IChangeToken?)>(
             (
-                LoadAppsFromStream(stream),
+                LoadAppsFromStream(stream, _hostManifestMapper),
                 new FileSystemChangeToken(fileName, _fileSystem)));
     }
 
@@ -129,7 +134,7 @@ public class AppDirectory : IAppDirectory
         var response = await httpClient.GetAsync(relativeUri);
         var stream = await response.Content.ReadAsStreamAsync();
 
-        return (LoadAppsFromStream(stream), null);
+        return (LoadAppsFromStream(stream, _hostManifestMapper), null);
     }
 
     private HttpClient GetHttpClient()
@@ -151,9 +156,32 @@ public class AppDirectory : IAppDirectory
         return _httpClient = new HttpClient();
     }
 
-    private static IEnumerable<Fdc3App> LoadAppsFromStream(Stream stream)
+    private static IEnumerable<Fdc3App> LoadAppsFromStream(Stream stream, IHostManifestMapper? hostManifestMapper = null)
     {
-        var serializer = JsonSerializer.Create(new Fdc3JsonSerializerSettings());
+        var jsonSerializerSettings = new JsonSerializerSettings()
+        {
+            TypeNameHandling = TypeNameHandling.None,
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            DefaultValueHandling = DefaultValueHandling.Populate,
+            NullValueHandling = NullValueHandling.Ignore,
+            ContractResolver = new DefaultContractResolver()
+            {
+                NamingStrategy = new Fdc3CamelCaseNamingStrategy()
+            },
+            Converters =
+            [
+                    new StringEnumConverter(new CamelCaseNamingStrategy()),
+                    new RecipientJsonConverter(),
+                    new Fdc3AppConverter(),
+            ],
+        };
+
+        if (hostManifestMapper != null)
+        {
+            jsonSerializerSettings.Converters.Add(hostManifestMapper.HostManifestJsonConverter);
+        }
+
+        var serializer = JsonSerializer.Create(jsonSerializerSettings);
         using var textReader = new StreamReader(stream, leaveOpen: true);
         using var jsonReader = new JsonTextReader(textReader);
         jsonReader.Read();

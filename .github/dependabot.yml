@@ -6,8 +6,14 @@
 # https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
 version: 2
-updates:
 
+registries:
+  github-packages:
+    type: npm-registry
+    url: 'https://npm.pkg.github.com'
+    token: ${{ secrets.DEPENDABOT_GITHUB_PACKAGES }}
+
+updates:
   # Dependabot doesn't support glob syntax. Every solution needs an entry
 
   - package-ecosystem: 'nuget'
@@ -17,6 +23,9 @@ updates:
       ignore:
         - dependency-name: 'Finos.Fdc3*'
           versions: [ '>=2.1' ]
+    ignore:
+      - dependency-name: 'FluentAssertions*'
+        versions: [ '>=8.0' ]
     groups:
       infragistics:
         patterns:
@@ -25,11 +34,17 @@ updates:
         patterns:
           - 'Grpc*'
           - 'Google.Protobuf*'
-          
+      codeanalysis:
+        patterns:
+          - 'Microsoft.CodeAnalysis*'
+
   - package-ecosystem: 'nuget'
     directory: '/src/messaging/dotnet/src/Client'
     schedule:
       interval: 'monthly'
+    ignore:
+      - dependency-name: 'FluentAssertions*'
+        versions: [ '>=8.0' ]
     groups:
       infragistics:
         patterns:
@@ -38,11 +53,17 @@ updates:
         patterns:
           - 'Grpc*'
           - 'Google.Protobuf*'
-          
+      codeanalysis:
+        patterns:
+          - 'Microsoft.CodeAnalysis*'
+
   - package-ecosystem: 'nuget'
     directory: '/src/messaging/dotnet/src/Core'
     schedule:
       interval: 'monthly'
+    ignore:
+      - dependency-name: 'FluentAssertions*'
+        versions: [ '>=8.0' ]
     groups:
       infragistics:
         patterns:
@@ -51,11 +72,17 @@ updates:
         patterns:
           - 'Grpc*'
           - 'Google.Protobuf*'
-          
+      codeanalysis:
+        patterns:
+          - 'Microsoft.CodeAnalysis*'
+
   - package-ecosystem: 'nuget'
     directory: '/src/messaging/dotnet/src/Host'
     schedule:
       interval: 'monthly'
+    ignore:
+      - dependency-name: 'FluentAssertions*'
+        versions: [ '>=8.0' ]
     groups:
       infragistics:
         patterns:
@@ -64,11 +91,17 @@ updates:
         patterns:
           - 'Grpc*'
           - 'Google.Protobuf*'
-          
+      codeanalysis:
+        patterns:
+          - 'Microsoft.CodeAnalysis*'
+
   - package-ecosystem: 'nuget'
     directory: '/src/messaging/dotnet/src/Server'
     schedule:
       interval: 'monthly'
+    ignore:
+      - dependency-name: 'FluentAssertions*'
+        versions: [ '>=8.0' ]
     groups:
       infragistics:
         patterns:
@@ -77,11 +110,17 @@ updates:
         patterns:
           - 'Grpc*'
           - 'Google.Protobuf*'
-          
+      codeanalysis:
+        patterns:
+          - 'Microsoft.CodeAnalysis*'
+
   - package-ecosystem: 'nuget'
     directory: '/src/shell/dotnet/Shell'
     schedule:
       interval: 'monthly'
+    ignore:
+      - dependency-name: 'FluentAssertions*'
+        versions: [ '>=8.0' ]
     groups:
       infragistics:
         patterns:
@@ -90,11 +129,17 @@ updates:
         patterns:
           - 'Grpc*'
           - 'Google.Protobuf*'
-          
+      codeanalysis:
+        patterns:
+          - 'Microsoft.CodeAnalysis*'
+
   - package-ecosystem: 'nuget'
     directory: '/prototypes/multi-module-prototype/examples/multi-module-example/ModulesPrototype'
     schedule:
       interval: 'monthly'
+    ignore:
+      - dependency-name: 'FluentAssertions*'
+        versions: [ '>=8.0' ]
     groups:
       infragistics:
         patterns:
@@ -103,6 +148,9 @@ updates:
         patterns:
           - 'Grpc*'
           - 'Google.Protobuf*'
+      codeanalysis:
+        patterns:
+          - 'Microsoft.CodeAnalysis*'
 
   - package-ecosystem: 'npm'
     directory: '/'
@@ -136,6 +184,13 @@ updates:
     ignore:
       - dependency-name: '@angular*'
         update-types: ['version-update:semver-major']
+
+  - package-ecosystem: 'npm'
+    registries:
+      - 'github-packages'
+    directory: '/site'
+    schedule:
+      interval: 'monthly'
 
   - package-ecosystem: github-actions
     directory: /
