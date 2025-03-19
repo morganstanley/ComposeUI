@@ -24,7 +24,6 @@ internal sealed class GetOpenedAppContextResponse
     /// </summary>
     public string? Error { get; set; }
 
-    //TODO: proper deserialization.
     /// <summary>
     /// Context that should be sent directly to the opened app via the fdc3.open().
     /// </summary>

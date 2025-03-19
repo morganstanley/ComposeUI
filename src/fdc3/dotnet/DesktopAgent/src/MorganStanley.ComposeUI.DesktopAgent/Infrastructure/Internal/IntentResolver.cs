@@ -31,7 +31,6 @@ internal class IntentResolver
     }
 
 
-
     public async Task<IEnumerable<FlatAppIntent>> GetMatchingAppsFromAppDirectory(string? intent = null, string? contextType = null, string? resultType = null, string? appIdentifier = null)
     {
         IEnumerable<FlatAppIntent> appIntents;
@@ -107,6 +106,7 @@ internal class IntentResolver
             }
             apps = apps.Concat(appIntents);
         }
+
         return apps;
     }
 

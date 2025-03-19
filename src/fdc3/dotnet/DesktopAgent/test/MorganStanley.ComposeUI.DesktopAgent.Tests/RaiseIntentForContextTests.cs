@@ -14,7 +14,10 @@
 
 using Finos.Fdc3;
 using Finos.Fdc3.Context;
+using Microsoft.Extensions.Logging;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Helpers;
+using MorganStanley.ComposeUI.ModuleLoader;
 using static MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.TestData.TestAppDirectoryData;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
@@ -26,10 +29,15 @@ public class RaiseIntentForContextTests : Fdc3DesktopAgentTestsBase
     [Fact]
     public async Task RaiseIntentForContext_returns_NoAppsFound()
     {
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+
         var request = new RaiseIntentForContextRequest
         {
+            Fdc3InstanceId = originFdc3InstanceId,
             Context = new Context("nosuchcontext").AsJson(),
         };
+
         var result = await Fdc3.RaiseIntentForContext(request, "nosuchcontext");
 
         result?.Response.Should().NotBeNull();
@@ -40,6 +48,9 @@ public class RaiseIntentForContextTests : Fdc3DesktopAgentTestsBase
     [Fact]
     public async Task RaiseIntentForContext_with_multiple_possibilities_calls_ResolverUI()
     {
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+
         ResolverUICommunicator
             .Setup(x => x.SendResolverUIIntentRequest(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ResolverUIIntentResponse()
@@ -49,7 +60,7 @@ public class RaiseIntentForContextTests : Fdc3DesktopAgentTestsBase
 
         var request = new RaiseIntentForContextRequest
         {
-            Fdc3InstanceId = Guid.NewGuid().ToString(),
+            Fdc3InstanceId = originFdc3InstanceId,
             Context = MultipleContext.AsJson()
         };
 
@@ -63,18 +74,25 @@ public class RaiseIntentForContextTests : Fdc3DesktopAgentTestsBase
     [Fact]
     public async Task RaiseIntentForContext_with_single_intent_but_multiple_apps_calls_ResolverUI()
     {
-        ResolverUICommunicator
-        .Setup(x => x.SendResolverUIIntentRequest(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()));
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
+        ResolverUICommunicator
+            .Setup(x => x.SendResolverUIIntentRequest(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.FromResult<ResolverUIIntentResponse?>(new ResolverUIIntentResponse()
+            {
+                SelectedIntent = IntentWithNoResult.Name
+            }));
 
         var request = new RaiseIntentForContextRequest
         {
-            Fdc3InstanceId = Guid.NewGuid().ToString(),
+            Fdc3InstanceId = originFdc3InstanceId,
             Context = ContextType.Nothing.AsJson(),
         };
 
         var result = await Fdc3.RaiseIntentForContext(request, ContextTypes.Nothing);
 
+        ResolverUICommunicator.Verify(_ => _.SendResolverUIIntentRequest(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()));
         ResolverUICommunicator.Verify(_ => _.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()));
         ResolverUICommunicator.VerifyNoOtherCalls();
     }
@@ -82,16 +100,19 @@ public class RaiseIntentForContextTests : Fdc3DesktopAgentTestsBase
     [Fact]
     public async Task RaiseIntentForContext_with_multiple_intents_but_single_app_calls_ResolverUI()
     {
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+
         ResolverUICommunicator
-        .Setup(x => x.SendResolverUIIntentRequest(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
-        .ReturnsAsync(new ResolverUIIntentResponse()
-        {
-            SelectedIntent = IntentWithNoResult.Name
-        });
+            .Setup(x => x.SendResolverUIIntentRequest(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ResolverUIIntentResponse()
+            {
+                SelectedIntent = IntentWithNoResult.Name
+            });
 
         var request = new RaiseIntentForContextRequest
         {
-            Fdc3InstanceId = Guid.NewGuid().ToString(),
+            Fdc3InstanceId = originFdc3InstanceId,
             Context = OnlyApp3Context.AsJson()
         };
 
@@ -99,5 +120,32 @@ public class RaiseIntentForContextTests : Fdc3DesktopAgentTestsBase
 
         ResolverUICommunicator.Verify(_ => _.SendResolverUIIntentRequest(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()));
         ResolverUICommunicator.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task RaiseIntentForContext_logs_warning_when_the_raising_app_does_not_define_the_intent_in_the_AppDirectory_Raises_record()
+    {
+        //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+
+        var request = new RaiseIntentForContextRequest
+        {
+            Fdc3InstanceId = originFdc3InstanceId,
+            Context = CurrencyContext.AsJson(),
+        };
+
+        // This should return an error anyway because no app can handle the intent
+        _ = await Fdc3.RaiseIntentForContext(request, ContextTypes.Currency);
+
+        Logger
+            .Verify(
+                x => x.Log(
+                    LogLevel.Warning,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains($"Source app did not register its raiseable intent(s) for context: {ContextTypes.Currency} in the `raises` section of AppDirectory.")),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+                Times.Once);
     }
 }
