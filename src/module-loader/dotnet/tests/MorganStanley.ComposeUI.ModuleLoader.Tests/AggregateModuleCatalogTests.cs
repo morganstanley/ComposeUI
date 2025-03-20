@@ -36,6 +36,7 @@ public class AggregateModuleCatalogTests
             new MockModuleCatalog(new[]
             {
                 new MockModuleManifest("testModuleId", "testModuleName9"),
+                new MockModuleManifest("testModuleId5", "testModuleName5X"),
             }),
             new MockModuleCatalog(new[]
             {
@@ -91,6 +92,27 @@ public class AggregateModuleCatalogTests
             });
     }
 
+    // GetAllManifests returns unique modules
+    [Fact]
+    public async Task GetAllManifests_ReturnsTheUniqueModules()
+    {
+        var result = await _moduleCatalog.GetAllManifests();
+        result.Should().NotBeNull();
+        result.Should().HaveCount(8);
+        result.Select(module => module.Id).Should().BeEquivalentTo(
+            new[]
+            {
+                "testModuleId",
+                "testModuleId1",
+                "testModuleId2",
+                "testModuleId3",
+                "testModuleId4",
+                "testModuleId5",
+                "testModuleId6",
+                "testModuleId7",
+            });
+    }
+
     private class MockModuleCatalog : IModuleCatalog
     {
         private readonly IEnumerable<IModuleManifest> _modules;
@@ -98,6 +120,11 @@ public class AggregateModuleCatalogTests
         public MockModuleCatalog(IEnumerable<IModuleManifest> modules)
         {
             _modules = modules;
+        }
+        
+        public Task<IEnumerable<IModuleManifest>> GetAllManifests()
+        {
+            return Task.FromResult(_modules);
         }
 
         public Task<IModuleManifest> GetManifest(string moduleId)
@@ -133,6 +160,10 @@ public class AggregateModuleCatalogTests
         public string Name => _name;
 
         public string ModuleType => "dummy";
+
+        public string[] Tags => ["tag1", "tag2"];
+
+        public Dictionary<string, string> AdditionalProperties => new() { { "color", "blue" } };
     }
 
     private class AggregateModuleCatalogReturnManifestTheoryData : TheoryData
@@ -143,5 +174,102 @@ public class AggregateModuleCatalogTests
             AddRow("testModuleId2", new MockModuleManifest("testModuleId2", "testModuleName2"));
             AddRow("testModuleId5", new MockModuleManifest("testModuleId5", "testModuleName5"));
         }
+    }
+
+    [Fact]
+    public void ModuleManifestIdComparer_Equals_ReturnsTrue_ForSameId()
+    {
+        var comparer = new AggregateModuleCatalog.ModuleManifestIdComparer();
+        var manifest1 = new MockModuleManifest("testId", "testName1");
+        var manifest2 = new MockModuleManifest("testId", "testName2");
+
+        var result = comparer.Equals(manifest1, manifest2);
+
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ModuleManifestIdComparer_Equals_ReturnsFalse_ForDifferentId()
+    {
+        var comparer = new AggregateModuleCatalog.ModuleManifestIdComparer();
+        var manifest1 = new MockModuleManifest("testId1", "testName1");
+        var manifest2 = new MockModuleManifest("testId2", "testName2");
+
+        var result = comparer.Equals(manifest1, manifest2);
+
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ModuleManifestIdComparer_GetHashCode_ReturnsSameHashCode_ForSameId()
+    {
+        var comparer = new AggregateModuleCatalog.ModuleManifestIdComparer();
+        var manifest1 = new MockModuleManifest("testId", "testName1");
+        var manifest2 = new MockModuleManifest("testId", "testName2");
+
+        var hashCode1 = comparer.GetHashCode(manifest1);
+        var hashCode2 = comparer.GetHashCode(manifest2);
+
+        hashCode1.Should().Be(hashCode2);
+    }
+
+    [Fact]
+    public void ModuleManifestIdComparer_GetHashCode_ReturnsDifferentHashCode_ForDifferentId()
+    {
+        var comparer = new AggregateModuleCatalog.ModuleManifestIdComparer();
+        var manifest1 = new MockModuleManifest("testId1", "testName1");
+        var manifest2 = new MockModuleManifest("testId2", "testName2");
+
+        var hashCode1 = comparer.GetHashCode(manifest1);
+        var hashCode2 = comparer.GetHashCode(manifest2);
+
+        hashCode1.Should().NotBe(hashCode2);
+    }
+
+    [Fact]
+    public void ModuleManifestIdComparer_Equals_ReturnsFalse_WhenFirstIsNull()
+    {
+        var comparer = new AggregateModuleCatalog.ModuleManifestIdComparer();
+        var manifest1 = (IModuleManifest) null!;
+        var manifest2 = new MockModuleManifest("testId", "testName");
+
+        var result = comparer.Equals(manifest1, manifest2);
+
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ModuleManifestIdComparer_Equals_ReturnsFalse_WhenSecondIsNull()
+    {
+        var comparer = new AggregateModuleCatalog.ModuleManifestIdComparer();
+        var manifest1 = new MockModuleManifest("testId", "testName");
+        var manifest2 = (IModuleManifest) null!;
+
+        var result = comparer.Equals(manifest1, manifest2);
+
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ModuleManifestIdComparer_Equals_ReturnsTrue_WhenBothAreNull()
+    {
+        var comparer = new AggregateModuleCatalog.ModuleManifestIdComparer();
+        var manifest1 = (IModuleManifest) null!;
+        var manifest2 = (IModuleManifest) null!;
+
+        var result = comparer.Equals(manifest1, manifest2);
+
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ModuleManifestIdComparer_GetHashCode_ThrowsException_WhenNull()
+    {
+        var comparer = new AggregateModuleCatalog.ModuleManifestIdComparer();
+        var manifest = (IModuleManifest) null!;
+
+        Action act = () => comparer.GetHashCode(manifest);
+
+        act.Should().Throw<NullReferenceException>();
     }
 }
