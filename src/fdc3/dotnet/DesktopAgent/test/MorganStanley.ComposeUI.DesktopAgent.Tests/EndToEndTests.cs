@@ -33,6 +33,7 @@ using DisplayMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Displ
 using Icon = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Icon;
 using ImplementationMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.ImplementationMetadata;
 using static MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.TestData.TestAppDirectoryData;
+using System.Runtime.CompilerServices;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
 
@@ -223,6 +224,28 @@ public class EndToEndTests : IAsyncLifetime
         resultBuffer.Should().NotBeNull();
         var result = resultBuffer!.ReadJson<FindChannelResponse>(_options);
         result.Should().BeEquivalentTo(FindChannelResponse.Failure(ChannelError.NoChannelFound));
+    }
+
+    [Fact]
+    public async Task AddAppChannelReturnsNullWithNullChannelId()
+    {
+        //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
+        var instance = await _moduleLoader.StartModule(new StartRequest(App1.AppId));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(instance);
+
+        var resultBuffer = await _messageRouter.InvokeAsync(
+            Fdc3Topic.CreateAppChannel, 
+            MessageBuffer.Factory.CreateJson(
+                new CreateAppChannelRequest()
+                {
+                    ChannelId = null,
+                    InstanceId = originFdc3InstanceId
+                },
+                _options));
+
+        resultBuffer.Should().NotBeNull();
+        var result = resultBuffer!.ReadJson<CreateAppChannelResponse>(_options);
+        result.Should().BeEquivalentTo(CreateAppChannelResponse.Failed(ChannelError.CreationFailed));
     }
 
     [Fact]

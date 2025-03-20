@@ -94,7 +94,6 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         return await this.intentsClient.raiseIntent(intent, context, app);
     }
 
-    //TODO
     public async raiseIntentForContext(context: Context, app?: string | AppIdentifier): Promise<IntentResolution> {
         return await this.intentsClient.raiseIntentForContext(context, app);
     }

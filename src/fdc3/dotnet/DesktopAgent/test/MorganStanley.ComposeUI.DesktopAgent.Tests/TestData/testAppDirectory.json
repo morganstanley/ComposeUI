@@ -23,6 +23,30 @@
       },
       "interop": {
         "intents": {
+          "raises": {
+            "intent1": [
+              "singleContext",
+              "nosuchcontext",
+              "onlyApp3Context",
+              "noAppShouldReturn"
+            ],
+            "intent2": [
+              "multipleContext"
+            ],
+            "intentWithNoResult": [
+              "fdc3.nothing"
+            ],
+            "noIntentShouldHandle": [],
+            "noAppShouldReturn": [
+              "singleContext"
+            ],
+            "testIntent": [
+              "singleContext"
+            ],
+            "intentWithChannelResult": [
+              "channelContext"
+            ]
+          },
           "listensFor": {
             "intent1": {
               "name": "intent1",
@@ -45,6 +69,11 @@
       },
       "interop": {
         "intents": {
+          "raises": {
+            "intent1": [
+              "singleContext"
+            ]
+          },
           "listensFor": {
             "intent2": {
               "name": "intent2",
@@ -103,6 +132,11 @@
       },
       "interop": {
         "intents": {
+          "raises": {
+            "intent1": [
+              "singleContext"
+            ]
+          },
           "listensFor": {
             "intentWithNoResult": {
               "name": "intentWithNoResult",
