@@ -48,13 +48,13 @@ internal static class Fdc3Topic
     }
 
     internal static ChannelTopics UserChannel(string id) => new ChannelTopics(id, ChannelType.User);
-    internal static ChannelTopics PrivateChannel(string id) => new ChannelTopics(id, ChannelType.Private);
     internal static ChannelTopics AppChannel(string id) => new ChannelTopics(id, ChannelType.App);
+    internal static PrivateChannelTopics PrivateChannel(string id) => new PrivateChannelTopics(id);
 }
 
 internal class ChannelTopics
 {
-    private readonly string _channelRoot;
+    protected readonly string ChannelRoot;
     internal ChannelTopics(string id, ChannelType type)
     {
         var channelTypeString = type switch
@@ -65,11 +65,21 @@ internal class ChannelTopics
             _ => throw new NotSupportedException($"{nameof(type)}")
         };
 
-        _channelRoot = $"{Fdc3Topic.TopicRoot}{channelTypeString}/{id}/";
-        Broadcast = _channelRoot + "broadcast";
-        GetCurrentContext = _channelRoot + "getCurrentContext";
+        ChannelRoot = $"{Fdc3Topic.TopicRoot}{channelTypeString}/{id}/";
+        Broadcast = ChannelRoot + "broadcast";
+        GetCurrentContext = ChannelRoot + "getCurrentContext";
     }
 
     public string Broadcast { get; }
     public string GetCurrentContext { get; }
+}
+
+internal class PrivateChannelTopics : ChannelTopics
+{
+    internal PrivateChannelTopics(string id) : base(id, ChannelType.Private)
+    {
+        Events = ChannelRoot + "events";
+    }
+
+    public string Events { get; }
 }

@@ -89,6 +89,11 @@ public class MockModuleLoader : Mock<IModuleLoader>
             };
         }
 
+        public IEnumerable<T> GetProperties<T>()
+        {
+            return GetProperties().OfType<T>();
+        }
+
         public MockModuleInstance(StartRequest startRequest, IModuleManifest moduleManifest)
         {
             _moduleManifest = moduleManifest;

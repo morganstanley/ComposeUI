@@ -55,6 +55,7 @@ internal static class TestAppDirectoryData
     public static Context ChannelContext { get; } = new Context("channelContext");
     public static Context GenericChannelContext { get; } = new Context("genericChannelContext");
     public static Context SpecificChannelContext { get; } = new Context("specificChannelContext");
+    public static Context CurrencyContext { get; } = new Context(ContextTypes.Currency);
 
     internal static string AsJson(this Context ctx)
     {

@@ -14,6 +14,7 @@
 
 using System;
 using System.Threading.Tasks;
+using System.Windows;
 using Infragistics.Windows.DockManager;
 using Infragistics.Windows.DockManager.Events;
 using MorganStanley.ComposeUI.ModuleLoader;
@@ -63,15 +64,32 @@ internal class WebContentPane : ContentPane
 
             case LifetimeEventType.Stopping:
                 e.Cancel = true;
-                Visibility = System.Windows.Visibility.Hidden;
+                Visibility = Visibility.Hidden;
                 return;
 
             default:
-                Visibility = System.Windows.Visibility.Hidden;
-                Task.Run(() => _moduleLoader.StopModule(new StopRequest(WebContent.ModuleInstance.InstanceId)));
+                e.Cancel = true;
+                Visibility = Visibility.Hidden;
+                _ = HandleCloseAsync();
                 return;
         }
     }
+
+    private async Task HandleCloseAsync()
+    {
+        try
+        {
+            await _moduleLoader.StopModule(new StopRequest(WebContent.ModuleInstance.InstanceId));
+            OnModuleStopped?.Invoke(this, EventArgs.Empty);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Stopping the module failed.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            Visibility = Visibility.Visible;
+        }
+    }
+
+    public event EventHandler? OnModuleStopped;
 
     public WebContent WebContent { get; }
 

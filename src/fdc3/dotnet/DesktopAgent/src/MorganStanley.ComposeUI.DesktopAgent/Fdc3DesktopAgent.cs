@@ -47,6 +47,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     private readonly ConcurrentDictionary<string, UserChannel> _userChannels = new();
     private readonly ConcurrentDictionary<string, PrivateChannel> _privateChannels = new();
     private readonly ConcurrentDictionary<string, AppChannel> _appChannels = new();
+    private readonly Dictionary<string, List<PrivateChannel>> _privateChannelsByInstanceId = new();
     private readonly ILoggerFactory _loggerFactory;
     private readonly Fdc3DesktopAgentOptions _options;
     private readonly IAppDirectory _appDirectory;
@@ -59,6 +60,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     private IDisposable? _startedLifetimeEventSubscription;
     private IDisposable? _stoppedLifetimeEventSubscription;
     private readonly object _contextListenerLock = new();
+    private readonly object _privateChannelsDictionaryLock = new();
     private readonly IntentResolver _intentResolver;
 
     public Fdc3DesktopAgent(
@@ -82,6 +84,12 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
     public async ValueTask<UserChannel?> AddUserChannel(Func<string, UserChannel> addUserChannelFactory, string channelId)
     {
+        if (channelId == null)
+        {
+            _logger.LogError($"Could not create user channel while executing {nameof(AddUserChannel)} due to user channel id is null.");
+            return null;
+        }
+
         ChannelItem? channelItem = null;
         var userChannelSet = await _userChannelSetReader.GetUserChannelSet();
 
@@ -122,16 +130,24 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
     public async ValueTask AddPrivateChannel(Func<string, PrivateChannel> addPrivateChannelFactory, string privateChannelId)
     {
+        if (privateChannelId == null)
+        {
+            _logger.LogError($"Could not create private channel while executing {nameof(AddPrivateChannel)} due to private channel id is null.");
+            return;
+        }
+
         //Checking if the endpoint is already registered, because it can cause issues while registering services storing the latest context messages, etc on the Channel objects.
         if (_privateChannels.TryGetValue(privateChannelId, out var privateChannel))
         {
             return;
         }
 
-        privateChannel = _privateChannels.GetOrAdd(privateChannelId, addPrivateChannelFactory(privateChannelId));
-
         try
         {
+            privateChannel = _privateChannels.GetOrAdd(privateChannelId, addPrivateChannelFactory(privateChannelId));
+
+            SafeAddToPrivateChannelsDictionary(privateChannel);
+
             await privateChannel!.Connect();
         }
         catch (MessageRouterDuplicateEndpointException exception)
@@ -145,7 +161,35 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         {
             _logger.LogError(exception, $"Exception thrown while executing {nameof(AddPrivateChannel)}.");
             _privateChannels.TryRemove(privateChannelId, out _);
+            SafeRemoveFromPrivateChannelsDictionary(privateChannel!);
             throw;
+        }
+    }
+
+    private void SafeAddToPrivateChannelsDictionary(PrivateChannel privateChannel)
+    {
+        lock (_privateChannelsDictionaryLock)
+        {
+            if (!_privateChannelsByInstanceId.TryGetValue(privateChannel.InstanceId, out var privateChannels))
+            {
+                privateChannels = [privateChannel];
+                _privateChannelsByInstanceId[privateChannel.InstanceId] = privateChannels;
+            }
+            else if (!privateChannels!.Contains(privateChannel))
+            {
+                privateChannels.Add(privateChannel);
+            }
+        }
+    }
+
+    private void SafeRemoveFromPrivateChannelsDictionary(PrivateChannel privateChannel)
+    {
+        lock ( _privateChannelsDictionaryLock)
+        {
+            if (_privateChannelsByInstanceId.TryGetValue(privateChannel.InstanceId, out var privateChannels))
+            {
+                privateChannels.Remove(privateChannel);
+            }
         }
     }
 
@@ -153,6 +197,12 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     {
         if (!_runningModules.TryGetValue(new Guid(request.InstanceId), out _))
         {
+            return CreateAppChannelResponse.Failed(ChannelError.CreationFailed);
+        }
+
+        if (request.ChannelId == null)
+        {
+            _logger.LogError($"Could not create app channel while executing {nameof(AddAppChannel)} due to app channel id is null.");
             return CreateAppChannelResponse.Failed(ChannelError.CreationFailed);
         }
 
@@ -232,7 +282,9 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         _pendingStartRequests.Clear();
         _userChannels.Clear();
         _privateChannels.Clear();
+        _privateChannelsByInstanceId.Clear();
         _appChannels.Clear();
+
         lock (_contextListenerLock)
         {
             _contextListeners.Clear();
@@ -359,14 +411,11 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         }
     }
 
-    public async ValueTask<RaiseIntentResult<IntentListenerResponse>> AddIntentListener(IntentListenerRequest? request)
+    public ValueTask<IntentListenerResponse> AddIntentListener(IntentListenerRequest? request)
     {
         if (request == null)
         {
-            return new()
-            {
-                Response = IntentListenerResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull)
-            };
+            return ValueTask.FromResult(IntentListenerResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull));
         }
 
         switch (request.State)
@@ -375,70 +424,30 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
                 if (_raisedIntentResolutions.TryGetValue(new(request.Fdc3InstanceId), out var resolver))
                 {
                     resolver.AddIntentListener(request.Intent);
-
-                    var resolutions = new List<RaiseIntentResolutionMessage>();
-                    foreach (var raisedIntent in resolver.RaiseIntentResolutions.Where(
-                                 invocation => invocation.Intent == request.Intent && !invocation.IsResolved))
-                    {
-                        if (!_runningModules.TryGetValue(new(request.Fdc3InstanceId), out var app))
-                        {
-                            continue;
-                        }
-
-                        var specification = new RaiseIntentSpecification
-                        {
-                            Intent = raisedIntent.Intent,
-                            Context = raisedIntent.Context,
-                            SourceAppInstanceId = new(raisedIntent.OriginFdc3InstanceId),
-                            TargetAppMetadata = app.ToAppMetadata(request.Fdc3InstanceId),
-                        };
-
-                        var resolution = await GetRaiseIntentResolutionMessage(
-                            raisedIntent.RaiseIntentMessageId,
-                            specification);
-
-                        if (resolution != null)
-                        {
-                            resolutions.Add(resolution);
-                        }
-                    }
-
-                    return new()
-                    {
-                        Response = IntentListenerResponse.SubscribeSuccess(),
-                        RaiseIntentResolutionMessages = resolutions
-                    };
+                    return ValueTask.FromResult(IntentListenerResponse.SubscribeSuccess());
                 }
 
                 var createdResolver = _raisedIntentResolutions.GetOrAdd(
-                    new(request.Fdc3InstanceId),
-                    new RaisedIntentRequestHandler(_loggerFactory.CreateLogger<RaisedIntentRequestHandler>()));
+                        new(request.Fdc3InstanceId),
+                        new RaisedIntentRequestHandler(_loggerFactory.CreateLogger<RaisedIntentRequestHandler>()));
 
                 createdResolver.AddIntentListener(request.Intent);
 
-                return new()
-                {
-                    Response = IntentListenerResponse.SubscribeSuccess(),
-                };
+                return ValueTask.FromResult(IntentListenerResponse.SubscribeSuccess());
 
             case SubscribeState.Unsubscribe:
 
                 if (_raisedIntentResolutions.TryGetValue(new(request.Fdc3InstanceId), out var resolverToRemove))
                 {
                     resolverToRemove.RemoveIntentListener(request.Intent);
-                    return new()
-                    {
-                        Response = IntentListenerResponse.UnsubscribeSuccess()
-                    };
+                    return ValueTask.FromResult(IntentListenerResponse.UnsubscribeSuccess());
                 }
 
+                //Fall into the default case if the resolver is not found
                 break;
         }
 
-        return new()
-        {
-            Response = IntentListenerResponse.Failure(Fdc3DesktopAgentErrors.MissingId)
-        };
+        return ValueTask.FromResult(IntentListenerResponse.Failure(Fdc3DesktopAgentErrors.MissingId));
     }
 
     public async ValueTask<GetUserChannelsResponse> GetUserChannels(GetUserChannelsRequest? request)
@@ -475,8 +484,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         }
 
         var userChannelSet = await _userChannelSetReader.GetUserChannelSet();
-        ChannelItem? channelItem = null;
-        if (!userChannelSet.TryGetValue(request.ChannelId, out channelItem))
+        if (!userChannelSet.TryGetValue(request.ChannelId, out var channelItem))
         {
             return JoinUserChannelResponse.Failed(ChannelError.NoChannelFound);
         }
@@ -749,6 +757,27 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             };
         }
 
+        if (request.Fdc3InstanceId == null
+            || !Guid.TryParse(request.Fdc3InstanceId, out var fdc3SourceInstanceId)
+            || !_runningModules.TryGetValue(fdc3SourceInstanceId, out var sourceApp))
+        {
+            return new()
+            {
+                //Source app is not identified.
+                Response = RaiseIntentResponse.Failure(Fdc3DesktopAgentErrors.MissingId)
+            };
+        }
+
+        //TODO: Decide if we want to allow apps to raise intent if they are not registering their intents into the Fdc3App.Interop.Intents.Raises collection.
+        //Throwing an error currently breaks the Conformance tests
+        if (!sourceApp.CanRaiseIntent(contextType: contextType))
+        {
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning($"Source app did not register its raiseable intent(s) for context: {contextType} in the `raises` section of AppDirectory.");
+            }
+        }
+
         var findIntentsByContextResult = await FindIntentsByContext(new FindIntentsByContextRequest() { Context = request.Context, Fdc3InstanceId = request.Fdc3InstanceId }, contextType);
 
         if (findIntentsByContextResult.AppIntents == null || !findIntentsByContextResult.AppIntents.Any())
@@ -773,8 +802,8 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         if (result.Count > 1)
         {
 
-            using var resolverUiIntentCancellationSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-            var resolverUIIntentResponse = await _resolverUI.SendResolverUIIntentRequest(result.Select(x => x.Intent.Name), resolverUiIntentCancellationSource.Token);
+            using var resolverUIIntentCancellationSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+            var resolverUIIntentResponse = await _resolverUI.SendResolverUIIntentRequest(result.Select(x => x.Intent.Name), resolverUIIntentCancellationSource.Token);
 
             if (resolverUIIntentResponse == null)
             {
@@ -855,32 +884,6 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         };
     }
 
-    private IEnumerable<AppIntent> FilterAppIntentsByAppId(IEnumerable<AppIntent> source, AppIdentifier appId)
-    {
-        // Semantically we know this is not null or empty
-        foreach (var intent in source)
-        {
-            foreach (var app in intent.Apps)
-            {
-                var matches = true;
-                if (appId.AppId != null && appId.AppId != app.AppId)
-                {
-                    matches = false;
-                }
-                if (appId.InstanceId != null && appId.InstanceId != app.InstanceId)
-                {
-                    matches = false;
-                }
-
-                if (matches)
-                {
-                    yield return intent;
-                    break;
-                }
-            }
-        }
-    }
-
     public async ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntent(RaiseIntentRequest request, string contextType)
     {
         if (request == null || contextType == null)
@@ -889,6 +892,27 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             {
                 Response = RaiseIntentResponse.Failure(ResolveError.IntentDeliveryFailed)
             };
+        }
+        
+        if (request.Fdc3InstanceId == null 
+            || !Guid.TryParse(request.Fdc3InstanceId, out var fdc3SourceInstanceId)
+            || !_runningModules.TryGetValue(fdc3SourceInstanceId, out var sourceApp))
+        {
+            return new()
+            {
+                //Source app is not identified.
+                Response = RaiseIntentResponse.Failure(Fdc3DesktopAgentErrors.MissingId)
+            };
+        }
+
+        //TODO: Decide if we want to allow apps to raise intent if they are not registering their intents into the Fdc3App.Interop.Intents.Raises collection
+        //Throwing an error currently breaks the Conformance tests
+        if (!sourceApp.CanRaiseIntent(request.Intent, contextType))
+        {
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning($"Source app did not register its raiseable intent(s) for context: {contextType} in the `raises` section of AppDirectory.");
+            }
         }
 
         var intentQueryResult = await GetAppIntentsByRequest(request.Intent, contextType, targetAppIdentifier: request.TargetAppIdentifier);
@@ -947,6 +971,32 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         {
             Response = RaiseIntentResponse.Failure(ResolveError.UserCancelledResolution)
         };
+    }
+
+    private IEnumerable<AppIntent> FilterAppIntentsByAppId(IEnumerable<AppIntent> source, AppIdentifier appId)
+    {
+        // Semantically we know this is not null or empty
+        foreach (var intent in source)
+        {
+            foreach (var app in intent.Apps)
+            {
+                var matches = true;
+                if (appId.AppId != null && appId.AppId != app.AppId)
+                {
+                    matches = false;
+                }
+                if (appId.InstanceId != null && appId.InstanceId != app.InstanceId)
+                {
+                    matches = false;
+                }
+
+                if (matches)
+                {
+                    yield return intent;
+                    break;
+                }
+            }
+        }
     }
 
     //Here we have a specific application which should either start or we should send a intent resolution request
@@ -1346,6 +1396,11 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             _logger.LogError($"Could not remove the stored intent resolutions of id: {fdc3InstanceId} which raised the intents.");
         }
 
+        lock (_privateChannelsDictionaryLock)
+        {
+            _privateChannelsByInstanceId.Remove(fdc3InstanceId);
+        }
+
         return Task.CompletedTask;
     }
 
@@ -1409,6 +1464,19 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             catch (Exception exception)
             {
                 _logger.LogError(exception, "An exception was thrown while waiting for a task to finish.");
+            }
+        }
+    }
+
+    public async ValueTask CloseModule(string instanceId, CancellationToken cancellationToken = default)
+    {
+        var privateChannels = _privateChannelsByInstanceId.GetValueOrDefault(instanceId);
+
+        if (privateChannels != null)
+        {
+            foreach (var channel in privateChannels)
+            {
+                await channel.Close(cancellationToken);
             }
         }
     }
