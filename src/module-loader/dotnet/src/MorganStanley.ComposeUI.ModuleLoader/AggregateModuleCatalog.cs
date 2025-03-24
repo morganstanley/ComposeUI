@@ -84,10 +84,14 @@ internal class AggregateModuleCatalog : IModuleCatalog
         public bool Equals(IModuleManifest x, IModuleManifest y)
         {
             if (ReferenceEquals(x, y))
+            {
                 return true;
+            }
 
             if (x == null || y == null)
+            {
                 return false;
+            }
 
             return x.Id == y.Id;
         }
