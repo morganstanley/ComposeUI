@@ -78,6 +78,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "architecture", "architectur
 		..\..\..\architecture\adr-016-shell-api.md = ..\..\..\architecture\adr-016-shell-api.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shell.Interaction.Abstraction", "src\Shell.Interaction.Abstraction\Shell.Interaction.Abstraction.csproj", "{F04E6B2D-90B3-42E3-8878-E84AE99A23B3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -140,6 +142,10 @@ Global
 		{DF5677FE-614D-4BD1-A645-119FBA6F3C34}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DF5677FE-614D-4BD1-A645-119FBA6F3C34}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DF5677FE-614D-4BD1-A645-119FBA6F3C34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F04E6B2D-90B3-42E3-8878-E84AE99A23B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F04E6B2D-90B3-42E3-8878-E84AE99A23B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F04E6B2D-90B3-42E3-8878-E84AE99A23B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F04E6B2D-90B3-42E3-8878-E84AE99A23B3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
