@@ -67,13 +67,6 @@ internal interface IFdc3DesktopAgentBridge
     public bool FindChannel(string channelId, ChannelType channelType);
 
     /// <summary>
-    /// Handles the GetPrivateChannelsByInstanceId call in the bridge
-    /// </summary>
-    /// <param name="instanceId"></param>
-    /// <returns></returns>
-    public List<PrivateChannel>? GetPrivateChannelsByInstanceId(string instanceId);
-
-    /// <summary>
     /// Handles the FindIntent call in the bridge.
     /// </summary>
     /// <param name="request"></param>
@@ -192,4 +185,13 @@ internal interface IFdc3DesktopAgentBridge
     /// <param name="contextType"></param>
     /// <returns></returns>
     public ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntentForContext(RaiseIntentForContextRequest request, string contextType);
+
+
+    /// <summary>
+    /// Starts the closing pipeline to close the module.
+    /// </summary>
+    /// <param name="instanceId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public ValueTask CloseModule(string instanceId, CancellationToken cancellationToken);
 }

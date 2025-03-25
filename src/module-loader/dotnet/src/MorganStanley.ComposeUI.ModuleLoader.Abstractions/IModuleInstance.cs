@@ -37,4 +37,10 @@ public interface IModuleInstance
     /// </summary>
     /// <returns>The collection of properties in the order they were added to the <see cref="StartupContext"/></returns>
     IEnumerable<object> GetProperties();
+
+    /// <summary>
+    /// Gets the properties of the specified type attached to the module instance.
+    /// </summary>
+    /// <returns>The collection of properties of the specified type.</returns>
+    IEnumerable<T> GetProperties<T>();
 }

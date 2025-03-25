@@ -23,5 +23,5 @@ public interface IShutdownAction
     /// <param name="shutDownContext">Stores the module instance and parameters for the shutdown action.</param>
     /// <param name="next">Next action.</param>
     /// <returns></returns>
-    Task InvokeAsync(ShutdownContext shutDownContext, Func<Task> next);
+    Task InvokeAsync(ShutdownContext shutDownContext, Func<Task> next, TimeSpan timeout = default);
 }

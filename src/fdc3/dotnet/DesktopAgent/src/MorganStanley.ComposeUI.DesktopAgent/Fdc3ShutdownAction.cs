@@ -15,96 +15,57 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
-using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.ModuleLoader;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 internal class Fdc3ShutdownAction : IShutdownAction
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly IMessageRouter _messageRouter;
     private readonly ILogger<Fdc3ShutdownAction> _logger;
-    private TaskCompletionSource<bool> _cleanupTcs;
-    private const int Timeout = 2;
+    private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(3);
 
     public Fdc3ShutdownAction(
         IServiceProvider serviceProvider,
-        IMessageRouter messageRouter,
         ILogger<Fdc3ShutdownAction>? logger = null)
     {
         _serviceProvider = serviceProvider;
-        _messageRouter = messageRouter;
         _logger = logger ?? NullLogger<Fdc3ShutdownAction>.Instance;
     }
 
-    public async Task InvokeAsync(ShutdownContext shutDownContext, Func<Task> next)
+    public async Task InvokeAsync(ShutdownContext shutDownContext, Func<Task> next, TimeSpan timeout = default)
     {
         if (shutDownContext.ModuleInstance.Manifest.ModuleType == ModuleType.Web)
         {
             var desktopAgent = _serviceProvider.GetRequiredService<IFdc3DesktopAgentBridge>();
 
-            var fdc3InstanceId = GetInstanceId(shutDownContext.ModuleInstance);
+            var fdc3InstanceId = shutDownContext.ModuleInstance.GetProperties<Fdc3StartupProperties>().FirstOrDefault()?.InstanceId;
 
             if (fdc3InstanceId != null)
             {
-                var privateChannels = desktopAgent.GetPrivateChannelsByInstanceId(fdc3InstanceId);
-
-                if (privateChannels != null)
+                if (timeout == default)
                 {
-                    foreach (var channel in privateChannels)
-                    {
-                        var topic = $@"ComposeUI/fdc3/v2.0/privateChannels/{channel.Id}/events";
-                        var observer = CreateObserver();
-                        var subscription = await _messageRouter.SubscribeAsync(topic, observer);
+                    timeout = DefaultTimeout;
+                }
 
-                        _cleanupTcs = new TaskCompletionSource<bool>();
-                        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(Timeout));
-                        cts.Token.Register(() => _cleanupTcs.TrySetCanceled());
+                using var cts = new CancellationTokenSource(timeout);
 
-                        await _messageRouter.PublishAsync(topic, "{\"event\": \"disconnected\"}");
-
-                        try
-                        {
-                            await _cleanupTcs.Task;
-                        }
-                        catch (TaskCanceledException)
-                        {
-                            _logger.LogError("Timeout: Clouldn't finish cleanup task in time.");
-                        }
-
-                        await subscription.DisposeAsync();
-                    }
+                try
+                {   
+                    await desktopAgent.CloseModule(fdc3InstanceId, cts.Token);
+                }
+                catch(OperationCanceledException)
+                {
+                    _logger.LogError("Timeout: Couldn't finish cleanup task in time. Failed to close module.");
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Clouldn't close module: {ex.Message}");
+                    throw;
                 }
             }
         }
 
         await next();
-    }
-
-    private static string? GetInstanceId(IModuleInstance moduleInstance)
-    {
-        return moduleInstance?.GetProperties().OfType<Fdc3StartupProperties>().FirstOrDefault()?.InstanceId;
-    }
-
-    private IAsyncObserver<string> CreateObserver()
-    {
-        return AsyncObserver.Create<string>(
-        async message =>
-        {
-            if (message.Contains("disconnected"))
-            {
-                _cleanupTcs?.TrySetResult(true);
-                await Task.CompletedTask;
-            }
-        },
-        async error =>
-        {
-            _logger.LogError(error.Message);
-            await Task.CompletedTask;
-        },
-        async () =>
-        {
-            await Task.CompletedTask;
-        });
     }
 }
