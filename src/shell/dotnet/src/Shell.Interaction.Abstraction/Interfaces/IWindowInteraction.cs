@@ -1,4 +1,18 @@
-﻿using MorganStanley.ComposeUI.Shell.Interaction.Abstraction.Contracts;
+﻿/*
+ * Morgan Stanley makes this available to you under the Apache License,
+ * Version 2.0 (the "License"). You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership. Unless required by applicable law or agreed
+ * to in writing, software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions
+ * and limitations under the License.
+ */
+
+using MorganStanley.ComposeUI.Shell.Interaction.Abstraction.Contracts;
 
 namespace MorganStanley.ComposeUI.Shell.Interaction.Abstraction.Interfaces;
 
@@ -69,25 +83,4 @@ public interface IWindowInteraction
     /// </summary>
     /// <param name="windowId">The ID of the window to bring to the front.</param>
     void BringToFront(string windowId);
-
-    /// <summary>
-    /// Gets the options for the window with the specified ID.
-    /// </summary>
-    /// <param name="windowId">The ID of the window.</param>
-    /// <returns>A <see cref="WindowInteractionOptions"/> object representing the options for the window.</returns>
-    WindowInteractionOptions GetOptions(string windowId);
-
-    /// <summary>
-    /// Gets the state of the window with the specified ID.
-    /// </summary>
-    /// <param name="windowId">The ID of the window.</param>
-    /// <returns>A <see cref="WindowInteractionState"/> object representing the state of the window.</returns>
-    WindowInteractionState GetState(string windowId);
-
-    /// <summary>
-    /// Sets the state of the window with the specified ID.
-    /// </summary>
-    /// <param name="windowId">The ID of the window.</param>
-    /// <param name="state">A <see cref="WindowInteractionState"/> object representing the new state of the window.</param>
-    void SetState(string windowId, WindowInteractionState state);
 }
