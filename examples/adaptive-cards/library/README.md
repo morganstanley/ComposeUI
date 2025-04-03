@@ -12,17 +12,37 @@ Each of these types of notifications have a default format and styles that are a
 
 Another feature of this library is the ability to render an html template that can be passed by the user which is rendered as the body of the notification. 
 
-### Library Inputs:
+A new object created needs to be awaited to make sure that the adaptive-card template has been fetched and the card has been created. This is how a ToastNotification object can be created:
+
+```
+const newNotification = new ToastNotification.ToastNotification.createNotification({options})
+```
+assuming that the library has been import as follows:
+```
+import * as ToastNotification from @morgan-stanley/adaptive-card-notification;
+``` 
+
+### Library Input Options:
 - type: optional - accepted values: ['info','error','success'], default: 'info'
-- template: optional - acepted values: string containing html to be rendered
-- icon: optional - accepted values: uri for an icon to display in the toast notification
-- message: optional - accepted values: string. This can be used to display a placeholder message in the default notification when a template is not passed.
+- templateID: optional - accepted values: ['customHtml','default'], default: 'default' if not htmlTemplate is provided, otherwise 'customHtml'
+- htmlTemplate: optional - accepted values: string containing html to be rendered
+- icon: optional - accepted values: data uri for an icon to display in the toast notification
+- data: optional - accepted values: object. This can be used to display a placeholder message in the default notification when a template is not passed.
 
 ### Development flow
 1. Run npm install in the ComposeUI root folder.
 ` npm i `
 
-2. These are commands you would need to use in order to build this library, it's subsequest web application that would showcase an example of the library and run that application.
+2. These are commands you would need to use in order to run the template-server, build this library, it's subsequest web application that would showcase an example of the library and run that application.
+
+Terminal 1:
+```
+
+npx lerna run start --stream --scope=@morgan-stanley/composeui-example-adaptivecards-server
+
+```
+
+Terminal 2:
 ``` 
 npx lerna run build --stream --scope=@morgan-stanley/adaptive-card-notification
 

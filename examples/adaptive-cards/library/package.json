@@ -7,8 +7,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "prebuild": "rimraf --glob dist/*",
-    "build": "tsc --noEmit",
-    "postbuild": "rollup --config"
+    "build": "rollup -c",
+    "lint": "eslint ."
   },
   "keywords": [
     "adaptive-card",
@@ -17,21 +17,30 @@
   "author": "Morgan Stanley",
   "license": "Apache-2.0",
   "dependencies": {
+    "adaptive-expressions": "^4.23.2",
     "adaptivecards": "2.10",
-    "markdown-it": "^14.1.0",
-    "sanitize-html": "^2.13.1"
+    "adaptivecards-templating": "^2.3.1",
+    "dompurify": "^3.2.4",
+    "markdown-it": "^14.1.0"
   },
   "files": [
     "/dist"
   ],
   "devDependencies": {
     "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^16.0.0",
     "@rollup/plugin-typescript": "^12.1.1",
     "@rollup/plugin-url": "^8.0.2",
     "@types/markdown-it": "^14.1.2",
     "@types/sanitize-html": "^2.13.0",
+    "@typescript-eslint/eslint-plugin": "^8.27.0",
+    "@typescript-eslint/parser": "^8.27.0",
+    "eslint": "^9.22.0",
+    "globals": "^16.0.0",
     "rollup": "^4.28.0",
     "rollup-plugin-dts": "^6.1.1",
-    "typescript": "^5.7.2"
+    "rollup-plugin-polyfill-node": "^0.13.0",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.27.0"
   }
 }
