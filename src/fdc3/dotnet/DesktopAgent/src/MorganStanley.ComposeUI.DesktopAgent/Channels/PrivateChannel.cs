@@ -33,7 +33,7 @@ internal class PrivateChannel : Channel, IAsyncDisposable
 
     public async Task Close(CancellationToken cancellationToken = default)
     {
-        var topic = $@"{Fdc3Topic.PrivateChannels}/{Id}/events";
+        var topic = Fdc3Topic.PrivateChannel(Id).Events;
         var payload = "{\"event\": \"disconnected\"}";
         var tcs = new TaskCompletionSource<bool>();
 
