@@ -183,4 +183,13 @@ internal interface IFdc3DesktopAgentBridge
     /// <param name="contextType"></param>
     /// <returns></returns>
     public ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntentForContext(RaiseIntentForContextRequest request, string contextType);
+
+
+    /// <summary>
+    /// Starts the closing pipeline to close the module.
+    /// </summary>
+    /// <param name="instanceId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public ValueTask CloseModule(string instanceId, CancellationToken cancellationToken);
 }

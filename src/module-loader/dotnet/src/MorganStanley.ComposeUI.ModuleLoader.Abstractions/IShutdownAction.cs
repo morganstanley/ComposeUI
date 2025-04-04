@@ -12,14 +12,16 @@
 
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
-public sealed class StopRequest
+/// <summary>
+/// Represents a shutdown action which should be called when a module instance closes.
+/// </summary>
+public interface IShutdownAction
 {
-    public StopRequest(Guid instanceId, List<object>? properties = null)
-    {
-        InstanceId = instanceId;
-        Properties = properties;
-    }
-
-    public Guid InstanceId { get; }
-    public List<object>? Properties { get; }
+    /// <summary>
+    /// Calls the shutdown action.
+    /// </summary>
+    /// <param name="shutDownContext">Stores the module instance and parameters for the shutdown action.</param>
+    /// <param name="next">Next action.</param>
+    /// <returns></returns>
+    Task InvokeAsync(ShutdownContext shutDownContext, Func<Task> next, TimeSpan timeout = default);
 }

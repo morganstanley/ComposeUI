@@ -14,15 +14,49 @@
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
+using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
+using System.Reactive.Linq;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
 
 internal class PrivateChannel : Channel, IAsyncDisposable
 {
-    public PrivateChannel(string id, IMessagingService messagingService, ILogger<PrivateChannel>? logger)
-        : base(id, messagingService, (ILogger?) logger ?? NullLogger.Instance, Fdc3Topic.PrivateChannel(id)) { }
+    public PrivateChannel(string id, IMessagingService messagingService, ILogger<PrivateChannel>? logger, string instanceId)
+        : base(id, messagingService, (ILogger?) logger ?? NullLogger.Instance, Fdc3Topic.PrivateChannel(id))
+    {
+        InstanceId = instanceId;
+    }
 
+    public string InstanceId { get; }
     protected override string ChannelTypeName => "PrivateChannel";
+
+    public async Task Close(CancellationToken cancellationToken = default)
+    {
+        var topic = Fdc3Topic.PrivateChannel(Id).Events;
+        var payload = "{\"event\": \"disconnected\"}";
+        var tcs = new TaskCompletionSource<bool>();
+
+        var subscription = await MessagingService.SubscribeAsync(topic, async buffer =>
+        {
+            var message = buffer.GetString();
+
+            if (!message.Contains("disconnected"))
+            {
+                LogUnexpectedMessage(message);
+            }
+
+            tcs.TrySetResult(true);
+            await Task.CompletedTask;
+        }, cancellationToken);
+
+        await MessagingService.PublishAsync(topic, MessageBuffer.Create(payload), cancellationToken: cancellationToken);
+
+        using (cancellationToken.Register(() => tcs.TrySetCanceled()))
+        {
+            await tcs.Task;
+        }
+
+        await subscription.DisposeAsync();
+    }
 }

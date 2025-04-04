@@ -47,6 +47,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     private readonly ConcurrentDictionary<string, UserChannel> _userChannels = new();
     private readonly ConcurrentDictionary<string, PrivateChannel> _privateChannels = new();
     private readonly ConcurrentDictionary<string, AppChannel> _appChannels = new();
+    private readonly Dictionary<string, List<PrivateChannel>> _privateChannelsByInstanceId = new();
     private readonly ILoggerFactory _loggerFactory;
     private readonly Fdc3DesktopAgentOptions _options;
     private readonly IAppDirectory _appDirectory;
@@ -59,6 +60,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     private IDisposable? _startedLifetimeEventSubscription;
     private IDisposable? _stoppedLifetimeEventSubscription;
     private readonly object _contextListenerLock = new();
+    private readonly object _privateChannelsDictionaryLock = new();
     private readonly IntentResolver _intentResolver;
 
     public Fdc3DesktopAgent(
@@ -140,10 +142,12 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             return;
         }
 
-        privateChannel = _privateChannels.GetOrAdd(privateChannelId, addPrivateChannelFactory(privateChannelId));
-
         try
         {
+            privateChannel = _privateChannels.GetOrAdd(privateChannelId, addPrivateChannelFactory(privateChannelId));
+
+            SafeAddToPrivateChannelsDictionary(privateChannel);
+
             await privateChannel!.Connect();
         }
         catch (MessageRouterDuplicateEndpointException exception)
@@ -157,7 +161,35 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         {
             _logger.LogError(exception, $"Exception thrown while executing {nameof(AddPrivateChannel)}.");
             _privateChannels.TryRemove(privateChannelId, out _);
+            SafeRemoveFromPrivateChannelsDictionary(privateChannel!);
             throw;
+        }
+    }
+
+    private void SafeAddToPrivateChannelsDictionary(PrivateChannel privateChannel)
+    {
+        lock (_privateChannelsDictionaryLock)
+        {
+            if (!_privateChannelsByInstanceId.TryGetValue(privateChannel.InstanceId, out var privateChannels))
+            {
+                privateChannels = [privateChannel];
+                _privateChannelsByInstanceId[privateChannel.InstanceId] = privateChannels;
+            }
+            else if (!privateChannels!.Contains(privateChannel))
+            {
+                privateChannels.Add(privateChannel);
+            }
+        }
+    }
+
+    private void SafeRemoveFromPrivateChannelsDictionary(PrivateChannel privateChannel)
+    {
+        lock ( _privateChannelsDictionaryLock)
+        {
+            if (_privateChannelsByInstanceId.TryGetValue(privateChannel.InstanceId, out var privateChannels))
+            {
+                privateChannels.Remove(privateChannel);
+            }
         }
     }
 
@@ -250,6 +282,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         _pendingStartRequests.Clear();
         _userChannels.Clear();
         _privateChannels.Clear();
+        _privateChannelsByInstanceId.Clear();
         _appChannels.Clear();
 
         lock (_contextListenerLock)
@@ -1363,6 +1396,11 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             _logger.LogError($"Could not remove the stored intent resolutions of id: {fdc3InstanceId} which raised the intents.");
         }
 
+        lock (_privateChannelsDictionaryLock)
+        {
+            _privateChannelsByInstanceId.Remove(fdc3InstanceId);
+        }
+
         return Task.CompletedTask;
     }
 
@@ -1426,6 +1464,19 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             catch (Exception exception)
             {
                 _logger.LogError(exception, "An exception was thrown while waiting for a task to finish.");
+            }
+        }
+    }
+
+    public async ValueTask CloseModule(string instanceId, CancellationToken cancellationToken = default)
+    {
+        var privateChannels = _privateChannelsByInstanceId.GetValueOrDefault(instanceId);
+
+        if (privateChannels != null)
+        {
+            foreach (var channel in privateChannels)
+            {
+                await channel.Close(cancellationToken);
             }
         }
     }
