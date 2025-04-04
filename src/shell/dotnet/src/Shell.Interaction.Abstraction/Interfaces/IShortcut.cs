@@ -12,6 +12,8 @@
  * and limitations under the License.
  */
 
+using MorganStanley.ComposeUI.Shell.Interaction.Abstraction.Contracts;
+
 namespace MorganStanley.ComposeUI.Shell.Interaction.Abstraction.Interfaces;
 
 /// <summary>
@@ -22,28 +24,26 @@ public interface IShortcut
     /// <summary>
     /// Registers a keyboard shortcut for the specified application.
     /// </summary>
-    /// <param name="appId">The ID of the application.</param>
-    /// <param name="shortcut">The keyboard shortcut to register.</param>
-    /// <param name="callback">The callback to invoke when the shortcut is triggered.</param>
-    void Register(string appId, string shortcut, object callback);
+    /// <param name="id">The ID of the shortcut to register.</param>
+    /// <returns>A <see cref="ShortcutRegistrationResult"/> indicating the result of the registration.</returns>
+    public ShortcutRegistrationResult Register(ShortcutId id);
 
     /// <summary>
     /// Checks if a keyboard shortcut is registered for the specified application.
     /// </summary>
-    /// <param name="appId">The ID of the application.</param>
-    /// <param name="shortcut">The keyboard shortcut to check.</param>
-    void IsRegistered(string appId, string shortcut);
+    /// <param name="id">The ID of the shortcut to check.</param>
+    /// <returns><c>true</c> if the shortcut is registered; otherwise, <c>false</c>.</returns>
+    public bool IsRegistered(ShortcutId id);
 
     /// <summary>
     /// Unregisters a keyboard shortcut for the specified application.
     /// </summary>
-    /// <param name="appId">The ID of the application.</param>
-    /// <param name="shortcut">The keyboard shortcut to unregister.</param>
-    void Unregister(string appId, string shortcut);
+    /// <param name="id">The ID of the shortcut to unregister.</param>
+    public void Unregister(ShortcutId id);
 
     /// <summary>
     /// Unregisters all keyboard shortcuts for the specified application.
     /// </summary>
     /// <param name="appId">The ID of the application.</param>
-    void UnregisterAll(string appId);
+    public void UnregisterAll(string appId);
 }

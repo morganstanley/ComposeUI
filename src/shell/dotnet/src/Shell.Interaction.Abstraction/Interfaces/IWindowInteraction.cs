@@ -25,19 +25,19 @@ public interface IWindowInteraction
     /// Shows the window with the specified ID.
     /// </summary>
     /// <param name="windowId">The ID of the window to show.</param>
-    void Show(string windowId);
+    public void Show(string windowId);
 
     /// <summary>
     /// Hides the window with the specified ID.
     /// </summary>
     /// <param name="windowId">The ID of the window to hide.</param>
-    void Hide(string windowId);
+    public void Hide(string windowId);
 
     /// <summary>
     /// Closes the window with the specified ID.
     /// </summary>
     /// <param name="windowId">The ID of the window to close.</param>
-    void Close(string windowId);
+    public void Close(string windowId);
 
     /// <summary>
     /// Gets the bounds of the window with the specified ID.
@@ -49,27 +49,26 @@ public interface IWindowInteraction
     /// <summary>
     /// Sets the bounds of the window with the specified ID.
     /// </summary>
-    /// <param name="windowId">The ID of the window.</param>
-    /// <param name="bounds">A <see cref="Rectangle"/> representing the new bounds of the window.</param>
-    void SetBounds(string windowId, Rectangle bounds);
+    /// <param name="request"> The request containing the window ID and the new bounds.</param>
+    void SetBounds(SetBoundsRequest request);
 
     /// <summary>
     /// Maximizes the window with the specified ID.
     /// </summary>
     /// <param name="windowId">The ID of the window to maximize.</param>
-    void Maximize(string windowId);
+    public void Maximize(string windowId);
 
     /// <summary>
     /// Minimizes the window with the specified ID.
     /// </summary>
     /// <param name="windowId">The ID of the window to minimize.</param>
-    void Minimize(string windowId);
+    public void Minimize(string windowId);
 
     /// <summary>
     /// Restores the window with the specified ID to its previous state.
     /// </summary>
     /// <param name="windowId">The ID of the window to restore.</param>
-    void Restore(string windowId);
+    public void Restore(string windowId);
 
     /// <summary>
     /// Determines whether the window with the specified ID is currently showing.
@@ -82,5 +81,5 @@ public interface IWindowInteraction
     /// Brings the window with the specified ID to the front.
     /// </summary>
     /// <param name="windowId">The ID of the window to bring to the front.</param>
-    void BringToFront(string windowId);
+    public void BringToFront(string windowId);
 }
