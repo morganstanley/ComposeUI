@@ -17,6 +17,13 @@ namespace MorganStanley.ComposeUI.Shell.Interaction.Abstraction.Contracts;
 
 public class SetBoundsRequest
 {
+    /// <summary>
+    /// Gets or sets the identifier of the window.
+    /// </summary>
     public string WindowId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the bounds of the window.
+    /// </summary>
     public Rectangle Bounds { get; set; }
 }

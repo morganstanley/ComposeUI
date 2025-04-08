@@ -14,8 +14,18 @@
 
 namespace MorganStanley.ComposeUI.Shell.Interaction.Abstraction.Contracts;
 
+/// <summary>
+/// Represents the result of a shortcut registration attempt.
+/// </summary>
 public class ShortcutRegistrationResult
 {
+    /// <summary>
+    /// Gets or sets a value indicating whether the shortcut registration was successful.
+    /// </summary>
     public bool Success { get; set; }
+
+    /// <summary>
+    /// Gets or sets the error message if the shortcut registration failed.
+    /// </summary>
     public string? ErrorMessage { get; set; }
 }
