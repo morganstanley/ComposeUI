@@ -15,7 +15,27 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Mod
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ModuleLoader.Tests", "tests\MorganStanley.ComposeUI.ModuleLoader.Tests\MorganStanley.ComposeUI.ModuleLoader.Tests.csproj", "{9A9FEE99-9602-4954-BDE5-BD4922AA2CD9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NativeRunnerTestApp", "tests\NativeRunnerTestApp\NativeRunnerTestApp.csproj", "{6316A655-7DCA-40F4-AD39-BFAD695F4419}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NativeRunnerTestApp", "tests\NativeRunnerTestApp\NativeRunnerTestApp.csproj", "{6316A655-7DCA-40F4-AD39-BFAD695F4419}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "architecture", "architecture", "{E3104B43-3769-45A3-8112-308C68A4D4A4}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\..\architecture\adr-001-use-adrs.md = ..\..\..\architecture\adr-001-use-adrs.md
+		..\..\..\architecture\adr-002-configuration.md = ..\..\..\architecture\adr-002-configuration.md
+		..\..\..\architecture\adr-003-solution-and-project-structure.md = ..\..\..\architecture\adr-003-solution-and-project-structure.md
+		..\..\..\architecture\adr-004-module-loading.md = ..\..\..\architecture\adr-004-module-loading.md
+		..\..\..\architecture\adr-005-messaging.md = ..\..\..\architecture\adr-005-messaging.md
+		..\..\..\architecture\adr-006-observability.md = ..\..\..\architecture\adr-006-observability.md
+		..\..\..\architecture\adr-007-use-c4.md = ..\..\..\architecture\adr-007-use-c4.md
+		..\..\..\architecture\adr-008-module-security.md = ..\..\..\architecture\adr-008-module-security.md
+		..\..\..\architecture\adr-009-message-router.md = ..\..\..\architecture\adr-009-message-router.md
+		..\..\..\architecture\adr-010-built-in-apis.md = ..\..\..\architecture\adr-010-built-in-apis.md
+		..\..\..\architecture\adr-011-process-ownership.md = ..\..\..\architecture\adr-011-process-ownership.md
+		..\..\..\architecture\adr-012-message-router.md = ..\..\..\architecture\adr-012-message-router.md
+		..\..\..\architecture\adr-013-script-preloading-security.md = ..\..\..\architecture\adr-013-script-preloading-security.md
+		..\..\..\architecture\adr-014-module-catalog.md = ..\..\..\architecture\adr-014-module-catalog.md
+		..\..\..\architecture\adr-015-module-loader-events.md = ..\..\..\architecture\adr-015-module-loader-events.md
+		..\..\..\architecture\adr-016-shell-api.md = ..\..\..\architecture\adr-016-shell-api.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

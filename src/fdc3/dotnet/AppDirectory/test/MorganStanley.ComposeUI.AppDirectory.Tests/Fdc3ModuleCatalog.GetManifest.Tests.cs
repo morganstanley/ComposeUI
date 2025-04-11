@@ -12,6 +12,7 @@
 * and limitations under the License.
 */
 
+using Finos.Fdc3.AppDirectory;
 using MorganStanley.ComposeUI.Fdc3.AppDirectory.TestUtilities;
 using MorganStanley.ComposeUI.ModuleLoader;
 
@@ -41,7 +42,11 @@ public partial class Fdc3ModuleCatalogTests
                   "size": "64x64",
                   "type": "image/png"
                 }],
-                "details": { "url": "https://example.com/app1" }
+                "details": { "url": "https://example.com/app1" },
+                "categories": [
+                    "category1",
+                    "category2"
+                ]
               },
               {
                 "appId": "app2",
@@ -67,6 +72,12 @@ public partial class Fdc3ModuleCatalogTests
                         }
                     }
                 }
+              },
+              {
+                "appId": "app4",
+                "name": "AppOther",
+                "type": "other",
+                "details": { "url": "https://example.com/app3" }
               }
             ]
             """);
@@ -83,6 +94,7 @@ public partial class Fdc3ModuleCatalogTests
     {
         const string appId = "app1";
         const string appName = "App";
+        const string tag = "category1";
         Uri appUri = new Uri("https://example.com/app1", UriKind.Absolute);
         Uri iconUri = new Uri("https://example.com/app1/icon.png", UriKind.Absolute);
         var manifest = await _catalog.GetManifest(appId);
@@ -90,6 +102,8 @@ public partial class Fdc3ModuleCatalogTests
         manifest.Id.Should().Be(appId);
         manifest.ModuleType.Should().Be(ModuleType.Web);
         manifest.Name.Should().Be(appName);
+        manifest.Tags.Should().Contain(tag);
+        manifest.AdditionalProperties.Should().BeEmpty();
         manifest.TryGetDetails<WebManifestDetails>(out var details).Should().BeTrue();
         details.Should().NotBeNull();
         details.Url.Should().Be(appUri);
@@ -143,5 +157,14 @@ public partial class Fdc3ModuleCatalogTests
         details.Height.Should().Be(height);
         details.Coordinates.Should().BeEquivalentTo(coordinates);
         details.InitialModulePosition.Should().Be(initialModulePosition);
+    }
+
+    [Fact]
+    public async Task GetManifest_throws_NotSupportedException_for_non_web_module()
+    {
+        const string appId = "app4";
+        Func<Task> act = async () => await _catalog.GetManifest(appId);
+        await act.Should().ThrowAsync<NotSupportedException>()
+            .WithMessage($"Unsupported module type: {Enum.GetName(AppType.Other)}");
     }
 }
