@@ -15,6 +15,9 @@
 
 namespace MorganStanley.ComposeUI.Shell.Interaction.Abstraction.Contracts;
 
+/// <summary>
+/// The <b>SetBoundsRequest</b> class is used to encapsulate information about a request to set the bounds of a window.
+/// </summary>
 public class SetBoundsRequest
 {
     /// <summary>

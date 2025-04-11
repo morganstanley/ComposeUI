@@ -14,8 +14,18 @@
 
 namespace MorganStanley.ComposeUI.Shell.Interaction.Abstraction.Contracts;
 
+/// <summary>
+/// The <b>ShortcutId</b> class is used to encapsulate information about a shortcut within the application
+/// </summary>
 public class ShortcutId
 {
+    /// <summary>
+    /// Gets or sets the application identifier.
+    /// </summary>
     public string AppId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the shortcut.
+    /// </summary>
     public string Shortcut { get; set; }
 }

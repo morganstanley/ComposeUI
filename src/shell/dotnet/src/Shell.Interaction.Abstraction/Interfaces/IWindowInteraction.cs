@@ -44,13 +44,13 @@ public interface IWindowInteraction
     /// </summary>
     /// <param name="windowId">The ID of the window.</param>
     /// <returns>A <see cref="Rectangle"/> representing the bounds of the window.</returns>
-    Rectangle GetBounds(string windowId);
+    public Rectangle GetBounds(string windowId);
 
     /// <summary>
     /// Sets the bounds of the window with the specified ID.
     /// </summary>
     /// <param name="request"> The request containing the window ID and the new bounds.</param>
-    void SetBounds(SetBoundsRequest request);
+    public void SetBounds(SetBoundsRequest request);
 
     /// <summary>
     /// Maximizes the window with the specified ID.
@@ -75,7 +75,7 @@ public interface IWindowInteraction
     /// </summary>
     /// <param name="windowId">The ID of the window.</param>
     /// <returns><c>true</c> if the window is showing; otherwise, <c>false</c>.</returns>
-    bool IsShowing(string windowId);
+    public bool IsShowing(string windowId);
 
     /// <summary>
     /// Brings the window with the specified ID to the front.
