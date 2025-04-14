@@ -1,5 +1,5 @@
 {
-  "name": "ms-gh-pages",
+  "name": "@morgan-stanley/ComposeUI-gh-pages",
   "version": "1.0.0",
   "private": true,
   "description": "ms-gh-pages",
@@ -22,7 +22,7 @@
     "clean": "gatsby clean"
   },
   "devDependencies": {
-    "prettier": "^3.4.2",
+    "prettier": "^3.5.2",
     "rimraf": "^6.0.1"
   }
 }

@@ -9,19 +9,19 @@
     "clean": "rimraf dist",
     "bundle": "rollup -c",
     "build": "npm run clean && npm run bundle",
-    "start": "http-server -p 8080"
+    "start": "http-server -p 8088"
   },
   "dependencies": {
     "@finos/fdc3": "^2.0.3",
     "bootstrap": "5.3.3",
-    "highcharts": "12.1.2",
+    "highcharts": "11.4.8",
     "jquery": "3.7.1",
     "tslib": "2.8.1"
   },
   "devDependencies": {
     "http-server": "14.1.1",
     "rimraf": "6.0.1",
-    "rollup": "4.34.0",
+    "rollup": "4.34.9",
     "@rollup/plugin-commonjs": "28.0.2",
     "@rollup/plugin-node-resolve": "16.0.0"
   }

@@ -19,6 +19,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Text.Json;
 using System.Linq;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Shell.Layout
 {
@@ -29,6 +31,7 @@ namespace MorganStanley.ComposeUI.Shell.Layout
         private readonly IModuleLoader _moduleLoader;
         private readonly ILayoutPersistence<string> _layoutPersistence;
         private readonly Dictionary<string, TaskCompletionSource<bool>> _moduleReadyTasks;
+        private readonly ILogger<LayoutManager> _logger;
 
         private const string DockmanagerLayout = "layout";
         private const string MainWindowLayout = "mainWindow";
@@ -36,15 +39,24 @@ namespace MorganStanley.ComposeUI.Shell.Layout
         private const string SerializationId = "serializationId";
 
         public readonly Dictionary<string, WebContentPane> WebContentPanes;
+        
+
         public bool IsLayoutLoading { get; private set; } = false;
 
-        public LayoutManager(XamDockManager dockManager, IModuleLoader moduleLoader, ILayoutPersistence<string> layoutPersistence)
+        public LayoutManager(
+            XamDockManager dockManager, 
+            IModuleLoader moduleLoader, 
+            ILayoutPersistence<string> layoutPersistence,
+            ILogger<LayoutManager>? logger = null)
         {
             _xamDockManager = dockManager ?? throw new ArgumentNullException(nameof(dockManager));
             _moduleLoader = moduleLoader ?? throw new ArgumentNullException(nameof(moduleLoader));
             _layoutPersistence = layoutPersistence ?? throw new ArgumentNullException(nameof(layoutPersistence));
+
             _moduleReadyTasks = [];
             WebContentPanes = [];
+
+            _logger = logger ?? NullLogger<LayoutManager>.Instance;
         }
 
         public async Task LoadLayoutAsync()
@@ -188,7 +200,7 @@ namespace MorganStanley.ComposeUI.Shell.Layout
                 }
             }
 
-            await _layoutPersistence.SaveLayoutAsync(Modules, JsonSerializer.Serialize(moduleIds));         
+            await _layoutPersistence.SaveLayoutAsync(Modules, JsonSerializer.Serialize(moduleIds));
         }
 
         private async Task LoadModulesAsync()
@@ -208,10 +220,13 @@ namespace MorganStanley.ComposeUI.Shell.Layout
                         var tcs = new TaskCompletionSource<bool>();
                         _moduleReadyTasks[moduleId] = tcs;
 
-                        await _moduleLoader.StartModule(new StartRequest(moduleStates[moduleId], new Dictionary<string, string>
-                    {
-                        { SerializationId, moduleId }
-                    }));
+                        await _moduleLoader.StartModule(
+                            new StartRequest(
+                                moduleStates[moduleId],
+                                new Dictionary<string, string>
+                                {
+                                        { SerializationId, moduleId }
+                                }));
 
                         moduleTasks.Add(tcs.Task);
                     }
