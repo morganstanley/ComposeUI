@@ -1,11 +1,14 @@
-<!-- Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. -->
+---
+type: ADR
+id: adr-005
+status: Superseded by [ADR-012](adr-012-message-router.mdx)
+scope: global
+deciders: github group
+date: 2021-07-07
+title: Messaging
+---
 
-| Type          | ID            | Status                                             | Title         |
-| ------------- | ------------- | -------------------------------------------------- | ------------- |
-| ADR           | adr-005       | Superseded by [ADR-012](adr-012-message-router.md) | Messaging     |
-
-
-# Architecture Decision Record: Messaging
+{/* Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */}
 
 ## Context
 
@@ -49,8 +52,8 @@ that the applications can connect to.
 ## Consequences
 
 - Applications that normally consist of multiple processes (e.g. trading applications) won't have to setup their own
-messaging infrastructure
+  messaging infrastructure
 - The message router comes with a message format that is easily extendable without breaking changes, making it
-flexible to use for clients
+  flexible to use for clients
 - It will be an easy to understand and easy to setup module where the client doesn't have to worry about creating
-WebSocket connections and maintaining them
+  WebSocket connections and maintaining them

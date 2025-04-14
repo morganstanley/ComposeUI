@@ -1,11 +1,14 @@
-<!-- Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. -->
+---
+type: ADR
+id: adr-013
+status: Accepted
+scope: global
+deciders: github group
+date: 2024-04-26
+title: Security requirements for preloaded scripts
+---
 
-| Type          | ID            | Status        | Title                                       |
-| ------------- | ------------- | ------------- | ------------------------------------------- |
-| ADR           | adr-013       | Accepted      | Security requirements for preloaded scripts |
-
-
-# Security requirements for preloaded scripts
+{/* Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */}
 
 ## Context
 
@@ -50,7 +53,7 @@ Similarly to scenario 3, the iframe should not be able to interact with protecte
 
 The iframe is part of the page, scripts running in its context should be able to access protected APIs as if they
 were running in the parent window, eg. the parent window should not receive broadcasts from the iframe.
-If the iframe navigates to an untrusted URL, it should not be able to interact with protected APIs, 
+If the iframe navigates to an untrusted URL, it should not be able to interact with protected APIs,
 even if it navigates back to a trusted URL.
 
 ### Behavior in other containers

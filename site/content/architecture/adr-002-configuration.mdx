@@ -1,28 +1,31 @@
-<!-- Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. -->
+---
+type: ADR
+id: adr-002
+status: accepted
+scope: global
+deciders: github group
+date: 2021-06-18
+title: Configuration
+---
 
-| Type          | ID            | Status        | Title         |
-| ------------- | ------------- | ------------- | ------------- |
-| ADR           | adr-002       | Accepted      | Configuration |
-
-
-# Architecture Decision Record: Configuration
+{/* Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */}
 
 ## Context
 
 ComposeUI has to fulfill a number of different goals.
 
-1. It needs to be *modular*. Different software packages, written by
+1. It needs to be _modular_. Different software packages, written by
    different developers, should be usable and swappable in the same
    application with a minimum of effort.
 
-2. ComposeUI applications need to be *transparent* and
-   *introspectable*. It should always be as clear as possible what is
+2. ComposeUI applications need to be _transparent_ and
+   _introspectable_. It should always be as clear as possible what is
    going on at any given moment, and why the application is behaving
    in the way it does.
 
 3. As a general-purpose UI framework, it needs to provide a strong
    set of default settings which are also highly overridable, and
-   *configurable* to suit the unique needs of users.
+   _configurable_ to suit the unique needs of users.
 
 ## Decision
 
@@ -43,7 +46,7 @@ Some concrete examples include (but not limited to):
 - Persistent schemas
 - Locations of static and dynamic assets
 
-This configuration value will have a *schema* that defines what types
+This configuration value will have a _schema_ that defines what types
 of entities can exist in the configuration, and what their expected
 properties are.
 
@@ -65,4 +68,3 @@ modules.
 - Developers will need to carefully decide what types of things are
   appropriate to encode statically in the configuration, and what must
   be dynamic at runtime.
-  
