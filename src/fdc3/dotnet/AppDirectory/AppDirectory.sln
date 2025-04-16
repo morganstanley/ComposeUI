@@ -19,22 +19,22 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Tes
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "architecture", "architecture", "{342BC024-A0B2-4D2D-97BC-EDB07D97C3C0}"
 	ProjectSection(SolutionItems) = preProject
-		..\..\..\..\site\content\architecture\adr-001-use-adrs.md = ..\..\..\..\site\content\architecture\adr-001-use-adrs.md
-		..\..\..\..\site\content\architecture\adr-002-configuration.md = ..\..\..\..\site\content\architecture\adr-002-configuration.md
-		..\..\..\..\site\content\architecture\adr-003-solution-and-project-structure.md = ..\..\..\..\site\content\architecture\adr-003-solution-and-project-structure.md
-		..\..\..\..\site\content\architecture\adr-004-module-loading.md = ..\..\..\..\site\content\architecture\adr-004-module-loading.md
-		..\..\..\..\site\content\architecture\adr-005-messaging.md = ..\..\..\..\site\content\architecture\adr-005-messaging.md
-		..\..\..\..\site\content\architecture\adr-006-observability.md = ..\..\..\..\site\content\architecture\adr-006-observability.md
-		..\..\..\..\site\content\architecture\adr-007-use-c4.md = ..\..\..\..\site\content\architecture\adr-007-use-c4.md
-		..\..\..\..\site\content\architecture\adr-008-module-security.md = ..\..\..\..\site\content\architecture\adr-008-module-security.md
-		..\..\..\..\site\content\architecture\adr-009-message-router.md = ..\..\..\..\site\content\architecture\adr-009-message-router.md
-		..\..\..\..\site\content\architecture\adr-010-built-in-apis.md = ..\..\..\..\site\content\architecture\adr-010-built-in-apis.md
-		..\..\..\..\site\content\architecture\adr-011-process-ownership.md = ..\..\..\..\site\content\architecture\adr-011-process-ownership.md
-		..\..\..\..\site\content\architecture\adr-012-message-router.md = ..\..\..\..\site\content\architecture\adr-012-message-router.md
-		..\..\..\..\site\content\architecture\adr-013-script-preloading-security.md = ..\..\..\..\site\content\architecture\adr-013-script-preloading-security.md
-		..\..\..\..\site\content\architecture\adr-014-module-catalog.md = ..\..\..\..\site\content\architecture\adr-014-module-catalog.md
-		..\..\..\..\site\content\architecture\adr-015-module-loader-events.md = ..\..\..\..\site\content\architecture\adr-015-module-loader-events.md
-		..\..\..\..\site\content\architecture\adr-016-shell-api.md = ..\..\..\..\site\content\architecture\adr-016-shell-api.md
+		..\..\..\..\site\content\architecture\adr-001-use-adrs.mdx = ..\..\..\..\site\content\architecture\adr-001-use-adrs.mdx
+		..\..\..\..\site\content\architecture\adr-002-configuration.mdx = ..\..\..\..\site\content\architecture\adr-002-configuration.mdx
+		..\..\..\..\site\content\architecture\adr-003-solution-and-project-structure.mdx = ..\..\..\..\site\content\architecture\adr-003-solution-and-project-structure.mdx
+		..\..\..\..\site\content\architecture\adr-004-module-loading.mdx = ..\..\..\..\site\content\architecture\adr-004-module-loading.mdx
+		..\..\..\..\site\content\architecture\adr-005-messaging.mdx = ..\..\..\..\site\content\architecture\adr-005-messaging.mdx
+		..\..\..\..\site\content\architecture\adr-006-observability.mdx = ..\..\..\..\site\content\architecture\adr-006-observability.mdx
+		..\..\..\..\site\content\architecture\adr-007-use-c4.mdx = ..\..\..\..\site\content\architecture\adr-007-use-c4.mdx
+		..\..\..\..\site\content\architecture\adr-008-module-security.mdx = ..\..\..\..\site\content\architecture\adr-008-module-security.mdx
+		..\..\..\..\site\content\architecture\adr-009-message-router.mdx = ..\..\..\..\site\content\architecture\adr-009-message-router.mdx
+		..\..\..\..\site\content\architecture\adr-010-built-in-apis.mdx = ..\..\..\..\site\content\architecture\adr-010-built-in-apis.mdx
+		..\..\..\..\site\content\architecture\adr-011-process-ownership.mdx = ..\..\..\..\site\content\architecture\adr-011-process-ownership.mdx
+		..\..\..\..\site\content\architecture\adr-012-message-router.mdx = ..\..\..\..\site\content\architecture\adr-012-message-router.mdx
+		..\..\..\..\site\content\architecture\adr-013-script-preloading-security.mdx = ..\..\..\..\site\content\architecture\adr-013-script-preloading-security.mdx
+		..\..\..\..\site\content\architecture\adr-014-module-catalog.mdx = ..\..\..\..\site\content\architecture\adr-014-module-catalog.mdx
+		..\..\..\..\site\content\architecture\adr-015-module-loader-events.mdx = ..\..\..\..\site\content\architecture\adr-015-module-loader-events.mdx
+		..\..\..\..\site\content\architecture\adr-016-shell-api.mdx = ..\..\..\..\site\content\architecture\adr-016-shell-api.mdx
 	EndProjectSection
 EndProject
 Global
