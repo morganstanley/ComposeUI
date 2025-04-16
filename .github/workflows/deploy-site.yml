@@ -9,6 +9,10 @@ defaults:
   run:
     working-directory: ./site
 
+permissions:
+  contents: none
+  packages: none
+
 jobs:
   build:
     runs-on: ubuntu-latest
