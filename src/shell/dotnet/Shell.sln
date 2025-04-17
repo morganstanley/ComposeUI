@@ -51,12 +51,32 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_", "_", "{1944F009-EA2D-4D
 	ProjectSection(SolutionItems) = preProject
 		..\..\..\Directory.Build.props = ..\..\..\Directory.Build.props
 		..\..\..\Directory.Packages.props = ..\..\..\Directory.Packages.props
-		README.md = README.md
+		README.mdx = README.mdx
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Abstractions", "..\..\messaging\dotnet\src\Abstractions\MorganStanley.ComposeUI.Messaging.Abstractions.csproj", "{F90449AE-B26E-42E0-873B-4F0CAE6FCD98}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.LayoutPersistence", "..\..\layout-persistence\dotnet\src\MorganStanley.ComposeUI.LayoutPersistence\MorganStanley.ComposeUI.LayoutPersistence.csproj", "{DF5677FE-614D-4BD1-A645-119FBA6F3C34}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "architecture", "architecture", "{57DD57DA-111B-4008-AE36-8F1A2379C188}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\..\site\content\architecture\adr-001-use-adrs.mdx = ..\..\..\site\content\architecture\adr-001-use-adrs.mdx
+		..\..\..\site\content\architecture\adr-002-configuration.mdx = ..\..\..\site\content\architecture\adr-002-configuration.mdx
+		..\..\..\site\content\architecture\adr-003-solution-and-project-structure.mdx = ..\..\..\site\content\architecture\adr-003-solution-and-project-structure.mdx
+		..\..\..\site\content\architecture\adr-004-module-loading.mdx = ..\..\..\site\content\architecture\adr-004-module-loading.mdx
+		..\..\..\site\content\architecture\adr-005-messaging.mdx = ..\..\..\site\content\architecture\adr-005-messaging.mdx
+		..\..\..\site\content\architecture\adr-006-observability.mdx = ..\..\..\site\content\architecture\adr-006-observability.mdx
+		..\..\..\site\content\architecture\adr-007-use-c4.mdx = ..\..\..\site\content\architecture\adr-007-use-c4.mdx
+		..\..\..\site\content\architecture\adr-008-module-security.mdx = ..\..\..\site\content\architecture\adr-008-module-security.mdx
+		..\..\..\site\content\architecture\adr-009-message-router.mdx = ..\..\..\site\content\architecture\adr-009-message-router.mdx
+		..\..\..\site\content\architecture\adr-010-built-in-apis.mdx = ..\..\..\site\content\architecture\adr-010-built-in-apis.mdx
+		..\..\..\site\content\architecture\adr-011-process-ownership.mdx = ..\..\..\site\content\architecture\adr-011-process-ownership.mdx
+		..\..\..\site\content\architecture\adr-012-message-router.mdx = ..\..\..\site\content\architecture\adr-012-message-router.mdx
+		..\..\..\site\content\architecture\adr-013-script-preloading-security.mdx = ..\..\..\site\content\architecture\adr-013-script-preloading-security.mdx
+		..\..\..\site\content\architecture\adr-014-module-catalog.mdx = ..\..\..\site\content\architecture\adr-014-module-catalog.mdx
+		..\..\..\site\content\architecture\adr-015-module-loader-events.mdx = ..\..\..\site\content\architecture\adr-015-module-loader-events.mdx
+		..\..\..\site\content\architecture\adr-016-shell-api.mdx = ..\..\..\site\content\architecture\adr-016-shell-api.mdx
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

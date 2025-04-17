@@ -1,28 +1,36 @@
-<!-- Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. -->
+---
+type: ADR
+id: adr-014
+status: Accepted
+scope: global
+deciders: github group
+date: 2024-04-16
+title: Multiple ModuleCatalogs
+---
 
-| Type          | ID            | Status        | Title                   |
-| ------------- | ------------- | ------------- | ----------------------- |
-| ADR           | adr-014       | Accepted      | Multiple ModuleCatalogs |
-
-
-# Architecture Decision Record: Multiple ModuleCatalogs
+{/* Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */}
 
 ## Context
+
 ComposeUI aims to support many different kind of modules. These modules, that can be started by the ModuleLoader should be stored in ModuleCatalogs and every module should have its unique module id. The user should have the ability to handle multiple ModuleCatalogs with the ModuleLoader.
 
 General problem statement:
+
 - When multiple ModuleCatalogs are used, some modules could have the same module id in different ModuleCatalogs which could cause issues while starting or stopping the module via the ModuleLoader.
 
 ## Decision
+
 - If the same module id is being used for multiple modules (likely in different ModuleCatalogs), the first occurrence will be used. In case of multiple ModuleCatalog registrations, the order of the registration determines which module can be used.
 
-# Alternative solutions that we considered
+## Alternatives considered
+
 - Throwing an exception when multiple modules have the same moduleId either in one or multiple ModuleCatalogs. This might cause an issue that is unresolvable by the developer or the enduser.
 - Prefixing the modules with the name of the ModuleCatalog, but prefixing ids would be non-standard.
 - Aggregating the registered ModuleCatalogs should be implemented by the developer of the application.
- 
+
 ## Consequences
-- Our implementation is more permissive than the standard. 
+
+- Our implementation is more permissive than the standard.
 - We must ensure keeping the order of the ModuleCatalog registrations as the order of registrations will determine which module is contained by our aggregated ModuleCatalog in case of duplicate moduleIds.
-- We must ensure keeping the order of the modules within the invidual ModuleCatalogs as the order of the registered modules will determine which module is contained by our aggregated ModuleCatalog in case of duplicate moduleIds.
+- We must ensure keeping the order of the modules within the individual ModuleCatalogs as the order of the registered modules will determine which module is contained by our aggregated ModuleCatalog in case of duplicate moduleIds.
 - We must ensure this order when fetching modules asynchronously from the ModuleCatalogs.
