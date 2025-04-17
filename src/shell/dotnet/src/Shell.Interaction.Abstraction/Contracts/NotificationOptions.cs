@@ -30,12 +30,15 @@ public class NotificationOptions
     public string? Title { get; set; }
 
     /// <summary>
-    /// Gets or sets the URL associated with the notification.
+    /// Optionally, a notification can be configured to send a message through the message router upon
+    /// pressing e.g. a button.
+    /// The message router is configured with a topic name and a NotificationId as payload.
     /// </summary>
-    public string? Url { get; set; }
+    public string? NotificationId { get; set; }
 
     /// <summary>
     /// Gets or sets the body content of the notification.
+    /// The body can contain elements like buttons, links, etc. that are forwarded to the messagerouter if configured.
     /// </summary>
     public string? Body { get; set; }
 }
