@@ -3,7 +3,7 @@
 
 $path = [System.Environment]::GetEnvironmentVariable("PATH", [EnvironmentVariableTarget]::User)
 $paths = $path -split ";"
-$shellPath = Resolve-Path -Path "./Shell/bin/Debug/net6.0-windows"
+$shellPath = Resolve-Path -Path "./src/Shell/bin/Debug/net8.0-windows"
 
 if ($paths.indexof($shellPath.Path) -ne -1) { exit }
 

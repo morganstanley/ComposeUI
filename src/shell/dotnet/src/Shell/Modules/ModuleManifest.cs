@@ -10,6 +10,7 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using System.Collections.Generic;
 using MorganStanley.ComposeUI.ModuleLoader;
 
 namespace MorganStanley.ComposeUI.Shell.Modules;
@@ -19,4 +20,8 @@ internal class ModuleManifest : IModuleManifest
     public string Id { get; set; }
     public string Name { get; set; }
     public string ModuleType { get; set; }
+
+    public string[] Tags { get; set; } = [];
+
+    public Dictionary<string, string> AdditionalProperties { get; set; } = [];
 }
