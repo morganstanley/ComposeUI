@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Abstractions", "src\Abstractions\MorganStanley.ComposeUI.Messaging.Abstractions.csproj", "{2F0D6AA5-E922-4EAE-B627-4449A92CCD43}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MorganStanley.ComposeUI.Messaging.Abstractions", "src\Abstractions\MorganStanley.ComposeUI.Messaging.Abstractions.csproj", "{2F0D6AA5-E922-4EAE-B627-4449A92CCD43}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Core", "src\Core\MorganStanley.ComposeUI.Messaging.Core.csproj", "{FC647551-B014-49A8-817E-F5FE6FEBF452}"
 EndProject
@@ -35,36 +35,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Mes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Testing", "..\..\shared\dotnet\tests\TestUtils\MorganStanley.ComposeUI.Testing\MorganStanley.ComposeUI.Testing.csproj", "{F1B0C089-450E-4B02-881F-F41A8B7F5867}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "architecture", "architecture", "{67CE7BC8-38DA-4A0D-868A-9C0B75766E00}"
-	ProjectSection(SolutionItems) = preProject
-		..\..\..\architecture\adr-001-use-adrs.md = ..\..\..\architecture\adr-001-use-adrs.md
-		..\..\..\architecture\adr-002-configuration.md = ..\..\..\architecture\adr-002-configuration.md
-		..\..\..\architecture\adr-003-solution-and-project-structure.md = ..\..\..\architecture\adr-003-solution-and-project-structure.md
-		..\..\..\architecture\adr-004-module-loading.md = ..\..\..\architecture\adr-004-module-loading.md
-		..\..\..\architecture\adr-005-messaging.md = ..\..\..\architecture\adr-005-messaging.md
-		..\..\..\architecture\adr-006-observability.md = ..\..\..\architecture\adr-006-observability.md
-		..\..\..\architecture\adr-007-use-c4.md = ..\..\..\architecture\adr-007-use-c4.md
-		..\..\..\architecture\adr-008-module-security.md = ..\..\..\architecture\adr-008-module-security.md
-		..\..\..\architecture\adr-009-message-router.md = ..\..\..\architecture\adr-009-message-router.md
-		..\..\..\architecture\adr-010-built-in-apis.md = ..\..\..\architecture\adr-010-built-in-apis.md
-		..\..\..\architecture\adr-011-process-ownership.md = ..\..\..\architecture\adr-011-process-ownership.md
-		..\..\..\architecture\adr-012-message-router.md = ..\..\..\architecture\adr-012-message-router.md
-		..\..\..\architecture\adr-013-script-preloading-security.md = ..\..\..\architecture\adr-013-script-preloading-security.md
-		..\..\..\architecture\adr-014-module-catalog.md = ..\..\..\architecture\adr-014-module-catalog.md
-		..\..\..\architecture\adr-015-module-loader-events.md = ..\..\..\architecture\adr-015-module-loader-events.md
-		..\..\..\architecture\adr-016-shell-api.md = ..\..\..\architecture\adr-016-shell-api.md
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{2F0D6AA5-E922-4EAE-B627-4449A92CCD43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2F0D6AA5-E922-4EAE-B627-4449A92CCD43}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2F0D6AA5-E922-4EAE-B627-4449A92CCD43}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2F0D6AA5-E922-4EAE-B627-4449A92CCD43}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FC647551-B014-49A8-817E-F5FE6FEBF452}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FC647551-B014-49A8-817E-F5FE6FEBF452}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FC647551-B014-49A8-817E-F5FE6FEBF452}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -109,12 +85,15 @@ Global
 		{F1B0C089-450E-4B02-881F-F41A8B7F5867}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F1B0C089-450E-4B02-881F-F41A8B7F5867}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F1B0C089-450E-4B02-881F-F41A8B7F5867}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2F0D6AA5-E922-4EAE-B627-4449A92CCD43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F0D6AA5-E922-4EAE-B627-4449A92CCD43}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2F0D6AA5-E922-4EAE-B627-4449A92CCD43}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2F0D6AA5-E922-4EAE-B627-4449A92CCD43}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{2F0D6AA5-E922-4EAE-B627-4449A92CCD43} = {37DE16A7-F731-4206-B650-8A1D9D066B60}
 		{FC647551-B014-49A8-817E-F5FE6FEBF452} = {37DE16A7-F731-4206-B650-8A1D9D066B60}
 		{A3156691-0B46-4C3D-B042-E71D9BAF02EC} = {37DE16A7-F731-4206-B650-8A1D9D066B60}
 		{4AEFD2AA-CF42-401D-A058-E2B4C8E12283} = {37DE16A7-F731-4206-B650-8A1D9D066B60}
@@ -126,6 +105,7 @@ Global
 		{AA63BC7C-9DB8-4062-A689-7FA9689EF6B1} = {78E94277-B0B4-425C-9C47-81E09933FE5B}
 		{CEF78D3F-C645-4471-BAD2-9C538A0CA763} = {78E94277-B0B4-425C-9C47-81E09933FE5B}
 		{F1B0C089-450E-4B02-881F-F41A8B7F5867} = {B7E63957-3C1B-4A16-B530-3EAD0D0C5F07}
+		{2F0D6AA5-E922-4EAE-B627-4449A92CCD43} = {37DE16A7-F731-4206-B650-8A1D9D066B60}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {38CFF5DF-459A-49E1-8189-2DB429A99B3A}

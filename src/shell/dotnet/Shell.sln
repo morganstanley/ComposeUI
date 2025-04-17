@@ -58,26 +58,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Mes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.LayoutPersistence", "..\..\layout-persistence\dotnet\src\MorganStanley.ComposeUI.LayoutPersistence\MorganStanley.ComposeUI.LayoutPersistence.csproj", "{DF5677FE-614D-4BD1-A645-119FBA6F3C34}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "architecture", "architecture", "{57DD57DA-111B-4008-AE36-8F1A2379C188}"
-	ProjectSection(SolutionItems) = preProject
-		..\..\..\architecture\adr-001-use-adrs.md = ..\..\..\architecture\adr-001-use-adrs.md
-		..\..\..\architecture\adr-002-configuration.md = ..\..\..\architecture\adr-002-configuration.md
-		..\..\..\architecture\adr-003-solution-and-project-structure.md = ..\..\..\architecture\adr-003-solution-and-project-structure.md
-		..\..\..\architecture\adr-004-module-loading.md = ..\..\..\architecture\adr-004-module-loading.md
-		..\..\..\architecture\adr-005-messaging.md = ..\..\..\architecture\adr-005-messaging.md
-		..\..\..\architecture\adr-006-observability.md = ..\..\..\architecture\adr-006-observability.md
-		..\..\..\architecture\adr-007-use-c4.md = ..\..\..\architecture\adr-007-use-c4.md
-		..\..\..\architecture\adr-008-module-security.md = ..\..\..\architecture\adr-008-module-security.md
-		..\..\..\architecture\adr-009-message-router.md = ..\..\..\architecture\adr-009-message-router.md
-		..\..\..\architecture\adr-010-built-in-apis.md = ..\..\..\architecture\adr-010-built-in-apis.md
-		..\..\..\architecture\adr-011-process-ownership.md = ..\..\..\architecture\adr-011-process-ownership.md
-		..\..\..\architecture\adr-012-message-router.md = ..\..\..\architecture\adr-012-message-router.md
-		..\..\..\architecture\adr-013-script-preloading-security.md = ..\..\..\architecture\adr-013-script-preloading-security.md
-		..\..\..\architecture\adr-014-module-catalog.md = ..\..\..\architecture\adr-014-module-catalog.md
-		..\..\..\architecture\adr-015-module-loader-events.md = ..\..\..\architecture\adr-015-module-loader-events.md
-		..\..\..\architecture\adr-016-shell-api.md = ..\..\..\architecture\adr-016-shell-api.md
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shell.Interaction.Abstraction", "src\Shell.Interaction.Abstraction\Shell.Interaction.Abstraction.csproj", "{F04E6B2D-90B3-42E3-8878-E84AE99A23B3}"
 EndProject
 Global

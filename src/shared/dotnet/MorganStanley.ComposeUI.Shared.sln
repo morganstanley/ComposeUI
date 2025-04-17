@@ -15,26 +15,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestUtils", "TestUtils", "{
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Testing", "tests\TestUtils\MorganStanley.ComposeUI.Testing\MorganStanley.ComposeUI.Testing.csproj", "{71213EAF-2B49-4756-AD62-EE3C1CB7315C}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "architecture", "architecture", "{0136AB7A-949A-4407-8890-DB342FF299A8}"
-	ProjectSection(SolutionItems) = preProject
-		..\..\..\architecture\adr-001-use-adrs.md = ..\..\..\architecture\adr-001-use-adrs.md
-		..\..\..\architecture\adr-002-configuration.md = ..\..\..\architecture\adr-002-configuration.md
-		..\..\..\architecture\adr-003-solution-and-project-structure.md = ..\..\..\architecture\adr-003-solution-and-project-structure.md
-		..\..\..\architecture\adr-004-module-loading.md = ..\..\..\architecture\adr-004-module-loading.md
-		..\..\..\architecture\adr-005-messaging.md = ..\..\..\architecture\adr-005-messaging.md
-		..\..\..\architecture\adr-006-observability.md = ..\..\..\architecture\adr-006-observability.md
-		..\..\..\architecture\adr-007-use-c4.md = ..\..\..\architecture\adr-007-use-c4.md
-		..\..\..\architecture\adr-008-module-security.md = ..\..\..\architecture\adr-008-module-security.md
-		..\..\..\architecture\adr-009-message-router.md = ..\..\..\architecture\adr-009-message-router.md
-		..\..\..\architecture\adr-010-built-in-apis.md = ..\..\..\architecture\adr-010-built-in-apis.md
-		..\..\..\architecture\adr-011-process-ownership.md = ..\..\..\architecture\adr-011-process-ownership.md
-		..\..\..\architecture\adr-012-message-router.md = ..\..\..\architecture\adr-012-message-router.md
-		..\..\..\architecture\adr-013-script-preloading-security.md = ..\..\..\architecture\adr-013-script-preloading-security.md
-		..\..\..\architecture\adr-014-module-catalog.md = ..\..\..\architecture\adr-014-module-catalog.md
-		..\..\..\architecture\adr-015-module-loader-events.md = ..\..\..\architecture\adr-015-module-loader-events.md
-		..\..\..\architecture\adr-016-shell-api.md = ..\..\..\architecture\adr-016-shell-api.md
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
