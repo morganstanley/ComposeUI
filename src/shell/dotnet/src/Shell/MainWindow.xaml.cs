@@ -56,12 +56,11 @@ public partial class MainWindow : RibbonWindow
 
     private async void RibbonWindow_Initialized(object sender, System.EventArgs e)
     {
-        var moduleIds = await _moduleCatalog.GetModuleIds();
+        var manifests = await _moduleCatalog.GetAllManifests();
 
         var modules = new List<ModuleViewModel>();
-        foreach (var moduleId in moduleIds)
+        foreach (var manifest in manifests)
         {
-            var manifest = await _moduleCatalog.GetManifest(moduleId);
             modules.Add(new ModuleViewModel(manifest, _iconProvider));
         }
 
