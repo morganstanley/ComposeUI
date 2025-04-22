@@ -33,16 +33,14 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
     public async Task<IModuleManifest> GetManifest(string moduleId)
     {
         var app = await _appDirectory.GetApp(moduleId);
-
-        switch (app.Type)
-        {
-            case AppType.Web:
-                return new Fdc3WebModuleManifest(app, _hostManifestMapper);
-
-            default:
-                throw new NotSupportedException($"Unsupported module type: {Enum.GetName(app.Type)}");
-        }
+        return GetManifest(app);
     }
+
+    private IModuleManifest GetManifest(Fdc3App app) => app.Type switch
+    {
+        AppType.Web => new Fdc3WebModuleManifest(app, _hostManifestMapper),
+        _ => throw new NotSupportedException($"Unsupported module type: {Enum.GetName(app.Type)}"),
+    };
 
     public async Task<IEnumerable<string>> GetModuleIds()
     {
@@ -67,6 +65,9 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
 
             Id = app.AppId;
             Name = app.Name ?? app.Title;
+
+            Tags = app.Categories?.ToArray() ?? [];
+            AdditionalProperties = [];
 
             var details = _hostManifestMapper?.MapModuleDetails(app);
 
@@ -94,5 +95,16 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
         public string Name { get; init; }
 
         public string ModuleType => ModuleLoader.ModuleType.Web;
+
+        public string[] Tags { get; init; }
+
+        public Dictionary<string, string> AdditionalProperties { get; init; }
+    }
+
+    public async Task<IEnumerable<IModuleManifest>> GetAllManifests()
+    {
+        var apps = await _appDirectory.GetApps();
+
+        return apps.Select(GetManifest);
     }
 }
