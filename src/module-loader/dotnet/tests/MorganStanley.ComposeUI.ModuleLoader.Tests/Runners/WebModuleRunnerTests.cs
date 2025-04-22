@@ -61,5 +61,9 @@ public class WebModuleRunnerTests
         public string ModuleType => throw new NotImplementedException();
 
         public WebManifestDetails Details { get; }
+
+        public string[] Tags => throw new NotImplementedException();
+
+        public Dictionary<string, string> AdditionalProperties => throw new NotImplementedException();
     }
 }

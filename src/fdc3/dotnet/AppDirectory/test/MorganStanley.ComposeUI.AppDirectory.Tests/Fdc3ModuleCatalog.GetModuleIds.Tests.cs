@@ -23,7 +23,7 @@ public partial class Fdc3ModuleCatalogTests
     {
         var moduleIds = await _catalog.GetModuleIds();
 
-        moduleIds.Should().HaveCount(3).And.Contain(new[] { "app1", "app2", "app3" });
+        moduleIds.Should().HaveCount(4).And.Contain(["app1", "app2", "app3", "app4"]);
     }
 
     [Fact]

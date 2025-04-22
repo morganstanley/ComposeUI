@@ -30,4 +30,10 @@ public interface IModuleCatalog
     /// </summary>
     /// <returns></returns>
     Task<IEnumerable<string>> GetModuleIds();
+
+    /// <summary>
+    /// Gets the manifests of all modules in the catalog.
+    /// </summary>
+    /// <returns></returns>
+    Task<IEnumerable<IModuleManifest>> GetAllManifests();
 }
