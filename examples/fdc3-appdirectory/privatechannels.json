@@ -23,7 +23,7 @@
           "listensFor": {},
           "raises": {
             "StartChat": [
-              "StartChat"
+              "fdc3.contact"
             ]
           }
         }

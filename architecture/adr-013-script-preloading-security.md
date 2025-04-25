@@ -2,7 +2,7 @@
 
 | Type          | ID            | Status        | Title                                       |
 | ------------- | ------------- | ------------- | ------------------------------------------- |
-| ADR           | adr-013       | Draft         | Security requirements for preloaded scripts |
+| ADR           | adr-013       | Accepted      | Security requirements for preloaded scripts |
 
 
 # Security requirements for preloaded scripts
@@ -66,15 +66,15 @@ windows created in the renderer process without additional parameters.
 
 ## Decision
 
-TBA
+Windows opened via window.open() or a similar mechanism are considered "popup windows". These are non-persistent and non-dockable. They are owned by the module that opened them and they are closed if the module is closed.
 
-To minimize risks associated with untrusted content, popup windows and iframes will not inherit the parent window's module identity or injected scripts.
-When a module wants to pop up another window, it has to do so using container APIs (eg. FDC3 `raiseIntent` or `open`, or the Module Loader `start` API).
+To minimize risks associated with untrusted content popup windows and iframes will not inherit the parent window's module identity or injected scripts. The same applies if the module tries to navigate to another domain.
+If a new window needs access to these features it has to be opened as a separate module using container APIs (eg. FDC3 `raiseIntent` or `open`, or the Module Loader `start` API).
 
-We provide fine-grained control over script injection in web views. Plugins can examine the originating module's manifest, 
-the target URL and its context (eg. a popup window or iframe) when determining what to preload. Frames without reference to a module instance
-will not receive any preloaded scripts unless some shell features require them.
+Depending on user feedback we may design way(s) for limited communication between a module main window and its child windows and iframes. This would still not grant direct access to the container but developers could have more flexibility in these kinds of interactions. We still need to consider access control to these features (e.g. allow-listing origins in the module manifest).
 
 ## Consequences
 
-TBA
+Safety concerns related to loading potentially hostile arbitrary urls with access to the container api are covered.
+Modules that expect to open windows or make use of iframes that access the container features will not work with the container.
+Even if we add communication options in the future we cannot ensure these features will be container agnostic.

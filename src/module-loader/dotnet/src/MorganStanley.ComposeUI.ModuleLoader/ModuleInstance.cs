@@ -40,6 +40,11 @@ internal class ModuleInstance : IModuleInstance
         return _properties;
     }
 
+    public IEnumerable<T> GetProperties<T>()
+    {
+        return _properties.OfType<T>();
+    }
+
     internal void AddProperties(IEnumerable<object> properties)
     {
         _properties = _properties.AddRange(properties);

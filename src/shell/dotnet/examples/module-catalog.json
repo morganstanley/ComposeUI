@@ -14,7 +14,14 @@
     "ModuleType": "web",
     "Details": {
       "Url": "https://www.microsoft.com",
-      "IconUrl": "https://www.microsoft.com/favicon.ico?v2"
+      "IconUrl": "https://www.microsoft.com/favicon.ico?v2",
+      "InitialModulePosition": "FloatingOnly",
+      "Width": 200.5,
+      "Height": 100,
+      "Coordinates": {
+        "X": 603.447,
+        "Y": 1500.2
+      }
     }
   },
   {
@@ -23,7 +30,14 @@
     "ModuleType": "web",
     "Details": {
       "Url": "https://www.google.com",
-      "IconUrl": "https://www.google.com/images/branding/googleg/1x/googleg_standard_color_128dp.png"
+      "IconUrl": "https://www.google.com/images/branding/googleg/1x/googleg_standard_color_128dp.png",
+      "InitialModulePosition": "Floating",
+      "Width": 280.5,
+      "Height": 500,
+      "Coordinates": {
+        "X": 60.447,
+        "Y": 500.2
+      }
     }
   },
   {
@@ -77,7 +91,10 @@
     "ModuleType": "native",
     "Details": {
       "Path": "..\\..\\..\\..\\examples\\dotnet-diagnostics\\DiagnosticsExample\\bin\\Debug\\net6.0-windows\\DiagnosticsExample.exe",
-      "EnvironmentVariables": { "CUSTOM_GREETINGS": "Hello ComposeUI!" }
+      "EnvironmentVariables": { "CUSTOM_GREETINGS": "Hello ComposeUI!" },
+      "InitialModulePosition": "Floating",
+      "Width": 280.5,
+      "Height": 500
     }
   },
   {

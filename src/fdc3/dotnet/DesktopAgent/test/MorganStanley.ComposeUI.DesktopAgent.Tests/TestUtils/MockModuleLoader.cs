@@ -89,6 +89,11 @@ public class MockModuleLoader : Mock<IModuleLoader>
             };
         }
 
+        public IEnumerable<T> GetProperties<T>()
+        {
+            return GetProperties().OfType<T>();
+        }
+
         public MockModuleInstance(StartRequest startRequest, IModuleManifest moduleManifest)
         {
             _moduleManifest = moduleManifest;
@@ -103,5 +108,9 @@ public class MockModuleLoader : Mock<IModuleLoader>
         public string Name { get; set; }
 
         public string ModuleType { get; set; }
+
+        public string[] Tags => ["tag1", "tag2"];
+
+        public Dictionary<string, string> AdditionalProperties => new() { { "color", "blue" } };
     }
 }

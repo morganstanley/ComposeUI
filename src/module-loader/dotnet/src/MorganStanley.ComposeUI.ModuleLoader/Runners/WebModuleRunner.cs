@@ -20,7 +20,16 @@ internal class WebModuleRunner : IModuleRunner
     {
         if (startupContext.ModuleInstance.Manifest.TryGetDetails(out WebManifestDetails details))
         {
-            startupContext.AddProperty(new WebStartupProperties { IconUrl = details.IconUrl, Url = details.Url });
+            startupContext.AddProperty(
+                new WebStartupProperties 
+                { 
+                    IconUrl = details.IconUrl,
+                    Url = details.Url,
+                    InitialModulePosition = details.InitialModulePosition,
+                    Width = details.Width,
+                    Height = details.Height,
+                    Coordinates = details.Coordinates
+                });
         }
 
         await pipeline();

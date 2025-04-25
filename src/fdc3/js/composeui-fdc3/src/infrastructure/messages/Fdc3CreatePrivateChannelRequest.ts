@@ -12,5 +12,5 @@
  */
 
 export class Fdc3CreatePrivateChannelRequest {
-
+    constructor(public readonly instanceId: string) {}
 }

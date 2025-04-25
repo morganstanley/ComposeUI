@@ -32,12 +32,12 @@
     "provenance": true
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "26.0.1",
-    "@rollup/plugin-node-resolve": "15.2.3",
+    "@rollup/plugin-commonjs": "28.0.2",
+    "@rollup/plugin-node-resolve": "16.0.0",
     "@types/jest": "^29.4.0",
     "@types/node": "^22.0.2",
     "jest": "^29.4.3",
-    "jsdom": "^25.0.0",
+    "jsdom": "^26.0.0",
     "rimraf": "6.0.1",
     "rollup": "^4.12.1",
     "ts-jest": "29.2.5",
