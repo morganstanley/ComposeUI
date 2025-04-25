@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and limitations 
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>$(TargetFrameworkVersion)-windows</TargetFramework>
+    <TargetFramework>net8.0-windows10.0.17763.0</TargetFramework>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 

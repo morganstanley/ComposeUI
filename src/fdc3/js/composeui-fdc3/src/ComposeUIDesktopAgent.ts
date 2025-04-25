@@ -38,6 +38,7 @@ import { MetadataClient } from './infrastructure/MetadataClient';
 import { MessageRouterMetadataClient } from './infrastructure/MessageRouterMetadataClient';
 import { OpenClient } from "./infrastructure/OpenClient";
 import { MessageRouterOpenClient } from "./infrastructure/MessageRouterOpenClient";
+import { ChannelSelectorClient } from "./infrastructure/ChannelSelectorClient";
 
 export class ComposeUIDesktopAgent implements DesktopAgent {
     private appChannels: Channel[] = [];
@@ -52,6 +53,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     private openClient: OpenClient;
     private openedAppContext?: Context;
     private openedAppContextHandled: boolean = false;
+    private channelSelectorClient: ChannelSelectorClient;
 
     //TODO: we should enable passing multiple channelId to the ctor.
     constructor(messageRouterClient: MessageRouter, channelFactory?: ChannelFactory) {
@@ -64,6 +66,11 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         this.intentsClient = new MessageRouterIntentsClient(messageRouterClient, this.channelFactory);
         this.metadataClient = new MessageRouterMetadataClient(messageRouterClient, window.composeui.fdc3.config);
         this.openClient = new MessageRouterOpenClient(window.composeui.fdc3.config.instanceId!, messageRouterClient, window.composeui.fdc3.openAppIdentifier);
+        this.channelSelectorClient = new ChannelSelectorClient(messageRouterClient, window.composeui.fdc3.config.instanceId!, window.composeui.fdc3.channelId!);
+    }
+
+    public async selectChannel(){
+        await this.channelSelectorClient.subscribe();
     }
 
     public async open(app?: string | AppIdentifier, context?: Context): Promise<AppIdentifier> {
@@ -168,6 +175,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
                     queueMicrotask(async () => await this.callHandlerOnChannelsCurrentContext(listener));
                 });
         }
+        this.channelSelectorClient.colorUpdate(channelId, channel.displayMetadata?.color);
     }
 
     public async getOrCreateChannel(channelId: string): Promise<Channel> {

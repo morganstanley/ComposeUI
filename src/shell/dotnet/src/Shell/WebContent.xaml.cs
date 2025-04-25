@@ -26,6 +26,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Web.WebView2.Core;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.ImageSource;
+using System.Windows;
 
 namespace MorganStanley.ComposeUI.Shell;
 
@@ -185,7 +186,13 @@ public partial class WebContent : ContentPresenter, IDisposable
                     {
                         var script = await scriptProvider(_moduleInstance!);
                         await coreWebView.AddScriptToExecuteOnDocumentCreatedAsync(script);
-                    }));
+                    })
+                );
+
+            if (webProperties.Fdc3ChannelSelectorControl is UIElement element)
+            {
+                LayoutRoot.Children.Add(element);
+            }
         }
 
         _scriptInjectionCompleted.SetResult();
