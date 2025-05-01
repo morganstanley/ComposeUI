@@ -21,8 +21,8 @@
   "devDependencies": {
     "http-server": "14.1.1",
     "rimraf": "6.0.1",
-    "rollup": "4.34.9",
-    "@rollup/plugin-commonjs": "28.0.2",
-    "@rollup/plugin-node-resolve": "16.0.0"
+    "rollup": "4.40.1",
+    "@rollup/plugin-commonjs": "28.0.3",
+    "@rollup/plugin-node-resolve": "16.0.1"
   }
 }
