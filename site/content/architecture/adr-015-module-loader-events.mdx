@@ -1,13 +1,17 @@
-<!-- Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. -->
+---
+type: ADR
+id: adr-015
+status: Accepted
+scope: global
+deciders: github group
+date: 2024-06-11
+title: Module Loader events
+---
 
-| Type          | ID            | Status        | Title                   |
-| ------------- | ------------- | ------------- | ----------------------- |
-| ADR           | adr-015       | Approved      | Module Loader events    |
-
-
-# Architecture Decision Record: Module Loader events
+{/* Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */}
 
 ## Context
+
 Module Loader is responsible for starting and stopping module instances. It is also responsible for emitting lifetime events of module instances, such as `Starting`, `Started`, `Stopping`, `Stopped`.
 
 The current architecture is built on top of `IObservable<T>`:
@@ -24,9 +28,11 @@ public interface IModuleLoader
 ### Current usages
 
 #### Raising events
-The Module Loader is responsible for raising lifetime events. This is currently achieved by using a [Subject](https://learn.microsoft.com/en-us/previous-versions/dotnet/reactive-extensions/hh229173(v=vs.103)). Subjects implement both `IObservable<T>` and `IObserver<T>`, and when a lifetime event needs to be emitted we call `OnNext()` on the subject.
+
+The Module Loader is responsible for raising lifetime events. This is currently achieved by using a [Subject](<https://learn.microsoft.com/en-us/previous-versions/dotnet/reactive-extensions/hh229173(v=vs.103)>). Subjects implement both `IObservable<T>` and `IObserver<T>`, and when a lifetime event needs to be emitted we call `OnNext()` on the subject.
 
 #### Consuming events
+
 Module Loader lifetime events are consumed by ComposeUI infrastructure code, but can also be consumed by external applications.
 
 Current infrastructure usages utilize `System.Reactive` extensions and its `LINQ` operators. For example:
@@ -56,9 +62,11 @@ In our FDC3 Desktop Agent implementation we use `System.Reactive.Async` to conve
         {
             // code containing await
 ```
+
 ## Alternatives considered
 
 ### Events
+
 The most obvious alternative to `IObservable<T>` is the built-in `event` feature in C# / .NET. Raising lifetime events would be very similar to the current code, however subscribing to these events would be limited to the `+=` operator. Since we're already relying on the `LINQ` operators provided by Rx.NET using built-in `events` instead would be inferior.
 
 The current implementation of the FDC3 Desktop Agent relies on awaiting in the `OnNextAsync()` handler. Implementing the same behavior by using built-in `events` would be challenging (if possible at all).
