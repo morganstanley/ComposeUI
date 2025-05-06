@@ -22,7 +22,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        dotnet-version: [ '6.0.x' ]
+        dotnet-version: [ '8.0.x' ]
         node-version: [ '22.x' ]
     steps:
     - name: Checkout
@@ -82,4 +82,4 @@ jobs:
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         name: shell-binaries
-        path: ${{ github.workspace }}/src/shell/dotnet/Shell/bin/Release/net6.0-windows/
+        path: ${{ github.workspace }}/src/shell/dotnet/Shell/bin/Release/net8.0-windows/
