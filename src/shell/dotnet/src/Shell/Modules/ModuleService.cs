@@ -12,6 +12,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
@@ -71,6 +72,21 @@ internal sealed class ModuleService : IHostedService
         }
 
         var webWindowOptions = e.Instance.GetProperties().OfType<WebWindowOptions>().FirstOrDefault();
+
+        var parameters = new List<object>
+        {
+            e.Instance,
+            webWindowOptions
+                ?? new WebWindowOptions
+                {
+                    Url = properties.Url.ToString(),
+                    IconUrl = properties.IconUrl?.ToString(),
+                    InitialModulePostion = properties.InitialModulePosition,
+                    Width = properties.Width ?? WebWindowOptions.DefaultWidth,
+                    Height = properties.Height ?? WebWindowOptions.DefaultHeight,
+                    Coordinates = properties.Coordinates
+                }
+        };
 
         try
         {

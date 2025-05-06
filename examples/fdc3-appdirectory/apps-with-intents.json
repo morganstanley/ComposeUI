@@ -127,7 +127,7 @@
       "name": "Js Chart Example",
       "type": "web",
       "details": {
-        "url": "http://localhost:8080/"
+        "url": "http://localhost:8088/"
       },
       "interop": {
         "intents": {

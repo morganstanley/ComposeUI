@@ -40,7 +40,7 @@ internal class WebContentPane : ContentPane
         WebContent.CloseRequested += WebContent_CloseRequested;
     }
 
-    private void WebContent_CloseRequested(object? sender, System.EventArgs e)
+    private void WebContent_CloseRequested(object? sender, EventArgs e)
     {
         ExecuteCommand(ContentPaneCommands.Close);
     }
