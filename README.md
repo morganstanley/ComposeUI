@@ -36,7 +36,7 @@ We're planning to release the FDC3 2.0 compliant container in **v0.1.0-alpha.5**
 
 ## Prerequisites
 
-- Node.js 18
+- Node.js 22
 - .NET 6
 - Visual Studio: 2022
 
