@@ -167,32 +167,33 @@ export class TradeIdeaGeneratorComponent implements OnDestroy {
       };
 
       try {
-        if (!this.channel) {
-          this.channel = await window.fdc3.getOrCreateChannel('tradeIdeasChannel');
+        if(window.fdc3) {
+          if (!this.channel) {
+              this.channel = await window.fdc3.getOrCreateChannel('tradeIdeasChannel');
+          }
+
+          const topic: string = "fdc3." + this.symbols.value as string + "." + this.trader!;
+
+          if (!this.listeners.get(topic)) {
+            const listener = await this.channel.addContextListener(topic, (context, metadata) => {
+              if (context['result'].success === false){
+                this.feedbackSubject.next(context['result'].error as string);
+                return;
+              }
+
+              const result = context['result'];
+              if (result.action as string == "BUY") {
+                const price: number = result.tradePrice as number;
+                this.feedbackSubject.next(this.trader + " has bought " + this.currentValue + " symbol of: " + this.symbols.value as string + " for $" + price + ".");
+              } else {
+                this.feedbackSubject.next(this.trader + " has indicated that " + this.currentValue + " symbol of: " + this.symbols.value as string + " is/are available for buying.");
+              }
+            });
+            this.listeners.set(topic, listener);
+          }
+
+          await this.channel.broadcast(context);
         }
-
-        const topic: string = "fdc3." + this.symbols.value as string + "." + this.trader!;
-
-        if (!this.listeners.get(topic)) {
-          const listener = await this.channel.addContextListener(topic, (context, metadata) => {
-            if (context['result'].success === false){
-              this.feedbackSubject.next(context['result'].error as string);
-              return;
-            }
-
-            const result = context['result'];
-            if (result.action as string == "BUY") {
-              const price: number = result.tradePrice as number;
-              this.feedbackSubject.next(this.trader + " has bought " + this.currentValue + " symbol of: " + this.symbols.value as string + " for $" + price + ".");
-            } else {
-              this.feedbackSubject.next(this.trader + " has indicated that " + this.currentValue + " symbol of: " + this.symbols.value as string + " is/are available for buying.");
-            }
-          });
-          this.listeners.set(topic, listener);
-        }
-
-        await this.channel.broadcast(context);
-
       } catch (error) {
         this.feedbackSubject.next('Failed to broadcast trade idea.');
         console.error('Error is thrown while broadcasting trade idea:', error);
