@@ -21,4 +21,4 @@ jobs:
               powershell ./build/dotnet-restore.ps1
               powershell ./build/dotnet-build.ps1
       - name: Component detection 
-        uses: advanced-security/component-detection-dependency-submission-action@bcc5ca88e364e548ea6b6db45f9c298161e76911 # v0.0.4
+        uses: advanced-security/component-detection-dependency-submission-action@7f8a02206328ac5ba9026225bb70dc3f9806a9e0 # v0.0.5
