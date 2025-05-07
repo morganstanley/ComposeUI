@@ -12,7 +12,6 @@
  * and limitations under the License.
  */
 
-using Finos.Fdc3.Context;
 using Finos.Fdc3;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
@@ -23,8 +22,8 @@ internal class RaiseIntentResolutionInvocation
         int raiseIntentMessageId,
         string intent,
         string originFdc3InstanceId,
-        Context contextToHandle,
-        Context? resultContext = null,
+        string        contextToHandle,
+        string? resultContext = null,
         string? resultChannelId = null,
         ChannelType? resultChannelType = null,
         bool? resultVoid = null,
@@ -44,8 +43,8 @@ internal class RaiseIntentResolutionInvocation
     public string RaiseIntentMessageId { get; }
     public string Intent { get; }
     public string OriginFdc3InstanceId { get; }
-    public Context Context { get; }
-    public Context? ResultContext { get; set; }
+    public string Context { get; }
+    public string? ResultContext { get; set; }
     public string? ResultChannelId { get; set; }
     public ChannelType? ResultChannelType { get; set; }
     public bool? ResultVoid { get; set; }

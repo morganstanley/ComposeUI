@@ -29,6 +29,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
         private readonly ILogger _logger;
         private readonly ChannelTopics _topics;
         private readonly ConcurrentDictionary<string, IMessageBuffer> _contexts = new ConcurrentDictionary<string, IMessageBuffer>();
+        private readonly object _contextsLock = new();
         private IMessageBuffer? _lastContext = null;
         private IAsyncDisposable? _broadcastSubscription;
         private bool _disposed = false;
@@ -62,65 +63,71 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
 
         internal ValueTask HandleBroadcast(IMessageBuffer? payloadBuffer)
         {
-            if (payloadBuffer == null)
+            lock (_contextsLock)
             {
-                LogNullOrEmptyBroadcast();
+                if (payloadBuffer == null)
+                {
+                    LogNullOrEmptyBroadcast();
+                    return ValueTask.CompletedTask;
+                }
+
+                var payload = payloadBuffer.GetSpan();
+                if (payload == null || payload.Length == 0)
+                {
+                    LogNullOrEmptyBroadcast();
+                    return ValueTask.CompletedTask;
+                }
+
+                LogPayload(payloadBuffer);
+                JsonNode ctx;
+                try
+                {
+                    ctx = JsonNode.Parse(payload, new JsonNodeOptions() { PropertyNameCaseInsensitive = true })!;
+                }
+                catch (JsonException)
+                {
+                    LogInvalidPayloadJson();
+                    return ValueTask.CompletedTask;
+                }
+
+                var contextType = (string?) ctx!["type"];
+
+                if (string.IsNullOrEmpty(contextType))
+                {
+                    LogMissingContextType();
+                    return ValueTask.CompletedTask;
+                }
+
+                _contexts.AddOrUpdate(
+                    contextType,
+                    _ => payloadBuffer,
+                    (_, _) => payloadBuffer);
+
+                _lastContext = payloadBuffer;
+
                 return ValueTask.CompletedTask;
             }
-
-            var payload = payloadBuffer.GetSpan();
-            if (payload == null || payload.Length == 0)
-            {
-                LogNullOrEmptyBroadcast();
-                return ValueTask.CompletedTask;
-            }
-
-            LogPayload(payloadBuffer);
-            JsonNode ctx;
-            try
-            {
-                ctx = JsonNode.Parse(payload, new JsonNodeOptions() { PropertyNameCaseInsensitive = true })!;
-            }
-            catch (JsonException)
-            {
-                LogInvalidPayloadJson();
-                return ValueTask.CompletedTask;
-            }
-
-            var contextType = (string?) ctx!["type"];
-
-            if (string.IsNullOrEmpty(contextType))
-            {
-                LogMissingContextType();
-                return ValueTask.CompletedTask;
-            }
-
-            _contexts.AddOrUpdate(
-                contextType,
-                _ => payloadBuffer,
-                (_, _) => payloadBuffer);
-
-            _lastContext = payloadBuffer;
-
-            return ValueTask.CompletedTask;
         }
 
         internal ValueTask<IMessageBuffer?> GetCurrentContext(string endpoint, IMessageBuffer? payloadBuffer, MessageContext? context)
         {
-            if (payloadBuffer == null)
+            lock (_contextsLock)
             {
-                return ValueTask.FromResult(_lastContext);
-            }
+                if (payloadBuffer == null)
+                {
+                    return ValueTask.FromResult(_lastContext);
+                }
 
-            var payload = payloadBuffer.ReadJson<GetCurrentContextRequest>();
-            if (payload?.ContextType == null)
-            {
-                return ValueTask.FromResult(_lastContext);
-            }
+                var payload = payloadBuffer.ReadJson<GetCurrentContextRequest>(new(JsonSerializerDefaults.Web));
+                if (payload?.ContextType == null)
+                {
+                    return ValueTask.FromResult(_lastContext);
+                }
 
-            return _contexts.TryGetValue(payload.ContextType, out var messageBuffer)
-                ? ValueTask.FromResult<IMessageBuffer?>(messageBuffer)
-                : ValueTask.FromResult<IMessageBuffer?>(null);
+                return _contexts.TryGetValue(payload.ContextType, out var messageBuffer)
+                    ? ValueTask.FromResult<IMessageBuffer?>(messageBuffer)
+                    : ValueTask.FromResult<IMessageBuffer?>(null);
+            }
         }
 
         public virtual async ValueTask DisposeAsync()
@@ -174,6 +181,14 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
             if (_logger.IsEnabled(LogLevel.Warning))
             {
                 _logger.LogWarning($"{ChannelTypeName} {Id} received broadcasted payload with no context type specified. This broadcast will be ignored.");
+            }
+        }
+
+        protected void LogUnexpectedMessage(string message)
+        {
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning($"{ChannelTypeName} {Id} received unexpected message while trying to close a PrivateChannel: {message}");
             }
         }
     }

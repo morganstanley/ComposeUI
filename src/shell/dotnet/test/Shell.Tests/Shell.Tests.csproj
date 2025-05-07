@@ -1,9 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>$(TargetFrameworkVersion)-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
 	<RootNamespace>MorganStanley.ComposeUI.Shell</RootNamespace>
   </PropertyGroup>
@@ -24,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Shell\Shell.csproj" />
+    <ProjectReference Include="..\..\src\Shell\Shell.csproj" />
   </ItemGroup>
 
 </Project>

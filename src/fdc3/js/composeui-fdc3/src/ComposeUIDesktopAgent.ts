@@ -36,6 +36,8 @@ import { MessageRouterIntentsClient } from './infrastructure/MessageRouterIntent
 import { IntentsClient } from './infrastructure/IntentsClient';
 import { MetadataClient } from './infrastructure/MetadataClient';
 import { MessageRouterMetadataClient } from './infrastructure/MessageRouterMetadataClient';
+import { OpenClient } from "./infrastructure/OpenClient";
+import { MessageRouterOpenClient } from "./infrastructure/MessageRouterOpenClient";
 
 export class ComposeUIDesktopAgent implements DesktopAgent {
     private appChannels: Channel[] = [];
@@ -47,6 +49,9 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     private channelFactory: ChannelFactory;
     private intentsClient: IntentsClient;
     private metadataClient: MetadataClient;
+    private openClient: OpenClient;
+    private openedAppContext?: Context;
+    private openedAppContextHandled: boolean = false;
 
     //TODO: we should enable passing multiple channelId to the ctor.
     constructor(messageRouterClient: MessageRouter, channelFactory?: ChannelFactory) {
@@ -58,11 +63,11 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         this.channelFactory = channelFactory ?? new MessageRouterChannelFactory(messageRouterClient, window.composeui.fdc3.config.instanceId);
         this.intentsClient = new MessageRouterIntentsClient(messageRouterClient, this.channelFactory);
         this.metadataClient = new MessageRouterMetadataClient(messageRouterClient, window.composeui.fdc3.config);
+        this.openClient = new MessageRouterOpenClient(window.composeui.fdc3.config.instanceId!, messageRouterClient, window.composeui.fdc3.openAppIdentifier);
     }
 
-    //TODO
-    public open(app?: string | AppIdentifier, context?: Context): Promise<AppIdentifier> {
-        throw new Error("Not implemented");
+    public async open(app?: string | AppIdentifier, context?: Context): Promise<AppIdentifier> {
+        return await this.openClient.open(app, context);
     }
 
     public async findIntent(intent: string, context?: Context, resultType?: string): Promise<AppIntent> {
@@ -89,9 +94,8 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         return await this.intentsClient.raiseIntent(intent, context, app);
     }
 
-    //TODO
-    public raiseIntentForContext(context: Context, app?: string | AppIdentifier): Promise<IntentResolution> {
-        throw new Error("Not implemented");
+    public async raiseIntentForContext(context: Context, app?: string | AppIdentifier): Promise<IntentResolution> {
+        return await this.intentsClient.raiseIntentForContext(context, app);
     }
 
     public async addIntentListener(intent: string, handler: IntentHandler): Promise<Listener> {
@@ -106,16 +110,33 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
             contextType = null;
         }
 
-        const listener = <ComposeUIContextListener>await this.channelFactory.getContextListener(this.currentChannel, handler, contextType);
+        if (this.openedAppContext 
+            && handler 
+            && (contextType == this.openedAppContext?.type || this.openedAppContext.type == null || !this.openedAppContext.type)) {                
+                
+                if (this.openedAppContextHandled === false) {
+                    handler(this.openedAppContext);
+                    this.openedAppContextHandled = true;
+                }
+        } 
+        
+        if (!this.openedAppContext && this.openedAppContextHandled !== true) {
+            //There is no context to handle -aka app was not opened via the fdc3.open
+            this.openedAppContextHandled = true;
+        }
+
+        const listener = <ComposeUIContextListener>await this.channelFactory.getContextListener(this.openedAppContextHandled, this.currentChannel, handler, contextType);
         this.topLevelContextListeners.push(listener);
 
         if (!this.currentChannel) {
             return listener;
         }
 
-        await this.getLastContext(listener);
-
-        return listener;
+        return await new Promise<Listener>((resolve) => {
+            resolve(listener);
+        }).finally(() => {
+            queueMicrotask(async () => await this.callHandlerOnChannelsCurrentContext(listener));
+        });
     }
 
     public async getUserChannels(): Promise<Array<Channel>> {
@@ -131,18 +152,21 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         let channel = this.userChannels.find(innerChannel => innerChannel.id == channelId);
         if (!channel) {
             channel = await this.channelFactory.joinUserChannel(channelId);
+            
+            if (!channel) {
+                throw new Error(ChannelError.NoChannelFound);
+            }
+    
+            this.addChannel(channel);
         }
 
-        if (!channel) {
-            throw new Error(ChannelError.NoChannelFound);
-        }
-
-        this.addChannel(channel);
         this.currentChannel = channel;
 
         for (const listener of this.topLevelContextListeners) {
-            await listener.subscribe(this.currentChannel.id, this.currentChannel.type);
-            await this.getLastContext(listener);
+            await listener.subscribe(this.currentChannel.id, this.currentChannel.type)
+                .finally(() => {
+                    queueMicrotask(async () => await this.callHandlerOnChannelsCurrentContext(listener));
+                });
         }
     }
 
@@ -195,6 +219,14 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         return this.joinUserChannel(channelId);
     }
 
+    public async getOpenedAppContext(): Promise<void> {
+        try {
+            this.openedAppContext = await this.openClient.getOpenedAppContext();
+        } catch (err) {
+            console.error("The opened app via fdc3.open() could not retrieve the context: ", err);
+        }
+    }
+
     private addChannel(channel: Channel): void {
         if (channel == null) return;
         switch (channel.type) {
@@ -210,12 +242,11 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         }
     }
 
-    private async getLastContext(listener: ComposeUIContextListener) : Promise<void> {
+    private async callHandlerOnChannelsCurrentContext(listener: ComposeUIContextListener) : Promise<void> {
         const lastContext = await this.currentChannel!.getCurrentContext(listener.contextType);
 
         if (lastContext) {
-            //TODO: timing issue
-            setTimeout(async() => await listener.handleContextMessage(lastContext), 100);
+            await listener.handleContextMessage(lastContext);
         }
     }
 }

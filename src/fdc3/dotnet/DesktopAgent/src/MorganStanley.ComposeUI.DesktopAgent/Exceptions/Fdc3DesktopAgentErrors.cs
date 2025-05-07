@@ -19,30 +19,45 @@ public static class Fdc3DesktopAgentErrors
     /// <summary>
     /// Indicates that the instanceId of the app that was raising the request is missing.
     /// </summary>
-    public const string MissingId = $"{nameof(MissingId)}";
+    public const string MissingId = nameof(MissingId);
 
     /// <summary>
     /// Given payload from <seealso cref="MorganStanley.ComposeUI.Messaging.IMessageRouter"/> is null.
     /// </summary>
-    public const string PayloadNull = $"{nameof(PayloadNull)}";
+    public const string PayloadNull = nameof(PayloadNull);
 
     /// <summary>
     /// Indicates that multiple matching were registered to an IntentResolver.
     /// </summary>
-    public const string MultipleIntent = $"{nameof(MultipleIntent)}";
+    public const string MultipleIntent = nameof(MultipleIntent);
 
     /// <summary>
     /// Indicates that getting the IntentResult from the backend, has no appropriate attribute.
     /// </summary>
-    public const string ResponseHasNoAttribute = $"{nameof(ResponseHasNoAttribute)}";
+    public const string ResponseHasNoAttribute = nameof(ResponseHasNoAttribute);
 
     /// <summary>
     /// Indicates that no user channel set was configured.
     /// </summary>
-    public const string NoUserChannelSetFound = $"{nameof(NoUserChannelSetFound)}";
+    public const string NoUserChannelSetFound = nameof(NoUserChannelSetFound);
 
     /// <summary>
     /// Indicates that the listener was not found for execution.
     /// </summary>
-    public const string ListenerNotFound = $"{nameof(ListenerNotFound)}";
+    public const string ListenerNotFound = nameof(ListenerNotFound);
+
+    /// <summary>
+    /// Indicates that the given id is not the expected type.
+    /// </summary>
+    public const string IdNotParsable = nameof(IdNotParsable);
+
+    /// <summary>
+    /// Indicates that the context for the given context id is not found during the GetOpenedAppContext call.
+    /// </summary>
+    public const string OpenedAppContextNotFound = nameof(OpenedAppContextNotFound);
+
+    /// <summary>
+    /// Indicates that during intent resolution the requested app id exists but the instance does not
+    /// </summary>
+    public const string TargetInstanceUnavailable = nameof(TargetInstanceUnavailable);
 }

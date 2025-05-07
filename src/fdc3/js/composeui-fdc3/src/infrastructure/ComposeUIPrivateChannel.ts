@@ -42,10 +42,6 @@ export class ComposeUIPrivateChannel extends ComposeUIChannel implements Private
         this.messageRouterClient.registerService(ComposeUITopic.privateChannelGetContextHandlers(id, isOriginalCreator),
             (e: string, p: MessageBuffer | undefined, c: MessageContext) => this.getContextListeners(e, p, c));
         this.remoteContextListenersService = ComposeUITopic.privateChannelGetContextHandlers(id, !isOriginalCreator);
-
-        // This is a quick and dirty solution that works only if closing is not prevented after this is called
-        // We need to implement a more roboust way to handle closing modules
-        window.addEventListener('beforeunload', () => this.disconnect());
     }
 
     public onAddContextListener(handler: (contextType?: string) => void): Listener {

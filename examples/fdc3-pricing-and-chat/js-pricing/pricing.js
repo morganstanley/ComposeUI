@@ -14,11 +14,17 @@
 
 import "bootstrap/dist/css/bootstrap.css";
 
-window.addEventListener('fdc3Ready', async function () {
+if (window.fdc3) {
     const pricingForm = document.querySelector("#pricing");
-    await this.window.fdc3.joinUserChannel("fdc3.channel.1");
+    this.window.fdc3.joinUserChannel("fdc3.channel.1");
     pricingForm.addEventListener('submit', app.submitPrice);
-});
+} else {
+    window.addEventListener('fdc3Ready', async function () {
+        const pricingForm = document.querySelector("#pricing");
+        await this.window.fdc3.joinUserChannel("fdc3.channel.1");
+        pricingForm.addEventListener('submit', app.submitPrice);
+    });
+}
 
 window.app = function () {
     let channel = null;

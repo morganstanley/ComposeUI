@@ -46,6 +46,7 @@ internal interface IFdc3DesktopAgentBridge
     /// Handles the AddPrivateChannel call in the bridge.
     /// </summary>
     /// <param name="addPrivateChannelFactory"></param>
+    /// <param name="privateChannelId"></param>
     /// <returns></returns>
     public ValueTask AddPrivateChannel(Func<string, PrivateChannel> addPrivateChannelFactory, string privateChannelId);
 
@@ -69,15 +70,17 @@ internal interface IFdc3DesktopAgentBridge
     /// Handles the FindIntent call in the bridge.
     /// </summary>
     /// <param name="request"></param>
+    /// <param name="contextType"></param>
     /// <returns></returns>
-    public ValueTask<FindIntentResponse> FindIntent(FindIntentRequest? request);
+    public ValueTask<FindIntentResponse> FindIntent(FindIntentRequest? request, string? contextType);
 
     /// <summary>
     /// Handles the FindIntentsByContext call in the bridge.
     /// </summary>
     /// <param name="request"></param>
+    /// <param name="contextType"></param>
     /// <returns></returns>
-    public ValueTask<FindIntentsByContextResponse> FindIntentsByContext(FindIntentsByContextRequest? request);
+    public ValueTask<FindIntentsByContextResponse> FindIntentsByContext(FindIntentsByContextRequest? request, string? contextType);
 
     /// <summary>
     /// Handles the GetIntentResult call in the bridge.
@@ -90,15 +93,16 @@ internal interface IFdc3DesktopAgentBridge
     /// Handles the RaiseIntent call in the bridge.
     /// </summary>
     /// <param name="request"></param>
+    /// <param name="contextType"></param>
     /// <returns></returns>
-    public ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntent(RaiseIntentRequest? request);
+    public ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntent(RaiseIntentRequest request, string contextType);
 
     /// <summary>
     /// Handles the AddIntentListener call in the bridge.
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    public ValueTask<RaiseIntentResult<IntentListenerResponse>> AddIntentListener(IntentListenerRequest? request);
+    public ValueTask<IntentListenerResponse> AddIntentListener(IntentListenerRequest? request);
 
     /// <summary>
     /// Handles the StoreIntentResult call in the bridge.
@@ -156,4 +160,36 @@ internal interface IFdc3DesktopAgentBridge
     /// <param name="request"></param>
     /// <returns></returns>
     public ValueTask<RemoveContextListenerResponse?> RemoveContextListener(RemoveContextListenerRequest? request);
+
+    /// <summary>
+    /// Handles the Open call in the bridge.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="contextType"></param>
+    /// <returns></returns>
+    public ValueTask<OpenResponse?> Open(OpenRequest? request, string? contextType = null);
+
+    /// <summary>
+    /// Handles the GetOpenedAppContext call in the bridge.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    public ValueTask<GetOpenedAppContextResponse?> GetOpenedAppContext(GetOpenedAppContextRequest? request);
+
+    /// <summary>
+    /// Handles the RaiseIntentForContext call in the bridge.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="contextType"></param>
+    /// <returns></returns>
+    public ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntentForContext(RaiseIntentForContextRequest request, string contextType);
+
+
+    /// <summary>
+    /// Starts the closing pipeline to close the module.
+    /// </summary>
+    /// <param name="instanceId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public ValueTask CloseModule(string instanceId, CancellationToken cancellationToken);
 }

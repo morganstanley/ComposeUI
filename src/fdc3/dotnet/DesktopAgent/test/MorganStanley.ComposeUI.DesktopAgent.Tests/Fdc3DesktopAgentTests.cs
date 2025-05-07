@@ -14,11 +14,9 @@
 
 
 using Finos.Fdc3;
-using Finos.Fdc3.AppDirectory;
 using Finos.Fdc3.Context;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using MorganStanley.ComposeUI.Fdc3.AppDirectory;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
@@ -26,79 +24,23 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Helpers;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.TestUtils;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 using MorganStanley.ComposeUI.ModuleLoader;
 using AppChannel = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels.AppChannel;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIdentifier;
-using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIntent;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
 using DisplayMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.DisplayMetadata;
-using IntentMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.IntentMetadata;
 using Icon = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Icon;
 using ImplementationMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.ImplementationMetadata;
 using System.Collections.Concurrent;
-using System.Collections.Immutable;
+using System.Text.Json;
+using static MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.TestData.TestAppDirectoryData;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
 
-public class Fdc3DesktopAgentTests : IAsyncLifetime
+public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
 {
-    private readonly IAppDirectory _appDirectory = new AppDirectory.AppDirectory(
-        new AppDirectoryOptions
-        {
-            Source = new Uri($"file:\\\\{Directory.GetCurrentDirectory()}\\TestUtils\\appDirectorySample.json")
-        });
-
-    private readonly IFdc3DesktopAgentBridge _fdc3;
-    private readonly MockModuleLoader _mockModuleLoader = new();
-    private readonly Mock<IResolverUICommunicator> _mockResolverUICommunicator = new();
-    private readonly ConcurrentDictionary<Guid, IModuleInstance> _modules = new();
-    private IDisposable? _disposable;
-
-    public Fdc3DesktopAgentTests()
-    {
-        var options = new Fdc3DesktopAgentOptions();
-
-        _fdc3 = new Fdc3DesktopAgent(
-            _appDirectory,
-            _mockModuleLoader.Object,
-            options,
-            _mockResolverUICommunicator.Object,
-            new UserChannelSetReader(options),
-            NullLoggerFactory.Instance);
-    }
-
-    public async Task InitializeAsync()
-    {
-        await _fdc3.StartAsync(CancellationToken.None);
-
-        _disposable = _mockModuleLoader.Object.LifetimeEvents.Subscribe(x =>
-        {
-            switch(x.EventType)
-            {
-                case LifetimeEventType.Started:
-                    _modules.TryAdd(x.Instance.InstanceId, x.Instance);
-                    break;
-
-                case LifetimeEventType.Stopped:
-                    _modules.TryRemove(x.Instance.InstanceId, out _);
-                    break;
-            }
-        });
-    }
-
-    public async Task DisposeAsync()
-    {
-        await _fdc3.StopAsync(CancellationToken.None);
-
-        foreach(var module in _modules)
-        {
-            await _mockModuleLoader.Object.StopModule(new(module.Key));
-        }
-
-        _disposable?.Dispose();
-    }
+    public Fdc3DesktopAgentTests() : base(AppDirectoryPath) { }
 
     [Fact]
     public async Task AddUserChannel_wont_throw_and_adds_channel()
@@ -108,21 +50,70 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             .Returns((CancellationToken cancellationToken) => ValueTask.CompletedTask);
 
 
-        var action = async () => await _fdc3.AddUserChannel((channelId) => new Mock<UserChannel>(
+        var action = async () => await Fdc3.AddUserChannel((channelId) => new Mock<UserChannel>(
             channelId,
             mockMessageService.Object,
             NullLogger<UserChannel>.Instance).Object, "fdc3.channel.1");
 
         await action.Should().NotThrowAsync();
 
-        var channelExists = _fdc3.FindChannel(channelId: "fdc3.channel.1", ChannelType.User);
+        var channelExists = Fdc3.FindChannel(channelId: "fdc3.channel.1", ChannelType.User);
         channelExists.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task AddPrivateChannel_returns_null_with_no_channelId_passed()
+    {
+        var mockMessageService = new Mock<IMessageRouter>();
+        mockMessageService
+            .Setup(_ => _.ConnectAsync(It.IsAny<CancellationToken>()))
+            .Returns((CancellationToken cancellationToken) => ValueTask.CompletedTask);
+
+        var action = async () => await Fdc3.AddPrivateChannel(
+                (channelId) => 
+                new Mock<PrivateChannel>(
+                    channelId,
+                    mockMessageService.Object,
+                    NullLogger<UserChannel>.Instance).Object,
+                null!);
+
+        await action.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task AddAppChannel_returns_null_with_no_channelId_passed()
+    {
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+
+        var mockMessageService = new Mock<IMessageRouter>();
+        mockMessageService
+            .Setup(_ => _.ConnectAsync(It.IsAny<CancellationToken>()))
+            .Returns((CancellationToken cancellationToken) => ValueTask.CompletedTask);
+
+        var action = async () => await Fdc3.AddAppChannel(
+                (channelId) =>
+                new Mock<AppChannel>(
+                    channelId,
+                    mockMessageService.Object,
+                    NullLogger<UserChannel>.Instance).Object,
+                new CreateAppChannelRequest
+                {
+                    ChannelId = null!,
+                    InstanceId = originFdc3InstanceId
+                });
+
+        await action.Should().NotThrowAsync();
+
+        var result = await action();
+        result.Should().NotBeNull();
+        result!.Error.Should().Be(ChannelError.CreationFailed);
     }
 
     [Fact]
     public void FindChannel_returns_false()
     {
-        var result = _fdc3.FindChannel(channelId: "testChannelId", ChannelType.User);
+        var result = Fdc3.FindChannel(channelId: "testChannelId", ChannelType.User);
         result.Should().BeFalse();
     }
 
@@ -133,139 +124,47 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
         mockMessageService.Setup(_ => _.ConnectAsync(It.IsAny<CancellationToken>()))
             .Returns((CancellationToken cancellationToken) => ValueTask.CompletedTask);
 
-        await _fdc3.AddUserChannel((channelId) => new Mock<UserChannel>(
+        await Fdc3.AddUserChannel((channelId) => new Mock<UserChannel>(
             channelId,
             mockMessageService.Object,
             NullLogger<UserChannel>.Instance).Object, "fdc3.channel.1");
 
-        var result = _fdc3.FindChannel(channelId: "fdc3.channel.1", ChannelType.User);
+        var result = Fdc3.FindChannel(channelId: "fdc3.channel.1", ChannelType.User);
         result.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task FindIntent_returns_NoAppsFound()
-    {
-        var request = new FindIntentRequest
-        {
-            Intent = "testIntent",
-            Fdc3InstanceId = Guid.NewGuid().ToString()
-        };
-
-        var result = await _fdc3.FindIntent(request);
-        result.Should().NotBeNull();
-        result.Error.Should().Be(ResolveError.NoAppsFound);
-    }
-
-    [Fact]
-    public async Task FindIntent_returns()
-    {
-        var request = new FindIntentRequest
-        {
-            Intent = "intentMetadata4",
-            Context = new Context("context2"),
-            ResultType = "resultType",
-            Fdc3InstanceId = Guid.NewGuid().ToString()
-        };
-
-        var result = await _fdc3.FindIntent(request);
-        result.Should().NotBeNull();
-        result.AppIntent.Should()
-            .BeEquivalentTo(
-                new AppIntent
-                {
-                    Intent = new IntentMetadata {Name = "intentMetadata4", DisplayName = "displayName4"},
-                    Apps = new[]
-                    {
-                        new AppMetadata {AppId = "appId5", Name = "app5", ResultType = "resultType<specified>"},
-                        new AppMetadata {AppId = "appId6", Name = "app6", ResultType = "resultType"}
-                    }
-                });
-    }
-
-    [Fact]
-    public async Task FindIntentsByContext_returns_NoAppsFound()
-    {
-        var request = new FindIntentsByContextRequest
-        {
-            Fdc3InstanceId = Guid.NewGuid().ToString(),
-            Context = new Context("context9"), //This relates to multiple appId
-            ResultType = "noAppShouldReturn"
-        };
-        var result = await _fdc3.FindIntentsByContext(request);
-        result.Should().NotBeNull();
-        result.Error.Should().Be(ResolveError.NoAppsFound);
-    }
-
-    [Fact]
-    public async Task FindIntentsByContext_returns()
-    {
-        var request = new FindIntentsByContextRequest
-        {
-            Fdc3InstanceId = Guid.NewGuid().ToString(),
-            Context = new Context(ContextTypes.Nothing),
-            ResultType = "resultWrongApp"
-        };
-
-        var result = await _fdc3.FindIntentsByContext(request);
-        result.Should().NotBeNull();
-
-        result.AppIntents.Should()
-            .BeEquivalentTo(
-                new[]
-                {
-                    new AppIntent
-                    {
-                        Intent = new IntentMetadata {Name = "intentMetadata9", DisplayName = "displayName9"},
-                        Apps = new[]
-                        {
-                            new AppMetadata {AppId = "wrongappId9", Name = "app9", ResultType = "resultWrongApp"}
-                        }
-                    },
-
-                    new AppIntent
-                    {
-                        Intent = new IntentMetadata {Name = "intentMetadata11", DisplayName = "displayName11"},
-                        Apps = new[]
-                        {
-                            new AppMetadata {AppId = "appId12", Name = "app12", ResultType = "resultWrongApp"}
-                        }
-                    }
-                });
     }
 
     [Fact]
     public async Task GetIntentResult_returns()
     {
-        await _fdc3.StartAsync(CancellationToken.None);
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
-        var originFdc3InstanceId = Guid.NewGuid().ToString();
-        var context = new Context("test");
-        var target = await _mockModuleLoader.Object.StartModule(new StartRequest("appId4"));
+        var resultContext = new Context(ResultType1);
+        var target = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
         var addIntentListenerRequest = new IntentListenerRequest
         {
-            Intent = "intentMetadata4",
+            Intent = Intent1.Name,
             Fdc3InstanceId = targetFdc3InstanceId,
             State = SubscribeState.Subscribe
         };
 
-        var addIntentListenerResponse = await _fdc3.AddIntentListener(addIntentListenerRequest);
+        var addIntentListenerResponse = await Fdc3.AddIntentListener(addIntentListenerRequest);
         addIntentListenerResponse.Should().NotBeNull();
-        addIntentListenerResponse.Response.Stored.Should().BeTrue();
-        addIntentListenerResponse.RaiseIntentResolutionMessages.Should().BeEmpty();
+        addIntentListenerResponse.Stored.Should().BeTrue();
 
         var raiseIntentRequest =
             new RaiseIntentRequest
             {
                 MessageId = int.MaxValue,
-                Fdc3InstanceId = Guid.NewGuid().ToString(),
-                Intent = "intentMetadata4",
-                Context = new Context("context2"),
-                TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
+                Fdc3InstanceId = originFdc3InstanceId,
+                Intent = Intent1.Name,
+                Context = SingleContext.AsJson(),
+                TargetAppIdentifier = new AppIdentifier { AppId = App1.AppId, InstanceId = targetFdc3InstanceId }
             };
 
-        var raiseIntentResponse = await _fdc3.RaiseIntent(raiseIntentRequest);
+        var raiseIntentResponse = await Fdc3.RaiseIntent(raiseIntentRequest, SingleContext.Type);
 
         raiseIntentResponse.Should().NotBeNull();
         raiseIntentResponse.Response.AppMetadata.Should().NotBeNull();
@@ -273,72 +172,72 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
         var storeIntentRequest = new StoreIntentResultRequest
         {
             MessageId = raiseIntentResponse.Response.MessageId!,
-            Intent = "intentMetadata4",
+            Intent = Intent1.Name,
             OriginFdc3InstanceId = raiseIntentResponse.Response.AppMetadata!.InstanceId!,
             TargetFdc3InstanceId = originFdc3InstanceId,
-            Context = context
+            Context = resultContext.AsJson()
         };
 
-        var storeResult = await _fdc3.StoreIntentResult(storeIntentRequest);
+        var storeResult = await Fdc3.StoreIntentResult(storeIntentRequest);
         storeResult.Should().NotBeNull();
 
         var getIntentResultRequest = new GetIntentResultRequest
         {
             MessageId = raiseIntentResponse.Response.MessageId!,
-            Intent = "intentMetadata4",
+            Intent = Intent1.Name,
             TargetAppIdentifier = new AppIdentifier
-            { AppId = "appId1", InstanceId = raiseIntentResponse.Response.AppMetadata!.InstanceId! }
+            { AppId = App1.AppId, InstanceId = raiseIntentResponse.Response.AppMetadata!.InstanceId! }
         };
 
-        var result = await _fdc3.GetIntentResult(getIntentResultRequest);
+        var result = await Fdc3.GetIntentResult(getIntentResultRequest);
         result.Should().NotBeNull();
-        result.Context.Should().Be(context);
+        result.Context.Should().Be(resultContext.AsJson());
     }
 
     [Fact]
     public async Task GetIntentResult_fails()
     {
-        await _fdc3.StartAsync(CancellationToken.None);
-        var originFdc3InstanceId = Guid.NewGuid().ToString();
-        var target = await _mockModuleLoader.Object.StartModule(new StartRequest("appId4"));
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+
+        var target = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
-        var context = new Context("test");
+        var resultContext = new Context("resultType1");
 
         var addIntentListenerRequest = new IntentListenerRequest
         {
-            Intent = "intentMetadata4",
+            Intent = Intent1.Name,
             Fdc3InstanceId = targetFdc3InstanceId,
             State = SubscribeState.Subscribe
         };
 
-        var addIntentListenerResponse = await _fdc3.AddIntentListener(addIntentListenerRequest);
+        var addIntentListenerResponse = await Fdc3.AddIntentListener(addIntentListenerRequest);
         addIntentListenerResponse.Should().NotBeNull();
-        addIntentListenerResponse.Response.Stored.Should().BeTrue();
-        addIntentListenerResponse.RaiseIntentResolutionMessages.Should().BeEmpty();
+        addIntentListenerResponse.Stored.Should().BeTrue();
 
         var raiseIntentRequest = new RaiseIntentRequest
         {
             MessageId = int.MaxValue,
-            Fdc3InstanceId = Guid.NewGuid().ToString(),
-            Intent = "intentMetadata4",
-            Context = new Context("context2"),
-            TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
+            Fdc3InstanceId = originFdc3InstanceId,
+            Intent = Intent1.Name,
+            Context = SingleContext.AsJson(),
+            TargetAppIdentifier = new AppIdentifier { AppId = App1.AppId, InstanceId = targetFdc3InstanceId }
         };
 
-        var raiseIntentResponse = await _fdc3.RaiseIntent(raiseIntentRequest);
+        var raiseIntentResponse = await Fdc3.RaiseIntent(raiseIntentRequest, SingleContext.Type);
         raiseIntentResponse.Response.AppMetadata.Should().NotBeNull();
 
         var storeIntentRequest = new StoreIntentResultRequest
         {
             MessageId = raiseIntentResponse.Response.MessageId!,
-            Intent = "intentMetadata4",
+            Intent = Intent1.Name,
             OriginFdc3InstanceId = raiseIntentResponse.Response.AppMetadata!.InstanceId!,
             TargetFdc3InstanceId = originFdc3InstanceId,
-            Context = context
+            Context = resultContext.AsJson()
         };
 
-        var storeResponse = await _fdc3.StoreIntentResult(storeIntentRequest);
+        var storeResponse = await Fdc3.StoreIntentResult(storeIntentRequest);
         storeResponse.Error.Should().BeNull();
 
         var getIntentResultRequest = new GetIntentResultRequest
@@ -346,11 +245,11 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             MessageId = raiseIntentResponse.Response.MessageId!,
             Intent = "dummy",
             TargetAppIdentifier = new AppIdentifier
-            { AppId = "appId1", InstanceId = raiseIntentResponse.Response.AppMetadata!.InstanceId! },
+            { AppId = App1.AppId, InstanceId = raiseIntentResponse.Response.AppMetadata!.InstanceId! },
             Version = "1.0"
         };
 
-        var result = await _fdc3.GetIntentResult(getIntentResultRequest);
+        var result = await Fdc3.GetIntentResult(getIntentResultRequest);
         result.Should().BeEquivalentTo(new GetIntentResultResponse { Error = ResolveError.IntentDeliveryFailed });
     }
 
@@ -367,7 +266,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             ChannelType = ChannelType.User
         };
 
-        var result = await _fdc3.StoreIntentResult(request);
+        var result = await Fdc3.StoreIntentResult(request);
 
         result.Should().BeEquivalentTo(StoreIntentResultResponse.Failure(Fdc3DesktopAgentErrors.MissingId));
     }
@@ -375,45 +274,46 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     [Fact]
     public async Task StoreIntentResult_returns()
     {
-        await _fdc3.StartAsync(CancellationToken.None);
-        var target = await _mockModuleLoader.Object.StartModule(new StartRequest("appId4"));
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+
+        var target = await ModuleLoader.Object.StartModule(new StartRequest(App2.AppId));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
         var addIntentListenerRequest = new IntentListenerRequest
         {
-            Intent = "intentMetadata4",
+            Intent = Intent2.Name,
             Fdc3InstanceId = targetFdc3InstanceId,
             State = SubscribeState.Subscribe
         };
 
-        var addIntentListenerResponse = await _fdc3.AddIntentListener(addIntentListenerRequest);
+        var addIntentListenerResponse = await Fdc3.AddIntentListener(addIntentListenerRequest);
         addIntentListenerResponse.Should().NotBeNull();
-        addIntentListenerResponse.Response.Stored.Should().BeTrue();
-        addIntentListenerResponse.RaiseIntentResolutionMessages.Should().BeEmpty();
+        addIntentListenerResponse.Stored.Should().BeTrue();
 
         var raiseIntentRequest = new RaiseIntentRequest
         {
             MessageId = int.MaxValue,
-            Fdc3InstanceId = Guid.NewGuid().ToString(),
-            Intent = "intentMetadata4",
-            Context = new Context("context2"),
-            TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
+            Fdc3InstanceId = originFdc3InstanceId,
+            Intent = Intent2.Name,
+            Context = MultipleContext.AsJson(),
+            TargetAppIdentifier = new AppIdentifier { AppId = App2.AppId, InstanceId = targetFdc3InstanceId }
         };
 
-        var raiseIntentResponse = await _fdc3.RaiseIntent(raiseIntentRequest);
+        var raiseIntentResponse = await Fdc3.RaiseIntent(raiseIntentRequest, MultipleContext.Type);
         raiseIntentResponse.Response.AppMetadata.Should().NotBeNull();
 
         var storeIntentRequest = new StoreIntentResultRequest
         {
             MessageId = raiseIntentResponse!.Response.MessageId!,
-            Intent = "intentMetadata4",
+            Intent = Intent2.Name,
             OriginFdc3InstanceId = raiseIntentResponse.Response.AppMetadata!.InstanceId!,
-            TargetFdc3InstanceId = Guid.NewGuid().ToString(),
+            TargetFdc3InstanceId = originFdc3InstanceId,
             ChannelId = "dummyChannelId",
             ChannelType = ChannelType.User
         };
 
-        var result = await _fdc3.StoreIntentResult(storeIntentRequest);
+        var result = await Fdc3.StoreIntentResult(storeIntentRequest);
         result.Should().NotBeNull();
         result.Should().BeEquivalentTo(new StoreIntentResultResponse { Stored = true });
     }
@@ -421,41 +321,38 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     [Fact]
     public async Task AddIntentListener_subscribes()
     {
-        await _fdc3.StartAsync(CancellationToken.None);
-
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var target = await _mockModuleLoader.Object.StartModule(new StartRequest("appId4"));
+        var target = await ModuleLoader.Object.StartModule(new StartRequest(App4.AppId));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
         var addIntentListenerRequest = new IntentListenerRequest
         {
-            Intent = "intentMetadataCustom",
+            Intent = IntentWithNoResult.Name,
             Fdc3InstanceId = targetFdc3InstanceId,
             State = SubscribeState.Subscribe
         };
 
-        var addIntentListenerResponse = await _fdc3.AddIntentListener(addIntentListenerRequest);
+        var addIntentListenerResponse = await Fdc3.AddIntentListener(addIntentListenerRequest);
         addIntentListenerResponse.Should().NotBeNull();
-        addIntentListenerResponse.Response.Stored.Should().BeTrue();
-        addIntentListenerResponse.RaiseIntentResolutionMessages.Should().BeEmpty();
+        addIntentListenerResponse.Stored.Should().BeTrue();
 
         var raiseIntentRequest = new RaiseIntentRequest
         {
             MessageId = 1,
             Fdc3InstanceId = originFdc3InstanceId,
-            Intent = "intentMetadataCustom",
-            Context = new Context("contextCustom"),
-            TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
+            Intent = IntentWithNoResult.Name,
+            Context = ContextType.Nothing.AsJson(),
+            TargetAppIdentifier = new AppIdentifier { AppId = App4.AppId, InstanceId = targetFdc3InstanceId }
         };
 
-        var raiseIntentResponse = await _fdc3.RaiseIntent(raiseIntentRequest);
+        var raiseIntentResponse = await Fdc3.RaiseIntent(raiseIntentRequest, ContextTypes.Nothing);
         raiseIntentResponse.Should().NotBeNull();
         raiseIntentResponse.Response.AppMetadata.Should().NotBeNull();
-        raiseIntentResponse.Response.AppMetadata!.AppId.Should().Be("appId4");
+        raiseIntentResponse.Response.AppMetadata!.AppId.Should().Be(App4.AppId);
         raiseIntentResponse.Response.AppMetadata!.InstanceId.Should().Be(targetFdc3InstanceId);
         raiseIntentResponse.RaiseIntentResolutionMessages.Should().NotBeEmpty();
     }
@@ -463,54 +360,51 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     [Fact]
     public async Task AddIntentListener_unsubscribes()
     {
-        await _fdc3.StartAsync(CancellationToken.None);
-
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var target = await _mockModuleLoader.Object.StartModule(new StartRequest("appId4"));
+        var target = await ModuleLoader.Object.StartModule(new StartRequest(App4.AppId));
         var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
 
         var addIntentListenerRequest1 = new IntentListenerRequest
         {
-            Intent = "intentMetadataCustom",
+            Intent = IntentWithNoResult.Name,
             Fdc3InstanceId = targetFdc3InstanceId,
             State = SubscribeState.Subscribe
         };
 
-        var addIntentListenerResponse1 = await _fdc3.AddIntentListener(addIntentListenerRequest1);
+        var addIntentListenerResponse1 = await Fdc3.AddIntentListener(addIntentListenerRequest1);
         addIntentListenerResponse1.Should().NotBeNull();
-        addIntentListenerResponse1.Response.Stored.Should().BeTrue();
+        addIntentListenerResponse1.Stored.Should().BeTrue();
 
         var raiseIntentRequest = new RaiseIntentRequest
         {
             MessageId = 1,
             Fdc3InstanceId = originFdc3InstanceId,
-            Intent = "intentMetadataCustom",
-            Context = new Context("contextCustom"),
-            TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
+            Intent = IntentWithNoResult.Name,
+            Context = ContextType.Nothing.AsJson(),
+            TargetAppIdentifier = new AppIdentifier { AppId = App4.AppId, InstanceId = targetFdc3InstanceId }
         };
 
-        var raiseIntentResponse = await _fdc3.RaiseIntent(raiseIntentRequest);
+        var raiseIntentResponse = await Fdc3.RaiseIntent(raiseIntentRequest, ContextTypes.Nothing);
         raiseIntentResponse.Should().NotBeNull();
         raiseIntentResponse.Response.AppMetadata.Should().NotBeNull();
-        raiseIntentResponse.Response.AppMetadata!.AppId.Should().Be("appId4");
+        raiseIntentResponse.Response.AppMetadata!.AppId.Should().Be(App4.AppId);
         raiseIntentResponse.Response.AppMetadata!.InstanceId.Should().Be(targetFdc3InstanceId);
         raiseIntentResponse.RaiseIntentResolutionMessages.Should().NotBeEmpty();
 
         var addIntentListenerRequest2 = new IntentListenerRequest
         {
-            Intent = "intentMetadataCustom",
+            Intent = IntentWithNoResult.Name,
             Fdc3InstanceId = targetFdc3InstanceId,
             State = SubscribeState.Unsubscribe
         };
 
-        var addIntentListenerResponse2 = await _fdc3.AddIntentListener(addIntentListenerRequest2);
+        var addIntentListenerResponse2 = await Fdc3.AddIntentListener(addIntentListenerRequest2);
         addIntentListenerResponse2.Should().NotBeNull();
-        addIntentListenerResponse2.Response.Stored.Should().BeFalse();
-        addIntentListenerResponse2.RaiseIntentResolutionMessages.Should().BeEmpty();
+        addIntentListenerResponse2.Stored.Should().BeFalse();
     }
 
     [Fact]
@@ -523,106 +417,26 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             State = SubscribeState.Unsubscribe
         };
 
-        var addIntentListenerResponse = await _fdc3.AddIntentListener(addIntentListenerRequest);
+        var addIntentListenerResponse = await Fdc3.AddIntentListener(addIntentListenerRequest);
         addIntentListenerResponse.Should().NotBeNull();
-        addIntentListenerResponse.Response.Stored.Should().BeFalse();
-        addIntentListenerResponse.RaiseIntentResolutionMessages.Should().BeEmpty();
-        addIntentListenerResponse.Response.Error.Should().Be(Fdc3DesktopAgentErrors.MissingId);
-    }
-
-    [Fact]
-    public async Task RaiseIntent_returns_NoAppsFound()
-    {
-        var request = new RaiseIntentRequest
-        {
-            MessageId = 1,
-            Fdc3InstanceId = Guid.NewGuid().ToString(),
-            Intent = "noAppShouldReturn",
-            Context = new Context("context2")
-        };
-
-        var result = await _fdc3.RaiseIntent(request);
-        result.Should().NotBeNull();
-        result.Response.Error.Should().Be(ResolveError.NoAppsFound);
-    }
-
-    [Fact]
-    public async Task RaiseIntent_calls_ResolverUI()
-    {
-        var request = new RaiseIntentRequest
-        {
-            MessageId = 1,
-            Fdc3InstanceId = Guid.NewGuid().ToString(),
-            Intent = "intentMetadata4",
-            Context = new Context(ContextTypes.Nothing)
-        };
-
-        var result = await _fdc3.RaiseIntent(request);
-        _mockResolverUICommunicator.Verify(_ => _.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()));
-    }
-
-    [Fact]
-    public async Task RaiseIntent_returns_one_running_app()
-    {
-        await _fdc3.StartAsync(CancellationToken.None);
-
-        //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
-        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
-
-        //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var target = await _mockModuleLoader.Object.StartModule(new StartRequest("appId4"));
-        var targetFdc3InstanceId = Fdc3InstanceIdRetriever.Get(target);
-
-        var addIntentListenerRequest = new IntentListenerRequest
-        {
-            Intent = "intentMetadataCustom",
-            Fdc3InstanceId = targetFdc3InstanceId,
-            State = SubscribeState.Subscribe
-        };
-
-        var addIntentListenerResponse = await _fdc3.AddIntentListener(addIntentListenerRequest);
-        addIntentListenerResponse.Should().NotBeNull();
-        addIntentListenerResponse.Response.Stored.Should().BeTrue();
-        addIntentListenerResponse.RaiseIntentResolutionMessages.Should().BeEmpty();
-
-        var request = new RaiseIntentRequest
-        {
-            MessageId = 1,
-            Fdc3InstanceId = originFdc3InstanceId,
-            Intent = "intentMetadataCustom",
-            Context = new Context("contextCustom"),
-            TargetAppIdentifier = new AppIdentifier { AppId = "appId4", InstanceId = targetFdc3InstanceId }
-        };
-
-        var result = await _fdc3.RaiseIntent(request);
-
-        result.Should().NotBeNull();
-        result.Response.AppMetadata.Should().NotBeNull();
-        result.Response.AppMetadata!.AppId.Should().Be("appId4");
-        result.Response.AppMetadata!.InstanceId.Should().Be(targetFdc3InstanceId);
-        result.RaiseIntentResolutionMessages.Should().NotBeEmpty();
-        result.Response.Intent.Should().Be("intentMetadataCustom");
-        result.RaiseIntentResolutionMessages.Should().HaveCount(1);
-        result.RaiseIntentResolutionMessages.First().TargetModuleInstanceId.Should().Be(targetFdc3InstanceId);
+        addIntentListenerResponse.Stored.Should().BeFalse();
+        addIntentListenerResponse.Error.Should().Be(Fdc3DesktopAgentErrors.MissingId);
     }
 
     [Fact]
     public async Task AppChannel_is_created()
     {
-        await _fdc3.StartAsync(CancellationToken.None);
-
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         var mockMessaging = new Mock<IMessagingService>();
 
 
-        var result = await _fdc3.AddAppChannel((channelId) => new AppChannel(
+        var result = await Fdc3.AddAppChannel((channelId) => new AppChannel(
             channelId,
             mockMessaging.Object,
-            new Mock<ILogger<AppChannel>>().Object), new CreateAppChannelRequest() {  ChannelId = "my.channelId" , InstanceId = originFdc3InstanceId});
+            new Mock<ILogger<AppChannel>>().Object), new CreateAppChannelRequest() { ChannelId = "my.channelId", InstanceId = originFdc3InstanceId });
 
         result.Should().BeEquivalentTo(CreateAppChannelResponse.Created());
     }
@@ -630,17 +444,15 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     [Fact]
     public async Task AppChannel_is_failed_while_creation_request()
     {
-        await _fdc3.StartAsync(CancellationToken.None);
-
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         var mockMessaging = new Mock<IMessagingService>();
         mockMessaging.Setup(_ => _.ConnectAsync(It.IsAny<CancellationToken>()))
             .Throws(new Exception("dummy"));
 
-        var result = await _fdc3.AddAppChannel((channelId) => new AppChannel(
+        var result = await Fdc3.AddAppChannel((channelId) => new AppChannel(
             channelId,
             mockMessaging.Object,
             new Mock<ILogger<AppChannel>>().Object), new CreateAppChannelRequest() { ChannelId = "my.channelId", InstanceId = originFdc3InstanceId });
@@ -652,7 +464,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     public async Task GetUserChannels_returns_payload_null_error()
     {
         GetUserChannelsRequest? request = null;
-        var result = await _fdc3.GetUserChannels(request);
+        var result = await Fdc3.GetUserChannels(request);
 
         result.Should().NotBeNull();
         result.Should().BeEquivalentTo(GetUserChannelsResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull));
@@ -666,7 +478,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             InstanceId = "NotValidId"
         };
 
-        var result = await _fdc3.GetUserChannels(request);
+        var result = await Fdc3.GetUserChannels(request);
 
         result.Should().NotBeNull();
         result.Should().BeEquivalentTo(GetUserChannelsResponse.Failure(Fdc3DesktopAgentErrors.MissingId));
@@ -680,7 +492,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             InstanceId = Guid.NewGuid().ToString()
         };
 
-        var result = await _fdc3.GetUserChannels(request);
+        var result = await Fdc3.GetUserChannels(request);
 
         result.Should().NotBeNull();
         result.Should().BeEquivalentTo(GetUserChannelsResponse.Failure(ChannelError.AccessDenied));
@@ -695,16 +507,16 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
         };
 
         var fdc3 = new Fdc3DesktopAgent(
-            _appDirectory,
-            _mockModuleLoader.Object,
-            options, 
-            _mockResolverUICommunicator.Object,
+            AppDirectory,
+            ModuleLoader.Object,
+            options,
+            ResolverUICommunicator.Object,
             new UserChannelSetReader(options));
 
         await fdc3.StartAsync(CancellationToken.None);
 
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         var request = new GetUserChannelsRequest
@@ -716,15 +528,15 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
 
         result.Should().NotBeNull();
         result.Should().BeEquivalentTo(GetUserChannelsResponse.Success(Enumerable.Empty<ChannelItem>()));
+
+        await fdc3.StopAsync(CancellationToken.None);
     }
 
     [Fact]
     public async Task GetUserChannels_succeeds()
     {
-        await _fdc3.StartAsync(CancellationToken.None);
-
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         var request = new GetUserChannelsRequest
@@ -732,7 +544,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             InstanceId = originFdc3InstanceId
         };
 
-        var result = await _fdc3.GetUserChannels(request);
+        var result = await Fdc3.GetUserChannels(request);
 
         result.Should().NotBeNull();
         result.Should().BeEquivalentTo(GetUserChannelsResponse.Success(new List<ChannelItem>() {
@@ -750,7 +562,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     [Fact]
     public async Task JoinUserChannel_returns_missing_id_error_as_instance_id_not_found()
     {
-        var result = await _fdc3.JoinUserChannel((channelId) => new UserChannel(channelId, new Mock<IMessagingService>().Object, null), new() { InstanceId = Guid.NewGuid().ToString(), ChannelId = "test"});
+        var result = await Fdc3.JoinUserChannel((channelId) => new UserChannel(channelId, new Mock<IMessagingService>().Object, null), new() { InstanceId = Guid.NewGuid().ToString(), ChannelId = "test" });
 
         result.Should().NotBeNull();
         result.Should().BeEquivalentTo(JoinUserChannelResponse.Failed(Fdc3DesktopAgentErrors.MissingId));
@@ -759,14 +571,12 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     [Fact]
     public async Task JoinUserChannel_returns_no_channel_found_error_as_channel_id_not_found()
     {
-        await _fdc3.StartAsync(CancellationToken.None);
-
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         var channel = new UserChannel("test", new Mock<IMessagingService>().Object, null);
-        var result = await _fdc3.JoinUserChannel((channelId) => new UserChannel(channelId, new Mock<IMessagingService>().Object, null), new() { InstanceId = originFdc3InstanceId, ChannelId = "test" });
+        var result = await Fdc3.JoinUserChannel((channelId) => new UserChannel(channelId, new Mock<IMessagingService>().Object, null), new() { InstanceId = originFdc3InstanceId, ChannelId = "test" });
 
         result.Should().NotBeNull();
         result.Should().BeEquivalentTo(JoinUserChannelResponse.Failed(ChannelError.NoChannelFound));
@@ -775,17 +585,15 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     [Fact]
     public async Task JoinUserChannel_returns_creation_failed_error_as_couldnt_connect()
     {
-        await _fdc3.StartAsync(CancellationToken.None);
-
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         var mockMessagingService = new Mock<IMessagingService>();
         mockMessagingService.Setup(_ => _.ConnectAsync(It.IsAny<CancellationToken>()))
             .Throws(new Exception("DummyException"));
 
-        var result = await _fdc3.JoinUserChannel((channelId) => new UserChannel(channelId, mockMessagingService.Object, null), new() { InstanceId = originFdc3InstanceId, ChannelId = "fdc3.channel.1" });
+        var result = await Fdc3.JoinUserChannel((channelId) => new UserChannel(channelId, mockMessagingService.Object, null), new() { InstanceId = originFdc3InstanceId, ChannelId = "fdc3.channel.1" });
 
         result.Should().NotBeNull();
         result.Should().BeEquivalentTo(JoinUserChannelResponse.Failed(ChannelError.CreationFailed));
@@ -794,13 +602,11 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     [Fact]
     public async Task JoinUserChannel_succeeds()
     {
-        await _fdc3.StartAsync(CancellationToken.None);
-
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
-        var result = await _fdc3.JoinUserChannel((channelId) => new UserChannel(channelId, new Mock<IMessagingService>().Object, null), new() { InstanceId = originFdc3InstanceId, ChannelId = "fdc3.channel.1" });
+        var result = await Fdc3.JoinUserChannel((channelId) => new UserChannel(channelId, new Mock<IMessagingService>().Object, null), new() { InstanceId = originFdc3InstanceId, ChannelId = "fdc3.channel.1" });
 
         result.Should().NotBeNull();
         result.Should().BeEquivalentTo(JoinUserChannelResponse.Joined(new DisplayMetadata()
@@ -816,7 +622,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     {
         GetInfoRequest? request = null;
 
-        var result = await _fdc3.GetInfo(request);
+        var result = await Fdc3.GetInfo(request);
 
         result.Should().NotBeNull();
         result.Error.Should().Be(Fdc3DesktopAgentErrors.PayloadNull);
@@ -829,12 +635,12 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
         {
             AppIdentifier = new AppIdentifier
             {
-                AppId = "appId1",
+                AppId = App1.AppId,
                 InstanceId = null
             }
         };
 
-        var result = await _fdc3.GetInfo(request);
+        var result = await Fdc3.GetInfo(request);
 
         result.Should().NotBeNull();
         result.Error.Should().Be(Fdc3DesktopAgentErrors.MissingId);
@@ -847,12 +653,12 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
         {
             AppIdentifier = new AppIdentifier
             {
-                AppId = "appId1",
+                AppId = App1.AppId,
                 InstanceId = "NotExistentNotParsableGuidId"
             }
         };
 
-        var result = await _fdc3.GetInfo(request);
+        var result = await Fdc3.GetInfo(request);
 
         result.Should().NotBeNull();
         result.Error.Should().Be(Fdc3DesktopAgentErrors.MissingId);
@@ -865,12 +671,12 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
         {
             AppIdentifier = new AppIdentifier
             {
-                AppId = "appId1",
+                AppId = App1.AppId,
                 InstanceId = Guid.NewGuid().ToString(),
             }
         };
 
-        var result = await _fdc3.GetInfo(request);
+        var result = await Fdc3.GetInfo(request);
 
         result.Should().NotBeNull();
         result.Error.Should().Be(Fdc3DesktopAgentErrors.MissingId);
@@ -879,22 +685,20 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     [Fact]
     public async Task GetInfo_succeeds()
     {
-        await _fdc3.StartAsync(CancellationToken.None);
-
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         var request = new GetInfoRequest
         {
             AppIdentifier = new AppIdentifier
             {
-                AppId = "appId1",
+                AppId = App1.AppId,
                 InstanceId = originFdc3InstanceId,
             }
         };
 
-        var result = await _fdc3.GetInfo(request);
+        var result = await Fdc3.GetInfo(request);
 
         result.Should().NotBeNull();
         result.ImplementationMetadata.Should().NotBeNull();
@@ -904,11 +708,11 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             {
                 AppMetadata = new AppMetadata
                 {
-                    AppId = "appId1",
+                    AppId = App1.AppId,
                     InstanceId = originFdc3InstanceId,
                     Description = null,
                     Icons = Enumerable.Empty<Icon>(),
-                    Name = "app1",
+                    Name = App1.Name,
                     ResultType = null,
                     Screenshots = Enumerable.Empty<Screenshot>(),
                     Title = null,
@@ -931,7 +735,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     {
         FindInstancesRequest? request = null;
 
-        var result = await _fdc3.FindInstances(request);
+        var result = await Fdc3.FindInstances(request);
 
         result.Should().NotBeNull();
         result.Error.Should().Be(Fdc3DesktopAgentErrors.PayloadNull);
@@ -949,7 +753,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             Fdc3InstanceId = "notValidInstanceId",
         };
 
-        var result = await _fdc3.FindInstances(request);
+        var result = await Fdc3.FindInstances(request);
 
         result.Should().NotBeNull();
         result.Error.Should().Be(Fdc3DesktopAgentErrors.MissingId);
@@ -967,7 +771,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             Fdc3InstanceId = Guid.NewGuid().ToString()
         };
 
-        var result = await _fdc3.FindInstances(request);
+        var result = await Fdc3.FindInstances(request);
 
         result.Should().NotBeNull();
         result.Error.Should().Be(Fdc3DesktopAgentErrors.MissingId);
@@ -976,10 +780,8 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     [Fact]
     public async Task FindInstances_returns_NoAppsFound_error_as_no_appId_found()
     {
-        await _fdc3.StartAsync(CancellationToken.None);
-
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         var request = new FindInstancesRequest
@@ -991,7 +793,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             Fdc3InstanceId = originFdc3InstanceId
         };
 
-        var result = await _fdc3.FindInstances(request);
+        var result = await Fdc3.FindInstances(request);
 
         result.Should().NotBeNull();
         result.Error.Should().Be(ResolveError.NoAppsFound);
@@ -1000,10 +802,8 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     [Fact]
     public async Task FindInstances_succeeds_with_one_app()
     {
-        await _fdc3.StartAsync(CancellationToken.None);
-
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         var request = new FindInstancesRequest
@@ -1015,7 +815,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             Fdc3InstanceId = originFdc3InstanceId
         };
 
-        var result = await _fdc3.FindInstances(request);
+        var result = await Fdc3.FindInstances(request);
 
         result.Should().NotBeNull();
         result.Instances.Should().HaveCount(1);
@@ -1025,10 +825,8 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     [Fact]
     public async Task FindInstances_succeeds_with_empty_array()
     {
-        await _fdc3.StartAsync(CancellationToken.None);
-
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         var request = new FindInstancesRequest
@@ -1040,7 +838,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             Fdc3InstanceId = originFdc3InstanceId
         };
 
-        var result = await _fdc3.FindInstances(request);
+        var result = await Fdc3.FindInstances(request);
 
         result.Should().NotBeNull();
         result.Instances.Should().HaveCount(0);
@@ -1052,7 +850,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     {
         GetAppMetadataRequest? request = null;
 
-        var result = await _fdc3.GetAppMetadata(request);
+        var result = await Fdc3.GetAppMetadata(request);
 
         result.Should().NotBeNull();
         result.Error.Should().Be(Fdc3DesktopAgentErrors.PayloadNull);
@@ -1070,7 +868,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             Fdc3InstanceId = Guid.NewGuid().ToString(),
         };
 
-        var result = await _fdc3.GetAppMetadata(request);
+        var result = await Fdc3.GetAppMetadata(request);
 
         result.Should().NotBeNull();
         result.Error.Should().Be(Fdc3DesktopAgentErrors.MissingId);
@@ -1079,10 +877,8 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     [Fact]
     public async Task GetAppMetadata_returns_MissingId_error_as_the_searched_instanceId_not_valid()
     {
-        await _fdc3.StartAsync(CancellationToken.None);
-
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         var request = new GetAppMetadataRequest
@@ -1095,7 +891,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             Fdc3InstanceId = originFdc3InstanceId,
         };
 
-        var result = await _fdc3.GetAppMetadata(request);
+        var result = await Fdc3.GetAppMetadata(request);
 
         result.Should().NotBeNull();
         result.Error.Should().Be(Fdc3DesktopAgentErrors.MissingId);
@@ -1104,10 +900,8 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     [Fact]
     public async Task GetAppMetadata_returns_TargetInstanceUnavailable_error_as_the_searched_instanceId_not_found()
     {
-        await _fdc3.StartAsync(CancellationToken.None);
-
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         var request = new GetAppMetadataRequest
@@ -1120,7 +914,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             Fdc3InstanceId = originFdc3InstanceId,
         };
 
-        var result = await _fdc3.GetAppMetadata(request);
+        var result = await Fdc3.GetAppMetadata(request);
 
         result.Should().NotBeNull();
         result.Error.Should().Be(ResolveError.TargetInstanceUnavailable);
@@ -1129,10 +923,8 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     [Fact]
     public async Task GetAppMetadata_returns_AppMetadata_based_on_instanceId()
     {
-        await _fdc3.StartAsync(CancellationToken.None);
-
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         var request = new GetAppMetadataRequest
@@ -1145,7 +937,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             Fdc3InstanceId = originFdc3InstanceId,
         };
 
-        var result = await _fdc3.GetAppMetadata(request);
+        var result = await Fdc3.GetAppMetadata(request);
 
         result.Error.Should().BeNull();
         result.AppMetadata.Should().BeEquivalentTo(
@@ -1160,10 +952,8 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     [Fact]
     public async Task GetAppMetadata_returns_TargetAppUnavailable_error_as_the_searched_appId_not_found()
     {
-        await _fdc3.StartAsync(CancellationToken.None);
-
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         var request = new GetAppMetadataRequest
@@ -1175,7 +965,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             Fdc3InstanceId = originFdc3InstanceId,
         };
 
-        var result = await _fdc3.GetAppMetadata(request);
+        var result = await Fdc3.GetAppMetadata(request);
 
         result.Error.Should().NotBeNull();
         result.Error.Should().Be(ResolveError.TargetAppUnavailable);
@@ -1184,10 +974,8 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     [Fact]
     public async Task GetAppMetadata_returns_AppMetadata_based_on_appId()
     {
-        await _fdc3.StartAsync(CancellationToken.None);
-
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         var request = new GetAppMetadataRequest
@@ -1199,7 +987,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             Fdc3InstanceId = originFdc3InstanceId,
         };
 
-        var result = await _fdc3.GetAppMetadata(request);
+        var result = await Fdc3.GetAppMetadata(request);
 
         result.Error.Should().BeNull();
         result.AppMetadata.Should().BeEquivalentTo(
@@ -1215,7 +1003,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     {
         AddContextListenerRequest? request = null;
 
-        var response = await _fdc3.AddContextListener(request);
+        var response = await Fdc3.AddContextListener(request);
 
         response.Should().NotBeNull();
         response!.Error.Should().Be(Fdc3DesktopAgentErrors.PayloadNull);
@@ -1231,7 +1019,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             ChannelType = ChannelType.User
         };
 
-        var response = await _fdc3.AddContextListener(request);
+        var response = await Fdc3.AddContextListener(request);
 
         response.Should().NotBeNull();
         response!.Error.Should().Be(Fdc3DesktopAgentErrors.MissingId);
@@ -1240,10 +1028,8 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     [Fact]
     public async Task AddContextListener_successfully_registers_context_listener()
     {
-        await _fdc3.StartAsync(CancellationToken.None);
-
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         var request = new AddContextListenerRequest
@@ -1253,7 +1039,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             ChannelType = ChannelType.User
         };
 
-        var response = await _fdc3.AddContextListener(request);
+        var response = await Fdc3.AddContextListener(request);
 
         response.Should().NotBeNull();
         response!.Success.Should().BeTrue();
@@ -1264,7 +1050,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     {
         RemoveContextListenerRequest? request = null;
 
-        var response = await _fdc3.RemoveContextListener(request);
+        var response = await Fdc3.RemoveContextListener(request);
 
         response.Should().NotBeNull();
         response!.Error.Should().Be(Fdc3DesktopAgentErrors.PayloadNull);
@@ -1280,7 +1066,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             ListenerId = Guid.NewGuid().ToString(),
         };
 
-        var response = await _fdc3.RemoveContextListener(request);
+        var response = await Fdc3.RemoveContextListener(request);
 
         response.Should().NotBeNull();
         response!.Error.Should().Be(Fdc3DesktopAgentErrors.MissingId);
@@ -1289,10 +1075,8 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     [Fact]
     public async Task RemoveContextListener_returns_listener_not_found_error()
     {
-        await _fdc3.StartAsync(CancellationToken.None);
-
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         var addContextListenerRequest = new AddContextListenerRequest
@@ -1303,7 +1087,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             ContextType = "fdc3.instrument"
         };
 
-        var addContextListenerResponse = await _fdc3.AddContextListener(addContextListenerRequest);
+        var addContextListenerResponse = await Fdc3.AddContextListener(addContextListenerRequest);
         addContextListenerResponse.Should().NotBeNull();
         addContextListenerResponse!.Success.Should().BeTrue();
 
@@ -1314,7 +1098,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             ListenerId = addContextListenerResponse.Id!,
         };
 
-        var response = await _fdc3.RemoveContextListener(request);
+        var response = await Fdc3.RemoveContextListener(request);
 
         response.Should().NotBeNull();
         response!.Error.Should().Be(Fdc3DesktopAgentErrors.ListenerNotFound);
@@ -1323,10 +1107,8 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
     [Fact]
     public async Task RemoveContextListener_successfully_removes_context_listener()
     {
-        await _fdc3.StartAsync(CancellationToken.None);
-
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
-        var origin = await _mockModuleLoader.Object.StartModule(new StartRequest("appId1"));
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
 
         var addContextListenerRequest = new AddContextListenerRequest
@@ -1337,7 +1119,7 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             ContextType = null
         };
 
-        var addContextListenerResponse = await _fdc3.AddContextListener(addContextListenerRequest);
+        var addContextListenerResponse = await Fdc3.AddContextListener(addContextListenerRequest);
         addContextListenerResponse.Should().NotBeNull();
         addContextListenerResponse!.Success.Should().BeTrue();
 
@@ -1348,9 +1130,142 @@ public class Fdc3DesktopAgentTests : IAsyncLifetime
             ListenerId = addContextListenerResponse.Id!,
         };
 
-        var response = await _fdc3.RemoveContextListener(request);
+        var response = await Fdc3.RemoveContextListener(request);
 
         response.Should().NotBeNull();
         response!.Success.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Open_returns_PayloadNull_error()
+    {
+        OpenRequest? request = null;
+
+        var response = await Fdc3.Open(request);
+
+        response.Should().NotBeNull();
+        response!.Error.Should().Be(Fdc3DesktopAgentErrors.PayloadNull);
+    }
+
+    [Fact]
+    public async Task Open_returns_MissingId_error()
+    {
+        OpenRequest? request = new()
+        {
+            InstanceId = "NotExistentId"
+        };
+
+        var response = await Fdc3.Open(request);
+
+        response.Should().NotBeNull();
+        response!.Error.Should().Be(Fdc3DesktopAgentErrors.MissingId);
+    }
+
+    [Fact]
+    public async Task Open_returns_AppNotFound_error()
+    {
+        //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+        OpenRequest? request = new()
+        {
+            InstanceId = originFdc3InstanceId,
+            AppIdentifier = new AppIdentifier()
+            {
+                AppId = "NonExistentAppId"
+            }
+        };
+
+        var response = await Fdc3.Open(request);
+
+        response.Should().NotBeNull();
+        response!.Error.Should().Be(OpenError.AppNotFound);
+    }
+
+    [Fact]
+    public async Task Open_returns_AppTimeout_error_as_context_listener_is_not_registered()
+    {
+        //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+        OpenRequest? request = new()
+        {
+            InstanceId = originFdc3InstanceId,
+            AppIdentifier = new AppIdentifier()
+            {
+                AppId = App1.AppId
+            },
+            Context = JsonSerializer.Serialize(new Context("fdc3.instrument"))
+        };
+
+        var response = await Fdc3.Open(request);
+
+        response.Should().NotBeNull();
+        response!.Error.Should().Be(OpenError.AppTimeout);
+    }
+
+    [Fact]
+    public async Task Open_returns_without_context()
+    {
+        //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
+        var originFdc3InstanceId = Fdc3InstanceIdRetriever.Get(origin);
+
+        //ChannelId property is just injected on the window object if the app should join to a channel -sending the channel id that the app was on which sent the request.
+        OpenRequest? request = new()
+        {
+            InstanceId = originFdc3InstanceId,
+            AppIdentifier = new AppIdentifier
+            {
+                AppId = App1.AppId
+            }
+        };
+
+        var response = await Fdc3.Open(request);
+
+        response.Should().NotBeNull();
+        response!.Error.Should().BeNull();
+        response!.AppIdentifier.Should().NotBeNull();
+        response!.AppIdentifier!.AppId.Should().Be(App1.AppId);
+        response!.AppIdentifier!.InstanceId.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GetOpenedAppContext_returns_PayloadNull_error()
+    {
+        GetOpenedAppContextRequest? request = null;
+
+        var response = await Fdc3.GetOpenedAppContext(request);
+
+        response.Should().NotBeNull();
+        response!.Error.Should().Be(Fdc3DesktopAgentErrors.PayloadNull);
+    }
+
+    [Fact]
+    public async Task GetOpenedAppContext_returns_IdNotParsable_error()
+    {
+        GetOpenedAppContextRequest? request = new()
+        {
+            ContextId = "NotValidId"
+        };
+
+        var response = await Fdc3.GetOpenedAppContext(request);
+
+        response.Should().NotBeNull();
+        response!.Error.Should().Be(Fdc3DesktopAgentErrors.IdNotParsable);
+    }
+
+    [Fact]
+    public async Task GetOpenedAppContext_returns_ContextNotFound_error()
+    {
+        GetOpenedAppContextRequest? request = new()
+        {
+            ContextId = Guid.NewGuid().ToString(),
+        };
+
+        var response = await Fdc3.GetOpenedAppContext(request);
+
+        response.Should().NotBeNull();
+        response!.Error.Should().Be(Fdc3DesktopAgentErrors.OpenedAppContextNotFound);
     }
 }

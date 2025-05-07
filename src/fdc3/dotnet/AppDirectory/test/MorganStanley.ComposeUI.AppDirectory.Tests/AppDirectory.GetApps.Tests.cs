@@ -36,7 +36,7 @@ public partial class AppDirectoryTests
             json);
 
         var appDirectory = new AppDirectory(
-            new AppDirectoryOptions {Source = new Uri($"file://{source}")},
+            new AppDirectoryOptions { Source = new Uri($"file://{source}") },
             fileSystem: fileSystem);
 
         var apps = await appDirectory.GetApps();
@@ -47,6 +47,8 @@ public partial class AppDirectoryTests
     [Theory, CombinatorialData]
     public async Task GetApps_reloads_the_data_if_the_source_file_has_changed(bool useApiSchema)
     {
+        await Task.Yield(); // Finish other tests before running this one, as it uses the whole threadpool
+
         var source = "/apps.json";
         var json = useApiSchema ? GetAppsApiResponse : GetAppsJsonArray;
 
@@ -55,7 +57,7 @@ public partial class AppDirectoryTests
             json);
 
         var appDirectory = new AppDirectory(
-            new AppDirectoryOptions {Source = new Uri($"file://{source}")},
+            new AppDirectoryOptions { Source = new Uri($"file://{source}") },
             fileSystem: fileSystem);
 
         _ = await appDirectory.GetApps();
@@ -84,7 +86,7 @@ public partial class AppDirectoryTests
             .ReturnsResponse(HttpStatusCode.OK, json);
 
         var httpClientFactory = handler.CreateClientFactory();
-        
+
         if (setHttpClientName)
         {
             Mock.Get(httpClientFactory)
@@ -99,7 +101,7 @@ public partial class AppDirectoryTests
         }
 
         var appDirectory = new AppDirectory(
-            new AppDirectoryOptions {Source = source, HttpClientName = httpClientName},
+            new AppDirectoryOptions { Source = source, HttpClientName = httpClientName },
             httpClientFactory: httpClientFactory);
 
         var apps = await appDirectory.GetApps();
@@ -129,7 +131,7 @@ public partial class AppDirectoryTests
                 });
 
         var appDirectory = new AppDirectory(
-            new AppDirectoryOptions {HttpClientName = httpClientName},
+            new AppDirectoryOptions { HttpClientName = httpClientName },
             httpClientFactory: httpClientFactory);
 
         var apps = await appDirectory.GetApps();

@@ -13,8 +13,10 @@
 */
 
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Finos.Fdc3;
+using Finos.Fdc3.Context;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -85,17 +87,21 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
 
     internal async ValueTask<FindIntentResponse?> HandleFindIntent(FindIntentRequest? request, MessageContext? context)
     {
-        return await _desktopAgent.FindIntent(request);
+        var contextType = request?.Context != null ? JsonSerializer.Deserialize<Context>(request.Context, _jsonSerializerOptions)?.Type : null;
+        return await _desktopAgent.FindIntent(request, contextType);
     }
 
     internal async ValueTask<FindIntentsByContextResponse?> HandleFindIntentsByContext(FindIntentsByContextRequest? request, MessageContext? context)
     {
-        return await _desktopAgent.FindIntentsByContext(request);
+        var contextType = request?.Context != null ? JsonSerializer.Deserialize<Context>(request.Context, _jsonSerializerOptions)?.Type : null;
+        return await _desktopAgent.FindIntentsByContext(request, contextType);
     }
 
-    internal async ValueTask<RaiseIntentResponse?> HandleRaiseIntent(RaiseIntentRequest? request, MessageContext? context)
+    internal async ValueTask<RaiseIntentResponse?> HandleRaiseIntent(RaiseIntentRequest? request, MessageContext context)
     {
-        var result = await _desktopAgent.RaiseIntent(request);
+        var contextType = request?.Context != null ? JsonSerializer.Deserialize<Context>(request.Context, _jsonSerializerOptions)?.Type : null;
+
+        var result = await _desktopAgent.RaiseIntent(request, contextType!);
         if (result.RaiseIntentResolutionMessages.Any())
         {
             foreach (var message in result.RaiseIntentResolutionMessages)
@@ -111,19 +117,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
 
     internal async ValueTask<IntentListenerResponse?> HandleAddIntentListener(IntentListenerRequest? request, MessageContext? context)
     {
-        var result = await _desktopAgent.AddIntentListener(request);
-
-        if (result.RaiseIntentResolutionMessages.Any())
-        {
-            foreach (var message in result.RaiseIntentResolutionMessages)
-            {
-                await _messageRouter.PublishAsync(
-                    Fdc3Topic.RaiseIntentResolution(message.Intent, message.TargetModuleInstanceId),
-                    MessageBuffer.Factory.CreateJson(message.Request, _jsonSerializerOptions));
-            }
-        }
-
-        return result.Response;
+        return await _desktopAgent.AddIntentListener(request);
     }
 
     internal async ValueTask<StoreIntentResultResponse?> HandleStoreIntentResult(StoreIntentResultRequest? request, MessageContext? context)
@@ -136,12 +130,12 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         return await _desktopAgent.GetIntentResult(request);
     }
 
-    internal async ValueTask<CreatePrivateChannelResponse> HandleCreatePrivateChannel(CreatePrivateChannelRequest request, MessageContext? context)
+    internal async ValueTask<CreatePrivateChannelResponse?> HandleCreatePrivateChannel(CreatePrivateChannelRequest? request, MessageContext? context)
     {
         try
         {
             var privateChannelId = Guid.NewGuid().ToString();
-            await _desktopAgent.AddPrivateChannel((channelId) => new PrivateChannel(channelId, _messageRouter, _loggerFactory.CreateLogger<PrivateChannel>()), privateChannelId);
+            await _desktopAgent.AddPrivateChannel((channelId) => new PrivateChannel(channelId, _messageRouter, _loggerFactory.CreateLogger<PrivateChannel>(), request.InstanceId), privateChannelId);
 
             return CreatePrivateChannelResponse.Created(privateChannelId);
         }
@@ -158,7 +152,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
     {
         if (request == null)
         {
-            return CreateAppChannelResponse.Failed(ChannelError.CreationFailed);
+            return CreateAppChannelResponse.Failed(Fdc3DesktopAgentErrors.PayloadNull);
         }
 
         return await _desktopAgent.AddAppChannel((channelId) => new AppChannel(channelId, _messageRouter, _loggerFactory.CreateLogger<AppChannel>()), request);
@@ -191,7 +185,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         return await _desktopAgent.FindInstances(request);
     }
 
-    internal async ValueTask<GetAppMetadataResponse> HandleGetAppMetadata(GetAppMetadataRequest? request, MessageContext? context)
+    internal async ValueTask<GetAppMetadataResponse?> HandleGetAppMetadata(GetAppMetadataRequest? request, MessageContext? context)
     {
         return await _desktopAgent.GetAppMetadata(request);
     }
@@ -204,6 +198,40 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
     internal async ValueTask<RemoveContextListenerResponse?> HandleRemoveContextListener(RemoveContextListenerRequest? request, MessageContext? context)
     {
         return await _desktopAgent.RemoveContextListener(request);
+    }
+
+    internal async ValueTask<OpenResponse?> HandleOpen(OpenRequest? request, MessageContext? context)
+    {
+        string? contextType = null;
+        if (!string.IsNullOrEmpty(request?.Context))
+        {
+            contextType = JsonObject.Parse(request.Context)?["type"]?.GetValue<string>();
+        }
+        return await _desktopAgent.Open(request, contextType);
+    }
+
+    public async ValueTask<RaiseIntentResponse> HandleRaiseIntentForContext(RaiseIntentForContextRequest request, MessageContext context)
+    {
+        var contextType = request?.Context != null ? JsonSerializer.Deserialize<Context>(request.Context, _jsonSerializerOptions)?.Type : null;
+
+        var result = await _desktopAgent.RaiseIntentForContext(request, contextType!);
+        if (result.RaiseIntentResolutionMessages.Any())
+        {
+            foreach (var message in result.RaiseIntentResolutionMessages)
+            {
+                await _messageRouter.PublishAsync(
+                    Fdc3Topic.RaiseIntentResolution(message.Intent, message.TargetModuleInstanceId),
+                    MessageBuffer.Factory.CreateJson(message.Request, _jsonSerializerOptions));
+            }
+        }
+        return result.Response;
+    }
+
+    internal async ValueTask<GetOpenedAppContextResponse?> HandleGetOpenedAppContext(
+        GetOpenedAppContextRequest? request,
+        MessageContext? context)
+    {
+        return await _desktopAgent.GetOpenedAppContext(request);
     }
 
     private async ValueTask SafeWaitAsync(IEnumerable<ValueTask> tasks)
@@ -250,6 +278,9 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
         await RegisterHandler<GetAppMetadataRequest, GetAppMetadataResponse>(Fdc3Topic.GetAppMetadata, HandleGetAppMetadata);
         await RegisterHandler<AddContextListenerRequest, AddContextListenerResponse>(Fdc3Topic.AddContextListener, HandleAddContextListener);
         await RegisterHandler<RemoveContextListenerRequest, RemoveContextListenerResponse>(Fdc3Topic.RemoveContextListener, HandleRemoveContextListener);
+        await RegisterHandler<OpenRequest, OpenResponse>(Fdc3Topic.Open, HandleOpen);
+        await RegisterHandler<GetOpenedAppContextRequest, GetOpenedAppContextResponse>(Fdc3Topic.GetOpenedAppContext, HandleGetOpenedAppContext);
+        await RegisterHandler<RaiseIntentForContextRequest, RaiseIntentResponse>(Fdc3Topic.RaiseIntentForContext, HandleRaiseIntentForContext);
 
         await _desktopAgent.StartAsync(cancellationToken);
 
@@ -279,6 +310,9 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
             _messageRouter.UnregisterServiceAsync(Fdc3Topic.GetAppMetadata, cancellationToken),
             _messageRouter.UnregisterServiceAsync(Fdc3Topic.AddContextListener, cancellationToken),
             _messageRouter.UnregisterServiceAsync(Fdc3Topic.RemoveContextListener, cancellationToken),
+            _messageRouter.UnregisterServiceAsync(Fdc3Topic.Open, cancellationToken),
+            _messageRouter.UnregisterServiceAsync(Fdc3Topic.GetOpenedAppContext, cancellationToken),
+            _messageRouter.UnregisterServiceAsync(Fdc3Topic.RaiseIntentForContext, cancellationToken),
         };
 
         await SafeWaitAsync(unregisteringTasks);

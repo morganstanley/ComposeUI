@@ -21,4 +21,5 @@ internal class Fdc3StartupParameters
 {
     public static string Fdc3InstanceId = nameof(Fdc3InstanceId);
     public static string Fdc3ChannelId = nameof(Fdc3ChannelId);
+    public static string OpenedAppContextId = nameof(OpenedAppContextId);
 }

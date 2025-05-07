@@ -33,8 +33,6 @@ import { Fdc3GetUserChannelsRequest } from "./messages/Fdc3GetUserChannelsReques
 import { Fdc3GetUserChannelsResponse } from "./messages/Fdc3GetUserChannelsResponse";
 import { Fdc3JoinUserChannelRequest } from "./messages/Fdc3JoinUserChannelRequest";
 import { Fdc3JoinUserChannelResponse } from "./messages/Fdc3JoinUserChannelResponse";
-import { Fdc3AddContextListenerRequest } from "./messages/Fdc3AddContextListenerRequest";
-import { Fdc3AddContextListenerResponse } from "./messages/Fdc3AddContextListenerResponse";
 import { ChannelItem } from "./ChannelItem";
 import { ComposeUIContextListener } from "./ComposeUIContextListener";
 
@@ -70,7 +68,7 @@ export class MessageRouterChannelFactory implements ChannelFactory {
 
     public async createPrivateChannel(): Promise<PrivateChannel> {
         // TODO: how to properly identify the other participant of the channel if the interface is parameterless?
-        const message = JSON.stringify(new Fdc3CreatePrivateChannelRequest());
+        const message = JSON.stringify(new Fdc3CreatePrivateChannelRequest(this.fdc3instanceId));
         const response = await this.messageRouterClient.invoke(ComposeUITopic.createPrivateChannel(), message);
         if (response) {
             const fdc3response = <Fdc3CreatePrivateChannelResponse>JSON.parse(response);
@@ -167,13 +165,18 @@ export class MessageRouterChannelFactory implements ChannelFactory {
         return listener;
     }
 
-    public async getContextListener(channel?: Channel, handler?: ContextHandler, contextType?: string | null): Promise<Listener> {
+    public async getContextListener(openHandled: boolean, channel?: Channel, handler?: ContextHandler, contextType?: string | null): Promise<Listener> {
         if (channel) {
+            
+            if (channel instanceof ComposeUIChannel){
+                (<ComposeUIChannel>channel).setOpenHandled(openHandled);
+            }
+            
             const listener = <ComposeUIContextListener>await channel.addContextListener(contextType ?? null, handler!);
             return listener;
         }
 
-        const listener = new ComposeUIContextListener(this.messageRouterClient, handler!, contextType ?? undefined);
+        const listener = new ComposeUIContextListener(openHandled, this.messageRouterClient, handler!, contextType ?? undefined);
         return listener;
     }
 }

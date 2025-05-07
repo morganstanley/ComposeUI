@@ -12,7 +12,11 @@
  * and limitations under the License.
  */
 
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using Finos.Fdc3.Context;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
@@ -30,7 +34,8 @@ internal sealed class FindIntentsByContextRequest
     /// <summary>
     /// <see cref="Finos.Fdc3.Context.Context"/>
     /// </summary>
-    public Context Context { get; set; }
+    [JsonConverter(typeof(ContextJsonConverter))]
+    public string Context { get; set; }
 
     /// <summary>
     /// ResultType indicating what resultType the requesting app is expecting.

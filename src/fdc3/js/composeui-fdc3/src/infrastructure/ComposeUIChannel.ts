@@ -1,4 +1,4 @@
-/* 
+﻿/* 
  *  Morgan Stanley makes this available to you under the Apache License,
  *  Version 2.0 (the "License"). You may obtain a copy of the License at
  *       http://www.apache.org/licenses/LICENSE-2.0.
@@ -17,9 +17,6 @@ import { ChannelType } from "./ChannelType";
 import { ComposeUIContextListener } from "./ComposeUIContextListener";
 import { Fdc3GetCurrentContextRequest } from "./messages/Fdc3GetCurrentContextRequest";
 import { ComposeUITopic } from "./ComposeUITopic";
-import { ComposeUIErrors } from "./ComposeUIErrors";
-import { Fdc3AddContextListenerResponse } from "./messages/Fdc3AddContextListenerResponse";
-import { Fdc3AddContextListenerRequest } from "./messages/Fdc3AddContextListenerRequest";
 
 export class ComposeUIChannel implements Channel {
     id: string;
@@ -29,6 +26,7 @@ export class ComposeUIChannel implements Channel {
     protected messageRouterClient: MessageRouter;
     private lastContexts: Map<string, Context> = new Map<string, Context>();
     private lastContext?: Context;
+    private openHandled: boolean = true; //by default true so if a channel was created then it has no effect
 
     constructor(id: string, type: ChannelType, messageRouterClient: MessageRouter, displayMetadata?: DisplayMetadata) {
         this.id = id;
@@ -57,7 +55,6 @@ export class ComposeUIChannel implements Channel {
             }
         }
         return this.retrieveCurrentContext(contextType);
-
     }
 
     private retrieveCurrentContext(contextType?: string): Context | null {
@@ -79,8 +76,12 @@ export class ComposeUIChannel implements Channel {
             contextType = null;
         }
 
-        const listener = new ComposeUIContextListener(this.messageRouterClient, handler, contextType);
+        const listener = new ComposeUIContextListener(this.openHandled, this.messageRouterClient, handler, contextType);
         await listener.subscribe(this.id, this.type);
         return listener;
+    }
+
+    public setOpenHandled(openHandled: boolean): void {
+        this.openHandled = openHandled;
     }
 }

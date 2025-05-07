@@ -1,0 +1,81 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>$(TargetFrameworkVersion)-windows</TargetFramework>
+		<UseWPF>true</UseWPF>
+		<EnableDefaultPageItems>false</EnableDefaultPageItems>
+		<AssemblyName>MorganStanley.ComposeUI.Shell</AssemblyName>
+		<RootNamespace>MorganStanley.ComposeUI.Shell</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Remove="Fdc3\ResolverUI\ResolverUIIntent.xaml" />
+		<None Remove="MainWindow.xaml" />
+		<None Remove="Popup\PopupWindow.xaml" />
+		<None Remove="WebContent.xaml" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<PackageReference Include="CommunityToolkit.Mvvm" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" />
+		<PackageReference Include="Microsoft.Extensions.Http" />
+		<PackageReference Include="Microsoft.Web.WebView2" />
+		<PackageReference Include="System.Drawing.Common" />
+		<PackageReference Include="Infragistics.WPF.DockManager.Trial" />
+		<PackageReference Include="Infragistics.WPF.Trial" />
+		<PackageReference Include="Infragistics.WPF.Ribbon.Trial" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Page Include="Fdc3\ResolverUI\ResolverUIIntent.xaml">
+		  <Generator>MSBuild:Compile</Generator>
+		</Page>
+		<Page Include="Popup\PopupWindow.xaml">
+		  <Generator>MSBuild:Compile</Generator>
+		</Page>
+		<Page Include="WebContent.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</Page>
+		
+		<Page Include="MainWindow.xaml" />
+		
+		<Page Include="Fdc3\ResolverUI\ResolverUI.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</Page>
+
+		<Page Include="Fdc3\ResolverUI\Pages\AdvancedResolverUIPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</Page>
+
+		<Page Include="Fdc3\ResolverUI\Pages\SimpleResolverUIPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</Page>
+		
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="appsettings.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="Shell.Tests" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\..\fdc3\dotnet\AppDirectory\src\MorganStanley.ComposeUI.AppDirectory\MorganStanley.ComposeUI.AppDirectory.csproj" />
+		<ProjectReference Include="..\..\..\..\fdc3\dotnet\DesktopAgent\src\MorganStanley.ComposeUI.DesktopAgent\MorganStanley.ComposeUI.DesktopAgent.csproj" />
+		<ProjectReference Include="..\..\..\..\layout-persistence\dotnet\src\MorganStanley.ComposeUI.LayoutPersistence\MorganStanley.ComposeUI.LayoutPersistence.csproj" />
+		<ProjectReference Include="..\..\..\..\messaging\dotnet\src\Host\MorganStanley.ComposeUI.Messaging.Host.csproj" />
+		<ProjectReference Include="..\..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader.Abstractions\MorganStanley.ComposeUI.ModuleLoader.Abstractions.csproj" />
+		<ProjectReference Include="..\..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader\MorganStanley.ComposeUI.ModuleLoader.csproj" />
+		<ProjectReference Include="..\..\..\..\shared\dotnet\src\MorganStanley.ComposeUI.Utilities\MorganStanley.ComposeUI.Utilities.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Messaging\" />
+	</ItemGroup>
+
+</Project>
