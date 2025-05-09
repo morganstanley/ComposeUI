@@ -22,3 +22,5 @@ jobs:
               powershell ./build/dotnet-build.ps1
       - name: Component detection 
         uses: advanced-security/component-detection-dependency-submission-action@7f8a02206328ac5ba9026225bb70dc3f9806a9e0 # v0.0.5
+        with:
+          detectorsFilter: "NuGetProjectCentric,Npm,NpmLockfile3"
