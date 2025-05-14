@@ -180,7 +180,7 @@ For more information check the [documentation](https://lerna.js.org/docs/api-ref
 ```
     "FDC3-Local": {
       "commandName": "Project",
-      "commandLineArgs": "--ModuleCatalog:CatalogUrl \"file:///$(ProjectDir)..\\examples\\module-catalog.json\" --FDC3:AppDirectory:Source Path-To-Local-Conformance-Framework-Root\\FDC3-conformance-framework\\directories\\local-conformance-2_0.v2.json"
+      "commandLineArgs": "--ModuleCatalog:CatalogUrl \"file:///$(ProjectDir)..\\..\\examples\\module-catalog.json\" --FDC3:AppDirectory:Source Path-To-Local-Conformance-Framework-Root\\FDC3-conformance-framework\\directories\\local-conformance-2_0.v2.json"
     }
 ```
 # Building the Experimental Artifacts
