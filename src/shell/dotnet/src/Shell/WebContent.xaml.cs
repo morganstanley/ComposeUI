@@ -109,7 +109,9 @@ internal partial class WebContent : ContentPresenter, IDisposable
 
     private async Task InitializeAsync()
     {
-        await WebView.EnsureCoreWebView2Async();
+        var environment = await CoreWebView2Environment.CreateAsync(options: new CoreWebView2EnvironmentOptions());
+
+        await WebView.EnsureCoreWebView2Async(environment);
         await InitializeCoreWebView2(WebView.CoreWebView2);
         await LoadWebContentAsync(_options);
     }
