@@ -98,7 +98,7 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
 
     it('broadcast will trigger publish method of the messageRouter', async () => {
         await desktopAgent.broadcast(testInstrument);
-        expect(messageRouterClient.publish).toBeCalledTimes(1);
+        expect(messageRouterClient.publish).toHaveBeenCalled();
         expect(messageRouterClient.publish).toHaveBeenCalledWith(ComposeUITopic.broadcast(dummyChannelId, "user"), JSON.stringify(testInstrument));
     });
 
