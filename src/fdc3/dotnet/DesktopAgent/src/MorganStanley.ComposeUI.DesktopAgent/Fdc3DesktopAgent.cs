@@ -55,7 +55,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     private readonly ConcurrentDictionary<Guid, Fdc3App> _runningModules = new();
     private readonly ConcurrentDictionary<Guid, RaisedIntentRequestHandler> _raisedIntentResolutions = new();
     private readonly ConcurrentDictionary<StartRequest, TaskCompletionSource<IModuleInstance>> _pendingStartRequests = new();
-    private readonly ConcurrentDictionary<Guid, List<ContextListener>> _contextListeners = new();
+    private readonly Dictionary<Guid, List<ContextListener>> _contextListeners = [];
     private readonly ConcurrentDictionary<Guid, string> _openedAppContexts = new();
     private IDisposable? _startedLifetimeEventSubscription;
     private IDisposable? _stoppedLifetimeEventSubscription;
@@ -618,14 +618,16 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
                 request.ChannelId,
                 request.ChannelType);
 
-            _contextListeners.AddOrUpdate(
-                originFdc3InstanceId,
-                _ => new List<ContextListener> { contextListener },
-                (_, contextListeners) =>
-                {
-                    contextListeners.Add(contextListener);
-                    return contextListeners;
-                });
+            if (_contextListeners.TryGetValue(originFdc3InstanceId, out var contextListeners))
+            {
+                contextListeners.Add(contextListener);
+            }
+            else
+            {
+                contextListeners = [contextListener];
+                _contextListeners[originFdc3InstanceId] = contextListeners;
+            }
+
 
             return ValueTask.FromResult<AddContextListenerResponse?>(AddContextListenerResponse.Added(contextListener.Id.ToString()));
         }
@@ -1385,7 +1387,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
         lock (_contextListenerLock)
         {
-            if (!_contextListeners.TryRemove(id, out _))
+            if (!_contextListeners.Remove(id))
             {
                 _logger.LogError($"Could not remove the registered context listeners of id: {fdc3InstanceId}.");
             }
