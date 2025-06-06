@@ -3,7 +3,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<AssemblyName>MorganStanley.ComposeUI.Fdc3.AppDirectory</AssemblyName>
 		<RootNamespace>MorganStanley.ComposeUI.Fdc3.AppDirectory</RootNamespace>
-		<Description>FDC3 AppDirectory for ComposeUI. More Details: http://opensource.morganstanley.com/ComposeUI/</Description>
+		<Description>FDC3 AppDirectory for ComposeUI. More Details: https://morganstanley.github.io/ComposeUI/</Description>
 		<Tags>ComposeUI</Tags>
 	</PropertyGroup>
 
