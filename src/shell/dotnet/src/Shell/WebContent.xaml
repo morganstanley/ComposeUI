@@ -16,9 +16,14 @@ See the License for the specific language governing permissions and limitations 
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         xmlns:local="clr-namespace:MorganStanley.ComposeUI.Shell"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes" 
+        xmlns:channelselector="clr-namespace:MorganStanley.ComposeUI.Shell.Fdc3.ChannelSelector"
         x:ClassModifier="internal"
         mc:Ignorable="d">
+
     <ContentPresenter.Content>
-         <wv2:WebView2 Name = "WebView" Source = "" />
+        <Grid x:Name="LayoutRoot">
+            <wv2:WebView2CompositionControl Name = "WebView" Source = "" Grid.Row="1"/>
+        </Grid>
     </ContentPresenter.Content>
 </ContentPresenter>
