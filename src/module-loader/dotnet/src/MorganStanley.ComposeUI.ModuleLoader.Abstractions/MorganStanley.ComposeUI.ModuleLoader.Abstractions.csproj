@@ -1,7 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <ImplicitUsings>enable</ImplicitUsings>
+	<ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>MorganStanley.ComposeUI.ModuleLoader</RootNamespace>
+	<Description>.Abstractions for ComposeUI's ModuleLoader. More Details: http://opensource.morganstanley.com/ComposeUI/</Description>
+	<Tags>ComposeUI</Tags>
+  </PropertyGroup>
+
+  <PropertyGroup>
+	<IsPackable>true</IsPackable>
   </PropertyGroup>
 </Project>

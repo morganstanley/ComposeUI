@@ -2,6 +2,13 @@
 
   <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>
+	<RootNamespace>MorganStanley.ComposeUI.Messaging</RootNamespace>
+	<Description>Abstractions for ComposeUI's MessageRouter. More Details: http://opensource.morganstanley.com/ComposeUI/</Description>
+	<Tags>ComposeUI</Tags>
   </PropertyGroup>
+
+	<PropertyGroup>
+		<IsPackable>true</IsPackable>
+	</PropertyGroup>
 
 </Project>
