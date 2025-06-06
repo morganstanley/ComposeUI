@@ -60,10 +60,13 @@ jobs:
           node-version: 22.x
           registry-url: https://registry.npmjs.org/
       - run: |
+             npm ci
+             lerna run build --stream
              lerna publish from-package --no-private --yes
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
+          COMPOSEUI_SKIP_DOWNLOAD: 'true'
 
   deploy-nuget:
     name: Publish messaging packages to nuget.org
