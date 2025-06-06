@@ -3,3 +3,4 @@
 # ComposeUI FDC3 implementation
 
 This is the implementation of the FDC3 DesktopAgent API injected into web apps running under ComposeUI.
+More Details: http://opensource.morganstanley.com/ComposeUI/
