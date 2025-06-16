@@ -2,4 +2,15 @@
 	<ItemGroup>
 		<PackageReference Include="System.CommandLine" />
 	</ItemGroup>
+
+	<PropertyGroup>
+		<AssemblyName>MorganStanley.ComposeUI.Utilities</AssemblyName>
+		<RootNamespace>MorganStanley.ComposeUI.Utilities</RootNamespace>
+		<Description>Utilities for ComposeUI. More Details: https://morganstanley.github.io/ComposeUI/</Description>
+		<Tags>ComposeUI</Tags>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<IsPackable>true</IsPackable>
+	</PropertyGroup>
 </Project>
