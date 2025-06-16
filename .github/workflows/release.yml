@@ -69,7 +69,7 @@ jobs:
           COMPOSEUI_SKIP_DOWNLOAD: 'true'
 
   deploy-nuget:
-    name: Publish messaging packages to nuget.org
+    name: Publish Nuget packages to nuget.org
     runs-on: windows-latest
     needs: build
     env:
@@ -82,7 +82,7 @@ jobs:
       - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
         with:
           dotnet-version: 8.0.x
-      - name: Publish Messaging packages
+      - name: Publish Nuget packages
         working-directory: ./packages
         run: |
              dotnet nuget push MorganStanley.ComposeUI.Messaging.Core.*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source ${{ env.nuget_source }} --skip-duplicate
@@ -93,3 +93,4 @@ jobs:
              dotnet nuget push MorganStanley.ComposeUI.Fdc3.AppDirectory.*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source ${{ env.nuget_source }} --skip-duplicate
              dotnet nuget push MorganStanley.ComposeUI.Fdc3.DesktopAgent.*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source ${{ env.nuget_source }} --skip-duplicate
              dotnet nuget push MorganStanley.ComposeUI.ModuleLoader.Abstractions.*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source ${{ env.nuget_source }} --skip-duplicate
+             dotnet nuget push MorganStanley.ComposeUI.Utilities.*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source ${{ env.nuget_source }} --skip-duplicate
