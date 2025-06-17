@@ -24,7 +24,7 @@ It supports desktop and web applications in order to provide an evergreen altern
 As [announced](https://www.finos.org/press/fdc3-2.0-blackrock-morgan-stanley-lead-charge) at OSSF NY '24 ComposeUI has successfully achieved the **FDC3 2.0** Conformance on **9/30/2024** certified by FINOS.
 FDC3 is an open standard for applications on financial desktop to interoperate and exchange data with each other. Learn More https://fdc3.finos.org/
 
-We're planning to release the FDC3 2.0 compliant container in **v0.1.0-alpha.5** with an enhanced FDC3 Channel Selector and IPC related bug fixes. The pre-release artifacts can be build by checking out the main branch until the release.
+We've released the FDC3 2.0 compliant container in **v0.1.0-alpha.6** with IPC related bug fixes. The packages can be installed from npmjs.com and nuget.org
 
 # Releases
 
