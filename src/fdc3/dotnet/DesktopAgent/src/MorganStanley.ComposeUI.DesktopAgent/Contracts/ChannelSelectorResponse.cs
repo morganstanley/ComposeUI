@@ -12,27 +12,26 @@
  * and limitations under the License.
  */
 
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 
-public sealed class JoinUserChannelResponse
+/// <summary>
+/// Response from the service which provides the ResolverUI's functionality.
+/// </summary>
+public class ChannelSelectorResponse
 {
     /// <summary>
-    /// Error while executing the JoinUserChannel call.
+    /// Any error message that happened during execution, either from <see cref="ResolveError"/>.
     /// </summary>
+ 
     public string? Error { get; set; }
+
+    public string? InstanceId { get; set; }
 
     /// <summary>
     /// Indicating if the request was successful.
     /// </summary>
     public bool Success { get; set; }
 
-    /// <summary>
-    /// DisplayMetadata of the ChannelItem.
-    /// </summary>
-    public DisplayMetadata? DisplayMetadata { get; set; }
-
-    public static JoinUserChannelResponse Joined(DisplayMetadata? displayMetadata = null) => new() { Success = true, DisplayMetadata = displayMetadata };
-    public static JoinUserChannelResponse Failed(string error) => new() { Success = false, Error = error };
+    public string Color { get; set; }
 }
