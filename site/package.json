@@ -22,7 +22,7 @@
     "clean": "gatsby clean"
   },
   "devDependencies": {
-    "prettier": "^3.5.3",
+    "prettier": "^3.6.2",
     "rimraf": "^6.0.1"
   }
 }
