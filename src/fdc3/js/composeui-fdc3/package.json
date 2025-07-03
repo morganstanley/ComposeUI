@@ -32,7 +32,7 @@
     "provenance": true
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "28.0.3",
+    "@rollup/plugin-commonjs": "28.0.6",
     "@rollup/plugin-node-resolve": "16.0.1",
     "@types/jest": "^29.4.0",
     "@types/node": "^22.0.2",
