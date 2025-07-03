@@ -91,7 +91,7 @@ public static class MessageRouterExtensions
     {
         Func<IMessageBuffer, ValueTask> innerSubscriber = async messageBuffer =>
         {
-            MessageContext context = new MessageContext();
+            var context = new MessageContext();
             var topicMessage = new TopicMessage(topic, messageBuffer, context);
 
             observer.OnNext(topicMessage);
@@ -119,7 +119,7 @@ public static class MessageRouterExtensions
     {
         Func<IMessageBuffer, ValueTask> innerSubscriber = async messageBuffer =>
         {
-            string? message = messageBuffer?.GetString();
+            var message = messageBuffer?.GetString();
             observer.OnNext(message);
             await ValueTask.CompletedTask;
         };
@@ -146,7 +146,7 @@ public static class MessageRouterExtensions
 
         Func<IMessageBuffer, ValueTask> innerSubscriber = async messageBuffer =>
         {
-            string? message = messageBuffer?.GetString();
+            var message = messageBuffer?.GetString();
             await subscriber.OnNextAsync(message);
         };
 

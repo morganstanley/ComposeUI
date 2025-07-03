@@ -17,7 +17,7 @@ namespace MorganStanley.ComposeUI.Messaging;
 /// <summary>
 ///     Message Router client interface.
 /// </summary>
-public interface IMessageRouter : IMessagingService, IAsyncDisposable
+public interface IMessageRouter : IMessagingService
 { 
     /// <summary>
     ///     Registers a service by providing a name and handler.
