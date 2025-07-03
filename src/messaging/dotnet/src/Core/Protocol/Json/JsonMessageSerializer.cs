@@ -89,7 +89,9 @@ public static class JsonMessageSerializer
             message = null!;
 
             if (innerReader.TokenType != JsonTokenType.StartObject)
+            {
                 return false;
+            }
 
             while (innerReader.Read())
             {
@@ -99,7 +101,9 @@ public static class JsonMessageSerializer
                         if (innerReader.ValueTextEquals(TypePropertyNameBytes))
                         {
                             if (!innerReader.Read())
+                            {
                                 return false;
+                            }
 
                             var messageType = JsonSerializer.Deserialize<MessageType>(ref innerReader, options);
                             var type = Message.ResolveMessageType(messageType);

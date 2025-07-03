@@ -61,7 +61,9 @@ public sealed class MessageBuffer : IMessageBuffer, IDisposable
     public void GetBase64Bytes(IBufferWriter<byte> bufferWriter)
     {
         if (!TryGetBase64Bytes(bufferWriter))
+        {
             throw ThrowHelper.InvalidBase64();
+        }
     }
 
     /// <summary>
@@ -95,7 +97,9 @@ public sealed class MessageBuffer : IMessageBuffer, IDisposable
     public byte[] GetBase64Bytes()
     {
         if (!TryGetBase64Bytes(out var bytes))
+        {
             throw ThrowHelper.InvalidBase64();
+        }
 
         return bytes;
     }
@@ -104,7 +108,9 @@ public sealed class MessageBuffer : IMessageBuffer, IDisposable
     public void Dispose()
     {
         if (_disposed)
+        {
             return;
+        }
 
         _disposed = true;
         DisposeCore();
@@ -309,7 +315,9 @@ public sealed class MessageBuffer : IMessageBuffer, IDisposable
     private void ThrowIfDisposed()
     {
         if (_disposed)
+        {
             throw new ObjectDisposedException(nameof(MessageBuffer));
+        }
     }
 
     private static void ValidateUtf8Bytes(ReadOnlySpan<byte> bytes)
@@ -331,7 +339,9 @@ public sealed class MessageBuffer : IMessageBuffer, IDisposable
         var status = Base64.DecodeFromUtf8(utf8Span, span, out _, out var bytesWritten);
 
         if (status != OperationStatus.Done)
+        {
             return false;
+        }
 
         bufferWriter.Advance(bytesWritten);
 

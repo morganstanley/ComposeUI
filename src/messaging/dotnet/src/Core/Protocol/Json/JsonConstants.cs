@@ -29,6 +29,6 @@ internal static class JsonConstants
     public const int LowSurrogateStart = 0xDC00;
     public const int LowSurrogateEnd = 0xDFFF;
 
-    public static readonly byte[] UnicodeEscape = new byte[] { (byte)'\\', (byte)'u' };
+    public static readonly byte[] UnicodeEscape = "\\u"u8.ToArray();
 
 }
