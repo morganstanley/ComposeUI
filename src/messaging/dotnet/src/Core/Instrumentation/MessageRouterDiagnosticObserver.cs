@@ -117,7 +117,10 @@ public class MessageRouterDiagnosticObserver : IDisposable, IObserver<KeyValuePa
         {
             var reg = new RegisteredRequest(sender, message);
 
-            if (!_registeredRequests.Add(reg)) return message;
+            if (!_registeredRequests.Add(reg))
+            {
+                return message;
+            }
 
             AddExpectedEvent(
                 evt =>
@@ -219,11 +222,17 @@ public class MessageRouterDiagnosticObserver : IDisposable, IObserver<KeyValuePa
 
     void IObserver<KeyValuePair<string, object?>>.OnNext(KeyValuePair<string, object?> value)
     {
-        if (value.Value is not MessageRouterEvent evt) return;
+        if (value.Value is not MessageRouterEvent evt)
+        {
+            return;
+        }
 
         lock (_lock)
         {
-            if (TryRemoveExpectedEvent(evt)) return;
+            if (TryRemoveExpectedEvent(evt))
+            {
+                return;
+            }
 
             switch (evt.Type)
             {
@@ -265,7 +274,10 @@ public class MessageRouterDiagnosticObserver : IDisposable, IObserver<KeyValuePa
         lock (_lock)
         {
             var index = _expectedEvents.FindIndex(expectation => expectation.Predicate(evt));
-            if (index < 0) return false;
+            if (index < 0)
+            {
+                return false;
+            }
 
             _expectedEvents.RemoveAt(index);
             _outstandingEvents.Signal();
@@ -277,20 +289,14 @@ public class MessageRouterDiagnosticObserver : IDisposable, IObserver<KeyValuePa
     private readonly object _lock = new();
     private readonly IDisposable _subscription;
     private readonly AsyncCountdownEvent _outstandingEvents = new(0);
-    private readonly HashSet<RegisteredRequest> _registeredRequests = new();
-    private readonly List<Expectation> _expectedEvents = new();
+    private readonly HashSet<RegisteredRequest> _registeredRequests = [];
+    private readonly List<Expectation> _expectedEvents = [];
 
     private sealed record RegisteredRequest(object Sender, Message Message);
 
-    private sealed class Expectation
+    private sealed class Expectation(Predicate<MessageRouterEvent> predicate, string description)
     {
-        public Expectation(Predicate<MessageRouterEvent> predicate, string description)
-        {
-            Predicate = predicate;
-            Description = description;
-        }
-
-        public Predicate<MessageRouterEvent> Predicate { get; }
-        public string Description { get; }
+        public Predicate<MessageRouterEvent> Predicate { get; } = predicate;
+        public string Description { get; } = description;
     }
 }
