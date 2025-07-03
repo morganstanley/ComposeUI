@@ -9,7 +9,7 @@
   ],
   "dependencies": {
     "@morganstanley/gatsby-theme-ms-gh-pages": "^1.1.1",
-    "gatsby": "^5.14.1",
+    "gatsby": "^5.14.5",
     "react": "^19.1.0",
     "react-dom": "^18.3.1"
   },
@@ -22,7 +22,7 @@
     "clean": "gatsby clean"
   },
   "devDependencies": {
-    "prettier": "^3.5.3",
+    "prettier": "^3.6.2",
     "rimraf": "^6.0.1"
   }
 }
