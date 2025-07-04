@@ -85,14 +85,14 @@ internal class UserChannelSetReader : IUserChannelSetReader, IDisposable
 
                 if (_fileSystem.File.Exists(path))
                 {
-                    await using var stream = _fileSystem.File.OpenRead(path);
+                    using var stream = _fileSystem.File.OpenRead(path);
                     _userChannelSet = (JsonSerializer.Deserialize<ChannelItem[]>(stream, _jsonSerializerOptions))?.ToDictionary(x => x.Id, y => y);
                 }
             }
             else if (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
             {
                 var response = await _httpClient.GetAsync(uri, cancellationToken);
-                await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+                using var stream = await response.Content.ReadAsStreamAsync();
                 _userChannelSet = (JsonSerializer.Deserialize<ChannelItem[]>(stream, _jsonSerializerOptions))?.ToDictionary(x => x.Id, y => y);
             }
         }

@@ -17,24 +17,24 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using System.Collections.Concurrent;
-using MorganStanley.ComposeUI.Messaging.Abstractions;
+using MorganStanley.ComposeUI.MessagingAdapter.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
 {
     internal abstract class Channel : IAsyncDisposable
     {
         public string Id { get; }
-        protected IMessagingService MessagingService { get; }
+        protected IComposeUIMessaging MessagingService { get; }
         protected abstract string ChannelTypeName { get; }
         private readonly ILogger _logger;
         private readonly ChannelTopics _topics;
-        private readonly ConcurrentDictionary<string, IMessageBuffer> _contexts = new ConcurrentDictionary<string, IMessageBuffer>();
+        private readonly ConcurrentDictionary<string, string> _contexts = new();
         private readonly object _contextsLock = new();
-        private IMessageBuffer? _lastContext = null;
-        private IAsyncDisposable? _broadcastSubscription;
+        private string? _lastContext = null;
+        private IDisposable? _broadcastSubscription;
         private bool _disposed = false;
 
-        protected Channel(string id, IMessagingService messagingService, ILogger logger, ChannelTopics topics)
+        protected Channel(string id, IComposeUIMessaging messagingService, ILogger logger, ChannelTopics topics)
         {
             Id = id;
             MessagingService = messagingService;
@@ -53,7 +53,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
 
             await MessagingService.RegisterServiceAsync(_topics.GetCurrentContext, GetCurrentContext);
 
-            var broadcastHandler = new Func<IMessageBuffer, ValueTask>(HandleBroadcast);
+            var broadcastHandler = new Func<string?, ValueTask>(HandleBroadcast);
             var broadcastSubscription = MessagingService.SubscribeAsync(_topics.Broadcast, broadcastHandler);
 
             _broadcastSubscription = await broadcastSubscription;
@@ -61,21 +61,21 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
             LogConnected();
         }
 
-        internal ValueTask HandleBroadcast(IMessageBuffer? payloadBuffer)
+        internal ValueTask HandleBroadcast(string? payloadBuffer)
         {
             lock (_contextsLock)
             {
                 if (payloadBuffer == null)
                 {
                     LogNullOrEmptyBroadcast();
-                    return ValueTask.CompletedTask;
+                    return new ValueTask();
                 }
 
-                var payload = payloadBuffer.GetSpan();
+                var payload = payloadBuffer;
                 if (payload == null || payload.Length == 0)
                 {
                     LogNullOrEmptyBroadcast();
-                    return ValueTask.CompletedTask;
+                    return new ValueTask();
                 }
 
                 LogPayload(payloadBuffer);
@@ -87,7 +87,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
                 catch (JsonException)
                 {
                     LogInvalidPayloadJson();
-                    return ValueTask.CompletedTask;
+                    return new ValueTask();
                 }
 
                 var contextType = (string?) ctx!["type"];
@@ -95,7 +95,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
                 if (string.IsNullOrEmpty(contextType))
                 {
                     LogMissingContextType();
-                    return ValueTask.CompletedTask;
+                    return new ValueTask();
                 }
 
                 _contexts.AddOrUpdate(
@@ -105,28 +105,28 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
 
                 _lastContext = payloadBuffer;
 
-                return ValueTask.CompletedTask;
+                return new ValueTask();
             }
         }
 
-        internal ValueTask<IMessageBuffer?> GetCurrentContext(string endpoint, IMessageBuffer? payloadBuffer, MessageContext? context)
+        internal ValueTask<string?> GetCurrentContext(string endpoint, string payloadBuffer, MessageAdapterContext? context)
         {
             lock (_contextsLock)
             {
                 if (payloadBuffer == null)
                 {
-                    return ValueTask.FromResult(_lastContext);
+                    return new ValueTask<string?>(_lastContext);
                 }
 
                 var payload = payloadBuffer.ReadJson<GetCurrentContextRequest>(new(JsonSerializerDefaults.Web));
                 if (payload?.ContextType == null)
                 {
-                    return ValueTask.FromResult(_lastContext);
+                    return new ValueTask<string?>(_lastContext);
                 }
 
                 return _contexts.TryGetValue(payload.ContextType, out var messageBuffer)
-                    ? ValueTask.FromResult<IMessageBuffer?>(messageBuffer)
-                    : ValueTask.FromResult<IMessageBuffer?>(null);
+                    ? new ValueTask<string?>(messageBuffer)
+                    : new ValueTask<string?>((string?)null);
             }
         }
 
@@ -134,7 +134,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
         {
             if (_broadcastSubscription != null)
             {
-                await _broadcastSubscription.DisposeAsync();
+                _broadcastSubscription.Dispose();
             }
 
             _broadcastSubscription = null;
@@ -148,7 +148,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
         {
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug($"{ChannelTypeName} {Id} connected to MessageRouter with client id {MessagingService.ClientId}");
+                _logger.LogDebug("{ChannelTypeName} {Id} connected to MessageRouter with client id {ClientId}", ChannelTypeName, Id, MessagingService.ClientId);
             }
         }
 
@@ -156,7 +156,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
         {
             if (_logger.IsEnabled(LogLevel.Warning))
             {
-                _logger.LogWarning($"{ChannelTypeName} {Id} received a null or empty payload in broadcast. This broadcast will be ignored.");
+                _logger.LogWarning("{ChannelTypeName} {Id} received a null or empty payload in broadcast. This broadcast will be ignored.", ChannelTypeName, Id);
             }
         }
 
@@ -164,15 +164,15 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
         {
             if (_logger.IsEnabled(LogLevel.Warning))
             {
-                _logger.LogWarning($"{ChannelTypeName} {Id} could not parse the incoming broadcasted payload. This broadcast will be ignored.");
+                _logger.LogWarning("{ChannelTypeName} {Id} could not parse the incoming broadcasted payload. This broadcast will be ignored.", ChannelTypeName, Id);
             }
         }
 
-        protected void LogPayload(IMessageBuffer payload)
+        protected void LogPayload(string payload)
         {
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug($"{ChannelTypeName} {Id} received broadcasted payload: {payload.GetString()}");
+                _logger.LogDebug("{ChannelTypeName} {Id} received broadcasted payload: {Payload}", ChannelTypeName, Id, payload);
             }
         }
 
@@ -180,7 +180,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
         {
             if (_logger.IsEnabled(LogLevel.Warning))
             {
-                _logger.LogWarning($"{ChannelTypeName} {Id} received broadcasted payload with no context type specified. This broadcast will be ignored.");
+                _logger.LogWarning("{ChannelTypeName} {Id} received broadcasted payload with no context type specified. This broadcast will be ignored.", ChannelTypeName, Id);
             }
         }
 
@@ -188,7 +188,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
         {
             if (_logger.IsEnabled(LogLevel.Warning))
             {
-                _logger.LogWarning($"{ChannelTypeName} {Id} received unexpected message while trying to close a PrivateChannel: {message}");
+                _logger.LogWarning("{ChannelTypeName} {Id} received unexpected message while trying to close a PrivateChannel: {Message}", ChannelTypeName, Id, message);
             }
         }
     }

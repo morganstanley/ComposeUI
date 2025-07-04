@@ -1,8 +1,8 @@
 ﻿// Morgan Stanley makes this available to you under the Apache License,
 // Version 2.0 (the "License"). You may obtain a copy of the License at
-// 
+//
 //      http://www.apache.org/licenses/LICENSE-2.0.
-// 
+//
 // See the NOTICE file distributed with this work for additional information
 // regarding copyright ownership. Unless required by applicable law or agreed
 // to in writing, software distributed under the License is distributed on an
@@ -10,10 +10,8 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
@@ -228,7 +226,7 @@ internal sealed class MessageRouterClient : IMessageRouter
     private readonly AsyncLock _mutex = new();
 
     private readonly Channel<MessageWrapper<Message, object?>> _sendChannel =
-        Channel.CreateUnbounded<MessageWrapper<Message, object?>>(new UnboundedChannelOptions {SingleReader = true});
+        Channel.CreateUnbounded<MessageWrapper<Message, object?>>(new UnboundedChannelOptions { SingleReader = true });
 
     private readonly ConcurrentDictionary<string, TaskCompletionSource<AbstractResponse>> _pendingRequests = new();
     private readonly ConcurrentDictionary<string, MessageHandler> _endpointHandlers = new();
@@ -278,7 +276,7 @@ internal sealed class MessageRouterClient : IMessageRouter
 
             await _sendChannel.Writer.WriteAsync(
                 new MessageWrapper<Message, object?>(
-                    new ConnectRequest {AccessToken = _options.AccessToken}),
+                    new ConnectRequest { AccessToken = _options.AccessToken }),
                 cancellationToken);
 
             await _stateChangeEvents.Connected.Task;
@@ -330,19 +328,19 @@ internal sealed class MessageRouterClient : IMessageRouter
 
                 return;
 
-            case {Type: MessageType.Topic}:
+            case { Type: MessageType.Topic }:
                 HandleTopicMessage((Protocol.Messages.TopicMessage) message);
 
                 return;
 
-            case {Type: MessageType.Invoke}:
-            {
-                HandleInvokeRequest((InvokeRequest) message);
+            case { Type: MessageType.Invoke }:
+                {
+                    HandleInvokeRequest((InvokeRequest) message);
 
-                return;
-            }
+                    return;
+                }
 
-            case {Type: MessageType.ConnectResponse}:
+            case { Type: MessageType.ConnectResponse }:
                 HandleConnectResponse((ConnectResponse) message);
 
                 return;
@@ -638,7 +636,6 @@ internal sealed class MessageRouterClient : IMessageRouter
             Descriptor = descriptor,
         };
 
-
         await SendRequestAsync(request, cancellationToken);
     }
 
@@ -654,7 +651,7 @@ internal sealed class MessageRouterClient : IMessageRouter
                 {
                     await handler(message.Payload);
                 }
-                else 
+                else
                 {
                     ThrowHelper.MessageOrPayloadNull();
                 }
@@ -727,6 +724,7 @@ internal sealed class MessageRouterClient : IMessageRouter
         {
             case ConnectionState.Closed:
                 return default;
+
             case ConnectionState.Closing:
                 return new ValueTask(_stateChangeEvents.Closed.Task);
         }
@@ -741,21 +739,21 @@ internal sealed class MessageRouterClient : IMessageRouter
         switch (exception)
         {
             case null:
-            {
-                exception = ThrowHelper.ConnectionClosed();
+                {
+                    exception = ThrowHelper.ConnectionClosed();
 
-                break;
-            }
+                    break;
+                }
 
             case MessageRouterException:
                 break;
 
             default:
-            {
-                exception = ThrowHelper.ConnectionAborted(exception);
+                {
+                    exception = ThrowHelper.ConnectionAborted(exception);
 
-                break;
-            }
+                    break;
+                }
         }
 
         using (await _mutex.LockAsync())
@@ -763,20 +761,20 @@ internal sealed class MessageRouterClient : IMessageRouter
             switch (oldState = _connectionState)
             {
                 case ConnectionState.NotConnected:
-                {
-                    _connectionState = ConnectionState.Closed;
-                    await _connection.DisposeAsync();
+                    {
+                        _connectionState = ConnectionState.Closed;
+                        await _connection.DisposeAsync();
 
-                    return;
-                }
+                        return;
+                    }
 
                 case ConnectionState.Connecting:
-                {
-                    _connectionState = ConnectionState.Closed;
-                    _stateChangeEvents.Connected.TrySetException(exception);
+                    {
+                        _connectionState = ConnectionState.Closed;
+                        _stateChangeEvents.Connected.TrySetException(exception);
 
-                    break;
-                }
+                        break;
+                    }
 
                 case ConnectionState.Closing:
                     break;
@@ -785,11 +783,11 @@ internal sealed class MessageRouterClient : IMessageRouter
                     return;
 
                 case ConnectionState.Connected:
-                {
-                    _connectionState = ConnectionState.Closing;
+                    {
+                        _connectionState = ConnectionState.Closing;
 
-                    break;
-                }
+                        break;
+                    }
 
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -799,11 +797,11 @@ internal sealed class MessageRouterClient : IMessageRouter
         switch (oldState)
         {
             case ConnectionState.Closing:
-            {
-                await _stateChangeEvents.Closed.Task;
+                {
+                    await _stateChangeEvents.Closed.Task;
 
-                return;
-            }
+                    return;
+                }
         }
 
         OnCloseStart();
@@ -1207,7 +1205,7 @@ internal sealed class MessageRouterClient : IMessageRouter
 
                 using (await _lock.LockAsync())
                 {
-                    await InvokeSubscriber(_ => _subscriber.OnCompletedAsync(), (object?)null, nameof(_subscriber.OnCompletedAsync));
+                    await InvokeSubscriber(_ => _subscriber.OnCompletedAsync(), (object?) null, nameof(_subscriber.OnCompletedAsync));
                 }
             }
             catch (Exception e)
@@ -1228,15 +1226,14 @@ internal sealed class MessageRouterClient : IMessageRouter
 
         private ValueTask InvokeLocked<TArg>(Func<TArg, ValueTask> action, TArg arg)
         {
-            return _recursion.Value == 0 
-                ? InvokeLockedImpl(action, arg) 
+            return _recursion.Value == 0
+                ? InvokeLockedImpl(action, arg)
                 : action(arg);
 
             async ValueTask InvokeLockedImpl<TArg>(Func<TArg, ValueTask> action, TArg arg)
             {
                 using (await _lock.LockAsync())
                 {
-
                     await action(arg);
                 }
             }

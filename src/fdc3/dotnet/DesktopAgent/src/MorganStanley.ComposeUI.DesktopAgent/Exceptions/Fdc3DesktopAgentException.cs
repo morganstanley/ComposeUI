@@ -12,6 +12,8 @@
  * and limitations under the License.
  */
 
+using System;
+
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
 
 /// <summary>

@@ -14,7 +14,7 @@
 
 using Microsoft.Extensions.Logging;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
-using MorganStanley.ComposeUI.Messaging.Abstractions;
+using MorganStanley.ComposeUI.MessagingAdapter.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Channels;
 
@@ -46,18 +46,18 @@ public class UserChannelErrorsAndDiagnosticsTests
     }
 
     private const string TestChannel = "testChannel";
-    TestLogger _logger;
-    UserChannel _channel;
-    ChannelTopics _topics = Fdc3Topic.UserChannel(TestChannel);
+    private readonly TestLogger _logger;
+    private readonly UserChannel _channel;
+    private readonly ChannelTopics _topics = Fdc3Topic.UserChannel(TestChannel);
 
     public UserChannelErrorsAndDiagnosticsTests()
     {
         _logger = new TestLogger();
-        _channel = new UserChannel(TestChannel, new Mock<IMessagingService>().Object, _logger);
+        _channel = new UserChannel(TestChannel, new Mock<IComposeUIMessaging>().Object, _logger);
     }
 
     [Fact]
-    public async void EmptyPayloadBroadcastedIsLoggedAndIgnored()
+    public async Task EmptyPayloadBroadcastedIsLoggedAndIgnored()
     {
         await _channel.HandleBroadcast(EmptyBuffer);
         var ctx = await _channel.GetCurrentContext(_topics.GetCurrentContext, null, null);
@@ -67,7 +67,7 @@ public class UserChannelErrorsAndDiagnosticsTests
     }
 
     [Fact]
-    public async void NullPayloadBroadcastedIsLoggedAndIgnored()
+    public async Task NullPayloadBroadcastedIsLoggedAndIgnored()
     {
         await _channel.HandleBroadcast(EmptyBuffer);
         var ctx = await _channel.GetCurrentContext(_topics.GetCurrentContext, null, null);
@@ -76,7 +76,7 @@ public class UserChannelErrorsAndDiagnosticsTests
     }
 
     [Fact]
-    public async void NonJsonBroadcastedIsLoggedAndIgnored()
+    public async Task NonJsonBroadcastedIsLoggedAndIgnored()
     {
         await _channel.HandleBroadcast(PlainTextBuffer);
         var ctx = await _channel.GetCurrentContext(_topics.GetCurrentContext, null, null);
@@ -85,7 +85,7 @@ public class UserChannelErrorsAndDiagnosticsTests
     }
 
     [Fact]
-    public async void MissingContextTypeBroadcastedIsLoggedAndIgnored()
+    public async Task MissingContextTypeBroadcastedIsLoggedAndIgnored()
     {
         await _channel.HandleBroadcast(InvalidJsonBuffer);
         var ctx = await _channel.GetCurrentContext(_topics.GetCurrentContext, null, null);
@@ -93,9 +93,9 @@ public class UserChannelErrorsAndDiagnosticsTests
         VerifyDebugAndWarning();
     }
 
-    private MessageBuffer EmptyBuffer => MessageBuffer.Create(string.Empty);
-    private MessageBuffer PlainTextBuffer => MessageBuffer.Create("Plain Text Payload");
-    private MessageBuffer InvalidJsonBuffer => MessageBuffer.Create("{\"randomField\":\"random text\"}");
+    private string EmptyBuffer => string.Empty;
+    private string PlainTextBuffer => "Plain Text Payload";
+    private string InvalidJsonBuffer => "{\"randomField\":\"random text\"}";
 
     private void VerifyDebugAndWarning()
     {

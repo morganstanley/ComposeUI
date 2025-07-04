@@ -1,8 +1,8 @@
 ﻿// Morgan Stanley makes this available to you under the Apache License,
 // Version 2.0 (the "License"). You may obtain a copy of the License at
-// 
+//
 //      http://www.apache.org/licenses/LICENSE-2.0.
-// 
+//
 // See the NOTICE file distributed with this work for additional information
 // regarding copyright ownership. Unless required by applicable law or agreed
 // to in writing, software distributed under the License is distributed on an
@@ -10,16 +10,20 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using System.Collections.Generic;
-using Finos.Fdc3;
+namespace MorganStanley.ComposeUI.MessagingAdapter.Abstractions;
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
-
-public class AppIntent : IAppIntent
+/// <summary>
+/// Provides contextual information for a message received from the Message Router.
+/// </summary>
+public sealed class MessageAdapterContext
 {
-    public IntentMetadata Intent { get; set; }
-    IIntentMetadata IAppIntent.Intent => Intent;
+    /// <summary>
+    /// Gets the client ID of the sender.
+    /// </summary>
+    public string SourceId { get; init; } = "";
 
-    public IEnumerable<AppMetadata> Apps { get; set; }
-    IEnumerable<IAppMetadata> IAppIntent.Apps => Apps;
+    /// <summary>
+    /// Gets the correlation ID of the message, if there's one.
+    /// </summary>
+    public string? CorrelationId { get; init; }
 }

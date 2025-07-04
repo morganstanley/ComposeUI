@@ -27,7 +27,10 @@ public sealed class ShutdownContext
 
     public void AddProperty<T>(T value)
     {
-        ArgumentNullException.ThrowIfNull(value, nameof(value));
+        if (value == null)
+        {
+            throw new ArgumentNullException(nameof(value));
+        }
 
         lock (_lock)
         {

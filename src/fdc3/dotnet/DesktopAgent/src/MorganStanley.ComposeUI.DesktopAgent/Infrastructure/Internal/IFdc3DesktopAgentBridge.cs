@@ -12,6 +12,9 @@
  * and limitations under the License.
  */
 
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Finos.Fdc3;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;

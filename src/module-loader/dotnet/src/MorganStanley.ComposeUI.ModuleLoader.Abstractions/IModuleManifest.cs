@@ -50,7 +50,7 @@ public static class ModuleManifestExtensions
     /// <returns>
     /// True, if <paramref name="manifest"/> implements <see cref="IModuleManifest{TDetails}"/>.
     /// </returns>
-    public static bool TryGetDetails<TDetails>(this IModuleManifest manifest, [NotNullWhen(true)] out TDetails details)
+    public static bool TryGetDetails<TDetails>(this IModuleManifest manifest, out TDetails details)
     {
         if (manifest is IModuleManifest<TDetails> manifestDetails)
         {
