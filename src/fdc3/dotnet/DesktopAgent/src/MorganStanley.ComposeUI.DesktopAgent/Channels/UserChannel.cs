@@ -14,13 +14,13 @@
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using MorganStanley.ComposeUI.Messaging.Abstractions;
+using MorganStanley.ComposeUI.MessagingAdapter.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
 
-internal class UserChannel : Channel, IAsyncDisposable
+internal class UserChannel : Channel
 {
-    public UserChannel(string id, IMessagingService messagingService, ILogger<UserChannel>? logger)
+    public UserChannel(string id, IComposeUIMessaging messagingService, ILogger<UserChannel>? logger)
         : base(id, messagingService, (ILogger?) logger ?? NullLogger.Instance, Fdc3Topic.UserChannel(id)) { }
 
     protected override string ChannelTypeName => "UserChannel";

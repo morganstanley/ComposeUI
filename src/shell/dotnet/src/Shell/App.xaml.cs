@@ -213,6 +213,7 @@ public partial class App : Application
                     fdc3ConfigurationSection.GetSection(nameof(fdc3Options.DesktopAgent)));
                 services.Configure<AppDirectoryOptions>(
                     fdc3ConfigurationSection.GetSection(nameof(fdc3Options.AppDirectory)));
+                services.AddComposeUIMessagingAdapter();
             }
         }
     }

@@ -13,7 +13,7 @@
  */
 
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
-using MorganStanley.ComposeUI.Messaging.Abstractions;
+using MorganStanley.ComposeUI.MessagingAdapter.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Channels;
 
@@ -23,7 +23,7 @@ public class UserChannelTests : ChannelTestBase
 
     public UserChannelTests()
     {
-        Channel = new UserChannel(TestChannel, new Mock<IMessagingService>().Object, null);
+        Channel = new UserChannel(TestChannel, new Mock<IComposeUIMessaging>().Object, null);
         Topics = Fdc3Topic.UserChannel(TestChannel);
     }
 }
