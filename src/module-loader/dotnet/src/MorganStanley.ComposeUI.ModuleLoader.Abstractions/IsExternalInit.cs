@@ -1,8 +1,8 @@
 ﻿// Morgan Stanley makes this available to you under the Apache License,
 // Version 2.0 (the "License"). You may obtain a copy of the License at
-// 
+//
 //      http://www.apache.org/licenses/LICENSE-2.0.
-// 
+//
 // See the NOTICE file distributed with this work for additional information
 // regarding copyright ownership. Unless required by applicable law or agreed
 // to in writing, software distributed under the License is distributed on an
@@ -10,16 +10,11 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using System.Collections.Generic;
-using Finos.Fdc3;
+namespace System.Runtime.CompilerServices;
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
-
-public class AppIntent : IAppIntent
-{
-    public IntentMetadata Intent { get; set; }
-    IIntentMetadata IAppIntent.Intent => Intent;
-
-    public IEnumerable<AppMetadata> Apps { get; set; }
-    IEnumerable<IAppMetadata> IAppIntent.Apps => Apps;
-}
+/// <summary>
+/// Reserved for compiler use to support C# 9.0 init-only properties and records.
+/// Not intended to be used directly in code.
+/// </summary>
+internal sealed class IsExternalInit
+{ }

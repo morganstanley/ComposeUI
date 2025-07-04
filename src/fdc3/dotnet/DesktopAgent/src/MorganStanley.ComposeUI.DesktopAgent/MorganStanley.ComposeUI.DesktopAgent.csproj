@@ -1,5 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<AssemblyName>MorganStanley.ComposeUI.Fdc3.DesktopAgent</AssemblyName>
 		<RootNamespace>MorganStanley.ComposeUI.Fdc3.DesktopAgent</RootNamespace>
@@ -17,6 +18,7 @@
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+		<PackageReference Include="System.Collections.Immutable" />
 		<PackageReference Include="System.Reactive.Async" />
 		<PackageReference Include="TestableIO.System.IO.Abstractions" />
 		<PackageReference Include="TestableIO.System.IO.Abstractions.Wrappers" />

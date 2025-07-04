@@ -13,16 +13,14 @@
 */
 
 
-using System.Collections.Immutable;
-
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
 public sealed class EnvironmentVariables
 {
-    public IEnumerable<KeyValuePair<string, string>> Variables { get; }
+    public IReadOnlyList<KeyValuePair<string, string>> Variables { get; }
 
     public EnvironmentVariables(IEnumerable<KeyValuePair<string, string>> variables)
     {
-        Variables = variables.ToImmutableArray();
+        Variables = variables.ToArray();
     }
 }

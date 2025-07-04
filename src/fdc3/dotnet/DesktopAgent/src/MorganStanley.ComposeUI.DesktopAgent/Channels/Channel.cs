@@ -68,14 +68,14 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
                 if (payloadBuffer == null)
                 {
                     LogNullOrEmptyBroadcast();
-                    return ValueTask.CompletedTask;
+                    return new ValueTask();
                 }
 
                 var payload = payloadBuffer;
                 if (payload == null || payload.Length == 0)
                 {
                     LogNullOrEmptyBroadcast();
-                    return ValueTask.CompletedTask;
+                    return new ValueTask();
                 }
 
                 LogPayload(payloadBuffer);
@@ -87,7 +87,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
                 catch (JsonException)
                 {
                     LogInvalidPayloadJson();
-                    return ValueTask.CompletedTask;
+                    return new ValueTask();
                 }
 
                 var contextType = (string?) ctx!["type"];
@@ -95,7 +95,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
                 if (string.IsNullOrEmpty(contextType))
                 {
                     LogMissingContextType();
-                    return ValueTask.CompletedTask;
+                    return new ValueTask();
                 }
 
                 _contexts.AddOrUpdate(
@@ -105,7 +105,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
 
                 _lastContext = payloadBuffer;
 
-                return ValueTask.CompletedTask;
+                return new ValueTask();
             }
         }
 
@@ -115,18 +115,18 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
             {
                 if (payloadBuffer == null)
                 {
-                    return ValueTask.FromResult(_lastContext);
+                    return new ValueTask<string?>(_lastContext);
                 }
 
                 var payload = payloadBuffer.ReadJson<GetCurrentContextRequest>(new(JsonSerializerDefaults.Web));
                 if (payload?.ContextType == null)
                 {
-                    return ValueTask.FromResult(_lastContext);
+                    return new ValueTask<string?>(_lastContext);
                 }
 
                 return _contexts.TryGetValue(payload.ContextType, out var messageBuffer)
-                    ? ValueTask.FromResult<string?>(messageBuffer)
-                    : ValueTask.FromResult<string?>(null);
+                    ? new ValueTask<string?>(messageBuffer)
+                    : new ValueTask<string?>((string?)null);
             }
         }
 

@@ -1,9 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<ItemGroup>
 		<PackageReference Include="System.CommandLine" />
+		<PackageReference Include="System.ComponentModel.Annotations" />
 	</ItemGroup>
 
 	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
 		<AssemblyName>MorganStanley.ComposeUI.Utilities</AssemblyName>
 		<RootNamespace>MorganStanley.ComposeUI.Utilities</RootNamespace>
 		<Description>Utilities for ComposeUI. More Details: https://morganstanley.github.io/ComposeUI/</Description>

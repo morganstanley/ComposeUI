@@ -78,7 +78,7 @@ internal class Fdc3DesktopAgentMessageRouterService : IHostedService
 
     internal ValueTask<FindChannelResponse?> HandleFindChannel(FindChannelRequest? request, MessageAdapterContext? context)
     {
-        return ValueTask.FromResult<FindChannelResponse?>(
+        return new ValueTask<FindChannelResponse?>(
             _desktopAgent.FindChannel(request!.ChannelId, request!.ChannelType)
                 ? FindChannelResponse.Success
                 : FindChannelResponse.Failure(ChannelError.NoChannelFound));
