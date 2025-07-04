@@ -11,23 +11,21 @@
  * or implied. See the License for the specific language governing permissions
  * and limitations under the License.
  */
-
-using System;
+ 
 using System.Text.Json;
 using Finos.Fdc3;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
-using MorganStanley.ComposeUI.Messaging;
-using MorganStanley.ComposeUI.Messaging.Abstractions;
+using MorganStanley.ComposeUI.MessagingAdapter.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
 internal class ResolverUIMessageRouterCommunicator : IResolverUICommunicator
 {
     private readonly ILogger<ResolverUIMessageRouterCommunicator> _logger;
-    private readonly IMessageRouter _messageRouter;
+    private readonly IComposeUIMessaging _messageRouter;
     private readonly TimeSpan _defaultTimeout = TimeSpan.FromMinutes(2);
 
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
@@ -36,7 +34,7 @@ internal class ResolverUIMessageRouterCommunicator : IResolverUICommunicator
     };
 
     public ResolverUIMessageRouterCommunicator(
-        IMessageRouter messageRouter,
+        IComposeUIMessaging messageRouter,
         ILogger<ResolverUIMessageRouterCommunicator>? logger = null)
     {
         _messageRouter = messageRouter;
@@ -72,7 +70,7 @@ internal class ResolverUIMessageRouterCommunicator : IResolverUICommunicator
 
         var responseBuffer = await _messageRouter.InvokeAsync(
             Fdc3Topic.ResolverUI,
-            MessageBuffer.Factory.CreateJson(request, _jsonSerializerOptions),
+            JsonFactory.CreateJson(request, _jsonSerializerOptions),
             cancellationToken: cancellationToken);
 
         if (responseBuffer == null)
@@ -116,7 +114,7 @@ internal class ResolverUIMessageRouterCommunicator : IResolverUICommunicator
 
         var responseBuffer = await _messageRouter.InvokeAsync(
             Fdc3Topic.ResolverUIIntent,
-            MessageBuffer.Factory.CreateJson(request, _jsonSerializerOptions),
+            JsonFactory.CreateJson(request, _jsonSerializerOptions),
             cancellationToken: cancellationToken);
 
         if (responseBuffer == null)

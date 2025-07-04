@@ -17,7 +17,7 @@ using Finos.Fdc3;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
-using MorganStanley.ComposeUI.Messaging.Abstractions;
+using MorganStanley.ComposeUI.MessagingAdapter.Abstractions;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Infrastructure.Internal;
@@ -32,11 +32,11 @@ public class ResolverUIMessageRouterCommunicatorTests
     [Fact]
     public async Task SendResolverUIRequest_will_return_null()
     {
-        var messageRouterMock = new Mock<IMessageRouter>();
+        var messageRouterMock = new Mock<IComposeUIMessaging>();
         messageRouterMock.Setup(
                 _ => _.InvokeAsync(
                     It.IsAny<string>(),
-                    It.IsAny<MessageBuffer>(),
+                    It.IsAny<string?>(),
                     It.IsAny<InvokeOptions>(),
                     It.IsAny<CancellationToken>()))
             .Returns(null);
@@ -51,15 +51,15 @@ public class ResolverUIMessageRouterCommunicatorTests
     [Fact]
     public async Task SendResolverUIRequest_will_return_response()
     {
-        var messageRouterMock = new Mock<IMessageRouter>();
+        var messageRouterMock = new Mock<IComposeUIMessaging>();
         messageRouterMock.Setup(
                 _ => _.InvokeAsync(
                     It.IsAny<string>(),
-                    It.IsAny<MessageBuffer>(),
+                    It.IsAny<string?>(),
                     It.IsAny<InvokeOptions>(),
                     It.IsAny<CancellationToken>()))
-            .Returns(ValueTask.FromResult<IMessageBuffer?>(
-                MessageBuffer.Factory.CreateJson(new ResolverUIResponse()
+            .Returns(ValueTask.FromResult<string?>(
+                JsonFactory.CreateJson(new ResolverUIResponse()
                 {
                     AppMetadata = new AppMetadata() { AppId = "testAppId" }
                 }, _jsonSerializerOptions)));
