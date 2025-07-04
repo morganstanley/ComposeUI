@@ -15,7 +15,7 @@
 using Finos.Fdc3.Context;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
-using MorganStanley.ComposeUI.Messaging.Abstractions;
+using MorganStanley.ComposeUI.MessagingAdapter.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Channels;
 
@@ -25,24 +25,25 @@ public abstract class ChannelTestBase
     internal ChannelTopics Topics { get; init; }
 
     [Theory]
-    [InlineData(new object?[] { null })]
-    [InlineData(new object?[] { "testType" })]
-    public async void CallingGetCurrentContextOnNewChannelReturnsNull(string? contextType)
+    [InlineData([null])]
+    [InlineData(["testType"])]
+    public async Task CallingGetCurrentContextOnNewChannelReturnsNull(string? contextType)
     {
         var request = new GetCurrentContextRequest() { ContextType = contextType };
-        var ctx = await Channel.GetCurrentContext(Topics.GetCurrentContext, MessageBuffer.Factory.CreateJson(request), null);
+        var ctx = await Channel.GetCurrentContext(Topics.GetCurrentContext, JsonFactory.CreateJson(request), null);
         ctx.Should().BeNull();
     }
 
     [Fact]
-    public void NewChannelCanHandleContext()
+    public async Task NewChannelCanHandleContext()
     {
         var context = GetContext();
-        new System.Action(() => Channel.HandleBroadcast(context)).Should().NotThrow();
+        Task Act() => Channel.HandleBroadcast(context).AsTask();
+        await FluentActions.Awaiting(Act).Should().NotThrowAsync();
     }
 
     [Fact]
-    public async void BroadcastedChannelCanReturnLatestBroadcast()
+    public async Task BroadcastedChannelCanReturnLatestBroadcast()
     {
         var context = await PreBroadcastContext();
 
@@ -51,7 +52,7 @@ public abstract class ChannelTestBase
     }
 
     [Fact]
-    public async void BroadcastedChannelCanReturnLatestBroadcastForType()
+    public async Task BroadcastedChannelCanReturnLatestBroadcastForType()
     {
         var context = await PreBroadcastContext();
         var ctx = await Channel.GetCurrentContext(Topics.GetCurrentContext, ContextType, null);
@@ -59,7 +60,7 @@ public abstract class ChannelTestBase
     }
 
     [Fact]
-    public async void BroadcastedChannelReturnsNullForDifferentType()
+    public async Task BroadcastedChannelReturnsNullForDifferentType()
     {
         await PreBroadcastContext();
         var ctx = await Channel.GetCurrentContext(Topics.GetCurrentContext, OtherContextType, null);
@@ -67,15 +68,16 @@ public abstract class ChannelTestBase
     }
 
     [Fact]
-    public async void BroadcastedChannelCanHandleBroadcast()
+    public async Task BroadcastedChannelCanHandleBroadcast()
     {
         await PreBroadcastContext();
         var context = GetContext();
-        new System.Action(() => Channel.HandleBroadcast(context)).Should().NotThrow();
+        Task Act() => Channel.HandleBroadcast(context).AsTask();
+        await FluentActions.Awaiting(Act).Should().NotThrowAsync();
     }
 
     [Fact]
-    public async void BroadcastedChannelUpdatesLatestBroadcast()
+    public async Task BroadcastedChannelUpdatesLatestBroadcast()
     {
         var context = await DoubleBroadcastContext();
         var ctx = await Channel.GetCurrentContext(Topics.GetCurrentContext, null, null);
@@ -83,7 +85,7 @@ public abstract class ChannelTestBase
     }
 
     [Fact]
-    public async void BroadcastedChannelUpdatesLatestBroadcastForType()
+    public async Task BroadcastedChannelUpdatesLatestBroadcastForType()
     {
         var context = await DoubleBroadcastContext();
         var ctx = await Channel.GetCurrentContext(Topics.GetCurrentContext, ContextType, null);
@@ -91,14 +93,15 @@ public abstract class ChannelTestBase
     }
 
     [Fact]
-    public async void BroadcastedChannelCanHandleDifferentBroadcast()
+    public async Task BroadcastedChannelCanHandleDifferentBroadcast()
     {
         await PreBroadcastContext();
-        new System.Action(() => Channel.HandleBroadcast(GetDifferentContext())).Should().NotThrow();
+        Task Act() => Channel.HandleBroadcast(GetDifferentContext()).AsTask();
+        await FluentActions.Awaiting(Act).Should().NotThrowAsync();
     }
 
     [Fact]
-    public async void ChannelWithDifferentBroadcastsUpdatesLatestBroadcast()
+    public async Task ChannelWithDifferentBroadcastsUpdatesLatestBroadcast()
     {
         var (_, second) = await BroadcastDifferentContexts();
         var ctx = await Channel.GetCurrentContext(Topics.GetCurrentContext, null, null);
@@ -106,7 +109,7 @@ public abstract class ChannelTestBase
     }
 
     [Fact]
-    public async void ChannelWithDifferentBroadcastsReturnsAppropriateContext()
+    public async Task ChannelWithDifferentBroadcastsReturnsAppropriateContext()
     {
         var (first, second) = await BroadcastDifferentContexts();
 
@@ -118,20 +121,20 @@ public abstract class ChannelTestBase
     }
 
     private int _counter;
-    private MessageBuffer ContextType => MessageBuffer.Factory.CreateJson(new GetCurrentContextRequest { ContextType = new Contact().Type });
-    private MessageBuffer OtherContextType => MessageBuffer.Factory.CreateJson(new GetCurrentContextRequest { ContextType = new Email(null).Type });
-    private MessageBuffer GetContext() => MessageBuffer.Factory.CreateJson(new Contact(new ContactID() { Email = $"test{_counter}@test.org", FdsId = $"test{_counter++}" }, "Testy Tester"));
-    private MessageBuffer DifferentContextType => MessageBuffer.Factory.CreateJson(new GetCurrentContextRequest { ContextType = new Currency().Type });
-    private MessageBuffer GetDifferentContext() => MessageBuffer.Factory.CreateJson(new Currency(new CurrencyID() { CURRENCY_ISOCODE = "HUF" }));
+    private string ContextType => JsonFactory.CreateJson(new GetCurrentContextRequest { ContextType = new Contact().Type });
+    private string OtherContextType => JsonFactory.CreateJson(new GetCurrentContextRequest { ContextType = new Email(null).Type });
+    private string GetContext() => JsonFactory.CreateJson(new Contact(new ContactID() { Email = $"test{_counter}@test.org", FdsId = $"test{_counter++}" }, "Testy Tester"));
+    private string DifferentContextType => JsonFactory.CreateJson(new GetCurrentContextRequest { ContextType = new Currency().Type });
+    private string GetDifferentContext() => JsonFactory.CreateJson(new Currency(new CurrencyID() { CURRENCY_ISOCODE = "HUF" }));
 
-    private async ValueTask<MessageBuffer> PreBroadcastContext()
+    private async ValueTask<string> PreBroadcastContext()
     {
         var context = GetContext();
         await Channel.HandleBroadcast(context);
         return context;
     }
 
-    private async ValueTask<MessageBuffer> DoubleBroadcastContext()
+    private async ValueTask<string> DoubleBroadcastContext()
     {
         await Channel.HandleBroadcast(GetContext());
         var context = GetContext();
@@ -139,7 +142,7 @@ public abstract class ChannelTestBase
         return context;
     }
 
-    private async ValueTask<(MessageBuffer first, MessageBuffer second)> BroadcastDifferentContexts()
+    private async ValueTask<(string first, string second)> BroadcastDifferentContexts()
     {
         var first = GetContext();
         var second = GetDifferentContext();
