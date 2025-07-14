@@ -28,7 +28,7 @@ public class FindIntentTestCase
     internal FindIntentResponse ExpectedResponse { get; set; }
 }
 
-public partial class Fdc3DesktopAgentMessageRouterServiceTests
+public partial class Fdc3DesktopAgentMessagingServiceTests
 {
     private class FindIntentTheoryData : TheoryData
     {

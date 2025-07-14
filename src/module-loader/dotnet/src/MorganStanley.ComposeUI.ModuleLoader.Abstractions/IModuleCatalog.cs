@@ -23,17 +23,17 @@ public interface IModuleCatalog
     /// </summary>
     /// <param name="moduleId"></param>
     /// <returns></returns>
-    Task<IModuleManifest> GetManifest(string moduleId);
+    public Task<IModuleManifest> GetManifest(string moduleId);
 
     /// <summary>
     /// Gets the IDs of the modules in the catalog.
     /// </summary>
     /// <returns></returns>
-    Task<IEnumerable<string>> GetModuleIds();
+    public Task<IEnumerable<string>> GetModuleIds();
 
     /// <summary>
     /// Gets the manifests of all modules in the catalog.
     /// </summary>
     /// <returns></returns>
-    Task<IEnumerable<IModuleManifest>> GetAllManifests();
+    public Task<IEnumerable<IModuleManifest>> GetAllManifests();
 }

@@ -27,7 +27,7 @@ public interface IClientConnection
     /// <returns></returns>
     /// <exception cref="MessageRouterException">With name <see cref="MessageRouterErrors.ConnectionClosed"/> if the connection was closed by either party while sending the request</exception>
     /// <exception cref="MessageRouterException">With name <see cref="MessageRouterErrors.ConnectionAborted"/> if the connection was closed due to an unexpected error</exception>
-    ValueTask SendAsync(Message message, CancellationToken cancellationToken = default);
+    public ValueTask SendAsync(Message message, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Returns the next message received from the client.
@@ -36,11 +36,11 @@ public interface IClientConnection
     /// <returns></returns>
     /// <exception cref="MessageRouterException">With name <see cref="MessageRouterErrors.ConnectionClosed"/> if the connection was closed by either party while sending the request</exception>
     /// <exception cref="MessageRouterException">With name <see cref="MessageRouterErrors.ConnectionAborted"/> if the connection was closed due to an unexpected error</exception>
-    ValueTask<Message> ReceiveAsync(CancellationToken cancellationToken = default);
+    public ValueTask<Message> ReceiveAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Invoked by the server to notify the object of a disconnection.
     /// </summary>
     /// <returns></returns>
-    ValueTask CloseAsync();
+    public ValueTask CloseAsync();
 }

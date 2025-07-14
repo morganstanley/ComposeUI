@@ -22,10 +22,10 @@ using MorganStanley.ComposeUI.MessagingAdapter.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
-internal class ResolverUIMessageRouterCommunicator : IResolverUICommunicator
+internal class ResolverUICommunicator : IResolverUICommunicator
 {
-    private readonly ILogger<ResolverUIMessageRouterCommunicator> _logger;
-    private readonly IComposeUIMessaging _messageRouter;
+    private readonly ILogger<ResolverUICommunicator> _logger;
+    private readonly IMessaging _messaging;
     private readonly TimeSpan _defaultTimeout = TimeSpan.FromMinutes(2);
 
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
@@ -33,12 +33,12 @@ internal class ResolverUIMessageRouterCommunicator : IResolverUICommunicator
         Converters = { new AppMetadataJsonConverter() }
     };
 
-    public ResolverUIMessageRouterCommunicator(
-        IComposeUIMessaging messageRouter,
-        ILogger<ResolverUIMessageRouterCommunicator>? logger = null)
+    public ResolverUICommunicator(
+        IMessaging messaging,
+        ILogger<ResolverUICommunicator>? logger = null)
     {
-        _messageRouter = messageRouter;
-        _logger = logger ?? NullLogger<ResolverUIMessageRouterCommunicator>.Instance;
+        _messaging = messaging;
+        _logger = logger ?? NullLogger<ResolverUICommunicator>.Instance;
     }
 
     public async Task<ResolverUIResponse?> SendResolverUIRequest(IEnumerable<IAppMetadata> appMetadata, CancellationToken cancellationToken = default)
@@ -51,7 +51,7 @@ internal class ResolverUIMessageRouterCommunicator : IResolverUICommunicator
         {
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug(ex, "MessageRouter didn't receive response from the ResolverUI.");
+                _logger.LogDebug(ex, "No answer was received using the communication layer.");
             }
 
             return new ResolverUIResponse()
@@ -68,7 +68,7 @@ internal class ResolverUIMessageRouterCommunicator : IResolverUICommunicator
             AppMetadata = appMetadata
         };
 
-        var responseBuffer = await _messageRouter.InvokeAsync(
+        var responseBuffer = await _messaging.InvokeAsync(
             Fdc3Topic.ResolverUI,
             JsonFactory.CreateJson(request, _jsonSerializerOptions),
             cancellationToken: cancellationToken);
@@ -95,7 +95,7 @@ internal class ResolverUIMessageRouterCommunicator : IResolverUICommunicator
         {
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug(ex, "MessageRouter didn't receive response from the ResolverUI.");
+                _logger.LogDebug(ex, "No answer was received using the communication layer.");
             }
 
             return new ResolverUIIntentResponse
@@ -112,7 +112,7 @@ internal class ResolverUIMessageRouterCommunicator : IResolverUICommunicator
             Intents = intents
         };
 
-        var responseBuffer = await _messageRouter.InvokeAsync(
+        var responseBuffer = await _messaging.InvokeAsync(
             Fdc3Topic.ResolverUIIntent,
             JsonFactory.CreateJson(request, _jsonSerializerOptions),
             cancellationToken: cancellationToken);

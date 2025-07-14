@@ -23,7 +23,7 @@ public class AppChannelTests : ChannelTestBase
 
     public AppChannelTests()
     {
-        Channel = new AppChannel(TestChannel, new Mock<IComposeUIMessaging>().Object, null);
+        Channel = new AppChannel(TestChannel, new Mock<IMessaging>().Object, null);
         Topics = Fdc3Topic.AppChannel(TestChannel);
     }
 }

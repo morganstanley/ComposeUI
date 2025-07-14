@@ -20,7 +20,7 @@ public interface IMessagingService : IAsyncDisposable
     /// <remarks>
     /// The returned value will be <value>null</value> if the client is not connected.
     /// </remarks>
-    string? ClientId { get; }
+    public string? ClientId { get; }
 
     /// <summary>
     /// Asynchronously connects to the Message Router server endpoint.
@@ -31,7 +31,7 @@ public interface IMessagingService : IAsyncDisposable
     /// Clients don't need to call this method before calling other methods on this type.
     /// The client should automatically establish a connection when needed.
     /// </remarks>
-    ValueTask ConnectAsync(CancellationToken cancellationToken = default);
+    public ValueTask ConnectAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets an observable that represents a topic.
@@ -40,7 +40,7 @@ public interface IMessagingService : IAsyncDisposable
     /// <param name="subscriber"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    ValueTask<IAsyncDisposable> SubscribeAsync(string topic, 
+    public ValueTask<IAsyncDisposable> SubscribeAsync(string topic, 
         Func<IMessageBuffer, ValueTask> subscriber, 
         CancellationToken cancellationToken = default);
 
@@ -52,7 +52,7 @@ public interface IMessagingService : IAsyncDisposable
     /// <param name="options"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    ValueTask PublishAsync(string topic, 
+    public ValueTask PublishAsync(string topic, 
         IMessageBuffer? message = null, 
         PublishOptions optinos = default, 
         CancellationToken cancellationToken = default);
@@ -64,7 +64,7 @@ public interface IMessagingService : IAsyncDisposable
     /// <param name="subscriber"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    ValueTask RegisterServiceAsync(string endpoint,
+    public ValueTask RegisterServiceAsync(string endpoint,
         Func<string, IMessageBuffer?, MessageContext?, ValueTask<IMessageBuffer?>> subscriber,
         CancellationToken cancellationToken = default);
 
@@ -74,7 +74,7 @@ public interface IMessagingService : IAsyncDisposable
     /// <param name="endpoint"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    ValueTask UnregisterServiceAsync(string endpoint, CancellationToken cancellationToken = default);
+    public ValueTask UnregisterServiceAsync(string endpoint, CancellationToken cancellationToken = default);
 
     /// <summary>
     ///     Invokes a named service.
@@ -84,7 +84,7 @@ public interface IMessagingService : IAsyncDisposable
     /// <param name="options"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    ValueTask<IMessageBuffer?> InvokeAsync(
+    public ValueTask<IMessageBuffer?> InvokeAsync(
         string endpoint,
         IMessageBuffer? payload = null,
         InvokeOptions options = default,

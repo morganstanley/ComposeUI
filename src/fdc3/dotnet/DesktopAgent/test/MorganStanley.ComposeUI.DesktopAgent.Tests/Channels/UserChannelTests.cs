@@ -23,7 +23,7 @@ public class UserChannelTests : ChannelTestBase
 
     public UserChannelTests()
     {
-        Channel = new UserChannel(TestChannel, new Mock<IComposeUIMessaging>().Object, null);
+        Channel = new UserChannel(TestChannel, new Mock<IMessaging>().Object, null);
         Topics = Fdc3Topic.UserChannel(TestChannel);
     }
 }

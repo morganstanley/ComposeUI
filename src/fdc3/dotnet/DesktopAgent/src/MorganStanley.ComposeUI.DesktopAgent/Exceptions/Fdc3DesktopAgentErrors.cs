@@ -22,7 +22,7 @@ public static class Fdc3DesktopAgentErrors
     public const string MissingId = nameof(MissingId);
 
     /// <summary>
-    /// Given payload from <seealso cref="MorganStanley.ComposeUI.Messaging.IMessageRouter"/> is null.
+    /// Error message when a null request is received through the messaging service.
     /// </summary>
     public const string PayloadNull = nameof(PayloadNull);
 

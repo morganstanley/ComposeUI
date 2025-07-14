@@ -24,7 +24,7 @@ public interface IConnection : IAsyncDisposable
     /// </summary>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    ValueTask ConnectAsync(CancellationToken cancellationToken = default);
+    public ValueTask ConnectAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Sends a message to the server.
@@ -34,7 +34,7 @@ public interface IConnection : IAsyncDisposable
     /// <returns></returns>
     /// <exception cref="MessageRouterException">With name <see cref="MessageRouterErrors.ConnectionClosed"/> if the connection was closed by either party while sending the request</exception>
     /// <exception cref="MessageRouterException">With name <see cref="MessageRouterErrors.ConnectionAborted"/> if the connection was closed due to an unexpected error</exception>
-    ValueTask SendAsync(Message message, CancellationToken cancellationToken = default);
+    public ValueTask SendAsync(Message message, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Receives the next message from the server.
@@ -43,5 +43,5 @@ public interface IConnection : IAsyncDisposable
     /// <returns></returns>
     /// <exception cref="MessageRouterException">With name <see cref="MessageRouterErrors.ConnectionClosed"/> if the connection was closed by either party while sending the request</exception>
     /// <exception cref="MessageRouterException">With name <see cref="MessageRouterErrors.ConnectionAborted"/> if the connection was closed due to an unexpected error</exception>
-    ValueTask<Message> ReceiveAsync(CancellationToken cancellationToken = default);
+    public ValueTask<Message> ReceiveAsync(CancellationToken cancellationToken = default);
 }

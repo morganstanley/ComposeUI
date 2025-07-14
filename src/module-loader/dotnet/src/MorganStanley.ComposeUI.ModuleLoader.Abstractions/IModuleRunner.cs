@@ -14,9 +14,9 @@ namespace MorganStanley.ComposeUI.ModuleLoader;
 
 public interface IModuleRunner
 {
-    string ModuleType { get; }
+    public string ModuleType { get; }
 
-    Task Start(StartupContext startupContext, Func<Task> pipeline);
+    public Task Start(StartupContext startupContext, Func<Task> pipeline);
 
-    Task Stop(IModuleInstance moduleInstance);
+    public Task Stop(IModuleInstance moduleInstance);
 }

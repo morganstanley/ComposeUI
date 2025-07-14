@@ -16,27 +16,27 @@ namespace MorganStanley.ComposeUI.ModuleLoader;
 
 public interface IModuleManifest
 {
-    string Id { get; }
+    public string Id { get; }
 
-    string Name { get; }
+    public string Name { get; }
 
-    string ModuleType { get; }
+    public string ModuleType { get; }
 
     /// <summary>
     /// Adds grouping and filtering capabilities to modules.
     /// </summary>
-    string[] Tags { get; }
+    public string[] Tags { get; }
 
     /// <summary>
     /// Additional properties that can be used to extend the manifest.
     /// Eg. Colors, Fonts, etc
     /// </summary>
-    Dictionary<string, string> AdditionalProperties { get; }
+    public Dictionary<string, string> AdditionalProperties { get; }
 }
 
 public interface IModuleManifest<out TDetails> : IModuleManifest
 {
-    TDetails Details { get; }
+    public TDetails Details { get; }
 }
 
 public static class ModuleManifestExtensions

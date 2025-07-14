@@ -20,27 +20,27 @@ public interface IModuleInstance
     /// <summary>
     /// Gets the unique ID of the module instance.
     /// </summary>
-    Guid InstanceId { get; }
+    public Guid InstanceId { get; }
 
     /// <summary>
     /// Gets the manifest of the module.
     /// </summary>
-    IModuleManifest Manifest { get; }
+    public IModuleManifest Manifest { get; }
 
     /// <summary>
     /// Gets the original <see cref="StartRequest"/> that was used to start the module.
     /// </summary>
-    StartRequest StartRequest { get; }
+    public StartRequest StartRequest { get; }
 
     /// <summary>
     /// Gets the properties attached to the module instance.
     /// </summary>
     /// <returns>The collection of properties in the order they were added to the <see cref="StartupContext"/></returns>
-    IEnumerable<object> GetProperties();
+    public IEnumerable<object> GetProperties();
 
     /// <summary>
     /// Gets the properties of the specified type attached to the module instance.
     /// </summary>
     /// <returns>The collection of properties of the specified type.</returns>
-    IEnumerable<T> GetProperties<T>();
+    public IEnumerable<T> GetProperties<T>();
 }

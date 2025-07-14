@@ -24,12 +24,12 @@ public interface IMessageRouterServer : IAsyncDisposable
     /// </summary>
     /// <param name="connection"></param>
     /// <returns></returns>
-    ValueTask ClientConnected(IClientConnection connection);
+    public ValueTask ClientConnected(IClientConnection connection);
 
     /// <summary>
     /// Notifies the Message Router of a disconnected client.
     /// </summary>
     /// <param name="connection"></param>
     /// <returns></returns>
-    ValueTask ClientDisconnected(IClientConnection connection);
+    public ValueTask ClientDisconnected(IClientConnection connection);
 }

@@ -99,11 +99,18 @@ public static class CommandLineParser
         };
     }
 
-    private static string? ToCamelCase(string? value) =>
-        value switch
+    private static string ToCamelCase(string value)
+    {
+        if (value == null)
         {
-            null => null,
-            "" => "",
-            _ => char.ToLower(value[0]) + value[1..]
-        };
+            return null;
+        }
+
+        if (value == "")
+        {
+            return "";
+        }
+
+        return char.ToLower(value[0]) + value.Substring(1);
+    }
 }

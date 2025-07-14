@@ -22,7 +22,7 @@ using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetada
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Infrastructure.Internal;
 
-public class ResolverUIMessageRouterCommunicatorTests
+public class ResolverUICommunicatorTests
 {
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -32,8 +32,8 @@ public class ResolverUIMessageRouterCommunicatorTests
     [Fact]
     public async Task SendResolverUIRequest_will_return_null()
     {
-        var messageRouterMock = new Mock<IComposeUIMessaging>();
-        messageRouterMock.Setup(
+        var messagingMock = new Mock<IMessaging>();
+        messagingMock.Setup(
                 _ => _.InvokeAsync(
                     It.IsAny<string>(),
                     It.IsAny<string?>(),
@@ -41,9 +41,9 @@ public class ResolverUIMessageRouterCommunicatorTests
                     It.IsAny<CancellationToken>()))
             .Returns(null);
 
-        var resolverUIMessageRouterCommunicator = new ResolverUIMessageRouterCommunicator(messageRouterMock.Object, null);
+        var resolverUICommunicator = new ResolverUICommunicator(messagingMock.Object, null);
 
-        var response = await resolverUIMessageRouterCommunicator.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>());
+        var response = await resolverUICommunicator.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>());
 
         response.Should().BeNull();
     }
@@ -51,8 +51,8 @@ public class ResolverUIMessageRouterCommunicatorTests
     [Fact]
     public async Task SendResolverUIRequest_will_return_response()
     {
-        var messageRouterMock = new Mock<IComposeUIMessaging>();
-        messageRouterMock.Setup(
+        var messagingMock = new Mock<IMessaging>();
+        messagingMock.Setup(
                 _ => _.InvokeAsync(
                     It.IsAny<string>(),
                     It.IsAny<string?>(),
@@ -64,9 +64,9 @@ public class ResolverUIMessageRouterCommunicatorTests
                     AppMetadata = new AppMetadata() { AppId = "testAppId" }
                 }, _jsonSerializerOptions)));
 
-        var resolverUIMessageRouterCommunicator = new ResolverUIMessageRouterCommunicator(messageRouterMock.Object, null);
+        var resolverUICommunicator = new ResolverUICommunicator(messagingMock.Object, null);
 
-        var response = await resolverUIMessageRouterCommunicator.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>());
+        var response = await resolverUICommunicator.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>());
 
         response.Should().NotBeNull();
         response!.AppMetadata.Should().NotBeNull();
