@@ -22,7 +22,7 @@ namespace MorganStanley.ComposeUI.Messaging;
 /// </summary>
 public static class MessageRouterExtensions
 {
-    /// <inheritdoc cref="IMessageRouter.PublishAsync"/>
+    /// <inheritdoc cref="IMessagingService.PublishAsync"/>
     public static ValueTask PublishAsync(
         this IMessageRouter messageRouter,
         string topic,
@@ -37,7 +37,7 @@ public static class MessageRouterExtensions
             cancellationToken);
     }
 
-    /// <inheritdoc cref="IMessageRouter.InvokeAsync"/>
+    /// <inheritdoc cref="IMessagingService.InvokeAsync"/>
     public static async ValueTask<string?> InvokeAsync(
         this IMessageRouter messageRouter,
         string endpoint,
@@ -89,17 +89,17 @@ public static class MessageRouterExtensions
         IObserver<TopicMessage> observer,
         CancellationToken cancellationToken = default)
     {
-        Func<IMessageBuffer, ValueTask> innerSubscriber = async messageBuffer =>
+        async ValueTask InnerSubscriber(IMessageBuffer messageBuffer)
         {
             var context = new MessageContext();
             var topicMessage = new TopicMessage(topic, messageBuffer, context);
 
             observer.OnNext(topicMessage);
             await ValueTask.CompletedTask;
-        };
+        }
 
         return Disposable.FromAsyncDisposable(
-            messageRouter.SubscribeAsync(topic, innerSubscriber, cancellationToken));
+            messageRouter.SubscribeAsync(topic, InnerSubscriber, cancellationToken));
     }
 
     /// <summary>
@@ -117,15 +117,15 @@ public static class MessageRouterExtensions
         IObserver<string?> observer,
         CancellationToken cancellationToken = default)
     {
-        Func<IMessageBuffer, ValueTask> innerSubscriber = async messageBuffer =>
+        async ValueTask InnerSubscriber(IMessageBuffer messageBuffer)
         {
             var message = messageBuffer?.GetString();
             observer.OnNext(message);
             await ValueTask.CompletedTask;
-        };
+        }
 
         return Disposable.FromAsyncDisposable(
-            messageRouter.SubscribeAsync(topic, innerSubscriber, cancellationToken));
+            messageRouter.SubscribeAsync(topic, InnerSubscriber, cancellationToken));
     }
 
     /// <summary>
@@ -144,13 +144,13 @@ public static class MessageRouterExtensions
         CancellationToken cancellationToken = default)
     {
 
-        Func<IMessageBuffer, ValueTask> innerSubscriber = async messageBuffer =>
+        async ValueTask InnerSubscriber(IMessageBuffer messageBuffer)
         {
             var message = messageBuffer?.GetString();
             await subscriber.OnNextAsync(message);
-        };
+        }
 
-        return messageRouter.SubscribeAsync(topic, innerSubscriber, cancellationToken);
+        return messageRouter.SubscribeAsync(topic, InnerSubscriber, cancellationToken);
     }
     
     /// <summary>
@@ -167,14 +167,14 @@ public static class MessageRouterExtensions
     {
         var channel = Channel.CreateUnbounded<TopicMessage>();
 
-        Func<IMessageBuffer, ValueTask> handler = async messageBuffer =>
+        async ValueTask Handler(IMessageBuffer messageBuffer)
         {
             var context = new MessageContext();
             var topicMessage = new TopicMessage(topic, messageBuffer, context);
             await channel.Writer.WriteAsync(topicMessage, cancellationToken);
-        };
+        }
 
-        await using var subscription = await messageRouter.SubscribeAsync(topic, handler, cancellationToken);
+        await using var subscription = await messageRouter.SubscribeAsync(topic, Handler, cancellationToken);
 
         await foreach (var message in channel.Reader.ReadAllAsync(cancellationToken).WithCancellation(cancellationToken))
         {

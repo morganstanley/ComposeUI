@@ -53,7 +53,7 @@ public class UserChannelErrorsAndDiagnosticsTests
     public UserChannelErrorsAndDiagnosticsTests()
     {
         _logger = new TestLogger();
-        _channel = new UserChannel(TestChannel, new Mock<IComposeUIMessaging>().Object, _logger);
+        _channel = new UserChannel(TestChannel, new Mock<IMessaging>().Object, _logger);
     }
 
     [Fact]
@@ -93,9 +93,9 @@ public class UserChannelErrorsAndDiagnosticsTests
         VerifyDebugAndWarning();
     }
 
-    private string EmptyBuffer => string.Empty;
-    private string PlainTextBuffer => "Plain Text Payload";
-    private string InvalidJsonBuffer => "{\"randomField\":\"random text\"}";
+    private static string EmptyBuffer => string.Empty;
+    private static string PlainTextBuffer => "Plain Text Payload";
+    private static string InvalidJsonBuffer => "{\"randomField\":\"random text\"}";
 
     private void VerifyDebugAndWarning()
     {

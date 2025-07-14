@@ -23,5 +23,5 @@ public interface IAccessTokenValidator
     /// <param name="clientId">The identifier of the client connection.</param>
     /// <param name="accessToken">The access token provided by the client.</param>
     /// <returns></returns>
-    ValueTask Validate(string clientId, string? accessToken);
+    public ValueTask Validate(string clientId, string? accessToken);
 }

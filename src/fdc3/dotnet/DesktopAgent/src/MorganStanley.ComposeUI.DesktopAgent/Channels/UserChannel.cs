@@ -20,7 +20,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
 
 internal class UserChannel : Channel
 {
-    public UserChannel(string id, IComposeUIMessaging messagingService, ILogger<UserChannel>? logger)
+    public UserChannel(string id, IMessaging messagingService, ILogger<UserChannel>? logger)
         : base(id, messagingService, (ILogger?) logger ?? NullLogger.Instance, Fdc3Topic.UserChannel(id)) { }
 
     protected override string ChannelTypeName => "UserChannel";

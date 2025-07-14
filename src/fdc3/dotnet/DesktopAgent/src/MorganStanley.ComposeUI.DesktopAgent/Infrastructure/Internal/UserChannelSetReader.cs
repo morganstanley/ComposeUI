@@ -69,7 +69,7 @@ internal class UserChannelSetReader : IUserChannelSetReader, IDisposable
             using var stream = assembly.GetManifestResourceStream(ResourceNames.DefaultUserChannelSet);
             if (stream != null)
             {
-                var userChannels = JsonSerializer.Deserialize<ChannelItem[]>(stream, _jsonSerializerOptions);
+                var userChannels = await JsonSerializer.DeserializeAsync<ChannelItem[]>(stream, _jsonSerializerOptions);
                 _userChannelSet = userChannels?.ToDictionary(x => x.Id, y => y);
             }
         }
@@ -85,15 +85,15 @@ internal class UserChannelSetReader : IUserChannelSetReader, IDisposable
 
                 if (_fileSystem.File.Exists(path))
                 {
-                    await using var stream = _fileSystem.File.OpenRead(path);
-                    _userChannelSet = (JsonSerializer.Deserialize<ChannelItem[]>(stream, _jsonSerializerOptions))?.ToDictionary(x => x.Id, y => y);
+                    using var stream = _fileSystem.File.OpenRead(path);
+                    _userChannelSet = (await JsonSerializer.DeserializeAsync<ChannelItem[]>(stream, _jsonSerializerOptions))?.ToDictionary(x => x.Id, y => y);
                 }
             }
             else if (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
             {
                 var response = await _httpClient.GetAsync(uri, cancellationToken);
-                await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-                _userChannelSet = (JsonSerializer.Deserialize<ChannelItem[]>(stream, _jsonSerializerOptions))?.ToDictionary(x => x.Id, y => y);
+                using var stream = await response.Content.ReadAsStreamAsync();
+                _userChannelSet = (await JsonSerializer.DeserializeAsync<ChannelItem[]>(stream, _jsonSerializerOptions))?.ToDictionary(x => x.Id, y => y);
             }
         }
 

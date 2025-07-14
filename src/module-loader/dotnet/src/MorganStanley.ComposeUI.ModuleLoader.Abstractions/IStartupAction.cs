@@ -14,5 +14,5 @@ namespace MorganStanley.ComposeUI.ModuleLoader;
 
 public interface IStartupAction
 {
-    Task InvokeAsync(StartupContext startupContext, Func<Task> next);
+    public Task InvokeAsync(StartupContext startupContext, Func<Task> next);
 }

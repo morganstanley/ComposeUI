@@ -78,9 +78,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "architecture", "architectur
 		..\..\..\site\content\architecture\adr-016-shell-api.mdx = ..\..\..\site\content\architecture\adr-016-shell-api.mdx
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.MessagingAdapter.Abstractions", "..\..\messagingadapter\dotnet\MorganStanley.ComposeUI.MessagingAdapter.Abstractions\MorganStanley.ComposeUI.MessagingAdapter.Abstractions.csproj", "{16132504-497F-4FE9-96C2-7D08F59941A7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.MessagingAdapter.Abstractions", "..\..\messagingadapter\dotnet\src\MorganStanley.ComposeUI.MessagingAdapter.Abstractions\MorganStanley.ComposeUI.MessagingAdapter.Abstractions.csproj", "{16132504-497F-4FE9-96C2-7D08F59941A7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.MessagingAdapter", "..\..\messagingadapter\dotnet\MorganStanley.ComposeUI.MessagingAdapter\MorganStanley.ComposeUI.MessagingAdapter.csproj", "{7D5F85E8-BFAA-4A7A-93A8-215676E06FA3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.MessagingAdapter.MessageRouter", "..\..\messagingadapter\dotnet\src\MorganStanley.ComposeUI.MessagingAdapter.MessageRouter\MorganStanley.ComposeUI.MessagingAdapter.MessageRouter.csproj", "{7D5F85E8-BFAA-4A7A-93A8-215676E06FA3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

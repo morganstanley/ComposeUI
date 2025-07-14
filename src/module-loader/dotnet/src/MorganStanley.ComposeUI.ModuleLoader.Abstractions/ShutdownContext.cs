@@ -15,7 +15,7 @@ namespace MorganStanley.ComposeUI.ModuleLoader;
 ///<inheritdoc/>
 public sealed class ShutdownContext
 {
-    private readonly object _lock = new object();
+    private readonly object _lock = new();
     private readonly List<object> _properties = new();
 
     public ShutdownContext(IModuleInstance moduleInstance)
@@ -27,7 +27,10 @@ public sealed class ShutdownContext
 
     public void AddProperty<T>(T value)
     {
-        ArgumentNullException.ThrowIfNull(value, nameof(value));
+        if (value == null)
+        {
+            throw new ArgumentNullException(nameof(value));
+        }
 
         lock (_lock)
         {

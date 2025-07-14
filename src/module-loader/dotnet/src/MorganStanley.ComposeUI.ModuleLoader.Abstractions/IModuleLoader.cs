@@ -19,7 +19,7 @@ public interface IModuleLoader
     /// </summary>
     /// <param name="startRequest">Provides possibility to pass different configuration for starting the module.</param>
     /// <returns></returns>
-    Task<IModuleInstance> StartModule(StartRequest startRequest);
+    public Task<IModuleInstance> StartModule(StartRequest startRequest);
 
 
     /// <summary>
@@ -27,11 +27,11 @@ public interface IModuleLoader
     /// </summary>
     /// <param name="stopRequest"></param>
     /// <returns></returns>
-    Task StopModule(StopRequest stopRequest);
+    public Task StopModule(StopRequest stopRequest);
 
 
     /// <summary>
     /// The module's lifetime events through its lifetime.
     /// </summary>
-    IObservable<LifetimeEvent> LifetimeEvents { get; }
+    public IObservable<LifetimeEvent> LifetimeEvents { get; }
 }

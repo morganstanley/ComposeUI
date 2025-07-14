@@ -21,7 +21,7 @@ using static MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.TestData.TestAppDir
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Infrastructure.Internal;
 
-public partial class Fdc3DesktopAgentMessageRouterServiceTests
+public partial class Fdc3DesktopAgentMessagingServiceTests
 {
     public class FindIntentsByContextTestCase
     {

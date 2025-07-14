@@ -24,17 +24,17 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
     internal abstract class Channel : IAsyncDisposable
     {
         public string Id { get; }
-        protected IComposeUIMessaging MessagingService { get; }
+        protected IMessaging MessagingService { get; }
         protected abstract string ChannelTypeName { get; }
         private readonly ILogger _logger;
         private readonly ChannelTopics _topics;
         private readonly ConcurrentDictionary<string, string> _contexts = new();
         private readonly object _contextsLock = new();
         private string? _lastContext = null;
-        private IDisposable? _broadcastSubscription;
+        private IAsyncDisposable? _broadcastSubscription;
         private bool _disposed = false;
 
-        protected Channel(string id, IComposeUIMessaging messagingService, ILogger logger, ChannelTopics topics)
+        protected Channel(string id, IMessaging messagingService, ILogger logger, ChannelTopics topics)
         {
             Id = id;
             MessagingService = messagingService;
@@ -68,14 +68,14 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
                 if (payloadBuffer == null)
                 {
                     LogNullOrEmptyBroadcast();
-                    return ValueTask.CompletedTask;
+                    return new ValueTask();
                 }
 
                 var payload = payloadBuffer;
                 if (payload == null || payload.Length == 0)
                 {
                     LogNullOrEmptyBroadcast();
-                    return ValueTask.CompletedTask;
+                    return new ValueTask();
                 }
 
                 LogPayload(payloadBuffer);
@@ -87,7 +87,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
                 catch (JsonException)
                 {
                     LogInvalidPayloadJson();
-                    return ValueTask.CompletedTask;
+                    return new ValueTask();
                 }
 
                 var contextType = (string?) ctx!["type"];
@@ -95,7 +95,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
                 if (string.IsNullOrEmpty(contextType))
                 {
                     LogMissingContextType();
-                    return ValueTask.CompletedTask;
+                    return new ValueTask();
                 }
 
                 _contexts.AddOrUpdate(
@@ -105,7 +105,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
 
                 _lastContext = payloadBuffer;
 
-                return ValueTask.CompletedTask;
+                return new ValueTask();
             }
         }
 
@@ -115,18 +115,18 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
             {
                 if (payloadBuffer == null)
                 {
-                    return ValueTask.FromResult(_lastContext);
+                    return new ValueTask<string?>(_lastContext);
                 }
 
                 var payload = payloadBuffer.ReadJson<GetCurrentContextRequest>(new(JsonSerializerDefaults.Web));
                 if (payload?.ContextType == null)
                 {
-                    return ValueTask.FromResult(_lastContext);
+                    return new ValueTask<string?>(_lastContext);
                 }
 
                 return _contexts.TryGetValue(payload.ContextType, out var messageBuffer)
-                    ? ValueTask.FromResult<string?>(messageBuffer)
-                    : ValueTask.FromResult<string?>(null);
+                    ? new ValueTask<string?>(messageBuffer)
+                    : new ValueTask<string?>((string?)null);
             }
         }
 
@@ -134,7 +134,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
         {
             if (_broadcastSubscription != null)
             {
-                _broadcastSubscription.Dispose();
+                await _broadcastSubscription.DisposeAsync();
             }
 
             _broadcastSubscription = null;
@@ -148,7 +148,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
         {
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug("{ChannelTypeName} {Id} connected to MessageRouter with client id {ClientId}", ChannelTypeName, Id, MessagingService.ClientId);
+                _logger.LogDebug("{ChannelTypeName} {Id} connected to the messaging service with id {ClientId}", ChannelTypeName, Id, MessagingService.ClientId);
             }
         }
 

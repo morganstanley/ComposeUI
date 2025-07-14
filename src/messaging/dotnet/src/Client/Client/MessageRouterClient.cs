@@ -879,7 +879,7 @@ internal sealed class MessageRouterClient : IMessageRouter
         {
             if (_logger.IsEnabled(LogLevel.Error))
             {
-                _logger.LogError(exception, $"Exception thrown while unsubscribing, topic: {topic.Name}, request id: {requestId}.");
+                _logger.LogError(exception, "Exception thrown while unsubscribing, topic: {TopicName}, request id: {RequestId}.", topic.Name, requestId);
             }
         }
     }

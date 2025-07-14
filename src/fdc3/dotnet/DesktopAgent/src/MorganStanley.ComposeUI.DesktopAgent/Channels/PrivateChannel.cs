@@ -20,7 +20,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
 
 internal class PrivateChannel : Channel
 {
-    public PrivateChannel(string id, IComposeUIMessaging messagingService, ILogger<PrivateChannel>? logger, string instanceId)
+    public PrivateChannel(string id, IMessaging messagingService, ILogger<PrivateChannel>? logger, string instanceId)
         : base(id, messagingService, (ILogger?) logger ?? NullLogger.Instance, Fdc3Topic.PrivateChannel(id))
     {
         InstanceId = instanceId;
@@ -37,11 +37,9 @@ internal class PrivateChannel : Channel
 
         var subscription = await MessagingService.SubscribeAsync(topic, async buffer =>
         {
-            var message = buffer.ToString();
-
-            if (!(message??string.Empty).Contains("disconnected"))
+            if (buffer == null || !buffer.Contains("disconnected"))
             {
-                LogUnexpectedMessage(message);
+                LogUnexpectedMessage(buffer ?? string.Empty);
             }
 
             tcs.TrySetResult(true);
@@ -55,6 +53,6 @@ internal class PrivateChannel : Channel
             await tcs.Task;
         }
 
-        subscription.Dispose();
+        await subscription.DisposeAsync();
     }
 }

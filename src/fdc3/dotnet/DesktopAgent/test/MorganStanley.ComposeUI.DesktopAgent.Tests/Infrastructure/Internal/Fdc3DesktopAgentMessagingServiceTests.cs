@@ -37,7 +37,7 @@ using MorganStanley.ComposeUI.MessagingAdapter.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Infrastructure.Internal;
 
-public partial class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
+public partial class Fdc3DesktopAgentMessagingServiceTests : IAsyncLifetime
 {
     private const string TestChannel = "fdc3.channel.1";
 
@@ -47,14 +47,14 @@ public partial class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
             Source = new Uri(AppDirectoryPath)
         });
 
-    private readonly Fdc3DesktopAgentMessageRouterService _fdc3;
-    private readonly Mock<IComposeUIMessaging> _mockMessageRouter = new();
+    private readonly Fdc3DesktopAgentMessagingService _fdc3;
+    private readonly Mock<IMessaging> _mockMessaging = new();
     private readonly Mock<IResolverUICommunicator> _mockResolverUICommunicator = new();
     private readonly MockModuleLoader _mockModuleLoader = new();
     private readonly ConcurrentDictionary<Guid, IModuleInstance> _modules = new();
     private IDisposable? _disposable;
 
-    public Fdc3DesktopAgentMessageRouterServiceTests()
+    public Fdc3DesktopAgentMessagingServiceTests()
     {
         var options = new Fdc3DesktopAgentOptions()
         {
@@ -62,8 +62,8 @@ public partial class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
             ListenerRegistrationTimeout = TimeSpan.FromMilliseconds(100)
         };
 
-        _fdc3 = new Fdc3DesktopAgentMessageRouterService(
-            _mockMessageRouter.Object,
+        _fdc3 = new Fdc3DesktopAgentMessagingService(
+            _mockMessaging.Object,
             new Fdc3DesktopAgent(
                 _appDirectory,
                 _mockModuleLoader.Object,
@@ -222,7 +222,7 @@ public partial class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
         result!.AppMetadata!.AppId.Should().Be(App1.AppId);
         result!.AppMetadata!.InstanceId.Should().Be(targetFdc3InstanceId);
 
-        _mockMessageRouter.Verify(
+        _mockMessaging.Verify(
             _ => _.InvokeAsync(
                 Fdc3Topic.AddIntentListener,
                 It.IsAny<string?>(),
@@ -230,7 +230,7 @@ public partial class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
                 It.IsAny<CancellationToken>()),
             Times.Never);
 
-        _mockMessageRouter.Verify(
+        _mockMessaging.Verify(
             _ => _.InvokeAsync(
                 Fdc3Topic.RaiseIntentResolution(Intent1.Name, targetFdc3InstanceId),
                 It.IsAny<string?>(),
@@ -277,7 +277,7 @@ public partial class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
         result!.AppMetadata!.AppId.Should().Be(App1.AppId);
         result!.AppMetadata!.InstanceId.Should().Be(targetFdc3InstanceId);
 
-        _mockMessageRouter.Verify(
+        _mockMessaging.Verify(
             _ => _.PublishAsync(
                 Fdc3Topic.RaiseIntentResolution(Intent1.Name, targetFdc3InstanceId),
                 It.IsAny<string?>(),
@@ -930,7 +930,7 @@ public partial class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
         raiseIntentResult.AppMetadata!.AppId.Should().Be(App2.AppId);
         raiseIntentResult.AppMetadata!.InstanceId.Should().Be(targetFdc3InstanceId);
 
-        _mockMessageRouter.Verify(
+        _mockMessaging.Verify(
             _ => _.PublishAsync(
                 Fdc3Topic.RaiseIntentResolution(Intent2.Name, targetFdc3InstanceId),
                 It.IsAny<string?>(),
@@ -976,7 +976,7 @@ public partial class Fdc3DesktopAgentMessageRouterServiceTests : IAsyncLifetime
         raiseIntentResult!.AppMetadata!.AppId.Should().Be(App2.AppId);
         raiseIntentResult!.AppMetadata.InstanceId.Should().Be(targetFdc3InstanceId);
 
-        _mockMessageRouter.Verify(
+        _mockMessaging.Verify(
             _ => _.PublishAsync(
                 Fdc3Topic.RaiseIntentResolution(Intent2.Name, targetFdc3InstanceId),
                 It.IsAny<string?>(),

@@ -18,11 +18,11 @@ public interface IMessageBuffer
     ///     Gets the bytes of the underlying buffer as a <see cref="ReadOnlySpan{T}" />
     /// </summary>
     /// <returns></returns>
-    ReadOnlySpan<byte> GetSpan();
+    public ReadOnlySpan<byte> GetSpan();
 
     /// <summary>
     ///     Gets the string value of the buffer.
     /// </summary>
     /// <returns></returns>
-    string GetString();
+    public string GetString();
 }

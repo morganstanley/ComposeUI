@@ -21,5 +21,5 @@ public interface IConnectionFactory
     /// Creates a new <see cref="IConnection"/> instance.
     /// </summary>
     /// <returns></returns>
-    IConnection CreateConnection();
+    public IConnection CreateConnection();
 }

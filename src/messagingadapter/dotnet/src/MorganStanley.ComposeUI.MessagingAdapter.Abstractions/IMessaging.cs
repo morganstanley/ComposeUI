@@ -16,9 +16,17 @@ using System.Threading.Tasks;
 
 namespace MorganStanley.ComposeUI.MessagingAdapter.Abstractions;
 
-public interface IComposeUIMessaging
+/// <summary>
+/// Defines the contract for messaging clients to interact with the Message Router server,
+/// including connection management, service invocation, message publishing, subscription,
+/// and service registration operations.
+/// </summary>
+public interface IMessaging
 {
-    string? ClientId { get; }
+    /// <summary>
+    /// Gets the unique identifier of the messaging client instance.
+    /// </summary>
+    public string? ClientId { get; }
 
     /// <summary>
     /// Asynchronously connects to the Message Router server endpoint.
@@ -29,7 +37,7 @@ public interface IComposeUIMessaging
     /// Clients don't need to call this method before calling other methods on this type.
     /// The client should automatically establish a connection when needed.
     /// </remarks>
-    ValueTask ConnectAsync(CancellationToken cancellationToken = default);
+    public ValueTask ConnectAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     ///     Invokes a named service.
@@ -39,7 +47,7 @@ public interface IComposeUIMessaging
     /// <param name="options"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    ValueTask<string?> InvokeAsync(string endpoint, string? payload = null, InvokeOptions? options = default, CancellationToken cancellationToken = default);
+    public ValueTask<string?> InvokeAsync(string endpoint, string? payload = null, InvokeOptions? options = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Publishes a message to a topic.
@@ -49,7 +57,7 @@ public interface IComposeUIMessaging
     /// <param name="options"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    ValueTask PublishAsync(string topic, string? message = null, PublishOptions options = default, CancellationToken cancellationToken = default);
+    public ValueTask PublishAsync(string topic, string? message = null, PublishOptions options = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Registers a service by providing a name and handler.
@@ -58,7 +66,7 @@ public interface IComposeUIMessaging
     /// <param name="subscriber"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    ValueTask RegisterServiceAsync(string endpoint, Func<string, string, MessageAdapterContext?, ValueTask<string>> subscriber, CancellationToken cancellationToken = default);
+    public ValueTask RegisterServiceAsync(string endpoint, Func<string, string, MessageAdapterContext?, ValueTask<string>> subscriber, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets an observable that represents a topic.
@@ -67,7 +75,7 @@ public interface IComposeUIMessaging
     /// <param name="subscriber"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    ValueTask<IDisposable> SubscribeAsync(string topic, Func<string, ValueTask> subscriber, CancellationToken cancellationToken = default);
+    public ValueTask<IAsyncDisposable> SubscribeAsync(string topic, Func<string, ValueTask> subscriber, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Removes a service registration.
@@ -75,17 +83,5 @@ public interface IComposeUIMessaging
     /// <param name="endpoint"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    ValueTask UnregisterServiceAsync(string endpoint, CancellationToken cancellationToken = default);
-}
-
-public class InvokeOptions
-{
-    public string? CorrelationId { get; init; }
-}
-
-public record struct PublishOptions
-{
-    public string? CorrelationId { get; init; }
-
-    // TODO: Wait for delivery
+    public ValueTask UnregisterServiceAsync(string endpoint, CancellationToken cancellationToken = default);
 }

@@ -10,21 +10,15 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using MorganStanley.ComposeUI.MessagingAdapter;
-using MorganStanley.ComposeUI.MessagingAdapter.Abstractions;
+namespace MorganStanley.ComposeUI.MessagingAdapter.Abstractions;
 
-namespace Microsoft.Extensions.DependencyInjection;
-
-public static class ServiceCollectionMessagingadapterExtensions
+/// <summary>
+/// Represents options for an invoke operation, such as correlation identifiers.
+/// </summary>
+public class InvokeOptions
 {
     /// <summary>
-    /// Adds the ComposeUI messaging adapter to the service collection.
+    /// Gets or sets the correlation identifier used to track the invoke operation.
     /// </summary>
-    /// <param name="services">The service collection to add the messaging adapter to.</param>
-    /// <returns>The updated service collection.</returns>
-    public static IServiceCollection AddComposeUIMessagingAdapter(this IServiceCollection services)
-    {
-        services.AddSingleton<IComposeUIMessaging, ComposeUIMessaging>();
-        return services;
-    }
+    public string? CorrelationId { get; init; }
 }

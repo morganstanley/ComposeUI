@@ -51,9 +51,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "architecture", "architectur
 		..\..\..\..\site\content\architecture\adr-016-shell-api.mdx = ..\..\..\..\site\content\architecture\adr-016-shell-api.mdx
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.MessagingAdapter.Abstractions", "..\..\..\messagingadapter\dotnet\MorganStanley.ComposeUI.MessagingAdapter.Abstractions\MorganStanley.ComposeUI.MessagingAdapter.Abstractions.csproj", "{14625DD0-5AE1-4040-8F7A-C5F8A5EBF0FE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.MessagingAdapter.Abstractions", "..\..\..\messagingadapter\dotnet\src\MorganStanley.ComposeUI.MessagingAdapter.Abstractions\MorganStanley.ComposeUI.MessagingAdapter.Abstractions.csproj", "{14625DD0-5AE1-4040-8F7A-C5F8A5EBF0FE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.MessagingAdapter", "..\..\..\messagingadapter\dotnet\MorganStanley.ComposeUI.MessagingAdapter\MorganStanley.ComposeUI.MessagingAdapter.csproj", "{E3C4DCFA-A209-4E04-B275-FBDFF11CF8D2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.MessagingAdapter.MessageRouter", "..\..\..\messagingadapter\dotnet\src\MorganStanley.ComposeUI.MessagingAdapter.MessageRouter\MorganStanley.ComposeUI.MessagingAdapter.MessageRouter.csproj", "{E3C4DCFA-A209-4E04-B275-FBDFF11CF8D2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_", "_", "{8DEB26A1-CD6D-4F50-B052-B97D54E62B30}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\..\..\Directory.Build.props = ..\..\..\..\Directory.Build.props
+		..\..\..\..\Directory.Packages.props = ..\..\..\..\Directory.Packages.props
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

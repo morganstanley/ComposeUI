@@ -5,7 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" />
+	  <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
+	  <PackageReference Include="System.Text.Json" />
   </ItemGroup>
 
 </Project>
