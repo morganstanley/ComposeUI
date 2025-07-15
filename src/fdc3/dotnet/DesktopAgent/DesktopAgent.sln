@@ -61,6 +61,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_", "_", "{8DEB26A1-CD6D-4F
 		..\..\..\..\Directory.Packages.props = ..\..\..\..\Directory.Packages.props
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MorganStanley.ComposeUI.MessagingAdapter.MessageRouter.Tests", "..\..\..\messagingadapter\dotnet\test\MorganStanley.ComposeUI.MessagingAdapter.MessageRouter.Tests\MorganStanley.ComposeUI.MessagingAdapter.MessageRouter.Tests.csproj", "{BA566AAC-6861-4BA2-8F5A-D3ED93445A39}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -119,6 +121,10 @@ Global
 		{E3C4DCFA-A209-4E04-B275-FBDFF11CF8D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E3C4DCFA-A209-4E04-B275-FBDFF11CF8D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E3C4DCFA-A209-4E04-B275-FBDFF11CF8D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA566AAC-6861-4BA2-8F5A-D3ED93445A39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA566AAC-6861-4BA2-8F5A-D3ED93445A39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA566AAC-6861-4BA2-8F5A-D3ED93445A39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA566AAC-6861-4BA2-8F5A-D3ED93445A39}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -137,6 +143,7 @@ Global
 		{4FC1B3E0-6DAC-4868-AD68-08093B2555DF} = {2CE54671-6C98-455E-B2A0-52F8564DDA5D}
 		{14625DD0-5AE1-4040-8F7A-C5F8A5EBF0FE} = {2CE54671-6C98-455E-B2A0-52F8564DDA5D}
 		{E3C4DCFA-A209-4E04-B275-FBDFF11CF8D2} = {2CE54671-6C98-455E-B2A0-52F8564DDA5D}
+		{BA566AAC-6861-4BA2-8F5A-D3ED93445A39} = {44C08E9B-2A1D-4F01-B579-59DFCE4CBF6D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {70FE103D-26D8-42D8-88BA-1BECB1F73A18}

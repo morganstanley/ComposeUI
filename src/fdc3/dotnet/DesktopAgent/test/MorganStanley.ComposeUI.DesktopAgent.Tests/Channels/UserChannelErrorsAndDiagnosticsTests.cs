@@ -12,6 +12,7 @@
  * and limitations under the License.
  */
 
+using Finos.Fdc3;
 using Microsoft.Extensions.Logging;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
 using MorganStanley.ComposeUI.MessagingAdapter.Abstractions;
@@ -39,8 +40,13 @@ public class UserChannelErrorsAndDiagnosticsTests
         {
             switch (logLevel)
             {
-                case LogLevel.Debug: DebugCalls++; break;
-                case LogLevel.Warning: WarningCalls++; break;
+                case LogLevel.Debug:
+                    DebugCalls++;
+                    break;
+
+                case LogLevel.Warning:
+                    WarningCalls++;
+                    break;
             }
         }
     }
@@ -107,5 +113,60 @@ public class UserChannelErrorsAndDiagnosticsTests
     {
         _logger.WarningCalls.Should().Be(1);
         _logger.DebugCalls.Should().Be(0);
+    }
+
+    [Fact]
+    public void LogConnected_LoggerEnabled_LogsDebugMessage()
+    {
+        // Arrange
+        var loggerMock = new Mock<ILogger>();
+        loggerMock.Setup(l => l.IsEnabled(LogLevel.Debug)).Returns(true);
+
+        var messagingMock = new Mock<IMessaging>();
+        messagingMock.SetupGet(m => m.ClientId).Returns("client-123");
+
+        var topics = new ChannelTopics("test", ChannelType.User);
+        var channel = new TestChannel("test", messagingMock.Object, loggerMock.Object, topics);
+
+        // Act
+        channel.CallLogConnected();
+
+        // Assert
+        loggerMock.Verify(
+            l => l.Log(
+                LogLevel.Debug,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("connected to the messaging service")),
+                null,
+                It.IsAny<Func<It.IsAnyType, Exception, string>>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public void LogUnexpectedMessage_LoggerEnabled_LogsDebugMessage()
+    {
+        // Arrange
+        var loggerMock = new Mock<ILogger>();
+        loggerMock.Setup(l => l.IsEnabled(LogLevel.Warning)).Returns(true);
+
+        var messagingMock = new Mock<IMessaging>();
+        messagingMock.SetupGet(m => m.ClientId).Returns("client-123");
+
+        var topics = new ChannelTopics("test", ChannelType.User);
+        var channel = new TestChannel("test", messagingMock.Object, loggerMock.Object, topics);
+        var message = "Unexpected message received";
+
+        // Act
+        channel.CallLogUnexpectedError(message);
+
+        // Assert
+        loggerMock.Verify(
+            l => l.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("received unexpected message while trying to close a PrivateChannel")),
+                null,
+                It.IsAny<Func<It.IsAnyType, Exception, string>>()),
+            Times.Once);
     }
 }

@@ -19,6 +19,8 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using System.Collections.Concurrent;
 using MorganStanley.ComposeUI.MessagingAdapter.Abstractions;
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests")]
+
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
 {
     internal abstract class Channel : IAsyncDisposable

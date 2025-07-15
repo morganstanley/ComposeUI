@@ -14,6 +14,8 @@ using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 using MorganStanley.ComposeUI.MessagingAdapter.Abstractions;
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("MorganStanley.ComposeUI.MessagingAdapter.MessageRouter.Tests")]
+
 namespace MorganStanley.ComposeUI.MessagingAdapter;
 
 /// <summary>
