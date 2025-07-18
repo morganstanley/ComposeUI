@@ -24,8 +24,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Exceptions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol;
-using MorganStanley.ComposeUI.MessagingAdapter.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Abstractions.Exceptions;
 using MorganStanley.ComposeUI.ModuleLoader;
 using AppChannel = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels.AppChannel;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppIdentifier;
@@ -110,7 +109,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             await userChannel!.Connect();
             return userChannel;
         }
-        catch (MessagingAdapterDuplicateEndpointException exception)
+        catch (DuplicateServiceNameException exception)
         {
             if (_logger.IsEnabled(LogLevel.Warning))
             {
@@ -149,7 +148,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
             await privateChannel!.Connect();
         }
-        catch (MessagingAdapterDuplicateEndpointException exception)
+        catch (DuplicateServiceNameException exception)
         {
             if (_logger.IsEnabled(LogLevel.Warning))
             {
@@ -224,7 +223,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         {
             await appChannel!.Connect();
         }
-        catch (MessagingAdapterDuplicateEndpointException exception)
+        catch (DuplicateServiceNameException exception)
         {
             if (_logger.IsEnabled(LogLevel.Warning))
             {

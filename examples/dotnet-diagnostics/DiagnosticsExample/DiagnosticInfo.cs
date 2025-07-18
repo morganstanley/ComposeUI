@@ -14,7 +14,7 @@ using System;
 
 namespace DiagnosticsExample;
 
-internal class DiagnosticInfo
+internal record class DiagnosticInfo
 {
     public DateTime StartupTime { get; set; }
     public string ShellVersion { get; set; }

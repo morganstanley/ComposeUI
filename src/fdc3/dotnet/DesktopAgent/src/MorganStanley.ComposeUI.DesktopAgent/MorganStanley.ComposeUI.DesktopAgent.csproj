@@ -26,7 +26,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\..\..\messagingadapter\dotnet\src\MorganStanley.ComposeUI.MessagingAdapter.Abstractions\MorganStanley.ComposeUI.MessagingAdapter.Abstractions.csproj" />
+		<ProjectReference Include="..\..\..\..\..\messaging\dotnet\src\Abstractions\MorganStanley.ComposeUI.Messaging.Abstractions.csproj" />
 		<ProjectReference Include="..\..\..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader.Abstractions\MorganStanley.ComposeUI.ModuleLoader.Abstractions.csproj" />
 		<ProjectReference Include="..\..\..\..\..\shared\dotnet\src\MorganStanley.ComposeUI.Utilities\MorganStanley.ComposeUI.Utilities.csproj" />
 	</ItemGroup>

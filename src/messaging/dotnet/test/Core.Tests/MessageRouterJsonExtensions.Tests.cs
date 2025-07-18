@@ -20,17 +20,19 @@ namespace MorganStanley.ComposeUI.Messaging;
 
 public class MessageRouterJsonExtensionsTests
 {
+    private readonly Mock<IMessaging> _messageRouter = new Mock<IMessaging>();
+    private readonly List<string> _receivedMessages = new List<string>();
+    private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+
     [Fact]
     public async Task PublishJsonAsync_serializes_the_payload_to_json()
     {
-        var messageRouter = new Mock<IMessageRouter>();
-        var receivedMessages = new List<MessageBuffer>();
 
-        messageRouter.Setup(
+
+        _messageRouter.Setup(
                 _ => _.PublishAsync(
                     It.IsAny<string>(),
-                    Capture.In(receivedMessages),
-                    It.IsAny<PublishOptions>(),
+                    Capture.In(_receivedMessages),
                     It.IsAny<CancellationToken>()))
             .Verifiable();
 
@@ -40,11 +42,11 @@ public class MessageRouterJsonExtensionsTests
             Value = "test-value"
         };
 
-        await messageRouter.Object.PublishJsonAsync("test", testPayload);
+        await _messageRouter.Object.PublishJsonAsync("test", testPayload, _jsonOptions);
 
-        messageRouter.Verify();
+        _messageRouter.Verify();
 
-        var receivedJson = JObject.Parse(receivedMessages.Single().GetString());
+        var receivedJson = JObject.Parse(_receivedMessages.Single());
         var expectedJson = JObject.Parse(@"{ ""key"": ""test-name"", ""value"": ""test-value"" }");
 
         receivedJson.Should().BeEquivalentTo(expectedJson);
@@ -53,14 +55,11 @@ public class MessageRouterJsonExtensionsTests
     [Fact]
     public async Task PublishJsonAsync_respects_the_provided_JsonSerializerOptions()
     {
-        var messageRouter = new Mock<IMessageRouter>();
-        var receivedMessages = new List<MessageBuffer>();
 
-        messageRouter.Setup(
+        _messageRouter.Setup(
                 _ => _.PublishAsync(
                     It.IsAny<string>(),
-                    Capture.In(receivedMessages),
-                    It.IsAny<PublishOptions>(),
+                    Capture.In(_receivedMessages),
                     It.IsAny<CancellationToken>()))
             .Verifiable();
 
@@ -76,14 +75,14 @@ public class MessageRouterJsonExtensionsTests
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
         };
 
-        await messageRouter.Object.PublishJsonAsync(
+        await _messageRouter.Object.PublishJsonAsync(
             "test",
             testPayload,
             jsonSerializerOptions);
 
-        messageRouter.Verify();
+        _messageRouter.Verify();
 
-        var receivedJson = JObject.Parse(receivedMessages.Single().GetString());
+        var receivedJson = JObject.Parse(_receivedMessages.Single());
         var expectedJson = JObject.Parse(@"{ ""name"": ""test-name"", ""value"": ""test-value"" }");
 
         receivedJson.Should().BeEquivalentTo(expectedJson);

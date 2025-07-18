@@ -12,9 +12,10 @@
  * and limitations under the License.
  */
 
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
-using MorganStanley.ComposeUI.MessagingAdapter.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Channels;
 
@@ -49,18 +50,19 @@ public class UserChannelErrorsAndDiagnosticsTests
     private readonly TestLogger _logger;
     private readonly UserChannel _channel;
     private readonly ChannelTopics _topics = Fdc3Topic.UserChannel(TestChannel);
+    private readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
 
     public UserChannelErrorsAndDiagnosticsTests()
     {
         _logger = new TestLogger();
-        _channel = new UserChannel(TestChannel, new Mock<IMessaging>().Object, _logger);
+        _channel = new UserChannel(TestChannel, new Mock<IMessaging>().Object, _jsonSerializerOptions, _logger);
     }
 
     [Fact]
     public async Task EmptyPayloadBroadcastedIsLoggedAndIgnored()
     {
         await _channel.HandleBroadcast(EmptyBuffer);
-        var ctx = await _channel.GetCurrentContext(_topics.GetCurrentContext, null, null);
+        var ctx = await _channel.GetCurrentContext(null);
 
         ctx.Should().BeNull();
         VerifySingleWarning();
@@ -70,7 +72,7 @@ public class UserChannelErrorsAndDiagnosticsTests
     public async Task NullPayloadBroadcastedIsLoggedAndIgnored()
     {
         await _channel.HandleBroadcast(EmptyBuffer);
-        var ctx = await _channel.GetCurrentContext(_topics.GetCurrentContext, null, null);
+        var ctx = await _channel.GetCurrentContext(null);
         ctx.Should().BeNull();
         VerifySingleWarning();
     }
@@ -79,7 +81,7 @@ public class UserChannelErrorsAndDiagnosticsTests
     public async Task NonJsonBroadcastedIsLoggedAndIgnored()
     {
         await _channel.HandleBroadcast(PlainTextBuffer);
-        var ctx = await _channel.GetCurrentContext(_topics.GetCurrentContext, null, null);
+        var ctx = await _channel.GetCurrentContext(null);
         ctx.Should().BeNull();
         VerifyDebugAndWarning();
     }
@@ -88,7 +90,7 @@ public class UserChannelErrorsAndDiagnosticsTests
     public async Task MissingContextTypeBroadcastedIsLoggedAndIgnored()
     {
         await _channel.HandleBroadcast(InvalidJsonBuffer);
-        var ctx = await _channel.GetCurrentContext(_topics.GetCurrentContext, null, null);
+        var ctx = await _channel.GetCurrentContext(null);
         ctx.Should().BeNull();
         VerifyDebugAndWarning();
     }

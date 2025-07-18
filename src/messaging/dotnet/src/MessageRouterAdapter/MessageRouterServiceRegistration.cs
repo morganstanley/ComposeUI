@@ -10,16 +10,24 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 
-namespace MorganStanley.ComposeUI.Messaging;
+namespace MorganStanley.ComposeUI.MessagingAdapter.MessageRouter;
 
-/// <summary>
-///     The delegate type that gets called when an endpoint is invoked.
-/// </summary>
-public delegate ValueTask<IMessageBuffer?> MessageHandler(string endpoint, IMessageBuffer? payload, MessageContext context);
+internal class MessageRouterServiceRegistration(string serviceName, IMessageRouter messageRouter) : IAsyncDisposable
+{
+    private int _disposed = 0;
+    private readonly string _serviceName = serviceName;
+    private readonly IMessageRouter _messageRouter = messageRouter;
 
-/// <summary>
-///     The delegate type that gets called when an endpoint is invoked (plain text version).
-/// </summary>
-public delegate ValueTask<string?> PlainTextMessageHandler(string endpoint, string? payload, MessageContext context);
+
+    public async ValueTask DisposeAsync()
+    {
+        if (Interlocked.Exchange(ref _disposed, 1) > 0)
+        {
+            return;
+        }
+        await _messageRouter.UnregisterServiceAsync(_serviceName);
+    }
+}

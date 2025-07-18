@@ -28,7 +28,7 @@ namespace DiagnosticsExample;
 /// </summary>
 public partial class MainWindow : Window
 {
-    private IMessageRouter? _messageRouter;
+    private IMessaging? _messageRouter;
 
 
 
@@ -47,7 +47,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        _messageRouter = ((App)Application.Current).ServiceProvider.GetService<IMessageRouter>();
+        _messageRouter = ((App)Application.Current).ServiceProvider.GetService<IMessaging>();
     }
 
     private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -59,7 +59,7 @@ public partial class MainWindow : Window
         text.Append("MessageRouter AccessToken: ");
         text.AppendLine(Environment.GetEnvironmentVariable(EnvironmentVariableNames.AccessToken));
         DiagnosticsText = text.ToString();
-        
+
         try
         {
             if (_messageRouter != null)
@@ -79,7 +79,11 @@ public partial class MainWindow : Window
 
     private async Task LogDiagnostics()
     {
-        var diag = await _messageRouter!.InvokeAsync("Diagnostics");
-        await Dispatcher.InvokeAsync(() => DiagnosticsText += JsonSerializer.Serialize(diag.ReadJson<DiagnosticInfo>(), new JsonSerializerOptions { WriteIndented = true }));
+        var diag = await _messageRouter!.InvokeJsonServiceAsync<DiagnosticInfo>("Diagnostics", new JsonSerializerOptions { WriteIndented = true });
+        if (diag == null)
+        {
+            return;
+        }
+        await Dispatcher.InvokeAsync(() => DiagnosticsText += diag.ToString());
     }
 }

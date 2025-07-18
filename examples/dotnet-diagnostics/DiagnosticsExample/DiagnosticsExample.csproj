@@ -23,6 +23,7 @@ See the License for the specific language governing permissions and limitations 
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\messaging\dotnet\src\Client\MorganStanley.ComposeUI.Messaging.Client.csproj" />
+    <ProjectReference Include="..\..\..\src\messaging\dotnet\src\MessageRouterAdapter\MorganStanley.ComposeUI.Messaging.MessageRouterAdapter.csproj" />
   </ItemGroup>
 
 </Project>

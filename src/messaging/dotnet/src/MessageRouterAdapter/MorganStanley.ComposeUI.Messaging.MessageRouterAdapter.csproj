@@ -12,7 +12,6 @@
 	
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\messaging\dotnet\src\Core\MorganStanley.ComposeUI.Messaging.Core.csproj" />
-    <ProjectReference Include="..\MorganStanley.ComposeUI.MessagingAdapter.Abstractions\MorganStanley.ComposeUI.MessagingAdapter.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

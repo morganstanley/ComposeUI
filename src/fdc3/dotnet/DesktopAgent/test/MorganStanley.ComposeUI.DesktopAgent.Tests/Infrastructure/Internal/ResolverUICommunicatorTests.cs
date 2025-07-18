@@ -17,7 +17,7 @@ using Finos.Fdc3;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
-using MorganStanley.ComposeUI.MessagingAdapter.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.AppMetadata;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Infrastructure.Internal;
@@ -34,10 +34,9 @@ public class ResolverUICommunicatorTests
     {
         var messagingMock = new Mock<IMessaging>();
         messagingMock.Setup(
-                _ => _.InvokeAsync(
+                _ => _.InvokeServiceAsync(
                     It.IsAny<string>(),
                     It.IsAny<string?>(),
-                    It.IsAny<InvokeOptions>(),
                     It.IsAny<CancellationToken>()))
             .Returns(null);
 
@@ -53,13 +52,12 @@ public class ResolverUICommunicatorTests
     {
         var messagingMock = new Mock<IMessaging>();
         messagingMock.Setup(
-                _ => _.InvokeAsync(
+                _ => _.InvokeServiceAsync(
                     It.IsAny<string>(),
                     It.IsAny<string?>(),
-                    It.IsAny<InvokeOptions>(),
                     It.IsAny<CancellationToken>()))
             .Returns(ValueTask.FromResult<string?>(
-                JsonFactory.CreateJson(new ResolverUIResponse()
+                JsonSerializer.Serialize(new ResolverUIResponse()
                 {
                     AppMetadata = new AppMetadata() { AppId = "testAppId" }
                 }, _jsonSerializerOptions)));

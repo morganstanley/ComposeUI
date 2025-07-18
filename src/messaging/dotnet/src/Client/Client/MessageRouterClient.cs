@@ -60,7 +60,7 @@ internal sealed class MessageRouterClient : IMessageRouter
 
     public ValueTask<IAsyncDisposable> SubscribeAsync(
         string topic,
-        Func<IMessageBuffer, ValueTask> subscriber,
+        MessageHandler subscriber,
         CancellationToken cancellationToken = default)
     {
         Protocol.Topic.Validate(topic);
@@ -69,20 +69,10 @@ internal sealed class MessageRouterClient : IMessageRouter
         return SubscribeAsyncCore(GetTopic(topic), subscriber, cancellationToken);
     }
 
-    public ValueTask<IAsyncDisposable> SubscribeAsync(
-    string topic,
-    IAsyncObserver<TopicMessage> subscriber,
-    CancellationToken cancellationToken = default)
-    {
-        Protocol.Topic.Validate(topic);
-        CheckState();
-
-        return SubscribeAsyncCore(GetTopic(topic), subscriber, cancellationToken);
-    }
 
     public async ValueTask PublishAsync(
         string topic,
-        IMessageBuffer? payload = null,
+        IMessageBuffer payload,
         PublishOptions options = default,
         CancellationToken cancellationToken = default)
     {
@@ -131,8 +121,7 @@ internal sealed class MessageRouterClient : IMessageRouter
     /// <returns></returns>
     public ValueTask RegisterServiceAsync(
         string endpoint,
-        MessageHandler handler,
-        EndpointDescriptor? descriptor = null,
+        ServiceHandler handler,
         CancellationToken cancellationToken = default)
     {
         Endpoint.Validate(endpoint);
@@ -143,7 +132,7 @@ internal sealed class MessageRouterClient : IMessageRouter
             if (!_endpointHandlers.TryAdd(endpoint, handler))
                 throw ThrowHelper.DuplicateEndpoint(endpoint);
 
-            return RegisterServiceCore(endpoint, descriptor, cancellationToken);
+            return RegisterServiceCore(endpoint, cancellationToken);
         }
         catch
         {
@@ -151,19 +140,6 @@ internal sealed class MessageRouterClient : IMessageRouter
 
             throw;
         }
-    }
-
-    public ValueTask RegisterServiceAsync(
-        string endpoint,
-        Func<string, IMessageBuffer?, MessageContext?, ValueTask<IMessageBuffer?>> subscriber,
-        CancellationToken cancellationToken = default)
-    {
-        MessageHandler handler = async (endpoint, payload, context) =>
-        {
-            return await subscriber(endpoint, payload, context);
-        };
-
-        return RegisterServiceAsync(endpoint, handler, null, cancellationToken);
     }
 
     public ValueTask UnregisterServiceAsync(string endpoint, CancellationToken cancellationToken = default)
@@ -176,40 +152,9 @@ internal sealed class MessageRouterClient : IMessageRouter
         return UnregisterServiceCore(endpoint, cancellationToken);
     }
 
-    public ValueTask RegisterEndpointAsync(
-        string endpoint,
-        MessageHandler handler,
-        EndpointDescriptor? descriptor = null,
-        CancellationToken cancellationToken = default)
-    {
-        Endpoint.Validate(endpoint);
-        CheckState();
-
-        if (!_endpointHandlers.TryAdd(endpoint, handler))
-            throw ThrowHelper.DuplicateEndpoint(endpoint);
-
-        return ConnectAsync(cancellationToken);
-    }
-
-    public ValueTask UnregisterEndpointAsync(string endpoint, CancellationToken cancellationToken = default)
-    {
-        CheckState();
-        _endpointHandlers.TryRemove(endpoint, out _);
-
-        return default;
-    }
-
     public ValueTask DisposeAsync()
     {
         return CloseAsync(null);
-    }
-
-    internal IAsyncObservable<TopicMessage> GetTopicObservable(string topic)
-    {
-        Protocol.Topic.Validate(topic);
-        CheckState();
-
-        return GetTopic(topic);
     }
 
     private Topic GetTopic(string topicName)
@@ -229,7 +174,7 @@ internal sealed class MessageRouterClient : IMessageRouter
         Channel.CreateUnbounded<MessageWrapper<Message, object?>>(new UnboundedChannelOptions { SingleReader = true });
 
     private readonly ConcurrentDictionary<string, TaskCompletionSource<AbstractResponse>> _pendingRequests = new();
-    private readonly ConcurrentDictionary<string, MessageHandler> _endpointHandlers = new();
+    private readonly ConcurrentDictionary<string, ServiceHandler> _endpointHandlers = new();
     private readonly ConcurrentDictionary<string, Topic> _topics = new();
     private readonly MessageRouterOptions _options;
     private readonly ILogger<MessageRouterClient> _logger;
@@ -238,7 +183,7 @@ internal sealed class MessageRouterClient : IMessageRouter
     {
         ConnectionState oldState;
 
-        using (await _mutex.LockAsync())
+        using (await _mutex.LockAsync(CancellationToken.None))
         {
             oldState = _connectionState;
 
@@ -632,14 +577,12 @@ internal sealed class MessageRouterClient : IMessageRouter
 
     private async ValueTask RegisterServiceCore(
         string serviceName,
-        EndpointDescriptor? descriptor,
         CancellationToken cancellationToken)
     {
         var request = new RegisterServiceRequest
         {
             RequestId = GenerateRequestId(),
-            Endpoint = serviceName,
-            Descriptor = descriptor,
+            Endpoint = serviceName
         };
 
         await SendRequestAsync(request, cancellationToken);
@@ -647,7 +590,7 @@ internal sealed class MessageRouterClient : IMessageRouter
 
     private async ValueTask<IAsyncDisposable> SubscribeAsyncCore(
         Topic topic,
-        Func<IMessageBuffer, ValueTask> handler,
+        MessageHandler handler,
         CancellationToken cancellationToken)
     {
         var subscriber = AsyncObserver.Create<TopicMessage>(

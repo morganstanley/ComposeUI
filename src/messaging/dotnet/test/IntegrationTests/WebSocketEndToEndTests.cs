@@ -11,6 +11,7 @@
 // and limitations under the License.
 
 using Microsoft.Extensions.DependencyInjection;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
 
 namespace MorganStanley.ComposeUI.Messaging;

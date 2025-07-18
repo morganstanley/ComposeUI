@@ -14,7 +14,7 @@
 
 using Microsoft.Extensions.Hosting;
 using Moq;
-using MorganStanley.ComposeUI.Messaging;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;
 
@@ -24,7 +24,7 @@ public class ResolverUIServiceTests
     public async Task StartAsync_registers_MessageRouter_service()
     {
         var resolverUIWindowMock = new Mock<IResolverUIProjector>();
-        var messageRouterMock = new Mock<IMessageRouter>();
+        var messagingMock = new Mock<IMessaging>();
         var serviceProviderMock = new Mock<IServiceProvider>();
         var hostMock = new Mock<IHost>();
 
@@ -32,8 +32,8 @@ public class ResolverUIServiceTests
             .Returns(serviceProviderMock.Object);
 
         serviceProviderMock.Setup(
-                _ => _.GetService(typeof(IMessageRouter)))
-            .Returns(messageRouterMock.Object);
+                _ => _.GetService(typeof(IMessaging)))
+            .Returns(messagingMock.Object);
 
         var fdc3ResolverUIService = new ResolverUIService(
             hostMock.Object,
@@ -41,7 +41,7 @@ public class ResolverUIServiceTests
 
         await fdc3ResolverUIService.StartAsync(CancellationToken.None);
 
-        messageRouterMock.Verify(
-            _ => _.RegisterServiceAsync("ComposeUI/fdc3/v2.0/resolverUI", It.IsAny<MessageHandler>(), It.IsAny<EndpointDescriptor>(), It.IsAny<CancellationToken>()));
+        messagingMock.Verify(
+            _ => _.RegisterServiceAsync("ComposeUI/fdc3/v2.0/resolverUI", It.IsAny<ServiceHandler>(), It.IsAny<CancellationToken>()));
     }
 }

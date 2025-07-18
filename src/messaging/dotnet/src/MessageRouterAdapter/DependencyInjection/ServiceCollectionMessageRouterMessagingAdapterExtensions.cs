@@ -10,15 +10,21 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-namespace MorganStanley.ComposeUI.MessagingAdapter.Abstractions;
+using MorganStanley.ComposeUI.MessagingAdapter;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 
-/// <summary>
-/// Represents options for publishing a message, such as correlation identifiers for tracking.
-/// </summary>
-public readonly record struct PublishOptions
+namespace Microsoft.Extensions.DependencyInjection;
+
+public static class ServiceCollectionMessageRouterMessagingAdapterExtensions
 {
     /// <summary>
-    /// Gets or sets the correlation identifier used to track the published message.
+    /// Adds the ComposeUI messaging adapter to the service collection.
     /// </summary>
-    public string? CorrelationId { get; init; }
+    /// <param name="services">The service collection to add the messaging adapter to.</param>
+    /// <returns>The updated service collection.</returns>
+    public static IServiceCollection AddMessageRouterMessagingAdapter(this IServiceCollection services)
+    {
+        services.AddSingleton<IMessaging, MessageRouterMessaging>();
+        return services;
+    }
 }
