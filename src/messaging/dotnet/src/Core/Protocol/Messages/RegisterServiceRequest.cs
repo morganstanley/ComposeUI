@@ -16,5 +16,4 @@ public sealed class RegisterServiceRequest : AbstractRequest<RegisterServiceResp
 {
     public override MessageType Type => MessageType.RegisterService;
     public string Endpoint { get; init; } = null!;
-    public EndpointDescriptor? Descriptor { get; init; }
 }

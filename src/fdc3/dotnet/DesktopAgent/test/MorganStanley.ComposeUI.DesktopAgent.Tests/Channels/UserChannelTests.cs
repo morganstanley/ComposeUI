@@ -12,8 +12,9 @@
  * and limitations under the License.
  */
 
+using System.Text.Json;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
-using MorganStanley.ComposeUI.MessagingAdapter.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Channels;
 
@@ -23,7 +24,7 @@ public class UserChannelTests : ChannelTestBase
 
     public UserChannelTests()
     {
-        Channel = new UserChannel(TestChannel, new Mock<IMessaging>().Object, null);
+        Channel = new UserChannel(TestChannel, new Mock<IMessaging>().Object, new JsonSerializerOptions(JsonSerializerDefaults.Web), null);
         Topics = Fdc3Topic.UserChannel(TestChannel);
     }
 }

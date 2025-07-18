@@ -21,6 +21,8 @@ namespace MorganStanley.ComposeUI.Messaging;
 
 public abstract class EndToEndTestsBase : IAsyncLifetime
 {
+
+
     [Fact]
     public async Task Client_can_connect()
     {
@@ -33,11 +35,10 @@ public abstract class EndToEndTestsBase : IAsyncLifetime
     {
         await using var publisher = CreateClient();
         await using var subscriber = CreateClient();
-        var observerMock = new Mock<IObserver<TopicMessage>>();
-        var receivedMessages = new List<TopicMessage>();
-        observerMock.Setup(x => x.OnNext(Capture.In(receivedMessages)));
+        var receivedMessages = new List<IMessageBuffer>();
+        ValueTask Handler(IMessageBuffer x) { receivedMessages.Add(x); return new ValueTask(); }
 
-        await subscriber.SubscribeAsync(topic: "test-topic", observerMock.Object);
+        await subscriber.SubscribeAsync("test-topic", Handler);
         await Task.Delay(TimeSpan.FromSeconds(2));
 
         var publishedPayload = new TestPayload
@@ -52,7 +53,7 @@ public abstract class EndToEndTestsBase : IAsyncLifetime
 
         await Task.Delay(TimeSpan.FromSeconds(2));
 
-        var receivedPayload = JsonSerializer.Deserialize<TestPayload>(receivedMessages.Single().Payload!.GetSpan());
+        var receivedPayload = JsonSerializer.Deserialize<TestPayload>(receivedMessages.Single().GetSpan());
 
         receivedPayload.Should().BeEquivalentTo(publishedPayload);
     }
@@ -70,7 +71,7 @@ public abstract class EndToEndTestsBase : IAsyncLifetime
     {
         await using var service = CreateClient();
 
-        var handlerMock = new Mock<MessageHandler>();
+        var handlerMock = new Mock<ServiceHandler>();
 
         handlerMock
             .Setup(_ => _.Invoke("test-service", It.IsAny<MessageBuffer?>(), It.IsAny<MessageContext>()))
@@ -80,9 +81,10 @@ public abstract class EndToEndTestsBase : IAsyncLifetime
 
         await using var client = CreateClient();
 
-        var response = await client.InvokeAsync(endpoint: "test-service", payload: "test-request");
+        var response = await client.InvokeAsync(endpoint: "test-service", payload: MessageBuffer.Create("test-request"));
 
-        response.Should().BeEquivalentTo("test-response");
+        response.Should().NotBeNull();
+        response.GetString().Should().BeEquivalentTo("test-response");
 
         handlerMock.Verify(
             _ => _.Invoke(
@@ -99,20 +101,18 @@ public abstract class EndToEndTestsBase : IAsyncLifetime
         await using var subscriber = CreateClient();
         await using var service = CreateClient();
         await using var publisher = CreateClient();
-        await service.RegisterServiceAsync(endpoint: "test-service", new Mock<MessageHandler>().Object);
+        await service.RegisterServiceAsync(endpoint: "test-service", new Mock<ServiceHandler>().Object);
         var tcs = new TaskCompletionSource();
 
         await subscriber.SubscribeAsync(
             topic: "test-topic",
-            AsyncObserver.Create<TopicMessage>(
-                new Func<TopicMessage, ValueTask>(
                     async msg =>
                     {
                         await subscriber.InvokeAsync("test-service");
                         tcs.SetResult();
-                    })));
+                    });
 
-        await publisher.PublishAsync("test-topic");
+        await publisher.PublishAsync("test-topic", MessageBuffer.Create("test-topic"));
         await tcs.Task;
     }
 
@@ -127,7 +127,6 @@ public abstract class EndToEndTestsBase : IAsyncLifetime
 
         await subscriber.SubscribeAsync(
             topic: "test-topic",
-            AsyncObserver.Create<TopicMessage>(
                 async msg =>
                 {
                     using (await semaphore.LockAsync(new CancellationTokenSource(TimeSpan.Zero).Token))
@@ -135,18 +134,18 @@ public abstract class EndToEndTestsBase : IAsyncLifetime
                         await Task.Delay(TimeSpan.FromSeconds(1));
                     }
 
-                    if (msg.Payload?.GetString() == "done")
+                    if (msg.GetString() == "done")
                     {
                         tcs.SetResult();
                     }
-                }));
+                });
 
         for (var i = 0; i < 10; i++)
         {
-            await publisher.PublishAsync("test-topic");
+            await publisher.PublishAsync("test-topic", MessageBuffer.Create("working"));
         }
 
-        await publisher.PublishAsync(topic: "test-topic", payload: "done");
+        await publisher.PublishAsync(topic: "test-topic", MessageBuffer.Create("done"));
         await tcs.Task;
     }
 
@@ -159,7 +158,7 @@ public abstract class EndToEndTestsBase : IAsyncLifetime
 
         await serviceA.RegisterServiceAsync(
             endpoint: "test-service-a",
-            new MessageHandler(
+            new ServiceHandler(
                 async (endpoint, payload, context) =>
                 {
                     if (payload?.GetString() == "done")
@@ -168,7 +167,7 @@ public abstract class EndToEndTestsBase : IAsyncLifetime
                     }
                     else
                     {
-                        await serviceA.InvokeAsync(endpoint: "test-service-b", payload: "hello");
+                        await serviceA.InvokeAsync(endpoint: "test-service-b", MessageBuffer.Create("hello"));
                     }
 
                     return null;
@@ -176,10 +175,10 @@ public abstract class EndToEndTestsBase : IAsyncLifetime
 
         await serviceB.RegisterServiceAsync(
             endpoint: "test-service-b",
-            new MessageHandler(
+            new ServiceHandler(
                 async (endpoint, payload, context) =>
                 {
-                    await serviceB.InvokeAsync(endpoint: "test-service-a", payload: "done");
+                    await serviceB.InvokeAsync(endpoint: "test-service-a", payload: MessageBuffer.Create("done"));
 
                     return null;
                 }));

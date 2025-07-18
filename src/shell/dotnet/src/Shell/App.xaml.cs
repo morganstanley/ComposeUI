@@ -29,7 +29,7 @@ using MorganStanley.ComposeUI.Fdc3.AppDirectory;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 using MorganStanley.ComposeUI.LayoutPersistence;
 using MorganStanley.ComposeUI.LayoutPersistence.Abstractions;
-using MorganStanley.ComposeUI.Messaging;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.Abstractions;
 using MorganStanley.ComposeUI.Shell.Fdc3;
@@ -107,7 +107,7 @@ public partial class App : Application
     }
 
     private IHost? _host;
-
+    private IAsyncDisposable? _diagnosticsService;
     private ILogger _logger = NullLogger<App>.Instance;
     private MainWindow? _shellWindow;
 
@@ -134,11 +134,11 @@ public partial class App : Application
         var diagnostics = new DiagnosticInfo
         {
             StartupTime = DateTime.Now,
-            ShellVersion = Assembly.GetExecutingAssembly().FullName
+            ShellVersion = Assembly.GetExecutingAssembly().FullName!
         };
 
-        await _host.Services.GetRequiredService<IMessageRouter>().RegisterServiceAsync("Diagnostics", (e, m, t) => 
-            ValueTask.FromResult(MessageBuffer.Factory.CreateJson(diagnostics).GetString())!);
+        var messaging = _host.Services.GetRequiredService<IMessaging>();
+        _diagnosticsService = await messaging.RegisterJsonServiceAsync<object, DiagnosticInfo>("Diagnostics", (_) => ValueTask.FromResult(diagnostics)!, new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
         await OnHostInitializedAsync();
 
@@ -180,16 +180,17 @@ public partial class App : Application
                     .UseAccessToken(MessageRouterAccessToken));
 
             services.AddTransient<IStartupAction, MessageRouterStartupAction>();
+            services.AddMessageRouterMessagingAdapter();
         }
 
         void ConfigureModules()
         {
             services.AddModuleLoader();
-            services.AddSingleton<ModuleCatalog>();
-            services.AddSingleton<IModuleCatalog>(p => p.GetRequiredService<ModuleCatalog>());
-            services.AddSingleton<IInitializeAsync>(p => p.GetRequiredService<ModuleCatalog>());
             services.Configure<ModuleCatalogOptions>(
                 context.Configuration.GetSection(ModuleCatalogOptions.ConfigurationPath));
+            services.AddSingleton<ModuleCatalog>();
+            services.AddTransient<IModuleCatalog>(p => p.GetRequiredService<ModuleCatalog>());
+            services.AddTransient<IInitializeAsync>(p => p.GetRequiredService<ModuleCatalog>());
             services.AddHostedService<ModuleService>();
             services.AddTransient<IStartupAction, WebWindowOptionsStartupAction>();
         }
@@ -213,7 +214,6 @@ public partial class App : Application
                     fdc3ConfigurationSection.GetSection(nameof(fdc3Options.DesktopAgent)));
                 services.Configure<AppDirectoryOptions>(
                     fdc3ConfigurationSection.GetSection(nameof(fdc3Options.AppDirectory)));
-                services.AddMessageRouterMessagingAdapter();
             }
         }
     }
@@ -237,11 +237,14 @@ public partial class App : Application
             && CommandLineParser.TryParse<WebWindowOptions>(e.Args, out var webWindowOptions)
             && webWindowOptions.Url != null)
         {
+            // This is intentional, we don't need to wait for the module to start
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             CreateAndStartNewWebModuleAsync(
                 webWindowOptions,
                 [
                     new(WebWindowOptions.ParameterName, JsonSerializer.Serialize(webWindowOptions))
                 ]);
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
         }
 
         ShutdownMode = ShutdownMode.OnMainWindowClose;
@@ -259,11 +262,11 @@ public partial class App : Application
         moduleCatalog.Add(new WebModuleManifest
         {
             Id = moduleId,
-            Name = webWindowOptions.Url,
+            Name = webWindowOptions.Url ?? "Blank Web Module",
             ModuleType = ModuleType.Web,
             Details = new WebManifestDetails
             {
-                Url = new Uri(webWindowOptions.Url),
+                Url = new Uri(webWindowOptions.Url ?? "about:blank"),
                 IconUrl = webWindowOptions.IconUrl == null ? null : new Uri(webWindowOptions.IconUrl),
                 Width = webWindowOptions.Width,
                 Height = webWindowOptions.Height,
@@ -279,11 +282,16 @@ public partial class App : Application
     {
         try
         {
+            if (_diagnosticsService != null)
+            {
+                await _diagnosticsService.DisposeAsync();
+            }
             if (_host != null)
             {
                 await _host.StopAsync();
                 _host.Dispose();
             }
+
         }
         catch (Exception e)
         {

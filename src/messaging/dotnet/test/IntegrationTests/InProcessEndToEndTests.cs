@@ -13,6 +13,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using MorganStanley.ComposeUI.Messaging.Client.Abstractions;
 using MorganStanley.ComposeUI.Messaging.Client;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Messaging;
 

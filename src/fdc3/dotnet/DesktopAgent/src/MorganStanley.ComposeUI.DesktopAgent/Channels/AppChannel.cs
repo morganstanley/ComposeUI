@@ -13,16 +13,17 @@
 */
 
 
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using MorganStanley.ComposeUI.MessagingAdapter.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
 
 internal class AppChannel : Channel
 {
-    public AppChannel(string id, IMessaging messagingService, ILogger<AppChannel>? logger = null)
-        : base(id, messagingService, logger ?? NullLogger<AppChannel>.Instance, Fdc3Topic.AppChannel(id)) { }
+    public AppChannel(string id, IMessaging messagingService, JsonSerializerOptions jsonSerializerOptions, ILogger<AppChannel>? logger = null)
+        : base(id, messagingService, jsonSerializerOptions, logger ?? NullLogger<AppChannel>.Instance, Fdc3Topic.AppChannel(id)) { }
 
     protected override string ChannelTypeName => nameof(AppChannel);
 }

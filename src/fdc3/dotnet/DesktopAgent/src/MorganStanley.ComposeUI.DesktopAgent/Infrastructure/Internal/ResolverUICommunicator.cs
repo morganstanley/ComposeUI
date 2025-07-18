@@ -11,14 +11,14 @@
  * or implied. See the License for the specific language governing permissions
  * and limitations under the License.
  */
- 
+
 using System.Text.Json;
 using Finos.Fdc3;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
-using MorganStanley.ComposeUI.MessagingAdapter.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
@@ -68,17 +68,11 @@ internal class ResolverUICommunicator : IResolverUICommunicator
             AppMetadata = appMetadata
         };
 
-        var responseBuffer = await _messaging.InvokeAsync(
+        var response = await _messaging.InvokeJsonServiceAsync<ResolverUIRequest, ResolverUIResponse>(
             Fdc3Topic.ResolverUI,
-            JsonFactory.CreateJson(request, _jsonSerializerOptions),
-            cancellationToken: cancellationToken);
-
-        if (responseBuffer == null)
-        {
-            return null;
-        }
-
-        var response = responseBuffer.ReadJson<ResolverUIResponse>(_jsonSerializerOptions);
+            request,
+            _jsonSerializerOptions,
+            cancellationToken);
 
         return response;
     }
@@ -112,17 +106,10 @@ internal class ResolverUICommunicator : IResolverUICommunicator
             Intents = intents
         };
 
-        var responseBuffer = await _messaging.InvokeAsync(
+        var response = await _messaging.InvokeJsonServiceAsync<ResolverUIIntentRequest, ResolverUIIntentResponse>(
             Fdc3Topic.ResolverUIIntent,
-            JsonFactory.CreateJson(request, _jsonSerializerOptions),
+            request, _jsonSerializerOptions,
             cancellationToken: cancellationToken);
-
-        if (responseBuffer == null)
-        {
-            return null;
-        }
-
-        var response = responseBuffer.ReadJson<ResolverUIIntentResponse>(_jsonSerializerOptions);
 
         return response;
     }

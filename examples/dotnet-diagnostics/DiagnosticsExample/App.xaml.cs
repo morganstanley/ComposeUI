@@ -37,6 +37,8 @@ public partial class App : Application
                     m.UseWebSocketFromEnvironment();
                     m.UseAccessTokenFromEnvironment();
                 });
+
+            serviceCollection.AddMessageRouterMessagingAdapter();
         }
         catch
         {

@@ -25,9 +25,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\messagingadapter\dotnet\src\MorganStanley.ComposeUI.MessagingAdapter.MessageRouter\MorganStanley.ComposeUI.MessagingAdapter.MessageRouter.csproj" />
     <ProjectReference Include="..\..\..\..\..\messaging\dotnet\src\Client\MorganStanley.ComposeUI.Messaging.Client.csproj" />
     <ProjectReference Include="..\..\..\..\..\messaging\dotnet\src\Host\MorganStanley.ComposeUI.Messaging.Host.csproj" />
+    <ProjectReference Include="..\..\..\..\..\messaging\dotnet\src\MessageRouterAdapter\MorganStanley.ComposeUI.Messaging.MessageRouterAdapter.csproj" />
     <ProjectReference Include="..\..\..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader\MorganStanley.ComposeUI.ModuleLoader.csproj" />
     <ProjectReference Include="..\..\..\AppDirectory\src\MorganStanley.ComposeUI.AppDirectory\MorganStanley.ComposeUI.AppDirectory.csproj" />
     <ProjectReference Include="..\..\src\MorganStanley.ComposeUI.DesktopAgent\MorganStanley.ComposeUI.DesktopAgent.csproj" />

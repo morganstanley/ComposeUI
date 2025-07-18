@@ -80,9 +80,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "architecture", "architectur
 		..\..\..\site\content\architecture\adr-018-messaging-interface.mdx = ..\..\..\site\content\architecture\adr-018-messaging-interface.mdx
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.MessagingAdapter.Abstractions", "..\..\messagingadapter\dotnet\src\MorganStanley.ComposeUI.MessagingAdapter.Abstractions\MorganStanley.ComposeUI.MessagingAdapter.Abstractions.csproj", "{16132504-497F-4FE9-96C2-7D08F59941A7}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.MessagingAdapter.MessageRouter", "..\..\messagingadapter\dotnet\src\MorganStanley.ComposeUI.MessagingAdapter.MessageRouter\MorganStanley.ComposeUI.MessagingAdapter.MessageRouter.csproj", "{7D5F85E8-BFAA-4A7A-93A8-215676E06FA3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.MessageRouterAdapter", "..\..\messaging\dotnet\src\MessageRouterAdapter\MorganStanley.ComposeUI.Messaging.MessageRouterAdapter.csproj", "{CBC47631-1F28-4CDB-A5A6-2F88BB694295}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -146,14 +144,10 @@ Global
 		{DF5677FE-614D-4BD1-A645-119FBA6F3C34}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DF5677FE-614D-4BD1-A645-119FBA6F3C34}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DF5677FE-614D-4BD1-A645-119FBA6F3C34}.Release|Any CPU.Build.0 = Release|Any CPU
-		{16132504-497F-4FE9-96C2-7D08F59941A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{16132504-497F-4FE9-96C2-7D08F59941A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{16132504-497F-4FE9-96C2-7D08F59941A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{16132504-497F-4FE9-96C2-7D08F59941A7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7D5F85E8-BFAA-4A7A-93A8-215676E06FA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7D5F85E8-BFAA-4A7A-93A8-215676E06FA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7D5F85E8-BFAA-4A7A-93A8-215676E06FA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7D5F85E8-BFAA-4A7A-93A8-215676E06FA3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CBC47631-1F28-4CDB-A5A6-2F88BB694295}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CBC47631-1F28-4CDB-A5A6-2F88BB694295}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CBC47631-1F28-4CDB-A5A6-2F88BB694295}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CBC47631-1F28-4CDB-A5A6-2F88BB694295}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -174,8 +168,7 @@ Global
 		{56F41D4A-5A4C-4F41-86CA-1B003992F083} = {DA1A43C4-F758-47E2-870A-7E5BBB946671}
 		{F90449AE-B26E-42E0-873B-4F0CAE6FCD98} = {E7A2C581-4BF4-47A5-8A11-59B2DEBADCA7}
 		{DF5677FE-614D-4BD1-A645-119FBA6F3C34} = {E7A2C581-4BF4-47A5-8A11-59B2DEBADCA7}
-		{16132504-497F-4FE9-96C2-7D08F59941A7} = {E7A2C581-4BF4-47A5-8A11-59B2DEBADCA7}
-		{7D5F85E8-BFAA-4A7A-93A8-215676E06FA3} = {E7A2C581-4BF4-47A5-8A11-59B2DEBADCA7}
+		{CBC47631-1F28-4CDB-A5A6-2F88BB694295} = {E7A2C581-4BF4-47A5-8A11-59B2DEBADCA7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4C901E6C-4B9A-48C2-AB16-461040DC57B4}
