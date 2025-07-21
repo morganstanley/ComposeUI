@@ -1,0 +1,23 @@
+---
+type: ADR
+id: adr-018
+status: Accepted
+scope: global
+deciders: github group
+date: 2025-07-21
+title: Messaging Interface
+---
+
+{/* Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */}
+
+## Context
+
+We wish to provide flexibility in the usage of ComposeUI interfaces and components.
+
+## Decision
+
+In order to allow more flexibility in Shell imlementations, we will switch abstractions and plugins implemented by ourselves to .net standard 2.0.
+This enables using .NET Framework for implementing a shell or integrating components of ComposeUI in existing technology.
+
+## Alternatives Considered
+We considered multi-targeting our packages but it would considerably increase development and maintenance effort with lower benefits.

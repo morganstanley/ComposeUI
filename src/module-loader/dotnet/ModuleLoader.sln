@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Mod
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ModuleLoader.Tests", "tests\MorganStanley.ComposeUI.ModuleLoader.Tests\MorganStanley.ComposeUI.ModuleLoader.Tests.csproj", "{9A9FEE99-9602-4954-BDE5-BD4922AA2CD9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NativeRunnerTestApp", "tests\NativeRunnerTestApp\NativeRunnerTestApp.csproj", "{6316A655-7DCA-40F4-AD39-BFAD695F4419}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NativeRunnerTestApp", "tests\NativeRunnerTestApp\NativeRunnerTestApp.csproj", "{6316A655-7DCA-40F4-AD39-BFAD695F4419}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "architecture", "architecture", "{E3104B43-3769-45A3-8112-308C68A4D4A4}"
 	ProjectSection(SolutionItems) = preProject
@@ -35,6 +35,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "architecture", "architectur
 		..\..\..\site\content\architecture\adr-014-module-catalog.mdx = ..\..\..\site\content\architecture\adr-014-module-catalog.mdx
 		..\..\..\site\content\architecture\adr-015-module-loader-events.mdx = ..\..\..\site\content\architecture\adr-015-module-loader-events.mdx
 		..\..\..\site\content\architecture\adr-016-shell-api.mdx = ..\..\..\site\content\architecture\adr-016-shell-api.mdx
+		..\..\..\site\content\architecture\adr-017-netstandard-interfaces.mdx = ..\..\..\site\content\architecture\adr-017-netstandard-interfaces.mdx
+		..\..\..\site\content\architecture\adr-018-messaging-interface.mdx = ..\..\..\site\content\architecture\adr-018-messaging-interface.mdx
 	EndProjectSection
 EndProject
 Global
