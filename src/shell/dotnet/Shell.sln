@@ -76,6 +76,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "architecture", "architectur
 		..\..\..\site\content\architecture\adr-014-module-catalog.mdx = ..\..\..\site\content\architecture\adr-014-module-catalog.mdx
 		..\..\..\site\content\architecture\adr-015-module-loader-events.mdx = ..\..\..\site\content\architecture\adr-015-module-loader-events.mdx
 		..\..\..\site\content\architecture\adr-016-shell-api.mdx = ..\..\..\site\content\architecture\adr-016-shell-api.mdx
+		..\..\..\site\content\architecture\adr-017-netstandard-interfaces.mdx = ..\..\..\site\content\architecture\adr-017-netstandard-interfaces.mdx
+		..\..\..\site\content\architecture\adr-018-messaging-interface.mdx = ..\..\..\site\content\architecture\adr-018-messaging-interface.mdx
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.MessagingAdapter.Abstractions", "..\..\messagingadapter\dotnet\src\MorganStanley.ComposeUI.MessagingAdapter.Abstractions\MorganStanley.ComposeUI.MessagingAdapter.Abstractions.csproj", "{16132504-497F-4FE9-96C2-7D08F59941A7}"

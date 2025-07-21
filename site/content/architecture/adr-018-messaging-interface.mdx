@@ -1,0 +1,31 @@
+---
+type: ADR
+id: adr-018
+status: Accepted
+scope: global
+deciders: github group
+date: 2025-07-21
+title: Messaging Interface
+---
+
+{/* Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */}
+
+## Context
+
+While the Message Router is part of the ComposeUI repository, we wish to make ComposeUI as modular as possible. For this reason the messaging interface used by plugins, modules and internal components should reflect how ComposeUI expects them to behave, independent of the underlying technology.
+As the current messaging abstraction is based on the MessageRouter interfaces, we need to re-define the messaging interface.
+
+## Decisions
+
+### Messaging implementations should prevent messages from being received by subscriptions of the same client
+FDC3 is the intended main method for communication between modules and there are no existing live applications using the ComposeUI Messaging interfaces.
+Since FDC3 broadcasts are not received by the broadcaster, we decided to require messaging implementations to do the same.
+We also think making in-process communication dependent on IPC messaging is a bad practice.
+
+### Service Registrations on the Messaging interface should return IAsyncDisposable that when disposed unregisters the service
+While the MessageRouter offers both the RegisterService and UnregisterService interfaces, we think being consistent with subscribers is benefitial, so the ComposeUI messaging abstraction will handle service registrations as disposable objects.
+
+### We will not support CorrelationIds on the interface
+None of the current Messaging usages makes use of the CorrelationId we provide. The main use-case for using a CorrelationId in the messaging is implementing request-response style communication, something that we already provide the interface for. As a result we decided to remove this from the interface as it only provides noise that if not properly used can cause issues when a dependency on it is introduced. More complex use-cases can include a CorrelationId in their own contracts if necessary.
+
+

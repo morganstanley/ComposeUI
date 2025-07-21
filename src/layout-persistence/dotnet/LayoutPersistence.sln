@@ -9,7 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{15375C6D-AEF
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{387B5C73-2D89-45B1-92E0-71CDBB825F46}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MorganStanley.ComposeUI.LayoutPersistence.Tests", "tests\MorganStanley.ComposeUI.LayoutPersistence.Tests\MorganStanley.ComposeUI.LayoutPersistence.Tests.csproj", "{9727D812-2697-4BB5-8C65-80774842FE99}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.LayoutPersistence.Tests", "tests\MorganStanley.ComposeUI.LayoutPersistence.Tests\MorganStanley.ComposeUI.LayoutPersistence.Tests.csproj", "{9727D812-2697-4BB5-8C65-80774842FE99}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "architecture", "architecture", "{2F8C7495-2E4A-48C4-8482-B4A285F03061}"
 	ProjectSection(SolutionItems) = preProject
@@ -29,6 +29,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "architecture", "architectur
 		..\..\..\site\content\architecture\adr-014-module-catalog.mdx = ..\..\..\site\content\architecture\adr-014-module-catalog.mdx
 		..\..\..\site\content\architecture\adr-015-module-loader-events.mdx = ..\..\..\site\content\architecture\adr-015-module-loader-events.mdx
 		..\..\..\site\content\architecture\adr-016-shell-api.mdx = ..\..\..\site\content\architecture\adr-016-shell-api.mdx
+		..\..\..\site\content\architecture\adr-017-netstandard-interfaces.mdx = ..\..\..\site\content\architecture\adr-017-netstandard-interfaces.mdx
+		..\..\..\site\content\architecture\adr-018-messaging-interface.mdx = ..\..\..\site\content\architecture\adr-018-messaging-interface.mdx
 	EndProjectSection
 EndProject
 Global
