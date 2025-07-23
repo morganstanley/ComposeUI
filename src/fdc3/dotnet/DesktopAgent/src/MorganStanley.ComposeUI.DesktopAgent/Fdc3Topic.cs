@@ -31,6 +31,7 @@ internal static class Fdc3Topic
     internal static string CreateAppChannel => TopicRoot + "createAppChannel";
     internal static string GetUserChannels => TopicRoot + "getUserChannels";
     internal static string JoinUserChannel => TopicRoot + "joinUserChannel";
+    internal static string JoinPrivateChannel => TopicRoot + "joinPrivateChannel";
     internal static string GetInfo => TopicRoot + "getInfo";
     internal static string FindInstances => TopicRoot + "findInstances";
     internal static string GetAppMetadata => TopicRoot + "getAppMetadata";

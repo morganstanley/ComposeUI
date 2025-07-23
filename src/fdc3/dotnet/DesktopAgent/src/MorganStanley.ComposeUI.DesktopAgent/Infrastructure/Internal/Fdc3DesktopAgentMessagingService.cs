@@ -133,10 +133,15 @@ internal class Fdc3DesktopAgentMessagingService : IHostedService
 
     internal async ValueTask<CreatePrivateChannelResponse?> HandleCreatePrivateChannel(CreatePrivateChannelRequest? request)
     {
+        if (request == null)
+        {
+            return CreatePrivateChannelResponse.Failed(Fdc3DesktopAgentErrors.PayloadNull);
+        }
+
         try
         {
             var privateChannelId = Guid.NewGuid().ToString();
-            await _desktopAgent.AddPrivateChannel((channelId) => new PrivateChannel(channelId, _messaging, _jsonSerializerOptions, _loggerFactory.CreateLogger<PrivateChannel>(), request.InstanceId), privateChannelId);
+            await _desktopAgent.CreateOrJoinPrivateChannel((channelId) => new PrivateChannel(channelId, _messaging, _jsonSerializerOptions, _loggerFactory.CreateLogger<PrivateChannel>()), privateChannelId, request.InstanceId);
 
             return CreatePrivateChannelResponse.Created(privateChannelId);
         }
@@ -144,6 +149,23 @@ internal class Fdc3DesktopAgentMessagingService : IHostedService
         {
             // TODO: better exception
             return CreatePrivateChannelResponse.Failed(ex.Message);
+        }
+    }
+
+    internal async ValueTask<JoinPrivateChannelResponse?> HandleJoinPrivateChannel(JoinPrivateChannelRequest? request)
+    {
+        if (request == null)
+        {
+            return JoinPrivateChannelResponse.Failed(Fdc3DesktopAgentErrors.PayloadNull);
+        }
+        try
+        {
+            await _desktopAgent.CreateOrJoinPrivateChannel((channelId) => throw new Fdc3DesktopAgentException(Fdc3DesktopAgentErrors.PrivateChannelNotFound, "The private channel could not be found"), request.ChannelId, request.InstanceId);
+            return JoinPrivateChannelResponse.Joined;
+        }
+        catch (Exception ex)
+        {
+            return JoinPrivateChannelResponse.Failed(ex.Message);
         }
     }
 
@@ -261,6 +283,7 @@ internal class Fdc3DesktopAgentMessagingService : IHostedService
         _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<StoreIntentResultRequest, StoreIntentResultResponse>(Fdc3Topic.SendIntentResult, HandleStoreIntentResult, _jsonSerializerOptions));
         _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<IntentListenerRequest, IntentListenerResponse>(Fdc3Topic.AddIntentListener, HandleAddIntentListener, _jsonSerializerOptions));
         _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<CreatePrivateChannelRequest, CreatePrivateChannelResponse>(Fdc3Topic.CreatePrivateChannel, HandleCreatePrivateChannel, _jsonSerializerOptions));
+        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<JoinPrivateChannelRequest, JoinPrivateChannelResponse>(Fdc3Topic.JoinPrivateChannel, HandleJoinPrivateChannel, _jsonSerializerOptions));
         _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<CreateAppChannelRequest, CreateAppChannelResponse>(Fdc3Topic.CreateAppChannel, HandleCreateAppChannel, _jsonSerializerOptions));
         _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<GetUserChannelsRequest, GetUserChannelsResponse>(Fdc3Topic.GetUserChannels, HandleGetUserChannels, _jsonSerializerOptions));
         _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<JoinUserChannelRequest, JoinUserChannelResponse>(Fdc3Topic.JoinUserChannel, HandleJoinUserChannel, _jsonSerializerOptions));

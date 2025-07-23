@@ -73,7 +73,7 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
         };
 
         let channelFactory: ChannelFactory = {
-            createPrivateChannel: jest.fn(() => { return Promise.resolve(new ComposeUIPrivateChannel("privateId", messageRouterClient, true)) }),
+            createPrivateChannel: jest.fn(() => { return Promise.resolve(new ComposeUIPrivateChannel("privateId", "localInstance", messageRouterClient, true)) }),
             getChannel: jest.fn(async (channelId: string, channelType: ChannelType) => {
                 if (channelId == dummyChannelId) { return new ComposeUIChannel(channelId, channelType, messageRouterClient); }
                 else { throw new Error(ChannelError.NoChannelFound); }
@@ -171,7 +171,7 @@ describe('Tests for ComposeUIDesktopAgent implementation API', () => {
         };
 
         let channelFactory: ChannelFactory = {
-            createPrivateChannel: jest.fn(() => { return Promise.resolve(new ComposeUIPrivateChannel("privateId", messageRouterClient, true)) }),
+            createPrivateChannel: jest.fn(() => { return Promise.resolve(new ComposeUIPrivateChannel("privateId", "localInstance", messageRouterClient, true)) }),
             getChannel: jest.fn(async (channelId: string, channelType: ChannelType) => {
                 if (channelId == dummyChannelId) { return new ComposeUIChannel(channelId, channelType, messageRouterClient); }
                 else { throw new Error(ChannelError.NoChannelFound); }

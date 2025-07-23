@@ -12,48 +12,31 @@
  * and limitations under the License.
  */
 
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
 
 internal class PrivateChannel : Channel
 {
-    public PrivateChannel(string id, IMessaging messagingService, JsonSerializerOptions jsonSerializerOptions, ILogger<PrivateChannel>? logger, string instanceId)
+    private readonly string _eventsTopic;
+
+    public PrivateChannel(string id, IMessaging messagingService, JsonSerializerOptions jsonSerializerOptions, ILogger<PrivateChannel>? logger)
         : base(id, messagingService, jsonSerializerOptions, (ILogger?) logger ?? NullLogger.Instance, Fdc3Topic.PrivateChannel(id))
     {
-        InstanceId = instanceId;
+        _eventsTopic = Fdc3Topic.PrivateChannel(Id).Events;
     }
 
-    public string InstanceId { get; }
     protected override string ChannelTypeName => "PrivateChannel";
 
-    public async Task Close(CancellationToken cancellationToken = default)
+    public async Task Close(string instanceId, CancellationToken cancellationToken = default)
     {
-        var topic = Fdc3Topic.PrivateChannel(Id).Events;
-        var payload = "{\"event\": \"disconnected\"}";
-        var tcs = new TaskCompletionSource<bool>();
+        var payload = PrivateChannelInternalEvents.Disconnected(instanceId);
 
-        var subscription = await MessagingService.SubscribeAsync(topic, async buffer =>
-        {
-            if (buffer == null || !buffer.Contains("disconnected"))
-            {
-                LogUnexpectedMessage(buffer ?? string.Empty);
-            }
-
-            tcs.TrySetResult(true);
-            await Task.CompletedTask;
-        }, cancellationToken);
-
-        await MessagingService.PublishAsync(topic, payload, cancellationToken: cancellationToken);
-
-        using (cancellationToken.Register(() => tcs.TrySetCanceled()))
-        {
-            await tcs.Task;
-        }
-
-        await subscription.DisposeAsync();
+        await MessagingService.PublishJsonAsync(_eventsTopic, payload, JsonSerializerOptions, cancellationToken: cancellationToken);
     }
 }

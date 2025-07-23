@@ -32,8 +32,7 @@ export class ComposeUIPrivateChannel extends ComposeUIChannel implements Private
     private readonly internalEventsTopic: string;
     private readonly remoteContextListenersService: string;
 
-
-    constructor(id: string, messageRouterClient: MessageRouter, isOriginalCreator: boolean) {
+    constructor(id: string, private fdc3InstanceId: string, messageRouterClient: MessageRouter, isOriginalCreator: boolean) {
         super(id, "private", messageRouterClient);
 
         this.internalEventsTopic = ComposeUITopic.privateChannelInternalEvents(id);
@@ -93,7 +92,7 @@ export class ComposeUIPrivateChannel extends ComposeUIChannel implements Private
 
         this.contextHandlers.forEach(l => l.unsubscribe());
 
-        this.messageRouterClient.publish(this.internalEventsTopic, JSON.stringify(new Fdc3PrivateChannelInternalEvent("disconnected")));
+        this.messageRouterClient.publish(this.internalEventsTopic, JSON.stringify(new Fdc3PrivateChannelInternalEvent("disconnected", this.fdc3InstanceId)));
     }
 
     public broadcast(context: Context): Promise<void> {
@@ -125,6 +124,10 @@ export class ComposeUIPrivateChannel extends ComposeUIChannel implements Private
         }
 
         const event = <Fdc3PrivateChannelInternalEvent>JSON.parse(message.payload);
+        if (event.instanceId == this.fdc3InstanceId) {
+            return;
+        }
+
         switch (event.event) {
             case "contextListenerAdded":
                 this.addContextListenerHandlers.forEach(handler => {
@@ -143,7 +146,7 @@ export class ComposeUIPrivateChannel extends ComposeUIChannel implements Private
     }
 
     private fireContextHandlerAdded(contextType: string | undefined) {
-        this.messageRouterClient.publish(this.internalEventsTopic, JSON.stringify(new Fdc3PrivateChannelInternalEvent("contextListenerAdded", contextType)));
+        this.messageRouterClient.publish(this.internalEventsTopic, JSON.stringify(new Fdc3PrivateChannelInternalEvent("contextListenerAdded", this.fdc3InstanceId, contextType)));
     }
 
     private removeAddContextListenerHandler(listener: PrivateChannelContextListenerEventListener) {
@@ -186,7 +189,7 @@ export class ComposeUIPrivateChannel extends ComposeUIChannel implements Private
     }
 
     private fireUnsubscribed(contextType: string | undefined): void {
-        this.messageRouterClient.publish(this.internalEventsTopic, JSON.stringify(new Fdc3PrivateChannelInternalEvent("unsubscribed", contextType)));
+        this.messageRouterClient.publish(this.internalEventsTopic, JSON.stringify(new Fdc3PrivateChannelInternalEvent("unsubscribed", this.fdc3InstanceId, contextType)));
     }
 
     private getContextListeners(_: string, _1: MessageBuffer | undefined, _2: MessageContext): MessageBuffer {
