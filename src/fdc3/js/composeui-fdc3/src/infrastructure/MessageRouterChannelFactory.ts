@@ -18,6 +18,8 @@ import { ChannelFactory } from "./ChannelFactory";
 import { ComposeUIPrivateChannel } from "./ComposeUIPrivateChannel";
 import { Fdc3CreatePrivateChannelRequest } from "./messages/Fdc3CreatePrivateChannelRequest";
 import { Fdc3CreatePrivateChannelResponse } from "./messages/Fdc3CreatePrivateChannelResponse";
+import { Fdc3JoinPrivateChannelRequest } from "./messages/Fdc3JoinPrivateChannelRequest";
+import { Fdc3JoinPrivateChannelResponse } from "./messages/Fdc3JoinPrivateChannelResponse";
 import { Fdc3FindChannelRequest } from "./messages/Fdc3FindChannelRequest";
 import { ComposeUITopic } from "./ComposeUITopic";
 import { Fdc3FindChannelResponse } from "./messages/Fdc3FindChannelResponse";
@@ -35,6 +37,7 @@ import { Fdc3JoinUserChannelRequest } from "./messages/Fdc3JoinUserChannelReques
 import { Fdc3JoinUserChannelResponse } from "./messages/Fdc3JoinUserChannelResponse";
 import { ChannelItem } from "./ChannelItem";
 import { ComposeUIContextListener } from "./ComposeUIContextListener";
+import { json } from "stream/consumers";
 
 export class MessageRouterChannelFactory implements ChannelFactory {
     private messageRouterClient: MessageRouter;
@@ -61,7 +64,7 @@ export class MessageRouterChannelFactory implements ChannelFactory {
         }
 
         if (channelType == "private") {
-            return new ComposeUIPrivateChannel(channelId, this.messageRouterClient, false);
+            return await this.joinPrivateChannel(channelId);
         }
         return new ComposeUIChannel(channelId, channelType, this.messageRouterClient);
     }
@@ -75,10 +78,24 @@ export class MessageRouterChannelFactory implements ChannelFactory {
             if (fdc3response.error) {
                 throw new Error(fdc3response.error);
             }
-            var channel = new ComposeUIPrivateChannel(fdc3response.channelId!, this.messageRouterClient, true);
+            var channel = new ComposeUIPrivateChannel(fdc3response.channelId!, this.fdc3instanceId, this.messageRouterClient, true);
             return channel;
         }
         throw new Error(ChannelError.CreationFailed);
+    }
+
+    private async joinPrivateChannel(channelId: string): Promise<PrivateChannel> {
+        const message = JSON.stringify(new Fdc3JoinPrivateChannelRequest(this.fdc3instanceId, channelId));
+        const response = await this.messageRouterClient.invoke(ComposeUITopic.joinPrivateChannel(), message);
+        if (!response) {
+            throw new Error("No response received");
+        }
+        const fdc3Response = <Fdc3JoinPrivateChannelResponse>JSON.parse(response);
+        if (fdc3Response.error) {
+            throw new Error(fdc3Response.error);
+        }
+        var channel = new ComposeUIPrivateChannel(channelId, this.fdc3instanceId, this.messageRouterClient, false);
+        return channel;
     }
 
     public async createAppChannel(channelId: string): Promise<Channel> {
@@ -167,11 +184,11 @@ export class MessageRouterChannelFactory implements ChannelFactory {
 
     public async getContextListener(openHandled: boolean, channel?: Channel, handler?: ContextHandler, contextType?: string | null): Promise<Listener> {
         if (channel) {
-            
-            if (channel instanceof ComposeUIChannel){
+
+            if (channel instanceof ComposeUIChannel) {
                 (<ComposeUIChannel>channel).setOpenHandled(openHandled);
             }
-            
+
             const listener = <ComposeUIContextListener>await channel.addContextListener(contextType ?? null, handler!);
             return listener;
         }

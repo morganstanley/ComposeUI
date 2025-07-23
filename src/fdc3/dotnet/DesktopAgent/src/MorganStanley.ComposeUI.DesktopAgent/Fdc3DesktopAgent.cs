@@ -126,25 +126,23 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         }
     }
 
-    public async ValueTask AddPrivateChannel(Func<string, PrivateChannel> addPrivateChannelFactory, string privateChannelId)
+    public async ValueTask CreateOrJoinPrivateChannel(Func<string, PrivateChannel> addPrivateChannelFactory, string privateChannelId, string instanceId)
     {
         if (privateChannelId == null)
         {
-            _logger.LogError($"Could not create private channel while executing {nameof(AddPrivateChannel)} due to private channel id is null.");
+            _logger.LogError($"Could not create private channel while executing {nameof(CreateOrJoinPrivateChannel)} due to private channel id is null.");
             return;
         }
-
-        //Checking if the endpoint is already registered, because it can cause issues while registering services storing the latest context messages, etc on the Channel objects.
-        if (_privateChannels.TryGetValue(privateChannelId, out var privateChannel))
-        {
-            return;
-        }
-
+        PrivateChannel? privateChannel = null;
         try
         {
-            privateChannel = _privateChannels.GetOrAdd(privateChannelId, addPrivateChannelFactory(privateChannelId));
+            // Check if the channel already exists and create if it does not.
+            if (!_privateChannels.TryGetValue(privateChannelId, out privateChannel))
+            {
+                privateChannel = _privateChannels.GetOrAdd(privateChannelId, addPrivateChannelFactory(privateChannelId));
+            }
 
-            SafeAddToPrivateChannelsDictionary(privateChannel);
+            SafeAddToPrivateChannelsDictionary(instanceId, privateChannel);
 
             await privateChannel!.Connect();
         }
@@ -157,21 +155,24 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, $"Exception thrown while executing {nameof(AddPrivateChannel)}.");
+            _logger.LogError(exception, $"Exception thrown while executing {nameof(CreateOrJoinPrivateChannel)}.");
             _privateChannels.TryRemove(privateChannelId, out _);
-            SafeRemoveFromPrivateChannelsDictionary(privateChannel!);
+            if (privateChannel != null)
+            {
+                SafeRemoveFromPrivateChannelsDictionary(instanceId, privateChannel);
+            }
             throw;
         }
     }
 
-    private void SafeAddToPrivateChannelsDictionary(PrivateChannel privateChannel)
+    private void SafeAddToPrivateChannelsDictionary(string instanceId, PrivateChannel privateChannel)
     {
         lock (_privateChannelsDictionaryLock)
         {
-            if (!_privateChannelsByInstanceId.TryGetValue(privateChannel.InstanceId, out var privateChannels))
+            if (!_privateChannelsByInstanceId.TryGetValue(instanceId, out var privateChannels))
             {
                 privateChannels = [privateChannel];
-                _privateChannelsByInstanceId[privateChannel.InstanceId] = privateChannels;
+                _privateChannelsByInstanceId[instanceId] = privateChannels;
             }
             else if (!privateChannels!.Contains(privateChannel))
             {
@@ -180,13 +181,19 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         }
     }
 
-    private void SafeRemoveFromPrivateChannelsDictionary(PrivateChannel privateChannel)
+    private void SafeRemoveFromPrivateChannelsDictionary(string instanceId, PrivateChannel privateChannel)
     {
         lock (_privateChannelsDictionaryLock)
         {
-            if (_privateChannelsByInstanceId.TryGetValue(privateChannel.InstanceId, out var privateChannels))
+            if (!_privateChannelsByInstanceId.TryGetValue(instanceId, out var privateChannels))
             {
-                privateChannels.Remove(privateChannel);
+                return;
+            }
+
+            privateChannels.Remove(privateChannel);
+            if (privateChannels.Count == 0)
+            {
+                _privateChannelsByInstanceId.Remove(instanceId);
             }
         }
     }
@@ -1491,8 +1498,9 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         {
             foreach (var channel in privateChannels)
             {
-                await channel.Close(cancellationToken).ConfigureAwait(false);
+                await channel.Close(instanceId, cancellationToken).ConfigureAwait(false);
             }
+            _privateChannelsByInstanceId.Remove(instanceId);
         }
     }
 }

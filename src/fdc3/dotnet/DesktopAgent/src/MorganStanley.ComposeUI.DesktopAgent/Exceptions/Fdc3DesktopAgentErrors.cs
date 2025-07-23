@@ -60,4 +60,9 @@ public static class Fdc3DesktopAgentErrors
     /// Indicates that during intent resolution the requested app id exists but the instance does not
     /// </summary>
     public const string TargetInstanceUnavailable = nameof(TargetInstanceUnavailable);
+
+    /// <summary>
+    /// Indicates that the private channel a client tried to join cannot be found
+    /// </summary>
+    public const string PrivateChannelNotFound = nameof(PrivateChannelNotFound);
 }

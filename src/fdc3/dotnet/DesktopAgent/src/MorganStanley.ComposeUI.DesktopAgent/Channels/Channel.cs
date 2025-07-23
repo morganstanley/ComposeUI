@@ -33,7 +33,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
         private string? _lastContext = null;
         private IAsyncDisposable? _broadcastSubscription;
         private int _disposed = 0;
-        private JsonSerializerOptions _jsonSerializerOptions;
+        protected JsonSerializerOptions JsonSerializerOptions { get; }
 
         private IAsyncDisposable? _getCurrentContextService;
 
@@ -43,7 +43,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
             MessagingService = messagingService;
             _logger = logger;
             _topics = topics;
-            _jsonSerializerOptions = jsonSerializerOptions;
+            JsonSerializerOptions = jsonSerializerOptions;
         }
 
         public async ValueTask Connect()
@@ -53,7 +53,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
                 throw new ObjectDisposedException(nameof(Channel));
             }
 
-            _getCurrentContextService = await MessagingService.RegisterJsonServiceAsync<GetCurrentContextRequest, string?>(_topics.GetCurrentContext, GetCurrentContext, _jsonSerializerOptions);
+            _getCurrentContextService = await MessagingService.RegisterJsonServiceAsync<GetCurrentContextRequest, string?>(_topics.GetCurrentContext, GetCurrentContext, JsonSerializerOptions);
 
             var broadcastSubscription = MessagingService.SubscribeAsync(_topics.Broadcast, HandleBroadcast);
 
@@ -100,7 +100,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels
                 }
 
                 _contexts.AddOrUpdate(
-                    contextType,
+                    contextType!,
                     _ => payloadBuffer,
                     (_, _) => payloadBuffer);
 

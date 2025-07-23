@@ -8,13 +8,10 @@
  *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  *  or implied. See the License for the specific language governing permissions
  *  and limitations under the License.
- *  
  */
-export type Fdc3PrivateChannelInternalEventType = "contextListenerAdded" | "unsubscribed" | "disconnected";
-export class Fdc3PrivateChannelInternalEvent {
 
-    /**
-     * Message representing events on the remote side of a PrivateChannel
-     */
-    constructor(public event: Fdc3PrivateChannelInternalEventType, public instanceId: string, public contextType?: string | undefined) { }
+export class Fdc3JoinPrivateChannelRequest {
+    constructor(
+        public readonly instanceId: string,
+        public readonly channelId: string) { }
 }

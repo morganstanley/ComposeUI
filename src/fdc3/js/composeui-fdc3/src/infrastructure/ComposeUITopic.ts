@@ -33,6 +33,7 @@ export class ComposeUITopic {
     private static readonly createAppChannelSuffix = "createAppChannel";
     private static readonly getUserChannelsSuffix = "getUserChannels";
     private static readonly joinUserChannelSuffix = "joinUserChannel";
+    private static readonly joinPrivateChannelSuffix = "joinPrivateChannel";
     private static readonly getInfoSuffix = "getInfo";
     private static readonly findInstancesSuffix = "findInstances";
     private static readonly getAppMetadataSuffix = "getAppMetadata";
@@ -125,7 +126,7 @@ export class ComposeUITopic {
     public static removeContextListener(): string {
         return `${this.topicRoot}/${this.removeContextListenerSuffix}`;
     }
-    
+
     private static getChannelsTopicRootWithChannelId(channelId: string, channelType: ChannelType): string {
         return `${this.getChannelsTopicRoot(channelType)}/${channelId}`;
     }
@@ -140,6 +141,10 @@ export class ComposeUITopic {
 
     public static raiseIntentForContext(): string {
         return `${this.topicRoot}/${this.raiseIntentForContextSuffix}`;
+    }
+
+    public static joinPrivateChannel(): string {
+        return `${this.topicRoot}/${this.joinPrivateChannelSuffix}`
     }
 
     private static getChannelsTopicRoot(channelType: ChannelType): string {
