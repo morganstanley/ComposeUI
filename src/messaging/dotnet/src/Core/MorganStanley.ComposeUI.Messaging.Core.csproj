@@ -14,6 +14,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<InternalsVisibleTo Include="$(AssemblyName).Tests" />
+		<InternalsVisibleTo Include="MorganStanley.ComposeUI.Messaging.IntegrationTests"/>
 	</ItemGroup>
 
 	<ItemGroup>

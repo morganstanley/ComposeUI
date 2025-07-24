@@ -27,7 +27,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<InternalsVisibleTo Include="ComposeUI.Messaging.IntegrationTests" />
+		<InternalsVisibleTo Include="MorganStanley.ComposeUI.Messaging.IntegrationTests" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -11,6 +11,8 @@
 // and limitations under the License.
 
 using Microsoft.Extensions.DependencyInjection;
+using MorganStanley.ComposeUI.Messaging.Client.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Client;
 
 namespace MorganStanley.ComposeUI.Messaging;
 
@@ -18,7 +20,9 @@ public class InProcessEndToEndTests : EndToEndTestsBase
 {
     protected override IMessageRouter CreateClient()
     {
-        return Host.Services.GetRequiredService<IMessageRouter>();
+        var client = new MessageRouterClient(Host.Services.GetRequiredService<IConnectionFactory>(), Host.Services.GetRequiredService<MessageRouterOptions>(), null);
+        AddDisposable(Internal.Disposable.FromAsyncDisposable(client));
+        return client;
     }
 
     protected override void ConfigureServer(MessageRouterServerBuilder serverBuilder)
