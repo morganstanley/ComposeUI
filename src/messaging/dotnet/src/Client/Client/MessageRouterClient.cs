@@ -465,6 +465,12 @@ internal sealed class MessageRouterClient : IMessageRouter
     {
         OnRequestStart(message);
 
+        if (message.SourceId == ClientId)
+        {
+            OnRequestStop(message);
+            return;
+        }
+
         if (!_topics.TryGetValue(message.Topic, out var topic))
         {
             OnRequestStop(message);
