@@ -8,7 +8,10 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<AssemblyName>MorganStanley.ComposeUI.Utilities</AssemblyName>
 		<RootNamespace>MorganStanley.ComposeUI.Utilities</RootNamespace>
-		<Description>Utilities for ComposeUI. More Details: https://morganstanley.github.io/ComposeUI/</Description>
+		<Description>
+			Provides helper classes and extensions to support ComposeUI-based .NET applications.
+  			More Details: https://morganstanley.github.io/ComposeUI/
+		</Description>
 		<Tags>ComposeUI</Tags>
 	</PropertyGroup>
 

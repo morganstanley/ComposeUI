@@ -12,8 +12,16 @@
 
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
+/// <summary>
+/// Represents a request to start a module, including the module identifier and optional startup parameters.
+/// </summary>
 public sealed class StartRequest
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StartRequest"/> class.
+    /// </summary>
+    /// <param name="moduleId">The unique identifier of the module to start.</param>
+    /// <param name="parameters">Optional startup parameters to pass to the module.</param>
     public StartRequest(
         string moduleId, 
         IEnumerable<KeyValuePair<string, string>>? parameters = null)
@@ -22,7 +30,13 @@ public sealed class StartRequest
         Parameters = parameters?.ToArray() ?? Array.Empty<KeyValuePair<string, string>>();
     }
 
+    /// <summary>
+    /// Gets the unique identifier of the module to start.
+    /// </summary>
     public string ModuleId { get; }
 
+    /// <summary>
+    /// Gets the collection of startup parameters to pass to the module.
+    /// </summary>
     public KeyValuePair<string, string>[] Parameters { get; }
 }

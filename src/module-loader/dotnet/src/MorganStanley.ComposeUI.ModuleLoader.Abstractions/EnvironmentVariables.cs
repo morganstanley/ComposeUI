@@ -17,10 +17,20 @@ using System.Collections.Immutable;
 
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
+/// <summary>
+/// Represents a collection of environment variables as key-value pairs.
+/// </summary>
 public sealed class EnvironmentVariables
 {
+    /// <summary>
+    /// Gets the collection of environment variables.
+    /// </summary>
     public IEnumerable<KeyValuePair<string, string>> Variables { get; }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EnvironmentVariables"/> class with the specified variables.
+    /// </summary>
+    /// <param name="variables">The environment variables to include in the collection.</param>
     public EnvironmentVariables(IEnumerable<KeyValuePair<string, string>> variables)
     {
         Variables = variables.ToImmutableArray();

@@ -12,7 +12,14 @@
 
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
+/// <summary>
+/// Provides constant values used by the module loader.
+/// </summary>
 public static class ModuleLoaderConstants
 {
+    /// <summary>
+    /// The default URI used when no specific URI is provided for a module.
+    /// Typically represents a blank or uninitialized state.
+    /// </summary>
     public static readonly Uri DefaultUri = new("about:blank");
 }
