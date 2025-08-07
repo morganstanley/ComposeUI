@@ -84,7 +84,6 @@ public class EndToEndTests : IAsyncLifetime
                     fdc3 =>
                     {
                         fdc3.Configure(builder => { builder.ChannelId = TestChannel; });
-                        fdc3.UseMessageRouter();
                     });
 
                 services.AddMessageRouterMessagingAdapter();
