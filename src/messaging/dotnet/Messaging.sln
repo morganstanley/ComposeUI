@@ -59,6 +59,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "architecture", "architectur
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.MessageRouterAdapter", "src\MessageRouterAdapter\MorganStanley.ComposeUI.Messaging.MessageRouterAdapter.csproj", "{FBA4AB98-654B-4848-830B-ECADF0A1D287}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.MessageRouterAdapter.Tests", "test\MessageRouterAdapter.Tests\MorganStanley.ComposeUI.Messaging.MessageRouterAdapter.Tests.csproj", "{C5C9FDC7-B4EA-4C4F-93B9-6AC27866A37A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -117,6 +119,10 @@ Global
 		{FBA4AB98-654B-4848-830B-ECADF0A1D287}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FBA4AB98-654B-4848-830B-ECADF0A1D287}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FBA4AB98-654B-4848-830B-ECADF0A1D287}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C5C9FDC7-B4EA-4C4F-93B9-6AC27866A37A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5C9FDC7-B4EA-4C4F-93B9-6AC27866A37A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C5C9FDC7-B4EA-4C4F-93B9-6AC27866A37A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5C9FDC7-B4EA-4C4F-93B9-6AC27866A37A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -135,6 +141,7 @@ Global
 		{CEF78D3F-C645-4471-BAD2-9C538A0CA763} = {78E94277-B0B4-425C-9C47-81E09933FE5B}
 		{F1B0C089-450E-4B02-881F-F41A8B7F5867} = {B7E63957-3C1B-4A16-B530-3EAD0D0C5F07}
 		{FBA4AB98-654B-4848-830B-ECADF0A1D287} = {37DE16A7-F731-4206-B650-8A1D9D066B60}
+		{C5C9FDC7-B4EA-4C4F-93B9-6AC27866A37A} = {78E94277-B0B4-425C-9C47-81E09933FE5B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {38CFF5DF-459A-49E1-8189-2DB429A99B3A}

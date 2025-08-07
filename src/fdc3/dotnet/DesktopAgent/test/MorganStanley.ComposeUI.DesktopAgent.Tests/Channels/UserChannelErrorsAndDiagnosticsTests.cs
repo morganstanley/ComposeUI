@@ -13,6 +13,7 @@
  */
 
 using System.Text.Json;
+using Finos.Fdc3;
 using Microsoft.Extensions.Logging;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
@@ -50,7 +51,7 @@ public class UserChannelErrorsAndDiagnosticsTests
     private readonly TestLogger _logger;
     private readonly UserChannel _channel;
     private readonly ChannelTopics _topics = Fdc3Topic.UserChannel(TestChannel);
-    private readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+    private readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web);
 
     public UserChannelErrorsAndDiagnosticsTests()
     {
@@ -109,5 +110,58 @@ public class UserChannelErrorsAndDiagnosticsTests
     {
         _logger.WarningCalls.Should().Be(1);
         _logger.DebugCalls.Should().Be(0);
+    }
+
+    [Fact]
+    public void LogConnected_LoggerEnabled_LogsDebugMessage()
+    {
+        // Arrange
+        var loggerMock = new Mock<ILogger>();
+        loggerMock.Setup(l => l.IsEnabled(LogLevel.Debug)).Returns(true);
+
+        var messagingMock = new Mock<IMessaging>();
+        JsonSerializerOptions jsonSerializerOptions = new();
+
+        var topics = new ChannelTopics("test", ChannelType.User);
+        var channel = new TestChannel("test", messagingMock.Object, jsonSerializerOptions, loggerMock.Object, topics);
+
+        // Act
+        channel.CallLogConnected();
+
+        // Assert
+        loggerMock.Invocations
+            .Should()
+            .ContainSingle(invocation =>
+                invocation.Method.Name == nameof(ILogger.Log) &&
+                invocation.Arguments.Count > 2 &&
+                (LogLevel) invocation.Arguments[0] == LogLevel.Debug &&
+                invocation.Arguments[2].ToString()!.Contains("connected to the messaging service"));
+    }
+
+    [Fact]
+    public void LogUnexpectedMessage_LoggerEnabled_LogsDebugMessage()
+    {
+        // Arrange
+        var loggerMock = new Mock<ILogger>();
+        loggerMock.Setup(l => l.IsEnabled(LogLevel.Warning)).Returns(true);
+
+        var messagingMock = new Mock<IMessaging>();
+        JsonSerializerOptions jsonSerializerOptions = new();
+
+        var topics = new ChannelTopics("test", ChannelType.User);
+        var channel = new TestChannel("test", messagingMock.Object, jsonSerializerOptions, loggerMock.Object, topics);
+        var message = "Unexpected message received";
+
+        // Act
+        channel.CallLogUnexpectedError(message);
+
+        // Assert
+        loggerMock.Invocations
+       .Should()
+       .ContainSingle(invocation =>
+           invocation.Method.Name == nameof(ILogger.Log) &&
+           invocation.Arguments.Count > 2 &&
+           (LogLevel) invocation.Arguments[0] == LogLevel.Warning &&
+           invocation.Arguments[2].ToString()!.Contains("received unexpected message while trying to close a PrivateChannel"));
     }
 }
