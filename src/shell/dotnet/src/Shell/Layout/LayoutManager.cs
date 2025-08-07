@@ -22,244 +22,243 @@ using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace MorganStanley.ComposeUI.Shell.Layout
+namespace MorganStanley.ComposeUI.Shell.Layout;
+
+internal class LayoutManager
 {
-    internal class LayoutManager
+
+    private readonly XamDockManager _xamDockManager;
+    private readonly IModuleLoader _moduleLoader;
+    private readonly ILayoutPersistence<string> _layoutPersistence;
+    private readonly Dictionary<string, TaskCompletionSource<bool>> _moduleReadyTasks;
+    private readonly ILogger<LayoutManager> _logger;
+
+    private const string DockmanagerLayout = "layout";
+    private const string MainWindowLayout = "mainWindow";
+    private const string Modules = "modules";
+    private const string SerializationId = "serializationId";
+
+    public readonly Dictionary<string, WebContentPane> WebContentPanes;
+    
+
+    public bool IsLayoutLoading { get; private set; } = false;
+
+    public LayoutManager(
+        XamDockManager dockManager, 
+        IModuleLoader moduleLoader, 
+        ILayoutPersistence<string> layoutPersistence,
+        ILogger<LayoutManager>? logger = null)
     {
+        _xamDockManager = dockManager ?? throw new ArgumentNullException(nameof(dockManager));
+        _moduleLoader = moduleLoader ?? throw new ArgumentNullException(nameof(moduleLoader));
+        _layoutPersistence = layoutPersistence ?? throw new ArgumentNullException(nameof(layoutPersistence));
 
-        private readonly XamDockManager _xamDockManager;
-        private readonly IModuleLoader _moduleLoader;
-        private readonly ILayoutPersistence<string> _layoutPersistence;
-        private readonly Dictionary<string, TaskCompletionSource<bool>> _moduleReadyTasks;
-        private readonly ILogger<LayoutManager> _logger;
+        _moduleReadyTasks = [];
+        WebContentPanes = [];
 
-        private const string DockmanagerLayout = "layout";
-        private const string MainWindowLayout = "mainWindow";
-        private const string Modules = "modules";
-        private const string SerializationId = "serializationId";
+        _logger = logger ?? NullLogger<LayoutManager>.Instance;
+    }
 
-        public readonly Dictionary<string, WebContentPane> WebContentPanes;
-        
+    public async Task LoadLayoutAsync()
+    {
+        var result = MessageBox.Show("Do you want to load the saved layout?",
+                          "Load Layout",
+                          MessageBoxButton.YesNo,
+                          MessageBoxImage.Question);
 
-        public bool IsLayoutLoading { get; private set; } = false;
-
-        public LayoutManager(
-            XamDockManager dockManager, 
-            IModuleLoader moduleLoader, 
-            ILayoutPersistence<string> layoutPersistence,
-            ILogger<LayoutManager>? logger = null)
+        if (result == MessageBoxResult.Yes)
         {
-            _xamDockManager = dockManager ?? throw new ArgumentNullException(nameof(dockManager));
-            _moduleLoader = moduleLoader ?? throw new ArgumentNullException(nameof(moduleLoader));
-            _layoutPersistence = layoutPersistence ?? throw new ArgumentNullException(nameof(layoutPersistence));
+            await Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                SetApplicationEnabledState(false);
+            });
 
-            _moduleReadyTasks = [];
-            WebContentPanes = [];
+            IsLayoutLoading = true;
 
-            _logger = logger ?? NullLogger<LayoutManager>.Instance;
+            try
+            {
+                foreach (var pane in _xamDockManager.GetPanes(PaneNavigationOrder.ActivationOrder))
+                {
+                    pane.ExecuteCommand(ContentPaneCommands.Close);
+                }
+
+                await LoadMainWindowLayout();
+                await LoadModulesAsync();
+                await LoadDockManagerLayout();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading layout: {ex.Message}");
+            }
+            finally
+            {
+                IsLayoutLoading = false;
+
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    SetApplicationEnabledState(true);
+                });
+            }
         }
+    }
 
-        public async Task LoadLayoutAsync()
+    public async Task SaveLayoutAsync()
+    {
+        var result = MessageBox.Show("Are you sure you want to save the current layout?",
+                          "Save Layout",
+                          MessageBoxButton.YesNo,
+                          MessageBoxImage.Question);
+
+        if (result == MessageBoxResult.Yes)
         {
-            var result = MessageBox.Show("Do you want to load the saved layout?",
-                              "Load Layout",
-                              MessageBoxButton.YesNo,
-                              MessageBoxImage.Question);
+            await Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                SetApplicationEnabledState(false);
+            });
 
-            if (result == MessageBoxResult.Yes)
+            try
+            {
+                await SaveMainWindowLayoutAsync();
+                await SaveModulesAsync();
+                await SaveDockManagerLayoutAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error saving layout: {ex.Message}");
+            }
+            finally
             {
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-                    SetApplicationEnabledState(false);
+                    SetApplicationEnabledState(true);
                 });
+            }
+        }
+    }
 
-                IsLayoutLoading = true;
+    public void AddAndSetModuleContentState(WebContent webContent)
+    {
+        if (webContent == null) throw new ArgumentNullException(nameof(webContent));
 
-                try
+        var serializationId = (webContent.ModuleInstance?.StartRequest.Parameters
+            .FirstOrDefault(p => p.Key == SerializationId).Value) ?? throw new InvalidOperationException("SerializationId cannot be null");
+
+        WebContentPanes[serializationId] = new WebContentPane(webContent, _moduleLoader);
+
+        if (_moduleReadyTasks.ContainsKey(serializationId))
+        {
+            _moduleReadyTasks[serializationId].SetResult(true);
+        }
+    }
+
+    private async Task SaveMainWindowLayoutAsync()
+    {
+        var mainWindow = new MainWindowParameters
+        {
+            WindowState = Application.Current.MainWindow.WindowState,
+            Width = Application.Current.MainWindow.Width,
+            Height = Application.Current.MainWindow.Height,
+            Top = Application.Current.MainWindow.Top,
+            Left = Application.Current.MainWindow.Left
+        };
+
+        await _layoutPersistence.SaveLayoutAsync(MainWindowLayout, JsonSerializer.Serialize(mainWindow));
+    }
+
+    private async Task LoadMainWindowLayout()
+    {
+        var mainWindow = await _layoutPersistence.LoadLayoutAsync(MainWindowLayout);
+
+        if (!string.IsNullOrWhiteSpace(mainWindow))
+        {
+            var mainWindowParameters = JsonSerializer.Deserialize<MainWindowParameters>(mainWindow);
+
+            if (mainWindowParameters != null)
+            {
+                Application.Current.MainWindow.WindowState = mainWindowParameters.WindowState;
+                Application.Current.MainWindow.Width = mainWindowParameters.Width;
+                Application.Current.MainWindow.Height = mainWindowParameters.Height;
+                Application.Current.MainWindow.Top = mainWindowParameters.Top;
+                Application.Current.MainWindow.Left = mainWindowParameters.Left;
+            }
+        }
+    }
+
+    private async Task SaveModulesAsync()
+    {
+        var moduleIds = new Dictionary<string, string>();
+
+        foreach (var pane in _xamDockManager.GetPanes(PaneNavigationOrder.VisibleOrder))
+        {
+            if (pane is WebContentPane webContentPane)
+            {
+                var moduleId = webContentPane.WebContent?.ModuleInstance?.Manifest.Id;
+                if (!string.IsNullOrWhiteSpace(moduleId))
                 {
-                    foreach (var pane in _xamDockManager.GetPanes(PaneNavigationOrder.ActivationOrder))
-                    {
-                        pane.ExecuteCommand(ContentPaneCommands.Close);
-                    }
-
-                    await LoadMainWindowLayout();
-                    await LoadModulesAsync();
-                    await LoadDockManagerLayout();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error loading layout: {ex.Message}");
-                }
-                finally
-                {
-                    IsLayoutLoading = false;
-
-                    await Application.Current.Dispatcher.InvokeAsync(() =>
-                    {
-                        SetApplicationEnabledState(true);
-                    });
+                    moduleIds.Add(pane.SerializationId, moduleId);
                 }
             }
         }
 
-        public async Task SaveLayoutAsync()
+        await _layoutPersistence.SaveLayoutAsync(Modules, JsonSerializer.Serialize(moduleIds));
+    }
+
+    private async Task LoadModulesAsync()
+    {
+        var modulesLayout = await _layoutPersistence.LoadLayoutAsync(Modules);
+
+        if (!string.IsNullOrWhiteSpace(modulesLayout))
         {
-            var result = MessageBox.Show("Are you sure you want to save the current layout?",
-                              "Save Layout",
-                              MessageBoxButton.YesNo,
-                              MessageBoxImage.Question);
+            var moduleStates = JsonSerializer.Deserialize<Dictionary<string, string>>(modulesLayout);
 
-            if (result == MessageBoxResult.Yes)
+            if (moduleStates != null)
             {
-                await Application.Current.Dispatcher.InvokeAsync(() =>
-                {
-                    SetApplicationEnabledState(false);
-                });
+                var moduleTasks = new List<Task>();
 
-                try
+                foreach (var moduleId in moduleStates.Keys)
                 {
-                    await SaveMainWindowLayoutAsync();
-                    await SaveModulesAsync();
-                    await SaveDockManagerLayoutAsync();
+                    var tcs = new TaskCompletionSource<bool>();
+                    _moduleReadyTasks[moduleId] = tcs;
+
+                    await _moduleLoader.StartModule(
+                        new StartRequest(
+                            moduleStates[moduleId],
+                            new Dictionary<string, string>
+                            {
+                                    { SerializationId, moduleId }
+                            }));
+
+                    moduleTasks.Add(tcs.Task);
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error saving layout: {ex.Message}");
-                }
-                finally
-                {
-                    await Application.Current.Dispatcher.InvokeAsync(() =>
-                    {
-                        SetApplicationEnabledState(true);
-                    });
-                }
+
+                await Task.WhenAll(moduleTasks);
             }
         }
+    }
 
-        public void AddAndSetModuleContentState(WebContent webContent)
+    private async Task SaveDockManagerLayoutAsync()
+    {
+        var layout = _xamDockManager.SaveLayout();
+        await _layoutPersistence.SaveLayoutAsync(DockmanagerLayout, layout);
+    }
+
+    private async Task LoadDockManagerLayout()
+    {
+        var layout = await _layoutPersistence.LoadLayoutAsync(DockmanagerLayout);
+
+        if (!string.IsNullOrWhiteSpace(layout))
         {
-            if (webContent == null) throw new ArgumentNullException(nameof(webContent));
-
-            var serializationId = (webContent.ModuleInstance?.StartRequest.Parameters
-                .FirstOrDefault(p => p.Key == SerializationId).Value) ?? throw new InvalidOperationException("SerializationId cannot be null");
-
-            WebContentPanes[serializationId] = new WebContentPane(webContent, _moduleLoader);
-
-            if (_moduleReadyTasks.ContainsKey(serializationId))
-            {
-                _moduleReadyTasks[serializationId].SetResult(true);
-            }
+            _xamDockManager.LoadLayout(layout);
         }
+    }
 
-        private async Task SaveMainWindowLayoutAsync()
+    public void SetApplicationEnabledState(bool isEnabled)
+    {
+        Application.Current.MainWindow.IsEnabled = isEnabled;
+
+        foreach (var pane in _xamDockManager.GetPanes(PaneNavigationOrder.VisibleOrder))
         {
-            var mainWindow = new MainWindowParameters
-            {
-                WindowState = Application.Current.MainWindow.WindowState,
-                Width = Application.Current.MainWindow.Width,
-                Height = Application.Current.MainWindow.Height,
-                Top = Application.Current.MainWindow.Top,
-                Left = Application.Current.MainWindow.Left
-            };
-
-            await _layoutPersistence.SaveLayoutAsync(MainWindowLayout, JsonSerializer.Serialize(mainWindow));
-        }
-
-        private async Task LoadMainWindowLayout()
-        {
-            var mainWindow = await _layoutPersistence.LoadLayoutAsync(MainWindowLayout);
-
-            if (!string.IsNullOrWhiteSpace(mainWindow))
-            {
-                var mainWindowParameters = JsonSerializer.Deserialize<MainWindowParameters>(mainWindow);
-
-                if (mainWindowParameters != null)
-                {
-                    Application.Current.MainWindow.WindowState = mainWindowParameters.WindowState;
-                    Application.Current.MainWindow.Width = mainWindowParameters.Width;
-                    Application.Current.MainWindow.Height = mainWindowParameters.Height;
-                    Application.Current.MainWindow.Top = mainWindowParameters.Top;
-                    Application.Current.MainWindow.Left = mainWindowParameters.Left;
-                }
-            }
-        }
-
-        private async Task SaveModulesAsync()
-        {
-            var moduleIds = new Dictionary<string, string>();
-
-            foreach (var pane in _xamDockManager.GetPanes(PaneNavigationOrder.VisibleOrder))
-            {
-                if (pane is WebContentPane webContentPane)
-                {
-                    var moduleId = webContentPane.WebContent?.ModuleInstance?.Manifest.Id;
-                    if (!string.IsNullOrWhiteSpace(moduleId))
-                    {
-                        moduleIds.Add(pane.SerializationId, moduleId);
-                    }
-                }
-            }
-
-            await _layoutPersistence.SaveLayoutAsync(Modules, JsonSerializer.Serialize(moduleIds));
-        }
-
-        private async Task LoadModulesAsync()
-        {
-            var modulesLayout = await _layoutPersistence.LoadLayoutAsync(Modules);
-
-            if (!string.IsNullOrWhiteSpace(modulesLayout))
-            {
-                var moduleStates = JsonSerializer.Deserialize<Dictionary<string, string>>(modulesLayout);
-
-                if (moduleStates != null)
-                {
-                    var moduleTasks = new List<Task>();
-
-                    foreach (var moduleId in moduleStates.Keys)
-                    {
-                        var tcs = new TaskCompletionSource<bool>();
-                        _moduleReadyTasks[moduleId] = tcs;
-
-                        await _moduleLoader.StartModule(
-                            new StartRequest(
-                                moduleStates[moduleId],
-                                new Dictionary<string, string>
-                                {
-                                        { SerializationId, moduleId }
-                                }));
-
-                        moduleTasks.Add(tcs.Task);
-                    }
-
-                    await Task.WhenAll(moduleTasks);
-                }
-            }
-        }
-
-        private async Task SaveDockManagerLayoutAsync()
-        {
-            var layout = _xamDockManager.SaveLayout();
-            await _layoutPersistence.SaveLayoutAsync(DockmanagerLayout, layout);
-        }
-
-        private async Task LoadDockManagerLayout()
-        {
-            var layout = await _layoutPersistence.LoadLayoutAsync(DockmanagerLayout);
-
-            if (!string.IsNullOrWhiteSpace(layout))
-            {
-                _xamDockManager.LoadLayout(layout);
-            }
-        }
-
-        public void SetApplicationEnabledState(bool isEnabled)
-        {
-            Application.Current.MainWindow.IsEnabled = isEnabled;
-
-            foreach (var pane in _xamDockManager.GetPanes(PaneNavigationOrder.VisibleOrder))
-            {
-                pane.IsEnabled = isEnabled;
-            }
+            pane.IsEnabled = isEnabled;
         }
     }
 }

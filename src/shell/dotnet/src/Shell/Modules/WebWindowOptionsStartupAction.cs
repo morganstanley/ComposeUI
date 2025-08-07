@@ -16,24 +16,23 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using MorganStanley.ComposeUI.ModuleLoader;
 
-namespace MorganStanley.ComposeUI.Shell.Modules
+namespace MorganStanley.ComposeUI.Shell.Modules;
+
+internal class WebWindowOptionsStartupAction : IStartupAction
 {
-    internal class WebWindowOptionsStartupAction : IStartupAction
+    public Task InvokeAsync(StartupContext startupContext, Func<Task> next)
     {
-        public Task InvokeAsync(StartupContext startupContext, Func<Task> next)
+        if (startupContext.ModuleInstance.Manifest.ModuleType == ModuleType.Web)
         {
-            if (startupContext.ModuleInstance.Manifest.ModuleType == ModuleType.Web)
+            var webWindowOptions = startupContext.StartRequest.Parameters
+                .FirstOrDefault(p => p.Key == WebWindowOptions.ParameterName).Value;
+
+            if (webWindowOptions != null)
             {
-                var webWindowOptions = startupContext.StartRequest.Parameters
-                    .FirstOrDefault(p => p.Key == WebWindowOptions.ParameterName).Value;
-
-                if (webWindowOptions != null)
-                {
-                    startupContext.AddProperty(JsonSerializer.Deserialize<WebWindowOptions>(webWindowOptions));
-                }
+                startupContext.AddProperty(JsonSerializer.Deserialize<WebWindowOptions>(webWindowOptions));
             }
-
-            return next();
         }
+
+        return next();
     }
 }
