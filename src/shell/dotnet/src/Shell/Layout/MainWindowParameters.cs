@@ -12,14 +12,13 @@
 
 using System.Windows;
 
-namespace MorganStanley.ComposeUI.Shell.Layout
+namespace MorganStanley.ComposeUI.Shell.Layout;
+
+internal class MainWindowParameters
 {
-    internal class MainWindowParameters
-    {
-        public WindowState WindowState { get; set; }
-        public double Height { get; set; }
-        public double Width { get; set; }
-        public double Top { get; set; }
-        public double Left { get; set; }
-    }
+    public WindowState WindowState { get; set; }
+    public double Height { get; set; }
+    public double Width { get; set; }
+    public double Top { get; set; }
+    public double Left { get; set; }
 }
