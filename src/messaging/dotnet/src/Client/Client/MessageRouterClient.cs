@@ -40,23 +40,13 @@ internal sealed class MessageRouterClient : IMessageRouter
 
     public string? ClientId => _clientId;
 
-    public ValueTask ConnectAsync(CancellationToken cancellationToken = default)
+    public ValueTask ConnectAsync(CancellationToken cancellationToken = default) => _connectionState switch
     {
-        switch (_connectionState)
-        {
-            case ConnectionState.Connected:
-                return default;
-
-            case ConnectionState.Connecting:
-                return new ValueTask(_stateChangeEvents.Connected.Task);
-
-            case ConnectionState.Closing:
-            case ConnectionState.Closed:
-                throw ThrowHelper.ConnectionClosed();
-        }
-
-        return ConnectAsyncCore(cancellationToken);
-    }
+        ConnectionState.Connected => default,
+        ConnectionState.Connecting => new ValueTask(_stateChangeEvents.Connected.Task),
+        ConnectionState.Closing or ConnectionState.Closed => throw ThrowHelper.ConnectionClosed(),
+        _ => ConnectAsyncCore(cancellationToken),
+    };
 
     public ValueTask<IAsyncDisposable> SubscribeAsync(
         string topic,
@@ -130,7 +120,9 @@ internal sealed class MessageRouterClient : IMessageRouter
         try
         {
             if (!_endpointHandlers.TryAdd(endpoint, handler))
+            {
                 throw ThrowHelper.DuplicateEndpoint(endpoint);
+            }
 
             return RegisterServiceCore(endpoint, cancellationToken);
         }
@@ -147,7 +139,9 @@ internal sealed class MessageRouterClient : IMessageRouter
         CheckState();
 
         if (!_endpointHandlers.TryRemove(endpoint, out _))
+        {
             return default;
+        }
 
         return UnregisterServiceCore(endpoint, cancellationToken);
     }
@@ -336,11 +330,15 @@ internal sealed class MessageRouterClient : IMessageRouter
                     try
                     {
                         if (!_endpointHandlers.TryGetValue(message.Endpoint, out var handler))
+                        {
                             throw ThrowHelper.UnknownEndpoint(message.Endpoint);
+                        }
 
                         // Last chance to back out if the connection was closed in the meantime
                         if (_connectionState != ConnectionState.Connected)
+                        {
                             return;
+                        }
 
                         var responsePayload = await handler(
                             message.Endpoint,
@@ -393,7 +391,9 @@ internal sealed class MessageRouterClient : IMessageRouter
     private void HandleResponse(AbstractResponse message)
     {
         if (!_pendingRequests.TryRemove(message.RequestId, out var tcs))
+        {
             return;
+        }
 
         if (message.Error != null)
         {
@@ -452,7 +452,7 @@ internal sealed class MessageRouterClient : IMessageRouter
         }
     }
 
-    private string GenerateRequestId() => Guid.NewGuid().ToString("N");
+    private static string GenerateRequestId() => Guid.NewGuid().ToString("N");
 
     private async Task<TResponse> SendRequestAsync<TResponse>(
         AbstractRequest<TResponse> request,
@@ -626,7 +626,10 @@ internal sealed class MessageRouterClient : IMessageRouter
     {
         var subscribeResult = topic.Subscribe(subscriber);
 
-        if (!subscribeResult.NeedsSubscription) return subscribeResult.Subscription;
+        if (!subscribeResult.NeedsSubscription)
+        {
+            return subscribeResult.Subscription;
+        }
 
         try
         {
@@ -667,19 +670,12 @@ internal sealed class MessageRouterClient : IMessageRouter
             TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
-    private ValueTask CloseAsync(Exception? exception)
+    private ValueTask CloseAsync(Exception? exception) => _connectionState switch
     {
-        switch (_connectionState)
-        {
-            case ConnectionState.Closed:
-                return default;
-
-            case ConnectionState.Closing:
-                return new ValueTask(_stateChangeEvents.Closed.Task);
-        }
-
-        return CloseAsyncCore(exception);
-    }
+        ConnectionState.Closed => default,
+        ConnectionState.Closing => new ValueTask(_stateChangeEvents.Closed.Task),
+        _ => CloseAsyncCore(exception),
+    };
 
     private async ValueTask CloseAsyncCore(Exception? exception)
     {
@@ -1001,10 +997,14 @@ internal sealed class MessageRouterClient : IMessageRouter
             lock (_mutex)
             {
                 if (_exception != null)
+                {
                     throw _exception;
+                }
 
                 if (_isCompleted)
+                {
                     throw ThrowHelper.ConnectionClosed();
+                }
 
                 var needsSubscription = _subscriptions.Count == 0;
                 var subscription = new Subscription(this, subscriber, _logger);
@@ -1020,7 +1020,9 @@ internal sealed class MessageRouterClient : IMessageRouter
             lock (_mutex)
             {
                 if (_isCompleted || _subscriptions.Count == 0)
+                {
                     return false;
+                }
 
                 foreach (var subscription in _subscriptions)
                 {
@@ -1036,7 +1038,9 @@ internal sealed class MessageRouterClient : IMessageRouter
             lock (_mutex)
             {
                 if (_isCompleted)
+                {
                     return;
+                }
 
                 _isCompleted = true;
                 _exception = exception;
@@ -1052,7 +1056,10 @@ internal sealed class MessageRouterClient : IMessageRouter
         {
             lock (_mutex)
             {
-                if (_isCompleted || !_subscriptions.Remove(subscription)) return;
+                if (_isCompleted || !_subscriptions.Remove(subscription))
+                {
+                    return;
+                }
 
                 if (_subscriptions.Count == 0)
                 {
@@ -1084,7 +1091,7 @@ internal sealed class MessageRouterClient : IMessageRouter
         private readonly HashSet<Subscription> _subscriptions = new();
         private bool _isCompleted;
         private Exception? _exception;
-        private AsyncCountdownEvent _subscriberCount = new(0);
+        private readonly AsyncCountdownEvent _subscriberCount = new(0);
     }
 
     private class Subscription : IAsyncDisposable
@@ -1123,7 +1130,9 @@ internal sealed class MessageRouterClient : IMessageRouter
                 _ =>
                 {
                     if (_disposed)
+                    {
                         return ValueTask.CompletedTask;
+                    }
 
                     _disposed = true;
                     _queue.Writer.TryComplete();
@@ -1190,7 +1199,10 @@ internal sealed class MessageRouterClient : IMessageRouter
 
         private async ValueTask InvokeSubscriber<TArg>(Func<TArg, ValueTask> action, TArg arg, string methodName)
         {
-            if (_disposed) return;
+            if (_disposed)
+            {
+                return;
+            }
 
             _recursion.Value += 1;
             try

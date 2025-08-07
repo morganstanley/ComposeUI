@@ -48,9 +48,9 @@ internal static class Fdc3Topic
         return $"{RaiseIntent}/{intent}/{instanceId}";
     }
 
-    internal static ChannelTopics UserChannel(string id) => new ChannelTopics(id, ChannelType.User);
-    internal static ChannelTopics AppChannel(string id) => new ChannelTopics(id, ChannelType.App);
-    internal static PrivateChannelTopics PrivateChannel(string id) => new PrivateChannelTopics(id);
+    internal static ChannelTopics UserChannel(string id) => new(id, ChannelType.User);
+    internal static ChannelTopics AppChannel(string id) => new(id, ChannelType.App);
+    internal static PrivateChannelTopics PrivateChannel(string id) => new(id);
 }
 
 internal class ChannelTopics
