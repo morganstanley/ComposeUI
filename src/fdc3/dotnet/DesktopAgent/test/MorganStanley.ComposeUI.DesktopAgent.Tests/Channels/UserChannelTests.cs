@@ -13,6 +13,8 @@
  */
 
 using System.Text.Json;
+using Finos.Fdc3;
+using Microsoft.Extensions.Logging;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 
@@ -26,5 +28,53 @@ public class UserChannelTests : ChannelTestBase
     {
         Channel = new UserChannel(TestChannel, new Mock<IMessaging>().Object, new JsonSerializerOptions(JsonSerializerDefaults.Web), null);
         Topics = Fdc3Topic.UserChannel(TestChannel);
+    }
+
+    [Fact]
+    public async Task HandleBroadcast_NullPayload_LogsWarning()
+    {
+        // Arrange
+        var loggerMock = new Mock<ILogger>();
+        loggerMock.Setup(l => l.IsEnabled(LogLevel.Warning)).Returns(true);
+
+        var messagingMock = new Mock<IMessaging>();
+        var topics = new ChannelTopics(TestChannel, ChannelType.User);
+
+        JsonSerializerOptions jsonSerializerOptions = new();
+
+        var channel = new TestChannel(TestChannel, messagingMock.Object, jsonSerializerOptions, loggerMock.Object, topics);
+
+        // Act
+        await channel.CallHandleBroadcast(null);
+
+        // Assert
+        loggerMock.Invocations
+        .Should()
+        .ContainSingle(invocation =>
+            invocation.Method.Name == nameof(ILogger.Log) &&
+            invocation.Arguments.Count > 2 &&
+            (LogLevel) invocation.Arguments[0] == LogLevel.Warning &&
+            invocation.Arguments[2].ToString()!.Contains("received a null or empty payload in broadcast")
+        );
+    }
+
+    [Fact]
+    public async Task Connect_AfterDispose_ThrowsObjectDisposedException()
+    {
+        // Arrange
+        var loggerMock = new Mock<ILogger>();
+        var messagingMock = new Mock<IMessaging>();
+        var topics = new ChannelTopics("test", ChannelType.User);
+
+        JsonSerializerOptions jsonSerializerOptions = new();
+
+        var channel = new TestChannel("test", messagingMock.Object, jsonSerializerOptions, loggerMock.Object, topics);
+
+        // Act
+        await channel.DisposeAsync();
+
+        // Assert
+        Func<Task> act = async () => await channel.Connect().AsTask();
+        await act.Should().ThrowAsync<ObjectDisposedException>();
     }
 }
