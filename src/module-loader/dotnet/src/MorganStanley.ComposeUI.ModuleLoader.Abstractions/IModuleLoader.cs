@@ -12,26 +12,30 @@
 
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
+/// <summary>
+/// Defines the contract for loading, starting, stopping, and monitoring modules within the application.
+/// </summary>
 public interface IModuleLoader
 {
     /// <summary>
-    /// Starts the module.
+    /// Starts a module using the specified <see cref="StartRequest"/>.
     /// </summary>
-    /// <param name="startRequest">Provides possibility to pass different configuration for starting the module.</param>
-    /// <returns></returns>
+    /// <param name="startRequest">The request containing the module identifier and configuration parameters for starting the module.</param>
+    /// <returns>
+    /// A task that represents the asynchronous operation. The task result contains the <see cref="IModuleInstance"/> representing the started module.
+    /// </returns>
     public Task<IModuleInstance> StartModule(StartRequest startRequest);
 
-
     /// <summary>
-    /// Stops the module by instance id.
+    /// Stops a running module instance using the specified <see cref="StopRequest"/>.
     /// </summary>
-    /// <param name="stopRequest"></param>
-    /// <returns></returns>
+    /// <param name="stopRequest">The request containing the instance identifier and optional properties for stopping the module.</param>
+    /// <returns>A task that represents the asynchronous stop operation.</returns>
     public Task StopModule(StopRequest stopRequest);
 
-
     /// <summary>
-    /// The module's lifetime events through its lifetime.
+    /// Gets an observable sequence of lifetime events for all managed modules.
+    /// Subscribers can monitor module start, stop, and other lifecycle events.
     /// </summary>
     public IObservable<LifetimeEvent> LifetimeEvents { get; }
 }

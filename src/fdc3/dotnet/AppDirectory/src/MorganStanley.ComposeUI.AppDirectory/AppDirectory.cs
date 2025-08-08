@@ -182,7 +182,7 @@ public class AppDirectory : IAppDirectory
         }
 
         var serializer = JsonSerializer.Create(jsonSerializerSettings);
-        using var textReader = new StreamReader(stream, leaveOpen: true);
+        using var textReader = new StreamReader(stream);
         using var jsonReader = new JsonTextReader(textReader);
         jsonReader.Read();
 
@@ -234,7 +234,7 @@ public class AppDirectory : IAppDirectory
 
             _callbacks.TryAdd(action, action);
 
-            return Disposable.Create(() => _callbacks.Remove(action, out _));
+            return Disposable.Create(() => _callbacks.TryRemove(action, out _));
         }
 
         private readonly ConcurrentDictionary<object, Action> _callbacks = new();

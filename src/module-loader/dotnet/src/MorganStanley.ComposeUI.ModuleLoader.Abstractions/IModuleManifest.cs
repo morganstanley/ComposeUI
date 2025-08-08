@@ -14,41 +14,64 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
+/// <summary>
+/// Defines the contract for a module manifest, which describes the metadata and configuration of a module.
+/// </summary>
 public interface IModuleManifest
 {
+    /// <summary>
+    /// Gets the unique identifier of the module.
+    /// </summary>
     public string Id { get; }
 
+    /// <summary>
+    /// Gets the display name of the module.
+    /// </summary>
     public string Name { get; }
 
+    /// <summary>
+    /// Gets the type of the module (e.g., "Web", "Native", etc.).
+    /// </summary>
     public string ModuleType { get; }
 
     /// <summary>
-    /// Adds grouping and filtering capabilities to modules.
+    /// Gets the tags associated with the module, used for grouping and filtering.
     /// </summary>
     public string[] Tags { get; }
 
     /// <summary>
-    /// Additional properties that can be used to extend the manifest.
-    /// Eg. Colors, Fonts, etc
+    /// Gets additional properties that can be used to extend the manifest, such as colors, fonts, etc.
     /// </summary>
     public Dictionary<string, string> AdditionalProperties { get; }
 }
 
+/// <summary>
+/// Defines the contract for a module manifest with strongly-typed details.
+/// </summary>
+/// <typeparam name="TDetails">The type of the details object.</typeparam>
 public interface IModuleManifest<out TDetails> : IModuleManifest
 {
+    /// <summary>
+    /// Gets the strongly-typed details associated with the module manifest.
+    /// </summary>
     public TDetails Details { get; }
 }
 
+/// <summary>
+/// Provides extension methods for working with <see cref="IModuleManifest"/> instances.
+/// </summary>
 public static class ModuleManifestExtensions
 {
     /// <summary>
-    /// Shorthand for querying a module manifest for a specific details type.
+    /// Attempts to retrieve the strongly-typed details from a module manifest.
     /// </summary>
-    /// <typeparam name="TDetails">The type of the details</typeparam>
-    /// <param name="manifest">The module manifest</param>
-    /// <param name="details">The variable receiving the details object when the operation succeeds (or <c>default</c> otherwise).</param>
+    /// <typeparam name="TDetails">The type of the details.</typeparam>
+    /// <param name="manifest">The module manifest instance.</param>
+    /// <param name="details">
+    /// When this method returns, contains the details object if the operation succeeds, or <c>default</c> otherwise.
+    /// </param>
     /// <returns>
-    /// True, if <paramref name="manifest"/> implements <see cref="IModuleManifest{TDetails}"/>.
+    /// <c>true</c> if <paramref name="manifest"/> implements <see cref="IModuleManifest{TDetails}"/>; otherwise, <c>false</c>.
     /// </returns>
     public static bool TryGetDetails<TDetails>(this IModuleManifest manifest, [NotNullWhen(true)] out TDetails details)
     {

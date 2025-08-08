@@ -4,7 +4,13 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<AssemblyName>MorganStanley.ComposeUI.Fdc3.DesktopAgent</AssemblyName>
 		<RootNamespace>MorganStanley.ComposeUI.Fdc3.DesktopAgent</RootNamespace>
-		<Description>FDC3 DesktopAgent for ComposeUI. More Details: https://morganstanley.github.io/ComposeUI/</Description>
+		<Description>
+			Backend service implementing the FDC3 Desktop Agent standard for ComposeUI. 
+			Handles requests from FDC3 client libraries, enabling applications to interoperate using FDC3 context, intents, and channels. 
+			Provides APIs for app discovery, context sharing, and intent resolution, with integration for FDC3 App Directory and support for dependency injection.
+			Compatible with .NET Standard 2.0.
+			More Details: https://morganstanley.github.io/ComposeUI/
+		</Description>
 		<Tags>ComposeUI</Tags>
 	</PropertyGroup>
 

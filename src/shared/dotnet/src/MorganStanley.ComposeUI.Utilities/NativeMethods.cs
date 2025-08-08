@@ -19,6 +19,16 @@ namespace MorganStanley.ComposeUI.Utilities;
 
 public static class NativeMethods
 {
+    /// <summary>
+    /// Deletes a logical pen, brush, font, bitmap, region, or palette, freeing all system resources associated with the object.
+    /// </summary>
+    /// <param name="hObject">A handle to a logical pen, brush, font, bitmap, region, or palette.</param>
+    /// <returns>
+    /// true if the function succeeds; otherwise, false. If the function fails, call <see cref="Marshal.GetLastWin32Error"/> for extended error information.
+    /// </returns>
+    /// <remarks>
+    /// See: https://learn.microsoft.com/en-us/windows/win32/api/wingdi/nf-wingdi-deleteobject
+    /// </remarks>
     [DllImport("gdi32.dll", SetLastError = true)]
     public static extern bool DeleteObject(in IntPtr hObject);
 }

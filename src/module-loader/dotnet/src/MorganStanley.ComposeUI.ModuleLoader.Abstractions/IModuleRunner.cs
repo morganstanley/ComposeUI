@@ -12,11 +12,28 @@
 
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
+/// <summary>
+/// Defines the contract for running modules, including starting and stopping module instances of a specific type.
+/// </summary>
 public interface IModuleRunner
 {
+    /// <summary>
+    /// Gets the type of the module that this runner supports (e.g., "Web", "Native").
+    /// </summary>
     public string ModuleType { get; }
 
+    /// <summary>
+    /// Starts a module instance using the provided <see cref="StartupContext"/> and executes the specified startup pipeline.
+    /// </summary>
+    /// <param name="startupContext">The context containing information and properties for module startup.</param>
+    /// <param name="pipeline">A delegate representing the next step in the startup pipeline.</param>
+    /// <returns>A task that represents the asynchronous start operation.</returns>
     public Task Start(StartupContext startupContext, Func<Task> pipeline);
 
+    /// <summary>
+    /// Stops the specified module instance.
+    /// </summary>
+    /// <param name="moduleInstance">The module instance to stop.</param>
+    /// <returns>A task that represents the asynchronous stop operation.</returns>
     public Task Stop(IModuleInstance moduleInstance);
 }

@@ -14,8 +14,15 @@
 
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
+/// <summary>
+/// The exception that is thrown when a requested module cannot be found in the module catalog.
+/// </summary>
 public class ModuleNotFoundException : ModuleLoaderException
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ModuleNotFoundException"/> class with the specified module identifier.
+    /// </summary>
+    /// <param name="moduleId">The identifier of the module that could not be found.</param>
     public ModuleNotFoundException(string moduleId) : base($"Unknown module id: {moduleId}")
     {
     }

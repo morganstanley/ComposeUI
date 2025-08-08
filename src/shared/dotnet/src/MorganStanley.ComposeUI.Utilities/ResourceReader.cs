@@ -20,6 +20,12 @@ namespace MorganStanley.ComposeUI.Utilities;
 
 public static class ResourceReader
 {
+    /// <summary>
+    /// Reads the contents of an embedded resource as a string.
+    /// </summary>
+    /// <param name="resourcePath">The fully qualified name of the embedded resource.</param>
+    /// <returns>The contents of the resource as a string.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the resource is not found in the calling assembly.</exception>
     public static string ReadResource(string resourcePath)
     {
         var assembly = Assembly.GetCallingAssembly();
