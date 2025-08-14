@@ -178,12 +178,4 @@ internal abstract class Channel : IAsyncDisposable
             _logger.LogWarning("{ChannelTypeName} {Id} received broadcasted payload with no context type specified. This broadcast will be ignored.", ChannelTypeName, Id);
         }
     }
-
-    protected void LogUnexpectedMessage(string message)
-    {
-        if (_logger.IsEnabled(LogLevel.Warning))
-        {
-            _logger.LogWarning("{ChannelTypeName} {Id} received unexpected message while trying to close a PrivateChannel: {Message}", ChannelTypeName, Id, message);
-        }
-    }
 }
