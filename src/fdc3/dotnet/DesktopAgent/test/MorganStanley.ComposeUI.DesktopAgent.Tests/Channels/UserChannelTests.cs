@@ -74,7 +74,7 @@ public class UserChannelTests : ChannelTestBase
         await channel.DisposeAsync();
 
         // Assert
-        Func<Task> act = async () => await channel.Connect().AsTask();
+        Func<Task> act = async () => await channel.Connect();
         await act.Should().ThrowAsync<ObjectDisposedException>();
     }
 }
