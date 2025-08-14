@@ -28,8 +28,6 @@ internal class TestChannel : Channel
 
     public void CallLogConnected() => LogConnected();
 
-    public void CallLogUnexpectedError(string message) => LogUnexpectedMessage(message);
-
     public ValueTask CallHandleBroadcast(string? payloadBuffer) => HandleBroadcast(payloadBuffer);
 
     public new ValueTask Connect() => base.Connect();
