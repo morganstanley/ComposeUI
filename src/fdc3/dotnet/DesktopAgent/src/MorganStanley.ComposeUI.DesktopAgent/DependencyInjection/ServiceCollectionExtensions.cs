@@ -19,8 +19,20 @@ using MorganStanley.ComposeUI.Shell.Fdc3;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
+
+/// <summary>
+/// Provides extension methods for registering FDC3 Desktop Agent services in an <see cref="IServiceCollection"/>.
+/// </summary>
 public static class ServiceCollectionExtensions
 {
+    /// <summary>
+    /// Registers FDC3 Desktop Agent services and related dependencies into the specified <see cref="IServiceCollection"/>.
+    /// </summary>
+    /// <param name="serviceCollection">The service collection to add the services to.</param>
+    /// <param name="builderAction">
+    /// An optional action to configure the <see cref="Fdc3DesktopAgentBuilder"/> before services are registered.
+    /// </param>
+    /// <returns>The updated <see cref="IServiceCollection"/>.</returns>
     public static IServiceCollection AddFdc3DesktopAgent(
         this IServiceCollection serviceCollection,
         Action<Fdc3DesktopAgentBuilder>? builderAction = null)
@@ -32,7 +44,8 @@ public static class ServiceCollectionExtensions
             builderAction(builder);
         }
 
-
+        builder.ServiceCollection.AddSingleton<IResolverUICommunicator, ResolverUICommunicator>();
+        builder.ServiceCollection.AddHostedService<Fdc3DesktopAgentMessagingService>();
         serviceCollection.AddSingleton<IUserChannelSetReader, UserChannelSetReader>();
         serviceCollection.AddSingleton<IFdc3DesktopAgentBridge, Fdc3DesktopAgent>();
         serviceCollection.AddTransient<IStartupAction, Fdc3StartupAction>();

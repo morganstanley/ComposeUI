@@ -3,7 +3,11 @@
 	<PropertyGroup>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<RootNamespace>MorganStanley.ComposeUI.Messaging</RootNamespace>
-		<Description>.NET Server Package for ComposeUI's Message Router. More Details: https://morganstanley.github.io/ComposeUI/</Description>
+		<Description>
+			A .NET server package for ComposeUI's Message Router. Enables hosting and managing message routing infrastructure for distributed .NET applications. 
+			Provides dependency injection support, extensibility, and seamless integration with ComposeUI messaging clients.
+  			More details: https://morganstanley.github.io/ComposeUI/
+		</Description>
 		<Tags>ComposeUI</Tags>
 	</PropertyGroup>
 

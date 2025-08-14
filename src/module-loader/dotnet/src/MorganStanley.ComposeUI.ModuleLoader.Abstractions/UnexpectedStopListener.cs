@@ -15,19 +15,33 @@
 
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
+/// <summary>
+/// Provides a callback mechanism to handle unexpected stops of a module instance.
+/// </summary>
 public class UnexpectedStopCallback
 {
     private IModuleInstance _instance;
     private Action<IModuleInstance> _callback;
 
-
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UnexpectedStopCallback"/> class.
+    /// </summary>
+    /// <param name="instance">The module instance to monitor for unexpected stops.</param>
+    /// <param name="callback">The callback action to invoke when the module instance stops unexpectedly.</param>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown if <paramref name="instance"/> or <paramref name="callback"/> is <c>null</c>.
+    /// </exception>
     public UnexpectedStopCallback(IModuleInstance instance, Action<IModuleInstance> callback)
     {
-
         _instance = instance ?? throw new ArgumentNullException(nameof(instance));
-        _callback = callback ?? throw new ArgumentNullException(nameof(instance));
+        _callback = callback ?? throw new ArgumentNullException(nameof(callback));
     }
 
+    /// <summary>
+    /// Invokes the callback to handle the unexpected stop event for the associated module instance.
+    /// </summary>
+    /// <param name="sender">The source of the event (not used).</param>
+    /// <param name="e">The event data (not used).</param>
     public void ProcessStoppedUnexpectedly(object? sender, EventArgs? e)
     {
         _callback?.Invoke(_instance);

@@ -203,7 +203,7 @@ public partial class App : Application
             // TODO: Use feature flag instead
             if (fdc3Options is { EnableFdc3: true })
             {
-                services.AddFdc3DesktopAgent(desktopAgent => desktopAgent.UseMessageRouter());
+                services.AddFdc3DesktopAgent();
                 services.AddSingleton<IHostManifestMapper, ComposeUIHostManifestMapper>();
                 services.AddFdc3AppDirectory();
                 services.AddSingleton<Fdc3ResolverUIWindow>();

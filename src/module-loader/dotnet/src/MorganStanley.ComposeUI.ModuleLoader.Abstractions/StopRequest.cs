@@ -12,14 +12,29 @@
 
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
+/// <summary>
+/// Represents a request to stop a running module instance, including its identifier and optional properties.
+/// </summary>
 public sealed class StopRequest
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StopRequest"/> class.
+    /// </summary>
+    /// <param name="instanceId">The unique identifier of the module instance to stop.</param>
+    /// <param name="properties">Optional properties to be associated with the stop request.</param>
     public StopRequest(Guid instanceId, List<object>? properties = null)
     {
         InstanceId = instanceId;
         Properties = properties;
     }
 
+    /// <summary>
+    /// Gets the unique identifier of the module instance to stop.
+    /// </summary>
     public Guid InstanceId { get; }
+
+    /// <summary>
+    /// Gets the collection of optional properties associated with the stop request.
+    /// </summary>
     public List<object>? Properties { get; }
 }
