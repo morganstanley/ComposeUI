@@ -18,7 +18,7 @@
     <PropertyGroup>
         <IsPackable>false</IsPackable>
         <VersionPrefix>0.1.0</VersionPrefix>
-        <VersionSuffix>alpha.7</VersionSuffix>
+        <VersionSuffix>alpha.8</VersionSuffix>
     </PropertyGroup>
 	
     <PropertyGroup>
