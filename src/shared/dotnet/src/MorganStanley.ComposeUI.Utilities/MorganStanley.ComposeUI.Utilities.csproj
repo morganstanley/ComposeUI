@@ -9,8 +9,7 @@
 		<AssemblyName>MorganStanley.ComposeUI.Utilities</AssemblyName>
 		<RootNamespace>MorganStanley.ComposeUI.Utilities</RootNamespace>
 		<Description>
-			Provides helper classes and extensions to support ComposeUI-based .NET applications.
-  			More Details: https://morganstanley.github.io/ComposeUI/
+			Provides helper classes and extensions to support ComposeUI-based .NET applications. More Details: https://morganstanley.github.io/ComposeUI/
 		</Description>
 		<Tags>ComposeUI</Tags>
 	</PropertyGroup>

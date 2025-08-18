@@ -3,10 +3,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<RootNamespace>MorganStanley.ComposeUI.Messaging</RootNamespace>
 		<Description>
-			Provides abstractions for messaging, enabling loosely coupled messaging and communication between .NET components and services. 
-			Designed for extensibility and integration with ComposeUI-based applications. 
-			Compatible with .NET Standard 2.0.
-			More Details: https://morganstanley.github.io/ComposeUI/
+			Provides abstractions for messaging, enabling loosely coupled messaging and communication between .NET components and services. Designed for extensibility and integration with ComposeUI-based applications. Compatible with .NET Standard 2.0. More Details: https://morganstanley.github.io/ComposeUI/
 		</Description>
 		<Tags>ComposeUI</Tags>
 	</PropertyGroup>

@@ -5,10 +5,7 @@
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<RootNamespace>MorganStanley.ComposeUI.Messaging</RootNamespace>
 		<Description>
-			Core infrastructure and utilities for Message Router. 
-			Provides essential building blocks, serialization, and concurrency support for messaging components and services. 
-			Intended for internal use by other MessageRouter messaging packages.
-			More Details: https://morganstanley.github.io/ComposeUI/
+			Core infrastructure and utilities for Message Router. Provides essential building blocks, serialization, and concurrency support for messaging components and services. Intended for internal use by other MessageRouter messaging packages. More Details: https://morganstanley.github.io/ComposeUI/
 		</Description>
 		<Tags>ComposeUI</Tags>
 	</PropertyGroup>
