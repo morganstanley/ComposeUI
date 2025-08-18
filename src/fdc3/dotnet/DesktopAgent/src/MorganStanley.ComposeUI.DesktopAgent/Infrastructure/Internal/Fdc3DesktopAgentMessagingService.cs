@@ -231,12 +231,13 @@ internal class Fdc3DesktopAgentMessagingService : IHostedService
         return await _desktopAgent.Open(request, contextType);
     }
 
-    public async ValueTask<RaiseIntentResponse> HandleRaiseIntentForContext(RaiseIntentForContextRequest? request)
+    public async ValueTask<RaiseIntentResponse?> HandleRaiseIntentForContext(RaiseIntentForContextRequest? request)
     {
         if (request == null)
         {
             throw new ArgumentNullException(nameof(request));
         }
+
         var contextType = request?.Context != null ? JsonSerializer.Deserialize<Context>(request.Context, _jsonSerializerOptions)?.Type : null;
 
         var result = await _desktopAgent.RaiseIntentForContext(request, contextType!);
@@ -249,6 +250,7 @@ internal class Fdc3DesktopAgentMessagingService : IHostedService
                     message.Request, _jsonSerializerOptions);
             }
         }
+        
         return result.Response;
     }
 
@@ -275,32 +277,32 @@ internal class Fdc3DesktopAgentMessagingService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<FindChannelRequest, FindChannelResponse>(Fdc3Topic.FindChannel, HandleFindChannel, _jsonSerializerOptions));
-        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<FindIntentRequest, FindIntentResponse>(Fdc3Topic.FindIntent, HandleFindIntent, _jsonSerializerOptions));
-        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<FindIntentsByContextRequest, FindIntentsByContextResponse>(Fdc3Topic.FindIntentsByContext, HandleFindIntentsByContext, _jsonSerializerOptions));
-        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<RaiseIntentRequest, RaiseIntentResponse>(Fdc3Topic.RaiseIntent, HandleRaiseIntent, _jsonSerializerOptions));
-        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<GetIntentResultRequest, GetIntentResultResponse>(Fdc3Topic.GetIntentResult, HandleGetIntentResult, _jsonSerializerOptions));
-        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<StoreIntentResultRequest, StoreIntentResultResponse>(Fdc3Topic.SendIntentResult, HandleStoreIntentResult, _jsonSerializerOptions));
-        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<IntentListenerRequest, IntentListenerResponse>(Fdc3Topic.AddIntentListener, HandleAddIntentListener, _jsonSerializerOptions));
-        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<CreatePrivateChannelRequest, CreatePrivateChannelResponse>(Fdc3Topic.CreatePrivateChannel, HandleCreatePrivateChannel, _jsonSerializerOptions));
-        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<JoinPrivateChannelRequest, JoinPrivateChannelResponse>(Fdc3Topic.JoinPrivateChannel, HandleJoinPrivateChannel, _jsonSerializerOptions));
-        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<CreateAppChannelRequest, CreateAppChannelResponse>(Fdc3Topic.CreateAppChannel, HandleCreateAppChannel, _jsonSerializerOptions));
-        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<GetUserChannelsRequest, GetUserChannelsResponse>(Fdc3Topic.GetUserChannels, HandleGetUserChannels, _jsonSerializerOptions));
-        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<JoinUserChannelRequest, JoinUserChannelResponse>(Fdc3Topic.JoinUserChannel, HandleJoinUserChannel, _jsonSerializerOptions));
-        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<GetInfoRequest, GetInfoResponse>(Fdc3Topic.GetInfo, HandleGetInfo, _jsonSerializerOptions));
-        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<FindInstancesRequest, FindInstancesResponse>(Fdc3Topic.FindInstances, HandleFindInstances, _jsonSerializerOptions));
-        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<GetAppMetadataRequest, GetAppMetadataResponse>(Fdc3Topic.GetAppMetadata, HandleGetAppMetadata, _jsonSerializerOptions));
-        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<AddContextListenerRequest, AddContextListenerResponse>(Fdc3Topic.AddContextListener, HandleAddContextListener, _jsonSerializerOptions));
-        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<RemoveContextListenerRequest, RemoveContextListenerResponse>(Fdc3Topic.RemoveContextListener, HandleRemoveContextListener, _jsonSerializerOptions));
-        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<OpenRequest, OpenResponse>(Fdc3Topic.Open, HandleOpen, _jsonSerializerOptions));
-        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<GetOpenedAppContextRequest, GetOpenedAppContextResponse>(Fdc3Topic.GetOpenedAppContext, HandleGetOpenedAppContext, _jsonSerializerOptions));
-        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<RaiseIntentForContextRequest, RaiseIntentResponse>(Fdc3Topic.RaiseIntentForContext, HandleRaiseIntentForContext, _jsonSerializerOptions));
+        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<FindChannelRequest, FindChannelResponse>(Fdc3Topic.FindChannel, HandleFindChannel, _jsonSerializerOptions).ConfigureAwait(false));
+        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<FindIntentRequest, FindIntentResponse>(Fdc3Topic.FindIntent, HandleFindIntent, _jsonSerializerOptions).ConfigureAwait(false));
+        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<FindIntentsByContextRequest, FindIntentsByContextResponse>(Fdc3Topic.FindIntentsByContext, HandleFindIntentsByContext, _jsonSerializerOptions).ConfigureAwait(false));
+        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<RaiseIntentRequest, RaiseIntentResponse>(Fdc3Topic.RaiseIntent, HandleRaiseIntent, _jsonSerializerOptions).ConfigureAwait(false));
+        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<GetIntentResultRequest, GetIntentResultResponse>(Fdc3Topic.GetIntentResult, HandleGetIntentResult, _jsonSerializerOptions).ConfigureAwait(false));
+        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<StoreIntentResultRequest, StoreIntentResultResponse>(Fdc3Topic.SendIntentResult, HandleStoreIntentResult, _jsonSerializerOptions).ConfigureAwait(false));
+        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<IntentListenerRequest, IntentListenerResponse>(Fdc3Topic.AddIntentListener, HandleAddIntentListener, _jsonSerializerOptions).ConfigureAwait(false));
+        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<CreatePrivateChannelRequest, CreatePrivateChannelResponse>(Fdc3Topic.CreatePrivateChannel, HandleCreatePrivateChannel, _jsonSerializerOptions).ConfigureAwait(false));
+        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<JoinPrivateChannelRequest, JoinPrivateChannelResponse>(Fdc3Topic.JoinPrivateChannel, HandleJoinPrivateChannel, _jsonSerializerOptions).ConfigureAwait(false));
+        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<CreateAppChannelRequest, CreateAppChannelResponse>(Fdc3Topic.CreateAppChannel, HandleCreateAppChannel, _jsonSerializerOptions).ConfigureAwait(false));
+        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<GetUserChannelsRequest, GetUserChannelsResponse>(Fdc3Topic.GetUserChannels, HandleGetUserChannels, _jsonSerializerOptions).ConfigureAwait(false));
+        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<JoinUserChannelRequest, JoinUserChannelResponse>(Fdc3Topic.JoinUserChannel, HandleJoinUserChannel, _jsonSerializerOptions).ConfigureAwait(false));
+        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<GetInfoRequest, GetInfoResponse>(Fdc3Topic.GetInfo, HandleGetInfo, _jsonSerializerOptions).ConfigureAwait(false));
+        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<FindInstancesRequest, FindInstancesResponse>(Fdc3Topic.FindInstances, HandleFindInstances, _jsonSerializerOptions).ConfigureAwait(false));
+        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<GetAppMetadataRequest, GetAppMetadataResponse>(Fdc3Topic.GetAppMetadata, HandleGetAppMetadata, _jsonSerializerOptions).ConfigureAwait(false));
+        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<AddContextListenerRequest, AddContextListenerResponse>(Fdc3Topic.AddContextListener, HandleAddContextListener, _jsonSerializerOptions).ConfigureAwait(false));
+        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<RemoveContextListenerRequest, RemoveContextListenerResponse>(Fdc3Topic.RemoveContextListener, HandleRemoveContextListener, _jsonSerializerOptions).ConfigureAwait(false));
+        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<OpenRequest, OpenResponse>(Fdc3Topic.Open, HandleOpen, _jsonSerializerOptions).ConfigureAwait(false));
+        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<GetOpenedAppContextRequest, GetOpenedAppContextResponse>(Fdc3Topic.GetOpenedAppContext, HandleGetOpenedAppContext, _jsonSerializerOptions).ConfigureAwait(false));
+        _registeredServices.Add(await _messaging.RegisterJsonServiceAsync<RaiseIntentForContextRequest, RaiseIntentResponse>(Fdc3Topic.RaiseIntentForContext, HandleRaiseIntentForContext, _jsonSerializerOptions).ConfigureAwait(false));
 
-        await _desktopAgent.StartAsync(cancellationToken);
+        await _desktopAgent.StartAsync(cancellationToken).ConfigureAwait(false);
 
         if (_options.ChannelId != null)
         {
-            await HandleAddUserChannel(_options.ChannelId);
+            await HandleAddUserChannel(_options.ChannelId).ConfigureAwait(false);
         }
     }
 
@@ -308,7 +310,7 @@ internal class Fdc3DesktopAgentMessagingService : IHostedService
     {
         var unregisteringTasks = _registeredServices.Select(x => x.DisposeAsync()).ToArray();
 
-        await SafeWaitAsync(unregisteringTasks);
-        await _desktopAgent.StopAsync(cancellationToken);
+        await SafeWaitAsync(unregisteringTasks).ConfigureAwait(false);
+        await _desktopAgent.StopAsync(cancellationToken).ConfigureAwait(false);
     }
 }
