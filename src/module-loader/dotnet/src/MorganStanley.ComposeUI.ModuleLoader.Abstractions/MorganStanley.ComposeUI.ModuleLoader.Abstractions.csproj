@@ -4,10 +4,7 @@
 	<TargetFramework>netstandard2.0</TargetFramework>
   <RootNamespace>MorganStanley.ComposeUI.ModuleLoader</RootNamespace>
   <Description>
-      Supplies interfaces and abstractions for module loading and management in .NET applications, including starting, stopping, and monitoring modules. 
-      Supports dynamic discovery, loading, and lifecycle control of modules with extensibility and integration for dependency injection. 
-      Compatible with .NET Standard 2.0.
-      More Details: https://morganstanley.github.io/ComposeUI/
+      Supplies interfaces and abstractions for module loading and management in .NET applications, including starting, stopping, and monitoring modules. Supports dynamic discovery, loading, and lifecycle control of modules with extensibility and integration for dependency injection. Compatible with .NET Standard 2.0. More Details: https://morganstanley.github.io/ComposeUI/
   </Description>
 	<Tags>ComposeUI</Tags>
   </PropertyGroup>

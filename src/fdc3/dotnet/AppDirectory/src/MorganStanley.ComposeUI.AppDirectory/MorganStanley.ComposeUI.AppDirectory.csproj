@@ -4,10 +4,7 @@
 		<AssemblyName>MorganStanley.ComposeUI.Fdc3.AppDirectory</AssemblyName>
 		<RootNamespace>MorganStanley.ComposeUI.Fdc3.AppDirectory</RootNamespace>
 		<Description>
-			Enables .NET applications to discover and retrieve FDC3-compliant app metadata from files or HTTP endpoints, with built-in caching, extensibility, and support for dependency injection.
-			Implements the FDC3 App Directory standard.  
-			Compatible with .NET Standard 2.0.
-			More Details: https://morganstanley.github.io/ComposeUI/
+			Enables .NET applications to discover and retrieve FDC3-compliant app metadata from files or HTTP endpoints, with built-in caching, extensibility, and support for dependency injection. Implements the FDC3 App Directory standard. Compatible with .NET Standard 2.0. More Details: https://morganstanley.github.io/ComposeUI/
 		</Description>
 		<Tags>ComposeUI</Tags>
 	</PropertyGroup>

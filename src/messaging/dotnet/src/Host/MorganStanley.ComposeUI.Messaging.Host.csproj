@@ -4,10 +4,7 @@
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<RootNamespace>MorganStanley.ComposeUI.Messaging</RootNamespace>
 		<Description>
-			Provides a .NET host implementation for ComposeUI's Message Router. 
-			Enables hosting, managing, and routing messages between distributed .NET applications and services. 
-			Integrates with ComposeUI messaging infrastructure for scalable and reliable communication.
-			More Details: https://morganstanley.github.io/ComposeUI/
+			Provides a .NET host implementation for ComposeUI's Message Router. Enables hosting, managing, and routing messages between distributed .NET applications and services. Integrates with ComposeUI messaging infrastructure for scalable and reliable communication. More Details: https://morganstanley.github.io/ComposeUI/
 		</Description>
 		<Tags>ComposeUI</Tags>
 	</PropertyGroup>

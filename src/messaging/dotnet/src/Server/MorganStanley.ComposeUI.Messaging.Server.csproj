@@ -3,9 +3,7 @@
 	<PropertyGroup>
 		<RootNamespace>MorganStanley.ComposeUI.Messaging</RootNamespace>
 		<Description>
-			A .NET server package for ComposeUI's Message Router. Enables hosting and managing message routing infrastructure for distributed .NET applications. 
-			Provides dependency injection support, extensibility, and seamless integration with ComposeUI messaging clients.
-  			More details: https://morganstanley.github.io/ComposeUI/
+			A .NET server package for ComposeUI's Message Router. Enables hosting and managing message routing infrastructure for distributed .NET applications. Provides dependency injection support, extensibility, and seamless integration with ComposeUI messaging clients. More details: https://morganstanley.github.io/ComposeUI/
 		</Description>
 		<Tags>ComposeUI</Tags>
 	</PropertyGroup>
