@@ -1,4 +1,4 @@
-﻿// Morgan Stanley makes this available to you under the Apache License,
+// Morgan Stanley makes this available to you under the Apache License,
 // Version 2.0 (the "License"). You may obtain a copy of the License at
 //
 //      http://www.apache.org/licenses/LICENSE-2.0.
@@ -22,7 +22,7 @@ using MorganStanley.ComposeUI.Messaging.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Instrumentation;
 using MorganStanley.ComposeUI.Messaging.Protocol;
 using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
-using Nito.AsyncEx;
+using MorganStanley.ComposeUI.Messaging.Threading;
 
 namespace MorganStanley.ComposeUI.Messaging.Client;
 
@@ -162,7 +162,7 @@ internal sealed class MessageRouterClient : IMessageRouter
     private readonly IConnection _connection;
     private ConnectionState _connectionState;
     private readonly StateChangeEvents _stateChangeEvents = new();
-    private readonly AsyncLock _mutex = new();
+    private readonly SemaphoreSlim _mutex = new(1, 1);
 
     private readonly Channel<MessageWrapper<Message, object?>> _sendChannel =
         Channel.CreateUnbounded<MessageWrapper<Message, object?>>(new UnboundedChannelOptions { SingleReader = true });
@@ -177,7 +177,8 @@ internal sealed class MessageRouterClient : IMessageRouter
     {
         ConnectionState oldState;
 
-        using (await _mutex.LockAsync(CancellationToken.None))
+        await _mutex.WaitAsync(CancellationToken.None);
+        try
         {
             oldState = _connectionState;
 
@@ -197,6 +198,10 @@ internal sealed class MessageRouterClient : IMessageRouter
                 case ConnectionState.Closing or ConnectionState.Closed:
                     throw ThrowHelper.ConnectionClosed();
             }
+        }
+        finally
+        {
+            _mutex.Release();
         }
 
         if (oldState == ConnectionState.Connecting)
@@ -293,7 +298,8 @@ internal sealed class MessageRouterClient : IMessageRouter
         _ = Task.Factory.StartNew(
             async () =>
             {
-                using (await _mutex.LockAsync())
+                await _mutex.WaitAsync();
+                try
                 {
                     if (message.Error != null)
                     {
@@ -311,6 +317,10 @@ internal sealed class MessageRouterClient : IMessageRouter
                         _stateChangeEvents.Connected.TrySetResult();
                         OnConnectStop();
                     }
+                }
+                finally
+                {
+                    _mutex.Release();
                 }
             },
             TaskCreationOptions.RunContinuationsAsynchronously);
@@ -701,7 +711,8 @@ internal sealed class MessageRouterClient : IMessageRouter
                 }
         }
 
-        using (await _mutex.LockAsync())
+        await _mutex.WaitAsync();
+        try
         {
             switch (oldState = _connectionState)
             {
@@ -738,6 +749,10 @@ internal sealed class MessageRouterClient : IMessageRouter
                     throw new ArgumentOutOfRangeException();
             }
         }
+        finally
+        {
+            _mutex.Release();
+        }
 
         switch (oldState)
         {
@@ -768,9 +783,14 @@ internal sealed class MessageRouterClient : IMessageRouter
                 _logger.LogError(e, "Exception thrown when closing the connection: {ExceptionMessage}", e.Message);
             }
 
-            using (await _mutex.LockAsync())
+            await _mutex.WaitAsync();
+            try
             {
                 _connectionState = ConnectionState.Closed;
+            }
+            finally
+            {
+                _mutex.Release();
             }
 
             OnCloseStop();
@@ -1149,7 +1169,8 @@ internal sealed class MessageRouterClient : IMessageRouter
             {
                 while (await _queue.Reader.WaitToReadAsync())
                 {
-                    using (await _lock.LockAsync())
+                    await _lock.WaitAsync();
+                    try
                     {
                         // We have to empty the queue even if already unsubscribed, to make sure OnDequeued is called on every message
 
@@ -1159,21 +1180,35 @@ internal sealed class MessageRouterClient : IMessageRouter
                             value.OnDequeued();
                         }
                     }
+                    finally
+                    {
+                        _lock.Release();
+                    }
                 }
 
-                using (await _lock.LockAsync())
+                await _lock.WaitAsync();
+                try
                 {
                     await InvokeSubscriber(_ => _subscriber.OnCompletedAsync(), (object?) null, nameof(_subscriber.OnCompletedAsync));
+                }
+                finally
+                {
+                    _lock.Release();
                 }
             }
             catch (Exception e)
             {
-                using (await _lock.LockAsync())
+                await _lock.WaitAsync();
+                try
                 {
                     await InvokeSubscriber(
                         _subscriber.OnErrorAsync,
                         e is ChannelClosedException ? e.InnerException ?? e : e,
                         nameof(_subscriber.OnErrorAsync));
+                }
+                finally
+                {
+                    _lock.Release();
                 }
             }
             finally
@@ -1190,9 +1225,14 @@ internal sealed class MessageRouterClient : IMessageRouter
 
             async ValueTask InvokeLockedImpl<TArg>(Func<TArg, ValueTask> action, TArg arg)
             {
-                using (await _lock.LockAsync())
+                await _lock.WaitAsync();
+                try
                 {
                     await action(arg);
+                }
+                finally
+                {
+                    _lock.Release();
                 }
             }
         }
@@ -1237,7 +1277,7 @@ internal sealed class MessageRouterClient : IMessageRouter
 
         private readonly Topic _topic;
         private readonly ILogger _logger;
-        private readonly AsyncLock _lock = new();
+        private readonly SemaphoreSlim _lock = new(1, 1);
         private readonly AsyncLocal<int> _recursion = new(); // Recursion counter when invoking a method of the subscriber
         private bool _disposed;
     }

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
@@ -20,7 +20,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.HighPerformance" />
-		<PackageReference Include="Nito.AsyncEx.Coordination" />
+
 		<PackageReference Include="System.Reactive" />
 		<PackageReference Include="System.Reactive.Async" />
 		<PackageReference Include="System.Text.Json" />

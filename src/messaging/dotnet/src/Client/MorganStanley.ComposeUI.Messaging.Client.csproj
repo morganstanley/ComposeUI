@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<RootNamespace>MorganStanley.ComposeUI.Messaging</RootNamespace>
@@ -21,7 +21,7 @@
 	  <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
 	  <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
 	  <PackageReference Include="Microsoft.Extensions.Options" />
-	  <PackageReference Include="Nito.AsyncEx" />
+
 	  <PackageReference Include="System.IO.Pipelines" />
 	  <PackageReference Include="System.Reactive" />
 	  <PackageReference Include="System.Reactive.Async" />
