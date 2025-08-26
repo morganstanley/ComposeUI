@@ -10,8 +10,6 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using System.Diagnostics;
-
 namespace MorganStanley.ComposeUI.Messaging.Threading;
 
 /// <summary>
@@ -28,13 +26,17 @@ public sealed class AsyncCountdownEvent : IDisposable
     public AsyncCountdownEvent(int initialCount)
     {
         if (initialCount < 0)
+        {
             throw new ArgumentOutOfRangeException(nameof(initialCount));
-        
+        }
+
         _count = initialCount;
         _tcs = new TaskCompletionSource<bool>();
-        
+
         if (initialCount == 0)
+        {
             _tcs.SetResult(true);
+        }
     }
 
     public int CurrentCount
@@ -71,15 +73,19 @@ public sealed class AsyncCountdownEvent : IDisposable
     public Task WaitAsync(CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested)
+        {
             return Task.FromCanceled(cancellationToken);
+        }
 
         lock (_lock)
         {
             ThrowIfDisposed();
             var task = _tcs.Task;
-            
+
             if (task.IsCompleted || !cancellationToken.CanBeCanceled)
+            {
                 return task;
+            }
 
             return WaitAsyncWithCancellation(task, cancellationToken);
         }
@@ -89,11 +95,13 @@ public sealed class AsyncCountdownEvent : IDisposable
     {
         var tcs = new TaskCompletionSource<bool>();
         using var registration = cancellationToken.Register(() => tcs.TrySetCanceled(cancellationToken));
-        
+
         var completedTask = await Task.WhenAny(task, tcs.Task);
         if (completedTask == tcs.Task)
+        {
             cancellationToken.ThrowIfCancellationRequested();
-        
+        }
+
         await task;
     }
 
@@ -105,24 +113,32 @@ public sealed class AsyncCountdownEvent : IDisposable
     public void Signal(int signalCount)
     {
         if (signalCount <= 0)
+        {
             throw new ArgumentOutOfRangeException(nameof(signalCount));
+        }
 
         TaskCompletionSource<bool>? tcsToComplete = null;
 
         lock (_lock)
         {
             ThrowIfDisposed();
-            
+
             if (_count == 0)
+            {
                 throw new InvalidOperationException("The event is already set.");
+            }
 
             _count -= signalCount;
-            
+
             if (_count < 0)
+            {
                 throw new InvalidOperationException("Signal count would cause the current count to be negative.");
+            }
 
             if (_count == 0)
+            {
                 tcsToComplete = _tcs;
+            }
         }
 
         tcsToComplete?.SetResult(true);
@@ -136,12 +152,14 @@ public sealed class AsyncCountdownEvent : IDisposable
     public void AddCount(int signalCount)
     {
         if (signalCount <= 0)
+        {
             throw new ArgumentOutOfRangeException(nameof(signalCount));
+        }
 
         lock (_lock)
         {
             ThrowIfDisposed();
-            
+
             if (_count == 0)
             {
                 // Reset the TaskCompletionSource since we're going from 0 to non-zero
@@ -160,24 +178,30 @@ public sealed class AsyncCountdownEvent : IDisposable
     public void Reset(int count)
     {
         if (count < 0)
+        {
             throw new ArgumentOutOfRangeException(nameof(count));
+        }
 
         lock (_lock)
         {
             ThrowIfDisposed();
-            
+
             _count = count;
             _tcs = new TaskCompletionSource<bool>();
-            
+
             if (count == 0)
+            {
                 _tcs.SetResult(true);
+            }
         }
     }
 
     private void ThrowIfDisposed()
     {
         if (_disposed)
+        {
             throw new ObjectDisposedException(GetType().Name);
+        }
     }
 
     public void Dispose()
@@ -185,7 +209,9 @@ public sealed class AsyncCountdownEvent : IDisposable
         lock (_lock)
         {
             if (_disposed)
+            {
                 return;
+            }
 
             _disposed = true;
             _tcs.TrySetCanceled();
