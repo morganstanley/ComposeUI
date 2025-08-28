@@ -10,10 +10,7 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using System;
-using System.Collections.Generic;
 using System.Text.Json;
-using System.Threading.Tasks;
 using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
 using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 using MorganStanley.ComposeUI.ModuleLoader;
@@ -54,10 +51,18 @@ internal sealed class MessageRouterStartupAction : IStartupAction
                             };
                             """));
         }
+        else if (startupContext.ModuleInstance.Manifest.ModuleType == ModuleType.Native)
+        {
+            var nativeModuleProperties = startupContext.GetOrAddProperty<NativeStartupProperties>();
+            
+            nativeModuleProperties.EnvironmentVariables.Add(
+                WebSocketEnvironmentVariableNames.Uri,
+                _webSocketServer.WebSocketUrl.AbsoluteUri);
 
-        startupContext.AddProperty(new EnvironmentVariables(new[] { new KeyValuePair<string, string>(WebSocketEnvironmentVariableNames.Uri, _webSocketServer.WebSocketUrl.AbsoluteUri),
-        new KeyValuePair<string, string>(ComposeUI.Messaging.EnvironmentVariableNames.AccessToken, App.Current.MessageRouterAccessToken)}
-            ));
+            nativeModuleProperties.EnvironmentVariables.Add(
+                ComposeUI.Messaging.EnvironmentVariableNames.AccessToken,
+                App.Current.MessageRouterAccessToken);
+        }
 
         return next();
     }

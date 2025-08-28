@@ -19,7 +19,7 @@ using System.Windows;
 using Finos.Fdc3;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 
 namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;
 

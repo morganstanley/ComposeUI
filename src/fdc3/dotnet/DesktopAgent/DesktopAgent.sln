@@ -5,11 +5,11 @@ VisualStudioVersion = 17.4.33103.184
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{75D43F58-806B-4C28-BDA1-7A7AFF0250DB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.DesktopAgent", "src\MorganStanley.ComposeUI.DesktopAgent\MorganStanley.ComposeUI.DesktopAgent.csproj", "{4A71A18B-6DC1-44AD-85F3-200CC2CBC6BD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Fdc3.DesktopAgent", "src\MorganStanley.ComposeUI.Fdc3.DesktopAgent\MorganStanley.ComposeUI.Fdc3.DesktopAgent.csproj", "{4A71A18B-6DC1-44AD-85F3-200CC2CBC6BD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{44C08E9B-2A1D-4F01-B579-59DFCE4CBF6D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.DesktopAgent.Tests", "test\MorganStanley.ComposeUI.DesktopAgent.Tests\MorganStanley.ComposeUI.DesktopAgent.Tests.csproj", "{96398594-52D7-4A21-A8DA-CCD1D1038741}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests", "test\MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests\MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.csproj", "{96398594-52D7-4A21-A8DA-CCD1D1038741}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libs", "libs", "{2CE54671-6C98-455E-B2A0-52F8564DDA5D}"
 EndProject
@@ -25,7 +25,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Mod
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Utilities", "..\..\..\shared\dotnet\src\MorganStanley.ComposeUI.Utilities\MorganStanley.ComposeUI.Utilities.csproj", "{2C25BA40-0103-4EB5-B181-98362F563B0F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.AppDirectory", "..\AppDirectory\src\MorganStanley.ComposeUI.AppDirectory\MorganStanley.ComposeUI.AppDirectory.csproj", "{50BD1318-FC44-4582-B333-3033076164E7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Fdc3.AppDirectory", "..\AppDirectory\src\MorganStanley.ComposeUI.Fdc3.AppDirectory\MorganStanley.ComposeUI.Fdc3.AppDirectory.csproj", "{50BD1318-FC44-4582-B333-3033076164E7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ModuleLoader", "..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader\MorganStanley.ComposeUI.ModuleLoader.csproj", "{4207C810-55CC-433E-BD5B-B9B4D639C7A2}"
 EndProject
@@ -61,7 +61,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_", "_", "{8DEB26A1-CD6D-4F
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.MessageRouterAdapter", "..\..\..\messaging\dotnet\src\MessageRouterAdapter\MorganStanley.ComposeUI.Messaging.MessageRouterAdapter.csproj", "{49693FB1-3ED9-420A-891E-70BC9007CDFB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.MessageRouterAdapter.Tests", "..\..\..\messaging\dotnet\test\MessageRouterAdapter.Tests\MorganStanley.ComposeUI.Messaging.MessageRouterAdapter.Tests.csproj", "{D658A460-5328-45E1-9623-78979B10838A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared", "..\DesktopAgent.Shared\src\MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared\MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.csproj", "{8B7320F0-96AA-4971-8490-E1B1F13C5C2E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -117,10 +117,10 @@ Global
 		{49693FB1-3ED9-420A-891E-70BC9007CDFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{49693FB1-3ED9-420A-891E-70BC9007CDFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{49693FB1-3ED9-420A-891E-70BC9007CDFB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D658A460-5328-45E1-9623-78979B10838A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D658A460-5328-45E1-9623-78979B10838A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D658A460-5328-45E1-9623-78979B10838A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D658A460-5328-45E1-9623-78979B10838A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B7320F0-96AA-4971-8490-E1B1F13C5C2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B7320F0-96AA-4971-8490-E1B1F13C5C2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B7320F0-96AA-4971-8490-E1B1F13C5C2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B7320F0-96AA-4971-8490-E1B1F13C5C2E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -138,7 +138,7 @@ Global
 		{4207C810-55CC-433E-BD5B-B9B4D639C7A2} = {2CE54671-6C98-455E-B2A0-52F8564DDA5D}
 		{4FC1B3E0-6DAC-4868-AD68-08093B2555DF} = {2CE54671-6C98-455E-B2A0-52F8564DDA5D}
 		{49693FB1-3ED9-420A-891E-70BC9007CDFB} = {2CE54671-6C98-455E-B2A0-52F8564DDA5D}
-		{D658A460-5328-45E1-9623-78979B10838A} = {44C08E9B-2A1D-4F01-B579-59DFCE4CBF6D}
+		{8B7320F0-96AA-4971-8490-E1B1F13C5C2E} = {2CE54671-6C98-455E-B2A0-52F8564DDA5D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {70FE103D-26D8-42D8-88BA-1BECB1F73A18}
