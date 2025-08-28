@@ -14,6 +14,7 @@
 
 using System;
 using System.Linq;
+using System.Security.Policy;
 using Finos.Fdc3.AppDirectory;
 using Finos.Fdc3.NewtonsoftJson.Serialization;
 using Microsoft.Extensions.Logging;
@@ -43,8 +44,52 @@ internal sealed class ComposeUIHostManifestMapper : IHostManifestMapper
         return fdc3App.Type switch
         {
             AppType.Web => MapWebManifestDetails(fdc3App),
+            AppType.Native => MapNativeManifestDetails(fdc3App),
             _ => throw new NotSupportedException($"The {fdc3App.Type} is currently not supported for hostmanifest conversion!"),
         };
+    }
+
+    private ModuleDetails MapNativeManifestDetails(Fdc3App fdc3App)
+    {
+        var iconSrc = fdc3App.Icons?.FirstOrDefault()?.Src;
+        var path = new Uri(((NativeAppDetails) fdc3App.Details).Path, UriKind.RelativeOrAbsolute);
+        var arguments = ((NativeAppDetails) fdc3App.Details).Arguments;
+
+        var nativeManifestDetails = new NativeManifestDetails
+        {
+            Path = path,
+            Icon = iconSrc != null ? new Uri(iconSrc, UriKind.Absolute) : null,
+            Arguments = arguments?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>(), //TODO discuss why the Fdc3DotNet only returns a string instead of an array of string
+        };
+
+        if (fdc3App.HostManifests == null
+            || !fdc3App.HostManifests.TryGetValue(_composeUIHostManifest, out var hostManifest))
+        {
+            return nativeManifestDetails;
+        }
+
+        try
+        {
+            var composeUIHostmanifest = hostManifest as ComposeUIHostManifest;
+
+            return new NativeManifestDetails
+            {
+                Path = path,
+                Icon = iconSrc != null ? new Uri(iconSrc, UriKind.Absolute) : null,
+                Arguments = arguments?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>(),
+                InitialModulePosition = composeUIHostmanifest?.InitialModulePosition,
+                Height = composeUIHostmanifest?.Height,
+                Width = composeUIHostmanifest?.Width,
+                Coordinates = composeUIHostmanifest?.Coordinates,
+                EnvironmentVariables = composeUIHostmanifest?.EnvironmentVariables ?? new Dictionary<string, string>()
+            };
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, $"Exception was thrown while executing {nameof(MapNativeManifestDetails)}.");
+        }
+
+        return nativeManifestDetails;
     }
 
     private ModuleDetails MapWebManifestDetails(Fdc3App fdc3App)
@@ -52,30 +97,36 @@ internal sealed class ComposeUIHostManifestMapper : IHostManifestMapper
         var iconSrc = fdc3App.Icons?.FirstOrDefault()?.Src;
         var url = new Uri(((WebAppDetails) fdc3App.Details).Url, UriKind.Absolute);
 
-        if (fdc3App.HostManifests != null
-                && fdc3App.HostManifests.TryGetValue(_composeUIHostManifest, out var hostManifest))
+        if (fdc3App.HostManifests == null
+            || !fdc3App.HostManifests.TryGetValue(_composeUIHostManifest, out var hostManifest))
         {
-            try
+            return new WebManifestDetails
             {
-                var composeUIHostmanifest = hostManifest as ComposeUIHostManifest;
-
-                return new WebManifestDetails()
-                {
-                    Url = url,
-                    IconUrl = iconSrc != null ? new Uri(iconSrc, UriKind.Absolute) : null,
-                    InitialModulePosition = composeUIHostmanifest?.InitialModulePosition,
-                    Height = composeUIHostmanifest?.Height,
-                    Width = composeUIHostmanifest?.Width,
-                    Coordinates = composeUIHostmanifest?.Coordinates,
-                };
-            }
-            catch (Exception exception)
-            {
-                _logger.LogError(exception, $"Exception was thrown while executing {nameof(MapModuleDetails)}.");
-            }
+                Url = url,
+                IconUrl = iconSrc != null ? new Uri(iconSrc, UriKind.Absolute) : null,
+            };
         }
 
-        return new WebManifestDetails()
+        try
+        {
+            var composeUIHostmanifest = hostManifest as ComposeUIHostManifest;
+
+            return new WebManifestDetails
+            {
+                Url = url,
+                IconUrl = iconSrc != null ? new Uri(iconSrc, UriKind.Absolute) : null,
+                InitialModulePosition = composeUIHostmanifest?.InitialModulePosition,
+                Height = composeUIHostmanifest?.Height,
+                Width = composeUIHostmanifest?.Width,
+                Coordinates = composeUIHostmanifest?.Coordinates,
+            };
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, $"Exception was thrown while executing {nameof(MapWebManifestDetails)}.");
+        }
+
+        return new WebManifestDetails
         {
             Url = url,
             IconUrl = iconSrc != null ? new Uri(iconSrc, UriKind.Absolute) : null,

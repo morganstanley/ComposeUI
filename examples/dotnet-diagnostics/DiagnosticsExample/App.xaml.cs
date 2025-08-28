@@ -39,8 +39,10 @@ public partial class App : Application
                 });
 
             serviceCollection.AddMessageRouterMessagingAdapter();
+
+            serviceCollection.AddFdc3DesktopAgentClient();
         }
-        catch
+        catch(Exception exception)
         {
             // MessageRouter couldn't be initialized, text will be displayed
         }

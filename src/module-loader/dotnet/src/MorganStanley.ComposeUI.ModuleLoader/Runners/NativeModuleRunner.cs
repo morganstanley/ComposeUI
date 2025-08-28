@@ -25,8 +25,20 @@ internal class NativeModuleRunner : IModuleRunner
             throw new Exception("Unable to get native manifest details");
         }
 
-        //TODO: Handle the ModuleDetails properties like Width; Height; InitialModulePosition
-        startupContext.AddProperty(new EnvironmentVariables(details.EnvironmentVariables));
+        var properties = new NativeStartupProperties
+        {
+            InitialModulePosition = details.InitialModulePosition,
+            Width = details.Width,
+            Height = details.Height,
+            Coordinates = details.Coordinates,
+        };
+
+        foreach (var envVar in details.EnvironmentVariables)
+        {
+            properties.EnvironmentVariables.Add(envVar.Key, envVar.Value);
+        }
+
+        startupContext.AddProperty(properties);
 
 
         var mainProcess = new Process();
@@ -37,6 +49,7 @@ internal class NativeModuleRunner : IModuleRunner
         mainProcess.StartInfo.FileName = Path.GetFullPath(filename);
         startupContext.AddProperty(processInfo);
 
+        //Waits for other IStartActions to finish first.
         await pipeline();
 
         foreach (var argument in details.Arguments)
@@ -44,7 +57,7 @@ internal class NativeModuleRunner : IModuleRunner
             mainProcess.StartInfo.ArgumentList.Add(argument);
         }
 
-        foreach (var envVar in startupContext.GetProperties<EnvironmentVariables>().SelectMany(x => x.Variables))
+        foreach (var envVar in startupContext.GetOrAddProperty<NativeStartupProperties>().EnvironmentVariables)
         {
             // TODO: what to do with duplicate envvars?
             if (!mainProcess.StartInfo.EnvironmentVariables.ContainsKey(envVar.Key))
@@ -67,7 +80,11 @@ internal class NativeModuleRunner : IModuleRunner
     {
         MainProcessInfo? mainProcessInfo;
 
-        if ((mainProcessInfo = (MainProcessInfo?) moduleInstance.GetProperties().FirstOrDefault(x => x is MainProcessInfo)) == null) { return; }
+        if ((mainProcessInfo =
+                (MainProcessInfo?) moduleInstance.GetProperties().FirstOrDefault(x => x is MainProcessInfo)) == null)
+        {
+            return;
+        }
 
         var mainProcess = mainProcessInfo.MainProcess;
 
@@ -76,6 +93,7 @@ internal class NativeModuleRunner : IModuleRunner
         {
             mainProcess.Exited -= handler.ProcessStoppedUnexpectedly;
         }
+
         var killNecessary = true;
 
         if (mainProcess.CloseMainWindow())

@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Finos.Fdc3" />
+		<PackageReference Include="Finos.Fdc3.AppDirectory" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Contracts\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\..\..\..\messaging\dotnet\src\Abstractions\MorganStanley.ComposeUI.Messaging.Abstractions.csproj" />
+	  <ProjectReference Include="..\..\..\DesktopAgent.Shared\src\MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared\MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.csproj" />
+	</ItemGroup>
+	
+</Project>
