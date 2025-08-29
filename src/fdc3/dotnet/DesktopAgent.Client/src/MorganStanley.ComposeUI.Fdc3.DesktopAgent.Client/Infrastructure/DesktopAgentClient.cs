@@ -113,9 +113,29 @@ internal class DesktopAgentClient : IDesktopAgent
         throw new NotImplementedException();
     }
 
-    public Task<IImplementationMetadata> GetInfo()
+    public async Task<IImplementationMetadata> GetInfo()
     {
-        throw new NotImplementedException();
+        var request = new GetInfoRequest
+        {
+            AppIdentifier = new Shared.Protocol.AppIdentifier
+            {
+                AppId = _appId,
+                InstanceId = _instanceId
+            }
+        };
+
+        var response = await _messaging.InvokeJsonServiceAsync<GetInfoRequest, GetInfoResponse>(
+            Fdc3Topic.GetInfo,
+            request,
+            _jsonSerializerOptions) ?? throw new Fdc3DesktopAgentException($"FDC3 client can't return the information about the initiator app; AppID: {_appId}; InstanceID: {_instanceId}.");
+
+        if (response.Error != null)
+        {
+            _logger.LogError($"{_appId} cannot return the {nameof(ImplementationMetadata)} due to: {response.Error}.");
+            throw new Fdc3DesktopAgentException($"{_appId} cannot return the {nameof(ImplementationMetadata)} due to: {response.Error}.");
+        }
+
+        return response.ImplementationMetadata!;
     }
 
     public Task<IChannel> GetOrCreateChannel(string channelId)

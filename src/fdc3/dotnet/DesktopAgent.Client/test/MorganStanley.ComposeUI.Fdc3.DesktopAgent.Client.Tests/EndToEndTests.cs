@@ -6,6 +6,9 @@ using Finos.Fdc3;
 using FluentAssertions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
+using Castle.DynamicProxy.Generators;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure;
+using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests;
 
@@ -130,5 +133,29 @@ public class EndToEndTests : IAsyncLifetime
         var result = await _desktopAgent.GetAppMetadata(new Shared.Protocol.AppIdentifier { AppId = "appId1" });
         result.Should().NotBeNull();
         result.Should().BeEquivalentTo(TestAppDirectoryData.DefaultApp1);
+    }
+
+    [Fact]
+    public async Task GetInfo_returns_ImplementationMetadata()
+    {
+        var result = await _desktopAgent.GetInfo();
+        result.Should().NotBeNull();
+        result.AppMetadata.Should().NotBeNull();
+        result.AppMetadata.AppId.Should().Be("appId1");
+    }
+
+    [Fact]
+    public async Task GetInfo_throws_error_as_instance_id_not_found()
+    {
+        Environment.SetEnvironmentVariable(nameof(AppIdentifier.AppId), "nonExistentAppId");
+        Environment.SetEnvironmentVariable(nameof(AppIdentifier.InstanceId), Guid.NewGuid().ToString());
+
+        var desktopAgent = new DesktopAgentClient(_clientServices.GetRequiredService<IMessaging>());
+
+        var action = async() => await desktopAgent.GetInfo();
+
+        await action.Should()
+            .ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage($"*{Fdc3DesktopAgentErrors.MissingId}*");
     }
 }
