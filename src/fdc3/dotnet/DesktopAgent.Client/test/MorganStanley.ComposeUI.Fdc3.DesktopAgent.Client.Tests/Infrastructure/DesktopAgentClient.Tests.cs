@@ -85,6 +85,67 @@ public class DesktopAgentClientTests : IAsyncLifetime
         result!.Should().BeEquivalentTo(new AppMetadata {AppId = "test-appId"});
     }
 
+    [Fact]
+    public async Task GetInfo_throws_error_as_no_response_received()
+    {
+        var messagingMock = new Mock<IMessaging>();
+
+        messagingMock.Setup(
+                _ => _.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .Returns(null);
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var action = async () => await desktopAgent.GetInfo();
+
+        await action.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*can't return the information about the initiator app*");
+    }
+
+    [Fact]
+    public async Task GetInfo_throws_error_as_error_response_received()
+    {
+        var messagingMock = new Mock<IMessaging>();
+
+        messagingMock.Setup(
+                _ => _.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new GetInfoResponse { Error = "test-error" })));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var action = async () => await desktopAgent.GetInfo();
+
+        await action.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*test-error*");
+    }
+
+    [Fact]
+    public async Task GetInfo_returns_ImplementationMetadata()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var implementationMetadata = new ImplementationMetadata {AppMetadata = new AppMetadata {AppId = "test_appId"}};
+
+        messagingMock.Setup(
+                _ => _.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new GetInfoResponse { ImplementationMetadata = implementationMetadata })));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var result = await desktopAgent.GetInfo();
+
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(implementationMetadata);
+    }
+
     public Task InitializeAsync()
     {
         Environment.SetEnvironmentVariable(nameof(AppIdentifier.AppId), "test-appId2");
