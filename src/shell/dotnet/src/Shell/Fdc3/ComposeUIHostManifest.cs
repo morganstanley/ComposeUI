@@ -35,4 +35,8 @@ internal class ComposeUIHostManifest
     [JsonProperty("coordinates")]
     [JsonPropertyOrder(3)]
     public Coordinates? Coordinates { get; set; }
+
+    [JsonProperty("environmentVariables")]
+    [JsonPropertyOrder(4)]
+    public Dictionary<string, string>? EnvironmentVariables { get; set; }
 }

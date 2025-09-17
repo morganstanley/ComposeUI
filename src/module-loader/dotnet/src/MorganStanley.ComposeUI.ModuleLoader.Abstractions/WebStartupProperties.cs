@@ -16,7 +16,7 @@ namespace MorganStanley.ComposeUI.ModuleLoader;
 /// Contains the necessary properties to start a web module.
 /// This type is injected to <see cref="StartupContext"/>.
 /// </summary>
-public sealed class WebStartupProperties
+public sealed class WebStartupProperties : ModuleStartupProperties
 {
     /// <summary>
     /// Url of the web application.
@@ -32,26 +32,6 @@ public sealed class WebStartupProperties
     /// List of the scripts that must be injected to the web module.
     /// </summary>
     public List<WebModuleScriptProvider> ScriptProviders { get; } = new();
-
-    /// <summary>
-    /// Initial position of the module.
-    /// </summary>
-    public InitialModulePosition? InitialModulePosition { get; set; }
-
-    /// <summary>
-    /// Width of the opening floating window of the started app.
-    /// </summary>
-    public double? Width { get; set; }
-
-    /// <summary>
-    /// Height of the opening floating window of the started app.
-    /// </summary>
-    public double? Height { get; set; }
-
-    /// <summary>
-    /// Initial coordinate positions of the window if it is opened as floating window.
-    /// </summary>
-    public Coordinates? Coordinates { get; set; }
 }
 
 public delegate ValueTask<string> WebModuleScriptProvider(IModuleInstance moduleInstance);
