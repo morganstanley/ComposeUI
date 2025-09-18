@@ -1,4 +1,4 @@
-﻿// Morgan Stanley makes this available to you under the Apache License,
+// Morgan Stanley makes this available to you under the Apache License,
 // Version 2.0 (the "License"). You may obtain a copy of the License at
 // 
 //      http://www.apache.org/licenses/LICENSE-2.0.
@@ -18,7 +18,7 @@ using MorganStanley.ComposeUI.Messaging.Instrumentation;
 using MorganStanley.ComposeUI.Messaging.Protocol;
 using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 using MorganStanley.ComposeUI.Messaging.TestUtils;
-using Nito.AsyncEx;
+using MorganStanley.ComposeUI.Messaging.Threading;
 
 namespace MorganStanley.ComposeUI.Messaging.Client;
 
@@ -710,7 +710,7 @@ public class MessageRouterClientTests : IAsyncLifetime
 
         await WaitForCompletionAsync();
 
-        Thread.Sleep(1);
+        await Task.Delay(200);  // This depends on fire and forget of underlying TryUnsubscribe
 
         _loggerMock
             .Verify(
