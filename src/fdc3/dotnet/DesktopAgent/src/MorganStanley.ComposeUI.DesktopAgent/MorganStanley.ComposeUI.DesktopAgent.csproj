@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<AssemblyName>MorganStanley.ComposeUI.Fdc3.DesktopAgent</AssemblyName>
@@ -33,8 +33,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<InternalsVisibleTo Include="$(ProjectName).Tests" />
-		<InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+		<InternalsVisibleTo Include="$(ProjectName).Tests, PublicKey=00240000048000009400000006020000002400005253413100040000010001003168a610ad70d26c4e6d04891a0aa25c8200b866ff2595a25c1d75c13861a2cb8c2a015b24ae2eed1eb996e04177576ea224d03a07920f0067c13c45e22e605f31c36c93328b84b0cb8932ed4d5ce49e1a3519299c86f5fb58d989fae5982bf0cfa4b5c712783c96467f714478020fa164b57335c94daedf5bab40f9a9400dc3"/>
+		<InternalsVisibleTo Include="DynamicProxyGenAssembly2, PublicKey=0024000004800000940000000602000000240000525341310004000001000100c547cac37abd99c8db225ef2f6c8a3602f3b3606cc9891605d02baa56104f4cfc0734aa39b93bf7852f7d9266654753cc297e7d2edfe0bac1cdcf9f717241550e0a7b191195b7667bb4f64bcb8e2121380fd1d9d46ad2d92d2d15605093924cceaf74c4861eff62abf69b9291ed0a340e113be11e6a7d3113e92484cf7045cc7"/>
 	</ItemGroup>
 	
 	<PropertyGroup>

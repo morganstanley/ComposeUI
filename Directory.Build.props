@@ -34,5 +34,7 @@
 		<LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
+		<SignAssembly>true</SignAssembly>
+		<AssemblyOriginatorKeyFile>$(ComposeUIRepositoryRoot)\keyPair.snk</AssemblyOriginatorKeyFile>
 	</PropertyGroup>
 </Project>

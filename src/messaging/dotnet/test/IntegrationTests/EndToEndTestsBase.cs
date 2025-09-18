@@ -1,4 +1,4 @@
-﻿// Morgan Stanley makes this available to you under the Apache License,
+// Morgan Stanley makes this available to you under the Apache License,
 // Version 2.0 (the "License"). You may obtain a copy of the License at
 // 
 //      http://www.apache.org/licenses/LICENSE-2.0.
@@ -15,7 +15,7 @@ using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
-using Nito.AsyncEx;
+
 
 namespace MorganStanley.ComposeUI.Messaging;
 
@@ -121,7 +121,7 @@ public abstract class EndToEndTestsBase : IAsyncLifetime
     {
         await using var subscriber = CreateClient();
         await using var publisher = CreateClient();
-        var semaphore = new AsyncSemaphore(1);
+        var semaphore = new SemaphoreSlim(1, 1);
 
         var tcs = new TaskCompletionSource();
 
@@ -129,9 +129,17 @@ public abstract class EndToEndTestsBase : IAsyncLifetime
             topic: "test-topic",
                 async msg =>
                 {
-                    using (await semaphore.LockAsync(new CancellationTokenSource(TimeSpan.Zero).Token))
+                    if (!semaphore.Wait(0)) // Try to acquire immediately, don't block
+                    {
+                        throw new OperationCanceledException(); // Mimic the AsyncSemaphore behavior
+                    }
+                    try
                     {
                         await Task.Delay(TimeSpan.FromSeconds(1));
+                    }
+                    finally
+                    {
+                        semaphore.Release();
                     }
 
                     if (msg.GetString() == "done")
