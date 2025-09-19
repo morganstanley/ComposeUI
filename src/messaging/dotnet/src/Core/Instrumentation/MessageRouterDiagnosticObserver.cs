@@ -1,4 +1,4 @@
-﻿// Morgan Stanley makes this available to you under the Apache License,
+// Morgan Stanley makes this available to you under the Apache License,
 // Version 2.0 (the "License"). You may obtain a copy of the License at
 // 
 //      http://www.apache.org/licenses/LICENSE-2.0.
@@ -13,7 +13,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
-using Nito.AsyncEx;
+using MorganStanley.ComposeUI.Messaging.Threading;
 
 namespace MorganStanley.ComposeUI.Messaging.Instrumentation;
 
