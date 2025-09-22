@@ -16,7 +16,7 @@ It enables dynamic discovery, loading, starting, stopping, and monitoring of mod
 Install via NuGet:
 
 ```shell
-dotnet package add MorganStanley.ComposeUI.ModuleLoader.Abstractions
+dotnet add package MorganStanley.ComposeUI.ModuleLoader.Abstractions
 ```
 
 Or via the NuGet Package Manager:
