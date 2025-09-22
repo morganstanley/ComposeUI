@@ -3,13 +3,21 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<Description>
-			Package for FDC3 Desktop Agent implementations and backend for ComposeUI. Contains shared models, interfaces, and utilities to facilitate building FDC3-compliant desktop agents that enable application interoperability using FDC3 context, intents, and channels. Provides foundational components for app discovery, context sharing, and intent resolution, with integration for FDC3 App Directory and support for dependency injection. Compatible with .NET Standard 2.0. More Details: https://morganstanley.github.io/ComposeUI/
+			Package for FDC3 Desktop Agent implementations and backend for ComposeUI. 
+			Contains shared models, interfaces, and utilities to facilitate building FDC3-compliant desktop agents that enable application interoperability using FDC3 context, intents, and channels. Provides foundational components for app discovery, context sharing, and intent resolution, with integration for FDC3 App Directory and support for dependency injection. Compatible with .NET Standard 2.0. More Details: https://morganstanley.github.io/ComposeUI/
 		</Description>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Finos.Fdc3" />
 		<PackageReference Include="System.Text.Json" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="MorganStanley.ComposeUI.Fdc3.DesktopAgent, PublicKey=00240000048000009400000006020000002400005253413100040000010001003168a610ad70d26c4e6d04891a0aa25c8200b866ff2595a25c1d75c13861a2cb8c2a015b24ae2eed1eb996e04177576ea224d03a07920f0067c13c45e22e605f31c36c93328b84b0cb8932ed4d5ce49e1a3519299c86f5fb58d989fae5982bf0cfa4b5c712783c96467f714478020fa164b57335c94daedf5bab40f9a9400dc3"/>
+		<InternalsVisibleTo Include="MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests, PublicKey=00240000048000009400000006020000002400005253413100040000010001003168a610ad70d26c4e6d04891a0aa25c8200b866ff2595a25c1d75c13861a2cb8c2a015b24ae2eed1eb996e04177576ea224d03a07920f0067c13c45e22e605f31c36c93328b84b0cb8932ed4d5ce49e1a3519299c86f5fb58d989fae5982bf0cfa4b5c712783c96467f714478020fa164b57335c94daedf5bab40f9a9400dc3"/>
+		<InternalsVisibleTo Include="MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client, PublicKey=00240000048000009400000006020000002400005253413100040000010001003168a610ad70d26c4e6d04891a0aa25c8200b866ff2595a25c1d75c13861a2cb8c2a015b24ae2eed1eb996e04177576ea224d03a07920f0067c13c45e22e605f31c36c93328b84b0cb8932ed4d5ce49e1a3519299c86f5fb58d989fae5982bf0cfa4b5c712783c96467f714478020fa164b57335c94daedf5bab40f9a9400dc3"/>
+		<InternalsVisibleTo Include="MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests, PublicKey=00240000048000009400000006020000002400005253413100040000010001003168a610ad70d26c4e6d04891a0aa25c8200b866ff2595a25c1d75c13861a2cb8c2a015b24ae2eed1eb996e04177576ea224d03a07920f0067c13c45e22e605f31c36c93328b84b0cb8932ed4d5ce49e1a3519299c86f5fb58d989fae5982bf0cfa4b5c712783c96467f714478020fa164b57335c94daedf5bab40f9a9400dc3"/>
 	</ItemGroup>
 
 </Project>

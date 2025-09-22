@@ -2,14 +2,7 @@
     <Import Project="$([MSBuild]::GetPathOfFileAbove(Directory.Build.props, $(MSBuildThisFileDirectory)..))" />
 
 	<PropertyGroup>
-		<IsPackable>true</IsPackable>
+		<IsPackable>false</IsPackable> <!--TODO: REMOVE once stable-->
 	</PropertyGroup>
-
-    <ItemGroup>
-	    <InternalsVisibleTo Include="MorganStanley.ComposeUI.Fdc3.DesktopAgent"/>
-	    <InternalsVisibleTo Include="MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests"/>
-	    <InternalsVisibleTo Include="MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client"/>
-	    <InternalsVisibleTo Include="MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests"/>
-    </ItemGroup>
 
 </Project>

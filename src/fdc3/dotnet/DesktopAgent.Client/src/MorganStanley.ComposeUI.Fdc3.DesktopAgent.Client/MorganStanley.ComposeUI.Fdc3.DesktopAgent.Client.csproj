@@ -5,13 +5,15 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Finos.Fdc3" />
-		<PackageReference Include="Finos.Fdc3.AppDirectory" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+	  <Compile Remove="Contracts\**" />
+	  <EmbeddedResource Remove="Contracts\**" />
+	  <None Remove="Contracts\**" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Contracts\" />
+		<PackageReference Include="Finos.Fdc3" />
+		<PackageReference Include="Finos.Fdc3.AppDirectory" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
 	</ItemGroup>
 
 	<ItemGroup>
