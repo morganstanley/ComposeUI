@@ -131,6 +131,13 @@ You can get the metadata of an app using the GetAppMetadata method by providing 
 var appMetadata = await desktopAgent.GetAppMetadata(new AppIdentifier("your-app-id", "your-instance-id"));
 ```
 
+### Getting User Channels
+You can retrieve user channels by using:
+```csharp
+var channels = await desktopAgent.GetUserChannels();
+await desktopAgent.JoinUserChannel(channels[0].Id);
+```
+
 ## Documentation
 
 For more details, see the [ComposeUI documentation](https://morganstanley.github.io/ComposeUI/).

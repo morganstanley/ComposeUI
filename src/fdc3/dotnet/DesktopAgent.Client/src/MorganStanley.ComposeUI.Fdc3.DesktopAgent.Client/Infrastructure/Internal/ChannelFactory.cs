@@ -72,6 +72,56 @@ internal class ChannelFactory : IChannelFactory
         }
     }
 
+    public async ValueTask<IChannel[]> GetUserChannels()
+    {
+        var request = new GetUserChannelsRequest
+        {
+            InstanceId = _instanceId
+        };
+
+        var response = await _messaging.InvokeJsonServiceAsync<GetUserChannelsRequest, GetUserChannelsResponse>(
+            Fdc3Topic.GetUserChannels,
+            request,
+            _jsonSerializerOptions);
+
+        if (response == null)
+        {
+            throw ThrowHelper.MissingResponse();
+        }
+
+        if (!string.IsNullOrEmpty(response.Error))
+        {
+            throw ThrowHelper.ErrorResponseReceived(response.Error);
+        }
+
+        if (response.Channels == null)
+        {
+            throw ThrowHelper.NoChannelsReturned();
+        }
+
+        var channels = new List<IChannel>();
+
+        foreach (var channel in response.Channels)
+        {
+            if (channel.DisplayMetadata == null)
+            {
+                _logger.LogWarning($"Skipping channel with missing ChannelId: {channel.Id} or the {nameof(DisplayMetadata)}.");
+                continue;
+            }
+
+            var userChannel = new Channel(
+                channelId: channel.Id,
+                channelType: ChannelType.User,
+                instanceId: _instanceId,
+                messaging: _messaging,
+                displayMetadata: channel.DisplayMetadata,
+                loggerFactory: _loggerFactory);
+
+            channels.Add(userChannel);
+        }
+        return channels.ToArray();
+    }
+
     public async ValueTask<IChannel> JoinUserChannelAsync(string channelId)
     {
         var request = new JoinUserChannelRequest

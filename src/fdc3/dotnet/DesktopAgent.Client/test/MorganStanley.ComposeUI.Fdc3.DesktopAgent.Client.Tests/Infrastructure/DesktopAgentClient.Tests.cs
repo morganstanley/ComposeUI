@@ -16,11 +16,14 @@ using System.Text.Json;
 using Finos.Fdc3;
 using Finos.Fdc3.Context;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppMetadata;
@@ -423,6 +426,179 @@ public class DesktopAgentClientTests : IAsyncLifetime
                 It.Is<string>(topic => topic == new ChannelTopics("test-channelId", ChannelType.User).Broadcast),
                 It.Is<string>(contextJson => contextJson.Contains("test-instrument-broadcasted")),
                 It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetUserChannels_returns_channels()
+    {
+        var messagingMock = new Mock<IMessaging>();
+
+        messagingMock.Setup(
+                _ => _.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(
+                JsonSerializer.Serialize(
+                    new GetUserChannelsResponse 
+                    { 
+                        Channels = new[] 
+                        { 
+                            new ChannelItem { Id = "1", DisplayMetadata = new DisplayMetadata { Name = "1" } }, 
+                            new ChannelItem { Id = "2", DisplayMetadata = new DisplayMetadata { Name = "2" } } 
+                        } 
+                    }, _jsonSerializerOptions )));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var result = await desktopAgent.GetUserChannels();
+
+        result.Should().NotBeNull();
+        result.Should().HaveCount(2);
+        result.Should().BeEquivalentTo(
+            new[] 
+            { 
+                new Channel("1", ChannelType.User, messagingMock.Object, It.IsAny<string>(), new DisplayMetadata { Name = "1" }, It.IsAny<ILoggerFactory>()), 
+                new Channel("2", ChannelType.User, messagingMock.Object, It.IsAny<string>(), new DisplayMetadata { Name = "2" }, It.IsAny<ILoggerFactory>()) 
+            });
+    }
+
+    [Fact]
+    public async Task GetUserChannels_throws_error_on_no_response()
+    {
+        var messagingMock = new Mock<IMessaging>();
+
+        messagingMock.Setup(
+                _ => _.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>((string?)null));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var action = async () => await desktopAgent.GetUserChannels();
+
+        await action.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*No response was received from the FDC3 backend server.*");
+    }
+
+    [Fact]
+    public async Task GetUserChannels_throws_error_on_error_response_received()
+    {
+        var messagingMock = new Mock<IMessaging>();
+
+        messagingMock.Setup(
+                _ => _.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(
+                JsonSerializer.Serialize(
+                    new GetUserChannelsResponse
+                    {
+                        Channels = null
+                    }, _jsonSerializerOptions)));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var action = async () => await desktopAgent.GetUserChannels();
+
+        await action.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*The DesktopAgent backend did not return any channel.*");
+    }
+
+    [Fact]
+    public async Task GetUserChannels_does_ot_include_channel_if_displaymetadata_is_missing()
+    {
+        var messagingMock = new Mock<IMessaging>();
+
+        messagingMock.Setup(
+                _ => _.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(
+                JsonSerializer.Serialize(
+                    new GetUserChannelsResponse
+                    {
+                        Channels = new[]
+                        {
+                            new ChannelItem { Id = "test-id1", DisplayMetadata = new DisplayMetadata { Name = "1" } },
+                            new ChannelItem { Id = "test-id2" }
+                        }
+                    }, _jsonSerializerOptions)));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var result = await desktopAgent.GetUserChannels();
+
+        result.Should().NotBeNull();
+        result.Should().HaveCount(1);
+        result.Should().BeEquivalentTo(
+            new[]
+            {
+                new Channel("test-id1", ChannelType.User, messagingMock.Object, It.IsAny<string>(), new DisplayMetadata { Name = "1" }, It.IsAny<ILoggerFactory>()),
+            });
+    }
+
+    [Fact]
+    public async Task GetUserChannels_does_not_include_channel_if_displaymetadata_is_missing()
+    {
+        var messagingMock = new Mock<IMessaging>();
+
+        messagingMock.Setup(
+                _ => _.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(
+                JsonSerializer.Serialize(
+                    new GetUserChannelsResponse
+                    {
+                        Channels = new[]
+                        {
+                            new ChannelItem { Id = "test-id1", DisplayMetadata = new DisplayMetadata { Name = "1" } },
+                            new ChannelItem { Id = "test-id2" }
+                        }
+                    }, _jsonSerializerOptions)));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var result = await desktopAgent.GetUserChannels();
+
+        result.Should().NotBeNull();
+        result.Should().HaveCount(1);
+        result.Should().BeEquivalentTo(
+            new[]
+            {
+                new Channel("test-id1", ChannelType.User, messagingMock.Object, It.IsAny<string>(), new DisplayMetadata { Name = "1" }, It.IsAny<ILoggerFactory>()),
+            });
+    }
+
+    [Fact]
+    public async Task GetUserChannels_throws_error_on_null_channel_response_received()
+    {
+        var messagingMock = new Mock<IMessaging>();
+
+        messagingMock.Setup(
+                _ => _.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(
+                JsonSerializer.Serialize(
+                    new GetUserChannelsResponse
+                    {
+                        Error = "test"
+                    }, _jsonSerializerOptions)));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var action = async () => await desktopAgent.GetUserChannels();
+
+        await action.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*test*");
     }
 
     public Task InitializeAsync()
