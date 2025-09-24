@@ -105,11 +105,7 @@ public partial class MainWindow : Window
 
             await Task.Run(async () =>
             {
-                if (await _desktopAgent.GetCurrentChannel() == null)
-                {
-                    await _desktopAgent.JoinUserChannel("fdc3.channel.1");
-                }
-
+                await JoinToUserChannel();
                 _subscription = await _desktopAgent.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) =>
                 {
                     Dispatcher.Invoke(() => DiagnosticsText += "\n" + "Context received: " + context.Name + "; type: " + context.Type);
@@ -138,10 +134,7 @@ public partial class MainWindow : Window
 
             await Task.Run(async () =>
             {
-                if (await _desktopAgent.GetCurrentChannel() == null)
-                {
-                    await _desktopAgent.JoinUserChannel("fdc3.channel.1");
-                }
+                await JoinToUserChannel();
 
                 var instrument = new Instrument(new InstrumentID() { BBG = "test" }, $"{Guid.NewGuid().ToString()}");
                 await _desktopAgent.Broadcast(instrument);
@@ -155,6 +148,22 @@ public partial class MainWindow : Window
             {
                 DiagnosticsText += $"\nBroadcast failed: {ex.Message}";
             });
+        }
+    }
+
+    private async Task JoinToUserChannel()
+    {
+        if (await _desktopAgent.GetCurrentChannel() == null)
+        {
+            var channels = await _desktopAgent.GetUserChannels();
+            if (channels.Count() > 0)
+            {
+                await _desktopAgent.JoinUserChannel(channels.ElementAt(0).Id);
+            }
+            else
+            {
+                await _desktopAgent.JoinUserChannel("fdc3.channel.1");
+            }
         }
     }
 }

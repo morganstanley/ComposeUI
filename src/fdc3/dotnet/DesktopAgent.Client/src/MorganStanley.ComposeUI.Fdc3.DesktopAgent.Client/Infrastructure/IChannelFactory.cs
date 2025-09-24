@@ -43,4 +43,10 @@ internal interface IChannelFactory
     /// <param name="channelId">The ID of the user channel to join.</param>
     /// <returns>A <see cref="ValueTask{IChannel}"/> representing the asynchronous operation.</returns>
     public ValueTask<IChannel> JoinUserChannelAsync(string channelId);
+
+    /// <summary>
+    /// Retrieves all available user channels.
+    /// </summary>
+    /// <returns>A <see cref="ValueTask{IChannel[]}"/> representing the asynchronous operation that returns an array of user channels.</returns>
+    public ValueTask<IChannel[]> GetUserChannels();
 }

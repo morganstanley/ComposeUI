@@ -11,6 +11,10 @@ using MorganStanley.ComposeUI.Messaging.Abstractions;
 using Finos.Fdc3.Context;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests.Helpers;
 using MorganStanley.ComposeUI.Fdc3.AppDirectory;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
+using DisplayMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.DisplayMetadata;
+using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests;
 
@@ -142,7 +146,7 @@ public class EndToEndTests : IAsyncLifetime
     [Fact]
     public async Task GetAppMetadata_returns_AppMetadata()
     {
-        var result = await _desktopAgent.GetAppMetadata(new Shared.Protocol.AppIdentifier { AppId = "appId1" });
+        var result = await _desktopAgent.GetAppMetadata(app: new Shared.Protocol.AppIdentifier { AppId = "appId1" });
         result.Should().NotBeNull();
         result.Should().BeEquivalentTo(TestAppDirectoryData.DefaultApp1);
     }
@@ -277,5 +281,97 @@ public class EndToEndTests : IAsyncLifetime
         await action.Should()
             .ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage($"*No current channel to broadcast the context to.*");
+    }
+
+    [Fact]
+    public async Task GetUserChannels_returns_UserChannels()
+    {
+        var result = await _desktopAgent.GetUserChannels();
+        result.Should().NotBeNullOrEmpty();
+    }
+
+    [Fact]
+    public async Task GetUserChannels_does_not_include_channel_if_displaymetadata_is_missing()
+    {
+        await _host.StopAsync();
+
+        var hostBuilder = new HostBuilder()
+            .ConfigureServices(
+            serviceCollection =>
+            {
+                serviceCollection.AddFdc3DesktopAgent(builder =>
+                {
+                    builder.Configure(options =>
+                    {
+                        options.ChannelId = "fdc3.channel.2";
+                        options.UserChannelConfig = new List<ChannelItem>()
+                        {
+                            new ChannelItem { Id = "fdc3.channel.1", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata { Color = "#FF0000", Glyph = "icon-channel-1" } },
+                            new ChannelItem { Id = "fdc3.channel.2", Type = ChannelType.User }
+                        }.ToArray();
+                    });
+                });
+
+                serviceCollection.AddMessageRouterServer(
+                            s => s.UseWebSockets(
+                                opt =>
+                                {
+                                    opt.RootPath = _webSocketUri.AbsolutePath;
+                                    opt.Port = _webSocketUri.Port;
+                                }));
+
+                serviceCollection.AddTransient<IStartupAction, MessageRouterStartupAction>();
+
+                serviceCollection.AddMessageRouter(
+                    mr => mr
+                        .UseServer());
+
+                serviceCollection.AddFdc3AppDirectory(
+                    _ => _.Source = new Uri(@$"file:\\{Directory.GetCurrentDirectory()}\testAppDirectory.json"));
+
+                serviceCollection.AddModuleLoader();
+                serviceCollection.AddMessageRouterMessagingAdapter();
+            });
+
+
+        var host = await hostBuilder.StartAsync();
+        var moduleLoader = host.Services.GetRequiredService<IModuleLoader>();
+
+        var clientServices = new ServiceCollection()
+            .AddMessageRouter(
+                mr => mr.UseWebSocket(
+                    new MessageRouterWebSocketOptions
+                    {
+                        Uri = _webSocketUri
+                    }))
+            .AddMessageRouterMessagingAdapter()
+            .AddFdc3DesktopAgentClient();
+
+        var serviceProvider = clientServices.BuildServiceProvider();
+
+        var module = await moduleLoader.StartModule(new StartRequest("appId1-native", new Dictionary<string, string>() { { "Fdc3InstanceId", Guid.NewGuid().ToString() } })); // This will ensure that the DesktopAgent backend knows its an FDC3 enabled module. The app broadcasts an instrument context after it joined to the fdc3.channel.1.
+
+        var instance = await moduleLoader.StartModule(new StartRequest("appId1"));
+        var fdc3StartupProperties = instance.GetProperties<Fdc3StartupProperties>().FirstOrDefault();
+
+        Environment.SetEnvironmentVariable(nameof(AppIdentifier.AppId), "appId1");
+        Environment.SetEnvironmentVariable(nameof(AppIdentifier.InstanceId), fdc3StartupProperties!.InstanceId);
+        var desktopAgent = serviceProvider.GetRequiredService<IDesktopAgent>();
+
+        var result = await desktopAgent.GetUserChannels();
+
+        result.Should().NotBeNullOrEmpty();
+        result.Should().HaveCount(1);
+        result.Should().BeEquivalentTo(new[]
+        {
+            new
+            {
+                Id = "fdc3.channel.1",
+                Type = ChannelType.User,
+                DisplayMetadata = new { Color = "#FF0000", Glyph = "icon-channel-1" }
+            }
+        });
+
+        await host.StopAsync();
     }
 }
