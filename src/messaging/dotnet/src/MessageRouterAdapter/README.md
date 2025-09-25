@@ -12,7 +12,7 @@ This package acts as an adapter between the low-level `IMessageRouter` interface
 Install via NuGet:
 
 ```shell
-dotnet package add MorganStanley.ComposeUI.Messaging.MessageRouterAdapter
+dotnet add package MorganStanley.ComposeUI.Messaging.MessageRouterAdapter
 ```
 
 Or via the NuGet Package Manager:

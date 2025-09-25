@@ -12,7 +12,7 @@ This package contains reusable utilities, extension methods, and helper classes 
 Install via NuGet:
 
 ```shell
-dotnet package add MorganStanley.ComposeUI.Utilities
+dotnet add package MorganStanley.ComposeUI.Utilities
 ```
 
 Or via the NuGet Package Manager:

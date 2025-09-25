@@ -11,7 +11,7 @@ The project targets .NET Standard 2.0, ensuring compatibility across a broad ran
 Install the NuGet package:
 
 ```shell
-dotnet package add MorganStanley.ComposeUI.Fdc3.DesktopAgent
+dotnet add package MorganStanley.ComposeUI.Fdc3.DesktopAgent
 ```
 
 Or via the NuGet Package Manager:

@@ -14,12 +14,11 @@ using Microsoft.Extensions.DependencyInjection;
 using MorganStanley.ComposeUI.Messaging;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
-using System;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Threading;
+using Finos.Fdc3;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
 
 namespace DiagnosticsExample;
 
@@ -28,9 +27,7 @@ namespace DiagnosticsExample;
 /// </summary>
 public partial class MainWindow : Window
 {
-    private IMessaging? _messageRouter;
-
-
+    private readonly IMessaging? _messaging;
 
     public string DiagnosticsText
     {
@@ -42,12 +39,15 @@ public partial class MainWindow : Window
     public static readonly DependencyProperty DiagnosticsTextProperty =
         DependencyProperty.Register("DiagnosticsText", typeof(string), typeof(MainWindow), new PropertyMetadata(string.Empty));
 
+    private readonly IDesktopAgent _desktopAgent;
 
 
     public MainWindow()
     {
         InitializeComponent();
-        _messageRouter = ((App)Application.Current).ServiceProvider.GetService<IMessaging>();
+
+        _messaging = ((App)Application.Current).ServiceProvider.GetService<IMessaging>();
+        _desktopAgent = ((App)Application.Current).ServiceProvider.GetService<IDesktopAgent>() ?? throw new NullReferenceException();
     }
 
     private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -62,7 +62,7 @@ public partial class MainWindow : Window
 
         try
         {
-            if (_messageRouter != null)
+            if (_messaging != null)
             {
                 Task.Run(LogDiagnostics);
             }
@@ -79,11 +79,19 @@ public partial class MainWindow : Window
 
     private async Task LogDiagnostics()
     {
-        var diag = await _messageRouter!.InvokeJsonServiceAsync<DiagnosticInfo>("Diagnostics", new JsonSerializerOptions { WriteIndented = true });
+        var diag = await _messaging!.InvokeJsonServiceAsync<DiagnosticInfo>("Diagnostics", new JsonSerializerOptions { WriteIndented = true });
+        
         if (diag == null)
         {
             return;
         }
+        
         await Dispatcher.InvokeAsync(() => DiagnosticsText += diag.ToString());
+
+        var result =
+            await _desktopAgent.GetAppMetadata(new MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier()
+                { AppId = "WPFExample" });
+
+        await Dispatcher.InvokeAsync(() => DiagnosticsText += "\n" + result.Description);
     }
 }

@@ -15,7 +15,7 @@
 Install the NuGet package:
 
 ```shell
-dotnet package add MorganStanley.ComposeUI.Fdc3.AppDirectory
+dotnet add package MorganStanley.ComposeUI.Fdc3.AppDirectory
 ```
 
 Or via the NuGet Package Manager:
