@@ -151,6 +151,12 @@ var listener = await appChannel.AddContextListener("fdc3.instrument", (ctx, ctxM
 await appChannel.Broadcast(context);
 ```
 
+### Finding apps based on the specified intent
+You can find/search for applications from the AppDirectory by using the `FindIntent` function:
+```csharp
+var apps = await desktopAgent.FindIntent("ViewChart", new Instrument(new InstrumentID { Ticker = "AAPL" }), "expected_resultType"));
+```
+
 ## Documentation
 
 For more details, see the [ComposeUI documentation](https://morganstanley.github.io/ComposeUI/).

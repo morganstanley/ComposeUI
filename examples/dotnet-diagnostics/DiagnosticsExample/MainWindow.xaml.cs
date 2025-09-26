@@ -199,6 +199,29 @@ public partial class MainWindow : Window
         });
     }
 
+    private async void FindIntentButton_Click(object sender, RoutedEventArgs e)
+    {
+        await Task.Run(async () =>
+        {
+            Dispatcher.Invoke(() =>
+            {
+                DiagnosticsText += "\nFinding intent for ViewChart...";
+            });
+
+            var result = await _desktopAgent.FindIntent("ViewChart").ConfigureAwait(false);
+
+            Dispatcher.Invoke(() => DiagnosticsText += $"\nFindIntent is completed. Intent anme: {result.Intent.Name}");
+
+            foreach (var app in result.Apps)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    DiagnosticsText += $"\nIntent: {result.Intent.Name} is found for app: {app.AppId}";
+                });
+            }
+        });
+    }
+
     private async Task JoinToAppChannel()
     {
         if (_appChannel == null)

@@ -26,9 +26,11 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
+using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIntent;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppMetadata;
 using DisplayMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.DisplayMetadata;
 using ImplementationMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.ImplementationMetadata;
+using IntentMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.IntentMetadata;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests.Infrastructure;
 
@@ -678,6 +680,85 @@ public class DesktopAgentClientTests : IAsyncLifetime
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage("*The application channel with ID: testChannel*");
+    }
+
+    [Fact]
+    public async Task FindIntent_throws_when_response_is_null()
+    {
+        var messagingMock = new Mock<IMessaging>();
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?)null);
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+        var act = async () => await desktopAgent.FindIntent("fdc3.instrument");
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*No response was received from the FDC3 backend server*");
+    }
+
+    [Fact]
+    public async Task FindIntent_throws_when_error_received()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var response = new FindIntentResponse { Error = "Some error" };
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+        var act = async () => await desktopAgent.FindIntent("fdc3.instrument");
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*Some error*");
+    }
+
+    [Fact]
+    public async Task FindIntent_throws_when_no_error_but_AppIntent_is_null()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var response = new FindIntentResponse { Error = null, AppIntent = null };
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+        var act = async () => await desktopAgent.FindIntent("fdc3.instrument");
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*was not returned by the FDC3 DesktopAgent backend for intent: fdc3.instrument*");
+    }
+
+    [Fact]
+    public async Task FindIntent_returns_AppIntent()
+    {
+        var messaginMock = new Mock<IMessaging>();
+        var response = new FindIntentResponse { Error = null, AppIntent = new AppIntent { Intent = new IntentMetadata { Name = "test" }, Apps = new List<AppMetadata>() { new AppMetadata { AppId = "test-appId1" } } } };
+
+        messaginMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messaginMock.Object);
+        var result = await desktopAgent.FindIntent("fdc3.instrument");
+
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(response.AppIntent);
     }
 
     public Task InitializeAsync()

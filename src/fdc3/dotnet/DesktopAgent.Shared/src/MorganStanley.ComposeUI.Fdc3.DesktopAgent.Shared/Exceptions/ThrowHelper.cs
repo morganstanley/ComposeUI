@@ -80,4 +80,7 @@ internal static class ThrowHelper
 
     public static Fdc3DesktopAgentException AppChannelIsNotCreated(string channelId) =>
         new($"The application channel with ID: {channelId} is not created successfully.");
+
+    public static Fdc3DesktopAgentException AppIntentIsNotDefined(string intent, string? contextType = null, string? resultType = null) =>
+        new($"The {nameof(AppIntent)} was not returned by the FDC3 DesktopAgent backend for intent: {intent}; context: {contextType}; and resultType: {resultType}.");
 }
