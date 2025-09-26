@@ -32,6 +32,7 @@ See the License for the specific language governing permissions and limitations 
             <Button x:Name="AppChannelAddContextListenerButton" Click="AppChannelAddContextListenerButton_Click"  Margin="0,0,10,0" ToolTip="Adding ContextListener on AppChannel: app-channel-1">AC - AddContextListener</Button>
             <Button x:Name="FindIntentButton" Click="FindIntentButton_Click" Margin="0,0,10,0" ToolTip="Finding intent for ViewChart intent">FindIntent</Button>
             <Button x:Name="FindInstancesButton" Click="FindInstancesButton_Click" Margin="0,0,10,0" ToolTip="Finding instances for current app id">FindInstances</Button>
+            <Button x:Name="FindIntentsByContextButton" Click="FindIntentsByContextButton_Click" Margin="0,0,10,0" ToolTip="FindIntentsByContext using the fdc3.instrument context type">FindIntentsByContext</Button>
         </WrapPanel>
     </Grid>
 </Window>

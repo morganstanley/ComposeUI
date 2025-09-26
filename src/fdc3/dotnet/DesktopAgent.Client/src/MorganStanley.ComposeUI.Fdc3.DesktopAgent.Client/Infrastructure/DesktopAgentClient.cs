@@ -132,9 +132,10 @@ public class DesktopAgentClient : IDesktopAgent
         return result;
     }
 
-    public Task<IEnumerable<IAppIntent>> FindIntentsByContext(IContext context, string? resultType = null)
+    public async Task<IEnumerable<IAppIntent>> FindIntentsByContext(IContext context, string? resultType = null)
     {
-        throw new NotImplementedException();
+        var appIntents = await _intentsClient.FindIntentsByContextAsync(context, resultType);
+        return appIntents;
     }
 
     public async Task<IAppMetadata> GetAppMetadata(IAppIdentifier app)

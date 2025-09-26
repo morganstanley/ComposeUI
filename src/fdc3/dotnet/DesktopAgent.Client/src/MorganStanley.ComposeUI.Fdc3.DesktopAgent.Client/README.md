@@ -161,7 +161,14 @@ var apps = await desktopAgent.FindIntent("ViewChart", new Instrument(new Instrum
 You can find the currently FDC3 enabled instances for the specified app by using the `FindInstances` function:
 ```csharp
 var instances = await desktopAgent.FindInstances("your-app-id");
-``
+```
+
+### Finding intents by context
+You can find the apps that can handle for the specified context by using the `FindIntentsByContext` function:
+```csharp
+var context = new Instrument(new InstrumentID { Ticker = "AAPL" }, "Apple Inc.");
+var appIntents = await desktopAgent.FindIntentsByContext(context);
+```
 
 ## Documentation
 

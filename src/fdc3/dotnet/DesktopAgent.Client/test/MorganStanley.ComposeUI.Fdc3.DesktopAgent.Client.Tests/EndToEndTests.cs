@@ -462,4 +462,24 @@ public class EndToEndTests : IAsyncLifetime
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage($"*{ResolveError.NoAppsFound}*");
     }
+
+    [Fact]
+    public async Task FindIntentsByContext_returns_AppIdentifier()
+    {
+        var context = new Nothing();
+
+        var result = await _desktopAgent.FindIntentsByContext(context);
+        result.Should().NotBeNullOrEmpty();
+    }
+
+    [Fact]
+    public async Task FindIntentsByContext_throws_when_not_app_can_handle_the_context()
+    {
+        var context = new Currency(new CurrencyID { CURRENCY_ISOCODE = "USD" });
+
+        var act = async () => await _desktopAgent.FindIntentsByContext(context);
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage($"*{ResolveError.NoAppsFound}*");
+    }
 }
