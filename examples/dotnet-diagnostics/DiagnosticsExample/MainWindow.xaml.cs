@@ -246,6 +246,31 @@ public partial class MainWindow : Window
         });
     }
 
+    private async void FindIntentsByContextButton_Click(object sender, RoutedEventArgs e)
+    {
+        await Task.Run(async () =>
+        {
+            var context = new Instrument();
+            Dispatcher.Invoke(() =>
+            {
+                DiagnosticsText += $"\nFinding intents by context: {context.Type}...";
+            });
+
+            var appIntents = await _desktopAgent.FindIntentsByContext(context).ConfigureAwait(false);
+
+            foreach (var appIntent in appIntents)
+            {
+                foreach (var app in appIntent.Apps)
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        DiagnosticsText += $"\nIntent found: {appIntent.Intent.Name} for app: {app.AppId}";
+                    });
+                }
+            }
+        });
+    }
+
     private async Task JoinToAppChannel()
     {
         if (_appChannel == null)

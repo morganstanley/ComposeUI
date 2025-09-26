@@ -864,6 +864,112 @@ public class DesktopAgentClientTests : IAsyncLifetime
             .WithMessage("*No app matched*");
     }
 
+    [Fact]
+    public async Task FindIntentsByContext_returns_AppIntents()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var response = new FindIntentsByContextResponse
+        {
+            AppIntents = new[]
+            {
+                new AppIntent
+                {
+                    Intent = new IntentMetadata { Name = "test-intent1" },
+                    Apps = new List<AppMetadata> { new AppMetadata { AppId = "test-appId1" } }
+                },
+                new AppIntent
+                {
+                    Intent = new IntentMetadata { Name = "test-intent2" },
+                    Apps = new List<AppMetadata> { new AppMetadata { AppId = "test-appId2" } }
+                }
+            }
+        };
+
+        var context = new Instrument(new InstrumentID { Ticker = "test-ticker" }, "test-name");
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var result = await desktopAgent.FindIntentsByContext(context);
+
+        result.Should().NotBeNull();
+        result.Should().HaveCount(2);
+        result.Should().BeEquivalentTo(response.AppIntents);
+    }
+
+    [Fact]
+    public async Task FindIntentsByContext_throws_when_null_response_received()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?)null);
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var act = async () => await desktopAgent.FindIntentsByContext(new Context("test-type"));
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*No response was received from the FDC3 backend server*");
+    }
+
+    [Fact]
+    public async Task FindIntentsByContext_throws_when_error_response_received()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var response = new FindIntentsByContextResponse
+        {
+            Error = "Some error"
+        };
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+        var act = async () => await desktopAgent.FindIntentsByContext(new Context("test-type"));
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*Some error*");
+    }
+
+    [Fact]
+    public async Task FindIntentsByContext_throws_when_no_error_and_no_AppIntents_received()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var response = new FindIntentsByContextResponse
+        {
+            Error = null,
+            AppIntents = null
+        };
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var act = async () => await desktopAgent.FindIntentsByContext(new Context("test-type"));
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*The AppIntent was not returned by*");
+    }
+
     public Task InitializeAsync()
     {
         Environment.SetEnvironmentVariable(nameof(AppIdentifier.AppId), "test-appId2");

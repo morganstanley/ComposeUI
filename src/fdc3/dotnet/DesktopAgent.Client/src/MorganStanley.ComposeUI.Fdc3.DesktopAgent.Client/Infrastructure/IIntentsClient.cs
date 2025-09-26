@@ -32,4 +32,12 @@ internal interface IIntentsClient
     /// A <see cref="ValueTask{IAppIntent}"/> representing the asynchronous operation to find the intent.
     /// </returns>
     public ValueTask<IAppIntent> FindIntentAsync(string intent, IContext? context = null, string? resultType = null);
+
+    /// <summary>
+    /// Finds all intents that can handle the specified context, optionally filtering by result type by sending the request to the backend.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="resultType"></param>
+    /// <returns></returns>
+    public ValueTask<IEnumerable<IAppIntent>> FindIntentsByContextAsync(IContext context, string? resultType = null);
 }

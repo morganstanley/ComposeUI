@@ -78,4 +78,41 @@ internal class IntentsClient : IIntentsClient
 
         return response.AppIntent;
     }
+
+    public async ValueTask<IEnumerable<IAppIntent>> FindIntentsByContextAsync(IContext context, string? resultType = null)
+    {
+        var request = new FindIntentsByContextRequest
+        {
+            Fdc3InstanceId = _instanceId,
+            Context = JsonSerializer.Serialize(context, _jsonSerializerOptions),
+            ResultType = resultType
+        };
+
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("Finding intents by context. Context Type: {ContextType}, Result Type: {ResultType}", context.Type, resultType);
+        }
+
+        var response = await _messaging.InvokeJsonServiceAsync<FindIntentsByContextRequest, FindIntentsByContextResponse>(
+            Fdc3Topic.FindIntentsByContext,
+            request,
+            _jsonSerializerOptions);
+
+        if (response == null)
+        {
+            throw ThrowHelper.MissingResponse();
+        }
+
+        if (!string.IsNullOrEmpty(response.Error))
+        {
+            throw ThrowHelper.ErrorResponseReceived(response.Error);
+        }
+
+        if (response.AppIntents == null)
+        {
+            throw ThrowHelper.AppIntentIsNotDefined("null", context.Type, resultType);
+        }
+
+        return response.AppIntents;
+    }
 }

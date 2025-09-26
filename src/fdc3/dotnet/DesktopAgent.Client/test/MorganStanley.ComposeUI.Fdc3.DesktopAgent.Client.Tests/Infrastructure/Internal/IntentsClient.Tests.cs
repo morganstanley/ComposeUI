@@ -13,6 +13,8 @@
  */
 
 using System.Text.Json;
+using Finos.Fdc3.Context;
+using Finos.Fdc3;
 using FluentAssertions;
 using Moq;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal;
@@ -21,6 +23,9 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
+using IntentMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.IntentMetadata;
+using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppMetadata;
+using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIntent;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests.Infrastructure.Internal;
 
@@ -128,5 +133,129 @@ public class IntentsClientTests
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage("*The AppIntent was not returned by the FDC3 DesktopAgent backend for intent: IntentName; context: ; and resultType: .*");
+    }
+
+    [Fact]
+    public async Task FindIntentsByContextAsync_returns_appIntents_when_successful()
+    {
+        var context = new Instrument(new InstrumentID() { BBG = "test" }, $"{Guid.NewGuid().ToString()}");
+
+        var expectedIntents = new[] 
+        { 
+            new AppIntent  
+            {
+                Intent = new IntentMetadata
+                {
+                    Name = "Intent1",
+                    DisplayName = "Intent 1"
+                },
+                Apps = new[]
+                {
+                    new AppMetadata
+                    {
+                        AppId = "App1",
+                        Name = "App 1",
+                        Version = "1.0.0"
+                    }
+                }
+            },
+
+            new AppIntent
+            {
+                Intent = new IntentMetadata
+                {
+                    Name = "Intent2",
+                    DisplayName = "Intent 2"
+                },
+                Apps = new[]
+                {
+                    new AppMetadata
+                    {
+                        AppId = "App2",
+                        Name = "App 2",
+                        Version = "1.0.0"
+                    }
+                }
+            }
+        };
+
+        var response = new FindIntentsByContextResponse
+        {
+            AppIntents = expectedIntents
+        };
+
+        _messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                Fdc3Topic.FindIntentsByContext,
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)));
+
+        var result = await _client.FindIntentsByContextAsync(context);
+
+        result.Should().BeEquivalentTo(expectedIntents);
+    }
+
+    [Fact]
+    public async Task FindIntentsByContextAsync_throws_when_response_is_null()
+    {
+        var context = new Instrument(new InstrumentID() { BBG = "test" }, $"{Guid.NewGuid().ToString()}");
+
+        _messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                Fdc3Topic.FindIntentsByContext,
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>((string?) null));
+
+        var act = async () => await _client.FindIntentsByContextAsync(context);
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*No response was received from the FDC3 backend server*");
+    }
+
+    [Fact]
+    public async Task FindIntentsByContextAsync_throws_when_response_has_error()
+    {
+        var context = new Instrument(new InstrumentID() { BBG = "test" }, $"{Guid.NewGuid().ToString()}");
+        var response = new FindIntentsByContextResponse
+        {
+            Error = "Some error"
+        };
+
+        _messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                Fdc3Topic.FindIntentsByContext,
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)));
+
+        var act = async () => await _client.FindIntentsByContextAsync(context);
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*Some error*");
+    }
+
+    [Fact]
+    public async Task FindIntentsByContextAsync_throws_when_appIntents_is_null()
+    {
+        var context = new Instrument(new InstrumentID() { BBG = "test" }, $"{Guid.NewGuid().ToString()}");
+
+        var response = new FindIntentsByContextResponse
+        {
+            AppIntents = null
+        };
+
+        _messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                Fdc3Topic.FindIntentsByContext,
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)));
+
+        var act = async () => await _client.FindIntentsByContextAsync(context);
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*The AppIntent was not returned*");
     }
 }
