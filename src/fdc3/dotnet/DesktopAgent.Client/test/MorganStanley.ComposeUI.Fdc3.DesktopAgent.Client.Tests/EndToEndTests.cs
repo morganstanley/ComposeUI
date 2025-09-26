@@ -418,4 +418,30 @@ public class EndToEndTests : IAsyncLifetime
 
         await _moduleLoader.StopModule(new StopRequest(module.InstanceId));
     }
+
+    [Fact]
+    public async Task FindIntent_returns_AppIntent()
+    {
+        var result = await _desktopAgent.FindIntent("intent1");
+
+        result.Should().NotBeNull();
+        result.Apps.Should().NotBeNullOrEmpty();
+        result.Apps.Should().HaveCount(2);
+
+        result.Apps.First().AppId.Should().Be("appId1");
+        result.Apps.First().InstanceId.Should().BeNull();
+
+        //We are starting the app1 instance for each tests, so the second app in the list should have the instanceId defined
+        result.Apps.ElementAt(1).AppId.Should().Be("appId1");
+        result.Apps.ElementAt(1).InstanceId.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task FindIntent_throws_when_intent_not_found()
+    {
+        var act = async() => await _desktopAgent.FindIntent("notExistent");
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage($"*{ResolveError.NoAppsFound}*");
+    }
 }

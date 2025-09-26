@@ -29,7 +29,8 @@ See the License for the specific language governing permissions and limitations 
             <Button x:Name="SubscribeButton" Click="SubscribeButton_Click" Margin="0,0,10,0">Subscribe</Button>
             <Button x:Name="BroadcastButton" Click="BroadcastButton_Click" Margin="0,0,10,0">Broadcast</Button>
             <Button x:Name="AppChannelBroadcastButton" Click="AppChannelBroadcastButton_Click" Margin="0,0,10,0" ToolTip="Broadcasting on AppChannel: app-channel-1">AC - Broadcast</Button>
-            <Button x:Name="AppChannelAddContextListenerButton" Click="AppChannelAddContextListenerButton_Click" ToolTip="Adding ContextListener on AppChannel: app-channel-1">AC - AddContextListener</Button>
+            <Button x:Name="AppChannelAddContextListenerButton" Click="AppChannelAddContextListenerButton_Click"  Margin="0,0,10,0" ToolTip="Adding ContextListener on AppChannel: app-channel-1">AC - AddContextListener</Button>
+            <Button x:Name="FindIntentButton" Click="FindIntentButton_Click" Margin="0,0,10,0" ToolTip="Finding intent for ViewChart intent">FindIntent</Button>
         </WrapPanel>
     </Grid>
 </Window>
