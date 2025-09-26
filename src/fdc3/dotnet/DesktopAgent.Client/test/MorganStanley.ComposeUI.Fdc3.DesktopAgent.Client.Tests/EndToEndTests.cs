@@ -374,4 +374,48 @@ public class EndToEndTests : IAsyncLifetime
 
         await host.StopAsync();
     }
+
+    [Fact]
+    public async Task GetOrCreateChannel_returns_channel()
+    {
+        var result = await _desktopAgent.GetOrCreateChannel("app-channel-1");
+        result.Should().NotBeNull();
+        result.Id.Should().Be("app-channel-1");
+        result.Type.Should().Be(ChannelType.App);
+    }
+
+    [Fact]
+    public async Task GetOrCreateChannel_throws_error_as_error_response_received()
+    {
+        var action = async () => await _desktopAgent.GetOrCreateChannel(string.Empty);
+        await action.Should()
+            .ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage($"*{ChannelError.CreationFailed}*");
+    }
+
+    [Fact]
+    public async Task GetOrCreateChannel_creates_channel_and_client_able_to_broadcast_and_receive_context()
+    {
+        var resultContexts = new List<IContext>();
+
+        var appChannel = await _desktopAgent.GetOrCreateChannel("app-channel-1");
+
+        var listener = await appChannel.AddContextListener<Instrument>("fdc3.instrument", (context, metadata) =>
+        {
+            resultContexts.Add(context);
+        });
+
+        var module = await _moduleLoader.StartModule(new StartRequest("appId1-native", new Dictionary<string, string>() { { "Fdc3InstanceId", Guid.NewGuid().ToString() } })); // This will ensure that the DesktopAgent backend knows its an FDC3 enabled module. The app broadcasts an instrument context after it joined to the fdc3.channel.1.
+        //We need to wait somehow for the module to finish up the broadcast
+        await Task.Delay(2000);
+
+        await appChannel.Broadcast(new Instrument(new InstrumentID { Ticker = $"test-instrument-1" }, "test-name1"));
+
+        appChannel.Should().NotBeNull();
+        appChannel.Id.Should().Be("app-channel-1");
+        resultContexts.Should().HaveCount(1);
+        resultContexts.Should().BeEquivalentTo(new List<IContext>() { new Instrument(new InstrumentID { Ticker = $"test-instrument-2" }, "test-name2") });
+
+        await _moduleLoader.StopModule(new StopRequest(module.InstanceId));
+    }
 }

@@ -601,6 +601,85 @@ public class DesktopAgentClientTests : IAsyncLifetime
             .WithMessage("*test*");
     }
 
+    [Fact]
+    public async Task GetOrCreateAppChannel_returns_channel()
+    {
+        var response = new CreateAppChannelResponse { Success = true };
+        var messagingMock = new Mock<IMessaging>();
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(), 
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+        var channel = await desktopAgent.GetOrCreateChannel("testChannel");
+
+        channel.Should().NotBeNull();
+        channel.Id.Should().Be("testChannel");
+    }
+
+    [Fact]
+    public async Task GetOrCreateAppChannel_throws_when_response_is_null()
+    {
+        var messagingMock = new Mock<IMessaging>();
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?)null);
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+        var act = async () => await desktopAgent.GetOrCreateChannel("testChannel");
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*No response was received from the FDC3 backend server.*");
+    }
+
+    [Fact]
+    public async Task GetOrCreateAppChannel_throws_when_response_has_error()
+    {
+        var response = new CreateAppChannelResponse { Success = false, Error = "Some error" };
+        var messagingMock = new Mock<IMessaging>();
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(), 
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+        var act = async () => await desktopAgent.GetOrCreateChannel("testChannel");
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*Some error*");
+    }
+
+    [Fact]
+    public async Task GetOrCreateAppChannel_throws_when_response_is_not_successful()
+    {
+        var response = new CreateAppChannelResponse { Success = false };
+        var messagingMock = new Mock<IMessaging>();
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+        var act = async () => await desktopAgent.GetOrCreateChannel("testChannel");
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*The application channel with ID: testChannel*");
+    }
+
     public Task InitializeAsync()
     {
         Environment.SetEnvironmentVariable(nameof(AppIdentifier.AppId), "test-appId2");

@@ -138,6 +138,19 @@ var channels = await desktopAgent.GetUserChannels();
 await desktopAgent.JoinUserChannel(channels[0].Id);
 ```
 
+### Getting or Creating a App Channel
+You can get or create an app channel by using:
+```csharp
+var appChannel = await desktopAgent.GetOrCreateChannel("your-app-channel-id");
+var listener = await appChannel.AddContextListener("fdc3.instrument", (ctx, ctxMetadata) =>
+{
+    Console.WriteLine($"Received context on app channel: {ctx}");
+});
+
+//Initiator shouldn't receive back the broadcasted context
+await appChannel.Broadcast(context);
+```
+
 ## Documentation
 
 For more details, see the [ComposeUI documentation](https://morganstanley.github.io/ComposeUI/).

@@ -45,5 +45,19 @@ if (currentChannel == null)
 //Testing the broadcast
 await desktopAgentClient.Broadcast(new Instrument(new InstrumentID { Ticker = "test-instrument" }, "test-name"));
 
+var appChannel = await desktopAgentClient.GetOrCreateChannel("app-channel-1");
+
+if (appChannel == null)
+{
+   throw new Exception("Failed to get or create app channel...");
+}
+
+var listener = await appChannel.AddContextListener<Instrument>("fdc3.instrument", (context, metadata) =>
+{
+    Console.WriteLine($"Received context in app channel: {context?.Name} - {context?.ID?.Ticker}");
+});
+
+await appChannel.Broadcast(new Instrument(new InstrumentID { Ticker = $"test-instrument-2" }, "test-name2"));
+
 Console.WriteLine("DesktopAgent is tested...");
 Console.ReadLine();
