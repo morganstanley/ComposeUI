@@ -39,7 +39,8 @@ public class DesktopAgentClient : IDesktopAgent
     private IChannel? _currentChannel;
     private readonly SemaphoreSlim _currentChannelLock = new(1, 1);
 
-    private readonly Dictionary<string, IChannel> _userChannels = new();
+    private readonly ConcurrentDictionary<string, IChannel> _userChannels = new();
+    private readonly ConcurrentDictionary<string, IChannel> _appChannels = new();
 
     public DesktopAgentClient(
         IMessaging messaging,
@@ -150,14 +151,29 @@ public class DesktopAgentClient : IDesktopAgent
         return implementationMetadata;
     }
 
-    public Task<IChannel> GetOrCreateChannel(string channelId)
+    public async Task<IChannel> GetOrCreateChannel(string channelId)
     {
-        throw new NotImplementedException();
+        if (_appChannels.TryGetValue(channelId, out var existingChannel))
+        {
+            return existingChannel;
+        }
+
+        var channel = await _channelFactory.CreateAppChannelAsync(channelId);
+
+        if (!_appChannels.TryAdd(channelId, channel))
+        {
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning($"Failed to add app channel to the internal collection: {channelId}.");
+            }
+        }
+
+        return channel;
     }
 
     public async Task<IEnumerable<IChannel>> GetUserChannels()
     {
-        var channels = await _channelFactory.GetUserChannels();
+        var channels = await _channelFactory.GetUserChannelsAsync();
         return channels;
     }
 

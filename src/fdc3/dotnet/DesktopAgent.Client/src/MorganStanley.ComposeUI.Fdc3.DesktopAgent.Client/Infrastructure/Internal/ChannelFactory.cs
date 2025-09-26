@@ -72,7 +72,44 @@ internal class ChannelFactory : IChannelFactory
         }
     }
 
-    public async ValueTask<IChannel[]> GetUserChannels()
+    public async ValueTask<IChannel> CreateAppChannelAsync(string channelId)
+    {
+        var request = new CreateAppChannelRequest
+        {
+            InstanceId = _instanceId,
+            ChannelId = channelId,
+        };
+
+        var response = await _messaging.InvokeJsonServiceAsync<CreateAppChannelRequest, CreateAppChannelResponse>(
+            Fdc3Topic.CreateAppChannel,
+            request,
+            _jsonSerializerOptions);
+
+        if (response == null)
+        {
+            throw ThrowHelper.MissingResponse();
+        }
+
+        if (!string.IsNullOrEmpty(response.Error))
+        {
+            throw ThrowHelper.ErrorResponseReceived(response.Error);
+        }
+
+        if (!response.Success)
+        {
+            throw ThrowHelper.AppChannelIsNotCreated(channelId);
+        }
+
+        return new Channel(
+            channelId: channelId,
+            channelType: ChannelType.App,
+            messaging: _messaging,
+            instanceId: _instanceId,
+            displayMetadata: null,
+            loggerFactory: _loggerFactory);
+    }
+
+    public async ValueTask<IChannel[]> GetUserChannelsAsync()
     {
         var request = new GetUserChannelsRequest
         {

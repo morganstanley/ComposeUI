@@ -202,7 +202,8 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
     public async ValueTask<CreateAppChannelResponse> AddAppChannel(Func<string, AppChannel> addAppChannelFactory, CreateAppChannelRequest request)
     {
-        if (!_runningModules.TryGetValue(new Guid(request.InstanceId), out _))
+        if (!_runningModules.TryGetValue(new Guid(request.InstanceId), out _)
+            || string.IsNullOrEmpty(request.ChannelId))
         {
             return CreateAppChannelResponse.Failed(ChannelError.CreationFailed);
         }

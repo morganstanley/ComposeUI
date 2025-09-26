@@ -176,4 +176,118 @@ public class ChannelFactoryTests
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*Messaging error*");
     }
+
+    [Fact]
+    public async Task CreateAppChannelAsync_returns_channel_when_successful()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var response = new CreateAppChannelResponse
+        {
+            Success = true,
+            Error = null
+        };
+
+        messagingMock
+            .Setup(_ => _.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)));
+
+        var factory = new ChannelFactory(messagingMock.Object, "instanceId");
+
+        var result = await factory.CreateAppChannelAsync("channelId");
+
+        result.Should().NotBeNull();
+        result.Id.Should().Be("channelId");
+    }
+
+    [Fact]
+    public async Task CreateAppChannelAsync_returns_error_when_response_is_null()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        messagingMock
+            .Setup(_ => _.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>((string?) null));
+
+        var factory = new ChannelFactory(messagingMock.Object, "instanceId");
+
+        var act = async () => await factory.CreateAppChannelAsync("channelId");
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*No response was received from the FDC3 backend server.*");
+    }
+
+    [Fact]
+    public async Task CreateAppChannelAsync_returns_error_when_response_has_error()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var response = new CreateAppChannelResponse
+        {
+            Success = false,
+            Error = "Some error"
+        };
+
+        messagingMock
+            .Setup(_ => _.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)));
+
+        var factory = new ChannelFactory(messagingMock.Object, "instanceId");
+
+        var act = async () => await factory.CreateAppChannelAsync("channelId");
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*Some error*");
+    }
+
+    [Fact]
+    public async Task CreateAppChannelAsync_returns_error_when_response_is_unsuccessful()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var response = new CreateAppChannelResponse
+        {
+            Success = false,
+            Error = null
+        };
+
+        messagingMock
+            .Setup(_ => _.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)));
+
+        var factory = new ChannelFactory(messagingMock.Object, "instanceId");
+
+        var act = async () => await factory.CreateAppChannelAsync("channelId");
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*The application channel with ID: channelId is not created*");
+    }
+
+    [Fact]
+    public async Task CreateAppChannelAsync_returns_error_when_messaging_throws()
+    {
+        var messagingMock = new Mock<IMessaging>();
+
+        messagingMock
+            .Setup(_ => _.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Messaging error"));
+
+        var factory = new ChannelFactory(messagingMock.Object, "instanceId");
+
+        var act = async () => await factory.CreateAppChannelAsync("channelId");
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*Messaging error*");
+    }
 }

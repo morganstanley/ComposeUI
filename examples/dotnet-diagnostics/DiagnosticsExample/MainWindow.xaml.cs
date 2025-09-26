@@ -18,9 +18,7 @@ using System.Text;
 using System.Text.Json;
 using System.Windows;
 using Finos.Fdc3;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
 using Finos.Fdc3.Context;
-using System.CodeDom;
 
 namespace DiagnosticsExample;
 
@@ -43,6 +41,8 @@ public partial class MainWindow : Window
 
     private readonly IDesktopAgent _desktopAgent;
     private IListener _subscription;
+    private IChannel _appChannel;
+    private IListener _listener;
 
     public MainWindow()
     {
@@ -81,18 +81,18 @@ public partial class MainWindow : Window
 
     private async Task LogDiagnostics()
     {
-        var diag = await _messaging!.InvokeJsonServiceAsync<DiagnosticInfo>("Diagnostics", new JsonSerializerOptions { WriteIndented = true });
-        
+        var diag = await _messaging!.InvokeJsonServiceAsync<DiagnosticInfo>("Diagnostics", new JsonSerializerOptions { WriteIndented = true }).ConfigureAwait(false);
+
         if (diag == null)
         {
             return;
         }
-        
+
         await Dispatcher.InvokeAsync(() => DiagnosticsText += diag.ToString());
 
         var result =
             await _desktopAgent.GetAppMetadata(new MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier()
-                { AppId = "WPFExample" });
+            { AppId = "WPFExample" }).ConfigureAwait(false);
 
         await Dispatcher.InvokeAsync(() => DiagnosticsText += "\n" + result.Description);
     }
@@ -105,11 +105,11 @@ public partial class MainWindow : Window
 
             await Task.Run(async () =>
             {
-                await JoinToUserChannel();
+                await JoinToUserChannel().ConfigureAwait(false);
                 _subscription = await _desktopAgent.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) =>
                 {
                     Dispatcher.Invoke(() => DiagnosticsText += "\n" + "Context received: " + context.Name + "; type: " + context.Type);
-                });
+                }).ConfigureAwait(false);
             });
 
             DiagnosticsText += "\n" + "Subscription is done.";
@@ -134,7 +134,7 @@ public partial class MainWindow : Window
 
             await Task.Run(async () =>
             {
-                await JoinToUserChannel();
+                await JoinToUserChannel().ConfigureAwait(false);
 
                 var instrument = new Instrument(new InstrumentID() { BBG = "test" }, $"{Guid.NewGuid().ToString()}");
                 await _desktopAgent.Broadcast(instrument);
@@ -147,6 +147,67 @@ public partial class MainWindow : Window
             await Dispatcher.InvokeAsync(() =>
             {
                 DiagnosticsText += $"\nBroadcast failed: {ex.Message}";
+            });
+        }
+    }
+
+    private async void AppChannelBroadcastButton_Click(object sender, RoutedEventArgs e)
+    {
+        await Task.Run(async () =>
+        {
+            Dispatcher.Invoke(() =>
+            {
+                DiagnosticsText += "\nChecking if app is already joined to an app channel...";
+            });
+
+            await JoinToAppChannel().ConfigureAwait(false);
+
+            var instrument = new Instrument(new InstrumentID() { BBG = "app-channel-test" }, $"{Guid.NewGuid().ToString()}");
+            await _appChannel.Broadcast(instrument).ConfigureAwait(false);
+
+            Dispatcher.Invoke(() =>
+            {
+                DiagnosticsText += $"\nContext broadcasted to AppChannel: instrument: {instrument.ID}; {instrument.Name}";
+            });
+        });
+    }
+
+    private async void AppChannelAddContextListenerButton_Click(object sender, RoutedEventArgs e)
+    {
+        await Task.Run(async () =>
+        {
+            Dispatcher.Invoke(() =>
+            {
+                DiagnosticsText += "\nChecking if app is already joined to an app channel...";
+            });
+
+            await JoinToAppChannel().ConfigureAwait(false);
+
+            var instrument = new Instrument(new InstrumentID() { BBG = "app-channel-test" }, $"{Guid.NewGuid().ToString()}");
+            _listener = await _appChannel.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    DiagnosticsText += "\n" + "Context received from AppChannel: " + context.Name + "; type: " + context.Type;
+                });
+            }).ConfigureAwait(false);
+
+            Dispatcher.Invoke(() =>
+            {
+                DiagnosticsText += $"\nContext listener is added to AppChannel: instrument: {instrument.ID}; {instrument.Name}";
+            });
+        });
+    }
+
+    private async Task JoinToAppChannel()
+    {
+        if (_appChannel == null)
+        {
+            _appChannel = await _desktopAgent.GetOrCreateChannel("app-channel-1").ConfigureAwait(false);
+
+            Dispatcher.Invoke(() =>
+            {
+                DiagnosticsText += "\nJoined to AppChannel: app-channel-1...";
             });
         }
     }
