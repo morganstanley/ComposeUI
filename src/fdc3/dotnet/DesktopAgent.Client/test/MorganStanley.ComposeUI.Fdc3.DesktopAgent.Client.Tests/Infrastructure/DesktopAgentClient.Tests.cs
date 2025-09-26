@@ -761,6 +761,109 @@ public class DesktopAgentClientTests : IAsyncLifetime
         result.Should().BeEquivalentTo(response.AppIntent);
     }
 
+    [Fact]
+    public async Task FindInstances_returns_instances()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var response = new FindInstancesResponse
+        {
+            Instances = new[]
+            {
+                new AppIdentifier
+                {
+                    InstanceId = Guid.NewGuid().ToString(),
+                    AppId = "test-appId1"
+                },
+                new AppIdentifier
+                {
+                    InstanceId = Guid.NewGuid().ToString(),
+                    AppId = "test-appId1"
+                }
+            }
+        };
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+        var result = await desktopAgent.FindInstances(new AppIdentifier { AppId = "test-appId1" });
+
+        result.Should().NotBeNull();
+        result.Should().HaveCount(2);
+        result.Should().BeEquivalentTo(response.Instances);
+    }
+
+    [Fact]
+    public async Task FindInstances_throws_when_null_response()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?) null);
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var act = async () => await desktopAgent.FindInstances(new AppIdentifier { AppId = "test-appId1" });
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*No response was received from the FDC3 backend server*");
+    }
+
+    [Fact]
+    public async Task FindInstances_throws_when_error_response_received()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var response = new FindInstancesResponse
+        {
+            Error = "Some error"
+        };
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+        var act = async () => await desktopAgent.FindInstances(new AppIdentifier { AppId = "test-appId1" });
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*Some error*");
+    }
+
+    [Fact]
+    public async Task FindInstances_throws_when_no_error_and_no_instances_received()
+    {
+        var response = new FindInstancesResponse
+        {
+            Error = null,
+            Instances = null
+        };
+
+        var messagingMock = new Mock<IMessaging>();
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+        var act = async () => await desktopAgent.FindInstances(new AppIdentifier { AppId = "test-appId1" });
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*No app matched*");
+    }
+
     public Task InitializeAsync()
     {
         Environment.SetEnvironmentVariable(nameof(AppIdentifier.AppId), "test-appId2");

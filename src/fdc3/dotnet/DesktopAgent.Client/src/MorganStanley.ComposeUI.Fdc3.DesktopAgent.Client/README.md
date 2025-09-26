@@ -157,6 +157,12 @@ You can find/search for applications from the AppDirectory by using the `FindInt
 var apps = await desktopAgent.FindIntent("ViewChart", new Instrument(new InstrumentID { Ticker = "AAPL" }), "expected_resultType"));
 ```
 
+### Finding instances for the specified app
+You can find the currently FDC3 enabled instances for the specified app by using the `FindInstances` function:
+```csharp
+var instances = await desktopAgent.FindInstances("your-app-id");
+``
+
 ## Documentation
 
 For more details, see the [ComposeUI documentation](https://morganstanley.github.io/ComposeUI/).
