@@ -20,7 +20,9 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
+using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests.Infrastructure.Internal;
 
@@ -190,5 +192,97 @@ public class MetadataClientTests
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage("*Some error*");
+    }
+
+    [Fact]
+    public async Task FindInstancesAsync_returns_instances_when_successful()
+    {
+        var appIdentifier = new AppIdentifier { AppId = "app", InstanceId = "id" };
+        var expectedInstances = new[] { appIdentifier };
+        var response = new FindInstancesResponse
+        {
+            Instances = expectedInstances
+        };
+
+        var messagingMock = new Mock<IMessaging>();
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                Fdc3Topic.FindInstances,
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)));
+
+        var client = new MetadataClient(AppId, InstanceId, messagingMock.Object);
+        var result = await client.FindInstancesAsync(appIdentifier);
+
+        result.Should().BeEquivalentTo(expectedInstances);
+    }
+
+    [Fact]
+    public async Task FindInstancesAsync_throws_when_response_is_null()
+    {
+        var appIdentifier = new AppIdentifier { AppId = "app", InstanceId = "id" };
+
+        var messagingMock = new Mock<IMessaging>();
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                Fdc3Topic.FindInstances,
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>((string?) null));
+
+        var client = new MetadataClient(AppId, InstanceId, messagingMock.Object);
+        var act = async () => await client.FindInstancesAsync(appIdentifier);
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*No response was received from the FDC3 backend server*");
+    }
+
+    [Fact]
+    public async Task FindInstancesAsync_throws_when_response_has_error()
+    {
+        var appIdentifier = new AppIdentifier { AppId = "app", InstanceId = "id" };
+        var response = new FindInstancesResponse
+        {
+            Error = "Some error"
+        };
+
+        var messagingMock = new Mock<IMessaging>();
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                Fdc3Topic.FindInstances,
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)));
+
+        var client = new MetadataClient(AppId, InstanceId, messagingMock.Object);
+        var act = async () => await client.FindInstancesAsync(appIdentifier);
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*Some error*");
+    }
+
+    [Fact]
+    public async Task FindInstancesAsync_throws_when_instances_is_null()
+    {
+        var appIdentifier = new AppIdentifier { AppId = "app", InstanceId = "id" };
+        var response = new FindInstancesResponse
+        {
+            Instances = null
+        };
+
+        var messagingMock = new Mock<IMessaging>();
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                Fdc3Topic.FindInstances,
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)));
+
+        var client = new MetadataClient(AppId, InstanceId, messagingMock.Object);
+        var act = async () => await client.FindInstancesAsync(appIdentifier);
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*No app matched*");
     }
 }

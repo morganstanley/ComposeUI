@@ -20,6 +20,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
+using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal;
 
@@ -41,6 +42,41 @@ internal class MetadataClient : IMetadataClient
         _instanceId = instanceId;
         _messaging = messaging;
         _logger = logger ?? NullLogger<MetadataClient>.Instance;
+    }
+
+    public async ValueTask<IEnumerable<IAppIdentifier>> FindInstancesAsync(IAppIdentifier appIdentifier)
+    {
+        var request = new FindInstancesRequest
+        {
+            Fdc3InstanceId = _instanceId,
+            AppIdentifier = new AppIdentifier
+            {
+                AppId = appIdentifier.AppId,
+                InstanceId = appIdentifier.InstanceId,
+            }
+        };
+
+        var response = await _messaging.InvokeJsonServiceAsync<FindInstancesRequest, FindInstancesResponse>(
+            Fdc3Topic.FindInstances,
+            request,
+            _jsonSerializerOptions);
+
+        if (response == null)
+        {
+            throw ThrowHelper.MissingResponse();
+        }
+
+        if (!string.IsNullOrEmpty(response.Error))
+        {
+            throw ThrowHelper.ErrorResponseReceived(response.Error);
+        }
+
+        if (response.Instances == null)
+        {
+            throw ThrowHelper.NoAppsFound();
+        }
+
+        return response.Instances;
     }
 
     public async ValueTask<IAppMetadata> GetAppMetadataAsync(IAppIdentifier appIdentifier)

@@ -444,4 +444,22 @@ public class EndToEndTests : IAsyncLifetime
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage($"*{ResolveError.NoAppsFound}*");
     }
+
+    [Fact]
+    public async Task FindInstances_returns_AppIdentifier()
+    {
+        var result = await _desktopAgent.FindInstances(new AppIdentifier { AppId = "appId1" });
+
+        result.Should().NotBeNullOrEmpty();
+        result.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task FindInstances_throws_error_when_app_not_found()
+    {
+        var act = async () => await _desktopAgent.FindInstances(new AppIdentifier { AppId = "notExistent" });
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage($"*{ResolveError.NoAppsFound}*");
+    }
 }

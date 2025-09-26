@@ -19,6 +19,7 @@ using System.Text.Json;
 using System.Windows;
 using Finos.Fdc3;
 using Finos.Fdc3.Context;
+using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
 
 namespace DiagnosticsExample;
 
@@ -137,7 +138,7 @@ public partial class MainWindow : Window
                 await JoinToUserChannel().ConfigureAwait(false);
 
                 var instrument = new Instrument(new InstrumentID() { BBG = "test" }, $"{Guid.NewGuid().ToString()}");
-                await _desktopAgent.Broadcast(instrument);
+                await _desktopAgent.Broadcast(instrument).ConfigureAwait(false);
             });
 
             Dispatcher.Invoke(() => DiagnosticsText += "\nContext broadcasted");
@@ -210,13 +211,36 @@ public partial class MainWindow : Window
 
             var result = await _desktopAgent.FindIntent("ViewChart").ConfigureAwait(false);
 
-            Dispatcher.Invoke(() => DiagnosticsText += $"\nFindIntent is completed. Intent anme: {result.Intent.Name}");
+            Dispatcher.Invoke(() => DiagnosticsText += $"\nFindIntent is completed. Intent name: {result.Intent.Name}");
 
             foreach (var app in result.Apps)
             {
                 Dispatcher.Invoke(() =>
                 {
                     DiagnosticsText += $"\nIntent: {result.Intent.Name} is found for app: {app.AppId}";
+                });
+            }
+        });
+    }
+
+    private async void FindInstancesButton_Click(object sender, RoutedEventArgs e)
+    {
+        await Task.Run(async () =>
+        {
+            var result = await _desktopAgent.GetAppMetadata(new AppIdentifier() { AppId = "WPFExample" }).ConfigureAwait(false);
+
+            Dispatcher.Invoke(() =>
+            {
+                DiagnosticsText += $"\nFinding instances for {result.AppId}...";
+            });
+
+            var instances = await _desktopAgent.FindInstances(result).ConfigureAwait(false);
+
+            foreach (var app in instances)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    DiagnosticsText += $"\nInstance found: app: {app.AppId}; FDC3 instanceId: {app.InstanceId}";
                 });
             }
         });
