@@ -197,4 +197,42 @@ internal class ChannelFactory : IChannelFactory
 
         return channel;
     }
+
+    public async ValueTask<IChannel> FindChannelAsync(string channelId, ChannelType channelType)
+    {
+        var request = new FindChannelRequest
+        {
+            ChannelId = channelId,
+            ChannelType = channelType
+        };
+
+        var response = await _messaging.InvokeJsonServiceAsync<FindChannelRequest, FindChannelResponse>(
+            Fdc3Topic.FindChannel,
+            request,
+            _jsonSerializerOptions);
+
+        if (response == null)
+        {
+            throw ThrowHelper.MissingResponse();
+        }
+
+        if (!string.IsNullOrEmpty(response.Error))
+        {
+            throw ThrowHelper.ErrorResponseReceived(response.Error);
+        }
+
+        if (!response.Found)
+        {
+            throw ThrowHelper.ChannelNotFound(channelId, channelType);
+        }
+
+        //TODO: private channel
+
+        return new Channel(
+            channelId: channelId,
+            channelType: channelType,
+            instanceId: _instanceId,
+            messaging: _messaging,
+            loggerFactory: _loggerFactory);
+    }
 }

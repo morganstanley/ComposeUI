@@ -270,6 +270,51 @@ public partial class MainWindow : Window
             }
         });
     }
+    private async void RaiseIntentForContextButton_Click(object sender, RoutedEventArgs e)
+    {
+        await Task.Run(async () =>
+        {
+            var context = new Instrument();
+
+            Dispatcher.Invoke(() =>
+            {
+                DiagnosticsText += $"\nRaising an intent for context: {context.Type}...";
+            });
+
+            var result = await _desktopAgent.RaiseIntentForContext(context).ConfigureAwait(false);
+
+            Dispatcher.Invoke(() =>
+            {
+                DiagnosticsText += $"\nRaiseIntentForContext is completed. Intent name: {result.Intent} for app: {result.Source.AppId}. Awaiting for IntentResolution...";
+            });
+
+            var intentResolution = await result.GetResult().ConfigureAwait(false);
+
+            if (intentResolution != null
+                && intentResolution is IChannel channel)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    DiagnosticsText += $"\nIntentResolution is completed. Channel returned: {channel.Id}...";
+                });
+            }
+            else if (intentResolution != null
+                && intentResolution is IContext returnedContext)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    DiagnosticsText += $"\nIntentResolution is completed. Context returned: {returnedContext.Type}...";
+                });
+            }
+            else
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    DiagnosticsText += $"\nIntentResolution is completed. It was handled by the app ...";
+                });
+            }
+        });
+    }
 
     private async Task JoinToAppChannel()
     {

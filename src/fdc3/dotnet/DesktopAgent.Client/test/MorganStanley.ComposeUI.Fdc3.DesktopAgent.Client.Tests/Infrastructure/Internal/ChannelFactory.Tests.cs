@@ -290,4 +290,99 @@ public class ChannelFactoryTests
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*Messaging error*");
     }
+
+    [Fact]
+    public async Task FindChannelAsync_returns_Channel_when_found()
+    {
+        var response = new FindChannelResponse
+        {
+            Found = true
+        };
+
+        var responseJson = JsonSerializer.Serialize(response, _jsonSerializerOptions);
+
+        var messagingMock = new Mock<IMessaging>();
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                Fdc3Topic.FindChannel,
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(responseJson);
+
+        var factory = new ChannelFactory(messagingMock.Object, "instanceId");
+        var result = await factory.FindChannelAsync("myChannel", ChannelType.User);
+
+        result.Should().NotBeNull();
+        result.Id.Should().Be("myChannel");
+        result.Type.Should().Be(ChannelType.User);
+    }
+
+    [Fact]
+    public async Task FindChannelAsync_throws_when_response_is_null()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                Fdc3Topic.FindChannel,
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?) null);
+
+        var factory = new ChannelFactory(messagingMock.Object, "instanceId");
+        var act = async () => await factory.FindChannelAsync("myChannel", ChannelType.User);
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*No response was received*");
+    }
+
+    [Fact]
+    public async Task FindChannelAsync_throws_when_response_has_error()
+    {
+        var response = new FindChannelResponse
+        {
+            Error = "Some error"
+        };
+
+        var responseJson = JsonSerializer.Serialize(response, _jsonSerializerOptions);
+        var messagingMock = new Mock<IMessaging>();
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                Fdc3Topic.FindChannel,
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(responseJson);
+
+        var factory = new ChannelFactory(messagingMock.Object, "instanceId");
+        var act = async () => await factory.FindChannelAsync("myChannel", ChannelType.User);
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*Some error*");
+    }
+
+    [Fact]
+    public async Task FindChannelAsync_throws_when_channel_not_found()
+    {
+        var response = new FindChannelResponse
+        {
+            Found = false
+        };
+
+        var responseJson = JsonSerializer.Serialize(response, _jsonSerializerOptions);
+
+        var messagingMock = new Mock<IMessaging>();
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                Fdc3Topic.FindChannel,
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(responseJson);
+
+        var factory = new ChannelFactory(messagingMock.Object, "instanceId");
+        var act = async () => await factory.FindChannelAsync("myChannel", ChannelType.User);
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*not found*");
+    }
 }

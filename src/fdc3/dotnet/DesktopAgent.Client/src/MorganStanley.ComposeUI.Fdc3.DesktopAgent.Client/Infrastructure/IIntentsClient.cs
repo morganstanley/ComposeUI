@@ -40,4 +40,12 @@ internal interface IIntentsClient
     /// <param name="resultType"></param>
     /// <returns></returns>
     public ValueTask<IEnumerable<IAppIntent>> FindIntentsByContextAsync(IContext context, string? resultType = null);
+
+    /// <summary>
+    /// Raises an intent for a given context, optionally targeting a specific application by sending the request to the backend.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="app"></param>
+    /// <returns></returns>
+    public ValueTask<IIntentResolution> RaiseIntentForContextAsync(IContext context, IAppIdentifier? app);
 }

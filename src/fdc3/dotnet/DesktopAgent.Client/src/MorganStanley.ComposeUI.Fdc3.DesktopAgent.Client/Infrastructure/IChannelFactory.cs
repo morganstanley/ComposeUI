@@ -56,4 +56,12 @@ internal interface IChannelFactory
     /// <param name="channelId"></param>
     /// <returns></returns>
     public ValueTask<IChannel> CreateAppChannelAsync(string channelId);
+
+    /// <summary>
+    /// Sends a request to the backend to check if the channel with the specified ID and type exists, and if so, returns it.
+    /// </summary>
+    /// <param name="channelId"></param>
+    /// <param name="channelType"></param>
+    /// <returns></returns>
+    public ValueTask<IChannel> FindChannelAsync(string channelId, ChannelType channelType);
 }

@@ -21,24 +21,31 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
+using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
+using IntentResolution = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal.Protocol.IntentResolution;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal;
 
 internal class IntentsClient : IIntentsClient
 {
     private readonly IMessaging _messaging;
+    private readonly IChannelFactory _channelFactory;
     private readonly string _instanceId;
+    private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<IntentsClient> _logger;
     private readonly JsonSerializerOptions _jsonSerializerOptions = SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization;
 
     public IntentsClient(
         IMessaging messaging,
+        IChannelFactory channelFactory,
         string instanceId,
-        ILogger<IntentsClient>? logger = null)
+        ILoggerFactory? loggerFactory = null)
     {
         _messaging = messaging;
+        _channelFactory = channelFactory;
         _instanceId = instanceId;
-        _logger = logger ?? NullLogger<IntentsClient>.Instance;
+        _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
+        _logger = _loggerFactory.CreateLogger<IntentsClient>();
     }
 
     public async ValueTask<IAppIntent> FindIntentAsync(string intent, IContext? context = null, string? resultType = null)
@@ -114,5 +121,55 @@ internal class IntentsClient : IIntentsClient
         }
 
         return response.AppIntents;
+    }
+
+    public async ValueTask<IIntentResolution> RaiseIntentForContextAsync(IContext context, IAppIdentifier? app)
+    {
+        var messageId = new Random().Next(100000);
+        var request = new RaiseIntentForContextRequest
+        {
+            Fdc3InstanceId = _instanceId,
+            Context = JsonSerializer.Serialize(context, _jsonSerializerOptions),
+            TargetAppIdentifier = app == null
+                ? null
+                : new AppIdentifier
+                {
+                    AppId = app?.AppId,
+                    InstanceId = app?.InstanceId
+                },
+            MessageId = messageId
+        };
+
+        var response = await _messaging.InvokeJsonServiceAsync<RaiseIntentForContextRequest, RaiseIntentResponse>(
+            Fdc3Topic.RaiseIntentForContext,
+            request,
+            _jsonSerializerOptions);
+
+        if (response == null)
+        {
+            throw ThrowHelper.MissingResponse();
+        }
+
+        if (!string.IsNullOrEmpty(response.Error))
+        {
+            throw ThrowHelper.ErrorResponseReceived(response.Error);
+        }
+
+        if (string.IsNullOrEmpty(response.MessageId)
+            || string.IsNullOrEmpty(response.Intent)
+            || response.AppMetadata == null)
+        {
+            throw ThrowHelper.IntentResolutionIsNotDefined(context.Type, app?.AppId, app?.InstanceId);
+        }
+
+        var intentResolution = new IntentResolution(
+            response.MessageId!,
+            _messaging,
+            _channelFactory,
+            response.Intent!,
+            response.AppMetadata!,
+            _loggerFactory.CreateLogger<IntentResolution>());
+
+        return intentResolution;
     }
 }
