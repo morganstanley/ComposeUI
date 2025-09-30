@@ -83,4 +83,13 @@ internal static class ThrowHelper
 
     public static Fdc3DesktopAgentException AppIntentIsNotDefined(string intent, string? contextType = null, string? resultType = null) =>
         new($"The {nameof(AppIntent)} was not returned by the FDC3 DesktopAgent backend for intent: {intent}; context: {contextType}; and resultType: {resultType}.");
+
+    public static Fdc3DesktopAgentException ChannelNotFound(string channelId, ChannelType channelType) =>
+        new($"The channel with ID: {channelId} and type: {channelType} is not found.");
+
+    public static Fdc3DesktopAgentException IntentResolutionIsNotDefined(string contextType, string? appId = null, string? instanceId = null) =>
+        new($"The app with ID: {appId} and instanceId: {instanceId} for context: {contextType} could not return an {nameof(IntentResolution)} as message id , the {nameof(AppMetadata)} or the intent was not retrieved from the backend.");
+
+    public static Fdc3DesktopAgentException IntentResolutionFailed(string intent, string messageId, IAppIdentifier appIdentifier) =>
+        new($"Retrieving the intent resolution failed from the backend for intent: {intent}, app: {appIdentifier.AppId}, instanceId: {appIdentifier.InstanceId}, messageId: {messageId}.");
 }

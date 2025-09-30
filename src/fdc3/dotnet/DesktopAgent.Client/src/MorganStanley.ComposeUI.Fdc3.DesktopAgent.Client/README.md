@@ -170,6 +170,13 @@ var context = new Instrument(new InstrumentID { Ticker = "AAPL" }, "Apple Inc.")
 var appIntents = await desktopAgent.FindIntentsByContext(context);
 ```
 
+### Raising intent for context
+You can raise an intent for the specified context by using the `RaiseIntentForContext` function and return its result by using the `GetResult` of the returned `IIntentResolution`:
+```csharp
+var intentResolution = await desktopAgent.RaiseIntentForContext(context, appIdentifier);
+var intentResult = await intentResolution.GetResult();
+```
+
 ## Documentation
 
 For more details, see the [ComposeUI documentation](https://morganstanley.github.io/ComposeUI/).

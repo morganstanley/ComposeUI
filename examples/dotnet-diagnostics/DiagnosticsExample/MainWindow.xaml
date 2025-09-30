@@ -33,6 +33,7 @@ See the License for the specific language governing permissions and limitations 
             <Button x:Name="FindIntentButton" Click="FindIntentButton_Click" Margin="0,0,10,0" ToolTip="Finding intent for ViewChart intent">FindIntent</Button>
             <Button x:Name="FindInstancesButton" Click="FindInstancesButton_Click" Margin="0,0,10,0" ToolTip="Finding instances for current app id">FindInstances</Button>
             <Button x:Name="FindIntentsByContextButton" Click="FindIntentsByContextButton_Click" Margin="0,0,10,0" ToolTip="FindIntentsByContext using the fdc3.instrument context type">FindIntentsByContext</Button>
+            <Button x:Name="RaiseIntentForContextButton" Click="RaiseIntentForContextButton_Click" Margin="0,0,10,0" ToolTip="Raises an intent for fdc3.instrument context type">RaiseIntentForContext</Button>
         </WrapPanel>
     </Grid>
 </Window>

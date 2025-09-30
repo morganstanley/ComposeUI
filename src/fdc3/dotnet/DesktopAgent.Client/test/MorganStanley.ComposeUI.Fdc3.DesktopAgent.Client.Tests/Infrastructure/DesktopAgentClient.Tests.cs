@@ -970,6 +970,355 @@ public class DesktopAgentClientTests : IAsyncLifetime
             .WithMessage("*The AppIntent was not returned by*");
     }
 
+    [Fact]
+    public async Task RaiseIntentForContext_returns_channel_as_IntentResolution()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var raiseIntentResponse = new RaiseIntentResponse
+        {
+            AppMetadata = new AppMetadata { AppId = "test-appId1" },
+            Intent = "test-intent1",
+            MessageId = Guid.NewGuid().ToString()
+        };
+
+        var channelFactoryMock = new Mock<IChannelFactory>();
+        channelFactoryMock
+            .Setup(_ => _.FindChannelAsync(It.IsAny<string>(), It.IsAny<ChannelType>()))
+            .ReturnsAsync(new Channel("test-channel-id", ChannelType.User, messagingMock.Object, It.IsAny<string>(), It.IsAny<DisplayMetadata>(), It.IsAny<ILoggerFactory>()));
+
+        var findChannelResponse = new FindChannelResponse
+        {
+            Found = true,
+        };
+
+        var intentResolutionResponse = new GetIntentResultResponse
+        {
+            ChannelId = "test-channelId",
+            ChannelType = ChannelType.User
+        };
+
+        messagingMock
+            .SetupSequence(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(raiseIntentResponse, _jsonSerializerOptions))
+            .ReturnsAsync(JsonSerializer.Serialize(intentResolutionResponse, _jsonSerializerOptions))
+            .ReturnsAsync(JsonSerializer.Serialize(findChannelResponse, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var intentResolution = await desktopAgent.RaiseIntentForContext(new Instrument());
+        intentResolution.Should().NotBeNull();
+
+        var intentResult = await intentResolution.GetResult();
+        intentResult.Should().NotBeNull();
+        intentResult.Should().BeAssignableTo<Channel>();
+    }
+
+    [Fact]
+    public async Task RaiseIntentForContext_returns_context_as_IntentResolution()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var raiseIntentResponse = new RaiseIntentResponse
+        {
+            AppMetadata = new AppMetadata { AppId = "test-appId1" },
+            Intent = "test-intent1",
+            MessageId = Guid.NewGuid().ToString()
+        };
+
+        var intentResolutionResponse = new GetIntentResultResponse
+        {
+            Context = JsonSerializer.Serialize(new Instrument(), _jsonSerializerOptions)
+        };
+
+        messagingMock
+            .SetupSequence(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(raiseIntentResponse, _jsonSerializerOptions))
+            .ReturnsAsync(JsonSerializer.Serialize(intentResolutionResponse, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var intentResolution = await desktopAgent.RaiseIntentForContext(new Instrument());
+        intentResolution.Should().NotBeNull();
+
+        var intentResult = await intentResolution.GetResult();
+        intentResult.Should().NotBeNull();
+        intentResult.Should().BeAssignableTo<Instrument>();
+    }
+
+    [Fact]
+    public async Task RaiseIntentForContext_returns_void_as_IntentResolution()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var raiseIntentResponse = new RaiseIntentResponse
+        {
+            AppMetadata = new AppMetadata { AppId = "test-appId1" },
+            Intent = "test-intent1",
+            MessageId = Guid.NewGuid().ToString()
+        };
+
+        var intentResolutionResponse = new GetIntentResultResponse
+        {
+            VoidResult = true
+        };
+
+        messagingMock
+            .SetupSequence(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(raiseIntentResponse, _jsonSerializerOptions))
+            .ReturnsAsync(JsonSerializer.Serialize(intentResolutionResponse, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var intentResolution = await desktopAgent.RaiseIntentForContext(new Instrument());
+        intentResolution.Should().NotBeNull();
+
+        var intentResult = await intentResolution.GetResult();
+        intentResult.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task RaiseIntentForContext_returns_channel_if_everything_is_defined_as_IntentResolution()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var raiseIntentResponse = new RaiseIntentResponse
+        {
+            AppMetadata = new AppMetadata { AppId = "test-appId1" },
+            Intent = "test-intent1",
+            MessageId = Guid.NewGuid().ToString()
+        };
+
+        var channelFactoryMock = new Mock<IChannelFactory>();
+        channelFactoryMock
+            .Setup(_ => _.FindChannelAsync(It.IsAny<string>(), It.IsAny<ChannelType>()))
+            .ReturnsAsync(new Channel("test-channel-id", ChannelType.App, messagingMock.Object, It.IsAny<string>(), It.IsAny<DisplayMetadata>(), It.IsAny<ILoggerFactory>()));
+
+        var findChannelResponse = new FindChannelResponse
+        {
+            Found = true,
+        };
+
+        var intentResolutionResponse = new GetIntentResultResponse
+        {
+            ChannelId = "test-channel-id",
+            ChannelType = ChannelType.App,
+            Context = JsonSerializer.Serialize(new Instrument(), _jsonSerializerOptions)
+        };
+
+        messagingMock
+            .SetupSequence(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(raiseIntentResponse, _jsonSerializerOptions))
+            .ReturnsAsync(JsonSerializer.Serialize(intentResolutionResponse, _jsonSerializerOptions))
+            .ReturnsAsync(JsonSerializer.Serialize(findChannelResponse, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var intentResolution = await desktopAgent.RaiseIntentForContext(new Instrument());
+        intentResolution.Should().NotBeNull();
+
+        var intentResult = await intentResolution.GetResult();
+        intentResult.Should().NotBeNull();
+        intentResult.Should().BeAssignableTo<Channel>();
+    }
+
+    [Fact]
+    public async Task RaiseIntentForContext_returns_context_if_voidResult_and_context_are_defined_as_IntentResolution()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var raiseIntentResponse = new RaiseIntentResponse
+        {
+            AppMetadata = new AppMetadata { AppId = "test-appId1" },
+            Intent = "test-intent1",
+            MessageId = Guid.NewGuid().ToString()
+        };
+
+        var intentResolutionResponse = new GetIntentResultResponse
+        {
+            VoidResult = true,
+            Context = JsonSerializer.Serialize(new Instrument(), _jsonSerializerOptions)
+        };
+
+        messagingMock
+            .SetupSequence(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(raiseIntentResponse, _jsonSerializerOptions))
+            .ReturnsAsync(JsonSerializer.Serialize(intentResolutionResponse, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var intentResolution = await desktopAgent.RaiseIntentForContext(new Instrument());
+        intentResolution.Should().NotBeNull();
+
+        var intentResult = await intentResolution.GetResult();
+        intentResult.Should().NotBeNull();
+        intentResult.Should().BeAssignableTo<Instrument>();
+    }
+
+    [Fact]
+    public async Task RaiseIntentForContext_throws_when_no_result_retrieved()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var raiseIntentResponse = new RaiseIntentResponse
+        {
+            AppMetadata = new AppMetadata { AppId = "test-appId1" },
+            Intent = "test-intent1",
+            MessageId = Guid.NewGuid().ToString()
+        };
+
+        var intentResolutionResponse = new GetIntentResultResponse
+        {
+            VoidResult = false
+        };
+
+        messagingMock
+            .SetupSequence(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(raiseIntentResponse, _jsonSerializerOptions))
+            .ReturnsAsync(JsonSerializer.Serialize(intentResolutionResponse, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var intentResolution = await desktopAgent.RaiseIntentForContext(new Instrument());
+        intentResolution.Should().NotBeNull();
+
+        var act = async() => await intentResolution.GetResult();
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*Retrieving the intent resolution failed*");
+    }
+
+    [Fact]
+    public async Task RaiseIntentForContext_throws_when_no_response_retrieved()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var raiseIntentResponse = new RaiseIntentResponse
+        {
+            AppMetadata = new AppMetadata { AppId = "test-appId1" },
+            Intent = "test-intent1",
+            MessageId = Guid.NewGuid().ToString()
+        };
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?)null);
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var act = async () => await desktopAgent.RaiseIntentForContext(new Instrument());
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*No response was received from the FDC3 backend server.*");
+    }
+
+    [Fact]
+    public async Task RaiseIntentForContext_throws_when_error_response_retrieved()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var raiseIntentResponse = new RaiseIntentResponse
+        {
+            Error = "Some error"
+        };
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(raiseIntentResponse, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var act = async () => await desktopAgent.RaiseIntentForContext(new Instrument());
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*Some error*");
+    }
+
+    [Fact]
+    public async Task RaiseIntentForContext_throws_when_messageId_is_not_retrieved()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var raiseIntentResponse = new RaiseIntentResponse
+        {
+            AppMetadata = new AppMetadata { AppId = "test-appId1" },
+            Intent = "test-intent1",
+        };
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(raiseIntentResponse, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var act = async () => await desktopAgent.RaiseIntentForContext(new Instrument());
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*was not retrieved from the backend.*");
+    }
+
+    [Fact]
+    public async Task RaiseIntentForContext_throws_when_intent_is_not_retrieved()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var raiseIntentResponse = new RaiseIntentResponse
+        {
+            AppMetadata = new AppMetadata { AppId = "test-appId1" },
+            MessageId = Guid.NewGuid().ToString()
+        };
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(raiseIntentResponse, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var act = async () => await desktopAgent.RaiseIntentForContext(new Instrument());
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*was not retrieved from the backend.*");
+    }
+
+    [Fact]
+    public async Task RaiseIntentForContext_throws_when_AppMetadata_is_not_retrieved()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var raiseIntentResponse = new RaiseIntentResponse
+        {
+            MessageId = Guid.NewGuid().ToString(),
+            Intent = "test-intent1"
+        };
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(raiseIntentResponse, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var act = async () => await desktopAgent.RaiseIntentForContext(new Instrument());
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*was not retrieved from the backend.*");
+    }
+
     public Task InitializeAsync()
     {
         Environment.SetEnvironmentVariable(nameof(AppIdentifier.AppId), "test-appId2");
