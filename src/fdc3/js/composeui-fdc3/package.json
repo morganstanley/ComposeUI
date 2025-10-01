@@ -19,7 +19,7 @@
   "dependencies": {
     "@finos/fdc3": "~2.0.3",
     "@morgan-stanley/composeui-messaging-client": "*",
-    "jest-environment-jsdom": "^29.7.0",
+    "jest-environment-jsdom": "^30.2.0",
     "rxjs": "^7.8.1"
   },
   "repository": {
