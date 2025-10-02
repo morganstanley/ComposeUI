@@ -48,4 +48,15 @@ internal interface IIntentsClient
     /// <param name="app"></param>
     /// <returns></returns>
     public ValueTask<IIntentResolution> RaiseIntentForContextAsync(IContext context, IAppIdentifier? app);
+
+    /// <summary>
+    /// Adds an intent listener which handles the sent intents with the provided handler.
+    /// This registers the listener on the backend and returns an <see cref="IListener"/> to manage the listener's lifecycle.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="intent"></param>
+    /// <param name="handler"></param>
+    /// <returns></returns>
+    public ValueTask<IListener> AddIntentListenerAsync<T>(string intent, IntentHandler<T> handler)
+        where T : IContext;
 }

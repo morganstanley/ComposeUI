@@ -65,7 +65,10 @@ public class EndToEndTests : IAsyncLifetime
                 serviceCollection.AddFdc3DesktopAgent(
                     fdc3 =>
                     {
-                        fdc3.Configure(builder => { builder.ChannelId = TestChannel; });
+                        fdc3.Configure(builder => 
+                        { 
+                            builder.ChannelId = TestChannel;
+                        });
                     });
 
                 serviceCollection.AddMessageRouterMessagingAdapter();
@@ -137,7 +140,7 @@ public class EndToEndTests : IAsyncLifetime
     [Fact]
     public async Task GetAppMetadata_throws_error_as_error_response_received()
     {
-        var action = async () => await _desktopAgent.GetAppMetadata(new Shared.Protocol.AppIdentifier { AppId = "nonExistingApp" });
+        var action = async () => await _desktopAgent.GetAppMetadata(new AppIdentifier { AppId = "nonExistingApp" });
         await action.Should()
             .ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage("*nonExistingApp*");
@@ -146,7 +149,7 @@ public class EndToEndTests : IAsyncLifetime
     [Fact]
     public async Task GetAppMetadata_returns_AppMetadata()
     {
-        var result = await _desktopAgent.GetAppMetadata(app: new Shared.Protocol.AppIdentifier { AppId = "appId1" });
+        var result = await _desktopAgent.GetAppMetadata(app: new AppIdentifier { AppId = "appId1" });
         result.Should().NotBeNull();
         result.Should().BeEquivalentTo(TestAppDirectoryData.DefaultApp1);
     }
@@ -349,7 +352,7 @@ public class EndToEndTests : IAsyncLifetime
 
         var serviceProvider = clientServices.BuildServiceProvider();
 
-        var module = await moduleLoader.StartModule(new StartRequest("appId1-native", new Dictionary<string, string>() { { "Fdc3InstanceId", Guid.NewGuid().ToString() } })); // This will ensure that the DesktopAgent backend knows its an FDC3 enabled module. The app broadcasts an instrument context after it joined to the fdc3.channel.1.
+        var module = await moduleLoader.StartModule(new StartRequest("appId1-native", new Dictionary<string, string>() { { "Fdc3InstanceId", Guid.NewGuid().ToString() } })); // This will ensure that the DesktopAgent backend knows its an FDC3 enabled module. For test only
 
         var instance = await moduleLoader.StartModule(new StartRequest("appId1"));
         var fdc3StartupProperties = instance.GetProperties<Fdc3StartupProperties>().FirstOrDefault();
@@ -373,6 +376,7 @@ public class EndToEndTests : IAsyncLifetime
         });
 
         await host.StopAsync();
+        await _moduleLoader.StopModule(new StopRequest(module.InstanceId));
     }
 
     [Fact]
@@ -405,7 +409,7 @@ public class EndToEndTests : IAsyncLifetime
             resultContexts.Add(context);
         });
 
-        var module = await _moduleLoader.StartModule(new StartRequest("appId1-native", new Dictionary<string, string>() { { "Fdc3InstanceId", Guid.NewGuid().ToString() } })); // This will ensure that the DesktopAgent backend knows its an FDC3 enabled module. The app broadcasts an instrument context after it joined to the fdc3.channel.1.
+        var module = await _moduleLoader.StartModule(new StartRequest("appId1-native", new Dictionary<string, string>() { { "Fdc3InstanceId", Guid.NewGuid().ToString() } })); // This will ensure that the DesktopAgent backend knows its an FDC3 enabled module. For test only
         //We need to wait somehow for the module to finish up the broadcast
         await Task.Delay(2000);
 
@@ -481,5 +485,77 @@ public class EndToEndTests : IAsyncLifetime
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage($"*{ResolveError.NoAppsFound}*");
+    }
+
+    [Fact]
+    public async Task RaiseIntentForContext_raises_intent_and_got_resolved_as_channel()
+    {
+        var fdc3InstanceId = Guid.NewGuid().ToString();
+        var appId = "appId1-native";
+        var module = await _moduleLoader.StartModule(new StartRequest(appId, new Dictionary<string, string>() { { "Fdc3InstanceId", fdc3InstanceId } })); // This will ensure that the DesktopAgent backend knows its an FDC3 enabled module. For test only
+        //We need to wait somehow for the module to finish up the listener registration
+        await Task.Delay(2000);
+
+        var result = await _desktopAgent.RaiseIntentForContext(new Instrument(new InstrumentID { Ticker = "AAPL" }, "Apple Inc."), new AppIdentifier { AppId = appId, InstanceId = fdc3InstanceId });
+        result.Should().NotBeNull();
+
+        var channel = await result.GetResult();
+        channel.Should().NotBeNull();
+
+        channel.Should().BeAssignableTo<IChannel>();
+
+        await _moduleLoader.StopModule(new StopRequest(module.InstanceId));
+    }
+
+    [Fact]
+    public async Task RaiseIntentForContext_raises_intent_throws_when_no_app_could_handle_the_request()
+    {
+        var act = async () => await _desktopAgent.RaiseIntentForContext(new Chart(new Instrument[] { new Instrument() }));
+        
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage($"*{ResolveError.NoAppsFound}*");
+    }
+
+    [Fact]
+    public async Task RaiseIntentForContext_raises_intent_throws_when_listener_not_registered()
+    {
+        var fdc3InstanceId = Guid.NewGuid().ToString();
+        var appId = "appId1-native";
+        var module = await _moduleLoader.StartModule(new StartRequest(appId, new Dictionary<string, string>() { { "Fdc3InstanceId", fdc3InstanceId } })); // This will ensure that the DesktopAgent backend knows its an FDC3 enabled module. For test only
+        //We need to wait somehow for the module to finish up the listener registration
+        await Task.Delay(2000);
+
+        var act = async () => await _desktopAgent.RaiseIntentForContext(new Valuation("USD"), new AppIdentifier { AppId = appId, InstanceId = fdc3InstanceId });
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage($"*{ResolveError.IntentDeliveryFailed}*");
+
+        await _moduleLoader.StopModule(new StopRequest(module.InstanceId));
+    }
+
+    [Fact]
+    public async Task AddIntentListener_able_to_handle_raised_intent()
+    {
+        var handledContexts = new List<IContext>();
+
+        var listener = await _desktopAgent.AddIntentListener<Valuation>("TestInstrument", (ctx, ctxM) =>
+        {
+            handledContexts.Add(ctx);
+            return Task.FromResult<IIntentResult>(null!);
+        });
+
+        var module = await _moduleLoader.StartModule(
+            new StartRequest(
+                "appId1-native", 
+                new Dictionary<string, string>() 
+                { 
+                    { "Fdc3InstanceId", Guid.NewGuid().ToString() },
+                })); // This will ensure that the DesktopAgent backend knows its an FDC3 enabled module. For test only!
+
+        await Task.Delay(3000); //We need to wait somehow for the module to finish up its actions
+
+        handledContexts.Should().HaveCount(1);
+
+        await _moduleLoader.StopModule(new StopRequest(module.InstanceId));
     }
 }

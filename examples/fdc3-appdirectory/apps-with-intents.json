@@ -33,6 +33,13 @@
       "interop": {
         "intents": {
           "listensFor": {
+            "OpenDiagnostics": {
+              "name": "OpenDiagnostics",
+              "displayName": "OpenDiagnostics",
+              "contexts": [
+                "fdc3.nothing"
+              ]
+            }
           }
         }
       }
