@@ -28,14 +28,12 @@ public class NativeModuleMessageRouterConfigurator : IModuleTypeMessageRouterCon
     /// <param name="webSocketServer"></param>
     public void Configure(StartupContext startupContext, IMessageRouterWebSocketServer webSocketServer)
     {
-        var nativeModuleProperties = startupContext.GetOrAddProperty<NativeStartupProperties>();
-
-        nativeModuleProperties.EnvironmentVariables.Add(
-            WebSocketEnvironmentVariableNames.Uri,
-            webSocketServer.WebSocketUrl.AbsoluteUri);
-
-        nativeModuleProperties.EnvironmentVariables.Add(
-            ComposeUI.Messaging.EnvironmentVariableNames.AccessToken,
-            App.Current.MessageRouterAccessToken);
+        startupContext.AddProperty(
+            new EnvironmentVariables(
+                new[] 
+                { 
+                    new KeyValuePair<string, string>(WebSocketEnvironmentVariableNames.Uri, webSocketServer.WebSocketUrl.AbsoluteUri),
+                    new KeyValuePair<string, string>(ComposeUI.Messaging.EnvironmentVariableNames.AccessToken, App.Current.MessageRouterAccessToken)
+                }));
     }
 }

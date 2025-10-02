@@ -17,8 +17,8 @@ namespace MorganStanley.ComposeUI.ModuleLoader;
 /// </summary>
 public sealed class NativeStartupProperties : ModuleStartupProperties
 {
-    /// <summary>
-    /// Gets or sets the collection of environment variables to be set for the native module at startup.
-    /// </summary>
-    public Dictionary<string, string> EnvironmentVariables { get; } = new();
+    ///// <summary>
+    ///// Gets or sets the collection of environment variables to be set for the native module at startup.
+    ///// </summary>
+    //public Dictionary<string, string> EnvironmentVariables { get; } = new();
 }

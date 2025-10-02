@@ -24,20 +24,23 @@ internal sealed class NativeStartupModuleHandler : StartupModuleHandler
     /// <inheritdoc/>
     public override Task HandleAsync(StartupContext startupContext, string appId, string fdc3InstanceId, string? channelId, string? openedAppContextId)
     {
-        var nativeProperties = startupContext.GetOrAddProperty<NativeStartupProperties>();
-
-        nativeProperties.EnvironmentVariables.Add(nameof(AppIdentifier.AppId), appId);
-        nativeProperties.EnvironmentVariables.Add(nameof(AppIdentifier.InstanceId), fdc3InstanceId);
+        var envs = new Dictionary<string, string>
+        {
+            { nameof(AppIdentifier.AppId), appId },
+            { nameof(AppIdentifier.InstanceId), fdc3InstanceId }
+        };
 
         if (channelId != null)
         {
-            nativeProperties.EnvironmentVariables.Add(nameof(Fdc3StartupProperties.ChannelId), channelId);
+            envs.Add(nameof(Fdc3StartupProperties.ChannelId), channelId);
         }
 
         if (openedAppContextId != null)
         {
-            nativeProperties.EnvironmentVariables.Add(nameof(Fdc3StartupProperties.OpenedAppContextId), openedAppContextId);
+            envs.Add(nameof(Fdc3StartupProperties.OpenedAppContextId), openedAppContextId);
         }
+
+        startupContext.AddProperty(new EnvironmentVariables(envs));
 
         return Task.CompletedTask;
     }
