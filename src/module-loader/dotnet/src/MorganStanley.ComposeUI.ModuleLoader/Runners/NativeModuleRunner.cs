@@ -25,6 +25,8 @@ internal class NativeModuleRunner : IModuleRunner
             throw new Exception("Unable to get native manifest details");
         }
 
+        startupContext.AddProperty(new EnvironmentVariables(details.EnvironmentVariables));
+
         var properties = new NativeStartupProperties
         {
             InitialModulePosition = details.InitialModulePosition,
@@ -33,13 +35,7 @@ internal class NativeModuleRunner : IModuleRunner
             Coordinates = details.Coordinates,
         };
 
-        foreach (var envVar in details.EnvironmentVariables)
-        {
-            properties.EnvironmentVariables.Add(envVar.Key, envVar.Value);
-        }
-
         startupContext.AddProperty(properties);
-
 
         var mainProcess = new Process();
         var processInfo = new MainProcessInfo(mainProcess);
@@ -57,7 +53,7 @@ internal class NativeModuleRunner : IModuleRunner
             mainProcess.StartInfo.ArgumentList.Add(argument);
         }
 
-        foreach (var envVar in startupContext.GetOrAddProperty<NativeStartupProperties>().EnvironmentVariables)
+        foreach (var envVar in startupContext.GetProperties<EnvironmentVariables>().SelectMany(x => x.Variables))
         {
             // TODO: what to do with duplicate envvars?
             if (!mainProcess.StartInfo.EnvironmentVariables.ContainsKey(envVar.Key))
