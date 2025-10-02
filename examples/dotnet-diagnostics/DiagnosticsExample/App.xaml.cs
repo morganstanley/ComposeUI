@@ -42,7 +42,7 @@ public partial class App : Application
 
             serviceCollection.AddFdc3DesktopAgentClient();
         }
-        catch(Exception exception)
+        catch(Exception)
         {
             // MessageRouter couldn't be initialized, text will be displayed
         }

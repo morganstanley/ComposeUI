@@ -10,16 +10,14 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using System.Text;
-using Finos.Fdc3;
 using Finos.Fdc3.AppDirectory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.ModuleLoader;
-using ResourceReader = MorganStanley.ComposeUI.Utilities.ResourceReader;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
@@ -29,6 +27,11 @@ internal sealed class Fdc3StartupAction : IStartupAction
     private readonly IUserChannelSetReader _userChannelSetReader;
     private readonly Fdc3DesktopAgentOptions _options;
     private readonly ILogger<Fdc3StartupAction> _logger;
+    private static readonly Dictionary<string, StartupModuleHandler> Handlers = new()
+    {
+        { ModuleType.Web, new WebStartupModuleHandler() },
+        { ModuleType.Native, new NativeStartupModuleHandler() }
+    };
 
     public Fdc3StartupAction(
         IAppDirectory appDirectory,
@@ -46,7 +49,6 @@ internal sealed class Fdc3StartupAction : IStartupAction
     {
         try
         {
-            //TODO: should add some identifier to the query => "fdc3:" + startupContext.StartRequest.ModuleId
             var appId = (await _appDirectory.GetApp(startupContext.StartRequest.ModuleId)).AppId;
             var userChannelSet = await _userChannelSetReader.GetUserChannelSet();
 
@@ -56,8 +58,6 @@ internal sealed class Fdc3StartupAction : IStartupAction
                 .FirstOrDefault(parameter => parameter.Key == Fdc3StartupParameters.Fdc3InstanceId).Value
                                  ?? Guid.NewGuid().ToString();
 
-            //TODO: decide if we want to join to a channel automatically on startup of an fdc3 module
-            //First we inject the channel id if we set as startup parameter eg.: when we open an app with `fdc3.open`
             var channelId = startupContext
                 .StartRequest
                 .Parameters
@@ -72,64 +72,9 @@ internal sealed class Fdc3StartupAction : IStartupAction
             var fdc3StartupProperties = new Fdc3StartupProperties { InstanceId = fdc3InstanceId, ChannelId = channelId, OpenedAppContextId = openedAppContextId };
             fdc3InstanceId = startupContext.GetOrAddProperty<Fdc3StartupProperties>(_ => fdc3StartupProperties).InstanceId;
 
-            if (startupContext.ModuleInstance.Manifest.ModuleType == ModuleType.Web)
+            if (Handlers.TryGetValue(startupContext.ModuleInstance.Manifest.ModuleType, out var handler))
             {
-                var webProperties = startupContext.GetOrAddProperty<WebStartupProperties>();
-
-                var stringBuilder = new StringBuilder();
-                stringBuilder.Append($$"""
-                            window.composeui.fdc3 = {
-                                ...window.composeui.fdc3, 
-                                config: {
-                                    appId: "{{appId}}",
-                                    instanceId: "{{fdc3InstanceId}}"
-                                }
-                          """);
-
-                if (channelId != null)
-                {
-                    stringBuilder.Append($$"""
-                        ,
-                        channelId: "{{channelId}}"
-                        """);
-                }
-
-                if (openedAppContextId != null)
-                {
-                    stringBuilder.Append($$"""
-                        ,
-                        openAppIdentifier: {
-                            openedAppContextId: "{{openedAppContextId}}"
-                        }
-                        """);
-                }
-
-                stringBuilder.Append($$"""
-                    };
-                    """);
-
-                stringBuilder.AppendLine();
-                stringBuilder.Append(ResourceReader.ReadResource(ResourceNames.Fdc3Bundle));
-
-                webProperties.ScriptProviders.Add(_ => new ValueTask<string>(stringBuilder.ToString()));
-
-            }
-            else if (startupContext.ModuleInstance.Manifest.ModuleType == ModuleType.Native)
-            {
-                var nativeProperties = startupContext.GetOrAddProperty<NativeStartupProperties>();
-
-                nativeProperties.EnvironmentVariables.Add(nameof(AppIdentifier.AppId), appId);
-                nativeProperties.EnvironmentVariables.Add(nameof(AppIdentifier.InstanceId), fdc3InstanceId);
-
-                if (channelId != null)
-                {
-                    nativeProperties.EnvironmentVariables.Add(nameof(Fdc3StartupProperties.ChannelId), channelId);
-                }
-
-                if (openedAppContextId != null)
-                {
-                    nativeProperties.EnvironmentVariables.Add(nameof(Fdc3StartupProperties.OpenedAppContextId), openedAppContextId);
-                }
+                await handler.HandleAsync(startupContext, appId, fdc3InstanceId, channelId, openedAppContextId);
             }
         }
         catch (AppNotFoundException exception)
@@ -137,6 +82,6 @@ internal sealed class Fdc3StartupAction : IStartupAction
             _logger.LogError(exception, $"Fdc3 bundle js could be not added to the {startupContext.StartRequest.ModuleId}.");
         }
 
-        await (next.Invoke());
+        await next.Invoke();
     }
 }
