@@ -1426,6 +1426,100 @@ public class DesktopAgentClientTests : IAsyncLifetime
             .WithMessage("*Intent listener is not registered for the intent*");
     }
 
+    [Fact]
+    public async Task RaiseIntent_throws_when_no_response_returned()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?)null);
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+        var act = async () => await desktopAgent.RaiseIntent("test-intent", new Instrument());
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*No response was received from the FDC3 backend server.*");
+    }
+
+    [Fact]
+    public async Task RaiseIntent_throws_when_error_response_returned()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var raiseIntentResponse = new RaiseIntentResponse
+        {
+            Error = "Some error"
+        };
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(raiseIntentResponse, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var act = async () => await desktopAgent.RaiseIntent("test-intent", new Instrument());
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*Some error*");
+    }
+
+    [Fact]
+    public async Task RaiseIntent_throws_when_required_fields_not_returned()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var raiseIntentResponse = new RaiseIntentResponse
+        {
+            AppMetadata = null,
+            Intent = null,
+            MessageId = null
+        };
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(raiseIntentResponse, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var act = async () => await desktopAgent.RaiseIntent("test-intent", new Instrument());
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*not retrieved from the backend.*");
+    }
+
+    [Fact]
+    public async Task RaiseIntent_returns_IntentResolution()
+    {
+        var messaginMock = new Mock<IMessaging>();
+
+        var raiseIntentResponse = new RaiseIntentResponse
+        {
+            AppMetadata = new AppMetadata { AppId = "test-appId1" },
+            Intent = "test-intent1",
+            MessageId = Guid.NewGuid().ToString()
+        };
+
+        messaginMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(raiseIntentResponse, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messaginMock.Object);
+
+        var result = await desktopAgent.RaiseIntent("test-intent", new Instrument());
+        result.Should().NotBeNull();
+        result.Should().BeAssignableTo<IIntentResolution>();
+    }
+
     public Task InitializeAsync()
     {
         Environment.SetEnvironmentVariable(nameof(AppIdentifier.AppId), "test-appId2");

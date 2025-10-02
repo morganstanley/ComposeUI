@@ -35,6 +35,7 @@ See the License for the specific language governing permissions and limitations 
             <Button x:Name="FindIntentsByContextButton" Click="FindIntentsByContextButton_Click" Margin="0,10,10,0" ToolTip="FindIntentsByContext using the fdc3.instrument context type">FindIntentsByContext</Button>
             <Button x:Name="RaiseIntentForContextButton" Click="RaiseIntentForContextButton_Click" Margin="0,10,10,0" ToolTip="Raises an intent for fdc3.nothing context type">RaiseIntentForContext</Button>
             <Button x:Name="AddIntentListenerButton" Click="AddIntentListenerButton_Click" Margin="0,10,10,0" ToolTip="Adds Intent Listener for OpenDiagnostics intent for fdc3.nothing context type">AddIntentListener</Button>
+            <Button x:Name="RaiseIntentButton" Click="RaiseIntentButton_Click" Margin="0,10,10,0" ToolTip="Raises an intent for fdc3.instrument context type">RaiseIntent</Button>
         </WrapPanel>
     </Grid>
 </Window>

@@ -187,6 +187,15 @@ var listener = await desktopAgent.AddIntentListener<Instrument>("ViewChart", asy
     return currentChannel;
 });
 ```
+
+### Raising intents
+You can raise an intent by using the `RaiseIntent` function and return its result by using the `GetResult` of the returned `IIntentResolution`:
+```csharp
+var intentResolution = await desktopAgent.RaiseIntent("ViewChart", context, appIdentifier);
+var intentResult = await intentResolution.GetResult();
+
+```
+
 ## Documentation
 
 For more details, see the [ComposeUI documentation](https://morganstanley.github.io/ComposeUI/).

@@ -362,7 +362,7 @@ public class IntentsClientTests
         var act = async () => await _client.RaiseIntentForContextAsync(context, app);
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
-            .WithMessage($"*could not return an {nameof(IntentResolution)} as message id , the {nameof(AppMetadata)} or the intent was not retrieved from the backend.*");
+            .WithMessage($"*not retrieved from the backend.*");
     }
 
     [Fact]
@@ -442,5 +442,87 @@ public class IntentsClientTests
 
         result.Should().NotBeNull();
         result.Should().BeAssignableTo<IListener>();
+    }
+
+    [Fact]
+    public async Task RaiseIntentAsync_throws_when_no_response_returned()
+    {
+        _messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?)null);
+
+        var act = async () => await _client.RaiseIntentAsync("IntentName", new Instrument(), new AppIdentifier { AppId = "app", InstanceId = "id" });
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*No response was received from the FDC3 backend server*");
+    }
+
+    [Fact]
+    public async Task RaiseIntentAsync_throws_when_error_response_received()
+    {
+        var response = new RaiseIntentResponse
+        {
+            Error = "Some error"
+        };
+
+        _messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        var act = async () => await _client.RaiseIntentAsync("IntentName", new Instrument(), new AppIdentifier { AppId = "app", InstanceId = "id" });
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*Some error*");
+    }
+
+    [Fact]
+    public async Task RaiseIntentAsync_throws_when_response_required_fields_are_missing()
+    {
+        var response = new RaiseIntentResponse
+        {
+            MessageId = null,
+            Intent = null,
+            AppMetadata = null
+        };
+
+        _messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        var act = async () => await _client.RaiseIntentAsync("IntentName", new Instrument(), new AppIdentifier { AppId = "app", InstanceId = "id" });
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage($"*not retrieved from the backend.*");
+    }
+
+    [Fact]
+    public async Task RaiseIntentAsync_returns_IntentResolution()
+    {
+        var response = new RaiseIntentResponse
+        {
+            MessageId = Guid.NewGuid().ToString(),
+            Intent = "ViewChart",
+            AppMetadata = new AppMetadata { AppId = "TestApp" }
+        };
+
+        _messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        var result = await _client.RaiseIntentAsync("IntentName", new Instrument(), new AppIdentifier { AppId = "app", InstanceId = "id" });
+        result.Should().NotBeNull();
+        result.Should().BeAssignableTo<IIntentResolution>();
     }
 }

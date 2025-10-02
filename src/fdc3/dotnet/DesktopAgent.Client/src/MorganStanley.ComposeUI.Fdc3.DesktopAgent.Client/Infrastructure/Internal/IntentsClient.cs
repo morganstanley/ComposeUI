@@ -169,6 +169,65 @@ internal class IntentsClient : IIntentsClient
         return response.AppIntents;
     }
 
+    public async ValueTask<IIntentResolution> RaiseIntentAsync(string intent, IContext context, IAppIdentifier? app)
+    {
+        var messageId = new Random().Next(100000);
+
+        var request = new RaiseIntentRequest
+        {
+            MessageId = messageId,
+            Fdc3InstanceId = _instanceId,
+            Intent = intent,
+            Context = JsonSerializer.Serialize(context, _jsonSerializerOptions),
+        };
+
+        if (app != null)
+        {
+            request.TargetAppIdentifier = new AppIdentifier
+            {
+                AppId = app.AppId,
+                InstanceId = app.InstanceId
+            };
+        }
+
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug($"Request is created: {JsonSerializer.Serialize(request, _jsonSerializerOptions)}");
+        }
+
+        var response = await _messaging.InvokeJsonServiceAsync<RaiseIntentRequest, RaiseIntentResponse>(
+            Fdc3Topic.RaiseIntent,
+            request,
+            _jsonSerializerOptions);
+
+        if (response == null)
+        {
+            throw ThrowHelper.MissingResponse();
+        }
+
+        if (!string.IsNullOrEmpty(response.Error))
+        {
+            throw ThrowHelper.ErrorResponseReceived(response.Error);
+        }
+
+        if (string.IsNullOrEmpty(response.MessageId)
+            || string.IsNullOrEmpty(response.Intent)
+            || response.AppMetadata == null)
+        {
+            throw ThrowHelper.IntentResolutionIsNotDefined(context.Type, app?.AppId, app?.InstanceId, intent);
+        }
+
+        var intentResolution = new IntentResolution(
+            response.MessageId!,
+            _messaging,
+            _channelFactory,
+            response.Intent!,
+            response.AppMetadata!,
+            _loggerFactory.CreateLogger<IntentResolution>());
+
+        return intentResolution;
+    }
+
     public async ValueTask<IIntentResolution> RaiseIntentForContextAsync(IContext context, IAppIdentifier? app)
     {
         var messageId = new Random().Next(100000);

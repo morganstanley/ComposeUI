@@ -265,9 +265,10 @@ public class DesktopAgentClient : IDesktopAgent
         throw new NotImplementedException();
     }
 
-    public Task<IIntentResolution> RaiseIntent(string intent, IContext context, IAppIdentifier? app = null)
+    public async Task<IIntentResolution> RaiseIntent(string intent, IContext context, IAppIdentifier? app = null)
     {
-        throw new NotImplementedException();
+        var intentResolution = await _intentsClient.RaiseIntentAsync(intent, context, app);
+        return intentResolution;
     }
 
     public async Task<IIntentResolution> RaiseIntentForContext(IContext context, IAppIdentifier? app = null)

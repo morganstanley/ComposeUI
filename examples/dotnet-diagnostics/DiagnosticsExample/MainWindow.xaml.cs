@@ -92,7 +92,7 @@ public partial class MainWindow : Window
         await Dispatcher.InvokeAsync(() => DiagnosticsText += diag.ToString());
 
         var result =
-            await _desktopAgent.GetAppMetadata(new MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier()
+            await _desktopAgent.GetAppMetadata(new AppIdentifier()
             { AppId = "WPFExample" }).ConfigureAwait(false);
 
         await Dispatcher.InvokeAsync(() => DiagnosticsText += "\n" + result.Description);
@@ -326,9 +326,33 @@ public partial class MainWindow : Window
             {
                 Dispatcher.Invoke(() => DiagnosticsText += "\n" + "Intent received: " + context.Name + "; type: " + context.Type);
                 return null;
-
             }).ConfigureAwait(false);
         });
+    }
+
+    private async void RaiseIntentButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            await Task.Run(async () =>
+            {
+                Dispatcher.Invoke(() => DiagnosticsText += "\n Raising intent for fdc3.instrument...");
+
+                var resolution = await _desktopAgent.RaiseIntent("OpenDiagnostics", new Instrument(new InstrumentID() { BBG = "raise-intent-test" }, "Raise Intent Test")).ConfigureAwait(false);
+
+                var result = await resolution.GetResult().ConfigureAwait(false);
+
+                if (result == null)
+                {
+                    Dispatcher.Invoke(() => DiagnosticsText += "\n Intent was handled by the app, no result returned.");
+                    return;
+                }
+            });
+        }
+        catch (Exception exception)
+        {
+            Dispatcher.Invoke(() => DiagnosticsText += $"\n RaiseIntent failed: {exception.ToString()}");
+        }
     }
 
     private async Task JoinToAppChannel()
