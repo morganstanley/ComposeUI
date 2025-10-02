@@ -30,7 +30,9 @@ public static class SerializerOptionsHelper
     /// </remarks>
     public static JsonSerializerOptions JsonSerializerOptions => new(JsonSerializerDefaults.Web)
     {
+#if DEBUG
         WriteIndented = true,
+#endif
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         Converters =
         {

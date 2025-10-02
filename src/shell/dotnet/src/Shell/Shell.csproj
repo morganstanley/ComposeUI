@@ -75,8 +75,4 @@
 		<ProjectReference Include="..\..\..\..\shared\dotnet\src\MorganStanley.ComposeUI.Utilities\MorganStanley.ComposeUI.Utilities.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="Messaging\" />
-	</ItemGroup>
-
 </Project>

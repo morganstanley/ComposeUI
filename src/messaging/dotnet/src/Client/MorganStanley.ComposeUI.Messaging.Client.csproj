@@ -9,7 +9,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<IsPackable>false</IsPackable> <!--TODO: remove once stable-->
+		<IsPackable>true</IsPackable>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -2,6 +2,8 @@
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
+		<Description>.Net Standard 2.0 Native client for FDC3 operations implementing the IDesktopAgentClient from the Finos.Fdc3 NuGet package. More Details: https://morganstanley.github.io/ComposeUI/</Description>
+		<IsPackable>true</IsPackable>
 	</PropertyGroup>
 
 	<ItemGroup>
