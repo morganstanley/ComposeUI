@@ -15,6 +15,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
 using DisplayMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.DisplayMetadata;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
+using System.Runtime.CompilerServices;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests;
 
@@ -557,5 +558,46 @@ public class EndToEndTests : IAsyncLifetime
         handledContexts.Should().HaveCount(1);
 
         await _moduleLoader.StopModule(new StopRequest(module.InstanceId));
+    }
+
+    [Fact]
+    public async Task RaiseIntent_raises_intent_and_returns_IntentResolution()
+    {
+        var fdc3InstanceId = Guid.NewGuid().ToString();
+        var appId = "appId1-native";
+        var module = await _moduleLoader.StartModule(new StartRequest(appId, new Dictionary<string, string>() { { "Fdc3InstanceId", fdc3InstanceId } })); // This will ensure that the DesktopAgent backend knows its an FDC3 enabled module. For test only
+        //We need to wait somehow for the module to finish up the listener registration
+        await Task.Delay(2000);
+
+        var resolution = await _desktopAgent.RaiseIntent("ViewInstrument", new Instrument(new InstrumentID { Ticker = "AAPL" }, "Apple Inc."), new AppIdentifier { AppId = appId, InstanceId = fdc3InstanceId });
+        resolution.Should().NotBeNull();
+
+        var result = await resolution.GetResult();
+        result.Should().NotBeNull();
+        result.Should().BeAssignableTo<IChannel>();
+    }
+
+    [Fact]
+    public async Task RaiseIntent_throws_as_no_apps_found_to_handle() 
+    {
+        var act = async () => await _desktopAgent.RaiseIntent("notExistentIntent", new Instrument(new InstrumentID { Ticker = "AAPL" }, "Apple Inc."));
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage($"*{ResolveError.NoAppsFound}*");
+    }
+
+    [Fact]
+    public async Task RaiseIntent_throws_when_no_listener_registered()
+    {
+        var fdc3InstanceId = Guid.NewGuid().ToString();
+        var appId = "appId1-native";
+        var module = await _moduleLoader.StartModule(new StartRequest(appId, new Dictionary<string, string>() { { "Fdc3InstanceId", fdc3InstanceId } })); // This will ensure that the DesktopAgent backend knows its an FDC3 enabled module. For test only
+        //We need to wait somehow for the module to finish up the listener registration
+        await Task.Delay(2000);
+
+        var act = async() => await _desktopAgent.RaiseIntent("TestInstrument", new Valuation("USD"), new AppIdentifier { AppId = appId, InstanceId = fdc3InstanceId });
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage($"*{ResolveError.IntentDeliveryFailed}*");
     }
 }
