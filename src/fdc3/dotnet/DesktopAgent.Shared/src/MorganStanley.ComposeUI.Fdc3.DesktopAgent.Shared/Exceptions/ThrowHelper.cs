@@ -92,4 +92,16 @@ internal static class ThrowHelper
 
     public static Fdc3DesktopAgentException IntentResolutionFailed(string intent, string messageId, IAppIdentifier appIdentifier) =>
         new($"Retrieving the intent resolution failed from the backend for intent: {intent}, app: {appIdentifier.AppId}, instanceId: {appIdentifier.InstanceId}, messageId: {messageId}.");
+
+    public static Fdc3DesktopAgentException MissingContext() =>
+        new($"No context or invalid context was received as part of the {nameof(IntentResolution)}.");
+
+    public static Fdc3DesktopAgentException IntentResultStoreFailed(string intent, string instanceId) =>
+        new($"Instance: {instanceId} was not able to store the {nameof(IIntentResult)} on the backend.");
+
+    public static Fdc3DesktopAgentException ListenerNotRegistered(string intent, string instanceId) =>
+        new($"Intent listener is not registered for the intent: {intent} on the backend for instance: {instanceId}.");
+
+    public static Fdc3DesktopAgentException ListenerNotUnRegistered(string intent, string instanceId) =>
+        new($"Intent listener is still registered for the intent: {intent} on the backend for instance: {instanceId}.");
 }

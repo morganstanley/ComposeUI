@@ -25,6 +25,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
 using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIntent;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppMetadata;
@@ -1317,6 +1318,112 @@ public class DesktopAgentClientTests : IAsyncLifetime
         var act = async () => await desktopAgent.RaiseIntentForContext(new Instrument());
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage("*was not retrieved from the backend.*");
+    }
+
+    [Fact]
+    public async Task AddIntentListener_returns_listener()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var subscriptionMock = new Mock<IAsyncDisposable>();
+        List<TopicMessageHandler> capturedHandlers = new();
+
+        messagingMock
+            .Setup(
+                _ => _.SubscribeAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<TopicMessageHandler>(),
+                    It.IsAny<CancellationToken>()))
+            .Returns((string topic, TopicMessageHandler handler, CancellationToken ct) =>
+            {
+                capturedHandlers.Add(handler);
+                return new ValueTask<IAsyncDisposable>(subscriptionMock.Object);
+            });
+
+        var subscribeResponse = new IntentListenerResponse
+        {
+            Stored = true
+        };
+
+        messagingMock
+            .Setup(
+                _ => _.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(subscribeResponse, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+        var result = await desktopAgent.AddIntentListener<Nothing>("test-intent", (context, contextMetadata) => Task.FromResult<IIntentResult>(new Instrument()));
+
+        result.Should().NotBeNull();
+        result.Should().BeAssignableTo<IListener>();
+    }
+
+    [Fact]
+    public async Task AddIntentListener_throws_when_null_response_received()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        messagingMock
+            .Setup(
+                _ => _.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?)null);
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+        var act = async () => await desktopAgent.AddIntentListener<Nothing>("test-intent", (context, contextMetadata) => Task.FromResult<IIntentResult>(new Instrument()));
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*No response*");
+    }
+
+    [Fact]
+    public async Task AddIntentListener_throws_when_error_response_received()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var subscribeResponse = new IntentListenerResponse
+        {
+            Error = "Some error"
+        };
+
+        messagingMock
+            .Setup(
+                _ => _.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(subscribeResponse, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+        var act = async () => await desktopAgent.AddIntentListener<Nothing>("test-intent", (context, contextMetadata) => Task.FromResult<IIntentResult>(new Instrument()));
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*Some error*");
+    }
+
+    [Fact]
+    public async Task AddIntentListener_throws_when_not_stored_response_received()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var subscribeResponse = new IntentListenerResponse
+        {
+            Stored = false
+        };
+
+        messagingMock
+            .Setup(
+                _ => _.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(subscribeResponse, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+        var act = async () => await desktopAgent.AddIntentListener<Nothing>("test-intent", (context, contextMetadata) => Task.FromResult<IIntentResult>(new Instrument()));
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*Intent listener is not registered for the intent*");
     }
 
     public Task InitializeAsync()

@@ -24,7 +24,7 @@ using Instrument = Finos.Fdc3.Context.Instrument;
 using Finos.Fdc3.Context;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests.Infrastructure.Internal;
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests.Infrastructure.Internal.Protocol;
 
 public class ChannelTests
 {
@@ -67,7 +67,7 @@ public class ChannelTests
                 _ => _.InvokeServiceAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(JsonSerializer.Serialize(new AddContextListenerResponse { Success = true, Id = Guid.NewGuid().ToString() }, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
 
-        var listener = await _channel.AddContextListener<Instrument>("fdc3.instrument", handler);
+        var listener = await _channel.AddContextListener("fdc3.instrument", handler);
 
         listener.Should().NotBeNull();
         handlerCalled.Should().BeFalse(); // Handler is not called until a message is received
@@ -108,7 +108,7 @@ public class ChannelTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()))
-            .ReturnsAsync((string)null!);
+            .ReturnsAsync((string) null!);
 
         var result = await _channel.GetCurrentContext("TestType");
 
@@ -133,7 +133,7 @@ public class ChannelTests
 
         result.Should().NotBeNull();
         result.Should().BeOfType<Instrument>();
-        ((Instrument)result!).Should().BeEquivalentTo(context);
+        ((Instrument) result!).Should().BeEquivalentTo(context);
     }
 
     [Fact]
@@ -154,13 +154,13 @@ public class ChannelTests
 
         result.Should().NotBeNull();
         result.Should().BeOfType<Instrument>();
-        ((Instrument)result!).Should().BeEquivalentTo(context);
+        ((Instrument) result!).Should().BeEquivalentTo(context);
     }
 
     [Fact]
     public async Task GetCurrentContext_logs_and_returns_null_when_context_type_not_found_on_the_channel()
     {
-        var context = new Instrument(new InstrumentID() { Ticker = "MS" }, Guid.NewGuid().ToString() );
+        var context = new Instrument(new InstrumentID() { Ticker = "MS" }, Guid.NewGuid().ToString());
         var contextJson = JsonSerializer.Serialize(context, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization);
 
         _messagingMock

@@ -274,7 +274,7 @@ public partial class MainWindow : Window
     {
         await Task.Run(async () =>
         {
-            var context = new Instrument();
+            var context = new Nothing();
 
             Dispatcher.Invoke(() =>
             {
@@ -313,6 +313,21 @@ public partial class MainWindow : Window
                     DiagnosticsText += $"\nIntentResolution is completed. It was handled by the app ...";
                 });
             }
+        });
+    }
+
+    private async void AddIntentListenerButton_Click(object sender, RoutedEventArgs e)
+    {
+        await Task.Run(async () =>
+        {
+            Dispatcher.Invoke(() => DiagnosticsText += "\nAdding intent listener for OpenDiagnostics...");
+
+            _listener = await _desktopAgent.AddIntentListener<Nothing>("OpenDiagnostics", (context, contextMetadata) =>
+            {
+                Dispatcher.Invoke(() => DiagnosticsText += "\n" + "Intent received: " + context.Name + "; type: " + context.Type);
+                return null;
+
+            }).ConfigureAwait(false);
         });
     }
 

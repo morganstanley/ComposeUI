@@ -48,6 +48,52 @@ internal class IntentsClient : IIntentsClient
         _logger = _loggerFactory.CreateLogger<IntentsClient>();
     }
 
+    public async ValueTask<IListener> AddIntentListenerAsync<T>(string intent, IntentHandler<T> handler) where T : IContext
+    {
+        var listener = new IntentListener<T>(
+            _messaging,
+            intent,
+            _instanceId,
+            handler,
+            _loggerFactory.CreateLogger<IntentListener<T>>());
+
+        await listener.RegisterIntentHandlerAsync();
+
+        var request = new IntentListenerRequest
+        {
+            Fdc3InstanceId = _instanceId,
+            Intent = intent,
+            State = SubscribeState.Subscribe
+        };
+
+        var response = await _messaging.InvokeJsonServiceAsync<IntentListenerRequest, IntentListenerResponse>(
+            Fdc3Topic.AddIntentListener,
+            request,
+            _jsonSerializerOptions);
+
+        if (response == null)
+        {
+            throw ThrowHelper.MissingResponse();
+        }
+
+        if (!string.IsNullOrEmpty(response.Error))
+        {
+            throw ThrowHelper.ErrorResponseReceived(response.Error);
+        }
+
+        if (!response.Stored)
+        {
+            throw ThrowHelper.ListenerNotRegistered(intent, _instanceId);
+        }
+
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug($"Listener is registered...");
+        }
+
+        return listener;
+    }
+
     public async ValueTask<IAppIntent> FindIntentAsync(string intent, IContext? context = null, string? resultType = null)
     {
         var request = new FindIntentRequest
@@ -126,19 +172,27 @@ internal class IntentsClient : IIntentsClient
     public async ValueTask<IIntentResolution> RaiseIntentForContextAsync(IContext context, IAppIdentifier? app)
     {
         var messageId = new Random().Next(100000);
+
         var request = new RaiseIntentForContextRequest
         {
             Fdc3InstanceId = _instanceId,
             Context = JsonSerializer.Serialize(context, _jsonSerializerOptions),
-            TargetAppIdentifier = app == null
-                ? null
-                : new AppIdentifier
-                {
-                    AppId = app?.AppId,
-                    InstanceId = app?.InstanceId
-                },
             MessageId = messageId
         };
+
+        if (app != null)
+        {
+            request.TargetAppIdentifier = new AppIdentifier
+            {
+                AppId = app.AppId,
+                InstanceId = app.InstanceId
+            };
+        }
+
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug($"Request is created: {JsonSerializer.Serialize(request, _jsonSerializerOptions)}");
+        }
 
         var response = await _messaging.InvokeJsonServiceAsync<RaiseIntentForContextRequest, RaiseIntentResponse>(
             Fdc3Topic.RaiseIntentForContext,

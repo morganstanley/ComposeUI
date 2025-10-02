@@ -35,6 +35,7 @@ public class DesktopAgentClient : IDesktopAgent
     private readonly IIntentsClient _intentsClient;
     //This cache stores the top-level context listeners added through the `AddContextListener<T>(...)` API. It stores their actions to be able to resubscribe them when joining a new channel and handle the last context based on the FDC3 standard.
     private readonly ConcurrentDictionary<IListener, Func<string, ChannelType, CancellationToken, ValueTask>> _contextListenersWithSubscriptionLastContextHandlingActions = new();
+    private readonly ConcurrentDictionary<string, IListener> _intentListeners = new();
 
     private IChannel? _currentChannel;
     private readonly SemaphoreSlim _currentChannelLock = new(1, 1);
@@ -52,6 +53,11 @@ public class DesktopAgentClient : IDesktopAgent
 
         _appId = Environment.GetEnvironmentVariable(nameof(AppIdentifier.AppId)) ?? throw ThrowHelper.MissingAppId(string.Empty);
         _instanceId = Environment.GetEnvironmentVariable(nameof(AppIdentifier.InstanceId)) ?? throw ThrowHelper.MissingInstanceId(_appId, string.Empty);
+
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug($"AppID: {_appId}; InstanceId: {_instanceId} is registered for the FDC3 client app.");
+        }
 
         _channelFactory = new ChannelFactory(_messaging, _instanceId, _loggerFactory);
         _metadataClient = new MetadataClient(_appId, _instanceId, _messaging, _loggerFactory.CreateLogger<MetadataClient>());
@@ -91,9 +97,19 @@ public class DesktopAgentClient : IDesktopAgent
         }
     }
 
-    public Task<IListener> AddIntentListener<T>(string intent, IntentHandler<T> handler) where T : IContext
+    public async Task<IListener> AddIntentListener<T>(string intent, IntentHandler<T> handler) where T : IContext
     {
-        throw new NotImplementedException();
+        var listener = await _intentsClient.AddIntentListenerAsync<T>(intent, handler);
+
+        if (!_intentListeners.TryAdd(intent, listener))
+        {
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning($"Failed to add intent listener to the internal collection: {intent}.");
+            }
+        }
+
+        return listener;
     }
 
     public async Task Broadcast(IContext context)

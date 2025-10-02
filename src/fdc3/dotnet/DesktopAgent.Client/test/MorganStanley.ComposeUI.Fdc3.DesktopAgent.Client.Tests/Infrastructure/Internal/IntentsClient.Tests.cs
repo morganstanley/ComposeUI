@@ -27,6 +27,9 @@ using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppI
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal.Protocol;
+using Finos.Fdc3;
+using IntentResolution = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal.Protocol.IntentResolution;
+using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests.Infrastructure.Internal;
 
@@ -360,5 +363,84 @@ public class IntentsClientTests
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage($"*could not return an {nameof(IntentResolution)} as message id , the {nameof(AppMetadata)} or the intent was not retrieved from the backend.*");
+    }
+
+    [Fact]
+    public async Task AddIntentListenerAsync_throws_when_response_is_null()
+    {
+        _messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                Fdc3Topic.AddIntentListener,
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?)null);
+
+        Func<Task> act = async () => await _client.AddIntentListenerAsync<Instrument>("ViewChart", (ctx, meta) => Task.FromResult<IIntentResult>(new Instrument()));
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*No response*");
+    }
+
+    [Fact]
+    public async Task AddIntentListenerAsync_throws_when_error_response_received_from_the_backend()
+    {
+        var response = new IntentListenerResponse
+        {
+            Error = "Some error"
+        };
+
+        _messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                Fdc3Topic.AddIntentListener,
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        Func<Task> act = async () => await _client.AddIntentListenerAsync<Instrument>("ViewChart", (ctx, meta) => Task.FromResult<IIntentResult>(new Instrument()));
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*Some error*");
+    }
+
+    [Fact]
+    public async Task AddIntentListenerAsync_throws_when_listener_not_registered()
+    {
+        var response = new IntentListenerResponse
+        {
+            Stored = false
+        };
+
+        _messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                Fdc3Topic.AddIntentListener,
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        Func<Task> act = async () => await _client.AddIntentListenerAsync<Instrument>("ViewChart", (ctx, meta) => Task.FromResult<IIntentResult>(new Instrument()));
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*not registered*");
+    }
+
+    [Fact]
+    public async Task AddIntentListenerAsync_returns_listener_when_response_is_valid()
+    {
+        var response = new IntentListenerResponse
+        {
+            Stored = true
+        };
+
+        _messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                Fdc3Topic.AddIntentListener,
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        var result = await _client.AddIntentListenerAsync<Instrument>("ViewChart", (ctx, meta) => Task.FromResult<IIntentResult>(new Instrument()));
+
+        result.Should().NotBeNull();
+        result.Should().BeAssignableTo<IListener>();
     }
 }

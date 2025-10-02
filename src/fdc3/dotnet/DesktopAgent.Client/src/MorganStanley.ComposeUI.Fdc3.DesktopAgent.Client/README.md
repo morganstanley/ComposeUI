@@ -177,6 +177,16 @@ var intentResolution = await desktopAgent.RaiseIntentForContext(context, appIden
 var intentResult = await intentResolution.GetResult();
 ```
 
+### Adding Intent Listener
+You can register an intent listener by using the `AddIntentListener` function:
+```csharp
+var currentChannel = await desktopAgent.GetCurrentChannel();
+var listener = await desktopAgent.AddIntentListener<Instrument>("ViewChart", async (ctx, ctxMetadata) =>
+{
+    Console.WriteLine($"Received intent with context: {ctx}");
+    return currentChannel;
+});
+```
 ## Documentation
 
 For more details, see the [ComposeUI documentation](https://morganstanley.github.io/ComposeUI/).

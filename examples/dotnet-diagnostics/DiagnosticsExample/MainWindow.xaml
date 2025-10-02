@@ -26,14 +26,15 @@ See the License for the specific language governing permissions and limitations 
         </Grid.RowDefinitions>
         <TextBlock Name="Diagnostics" Text="{Binding DiagnosticsText}" VerticalAlignment="Top" Grid.Row="0" />
         <WrapPanel Grid.Row="1" Margin="10" HorizontalAlignment="Left">
-            <Button x:Name="SubscribeButton" Click="SubscribeButton_Click" Margin="0,0,10,0">Subscribe</Button>
-            <Button x:Name="BroadcastButton" Click="BroadcastButton_Click" Margin="0,0,10,0">Broadcast</Button>
-            <Button x:Name="AppChannelBroadcastButton" Click="AppChannelBroadcastButton_Click" Margin="0,0,10,0" ToolTip="Broadcasting on AppChannel: app-channel-1">AC - Broadcast</Button>
-            <Button x:Name="AppChannelAddContextListenerButton" Click="AppChannelAddContextListenerButton_Click"  Margin="0,0,10,0" ToolTip="Adding ContextListener on AppChannel: app-channel-1">AC - AddContextListener</Button>
-            <Button x:Name="FindIntentButton" Click="FindIntentButton_Click" Margin="0,0,10,0" ToolTip="Finding intent for ViewChart intent">FindIntent</Button>
-            <Button x:Name="FindInstancesButton" Click="FindInstancesButton_Click" Margin="0,0,10,0" ToolTip="Finding instances for current app id">FindInstances</Button>
-            <Button x:Name="FindIntentsByContextButton" Click="FindIntentsByContextButton_Click" Margin="0,0,10,0" ToolTip="FindIntentsByContext using the fdc3.instrument context type">FindIntentsByContext</Button>
-            <Button x:Name="RaiseIntentForContextButton" Click="RaiseIntentForContextButton_Click" Margin="0,0,10,0" ToolTip="Raises an intent for fdc3.instrument context type">RaiseIntentForContext</Button>
+            <Button x:Name="SubscribeButton" Click="SubscribeButton_Click" Margin="0,10,10,0">Subscribe</Button>
+            <Button x:Name="BroadcastButton" Click="BroadcastButton_Click" Margin="0,10,10,0">Broadcast</Button>
+            <Button x:Name="AppChannelBroadcastButton" Click="AppChannelBroadcastButton_Click" Margin="0,10,10,0" ToolTip="Broadcasting on AppChannel: app-channel-1">AC - Broadcast</Button>
+            <Button x:Name="AppChannelAddContextListenerButton" Click="AppChannelAddContextListenerButton_Click"  Margin="0,10,10,0" ToolTip="Adding ContextListener on AppChannel: app-channel-1">AC - AddContextListener</Button>
+            <Button x:Name="FindIntentButton" Click="FindIntentButton_Click" Margin="0,10,10,0" ToolTip="Finding intent for ViewChart intent">FindIntent</Button>
+            <Button x:Name="FindInstancesButton" Click="FindInstancesButton_Click" Margin="0,10,10,0" ToolTip="Finding instances for current app id">FindInstances</Button>
+            <Button x:Name="FindIntentsByContextButton" Click="FindIntentsByContextButton_Click" Margin="0,10,10,0" ToolTip="FindIntentsByContext using the fdc3.instrument context type">FindIntentsByContext</Button>
+            <Button x:Name="RaiseIntentForContextButton" Click="RaiseIntentForContextButton_Click" Margin="0,10,10,0" ToolTip="Raises an intent for fdc3.nothing context type">RaiseIntentForContext</Button>
+            <Button x:Name="AddIntentListenerButton" Click="AddIntentListenerButton_Click" Margin="0,10,10,0" ToolTip="Adds Intent Listener for OpenDiagnostics intent for fdc3.nothing context type">AddIntentListener</Button>
         </WrapPanel>
     </Grid>
 </Window>

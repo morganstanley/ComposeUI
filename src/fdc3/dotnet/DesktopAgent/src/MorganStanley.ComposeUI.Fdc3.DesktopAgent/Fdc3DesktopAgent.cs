@@ -25,6 +25,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
 using MorganStanley.ComposeUI.Messaging.Abstractions.Exceptions;
 using MorganStanley.ComposeUI.ModuleLoader;
 using AppChannel = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels.AppChannel;
@@ -801,9 +802,9 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             _logger.LogWarning("Source app did not register its raiseable intent(s) for context: {ContextType} in the `raises` section of AppDirectory.", contextType);
         }
 
-        var findIntentsByContextResult = await FindIntentsByContext(new FindIntentsByContextRequest() { Context = request.Context, Fdc3InstanceId = request.Fdc3InstanceId }, contextType);
+        var filteredAppIntents = await GetAppIntentsByRequest(contextType: contextType, targetAppIdentifier: request.TargetAppIdentifier);
 
-        if (findIntentsByContextResult.AppIntents == null || !findIntentsByContextResult.AppIntents.Any())
+        if (filteredAppIntents.AppIntents == null || !filteredAppIntents.AppIntents.Any())
         {
             return new()
             {
@@ -811,21 +812,11 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             };
         }
 
-        List<AppIntent> result;
-        if (request.TargetAppIdentifier != null)
-        {
-            result = FilterAppIntentsByAppId(findIntentsByContextResult.AppIntents, request.TargetAppIdentifier).ToList();
-        }
-        else
-        {
-            result = findIntentsByContextResult.AppIntents.ToList();
-        }
-
         RaiseIntentSpecification raiseIntentSpecification;
-        if (result.Count > 1)
+        if (filteredAppIntents.AppIntents.Count > 1)
         {
             using var resolverUIIntentCancellationSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-            var resolverUIIntentResponse = await _resolverUI.SendResolverUIIntentRequest(result.Select(x => x.Intent.Name), resolverUIIntentCancellationSource.Token);
+            var resolverUIIntentResponse = await _resolverUI.SendResolverUIIntentRequest(filteredAppIntents.AppIntents.Select(x => x.Value.Intent.Name), resolverUIIntentCancellationSource.Token);
 
             if (resolverUIIntentResponse == null)
             {
@@ -857,19 +848,28 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
                 SourceAppInstanceId = new(request.Fdc3InstanceId)
             };
         }
+        else if (filteredAppIntents.AppIntents.Count == 0)
+        {
+            return new()
+            {
+                Response = new()
+                {
+                    Error = ResolveError.IntentDeliveryFailed
+                }
+            };
+        }
         else
         {
             raiseIntentSpecification = new()
             {
                 Context = request.Context,
-                Intent = result.ElementAt(0).Intent.Name,
+                Intent = filteredAppIntents.AppIntents.Values.First()!.Intent.Name,
                 RaisedIntentMessageId = request.MessageId,
                 SourceAppInstanceId = new(request.Fdc3InstanceId)
             };
         }
 
-        var appIntent = result.FirstOrDefault(x => x.Intent.Name == raiseIntentSpecification.Intent);
-        if (appIntent == null)
+        if (!filteredAppIntents.AppIntents.TryGetValue(raiseIntentSpecification.Intent, out var appIntent))
         {
             return new()
             {
@@ -997,6 +997,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         // Semantically we know this is not null or empty
         foreach (var intent in source)
         {
+            List<AppMetadata> validatedAppMetadata = new();
             foreach (var app in intent.Apps)
             {
                 var matches = true;
@@ -1004,6 +1005,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
                 {
                     matches = false;
                 }
+
                 if (appId.InstanceId != null && appId.InstanceId != app.InstanceId)
                 {
                     matches = false;
@@ -1011,9 +1013,20 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
                 if (matches)
                 {
-                    yield return intent;
-                    break;
+                    validatedAppMetadata.Add(app);                    
                 }
+
+            }
+
+            if (validatedAppMetadata.Count > 0)
+            {
+                var appIntent = new AppIntent
+                {
+                    Intent = intent.Intent,
+                    Apps = validatedAppMetadata
+                };
+
+                yield return appIntent;
             }
         }
     }
