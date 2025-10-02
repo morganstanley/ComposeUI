@@ -16,7 +16,7 @@
 Install via NuGet:
 
 ```shell
-dotnet package add MorganStanley.ComposeUI.Messaging.Host
+dotnet add package MorganStanley.ComposeUI.Messaging.Host
 ```
 
 Or via the NuGet Package Manager:

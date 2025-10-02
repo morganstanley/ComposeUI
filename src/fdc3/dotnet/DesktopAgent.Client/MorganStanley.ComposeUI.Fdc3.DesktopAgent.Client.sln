@@ -1,0 +1,133 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35431.56
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client", "src\MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client\MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.csproj", "{12610C1D-A71E-439C-89DD-0D2A5F9A6D29}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{0F694275-DBDD-4610-93B3-66823DA2A516}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lib", "lib", "{81BDD623-4A89-48B0-91F2-731AB96BAF7B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{4BC4D2DE-3E72-4912-B853-F19BB0D5F732}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_", "_", "{C629408C-961F-4E25-B94A-D8566B048DCB}"
+	ProjectSection(SolutionItems) = preProject
+		src\Directory.Build.props = src\Directory.Build.props
+		..\..\..\..\Directory.Build.props = ..\..\..\..\Directory.Build.props
+		..\..\..\..\Directory.Packages.props = ..\..\..\..\Directory.Packages.props
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Abstractions", "..\..\..\messaging\dotnet\src\Abstractions\MorganStanley.ComposeUI.Messaging.Abstractions.csproj", "{C171C160-313A-4D54-A827-FC90259B41E2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared", "..\DesktopAgent.Shared\src\MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared\MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.csproj", "{7AAD9140-A060-40C8-99CB-64FDFB6C0EC6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ModuleLoader.Abstractions", "..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader.Abstractions\MorganStanley.ComposeUI.ModuleLoader.Abstractions.csproj", "{AF0E23B3-C2DA-432F-A78D-F40976071459}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests", "test\MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests\MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests.csproj", "{907D8E3C-F9E2-42A2-8171-502615C831DC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Fdc3.DesktopAgent", "..\DesktopAgent\src\MorganStanley.ComposeUI.Fdc3.DesktopAgent\MorganStanley.ComposeUI.Fdc3.DesktopAgent.csproj", "{D0C86394-673B-4C26-BDF3-81695B227723}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Fdc3.AppDirectory", "..\AppDirectory\src\MorganStanley.ComposeUI.Fdc3.AppDirectory\MorganStanley.ComposeUI.Fdc3.AppDirectory.csproj", "{47CFB9AC-FBBB-42ED-A7D1-195CDB1E606E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.ModuleLoader", "..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader\MorganStanley.ComposeUI.ModuleLoader.csproj", "{37135302-6491-4A9F-8EC6-340ADBDE8F80}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Client", "..\..\..\messaging\dotnet\src\Client\MorganStanley.ComposeUI.Messaging.Client.csproj", "{4125283C-92E9-44E2-A4E0-428BDA34AE9B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Core", "..\..\..\messaging\dotnet\src\Core\MorganStanley.ComposeUI.Messaging.Core.csproj", "{E09023FC-4496-4DEE-BA3C-1C0CAFAC7D5C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Host", "..\..\..\messaging\dotnet\src\Host\MorganStanley.ComposeUI.Messaging.Host.csproj", "{36F88A62-5B5B-4F0A-84B6-A8A79276F885}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.MessageRouterAdapter", "..\..\..\messaging\dotnet\src\MessageRouterAdapter\MorganStanley.ComposeUI.Messaging.MessageRouterAdapter.csproj", "{333AC150-05DF-4461-917C-4E303FD4320A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Server", "..\..\..\messaging\dotnet\src\Server\MorganStanley.ComposeUI.Messaging.Server.csproj", "{E5F793D3-2E2F-45CA-AD5C-4FA5392B53B1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Utilities", "..\..\..\shared\dotnet\src\MorganStanley.ComposeUI.Utilities\MorganStanley.ComposeUI.Utilities.csproj", "{87D74A9A-1FA7-40D5-BA5E-0AB195C4CDF9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{12610C1D-A71E-439C-89DD-0D2A5F9A6D29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12610C1D-A71E-439C-89DD-0D2A5F9A6D29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12610C1D-A71E-439C-89DD-0D2A5F9A6D29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12610C1D-A71E-439C-89DD-0D2A5F9A6D29}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C171C160-313A-4D54-A827-FC90259B41E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C171C160-313A-4D54-A827-FC90259B41E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C171C160-313A-4D54-A827-FC90259B41E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C171C160-313A-4D54-A827-FC90259B41E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7AAD9140-A060-40C8-99CB-64FDFB6C0EC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7AAD9140-A060-40C8-99CB-64FDFB6C0EC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7AAD9140-A060-40C8-99CB-64FDFB6C0EC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7AAD9140-A060-40C8-99CB-64FDFB6C0EC6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF0E23B3-C2DA-432F-A78D-F40976071459}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF0E23B3-C2DA-432F-A78D-F40976071459}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF0E23B3-C2DA-432F-A78D-F40976071459}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF0E23B3-C2DA-432F-A78D-F40976071459}.Release|Any CPU.Build.0 = Release|Any CPU
+		{907D8E3C-F9E2-42A2-8171-502615C831DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{907D8E3C-F9E2-42A2-8171-502615C831DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{907D8E3C-F9E2-42A2-8171-502615C831DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{907D8E3C-F9E2-42A2-8171-502615C831DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0C86394-673B-4C26-BDF3-81695B227723}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0C86394-673B-4C26-BDF3-81695B227723}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0C86394-673B-4C26-BDF3-81695B227723}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0C86394-673B-4C26-BDF3-81695B227723}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47CFB9AC-FBBB-42ED-A7D1-195CDB1E606E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47CFB9AC-FBBB-42ED-A7D1-195CDB1E606E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47CFB9AC-FBBB-42ED-A7D1-195CDB1E606E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47CFB9AC-FBBB-42ED-A7D1-195CDB1E606E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37135302-6491-4A9F-8EC6-340ADBDE8F80}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37135302-6491-4A9F-8EC6-340ADBDE8F80}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37135302-6491-4A9F-8EC6-340ADBDE8F80}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37135302-6491-4A9F-8EC6-340ADBDE8F80}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4125283C-92E9-44E2-A4E0-428BDA34AE9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4125283C-92E9-44E2-A4E0-428BDA34AE9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4125283C-92E9-44E2-A4E0-428BDA34AE9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4125283C-92E9-44E2-A4E0-428BDA34AE9B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E09023FC-4496-4DEE-BA3C-1C0CAFAC7D5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E09023FC-4496-4DEE-BA3C-1C0CAFAC7D5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E09023FC-4496-4DEE-BA3C-1C0CAFAC7D5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E09023FC-4496-4DEE-BA3C-1C0CAFAC7D5C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36F88A62-5B5B-4F0A-84B6-A8A79276F885}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36F88A62-5B5B-4F0A-84B6-A8A79276F885}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36F88A62-5B5B-4F0A-84B6-A8A79276F885}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36F88A62-5B5B-4F0A-84B6-A8A79276F885}.Release|Any CPU.Build.0 = Release|Any CPU
+		{333AC150-05DF-4461-917C-4E303FD4320A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{333AC150-05DF-4461-917C-4E303FD4320A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{333AC150-05DF-4461-917C-4E303FD4320A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{333AC150-05DF-4461-917C-4E303FD4320A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5F793D3-2E2F-45CA-AD5C-4FA5392B53B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5F793D3-2E2F-45CA-AD5C-4FA5392B53B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5F793D3-2E2F-45CA-AD5C-4FA5392B53B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5F793D3-2E2F-45CA-AD5C-4FA5392B53B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87D74A9A-1FA7-40D5-BA5E-0AB195C4CDF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87D74A9A-1FA7-40D5-BA5E-0AB195C4CDF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87D74A9A-1FA7-40D5-BA5E-0AB195C4CDF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87D74A9A-1FA7-40D5-BA5E-0AB195C4CDF9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{12610C1D-A71E-439C-89DD-0D2A5F9A6D29} = {0F694275-DBDD-4610-93B3-66823DA2A516}
+		{C171C160-313A-4D54-A827-FC90259B41E2} = {81BDD623-4A89-48B0-91F2-731AB96BAF7B}
+		{7AAD9140-A060-40C8-99CB-64FDFB6C0EC6} = {81BDD623-4A89-48B0-91F2-731AB96BAF7B}
+		{AF0E23B3-C2DA-432F-A78D-F40976071459} = {81BDD623-4A89-48B0-91F2-731AB96BAF7B}
+		{907D8E3C-F9E2-42A2-8171-502615C831DC} = {4BC4D2DE-3E72-4912-B853-F19BB0D5F732}
+		{D0C86394-673B-4C26-BDF3-81695B227723} = {81BDD623-4A89-48B0-91F2-731AB96BAF7B}
+		{47CFB9AC-FBBB-42ED-A7D1-195CDB1E606E} = {81BDD623-4A89-48B0-91F2-731AB96BAF7B}
+		{37135302-6491-4A9F-8EC6-340ADBDE8F80} = {81BDD623-4A89-48B0-91F2-731AB96BAF7B}
+		{4125283C-92E9-44E2-A4E0-428BDA34AE9B} = {81BDD623-4A89-48B0-91F2-731AB96BAF7B}
+		{E09023FC-4496-4DEE-BA3C-1C0CAFAC7D5C} = {81BDD623-4A89-48B0-91F2-731AB96BAF7B}
+		{36F88A62-5B5B-4F0A-84B6-A8A79276F885} = {81BDD623-4A89-48B0-91F2-731AB96BAF7B}
+		{333AC150-05DF-4461-917C-4E303FD4320A} = {81BDD623-4A89-48B0-91F2-731AB96BAF7B}
+		{E5F793D3-2E2F-45CA-AD5C-4FA5392B53B1} = {81BDD623-4A89-48B0-91F2-731AB96BAF7B}
+		{87D74A9A-1FA7-40D5-BA5E-0AB195C4CDF9} = {81BDD623-4A89-48B0-91F2-731AB96BAF7B}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C50D6270-78F7-4C27-9DCD-82D041C849D1}
+	EndGlobalSection
+EndGlobal
