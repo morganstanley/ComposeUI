@@ -96,6 +96,9 @@ internal static class ThrowHelper
     public static Fdc3DesktopAgentException MissingContext() =>
         new($"No context or invalid context was received as part of the {nameof(IntentResolution)}.");
 
+    public static Fdc3DesktopAgentException MissingOpenedAppContext() =>
+        new("No context was received from the backend.");
+
     public static Fdc3DesktopAgentException IntentResultStoreFailed(string intent, string instanceId) =>
         new($"Instance: {instanceId} was not able to store the {nameof(IIntentResult)} on the backend.");
 
@@ -104,4 +107,13 @@ internal static class ThrowHelper
 
     public static Fdc3DesktopAgentException ListenerNotUnRegistered(string intent, string instanceId) =>
         new($"Intent listener is still registered for the intent: {intent} on the backend for instance: {instanceId}.");
+
+    internal static Fdc3DesktopAgentException MalformedContext() =>
+        new ($"The context is malformed when the fdc3.open method was called for the native client.");
+
+    internal static Fdc3DesktopAgentException AppIdentifierNotRetrieved() =>
+        new($"The {nameof(AppIdentifier)} cannot be returned when calling the fdc3.open from the native client...");
+
+    internal static Fdc3DesktopAgentException MissingOpenAppContext() =>
+        new("The context id was received while checking if the app is opened via the fdc3.open call...");
 }

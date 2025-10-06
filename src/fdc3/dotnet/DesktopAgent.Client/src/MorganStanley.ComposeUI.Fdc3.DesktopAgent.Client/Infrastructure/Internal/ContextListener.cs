@@ -12,6 +12,7 @@
  * and limitations under the License.
  */
 
+using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Finos.Fdc3;
@@ -43,6 +44,10 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
     private IAsyncDisposable? _subscription;
 
     private string _contextListenerId;
+
+    private readonly SemaphoreSlim _openedAppContextLock = new(1,1);
+    private bool _isOpenedAppContextHandled = true; //By default we set to true, so if an app/private channel is created then they will be able to receive the contexts to handle/ or broadcast to that. Open context should be handled on the same user channel added by a top level context listener.
+    private readonly ConcurrentBag<T> _contexts = new();
 
     public string? ContextType => _contextType;
 
@@ -102,6 +107,7 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
         {
             await _subscriptionLock.WaitAsync().ConfigureAwait(false);
             await _serializedContextsLock.WaitAsync().ConfigureAwait(false);
+            await _openedAppContextLock.WaitAsync().ConfigureAwait(false);
 
             if (_isSubscribed)
             {
@@ -136,6 +142,12 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
                         _logger.LogDebug("Context received: {SerializedContext}; Type to deserialize to: {Type}...", serializedContext, typeof(T));
                     }
 
+                    if (!_isOpenedAppContextHandled)
+                    {
+                        _contexts.Add(context!);
+                        return new ValueTask();
+                    }
+
                     _contextHandler(context!);
                     _serializedContexts.Add(context!);
 
@@ -153,6 +165,7 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
         {
             _subscriptionLock.Release();
             _serializedContextsLock.Release();
+            _openedAppContextLock.Release();
 
             _logger.LogInformation("Context listener subscribed to channel {ChannelId} for context type {ContextType}.", channelId, _contextType);
         }
@@ -163,6 +176,7 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
         try
         {
             await _subscriptionLock.WaitAsync().ConfigureAwait(false);
+            await _openedAppContextLock.WaitAsync().ConfigureAwait(false);
 
             if (!_isSubscribed)
             {
@@ -181,11 +195,52 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
                 return;
             }
 
-            _contextHandler((T) context);
+            if (!_isOpenedAppContextHandled)
+            {
+                _contexts.Add(typedContext);
+                return;
+            }
+
+            _contextHandler(typedContext);
         }
         finally
         {
             _subscriptionLock.Release();
+            _openedAppContextLock.Release();
+        }
+    }
+
+    public async Task SetOpenHandledAsync(bool handled)
+    {
+        try
+        {
+            await _openedAppContextLock.WaitAsync().ConfigureAwait(false);
+            _isOpenedAppContextHandled = handled;
+        }
+        finally
+        {
+            _openedAppContextLock.Release();           
+        }
+    }
+
+    //TODO: decide if we want to handle the cached contexts after the context via the fdc3.open call is handled
+    private async Task HandleCachedContextsAsync()
+    {
+        try
+        {
+            await _openedAppContextLock.WaitAsync().ConfigureAwait(false);
+
+            if (_isOpenedAppContextHandled)
+            {
+                while (_contexts.TryTake(out var context))
+                {
+                    _contextHandler(context);
+                }
+            }
+        }
+        finally
+        {
+            _openedAppContextLock.Release();
         }
     }
 

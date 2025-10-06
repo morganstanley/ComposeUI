@@ -44,7 +44,7 @@ internal class ChannelFactory : IChannelFactory
         _logger = _loggerFactory.CreateLogger<ChannelFactory>();
     }
 
-    public async ValueTask<ContextListener<T>> CreateContextListener<T>(
+    public async ValueTask<ContextListener<T>> CreateContextListenerAsync<T>(
         ContextHandler<T> contextHandler,
         IChannel? currentChannel = null,
         string? contextType = null)

@@ -31,7 +31,7 @@ internal interface IChannelFactory
     /// <param name="currentChannel">The channel to listen on. If null, the default channel is used.</param>
     /// <param name="contextType">The context type to filter for. If null, all context types are received.</param>
     /// <returns>A <see cref="ValueTask{ContextListener}"/> representing the asynchronous operation.</returns>
-    public ValueTask<ContextListener<T>> CreateContextListener<T>(
+    public ValueTask<ContextListener<T>> CreateContextListenerAsync<T>(
         ContextHandler<T> contextHandler,
         IChannel? currentChannel = null,
         string? contextType = null)

@@ -4,20 +4,16 @@ using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
 using MorganStanley.ComposeUI.ModuleLoader;
 using Finos.Fdc3;
 using FluentAssertions;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure;
-using MorganStanley.ComposeUI.Messaging.Abstractions;
 using Finos.Fdc3.Context;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests.Helpers;
 using MorganStanley.ComposeUI.Fdc3.AppDirectory;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
 using DisplayMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.DisplayMetadata;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
-using System.Runtime.CompilerServices;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.IntegrationTests.Helpers;
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests;
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.IntegrationTests;
 
 public class EndToEndTests : IAsyncLifetime
 {
@@ -39,6 +35,9 @@ public class EndToEndTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
+        Environment.SetEnvironmentVariable(nameof(AppIdentifier.AppId), null);
+        Environment.SetEnvironmentVariable(nameof(AppIdentifier.InstanceId), null);
+
         // Create the backend side
         IHostBuilder hostBuilder = new HostBuilder();
         hostBuilder.ConfigureServices(
@@ -66,8 +65,8 @@ public class EndToEndTests : IAsyncLifetime
                 serviceCollection.AddFdc3DesktopAgent(
                     fdc3 =>
                     {
-                        fdc3.Configure(builder => 
-                        { 
+                        fdc3.Configure(builder =>
+                        {
                             builder.ChannelId = TestChannel;
                         });
                     });
@@ -110,11 +109,12 @@ public class EndToEndTests : IAsyncLifetime
                 }
             });
 
-        var instance = await _moduleLoader.StartModule(new StartRequest("appId1"));
-        var fdc3StartupProperties = instance.GetProperties<Fdc3StartupProperties>().FirstOrDefault();
+        var instanceId = Guid.NewGuid().ToString();
+
+        var instance = await _moduleLoader.StartModule(new StartRequest("appId1", new Dictionary<string, string>() { { "Fdc3InstanceId", instanceId } }));
 
         Environment.SetEnvironmentVariable(nameof(AppIdentifier.AppId), "appId1");
-        Environment.SetEnvironmentVariable(nameof(AppIdentifier.InstanceId), fdc3StartupProperties!.InstanceId);
+        Environment.SetEnvironmentVariable(nameof(AppIdentifier.InstanceId), instanceId);
 
         _desktopAgent = _clientServices.GetRequiredService<IDesktopAgent>();
     }
@@ -136,6 +136,9 @@ public class EndToEndTests : IAsyncLifetime
         await _clientServices.DisposeAsync();
         await _host.StopAsync();
         _host.Dispose();
+
+        Environment.SetEnvironmentVariable(nameof(AppIdentifier.AppId), null);
+        Environment.SetEnvironmentVariable(nameof(AppIdentifier.InstanceId), null);
     }
 
     [Fact]
@@ -167,12 +170,15 @@ public class EndToEndTests : IAsyncLifetime
     [Fact]
     public async Task GetInfo_throws_error_as_instance_id_not_found()
     {
+        Environment.SetEnvironmentVariable(nameof(AppIdentifier.AppId), null);
+        Environment.SetEnvironmentVariable(nameof(AppIdentifier.InstanceId), null);
+
         Environment.SetEnvironmentVariable(nameof(AppIdentifier.AppId), "nonExistentAppId");
         Environment.SetEnvironmentVariable(nameof(AppIdentifier.InstanceId), Guid.NewGuid().ToString());
 
-        var desktopAgent = new DesktopAgentClient(_clientServices.GetRequiredService<IMessaging>());
+        var desktopAgent = _clientServices.GetRequiredService<IDesktopAgent>();
 
-        var action = async() => await desktopAgent.GetInfo();
+        var action = async () => await desktopAgent.GetInfo();
 
         await action.Should()
             .ThrowAsync<Fdc3DesktopAgentException>()
@@ -199,7 +205,7 @@ public class EndToEndTests : IAsyncLifetime
         await Task.Delay(2000);
 
         var listener1 = await _desktopAgent.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) => { resultContexts.Add(context); });
-        var listener2 = await _desktopAgent.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) => { resultContexts.Add(context);  });
+        var listener2 = await _desktopAgent.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) => { resultContexts.Add(context); });
 
         await _desktopAgent.JoinUserChannel("fdc3.channel.1");
         var currentChannel = await _desktopAgent.GetCurrentChannel();
@@ -208,8 +214,6 @@ public class EndToEndTests : IAsyncLifetime
         currentChannel.Id.Should().Be("fdc3.channel.1");
 
         resultContexts.Should().HaveCount(2);
-
-        await _moduleLoader.StopModule(new StopRequest(module.InstanceId));
     }
 
     [Fact]
@@ -230,8 +234,8 @@ public class EndToEndTests : IAsyncLifetime
     [Fact]
     public async Task AddContextListener_can_be_registered_multiple_times()
     {
-        var listener1 = await _desktopAgent.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) => {  });
-        var listener2 = await _desktopAgent.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) => {  });
+        var listener1 = await _desktopAgent.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) => { });
+        var listener2 = await _desktopAgent.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) => { });
 
         listener1.Should().NotBeNull();
         listener2.Should().NotBeNull();
@@ -249,8 +253,6 @@ public class EndToEndTests : IAsyncLifetime
         listener1.Should().NotBeNull();
         listener2.Should().NotBeNull();
         resultContexts.Should().HaveCount(0);
-
-        await _moduleLoader.StopModule(new StopRequest(module.InstanceId));
     }
 
     [Fact]
@@ -273,8 +275,6 @@ public class EndToEndTests : IAsyncLifetime
         currentChannel.Should().NotBeNull();
         currentChannel.Id.Should().Be("fdc3.channel.1");
         resultContexts.Should().HaveCount(2); //not 4
-
-        await _moduleLoader.StopModule(new StopRequest(module.InstanceId));
     }
 
     [Fact]
@@ -353,13 +353,13 @@ public class EndToEndTests : IAsyncLifetime
 
         var serviceProvider = clientServices.BuildServiceProvider();
 
-        var module = await moduleLoader.StartModule(new StartRequest("appId1-native", new Dictionary<string, string>() { { "Fdc3InstanceId", Guid.NewGuid().ToString() } })); // This will ensure that the DesktopAgent backend knows its an FDC3 enabled module. For test only
+        var instanceId = Guid.NewGuid().ToString();
 
-        var instance = await moduleLoader.StartModule(new StartRequest("appId1"));
-        var fdc3StartupProperties = instance.GetProperties<Fdc3StartupProperties>().FirstOrDefault();
+        var instance = await moduleLoader.StartModule(new StartRequest("appId1", new Dictionary<string, string>() { { "Fdc3InstanceId", instanceId } }));
 
         Environment.SetEnvironmentVariable(nameof(AppIdentifier.AppId), "appId1");
-        Environment.SetEnvironmentVariable(nameof(AppIdentifier.InstanceId), fdc3StartupProperties!.InstanceId);
+        Environment.SetEnvironmentVariable(nameof(AppIdentifier.InstanceId), instanceId);
+
         var desktopAgent = serviceProvider.GetRequiredService<IDesktopAgent>();
 
         var result = await desktopAgent.GetUserChannels();
@@ -377,7 +377,6 @@ public class EndToEndTests : IAsyncLifetime
         });
 
         await host.StopAsync();
-        await _moduleLoader.StopModule(new StopRequest(module.InstanceId));
     }
 
     [Fact]
@@ -420,8 +419,6 @@ public class EndToEndTests : IAsyncLifetime
         appChannel.Id.Should().Be("app-channel-1");
         resultContexts.Should().HaveCount(1);
         resultContexts.Should().BeEquivalentTo(new List<IContext>() { new Instrument(new InstrumentID { Ticker = $"test-instrument-2" }, "test-name2") });
-
-        await _moduleLoader.StopModule(new StopRequest(module.InstanceId));
     }
 
     [Fact]
@@ -444,7 +441,7 @@ public class EndToEndTests : IAsyncLifetime
     [Fact]
     public async Task FindIntent_throws_when_intent_not_found()
     {
-        var act = async() => await _desktopAgent.FindIntent("notExistent");
+        var act = async () => await _desktopAgent.FindIntent("notExistent");
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage($"*{ResolveError.NoAppsFound}*");
@@ -504,15 +501,13 @@ public class EndToEndTests : IAsyncLifetime
         channel.Should().NotBeNull();
 
         channel.Should().BeAssignableTo<IChannel>();
-
-        await _moduleLoader.StopModule(new StopRequest(module.InstanceId));
     }
 
     [Fact]
     public async Task RaiseIntentForContext_raises_intent_throws_when_no_app_could_handle_the_request()
     {
         var act = async () => await _desktopAgent.RaiseIntentForContext(new Chart(new Instrument[] { new Instrument() }));
-        
+
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage($"*{ResolveError.NoAppsFound}*");
     }
@@ -530,8 +525,6 @@ public class EndToEndTests : IAsyncLifetime
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage($"*{ResolveError.IntentDeliveryFailed}*");
-
-        await _moduleLoader.StopModule(new StopRequest(module.InstanceId));
     }
 
     [Fact]
@@ -547,17 +540,15 @@ public class EndToEndTests : IAsyncLifetime
 
         var module = await _moduleLoader.StartModule(
             new StartRequest(
-                "appId1-native", 
-                new Dictionary<string, string>() 
-                { 
+                "appId1-native",
+                new Dictionary<string, string>()
+                {
                     { "Fdc3InstanceId", Guid.NewGuid().ToString() },
                 })); // This will ensure that the DesktopAgent backend knows its an FDC3 enabled module. For test only!
 
         await Task.Delay(3000); //We need to wait somehow for the module to finish up its actions
 
         handledContexts.Should().HaveCount(1);
-
-        await _moduleLoader.StopModule(new StopRequest(module.InstanceId));
     }
 
     [Fact]
@@ -578,7 +569,7 @@ public class EndToEndTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task RaiseIntent_throws_as_no_apps_found_to_handle() 
+    public async Task RaiseIntent_throws_as_no_apps_found_to_handle()
     {
         var act = async () => await _desktopAgent.RaiseIntent("notExistentIntent", new Instrument(new InstrumentID { Ticker = "AAPL" }, "Apple Inc."));
 
@@ -595,9 +586,27 @@ public class EndToEndTests : IAsyncLifetime
         //We need to wait somehow for the module to finish up the listener registration
         await Task.Delay(2000);
 
-        var act = async() => await _desktopAgent.RaiseIntent("TestInstrument", new Valuation("USD"), new AppIdentifier { AppId = appId, InstanceId = fdc3InstanceId });
+        var act = async () => await _desktopAgent.RaiseIntent("TestInstrument", new Valuation("USD"), new AppIdentifier { AppId = appId, InstanceId = fdc3InstanceId });
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage($"*{ResolveError.IntentDeliveryFailed}*");
+    }
+
+    [Fact]
+    public async Task Open_throws_when_no_context_listener_registered_to_handle_context_when_opening()
+    {
+        var act = async () => await _desktopAgent.Open(new AppIdentifier { AppId = "appId1-native" }, new Chart(new Instrument[] { }));
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+        .WithMessage($"*{OpenError.AppTimeout}*");
+    }
+
+    [Fact]
+    public async Task Open_returns_AppIdentifier()
+    {
+        var result = await _desktopAgent.Open(new AppIdentifier { AppId = "appId1-native" });
+        result.Should().NotBeNull();
+        result.AppId.Should().Be("appId1-native");
+        result.InstanceId.Should().NotBeNull();
     }
 }
