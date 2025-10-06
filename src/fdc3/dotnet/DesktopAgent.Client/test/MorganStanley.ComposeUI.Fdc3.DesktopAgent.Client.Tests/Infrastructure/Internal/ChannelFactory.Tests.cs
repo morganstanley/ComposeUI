@@ -30,7 +30,7 @@ public class ChannelFactoryTests
     private readonly JsonSerializerOptions _jsonSerializerOptions = SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization;
 
     [Fact]
-    public async Task CreateContextListener_returns_listener_from_channel_when_currentChannel_is_provided()
+    public async Task CreateContextListenerAsync_returns_listener_from_channel_when_currentChannel_is_provided()
     {
         var messagingMock = new Mock<IMessaging>();
         var channelMock = new Mock<IChannel>();
@@ -43,19 +43,19 @@ public class ChannelFactoryTests
 
         var factory = new ChannelFactory(messagingMock.Object, "instanceId");
 
-        var result = await factory.CreateContextListener(handler, channelMock.Object, "fdc3.instrument");
+        var result = await factory.CreateContextListenerAsync(handler, channelMock.Object, "fdc3.instrument");
 
         result.Should().BeSameAs(expectedListener);
     }
 
     [Fact]
-    public async Task CreateContextListener_creates_new_listener_when_currentChannel_is_null()
+    public async Task CreateContextListenerAsync_creates_new_listener_when_currentChannel_is_null()
     {
         var messagingMock = new Mock<IMessaging>();
         var handler = new ContextHandler<Instrument>((ctx, _) => { });
         var factory = new ChannelFactory(messagingMock.Object, "instanceId");
 
-        var result = await factory.CreateContextListener(handler, null, "fdc3.instrument");
+        var result = await factory.CreateContextListenerAsync(handler, null, "fdc3.instrument");
 
         result.Should().NotBeNull();
         result.Should().BeOfType<ContextListener<Instrument>>();

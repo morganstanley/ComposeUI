@@ -16,7 +16,7 @@ using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
 using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 using MorganStanley.ComposeUI.ModuleLoader;
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests.Helpers;
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.IntegrationTests.Helpers;
 
 internal sealed class MessageRouterStartupAction : IStartupAction
 {

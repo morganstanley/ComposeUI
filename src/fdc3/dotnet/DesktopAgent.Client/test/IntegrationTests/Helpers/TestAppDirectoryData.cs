@@ -12,14 +12,11 @@
  * and limitations under the License.
  */
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
 
-/// <summary>
-/// This class is for setting internally the properties that should be injected to the opened app.
-/// </summary>
-internal class Fdc3StartupParameters
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.IntegrationTests.Helpers;
+
+internal static class TestAppDirectoryData
 {
-    public static string Fdc3InstanceId = nameof(Fdc3InstanceId);
-    public static string Fdc3ChannelId = nameof(Fdc3ChannelId);
-    public static string OpenedAppContextId = nameof(OpenedAppContextId);
+    public static AppMetadata DefaultApp1 => new AppMetadata { AppId = "appId1", Name = "app1" };
 }

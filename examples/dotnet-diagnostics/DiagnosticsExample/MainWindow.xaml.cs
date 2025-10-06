@@ -20,6 +20,7 @@ using System.Windows;
 using Finos.Fdc3;
 using Finos.Fdc3.Context;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
+using Finos.Fdc3.AppDirectory;
 
 namespace DiagnosticsExample;
 
@@ -352,6 +353,25 @@ public partial class MainWindow : Window
         catch (Exception exception)
         {
             Dispatcher.Invoke(() => DiagnosticsText += $"\n RaiseIntent failed: {exception.ToString()}");
+        }
+    }
+
+    private async void OpenButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            await Task.Run(async () =>
+            {
+                Dispatcher.Invoke(() => DiagnosticsText += "\n Opening app with fdc3.instrument...");
+
+                var appIdentifier = await _desktopAgent.Open(new AppIdentifier() { AppId = "WPFExample" }, new Instrument(new InstrumentID() { BBG = "open-test" }, "Open Test")).ConfigureAwait(false);
+
+                Dispatcher.Invoke(() => DiagnosticsText += $"\n Open is completed. AppId: {appIdentifier.AppId}, instanceId: {appIdentifier.InstanceId}...");
+            });
+        }
+        catch (Exception exception)
+        {
+            Dispatcher.Invoke(() => DiagnosticsText += $"\n Open failed: {exception.ToString()}");
         }
     }
 

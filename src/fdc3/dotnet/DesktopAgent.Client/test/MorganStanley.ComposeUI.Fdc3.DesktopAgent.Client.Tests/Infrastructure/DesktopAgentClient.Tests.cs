@@ -25,7 +25,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
-using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
+using static MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests.Infrastructure.Internal.OpenClientTests;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
 using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIntent;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppMetadata;
@@ -91,10 +91,10 @@ public class DesktopAgentClientTests : IAsyncLifetime
 
         var desktopAgent = new DesktopAgentClient(messagingMock.Object);
 
-        var result =  await desktopAgent.GetAppMetadata(new AppIdentifier { AppId = "test-appId" });
+        var result = await desktopAgent.GetAppMetadata(new AppIdentifier { AppId = "test-appId" });
 
         result.Should().NotBeNull();
-        result!.Should().BeEquivalentTo(new AppMetadata {AppId = "test-appId"});
+        result!.Should().BeEquivalentTo(new AppMetadata { AppId = "test-appId" });
     }
 
     [Fact]
@@ -141,7 +141,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
     public async Task GetInfo_returns_ImplementationMetadata()
     {
         var messagingMock = new Mock<IMessaging>();
-        var implementationMetadata = new ImplementationMetadata {AppMetadata = new AppMetadata {AppId = "test_appId"}};
+        var implementationMetadata = new ImplementationMetadata { AppMetadata = new AppMetadata { AppId = "test_appId" } };
 
         messagingMock.Setup(
                 _ => _.InvokeServiceAsync(
@@ -190,7 +190,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new JoinUserChannelResponse { Success = false, Error = "test-error" }, _jsonSerializerOptions)));
 
         var desktopAgent = new DesktopAgentClient(messagingMock.Object);
-        var action = async() => await desktopAgent.JoinUserChannel("test-channelId");
+        var action = async () => await desktopAgent.JoinUserChannel("test-channelId");
 
         await action.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage("*test-error*");
@@ -240,7 +240,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new Context("test-type"), _jsonSerializerOptions))); //This shouldn't be the last context which is received by the second context listener as the last context for the registered context type is already set when invoking the GetCurrentContext for the first context listener
 
         var desktopAgent = new DesktopAgentClient(messagingMock.Object);
-        var listener = await desktopAgent.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) =>  { resultContextListenerInvocations++; });
+        var listener = await desktopAgent.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) => { resultContextListenerInvocations++; });
         var listener2 = await desktopAgent.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) => { resultContextListenerInvocations++; });
 
         await desktopAgent.JoinUserChannel("test-channelId");
@@ -262,7 +262,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()))
-            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new JoinUserChannelResponse { Success = true, DisplayMetadata = new DisplayMetadata() { Name = "test-channelId" } }, _jsonSerializerOptions))); 
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new JoinUserChannelResponse { Success = true, DisplayMetadata = new DisplayMetadata() { Name = "test-channelId" } }, _jsonSerializerOptions)));
 
         var desktopAgent = new DesktopAgentClient(messagingMock.Object);
 
@@ -443,14 +443,14 @@ public class DesktopAgentClientTests : IAsyncLifetime
                     It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<string?>(
                 JsonSerializer.Serialize(
-                    new GetUserChannelsResponse 
-                    { 
-                        Channels = new[] 
-                        { 
-                            new ChannelItem { Id = "1", DisplayMetadata = new DisplayMetadata { Name = "1" } }, 
-                            new ChannelItem { Id = "2", DisplayMetadata = new DisplayMetadata { Name = "2" } } 
-                        } 
-                    }, _jsonSerializerOptions )));
+                    new GetUserChannelsResponse
+                    {
+                        Channels = new[]
+                        {
+                            new ChannelItem { Id = "1", DisplayMetadata = new DisplayMetadata { Name = "1" } },
+                            new ChannelItem { Id = "2", DisplayMetadata = new DisplayMetadata { Name = "2" } }
+                        }
+                    }, _jsonSerializerOptions)));
 
         var desktopAgent = new DesktopAgentClient(messagingMock.Object);
 
@@ -459,10 +459,10 @@ public class DesktopAgentClientTests : IAsyncLifetime
         result.Should().NotBeNull();
         result.Should().HaveCount(2);
         result.Should().BeEquivalentTo(
-            new[] 
-            { 
-                new Channel("1", ChannelType.User, messagingMock.Object, It.IsAny<string>(), new DisplayMetadata { Name = "1" }, It.IsAny<ILoggerFactory>()), 
-                new Channel("2", ChannelType.User, messagingMock.Object, It.IsAny<string>(), new DisplayMetadata { Name = "2" }, It.IsAny<ILoggerFactory>()) 
+            new[]
+            {
+                new Channel("1", ChannelType.User, messagingMock.Object, It.IsAny<string>(), new DisplayMetadata { Name = "1" }, It.IsAny<ILoggerFactory>()),
+                new Channel("2", ChannelType.User, messagingMock.Object, It.IsAny<string>(), new DisplayMetadata { Name = "2" }, It.IsAny<ILoggerFactory>())
             });
     }
 
@@ -476,7 +476,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()))
-            .Returns(new ValueTask<string?>((string?)null));
+            .Returns(new ValueTask<string?>((string?) null));
 
         var desktopAgent = new DesktopAgentClient(messagingMock.Object);
 
@@ -612,7 +612,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
 
         messagingMock
             .Setup(m => m.InvokeServiceAsync(
-                It.IsAny<string>(), 
+                It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
@@ -634,7 +634,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync((string?)null);
+            .ReturnsAsync((string?) null);
 
         var desktopAgent = new DesktopAgentClient(messagingMock.Object);
         var act = async () => await desktopAgent.GetOrCreateChannel("testChannel");
@@ -651,7 +651,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
 
         messagingMock
             .Setup(m => m.InvokeServiceAsync(
-                It.IsAny<string>(), 
+                It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
@@ -693,7 +693,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync((string?)null);
+            .ReturnsAsync((string?) null);
 
         var desktopAgent = new DesktopAgentClient(messagingMock.Object);
         var act = async () => await desktopAgent.FindIntent("fdc3.instrument");
@@ -913,7 +913,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync((string?)null);
+            .ReturnsAsync((string?) null);
 
         var desktopAgent = new DesktopAgentClient(messagingMock.Object);
 
@@ -1195,7 +1195,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
         var intentResolution = await desktopAgent.RaiseIntentForContext(new Instrument());
         intentResolution.Should().NotBeNull();
 
-        var act = async() => await intentResolution.GetResult();
+        var act = async () => await intentResolution.GetResult();
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage("*Retrieving the intent resolution failed*");
     }
@@ -1216,7 +1216,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync((string?)null);
+            .ReturnsAsync((string?) null);
 
         var desktopAgent = new DesktopAgentClient(messagingMock.Object);
 
@@ -1369,7 +1369,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync((string?)null);
+            .ReturnsAsync((string?) null);
 
         var desktopAgent = new DesktopAgentClient(messagingMock.Object);
         var act = async () => await desktopAgent.AddIntentListener<Nothing>("test-intent", (context, contextMetadata) => Task.FromResult<IIntentResult>(new Instrument()));
@@ -1435,7 +1435,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync((string?)null);
+            .ReturnsAsync((string?) null);
 
         var desktopAgent = new DesktopAgentClient(messagingMock.Object);
         var act = async () => await desktopAgent.RaiseIntent("test-intent", new Instrument());
@@ -1497,7 +1497,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
     [Fact]
     public async Task RaiseIntent_returns_IntentResolution()
     {
-        var messaginMock = new Mock<IMessaging>();
+        var messagingMock = new Mock<IMessaging>();
 
         var raiseIntentResponse = new RaiseIntentResponse
         {
@@ -1506,30 +1506,156 @@ public class DesktopAgentClientTests : IAsyncLifetime
             MessageId = Guid.NewGuid().ToString()
         };
 
-        messaginMock
+        messagingMock
             .Setup(m => m.InvokeServiceAsync(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(JsonSerializer.Serialize(raiseIntentResponse, _jsonSerializerOptions));
 
-        var desktopAgent = new DesktopAgentClient(messaginMock.Object);
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
 
         var result = await desktopAgent.RaiseIntent("test-intent", new Instrument());
         result.Should().NotBeNull();
         result.Should().BeAssignableTo<IIntentResolution>();
     }
 
+    [Fact]
+    public async Task Open_returns_AppIdentifier()
+    {
+        var messagingMock = new Mock<IMessaging>();
+
+        var openResponse = new OpenResponse
+        {
+            AppIdentifier = new AppIdentifier
+            {
+                AppId = "test-appId1",
+                InstanceId = Guid.NewGuid().ToString()
+            }
+        };
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(openResponse, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var result = await desktopAgent.Open(new AppIdentifier { AppId = "test-appId1" }, new Instrument());
+
+        result.Should().NotBeNull();
+
+        result.Should().BeEquivalentTo(openResponse.AppIdentifier);
+    }
+
+    [Fact]
+    public async Task Open_throws_when_context_is_malformed()
+    {
+        var messagingMock = new Mock<IMessaging>();
+
+        var openResponse = new OpenResponse
+        {
+            AppIdentifier = new AppIdentifier
+            {
+                AppId = "test-appId1",
+                InstanceId = Guid.NewGuid().ToString()
+            }
+        };
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(openResponse, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var act = async () => await desktopAgent.Open(new AppIdentifier { AppId = "test-appId1" }, new MyUnvalidContext());
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*context is malformed*");
+    }
+
+    [Fact]
+    public async Task Open_throws_when_null_response_is_received()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?) null);
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var act = async () => await desktopAgent.Open(new AppIdentifier { AppId = "test-appId1" }, new Instrument());
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*No response was received from the FDC3 backend server.*");
+    }
+
+    [Fact]
+    public async Task Open_throws_when_error_response_received()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var openResponse = new OpenResponse
+        {
+            Error = "Some error"
+        };
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(openResponse, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var act = async () => await desktopAgent.Open(new AppIdentifier { AppId = "test-appId1" }, new Instrument());
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*Some error*");
+    }
+
+    [Fact]
+    public async Task Open_throws_when_AppIdentifier_is_not_returned()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var openResponse = new OpenResponse();
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(openResponse, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var act = async () => await desktopAgent.Open(new AppIdentifier { AppId = "test-appId1" }, new Instrument());
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*AppIdentifier cannot be returned*");
+    }
+
     public Task InitializeAsync()
     {
         Environment.SetEnvironmentVariable(nameof(AppIdentifier.AppId), "test-appId2");
         Environment.SetEnvironmentVariable(nameof(AppIdentifier.InstanceId), Guid.NewGuid().ToString());
-
+        
         return Task.CompletedTask;
     }
 
     public Task DisposeAsync()
     {
+        Environment.SetEnvironmentVariable(nameof(AppIdentifier.AppId), null);
+        Environment.SetEnvironmentVariable(nameof(AppIdentifier.InstanceId), null);
+
         return Task.CompletedTask;
     }
 

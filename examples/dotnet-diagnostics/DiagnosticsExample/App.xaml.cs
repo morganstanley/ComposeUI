@@ -46,7 +46,7 @@ public partial class App : Application
             {
                 l.AddConsole().SetMinimumLevel(LogLevel.Trace);
                 l.AddDebug().SetMinimumLevel(LogLevel.Trace);
-                l.AddFile($"{Directory.GetCurrentDirectory()}logs\\log.txt", LogLevel.Trace).SetMinimumLevel(LogLevel.Trace);
+                l.AddFile($".\\log.txt", LogLevel.Trace).SetMinimumLevel(LogLevel.Trace);
             });
         }
         catch
