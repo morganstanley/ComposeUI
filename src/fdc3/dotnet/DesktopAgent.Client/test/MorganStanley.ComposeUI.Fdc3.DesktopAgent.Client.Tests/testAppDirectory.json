@@ -86,7 +86,7 @@
               "name": "ViewInstrument",
               "displayName": "ViewInstrument",
               "contexts": [
-                "fdc3.instrument",
+                "fdc3.instrument"
               ]
             },
             "TestInstrument": {

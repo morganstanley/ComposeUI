@@ -47,7 +47,10 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
 
     private readonly SemaphoreSlim _openedAppContextLock = new(1,1);
     private bool _isOpenedAppContextHandled = true; //By default we set to true, so if an app/private channel is created then they will be able to receive the contexts to handle/ or broadcast to that. Open context should be handled on the same user channel added by a top level context listener.
+
     private readonly ConcurrentBag<T> _contexts = new();
+
+    private Action<ContextListener<T>>? _unsubscribeCallback;
 
     public string? ContextType => _contextType;
 
@@ -94,6 +97,11 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
                 .GetResult();
 
             _isSubscribed = false;
+
+            if (_unsubscribeCallback != null)
+            {
+                _unsubscribeCallback(this);
+            }
         }
         finally
         {
@@ -306,5 +314,10 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
         }
 
         _contextListenerId = null;
+    }
+
+    internal void SetUnsubscribeCallback(Action<ContextListener<T>> unsubscribeCallback)
+    {
+        _unsubscribeCallback = unsubscribeCallback;
     }
 }

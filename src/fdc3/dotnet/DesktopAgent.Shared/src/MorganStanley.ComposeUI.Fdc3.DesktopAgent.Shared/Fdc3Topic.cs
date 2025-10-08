@@ -83,4 +83,9 @@ internal class PrivateChannelTopics : ChannelTopics
     }
 
     public string Events { get; }
+
+    public string GetContextHandlers(bool isOriginalCreator)
+    {
+        return ChannelRoot + (isOriginalCreator ? "creator" : "listener") + "/getContextHandlers";
+    }
 }

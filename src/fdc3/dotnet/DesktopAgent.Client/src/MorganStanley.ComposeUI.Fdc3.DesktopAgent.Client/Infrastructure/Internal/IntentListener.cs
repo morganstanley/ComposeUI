@@ -176,7 +176,7 @@ internal class IntentListener<T> : IListener
     }
     private async ValueTask HandleIntentMessageAsync(string message)
     {
-        LogDebug($"Received intent invocation for intent {_intent} messsgae: {message}...");
+        LogDebug($"Received intent invocation for intent {_intent} message: {message}...");
 
         var receivedRequest = Deserialize<RaiseIntentResolutionRequest>(message);
         if (receivedRequest == null)

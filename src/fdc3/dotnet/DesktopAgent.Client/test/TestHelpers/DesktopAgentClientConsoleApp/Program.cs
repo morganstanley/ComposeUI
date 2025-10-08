@@ -29,7 +29,7 @@ internal class Program
             })
             .AddMessageRouterMessagingAdapter()
             .AddFdc3DesktopAgentClient()
-            .AddLogging(l => l.AddFile($".\\log.txt", LogLevel.Trace));
+            .AddLogging(l => l.AddFile($"{Directory.GetCurrentDirectory}\\log.txt", LogLevel.Trace));
 
         var serviceProvider = serviceCollection.BuildServiceProvider();
 
@@ -87,7 +87,41 @@ internal class Program
 
             logger.LogDebug($"Initiator identified: {instance.AppId}; {instance.InstanceId}, but retrieved instances were : {instances.Count()}...");
 
-            var intentResolution = await desktopAgentClient.RaiseIntentForContext(new Valuation("USD", 400, 1, "02/10/2025", "10/10/2025", "USD", "USD"), instance);
+            try
+            {
+                var intentResolution = await desktopAgentClient.RaiseIntentForContext(new Valuation("USD", 400, 1, "02/10/2025", "10/10/2025", "USD", "USD"), instance);
+            }
+            catch (Exception exception)
+            {
+                logger.LogWarning(exception, $"Exception was thrown in the test app during raising intent for context");
+            }
+
+            var privateChannel = await desktopAgentClient.CreatePrivateChannel();
+
+            var appChannel2 = await desktopAgentClient.GetOrCreateChannel("app-channel-for-private-channel-test");
+            privateChannel.OnAddContextListener(async ctx =>
+            {
+                await appChannel2.Broadcast(new Nothing());
+            });
+
+            var listener3 = privateChannel.OnUnsubscribe((ctx) =>
+            {
+                logger.LogInformation("Private channel is unsubscribed...");
+                Console.WriteLine("Private channel is unsubscribed...");
+            });
+
+            var listener4 = privateChannel.OnAddContextListener((ctx) =>
+            {
+                logger.LogInformation($"Private channel received context listener addition information: {ctx}");
+                Console.WriteLine($"Private channel received context listener addition information context: {ctx}");
+            });
+
+            var intentListener2 = await desktopAgentClient.AddIntentListener<Contact>("TestInstrument", (context, metadata) =>
+            {
+                logger.LogInformation($"Contact Intent received: {context?.Name} - {context?.ID}, sending private channel: {privateChannel.Id}...");
+                Console.WriteLine($"Contact Intent received: {context?.Name} - {context?.ID}, sending private channel: {privateChannel.Id}...");
+                return Task.FromResult<IIntentResult>(privateChannel);
+            });
         }
         catch (Exception exception)
         {

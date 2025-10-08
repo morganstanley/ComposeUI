@@ -385,4 +385,108 @@ public class ChannelFactoryTests
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage("*not found*");
     }
+
+    [Fact]
+    public async Task FindChannelAsync_joins_private_channel()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var instanceId = "test-instance";
+        var channelId = "private-channel";
+
+        var findChannelResponse = new FindChannelResponse { Found = true };
+        var joinPrivateChannelResponse = new JoinPrivateChannelResponse { Success = true };
+
+        messagingMock
+            .SetupSequence(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(findChannelResponse, _jsonSerializerOptions))
+            .ReturnsAsync(JsonSerializer.Serialize(joinPrivateChannelResponse, _jsonSerializerOptions));
+
+        var factory = new ChannelFactory(messagingMock.Object, instanceId);
+
+        var result = await factory.FindChannelAsync(channelId, ChannelType.Private);
+
+        result.Should().NotBeNull();
+        result.Should().BeAssignableTo<IPrivateChannel>();
+        result.Id.Should().Be(channelId);
+    }
+
+    [Fact]
+    public async Task FindChannelAsync_try_to_join_private_channel_but_throws_when_missing_response()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var instanceId = "test-instance";
+        var channelId = "private-channel";
+
+        var findChannelResponse = new FindChannelResponse { Found = true };
+
+        messagingMock
+            .SetupSequence(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(findChannelResponse, _jsonSerializerOptions))
+            .ReturnsAsync(JsonSerializer.Serialize((string?)null));
+
+        var factory = new ChannelFactory(messagingMock.Object, instanceId);
+
+        var act = async() => await factory.FindChannelAsync(channelId, ChannelType.Private);
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*No response*");
+    }
+
+    [Fact]
+    public async Task FindChannelAsync_try_to_join_private_channel_but_throws_when_error_response_received()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var instanceId = "test-instance";
+        var channelId = "private-channel";
+
+        var findChannelResponse = new FindChannelResponse { Found = true };
+        var joinPrivateChannelResponse = new JoinPrivateChannelResponse { Success = true, Error = "Some error" };
+
+        messagingMock
+            .SetupSequence(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(findChannelResponse, _jsonSerializerOptions))
+            .ReturnsAsync(JsonSerializer.Serialize(joinPrivateChannelResponse, _jsonSerializerOptions));
+
+        var factory = new ChannelFactory(messagingMock.Object, instanceId);
+
+        var act = async () => await factory.FindChannelAsync(channelId, ChannelType.Private);
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*Some error*");
+    }
+
+    [Fact]
+    public async Task FindChannelAsync_try_to_join_private_channel_but_throws_when_no_success_response_received()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var instanceId = "test-instance";
+        var channelId = "private-channel";
+
+        var findChannelResponse = new FindChannelResponse { Found = true };
+        var joinPrivateChannelResponse = new JoinPrivateChannelResponse { Success = false };
+
+        messagingMock
+            .SetupSequence(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(findChannelResponse, _jsonSerializerOptions))
+            .ReturnsAsync(JsonSerializer.Serialize(joinPrivateChannelResponse, _jsonSerializerOptions));
+
+        var factory = new ChannelFactory(messagingMock.Object, instanceId);
+
+        var act = async () => await factory.FindChannelAsync(channelId, ChannelType.Private);
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*Client was not able to join to private channel*");
+    }
 }
