@@ -12,14 +12,11 @@
  * and limitations under the License.
  */
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal.Protocol;
 
-internal class CreatePrivateChannelResponse
+internal static class PrivateChannelInternalEventType
 {
-    public bool Success { get; set; }
-    public string? Error { get; set; }
-    public string? ChannelId { get; set; }
-
-    public static CreatePrivateChannelResponse Created(string channelId) => new CreatePrivateChannelResponse { Success = true, ChannelId = channelId, Error = null};
-    public static CreatePrivateChannelResponse Failed(string error) => new CreatePrivateChannelResponse { Success = false, ChannelId = null, Error = error };
+    public static string ContextListenerAdded = "contextListenerAdded";
+    public static string Unsubscribed = "unsubscribed";
+    public static string? Disconnected = "disconnected";
 }

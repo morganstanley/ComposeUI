@@ -20,7 +20,6 @@ using System.Windows;
 using Finos.Fdc3;
 using Finos.Fdc3.Context;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
-using Finos.Fdc3.AppDirectory;
 
 namespace DiagnosticsExample;
 
@@ -45,6 +44,8 @@ public partial class MainWindow : Window
     private IListener _subscription;
     private IChannel _appChannel;
     private IListener _listener;
+    private IPrivateChannel? _privateChannel;
+    private IListener? _privateChannelContextListener;
 
     public MainWindow()
     {
@@ -298,6 +299,30 @@ public partial class MainWindow : Window
                 {
                     DiagnosticsText += $"\nIntentResolution is completed. Channel returned: {channel.Id}...";
                 });
+
+                if (channel is IPrivateChannel privateChannel)
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        DiagnosticsText += $"\n It is a private channel with id: {privateChannel.Id}...";
+                    });
+
+                    _privateChannel = privateChannel;
+                    _privateChannel.OnAddContextListener((ctx) =>
+                    {
+                        Dispatcher.Invoke(() => DiagnosticsText += $"\nContext listener was added in private channel: {privateChannel.Id} for context: {ctx}...");
+                    });
+
+                    _privateChannel.OnDisconnect(() =>
+                    {
+                        Dispatcher.Invoke(() => DiagnosticsText += $"\nDisconnected from private channel: {_privateChannel.Id}...");
+                    });
+
+                    _privateChannel.OnUnsubscribe((ctx) =>
+                    {
+                        Dispatcher.Invoke(() => DiagnosticsText += $"\nUnsubscribed from private channel: {_privateChannel.Id} for context: {ctx}...");
+                    });
+                }
             }
             else if (intentResolution != null
                 && intentResolution is IContext returnedContext)
@@ -319,16 +344,42 @@ public partial class MainWindow : Window
 
     private async void AddIntentListenerButton_Click(object sender, RoutedEventArgs e)
     {
-        await Task.Run(async () =>
+        try
         {
-            Dispatcher.Invoke(() => DiagnosticsText += "\nAdding intent listener for OpenDiagnostics...");
-
-            _listener = await _desktopAgent.AddIntentListener<Nothing>("OpenDiagnostics", (context, contextMetadata) =>
+            await Task.Run(async () =>
             {
-                Dispatcher.Invoke(() => DiagnosticsText += "\n" + "Intent received: " + context.Name + "; type: " + context.Type);
-                return null;
-            }).ConfigureAwait(false);
-        });
+                Dispatcher.Invoke(() => DiagnosticsText += "\nAdding intent listener for OpenDiagnostics...");
+
+                _privateChannel = await _desktopAgent.CreatePrivateChannel().ConfigureAwait(false);
+                Dispatcher.Invoke(() => DiagnosticsText += $"\nCreated private channel with id: {_privateChannel.Id}...");
+
+                _privateChannel.OnAddContextListener((ctx) =>
+                {
+                    Dispatcher.Invoke(() => DiagnosticsText += $"\nContextListener added in private channel: {_privateChannel.Id} for context: {ctx}...");
+                });
+
+                _privateChannel.OnDisconnect(() =>
+                {
+                    Dispatcher.Invoke(() => DiagnosticsText += $"\nDisconnected from private channel: {_privateChannel.Id}...");
+                });
+
+                _privateChannel.OnUnsubscribe((ctx) =>
+                {
+                    Dispatcher.Invoke(() => DiagnosticsText += $"\nUnsubscribed from private channel: {_privateChannel.Id} for context: {ctx}...");
+                });
+
+                _listener = await _desktopAgent.AddIntentListener<Nothing>("OpenDiagnostics", async (context, contextMetadata) =>
+                {
+                    Dispatcher.Invoke(() => DiagnosticsText += "\n" + "Intent received: " + context.Name + "; type: " + context.Type);
+
+                    return _privateChannel;
+                }).ConfigureAwait(false);
+            });
+        }
+        catch (Exception exception)
+        {
+            Dispatcher.Invoke(() => DiagnosticsText += $"\nException was thrown: {exception.ToString()}");
+        }
     }
 
     private async void RaiseIntentButton_Click(object sender, RoutedEventArgs e)
@@ -337,7 +388,7 @@ public partial class MainWindow : Window
         {
             await Task.Run(async () =>
             {
-                Dispatcher.Invoke(() => DiagnosticsText += "\n Raising intent for fdc3.instrument...");
+                Dispatcher.Invoke(() => DiagnosticsText += "\nRaising intent for fdc3.instrument...");
 
                 var resolution = await _desktopAgent.RaiseIntent("OpenDiagnostics", new Instrument(new InstrumentID() { BBG = "raise-intent-test" }, "Raise Intent Test")).ConfigureAwait(false);
 
@@ -345,14 +396,27 @@ public partial class MainWindow : Window
 
                 if (result == null)
                 {
-                    Dispatcher.Invoke(() => DiagnosticsText += "\n Intent was handled by the app, no result returned.");
+                    Dispatcher.Invoke(() => DiagnosticsText += "\nIntent was handled by the app, no result returned.");
                     return;
+                }
+                else if (result is IChannel channel)
+                {
+                    Dispatcher.Invoke(() => DiagnosticsText += $"\nIntentResolution is completed. Channel returned: {channel.Id}...");
+
+                    if (channel is IPrivateChannel privateChannel)
+                    {
+                        Dispatcher.Invoke(() => DiagnosticsText += $"\n It is a private channel with id: {privateChannel.Id}...");
+                    }
+                }
+                else if (result is IContext context)
+                {
+                    Dispatcher.Invoke(() => DiagnosticsText += $"\n IntentResolution is completed. Context returned: {context.Type}...");
                 }
             });
         }
         catch (Exception exception)
         {
-            Dispatcher.Invoke(() => DiagnosticsText += $"\n RaiseIntent failed: {exception.ToString()}");
+            Dispatcher.Invoke(() => DiagnosticsText += $"\nRaiseIntent failed: {exception.ToString()}");
         }
     }
 
@@ -362,16 +426,130 @@ public partial class MainWindow : Window
         {
             await Task.Run(async () =>
             {
-                Dispatcher.Invoke(() => DiagnosticsText += "\n Opening app with fdc3.instrument...");
+                Dispatcher.Invoke(() => DiagnosticsText += "\nOpening app with fdc3.instrument...");
 
                 var appIdentifier = await _desktopAgent.Open(new AppIdentifier() { AppId = "WPFExample" }, new Instrument(new InstrumentID() { BBG = "open-test" }, "Open Test")).ConfigureAwait(false);
 
-                Dispatcher.Invoke(() => DiagnosticsText += $"\n Open is completed. AppId: {appIdentifier.AppId}, instanceId: {appIdentifier.InstanceId}...");
+                Dispatcher.Invoke(() => DiagnosticsText += $"\nOpen is completed. AppId: {appIdentifier.AppId}, instanceId: {appIdentifier.InstanceId}...");
             });
         }
         catch (Exception exception)
         {
-            Dispatcher.Invoke(() => DiagnosticsText += $"\n Open failed: {exception.ToString()}");
+            Dispatcher.Invoke(() => DiagnosticsText += $"\nOpen failed: {exception.ToString()}");
+        }
+    }
+
+    private async void PrivateChannelBroadcastButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            await Task.Run(async () =>
+            {
+                if (_privateChannel == null)
+                {
+                    Dispatcher.Invoke(() => DiagnosticsText += "\nNo private channel to broadcast to. You should RaiseIntentForContext first and the new app should add its context listener to the private channel!");
+                    return;
+                }
+
+                Dispatcher.Invoke(() =>
+                {
+                    DiagnosticsText += $"\nBroadcasting to a private channel: {_privateChannel?.Id}";
+                });
+
+                var instrument = new Instrument(new InstrumentID() { BBG = "private-channel-test" }, $"{Guid.NewGuid().ToString()}");
+                await _privateChannel.Broadcast(instrument).ConfigureAwait(false);
+            });
+        }
+        catch (Exception exception)
+        {
+            Dispatcher.Invoke(() => DiagnosticsText += $"\nPrivate channel broadcast failed: {exception.ToString()}");
+        }
+    }
+
+    private async void PrivateChannelAddContextListenerButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            await Task.Run(async () =>
+            {
+                if (_privateChannel == null)
+                {
+                    Dispatcher.Invoke(() => DiagnosticsText += "\nNo private channel to broadcast to. You should RaiseIntentForContext first and the new app should add its context listener to the private channel!");
+                    return;
+                }
+
+                Dispatcher.Invoke(() =>
+                {
+                    DiagnosticsText += $"\nAdding context Listener to a private channel: {_privateChannel?.Id}";
+                });
+
+                _privateChannelContextListener = await _privateChannel.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) =>
+                {
+                    Dispatcher.Invoke(() => DiagnosticsText += $"\nContext received from private channel for Context: {context}...");
+                }).ConfigureAwait(false);
+            });
+        }
+        catch (Exception exception)
+        {
+            Dispatcher.Invoke(() => DiagnosticsText += $"\nPrivate channel broadcast failed: {exception.ToString()}");
+        }
+    }
+
+    private async void PrivateChannelDisconnectButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            await Task.Run(() =>
+            {
+                if (_privateChannel == null)
+                {
+                    Dispatcher.Invoke(() => DiagnosticsText += "\nNo private channel to disconnect from. You should RaiseIntentForContext first and the new app should add its context listener to the private channel!");
+                    return;
+                }
+
+                Dispatcher.Invoke(() =>
+                {
+                    DiagnosticsText += $"\nDisconnecting from a private channel: {_privateChannel?.Id}";
+                });
+
+                _privateChannel.Disconnect();
+            });
+        }
+        catch (Exception exception)
+        {
+            Dispatcher.Invoke(() => $"\nException was thrown: {exception.ToString()}");
+        }
+    }
+
+    private async void PrivateChannelUnsubscribeButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            await Task.Run(async () =>
+            {
+                if (_privateChannel == null)
+                {
+                    Dispatcher.Invoke(() => DiagnosticsText += "\nNo private channel to unsubscribe. You should RaiseIntentForContext first and the new app should add its context listener to the private channel!");
+                    return;
+                }
+
+                if (_privateChannelContextListener == null)
+                {
+                    Dispatcher.Invoke(() => DiagnosticsText += "\nNo context listener is registered on the private channel to unsubscribe. You should RaiseIntentForContext first and the new app should add its context listener to the private channel!");
+                    return;
+                }
+
+                Dispatcher.Invoke(() =>
+                {
+                    DiagnosticsText += $"\nUnsubscribing from a private channel: {_privateChannel?.Id} with private channel context listener";
+                });
+
+                _privateChannelContextListener.Unsubscribe();
+            });
+        }
+        catch (Exception exception)
+        {
+            Dispatcher.Invoke(() => $"\nException was thrown: {exception.ToString()}");
         }
     }
 

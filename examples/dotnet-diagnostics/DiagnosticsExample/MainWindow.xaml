@@ -37,6 +37,10 @@ See the License for the specific language governing permissions and limitations 
             <Button x:Name="AddIntentListenerButton" Click="AddIntentListenerButton_Click" Margin="0,10,10,0" ToolTip="Adds Intent Listener for OpenDiagnostics intent for fdc3.nothing context type">AddIntentListener</Button>
             <Button x:Name="RaiseIntentButton" Click="RaiseIntentButton_Click" Margin="0,10,10,0" ToolTip="Raises an intent for fdc3.instrument context type">RaiseIntent</Button>
             <Button x:Name="OpenButton" Click="OpenButton_Click" Margin="0,10,10,0" ToolTip="Opens an app with fdc3.instrument context">Open</Button>
+            <Button x:Name="PrivateChannelBroadcastButton" Click="PrivateChannelBroadcastButton_Click" Margin="0,10,10,0" ToolTip="Broadcasts an fdc3.instrument context to a private channel (should raiseIntentForCotnext first to retrieve back the private channel)">PC - Broadcast</Button>
+            <Button x:Name="PrivateChannelAddContextListenerButton" Click="PrivateChannelAddContextListenerButton_Click" Margin="0,10,10,0" ToolTip="Adds context listener for an fdc3.instrument context to a private channel (should raiseIntentForCotnext first to retrieve back the private channel)">PC - AddContextListener</Button>
+            <Button x:Name="PrivateChannelDisconnectButton" Click="PrivateChannelDisconnectButton_Click" Margin="0,10,10,0" ToolTip="Disconnects from a private channel (should raiseIntentForCotnext first to retrieve back the private channel)">PC - Disconnect</Button>
+            <Button x:Name="PrivateChannelUnsubscribeButton" Click="PrivateChannelUnsubscribeButton_Click" Margin="0,10,10,0" ToolTip="Unsubscribes the listener from a private channel (should raiseIntentForCotnext first to retrieve back the private channel)">PC - Unsubscribe</Button>
         </WrapPanel>
     </Grid>
 </Window>

@@ -86,14 +86,22 @@
               "name": "ViewInstrument",
               "displayName": "ViewInstrument",
               "contexts": [
-                "fdc3.instrument",
+                "fdc3.instrument"
               ]
             },
             "TestInstrument": {
               "name": "TestInstrument",
               "displayName": "TestInstrument",
               "contexts": [
-                "fdc3.valuation"
+                "fdc3.valuation",
+                "fdc3.contact"
+              ]
+            },
+            "TestInstrument2": {
+              "name": "TestInstrument2",
+              "displayName": "TestInstrument2",
+              "contexts": [
+                "fdc3.country"
               ]
             }
           }

@@ -255,7 +255,9 @@ public class DesktopAgentClient : IDesktopAgent
     public async Task<IPrivateChannel> CreatePrivateChannel()
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
-        throw new NotImplementedException();
+        var privateChannel = await _channelFactory.CreatePrivateChannelAsync();
+
+        return privateChannel;
     }
 
     public async Task<IEnumerable<IAppIdentifier>> FindInstances(IAppIdentifier app)

@@ -17,6 +17,7 @@ using Finos.Fdc3;
 using Finos.Fdc3.Context;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal.Protocol;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
@@ -226,7 +227,10 @@ internal class ChannelFactory : IChannelFactory
             throw ThrowHelper.ChannelNotFound(channelId, channelType);
         }
 
-        //TODO: private channel
+        if (channelType == ChannelType.Private)
+        {
+            return await JoinPrivateChannelAsync(channelId);
+        }
 
         return new Channel(
             channelId: channelId,
@@ -234,5 +238,82 @@ internal class ChannelFactory : IChannelFactory
             instanceId: _instanceId,
             messaging: _messaging,
             loggerFactory: _loggerFactory);
+    }
+
+    public async ValueTask<IPrivateChannel> CreatePrivateChannelAsync()
+    {
+        var request = new CreatePrivateChannelRequest
+        {
+            InstanceId = _instanceId
+        };
+
+        var response = await _messaging.InvokeJsonServiceAsync<CreatePrivateChannelRequest, CreatePrivateChannelResponse>(
+            Fdc3Topic.CreatePrivateChannel,
+            request,
+            _jsonSerializerOptions);
+
+        if (response == null)
+        {
+            throw ThrowHelper.PrivateChannelCreationFailed();
+        }
+
+        if (!string.IsNullOrEmpty(response.Error))
+        {
+            throw ThrowHelper.ErrorResponseReceived(response.Error);
+        }
+
+        var channel = new PrivateChannel(
+            channelId: response.ChannelId!,
+            instanceId: _instanceId,
+            messaging: _messaging,
+            isOriginalCreator: true,
+            displayMetadata: null,
+            loggerFactory: _loggerFactory);
+
+        return channel;
+    }
+
+    private async ValueTask<IPrivateChannel> JoinPrivateChannelAsync(string channelId)
+    {
+        var request = new JoinPrivateChannelRequest
+        {
+            InstanceId = _instanceId,
+            ChannelId = channelId
+        };
+
+        var response = await _messaging.InvokeJsonServiceAsync<JoinPrivateChannelRequest, JoinPrivateChannelResponse>(
+            Fdc3Topic.JoinPrivateChannel,
+            request,
+            _jsonSerializerOptions);
+
+        if (response == null)
+        {
+            throw ThrowHelper.MissingResponse();
+        }
+
+        if (!string.IsNullOrEmpty(response.Error))
+        {
+            throw ThrowHelper.ErrorResponseReceived(response.Error);
+        }
+
+        if (!response.Success)
+        {
+            throw ThrowHelper.PrivateChannelJoiningFailed(channelId);
+        }
+
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug($"Joined private channel {channelId}.");
+        }
+
+        var channel = new PrivateChannel(
+            channelId: channelId,
+            instanceId: _instanceId,
+            messaging: _messaging,
+            isOriginalCreator: false,
+            displayMetadata: null,
+            loggerFactory: _loggerFactory);
+
+        return channel;
     }
 }

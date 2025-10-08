@@ -9,6 +9,22 @@ It enables .NET applications to interact with FDC3-compliant desktop agents, fac
 - Integrates with ComposeUI messaging abstraction (`IMessaging`), so it doesn't rely on any actual messaging implementation.
 - Extensible logging support via `ILogger`.
 
+
+## Target Framework
+- .NET Standard 2.0
+
+Compatible with .NET (Core), .NET Framework.
+
+
+## Dependencies
+- [Finos.Fdc3](https://www.nuget.org/packages/Finos.Fdc3)
+- [Finos.Fdc3.AppDirectory](https://www.nuget.org/packages/Finos.Fdc3.AppDirectory)
+- [Microsoft.Extensions.Logging.Abstractions](https://www.nuget.org/packages/Microsoft.Extensions.Logging.Abstractions)
+- [System.Text.Json](https://www.nuget.org/packages/System.Text.Json)
+- [MorganStanley.ComposeUI.Messaging.Abstractions](https://www.nuget.org/packages/MorganStanley.ComposeUI.Messaging.Abstractions)
+- [MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared](https://www.nuget.org/packages/MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared)
+
+
 ## Installation
 Add a reference to the NuGet package (if available) or include the project in your solution.
 
@@ -193,7 +209,33 @@ You can raise an intent by using the `RaiseIntent` function and return its resul
 ```csharp
 var intentResolution = await desktopAgent.RaiseIntent("ViewChart", context, appIdentifier);
 var intentResult = await intentResolution.GetResult();
+```
 
+### Opening an app
+You can open an app by using the `Open` function:
+```csharp
+var appIdentifier = new AppIdentifier("your-app-id");
+var instrument = new Instrument();
+
+var appInstance = await desktopAgent.Open(appIdentifier, instrument);
+//The opened app should handle the context if it has registered a listener for that context type; if it does not register its context listener in time the open call will fail
+```
+
+### Creating Private Channel
+You can create a private channel by using the `CreatePrivateChannel` function:
+```csharp
+var privateChannel = await desktopAgent.CreatePrivateChannel("your-private-channel-id");
+var contextListenerHandler = privateChannel.OnAddContextListener((ctx) => {
+    Console.WriteLine($"Private channel context listener has been added for context: {ctx}");
+});
+
+var unsubscribeHandler = privateChannel.OnUnsubscribe((ctx) => {
+    Console.WriteLine($"Private channel context listener has been unsubscribed for context: {ctx}");
+});
+
+var disconnectHandler = privateChannel.OnDisconnect(() => {
+    Console.WriteLine("Private channel has been disconnected");
+});
 ```
 
 ## Documentation

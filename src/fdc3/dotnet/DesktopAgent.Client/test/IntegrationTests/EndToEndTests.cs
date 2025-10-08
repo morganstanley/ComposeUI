@@ -68,6 +68,8 @@ public class EndToEndTests : IAsyncLifetime
                         fdc3.Configure(builder =>
                         {
                             builder.ChannelId = TestChannel;
+                            builder.IntentResultTimeout = TimeSpan.FromSeconds(3);
+                            builder.ListenerRegistrationTimeout = TimeSpan.FromSeconds(3);
                         });
                     });
 
@@ -521,7 +523,7 @@ public class EndToEndTests : IAsyncLifetime
         //We need to wait somehow for the module to finish up the listener registration
         await Task.Delay(2000);
 
-        var act = async () => await _desktopAgent.RaiseIntentForContext(new Valuation("USD"), new AppIdentifier { AppId = appId, InstanceId = fdc3InstanceId });
+        var act = async () => await _desktopAgent.RaiseIntentForContext(new Country(), new AppIdentifier { AppId = appId, InstanceId = fdc3InstanceId });
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage($"*{ResolveError.IntentDeliveryFailed}*");
@@ -586,7 +588,7 @@ public class EndToEndTests : IAsyncLifetime
         //We need to wait somehow for the module to finish up the listener registration
         await Task.Delay(2000);
 
-        var act = async () => await _desktopAgent.RaiseIntent("TestInstrument", new Valuation("USD"), new AppIdentifier { AppId = appId, InstanceId = fdc3InstanceId });
+        var act = async () => await _desktopAgent.RaiseIntent("TestInstrument2", new Country(), new AppIdentifier { AppId = appId, InstanceId = fdc3InstanceId });
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage($"*{ResolveError.IntentDeliveryFailed}*");
@@ -598,7 +600,7 @@ public class EndToEndTests : IAsyncLifetime
         var act = async () => await _desktopAgent.Open(new AppIdentifier { AppId = "appId1-native" }, new Chart(new Instrument[] { }));
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
-        .WithMessage($"*{OpenError.AppTimeout}*");
+            .WithMessage($"*{OpenError.AppTimeout}*");
     }
 
     [Fact]
@@ -608,5 +610,46 @@ public class EndToEndTests : IAsyncLifetime
         result.Should().NotBeNull();
         result.AppId.Should().Be("appId1-native");
         result.InstanceId.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task CreatePrivateChannel_creates_private_channel()
+    {
+        var channel = await _desktopAgent.CreatePrivateChannel();
+        channel.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task RaiseIntent_creates_private_channel_and_client_app_recieves_context_listener_registration()
+    {
+        var fdc3InstanceId = Guid.NewGuid().ToString();
+        var appId = "appId1-native";
+        var module = await _moduleLoader.StartModule(new StartRequest(appId, new Dictionary<string, string>() { { "Fdc3InstanceId", fdc3InstanceId } })); // This will ensure that the DesktopAgent backend knows its an FDC3 enabled module. For test only
+
+        var appChannel2 = await _desktopAgent.GetOrCreateChannel("app-channel-for-private-channel-test");
+        var contextListenerAdded = false;
+        var appChannelListener = await appChannel2.AddContextListener<Nothing>(ContextTypes.Nothing, (ctx, ctxM) =>
+        {
+            //This should be triggered only when the private channel is ready from client test app and its OnAddContextListener has been triggered.
+            contextListenerAdded = true;
+        });
+
+        //We need to wait somehow for the module to finish up the listener registration, raiseIntentForContext in the test app will fail which will take some time to finish
+        await Task.Delay(5000);
+
+        var resolution = await _desktopAgent.RaiseIntent("TestInstrument", new Contact(), new AppIdentifier { AppId = appId, InstanceId = fdc3InstanceId });
+        resolution.Should().NotBeNull();
+
+        var result = await resolution.GetResult();
+        result.Should().BeAssignableTo<IPrivateChannel>();
+
+        var privateChannel = result as IPrivateChannel;
+
+        var privateChannelContextListener = await privateChannel!.AddContextListener<Nothing>(ContextTypes.Nothing, (ctx, ctxM) => { });
+
+        //Waiting for the client app to receive that a context listener has been added
+        await Task.Delay(1000);
+
+        contextListenerAdded.Should().BeTrue();
     }
 }

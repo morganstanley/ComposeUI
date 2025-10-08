@@ -1643,6 +1643,76 @@ public class DesktopAgentClientTests : IAsyncLifetime
             .WithMessage("*AppIdentifier cannot be returned*");
     }
 
+    [Fact]
+    public async Task CreatePrivateChannel_creates_private_channel()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var response = new CreatePrivateChannelResponse
+        {
+            ChannelId = "private-channel-id",
+            Success = true
+        };
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var channel = await desktopAgent.CreatePrivateChannel();
+
+        channel.Should().NotBeNull();
+        channel.Id.Should().Be("private-channel-id");
+    }
+
+    public async Task CreatePrivateChannel_throws_when_null_response_received()
+    {
+        var messagingMock = new Mock<IMessaging>();
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?) null);
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var act = async () => await desktopAgent.CreatePrivateChannel();
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*No response*");
+    }
+
+    [Fact]
+    public async Task CreatePrivateChannel_throws_when_error_response_received()
+    {
+        var messagingMock = new Mock<IMessaging>();
+
+        var response = new CreatePrivateChannelResponse
+        {
+            Success = false,
+            Error = "Some error"
+        };
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
+        var act = async () => await desktopAgent.CreatePrivateChannel();
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*Some error*");
+    }
+
     public Task InitializeAsync()
     {
         Environment.SetEnvironmentVariable(nameof(AppIdentifier.AppId), "test-appId2");

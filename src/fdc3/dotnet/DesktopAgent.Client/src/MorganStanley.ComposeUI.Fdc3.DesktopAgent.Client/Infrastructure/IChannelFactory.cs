@@ -64,4 +64,10 @@ internal interface IChannelFactory
     /// <param name="channelType"></param>
     /// <returns></returns>
     public ValueTask<IChannel> FindChannelAsync(string channelId, ChannelType channelType);
+
+    /// <summary>
+    /// Creates a private channel by sending request to the backend.
+    /// </summary>
+    /// <returns></returns>
+    public ValueTask<IPrivateChannel> CreatePrivateChannelAsync();
 }

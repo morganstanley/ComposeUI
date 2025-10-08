@@ -64,7 +64,7 @@ internal class Channel : IChannel
 
     public IDisplayMetadata? DisplayMetadata => _displayMetadata;
 
-    public async Task<IListener> AddContextListener<T>(string? contextType, ContextHandler<T> handler) where T : IContext
+    public virtual async Task<IListener> AddContextListener<T>(string? contextType, ContextHandler<T> handler) where T : IContext
     {
         var listener = new ContextListener<T>(
             instanceId: _instanceId,
@@ -77,7 +77,7 @@ internal class Channel : IChannel
         return listener;
     }
 
-    public async Task Broadcast(IContext context)
+    public virtual async Task Broadcast(IContext context)
     {
         try
         {
@@ -101,7 +101,7 @@ internal class Channel : IChannel
         }
     }
 
-    public async Task<IContext?> GetCurrentContext(string? contextType)
+    public virtual async Task<IContext?> GetCurrentContext(string? contextType)
     {
         try
         {

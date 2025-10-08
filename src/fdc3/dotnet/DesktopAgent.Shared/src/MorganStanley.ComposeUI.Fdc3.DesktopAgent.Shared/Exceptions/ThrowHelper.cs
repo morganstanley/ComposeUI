@@ -13,6 +13,7 @@
  */
 
 using Finos.Fdc3;
+using Finos.Fdc3.Context;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
@@ -116,4 +117,16 @@ internal static class ThrowHelper
 
     internal static Fdc3DesktopAgentException MissingOpenAppContext() =>
         new("The context id was received while checking if the app is opened via the fdc3.open call...");
+
+    internal static Fdc3DesktopAgentException PrivateChannelCreationFailed() =>
+        new($"No response was received from the backend. {ChannelError.CreationFailed}.");
+
+    internal static Fdc3DesktopAgentException PrivateChannelDisconnected(string channelId, string instanceId) =>
+        new($"Private channel is disconnected. ChannelId: {channelId}; instance id: {instanceId}.");
+
+    internal static Fdc3DesktopAgentException PrivatChannelSubscribeFailure(string? contextType, string channelId, string instanceId) =>
+        new($"Private channel was not able to add context listener. ChannelId: {channelId}; instance id: {instanceId}; context type: {contextType}.");
+
+    internal static Fdc3DesktopAgentException PrivateChannelJoiningFailed(string channelId) =>
+        new($"Client was not able to join to private channel. ChannelId: {channelId}.");
 }
