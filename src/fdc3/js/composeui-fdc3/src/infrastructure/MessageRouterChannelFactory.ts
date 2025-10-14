@@ -12,7 +12,8 @@
  */
 
 import { ChannelError, ContextHandler, IntentHandler, Listener, PrivateChannel } from "@finos/fdc3";
-import { MessageRouter } from "@morgan-stanley/composeui-messaging-client";
+// import { MessageRouter } from "@morgan-stanley/composeui-messaging-client";
+import { JsonMessaging } from "@morgan-stanley/composeui-messaging-abstractions";
 import { Channel } from "@finos/fdc3";
 import { ChannelFactory } from "./ChannelFactory";
 import { ComposeUIPrivateChannel } from "./ComposeUIPrivateChannel";
@@ -40,45 +41,48 @@ import { ComposeUIContextListener } from "./ComposeUIContextListener";
 import { json } from "stream/consumers";
 
 export class MessageRouterChannelFactory implements ChannelFactory {
-    private messageRouterClient: MessageRouter;
+    // private messageRouterClient: MessageRouter;
+    private jsonMessaging: JsonMessaging;
     private fdc3instanceId: string;
 
-    constructor(messageRouter: MessageRouter, fdc3instanceId: string) {
-        this.messageRouterClient = messageRouter;
+    constructor(jsonMessaging: JsonMessaging,fdc3instanceId: string) {
+        // this.messageRouterClient = messageRouter;
+        this.jsonMessaging = jsonMessaging;
         this.fdc3instanceId = fdc3instanceId;
     }
 
     public async getChannel(channelId: string, channelType: ChannelType): Promise<Channel> {
         const topic = ComposeUITopic.findChannel();
         const message = JSON.stringify(new Fdc3FindChannelRequest(channelId, channelType));
-        const response = await this.messageRouterClient.invoke(topic, message);
+        const response = await this.jsonMessaging.invokeJsonService<string, Fdc3FindChannelResponse>(topic, message);
         if (!response) {
             throw new Error(ChannelError.AccessDenied);
         }
-        const fdc3Message = <Fdc3FindChannelResponse>JSON.parse(response);
-        if (fdc3Message.error) {
-            throw new Error(fdc3Message.error);
+        // const fdc3Message = <Fdc3FindChannelResponse>JSON.parse(response);
+        if (response.error) {
+            throw new Error(response.error);
         }
-        if (!fdc3Message.found) {
+        if (!response.found) {
             throw new Error(ChannelError.NoChannelFound);
         }
 
         if (channelType == "private") {
             return await this.joinPrivateChannel(channelId);
         }
-        return new ComposeUIChannel(channelId, channelType, this.messageRouterClient);
+        return new ComposeUIChannel(channelId, channelType, this.jsonMessaging);
     }
 
     public async createPrivateChannel(): Promise<PrivateChannel> {
         // TODO: how to properly identify the other participant of the channel if the interface is parameterless?
         const message = JSON.stringify(new Fdc3CreatePrivateChannelRequest(this.fdc3instanceId));
-        const response = await this.messageRouterClient.invoke(ComposeUITopic.createPrivateChannel(), message);
+        const response = await this.jsonMessaging.invokeJsonService<string, Fdc3CreatePrivateChannelResponse>(ComposeUITopic.createPrivateChannel(), message);
+
         if (response) {
-            const fdc3response = <Fdc3CreatePrivateChannelResponse>JSON.parse(response);
-            if (fdc3response.error) {
-                throw new Error(fdc3response.error);
+            // const fdc3response = <Fdc3CreatePrivateChannelResponse>JSON.parse(response);
+            if (response.error) {
+                throw new Error(response.error);
             }
-            var channel = new ComposeUIPrivateChannel(fdc3response.channelId!, this.fdc3instanceId, this.messageRouterClient, true);
+            var channel = new ComposeUIPrivateChannel(response.channelId!, this.fdc3instanceId, this.jsonMessaging, true);
             return channel;
         }
         throw new Error(ChannelError.CreationFailed);
@@ -86,26 +90,26 @@ export class MessageRouterChannelFactory implements ChannelFactory {
 
     private async joinPrivateChannel(channelId: string): Promise<PrivateChannel> {
         const message = JSON.stringify(new Fdc3JoinPrivateChannelRequest(this.fdc3instanceId, channelId));
-        const response = await this.messageRouterClient.invoke(ComposeUITopic.joinPrivateChannel(), message);
+        const response = await this.jsonMessaging.invokeJsonService<string, Fdc3JoinPrivateChannelResponse>(ComposeUITopic.joinPrivateChannel(), message);
         if (!response) {
             throw new Error("No response received");
         }
-        const fdc3Response = <Fdc3JoinPrivateChannelResponse>JSON.parse(response);
-        if (fdc3Response.error) {
-            throw new Error(fdc3Response.error);
+        // const fdc3Response = <Fdc3JoinPrivateChannelResponse>JSON.parse(response);
+        if (response.error) {
+            throw new Error(response.error);
         }
-        var channel = new ComposeUIPrivateChannel(channelId, this.fdc3instanceId, this.messageRouterClient, false);
+        var channel = new ComposeUIPrivateChannel(channelId, this.fdc3instanceId, this.jsonMessaging, false);
         return channel;
     }
 
     public async createAppChannel(channelId: string): Promise<Channel> {
         var request = JSON.stringify(new Fdc3CreateAppChannelRequest(channelId, this.fdc3instanceId));
-        var result = await this.messageRouterClient.invoke(ComposeUITopic.createAppChannel(), request);
-        if (!result) {
+        var response = await this.jsonMessaging.invokeJsonService<string, Fdc3CreateAppChannelResponse>(ComposeUITopic.createAppChannel(), request);
+        if (!response) {
             throw new Error(ChannelError.CreationFailed);
         }
 
-        const response = <Fdc3CreateAppChannelResponse>JSON.parse(result);
+        // const response = <Fdc3CreateAppChannelResponse>JSON.parse(result);
         if (response.error) {
             throw new Error(response.error);
         }
@@ -114,47 +118,47 @@ export class MessageRouterChannelFactory implements ChannelFactory {
             throw new Error(ChannelError.CreationFailed);
         }
 
-        return new ComposeUIChannel(channelId, "app", this.messageRouterClient);
+        return new ComposeUIChannel(channelId, "app", this.jsonMessaging);
     }
 
     public async joinUserChannel(channelId: string): Promise<Channel> {
         const topic: string = ComposeUITopic.joinUserChannel();
         const request: string = JSON.stringify(new Fdc3JoinUserChannelRequest(channelId, this.fdc3instanceId));
-        const response = await this.messageRouterClient.invoke(topic, request);
+        const response = await this.jsonMessaging.invokeJsonService<string, Fdc3JoinUserChannelResponse>(topic, request);
 
         if (!response) {
             throw new Error(ChannelError.CreationFailed);
         }
 
-        const message = <Fdc3JoinUserChannelResponse>JSON.parse(response);
-        if (message.error) {
-            throw new Error(message.error);
+        // const message = <Fdc3JoinUserChannelResponse>JSON.parse(response);
+        if (response.error) {
+            throw new Error(response.error);
         }
 
-        if (!message.success) {
+        if (!response.success) {
             throw new Error(ChannelError.CreationFailed);
         }
 
-        var channel = new ComposeUIChannel(channelId, "user", this.messageRouterClient, message.displayMetadata);
+        var channel = new ComposeUIChannel(channelId, "user", this.jsonMessaging, response.displayMetadata);
         return channel;
     }
 
     public async getUserChannels(): Promise<Channel[]> {
         var request: string = JSON.stringify(new Fdc3GetUserChannelsRequest(this.fdc3instanceId));
 
-        var result = await this.messageRouterClient.invoke(ComposeUITopic.getUserChannels(), request);
-        if (!result) {
+        var response = await this.jsonMessaging.invokeJsonService<string, Fdc3GetUserChannelsResponse>(ComposeUITopic.getUserChannels(), request);
+        if (!response) {
             throw new Error(ChannelError.NoChannelFound);
         }
 
-        const response = <Fdc3GetUserChannelsResponse>JSON.parse(result);
+        // const response = <Fdc3GetUserChannelsResponse>JSON.parse(result);
         if (response.error) {
             throw new Error(response.error);
         }
 
         var channels: Channel[] = [];
         response.channels!.forEach((channelItem: ChannelItem) => {
-            var channel = new ComposeUIChannel(channelItem.id, "user", this.messageRouterClient, channelItem.displayMetadata);
+            var channel = new ComposeUIChannel(channelItem.id, "user", this.jsonMessaging, channelItem.displayMetadata);
             channels.push(channel);
         });
 
@@ -162,19 +166,19 @@ export class MessageRouterChannelFactory implements ChannelFactory {
     }
 
     public async getIntentListener(intent: string, handler: IntentHandler): Promise<Listener> {
-        const listener = new ComposeUIIntentListener(this.messageRouterClient, intent, this.fdc3instanceId, handler);
+        const listener = new ComposeUIIntentListener(this.jsonMessaging, intent, this.fdc3instanceId, handler);
         await listener.registerIntentHandler();
 
         const message = new Fdc3IntentListenerRequest(intent, this.fdc3instanceId, "Subscribe");
-        const response = await this.messageRouterClient.invoke(ComposeUITopic.addIntentListener(), JSON.stringify(message));
+        const response = await this.jsonMessaging.invokeJsonService<string, Fdc3IntentListenerResponse>(ComposeUITopic.addIntentListener(), JSON.stringify(message));
         if (!response) {
             throw new Error(ComposeUIErrors.NoAnswerWasProvided);
         }
-        const result = <Fdc3IntentListenerResponse>JSON.parse(response);
-        if (result.error) {
+        // const result = <Fdc3IntentListenerResponse>JSON.parse(response);
+        if (response.error) {
             await listener.unsubscribe();
-            throw new Error(result.error);
-        } else if (!result.stored) {
+            throw new Error(response.error);
+        } else if (!response.stored) {
             await listener.unsubscribe();
             throw new Error(ComposeUIErrors.SubscribeFailure);
         }
@@ -193,7 +197,7 @@ export class MessageRouterChannelFactory implements ChannelFactory {
             return listener;
         }
 
-        const listener = new ComposeUIContextListener(openHandled, this.messageRouterClient, handler!, contextType ?? undefined);
+        const listener = new ComposeUIContextListener(openHandled, this.jsonMessaging, handler!, contextType ?? undefined);
         return listener;
     }
 }
