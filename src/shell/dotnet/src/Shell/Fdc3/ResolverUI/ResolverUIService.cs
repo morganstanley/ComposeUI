@@ -19,8 +19,8 @@ using System.Threading.Tasks;
 using Finos.Fdc3;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Contracts;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Converters;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Converters;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;

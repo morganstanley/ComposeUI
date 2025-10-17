@@ -29,7 +29,7 @@ public class ComposeUIHostManifestJsonConverterTests
             Converters = new List<JsonConverter> { new StringEnumConverter(new CamelCaseNamingStrategy()), new ComposeUIHostManifestConverter() },
             ContractResolver = new DefaultContractResolver
             {
-                NamingStrategy = new CamelCaseNamingStrategy()
+                NamingStrategy = new CamelCaseNamingStrategy(),
             }
         };
     }
@@ -105,7 +105,8 @@ public class ComposeUIHostManifestJsonConverterTests
                     ""initialModulePosition"": ""Floating"",
                     ""height"": 400.0,
                     ""width"": 600.0,
-                    ""coordinates"": { ""x"": 100.0, ""y"": 200.0 }
+                    ""coordinates"": { ""x"": 100.0, ""y"": 200.0 },
+                    ""environmentVariables"": null
                 },
                 ""OtherProperty"": ""OtherValue""
             }".Replace("\r\n", "").Replace(" ", "");

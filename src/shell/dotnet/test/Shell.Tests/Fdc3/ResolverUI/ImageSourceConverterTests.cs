@@ -10,12 +10,10 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using System.Drawing;
 using System.Globalization;
-using System.Reflection;
 using System.Windows.Media.Imaging;
 using FluentAssertions;
-using Icon = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Protocol.Icon;
+using Icon = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.Icon;
 
 namespace MorganStanley.ComposeUI.Shell.Fdc3.ResolverUI;
 

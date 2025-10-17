@@ -39,6 +39,8 @@ public partial class App : Application
                 });
 
             serviceCollection.AddMessageRouterMessagingAdapter();
+
+            serviceCollection.AddFdc3DesktopAgentClient();
         }
         catch
         {
