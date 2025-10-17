@@ -59,6 +59,20 @@
           }
         }
       }
+    },
+    {
+      "appId": "appId1-native",
+      "name": "app1",
+      "type": "native",
+      "details": {
+        "path": "..\\..\\..\\..\\TestHelpers\\DesktopAgentClientConsoleApp\\bin\\Release\\net8.0\\DesktopAgentClientConsoleApp.exe"
+      },
+      "interop": {
+        "intents": {
+          "listensFor": {
+          }
+        }
+      }
     }
   ]
 }

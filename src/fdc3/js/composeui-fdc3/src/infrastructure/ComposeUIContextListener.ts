@@ -79,6 +79,7 @@ export class ComposeUIContextListener implements Listener {
         this.unsubscribeCallback = unsubscribeCallback;
     }
 
+    //TODO: Decide if we want to have this functionality as the standard does not include it. Currently this method is not used.
     public setOpenHandled(openHandled: boolean): void {
         this.openHandled = openHandled;
 

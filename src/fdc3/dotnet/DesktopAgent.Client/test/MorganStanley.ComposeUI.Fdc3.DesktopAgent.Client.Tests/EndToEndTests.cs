@@ -6,9 +6,10 @@ using Finos.Fdc3;
 using FluentAssertions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
-using Castle.DynamicProxy.Generators;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
+using Finos.Fdc3.Context;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests.Helpers;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests;
 
@@ -39,7 +40,12 @@ public class EndToEndTests : IAsyncLifetime
                             opt.RootPath = _webSocketUri.AbsolutePath;
                             opt.Port = _webSocketUri.Port;
                         }));
-                serviceCollection.AddMessageRouter(mr => mr.UseServer());
+
+                serviceCollection.AddTransient<IStartupAction, MessageRouterStartupAction>();
+
+                serviceCollection.AddMessageRouter(
+                    mr => mr
+                        .UseServer());
 
                 serviceCollection.AddFdc3AppDirectory(
                     _ => _.Source = new Uri(@$"file:\\{Directory.GetCurrentDirectory()}\testAppDirectory.json"));
@@ -94,7 +100,7 @@ public class EndToEndTests : IAsyncLifetime
         var fdc3StartupProperties = instance.GetProperties<Fdc3StartupProperties>().FirstOrDefault();
 
         Environment.SetEnvironmentVariable(nameof(AppIdentifier.AppId), "appId1");
-        Environment.SetEnvironmentVariable(nameof(AppIdentifier.InstanceId), fdc3StartupProperties.InstanceId);
+        Environment.SetEnvironmentVariable(nameof(AppIdentifier.InstanceId), fdc3StartupProperties!.InstanceId);
 
         _desktopAgent = _clientServices.GetRequiredService<IDesktopAgent>();
     }
@@ -157,5 +163,113 @@ public class EndToEndTests : IAsyncLifetime
         await action.Should()
             .ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage($"*{Fdc3DesktopAgentErrors.MissingId}*");
+    }
+
+    [Fact]
+    public async Task JoinUserChannel_joins_to_a_user_channel()
+    {
+        await _desktopAgent.JoinUserChannel("fdc3.channel.1");
+        var currentChannel = await _desktopAgent.GetCurrentChannel();
+
+        currentChannel.Should().NotBeNull();
+        currentChannel.Id.Should().Be("fdc3.channel.1");
+    }
+
+    [Fact]
+    public async Task JoinUserChannel_joins_to_a_user_channel_and_registers_already_added_top_level_context_listeners()
+    {
+        var resultContexts = new List<IContext>();
+
+        var module = await _moduleLoader.StartModule(new StartRequest("appId1-native", new Dictionary<string, string>() { { "Fdc3InstanceId", Guid.NewGuid().ToString() } })); // This will ensure that the DesktopAgent backend knows its an FDC3 enabled module. The app broadcasts an instrument context after it joined to the fdc3.channel.1.
+        //We need to wait somehow for the module to finish up the broadcast
+        await Task.Delay(2000);
+
+        var listener1 = await _desktopAgent.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) => { resultContexts.Add(context); });
+        var listener2 = await _desktopAgent.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) => { resultContexts.Add(context);  });
+
+        await _desktopAgent.JoinUserChannel("fdc3.channel.1");
+        var currentChannel = await _desktopAgent.GetCurrentChannel();
+
+        currentChannel.Should().NotBeNull();
+        currentChannel.Id.Should().Be("fdc3.channel.1");
+
+        resultContexts.Should().HaveCount(2);
+
+        await _moduleLoader.StopModule(new StopRequest(module.InstanceId));
+    }
+
+    [Fact]
+    public async Task LeaveCurrentChannel_leaves_the_joined_channel()
+    {
+        await _desktopAgent.JoinUserChannel("fdc3.channel.1");
+        var currentChannel = await _desktopAgent.GetCurrentChannel();
+
+        currentChannel.Should().NotBeNull();
+        currentChannel.Id.Should().Be("fdc3.channel.1");
+
+        await _desktopAgent.LeaveCurrentChannel();
+        currentChannel = await _desktopAgent.GetCurrentChannel();
+
+        currentChannel.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task AddContextListener_can_be_registered_multiple_times()
+    {
+        var listener1 = await _desktopAgent.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) => {  });
+        var listener2 = await _desktopAgent.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) => {  });
+
+        listener1.Should().NotBeNull();
+        listener2.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task AddContextListener_can_be_registered_but_they_do_not_receive_anything_until_they_joined_to_a_channel()
+    {
+        var resultContexts = new List<IContext>();
+
+        var module = await _moduleLoader.StartModule(new StartRequest("appId1-native", new Dictionary<string, string>() { { "Fdc3InstanceId", Guid.NewGuid().ToString() } })); // This will ensure that the DesktopAgent backend knows its an FDC3 enabled module. The app broadcasts an instrument context after it joined to the fdc3.channel.1.
+        var listener1 = await _desktopAgent.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) => { resultContexts.Add(context); });
+        var listener2 = await _desktopAgent.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) => { resultContexts.Add(context); });
+
+        listener1.Should().NotBeNull();
+        listener2.Should().NotBeNull();
+        resultContexts.Should().HaveCount(0);
+
+        await _moduleLoader.StopModule(new StopRequest(module.InstanceId));
+    }
+
+    [Fact]
+    public async Task Broadcast_is_not_retrieved_to_the_same_instance()
+    {
+        var resultContexts = new List<IContext>();
+
+        var module = await _moduleLoader.StartModule(new StartRequest("appId1-native", new Dictionary<string, string>() { { "Fdc3InstanceId", Guid.NewGuid().ToString() } })); // This will ensure that the DesktopAgent backend knows its an FDC3 enabled module. The app broadcasts an instrument context after it joined to the fdc3.channel.1.
+        //We need to wait somehow for the module to finish up the broadcast
+        await Task.Delay(2000);
+
+        await _desktopAgent.JoinUserChannel("fdc3.channel.1");
+
+        var listener1 = await _desktopAgent.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) => { resultContexts.Add(context); });
+        var listener2 = await _desktopAgent.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) => { resultContexts.Add(context); });
+        var currentChannel = await _desktopAgent.GetCurrentChannel();
+
+        await _desktopAgent.Broadcast(new Instrument(new InstrumentID { Ticker = $"test-instrument-{Guid.NewGuid().ToString()}" }, "test-name"));
+
+        currentChannel.Should().NotBeNull();
+        currentChannel.Id.Should().Be("fdc3.channel.1");
+        resultContexts.Should().HaveCount(2); //not 4
+
+        await _moduleLoader.StopModule(new StopRequest(module.InstanceId));
+    }
+
+    [Fact]
+    public async Task Broadcast_fails_on_not_joined_to_channel()
+    {
+        var action = async () => await _desktopAgent.Broadcast(new Instrument(new InstrumentID { Ticker = $"test-instrument-{Guid.NewGuid().ToString()}" }, "test-name"));
+
+        await action.Should()
+            .ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage($"*No current channel to broadcast the context to.*");
     }
 }
