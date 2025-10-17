@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
@@ -74,5 +74,15 @@
 		<ProjectReference Include="..\..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader\MorganStanley.ComposeUI.ModuleLoader.csproj" />
 		<ProjectReference Include="..\..\..\..\shared\dotnet\src\MorganStanley.ComposeUI.Utilities\MorganStanley.ComposeUI.Utilities.csproj" />
 	</ItemGroup>
+
+	<Target Name="CopyDesktopAgentClientConsoleApp" AfterTargets="Build">
+		<ItemGroup>
+			<DesktopAgentClientExe Include="$(SolutionDir)..\..\..\examples\dotnet-diagnostics\DiagnosticsExample\bin\$(Configuration)\net8.0-windows\DiagnosticsExample.exe" />
+		</ItemGroup>
+		<Copy
+		  SourceFiles="@(DesktopAgentClientExe)"
+		  DestinationFolder="$(OutDir)"
+		  SkipUnchangedFiles="true" />
+	</Target>
 
 </Project>

@@ -24,6 +24,7 @@ using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal;
 
+//TODO: Rename this class and its interface to better reflect their responsibilities
 internal class ChannelFactory : IChannelFactory
 {
     private readonly IMessaging _messaging;
@@ -49,20 +50,9 @@ internal class ChannelFactory : IChannelFactory
         string? contextType = null)
         where T : IContext
     {
-        ContextListener<T> listener = null;
-
-        if (currentChannel != null)
+        if (currentChannel == null)
         {
-            if (await currentChannel.AddContextListener(contextType, contextHandler) is ContextListener<T> contextListener)
-            {
-                _logger.LogDebug($"Added context listener to channel {currentChannel.Id} for context type {contextType ?? "any type"}.)");
-
-                listener = contextListener;
-            }
-        }
-        else
-        {
-            listener = new ContextListener<T>(
+            return new ContextListener<T>(
                 instanceId: _instanceId,
                 contextHandler: contextHandler,
                 messaging: _messaging,
@@ -70,7 +60,16 @@ internal class ChannelFactory : IChannelFactory
                 logger: _loggerFactory.CreateLogger<ContextListener<T>>());
         }
 
-        return listener!;
+        if (await currentChannel.AddContextListener<T>(contextType, contextHandler) is ContextListener<T> contextListener)
+        {
+            _logger.LogDebug("Added context listener to channel {CurrentChannelId} for context type {ContextType}.)", currentChannel.Id, contextType ?? "null");
+
+            return contextListener;
+        }
+        else
+        {
+            throw ThrowHelper.ContextListenerNotCreated(currentChannel.Id, contextType);
+        }
     }
 
     public async ValueTask<IChannel> JoinUserChannelAsync(string channelId)

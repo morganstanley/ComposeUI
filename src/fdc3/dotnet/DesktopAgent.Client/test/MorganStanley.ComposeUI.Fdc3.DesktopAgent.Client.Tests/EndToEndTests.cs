@@ -10,6 +10,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 using Finos.Fdc3.Context;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests.Helpers;
+using MorganStanley.ComposeUI.Fdc3.AppDirectory;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests;
 
@@ -25,6 +26,11 @@ public class EndToEndTests : IAsyncLifetime
     private readonly List<IModuleInstance> _runningApps = [];
     private IDisposable _runningAppsObserver;
     private IDesktopAgent _desktopAgent;
+    public EndToEndTests()
+    {
+        var repoRoot = RootPathResolver.GetRepositoryRoot();
+        Environment.SetEnvironmentVariable(Consts.COMPOSEUI_MODULE_REPOSITORY_ENVIRONMENT_VARIABLE_NAME, repoRoot, EnvironmentVariableTarget.Process);
+    }
 
     public async Task InitializeAsync()
     {
