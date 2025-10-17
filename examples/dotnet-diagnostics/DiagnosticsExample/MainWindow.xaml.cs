@@ -19,6 +19,8 @@ using System.Text.Json;
 using System.Windows;
 using Finos.Fdc3;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
+using Finos.Fdc3.Context;
+using System.CodeDom;
 
 namespace DiagnosticsExample;
 
@@ -40,7 +42,7 @@ public partial class MainWindow : Window
         DependencyProperty.Register("DiagnosticsText", typeof(string), typeof(MainWindow), new PropertyMetadata(string.Empty));
 
     private readonly IDesktopAgent _desktopAgent;
-
+    private IListener _subscription;
 
     public MainWindow()
     {
@@ -93,5 +95,66 @@ public partial class MainWindow : Window
                 { AppId = "WPFExample" });
 
         await Dispatcher.InvokeAsync(() => DiagnosticsText += "\n" + result.Description);
+    }
+
+    private async void SubscribeButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Dispatcher.Invoke(() => DiagnosticsText += "\n" + "Subscription is in working progress");
+
+            await Task.Run(async () =>
+            {
+                if (await _desktopAgent.GetCurrentChannel() == null)
+                {
+                    await _desktopAgent.JoinUserChannel("fdc3.channel.1");
+                }
+
+                _subscription = await _desktopAgent.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) =>
+                {
+                    Dispatcher.Invoke(() => DiagnosticsText += "\n" + "Context received: " + context.Name + "; type: " + context.Type);
+                });
+            });
+
+            DiagnosticsText += "\n" + "Subscription is done.";
+        }
+        catch (Exception ex)
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                DiagnosticsText += $"\nAddContextListener failed: {ex.Message}, {ex.ToString()}";
+            });
+        }
+    }
+
+    private async void BroadcastButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Dispatcher.Invoke(() =>
+            {
+                DiagnosticsText += "\nBroadcasting is in working progress";
+            });
+
+            await Task.Run(async () =>
+            {
+                if (await _desktopAgent.GetCurrentChannel() == null)
+                {
+                    await _desktopAgent.JoinUserChannel("fdc3.channel.1");
+                }
+
+                var instrument = new Instrument(new InstrumentID() { BBG = "test" }, $"{Guid.NewGuid().ToString()}");
+                await _desktopAgent.Broadcast(instrument);
+            });
+
+            Dispatcher.Invoke(() => DiagnosticsText += "\nContext broadcasted");
+        }
+        catch (Exception ex)
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                DiagnosticsText += $"\nBroadcast failed: {ex.Message}";
+            });
+        }
     }
 }

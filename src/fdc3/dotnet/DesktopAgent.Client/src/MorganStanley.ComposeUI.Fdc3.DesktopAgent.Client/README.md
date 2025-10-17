@@ -23,7 +23,8 @@ Use the `IDesktopAgent` interface in your application:
 public class MyFdc3Service
 {
     private readonly IDesktopAgent _desktopAgent;
-
+    private IChannel? _currentChannel;
+    
     public MyFdc3Service(IDesktopAgent desktopAgent)
     {
         _desktopAgent = desktopAgent;
@@ -33,6 +34,17 @@ public class MyFdc3Service
     {
         await _desktopAgent.GetAppMetadata(app);
     }
+    
+    public async Task SendContext(IContext context)
+    {
+        if (_currentChannel == null)
+        {
+            return;
+        }
+
+        await _desktopAgent.Broadcast(context);
+    }
+    ...
 }
 ```
 
@@ -61,8 +73,59 @@ Key methods provided by IDesktopAgent:
 - Microsoft.Extensions.Logging.Abstractions
 - MorganStanley.ComposeUI.Messaging.Abstractions
 
+## Usage
+### Broadcasting Context
+An app is not able to broadcast any message unless it has joined a channel. After joining a channel, you can broadcast context to all listeners in that channel.
+```csharp
+var context = new Instrument(new InstrumentID { Ticker = "test-instrument" }, "test-name");
+await desktopAgent.Broadcast(context);
+```
+
+### Adding Context Listener
+You may register context listeners either before or after joining a channel; however, listeners will not receive any context unless the DesktopAgent has joined a channel.
+When an application is launched using the fdc3.open call with a context, the appropriate listener in the opened app will be invoked with that context before any other context messages are delivered.
+```csharp
+var listener = await desktopAgent.AddContextListener("fdc3.instrument", (ctx, ctxMetadata) =>
+{
+    Console.WriteLine($"Received context: {ctx}");
+});
+```
+
+### Joining a Channel
+Based on the standard you should join to a channel before broadcasting context to it or before you can receive the messages. If an app is joined to a channel every top-level already registered context listener will call its handler with the latest context on that channel.
+```csharp
+var channel = await desktopAgent.JoinChannel("fdc3.channel.1");
+```
+
+### Leaving a Channel
+You can leave the current channel by calling the LeaveCurrentChannel method. After leaving a channel, the app will not receive any context messages until it joins another channel.
+```csharp
+await desktopAgent.LeaveCurrentChannel();
+```
+
+### Getting the Current Channel
+You can get the current channel using the GetCurrentChannel method. If the app is not joined to any channel, it will return null.
+```csharp
+var currentChannel = await desktopAgent.GetCurrentChannel();
+```
+
+### Getting Info about the current App
+You can get the metadata of the current app using the GetInfo method.
+```csharp
+var implementationMetadata = await desktopAgent.GetInfo();
+```
+
+### Getting Metadata of an App
+You can get the metadata of an app using the GetAppMetadata method by providing the AppIdentifier.
+```csharp
+var appMetadata = await desktopAgent.GetAppMetadata(new AppIdentifier("your-app-id", "your-instance-id"));
+```
+
+## Documentation
+
+For more details, see the [ComposeUI documentation](https://morganstanley.github.io/ComposeUI/).
+
+&copy; Morgan Stanley. See NOTICE file for additional information.
+
 ## Contributing
 Contributions are welcome! Please submit issues or pull requests via GitHub.
-
-## License
-This library is licensed under the Apache License, Version 2.0.

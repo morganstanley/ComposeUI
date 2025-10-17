@@ -138,7 +138,7 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
             else
             {
                 var iconSrc = app.Icons?.FirstOrDefault()?.Src;
-                var path = new Uri(((NativeAppDetails) app.Details).Path, UriKind.Absolute);
+                var path = new Uri(((NativeAppDetails) app.Details).Path, UriKind.RelativeOrAbsolute);
 
                 Details = new NativeManifestDetails
                 {
