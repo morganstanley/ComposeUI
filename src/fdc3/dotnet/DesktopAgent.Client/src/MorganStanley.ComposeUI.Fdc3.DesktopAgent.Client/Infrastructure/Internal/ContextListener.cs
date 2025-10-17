@@ -118,7 +118,7 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
                     //Messaging implementation by default should not pass the message back to the sender if that is subscribed to the same topic.
                     if (string.IsNullOrEmpty(serializedContext))
                     {
-                        _logger.LogWarning($"Null context was received: {serializedContext}...");
+                        _logger.LogWarning("Null context was received: {SerializedContext}...", serializedContext);
                         return new ValueTask();
                     }
 
@@ -133,7 +133,7 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
 
                     if (_logger.IsEnabled(LogLevel.Debug))
                     {
-                        _logger.LogDebug($"Context received: {serializedContext}; Type to deserialize to: {typeof(T)}...");
+                        _logger.LogDebug("Context received: {SerializedContext}; Type to deserialize to: {Type}...", serializedContext, typeof(T));
                     }
 
                     _contextHandler(context!);
@@ -146,7 +146,7 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, $"Subscription was not successful.");
+            _logger.LogError(exception, "Subscription was not successful.");
             throw exception;
         }
         finally
@@ -154,7 +154,7 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
             _subscriptionLock.Release();
             _serializedContextsLock.Release();
 
-            _logger.LogInformation($"Context listener subscribed to channel {channelId} for context type {_contextType}.");
+            _logger.LogInformation("Context listener subscribed to channel {ChannelId} for context type {ContextType}.", channelId, _contextType);
         }
     }
 
@@ -171,13 +171,13 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
 
             if (context.Type != _contextType && !string.IsNullOrEmpty(_contextType))
             {
-                _logger.LogWarning($"The context type: {context.Type} does not match the registered context type: {_contextType}...");
+                _logger.LogWarning("The context type: {ContextType} does not match the registered context type: {InnerContextType}...", context.Type, _contextType);
                 return;
             }
 
             if (context is not T typedContext)
             {
-                _logger.LogWarning($"The context type: {context.GetType()?.FullName} is not compatible with the expected type: {typeof(T).FullName}...");
+                _logger.LogWarning("The context type: {ContextType} is not compatible with the expected type: {Type}...", context.GetType()?.FullName, typeof(T).FullName);
                 return;
             }
 

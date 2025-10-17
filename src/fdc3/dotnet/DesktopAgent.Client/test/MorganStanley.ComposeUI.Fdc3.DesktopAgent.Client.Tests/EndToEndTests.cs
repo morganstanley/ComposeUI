@@ -26,6 +26,28 @@ public class EndToEndTests : IAsyncLifetime
     private IDisposable _runningAppsObserver;
     private IDesktopAgent _desktopAgent;
 
+    private string FindRepoRoot(string startDir)
+    {
+        var directoryStartInfo = new DirectoryInfo(startDir);
+        while (directoryStartInfo != null)
+        {
+            if (Directory.Exists(Path.Combine(directoryStartInfo.FullName, ".git")))
+            {
+                return directoryStartInfo.FullName;
+            }
+
+            directoryStartInfo = directoryStartInfo.Parent;
+        }
+
+        throw new DirectoryNotFoundException("Repository root not found.");
+    }
+
+    public EndToEndTests()
+    {
+        var repoRoot = FindRepoRoot(AppContext.BaseDirectory);
+        Environment.SetEnvironmentVariable("REPO_ROOT", repoRoot, EnvironmentVariableTarget.Process);
+    }
+
     public async Task InitializeAsync()
     {
         // Create the backend side

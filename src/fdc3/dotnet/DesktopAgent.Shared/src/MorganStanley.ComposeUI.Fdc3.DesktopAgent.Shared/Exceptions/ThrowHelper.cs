@@ -70,4 +70,9 @@ internal static class ThrowHelper
     public static Fdc3DesktopAgentException ErrorResponseReceived(string initiator, string appId, string type, string error) =>
         new($"{initiator} cannot return the {type} for app: {appId} due to: {error}.");
 
+    internal static Fdc3DesktopAgentException ContextListenerNotCreated(string id, string? contextType) =>
+        new($"The context listener is not created/returned on channel: {id} for context: {contextType}.");
+
+    internal static Fdc3DesktopAgentException InvalidResponseRecevied(string instanceId, string appId, string methodName) =>
+        new($"The method: {methodName} returned a not valid response from the server, app: {appId}, instance: {instanceId}.");
 }

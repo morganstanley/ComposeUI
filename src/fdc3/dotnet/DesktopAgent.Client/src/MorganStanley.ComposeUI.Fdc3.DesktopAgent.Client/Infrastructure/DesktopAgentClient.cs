@@ -13,20 +13,17 @@
  */
 
 using System.Collections.Concurrent;
-using System.Text.Json;
 using Finos.Fdc3;
 using Finos.Fdc3.Context;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure;
 
-internal class DesktopAgentClient : IDesktopAgent
+public class DesktopAgentClient : IDesktopAgent
 {
     private readonly IMessaging _messaging;
     private readonly ILoggerFactory _loggerFactory;
@@ -35,12 +32,14 @@ internal class DesktopAgentClient : IDesktopAgent
     private readonly string _instanceId;
     private readonly IChannelFactory _channelFactory;
     private readonly IMetadataClient _metadataClient;
-    private readonly ConcurrentDictionary<IListener, Func<string, ChannelType, CancellationToken, ValueTask>> _contextListenersWithSubscriptionLastContextHandlingActions = new();
+
+    //This cache stores the top-level context listeners added through the `AddContextListener<T>(...)` API. It stores their actions to be able to resubscribe them when joining a new channel and handle the last context based on the FDC3 standard.
+    private readonly Dictionary<IListener, Func<string, ChannelType, CancellationToken, ValueTask>> _contextListeners = new();
 
     private IChannel? _currentChannel;
     private readonly SemaphoreSlim _currentChannelLock = new(1, 1);
 
-    private readonly ConcurrentDictionary<string, IChannel> _userChannels = new();
+    private readonly Dictionary<string, IChannel> _userChannels = new();
 
     public DesktopAgentClient(
         IMessaging messaging,
@@ -66,23 +65,18 @@ internal class DesktopAgentClient : IDesktopAgent
             await _currentChannelLock.WaitAsync().ConfigureAwait(false);
 
             listener = await _channelFactory.CreateContextListener(handler, _currentChannel, contextType);
-            if (!_contextListenersWithSubscriptionLastContextHandlingActions.TryAdd(
-                listener, 
-                async(channelId, channelType, cancellationToken) => 
-                { 
-                    await listener.SubscribeAsync(channelId, channelType, cancellationToken); 
-                    await HandleLastContextAsync(listener); 
-                }))
-            {
-                if (_logger.IsEnabled(LogLevel.Debug))
+
+            _contextListeners.Add(
+                listener,
+                async (channelId, channelType, cancellationToken) =>
                 {
-                    _logger.LogDebug("Failed to add context listener to the internal collection.");
-                }
-            }
+                    await listener.SubscribeAsync(channelId, channelType, cancellationToken);
+                    await HandleLastContextAsync(listener);
+                });
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug($"Context listener added for context type: {contextType ?? "null"}.");
+                _logger.LogDebug("Context listener added for context type: {ContextType}.", contextType ?? "null");
             }
 
             return listener;
@@ -174,7 +168,7 @@ internal class DesktopAgentClient : IDesktopAgent
 
             if (_currentChannel != null)
             {
-                _logger.LogInformation($"Leaving current channel: {_currentChannel.Id}...");
+                _logger.LogInformation("Leaving current channel: {CurrentChannelId}...", _currentChannel.Id);
                 await LeaveCurrentChannel().ConfigureAwait(false);
             }
 
@@ -188,12 +182,12 @@ internal class DesktopAgentClient : IDesktopAgent
         }
         finally
         {
-            var contextListeners = _contextListenersWithSubscriptionLastContextHandlingActions.Reverse();
+            var contextListeners = _contextListeners.Reverse();
             foreach (var contextListener in contextListeners)
             {
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {
-                    _logger.LogDebug($"Subscribing context listener to channel: {_currentChannel?.Id}...");
+                    _logger.LogDebug("Subscribing context listener to channel: {CurrentChannelId}...", _currentChannel?.Id);
                 }
 
                 await contextListener.Value(_currentChannel!.Id, _currentChannel!.Type, CancellationToken.None);
@@ -208,14 +202,14 @@ internal class DesktopAgentClient : IDesktopAgent
         try
         {
             await _currentChannelLock.WaitAsync().ConfigureAwait(false);
-            var contextListeners = _contextListenersWithSubscriptionLastContextHandlingActions.Reverse();
+            var contextListeners = _contextListeners.Reverse();
 
             //The context listeners, that have been added through the `fdc3.addContextListener()` should unsubscribe, but the context listeners should remain registered to the DesktopAgentClient instance.
             foreach (var contextListener in contextListeners)
             {
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {
-                    _logger.LogDebug($"Unsubscribing context listener from channel: {_currentChannel?.Id}...");
+                    _logger.LogDebug("Unsubscribing context listener from channel: {CurrentChannelId}...", _currentChannel?.Id);
                 }
 
                 contextListener.Key.Unsubscribe();
@@ -262,13 +256,13 @@ internal class DesktopAgentClient : IDesktopAgent
 
         if (lastContext == null)
         {
-            _logger.LogDebug(@$"No last context of type: {listener.ContextType ?? "null"} found in channel: {_currentChannel.Id}.");
+            _logger.LogDebug("No last context of type: {ContextType} found in channel: {CurrentChannelId}.", listener.ContextType ?? "null", _currentChannel.Id);
             return;
         }
 
         if (_logger.IsEnabled(LogLevel.Debug))
         {
-            _logger.LogDebug($"Invoking context handler for the last context of type: {listener.ContextType ?? "null"}.");
+            _logger.LogDebug("Invoking context handler for the last context of type: {ContextType}.", listener.ContextType ?? "null");
         }
 
         await listener.HandleContextAsync(lastContext);

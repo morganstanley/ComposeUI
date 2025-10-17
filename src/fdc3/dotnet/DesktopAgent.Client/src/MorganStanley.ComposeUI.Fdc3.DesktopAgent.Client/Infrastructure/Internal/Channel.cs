@@ -115,7 +115,7 @@ internal class Channel : IChannel
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug($"GetCurrentContext response: {contextJson}");
+                _logger.LogDebug("GetCurrentContext response: {ContextJson}", contextJson);
             }
 
             if (string.IsNullOrEmpty(contextJson))
@@ -142,7 +142,7 @@ internal class Channel : IChannel
 
             if (!_lastContexts.TryGetValue(contextType!, out var lastContext))
             {
-                _logger.LogDebug($"No context of type '{contextType}' has been broadcasted on channel '{_channelId}' yet.");
+                _logger.LogDebug("No context of type '{ContextType}' has been broadcasted on channel '{ChannelId}' yet.", contextType, _channelId);
             }
 
             return lastContext;

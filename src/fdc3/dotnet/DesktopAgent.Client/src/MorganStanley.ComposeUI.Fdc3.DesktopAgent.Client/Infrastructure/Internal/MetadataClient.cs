@@ -57,7 +57,7 @@ internal class MetadataClient : IMetadataClient
 
         if (_logger.IsEnabled(LogLevel.Debug))
         {
-            _logger.LogDebug($"Sending request to retrieve metadata for app: {appIdentifier.AppId}, instanceId: {appIdentifier.InstanceId}...");
+            _logger.LogDebug("Sending request to retrieve metadata for app: {AppId}, instanceId: {InstanceId}...", appIdentifier.AppId, appIdentifier.InstanceId);
         }
 
         var response = await _messaging.InvokeJsonServiceAsync<GetAppMetadataRequest, GetAppMetadataResponse>(
@@ -67,13 +67,13 @@ internal class MetadataClient : IMetadataClient
 
         if (response == null)
         {
-            _logger.LogError($"{nameof(GetAppMetadataAsync)} response is null returned by the server...");
+            _logger.LogError("{GetAppMetadataAsync} response is null returned by the server...", nameof(GetAppMetadataAsync));
             throw ThrowHelper.MissingResponse();
         }
 
         if (response.Error != null)
         {
-            _logger.LogError($"{_appId} cannot return the {nameof(AppMetadata)} for {appIdentifier.AppId} due to: {response.Error}.");
+            _logger.LogError("{_appId} cannot return the {AppMetadata} for {AppId} due to: {Error}.", nameof(AppMetadata), appIdentifier.AppId, response.Error);
             throw ThrowHelper.ErrorResponseReceived(_appId, appIdentifier.AppId, nameof(AppMetadata), response.Error);
         }
 
@@ -98,16 +98,21 @@ internal class MetadataClient : IMetadataClient
 
         if (response == null)
         {
-            _logger.LogError($"{nameof(GetInfoAsync)} response is null returned by the server...");
+            _logger.LogError("{GetInfoAsync} response is null returned by the server...", nameof(GetInfoAsync));
             throw ThrowHelper.MissingResponse();
         }
 
         if (response.Error != null)
         {
-            _logger.LogError($"{_appId} cannot return the {nameof(ImplementationMetadata)} due to: {response.Error}.");
+            _logger.LogError("{AppId} cannot return the {ImplementationMetadata} due to: {Error}.", _appId, nameof(ImplementationMetadata), response.Error);
             throw ThrowHelper.ErrorResponseReceived(_appId, _appId, nameof(ImplementationMetadata), response.Error);
         }
 
-        return response.ImplementationMetadata!;
+        if (response.ImplementationMetadata == null)
+        {
+            throw ThrowHelper.InvalidResponseRecevied(_instanceId, _appId, nameof(GetInfoAsync));
+        }
+
+        return response.ImplementationMetadata;
     }
 }

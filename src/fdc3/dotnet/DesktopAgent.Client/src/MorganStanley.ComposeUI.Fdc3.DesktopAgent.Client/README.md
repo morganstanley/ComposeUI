@@ -39,6 +39,9 @@ public class MyFdc3Service
     {
         if (_currentChannel == null)
         {
+            //Other possibility to broadcast on a channel is:
+            var channel = await _desktopAgent.JoinUserChannel("fdc3.channel.1");
+            await channel.Broadcast(context);
             return;
         }
 
@@ -81,6 +84,13 @@ var context = new Instrument(new InstrumentID { Ticker = "test-instrument" }, "t
 await desktopAgent.Broadcast(context);
 ```
 
+Or you can broadcast context using the `IChannel` API:
+```csharp
+await desktopAgent.JoinUserChannel("fdc3.channel.2");
+var channel = await desktopAgent.GetCurrentChannel();
+await channel.Broadcast(context);
+```
+
 ### Adding Context Listener
 You may register context listeners either before or after joining a channel; however, listeners will not receive any context unless the DesktopAgent has joined a channel.
 When an application is launched using the fdc3.open call with a context, the appropriate listener in the opened app will be invoked with that context before any other context messages are delivered.
@@ -91,10 +101,10 @@ var listener = await desktopAgent.AddContextListener("fdc3.instrument", (ctx, ct
 });
 ```
 
-### Joining a Channel
-Based on the standard you should join to a channel before broadcasting context to it or before you can receive the messages. If an app is joined to a channel every top-level already registered context listener will call its handler with the latest context on that channel.
+### Joining to a User Channel
+Based on the standard you should join to a channel before broadcasting context (from top-level) to it or before you can receive the messages after you have added your top-level context listener. If an app is joined to a channel every top-level already registered context listener will call its handler with the latest context on that channel.
 ```csharp
-var channel = await desktopAgent.JoinChannel("fdc3.channel.1");
+var channel = await desktopAgent.JoinUserChannel("fdc3.channel.1");
 ```
 
 ### Leaving a Channel
