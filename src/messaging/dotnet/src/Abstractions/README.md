@@ -14,7 +14,7 @@
 Install via NuGet:
 
 ```shell
-dotnet package add MorganStanley.ComposeUI.Messaging.Abstractions
+dotnet add package MorganStanley.ComposeUI.Messaging.Abstractions
 ```
 
 Or via the NuGet Package Manager:

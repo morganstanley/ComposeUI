@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <AssemblyName>MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests</AssemblyName>
+    <RootNamespace>MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\messaging\dotnet\src\Client\MorganStanley.ComposeUI.Messaging.Client.csproj" />
+    <ProjectReference Include="..\..\..\..\..\messaging\dotnet\src\Host\MorganStanley.ComposeUI.Messaging.Host.csproj" />
+    <ProjectReference Include="..\..\..\..\..\messaging\dotnet\src\MessageRouterAdapter\MorganStanley.ComposeUI.Messaging.MessageRouterAdapter.csproj" />
+    <ProjectReference Include="..\..\..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader\MorganStanley.ComposeUI.ModuleLoader.csproj" />
+    <ProjectReference Include="..\..\..\AppDirectory\src\MorganStanley.ComposeUI.Fdc3.AppDirectory\MorganStanley.ComposeUI.Fdc3.AppDirectory.csproj" />
+    <ProjectReference Include="..\..\src\MorganStanley.ComposeUI.Fdc3.DesktopAgent\MorganStanley.ComposeUI.Fdc3.DesktopAgent.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="TestData\testAppDirectory.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
