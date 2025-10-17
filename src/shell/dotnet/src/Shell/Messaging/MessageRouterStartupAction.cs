@@ -10,11 +10,6 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using System;
-using System.Collections.Generic;
-using System.Text.Json;
-using System.Threading.Tasks;
-using MorganStanley.ComposeUI.Messaging.Client.WebSocket;
 using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 using MorganStanley.ComposeUI.ModuleLoader;
 
@@ -23,12 +18,24 @@ namespace MorganStanley.ComposeUI.Shell.Messaging;
 internal sealed class MessageRouterStartupAction : IStartupAction
 {
     private readonly IMessageRouterWebSocketServer? _webSocketServer;
+    private static Dictionary<string, IModuleTypeMessageRouterConfigurator> _configurators;
 
     public MessageRouterStartupAction(IMessageRouterWebSocketServer? webSocketServer = null)
     {
         _webSocketServer = webSocketServer;
+        _configurators = new()
+        {
+            { ModuleType.Web, new WebModuleMessageRouterConfigurator() },
+            { ModuleType.Native, new NativeModuleMessageRouterConfigurator() }
+        };
     }
 
+    /// <summary>
+    /// <inheritdoc/>
+    /// </summary>
+    /// <param name="startupContext"></param>
+    /// <param name="next"></param>
+    /// <returns></returns>
     public Task InvokeAsync(StartupContext startupContext, Func<Task> next)
     {
         if (_webSocketServer == null)
@@ -36,28 +43,10 @@ internal sealed class MessageRouterStartupAction : IStartupAction
             return next();
         }
 
-        if (startupContext.ModuleInstance.Manifest.ModuleType == ModuleType.Web)
+        if (_configurators.TryGetValue(startupContext.ModuleInstance.Manifest.ModuleType, out var configurator))
         {
-            var webProperties = startupContext.GetOrAddProperty<WebStartupProperties>();
-
-            webProperties.ScriptProviders.Add(
-                _ => new ValueTask<string>(
-                    $$"""
-                            window.composeui = {
-                                ...window.composeui,
-                                messageRouterConfig: {
-                                    accessToken: "{{JsonEncodedText.Encode(App.Current.MessageRouterAccessToken)}}",
-                                    webSocket: {
-                                        url: "{{_webSocketServer.WebSocketUrl}}"
-                                    }
-                                }
-                            };
-                            """));
+            configurator.Configure(startupContext, _webSocketServer);
         }
-
-        startupContext.AddProperty(new EnvironmentVariables(new[] { new KeyValuePair<string, string>(WebSocketEnvironmentVariableNames.Uri, _webSocketServer.WebSocketUrl.AbsoluteUri),
-        new KeyValuePair<string, string>(ComposeUI.Messaging.EnvironmentVariableNames.AccessToken, App.Current.MessageRouterAccessToken)}
-            ));
 
         return next();
     }

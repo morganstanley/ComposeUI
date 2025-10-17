@@ -11,7 +11,7 @@ This package allows you to host a ComposeUI Message Router within your .NET appl
 Install via NuGet:
 
 ```shell
-dotnet package add MorganStanley.ComposeUI.Messaging.Server
+dotnet add package MorganStanley.ComposeUI.Messaging.Server
 ```
 
 Or via the NuGet Package Manager:

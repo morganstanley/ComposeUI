@@ -152,7 +152,6 @@ public class NativeModuleRunnerTests : IDisposable
 
         await _runner.Start(startupContext, () =>
         {
-            startupContext.AddProperty(new EnvironmentVariables(new Dictionary<string, string> { { variableName, randomString } }));
             return RedirectMainProcessOutput(startupContext);
         });
 
