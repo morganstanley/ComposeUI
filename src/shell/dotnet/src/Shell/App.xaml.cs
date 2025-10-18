@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
@@ -116,6 +117,9 @@ public partial class App : Application
 
     private async Task StartAsync(StartupEventArgs e)
     {
+        var repoRoot = FindRepoRoot(AppContext.BaseDirectory);
+        Environment.SetEnvironmentVariable("REPO_ROOT", repoRoot, EnvironmentVariableTarget.Process);
+
         var host = new HostBuilder()
             .ConfigureAppConfiguration(
                 config => config
@@ -309,5 +313,20 @@ public partial class App : Application
                     $"Exception thrown while stopping the generic host: {e.GetType().FullName}: {e.Message}");
             }
         }
+    }
+    private string FindRepoRoot(string startDir)
+    {
+        var directoryStartInfo = new DirectoryInfo(startDir);
+        while (directoryStartInfo != null)
+        {
+            if (Directory.Exists(Path.Combine(directoryStartInfo.FullName, ".git")))
+            {
+                return directoryStartInfo.FullName;
+            }
+
+            directoryStartInfo = directoryStartInfo.Parent;
+        }
+
+        throw new DirectoryNotFoundException("Repository root not found.");
     }
 }

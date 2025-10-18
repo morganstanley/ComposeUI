@@ -11,6 +11,7 @@
  * or implied. See the License for the specific language governing permissions
  * and limitations under the License.
  */
+
 using System.Text.Json;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Converters;
 using System.Text.Json.Serialization;
@@ -18,17 +19,17 @@ using System.Text.Json.Serialization;
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 
 /// <summary>
-/// Provides a helper for configuring <see cref="JsonSerializerOptions"/> used for FDC3 Desktop Agent serialization.
+/// Provides a helper for configuring <see cref="JsonSerializerOptionsWithContextSerialization"/> used for FDC3 Desktop Agent serialization.
 /// </summary>
 public static class SerializerOptionsHelper
 {
     /// <summary>
-    /// Gets the configured <see cref="JsonSerializerOptions"/> for serializing and deserializing FDC3 Desktop Agent models.
+    /// Gets the configured <see cref="JsonSerializerOptionsWithContextSerialization"/> for serializing and deserializing FDC3 Desktop Agent models.
     /// </summary>
     /// <remarks>
     /// The options include custom converters for FDC3 types, camel case enum serialization, and ignore null values when writing.
     /// </remarks>
-    public static JsonSerializerOptions JsonSerializerOptions => new(JsonSerializerDefaults.Web)
+    public static JsonSerializerOptions JsonSerializerOptionsWithContextSerialization => new(JsonSerializerDefaults.Web)
     {
 #if DEBUG
         WriteIndented = true,
@@ -44,6 +45,7 @@ public static class SerializerOptionsHelper
             new ImageJsonConverter(),
             new IntentMetadataJsonConverter(),
             new ImplementationMetadataJsonConverter(),
+            new IContextJsonConverter(),
             new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
         }
     };
