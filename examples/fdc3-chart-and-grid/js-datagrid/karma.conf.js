@@ -97,6 +97,6 @@ module.exports = function(config) {
     // how many browser instances should be started simultaneously
     //concurrency: Infinity,
     
-    restartOnFileChange: true
+    restartOnFileChange: false
   })
 }
