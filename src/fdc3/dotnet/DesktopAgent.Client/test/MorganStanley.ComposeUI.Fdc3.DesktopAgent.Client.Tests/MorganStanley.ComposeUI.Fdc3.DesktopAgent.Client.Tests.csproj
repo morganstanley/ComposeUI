@@ -32,6 +32,7 @@
 	  <ProjectReference Include="..\..\..\AppDirectory\src\MorganStanley.ComposeUI.Fdc3.AppDirectory\MorganStanley.ComposeUI.Fdc3.AppDirectory.csproj" />
 	  <ProjectReference Include="..\..\..\DesktopAgent\src\MorganStanley.ComposeUI.Fdc3.DesktopAgent\MorganStanley.ComposeUI.Fdc3.DesktopAgent.csproj" />
 	  <ProjectReference Include="..\..\src\MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client\MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.csproj" />
+	  <ProjectReference Include="..\TestHelpers\DesktopAgentClientConsoleApp\DesktopAgentClientConsoleApp.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

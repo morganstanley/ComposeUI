@@ -14,7 +14,7 @@
 
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests;
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests.Helpers;
 
 internal static class TestAppDirectoryData
 {

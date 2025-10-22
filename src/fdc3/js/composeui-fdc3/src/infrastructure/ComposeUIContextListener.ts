@@ -11,7 +11,7 @@
  *  
  */
 
-import { Context, ContextHandler, Listener, ResultError } from "@finos/fdc3";
+import { Context, ContextHandler, Listener } from "@finos/fdc3";
 import { MessageRouter, TopicMessage } from "@morgan-stanley/composeui-messaging-client";
 import { ChannelType } from "./ChannelType";
 import { Unsubscribable } from "rxjs";
@@ -84,6 +84,7 @@ export class ComposeUIContextListener implements Listener {
         this.unsubscribeCallback = unsubscribeCallback;
     }
 
+    //TODO: Decide if we want to have this functionality as the standard does not include it. Currently this method is not used.
     public setOpenHandled(openHandled: boolean): void {
         this.openHandled = openHandled;
 

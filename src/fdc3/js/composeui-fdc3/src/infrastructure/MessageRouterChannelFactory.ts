@@ -37,7 +37,6 @@ import { Fdc3JoinUserChannelRequest } from "./messages/Fdc3JoinUserChannelReques
 import { Fdc3JoinUserChannelResponse } from "./messages/Fdc3JoinUserChannelResponse";
 import { ChannelItem } from "./ChannelItem";
 import { ComposeUIContextListener } from "./ComposeUIContextListener";
-import { json } from "stream/consumers";
 
 export class MessageRouterChannelFactory implements ChannelFactory {
     private messageRouterClient: MessageRouter;
