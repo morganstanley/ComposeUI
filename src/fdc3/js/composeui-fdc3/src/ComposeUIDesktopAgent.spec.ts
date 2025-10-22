@@ -8,12 +8,11 @@
  *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  *  or implied. See the License for the specific language governing permissions
  *  and limitations under the License.
- *  
  */
 
-import { jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { IMessaging, JsonMessaging } from '@morgan-stanley/composeui-messaging-abstractions';
 import { ComposeUIChannel } from './infrastructure/ComposeUIChannel';
-import { MessageRouter } from '@morgan-stanley/composeui-messaging-client';
 import { ComposeUIContextListener } from './infrastructure/ComposeUIContextListener';
 import { ComposeUIDesktopAgent } from './ComposeUIDesktopAgent';
 import { ComposeUITopic } from './infrastructure/ComposeUITopic';
@@ -24,174 +23,167 @@ import { ComposeUIPrivateChannel } from './infrastructure/ComposeUIPrivateChanne
 import { ChannelType } from './infrastructure/ChannelType';
 import { Fdc3GetOpenedAppContextResponse } from './infrastructure/messages/Fdc3GetOpenedAppContextResponse';
 
-const dummyContext = { type: "dummyContextType" };
-const dummyChannelId = "dummy";
-let messageRouterClient: MessageRouter;
+const dummyContext = { type: 'dummyContextType' };
+const dummyChannelId = 'dummy';
+let jsonMessagingMock: JsonMessaging;
+let messagingMock: IMessaging;
 let desktopAgent: ComposeUIDesktopAgent;
 
 const testInstrument = {
-    type: 'fdc3.instrument',
-    id: {
-        ticker: 'AAPL'
-    }
+  type: 'fdc3.instrument',
+  id: { ticker: 'AAPL' }
 };
-const contextMessageHandlerMock = jest.fn((something) => {
-    return "dummy";
+
+const contextMessageHandlerMock = vi.fn((_ctx) => 'dummy');
+
+const buildChannelFactory = (jm: JsonMessaging): ChannelFactory => ({
+  createPrivateChannel: vi.fn(() =>
+    Promise.resolve(new ComposeUIPrivateChannel('privateId', 'localInstance', jm, true))
+  ),
+  getChannel: vi.fn(async (channelId: string, channelType: ChannelType) => {
+    if (channelId === dummyChannelId) return new ComposeUIChannel(channelId, channelType, jm);
+    throw new Error(ChannelError.NoChannelFound);
+  }),
+  getIntentListener: vi.fn(() => Promise.reject('Not implemented')),
+  createAppChannel: vi.fn(() => Promise.reject('Not implemented')),
+  joinUserChannel: vi.fn(() => Promise.resolve(new ComposeUIChannel(dummyChannelId, 'user', jm))),
+  getUserChannels: vi.fn(() => Promise.reject('Not implemented')),
+  getContextListener: vi.fn(
+    (_openHandled: boolean, _channel: Channel, handler: ContextHandler, contextType?: string) =>
+      Promise.resolve(new ComposeUIContextListener(true, jm, handler, contextType))
+  )
 });
 
 describe('Tests for ComposeUIDesktopAgent implementation API', () => {
-    //Be aware that currently the tests are for User channels mostly!
-    beforeEach(async () => {
-        window.composeui = {
-            fdc3: {
-                config: {
-                    appId: "testAppId",
-                    instanceId: "testInstanceId"
-                },
-                channelId : "test",
-                openAppIdentifier: {
-                    openedAppContextId: "test"
-                }
-            }
-        };
+  beforeEach(async () => {
+    // @ts-ignore
+    window.composeui = {
+      fdc3: {
+        config: { appId: 'testAppId', instanceId: 'testInstanceId' },
+        channelId: 'test',
+        openAppIdentifier: { openedAppContextId: 'test' }
+      }
+    };
 
-        messageRouterClient = {
-            clientId: "dummy",
-            subscribe: jest.fn(() => {
-                return Promise.resolve({ unsubscribe: () => { } });
-            }),
+    messagingMock = {
+      subscribe: vi.fn(() => Promise.resolve({ unsubscribe: () => {} })),
+      publish: vi.fn(() => Promise.resolve()),
+      registerService: vi.fn(() =>
+        Promise.resolve({
+          unsubscribe: () => {},
+          [Symbol.asyncDispose]: () => Promise.resolve()
+        })
+      ),
+      invokeService: vi.fn(() =>
+        Promise.resolve(JSON.stringify({ context: '', payload: `${JSON.stringify(dummyContext)}` }))
+      )
+    };
 
-            publish: jest.fn(() => { return Promise.resolve() }),
-            connect: jest.fn(() => { return Promise.resolve() }),
-            registerEndpoint: jest.fn(() => { return Promise.resolve() }),
-            unregisterEndpoint: jest.fn(() => { return Promise.resolve() }),
-            registerService: jest.fn(() => { return Promise.resolve() }),
-            unregisterService: jest.fn(() => { return Promise.resolve() }),
-            invoke: jest.fn(() => {
-                return Promise.resolve(JSON.stringify({ context: "", payload: `${JSON.stringify(dummyContext)}` }))
-            })
-        };
+    jsonMessagingMock = new JsonMessaging(messagingMock);
+    const channelFactory = buildChannelFactory(jsonMessagingMock);
+    desktopAgent = new ComposeUIDesktopAgent(jsonMessagingMock, channelFactory);
+    await desktopAgent.joinUserChannel(dummyChannelId);
+  });
 
-        let channelFactory: ChannelFactory = {
-            createPrivateChannel: jest.fn(() => { return Promise.resolve(new ComposeUIPrivateChannel("privateId", "localInstance", messageRouterClient, true)) }),
-            getChannel: jest.fn(async (channelId: string, channelType: ChannelType) => {
-                if (channelId == dummyChannelId) { return new ComposeUIChannel(channelId, channelType, messageRouterClient); }
-                else { throw new Error(ChannelError.NoChannelFound); }
-            }),
-            getIntentListener: jest.fn(() => Promise.reject("Not implemented")),
-            createAppChannel: jest.fn(() => Promise.reject("Not implemented")),
-            joinUserChannel: jest.fn(() => Promise.resolve(new ComposeUIChannel(dummyChannelId, "user", messageRouterClient))),
-            getUserChannels: jest.fn(() => Promise.reject("Not implemented")),
-            getContextListener: jest.fn((openHandled: boolean, channel: Channel, handler: ContextHandler, contextType?: string) => {return Promise.resolve(new ComposeUIContextListener(true, messageRouterClient, handler, contextType))})
-        };
+  it('ComposeUIDesktopAgent throws when no instanceId', () => {
+    // @ts-ignore
+    window.composeui.fdc3.config = undefined;
+    expect(() => new ComposeUIDesktopAgent(jsonMessagingMock)).toThrowError(
+      ComposeUIErrors.InstanceIdNotFound
+    );
+  });
 
-        desktopAgent = new ComposeUIDesktopAgent(messageRouterClient, channelFactory);
-        await desktopAgent.joinUserChannel(dummyChannelId);
-        await new Promise(f => setTimeout(f, 100));
-    });
+  it('broadcast publishes context', async () => {
+    const publishSpy = vi.spyOn(jsonMessagingMock, 'publishJson');
+    await desktopAgent.broadcast(testInstrument);
+    expect(publishSpy).toHaveBeenCalledTimes(1);
+    expect(publishSpy).toHaveBeenCalledWith(
+      ComposeUITopic.broadcast(dummyChannelId, 'user'),
+      testInstrument
+    );
+  });
 
-    it('ComposeUIDesktopAgent could not be created as no instanceId found on window object', async () => {
-        window.composeui.fdc3.config = undefined;
-        expect(() => new ComposeUIDesktopAgent(messageRouterClient))
-            .toThrowError(ComposeUIErrors.InstanceIdNotFound);
-    });
+  it('broadcast fails without current channel', async () => {
+    await desktopAgent.leaveCurrentChannel();
+    await expect(desktopAgent.broadcast(testInstrument)).rejects.toThrow(
+      'The current channel has not been set.'
+    );
+  });
 
-    it('broadcast will trigger publish method of the messageRouter', async () => {
-        await desktopAgent.broadcast(testInstrument);
-        expect(messageRouterClient.publish).toBeCalledTimes(1);
-        expect(messageRouterClient.publish).toHaveBeenCalledWith(ComposeUITopic.broadcast(dummyChannelId, "user"), JSON.stringify(testInstrument));
-    });
+  it('default current channel retrieved', async () => {
+    const result = await desktopAgent.getCurrentChannel();
+    expect(result).toMatchObject<Partial<Channel>>({ id: dummyChannelId, type: 'user' });
+  });
 
-    it('broadcast will fail as the current channel is not defined', async () => {
-        await desktopAgent.leaveCurrentChannel();
-        await expect(desktopAgent.broadcast(testInstrument))
-            .rejects
-            .toThrow("The current channel has not been set.");
-    });
+  it('leaveCurrentChannel clears channel', async () => {
+    await desktopAgent.leaveCurrentChannel();
+    const result = await desktopAgent.getCurrentChannel();
+    expect(result).toBeFalsy();
+  });
 
-    it('default channel can be retrieved', async () => {
-        var result = await desktopAgent.getCurrentChannel();
-        expect(result).toMatchObject<Partial<Channel>>({ id: dummyChannelId, type: "user" });
-    });
+  it('getCurrentChannel after rejoin', async () => {
+    await desktopAgent.leaveCurrentChannel();
+    await desktopAgent.joinUserChannel(dummyChannelId);
+    const result = await desktopAgent.getCurrentChannel();
+    expect(result).toMatchObject<Partial<Channel>>({ id: dummyChannelId, type: 'user' });
+  });
 
-    it('leaveCurrentChannel will set the current user channel to undefined', async () => {
-        await desktopAgent.leaveCurrentChannel();
-        var result = await desktopAgent.getCurrentChannel();
-        expect(result).toBeFalsy();
-    });
+  it('context listener cannot handle when not subscribed', async () => {
+    await desktopAgent.leaveCurrentChannel();
+    const listener = (await desktopAgent.addContextListener(
+      'fdc3.instrument',
+      contextMessageHandlerMock
+    )) as ComposeUIContextListener;
+    const current = await desktopAgent.getCurrentChannel();
+    expect(current).toBeFalsy();
+    await expect(listener.handleContextMessage(dummyContext)).rejects.toThrow(
+      'The current listener is not subscribed.'
+    );
+  });
 
-    it('getCurrentChannel will get the current user channel', async () => {
-        await desktopAgent.leaveCurrentChannel();
-        await desktopAgent.joinUserChannel(dummyChannelId);
-        var result = await desktopAgent.getCurrentChannel();
-        expect(result).toMatchObject<Partial<Channel>>({ id: dummyChannelId, type: "user" });
-    });
+  it('joinChannel sets current user channel', async () => {
+    await desktopAgent.joinChannel(dummyChannelId);
+    const result = await desktopAgent.getCurrentChannel();
+    expect(result).toMatchObject<Partial<Channel>>({ id: dummyChannelId, type: 'user' });
+  });
 
-    it('listener could not handle context message as its not subscribed', async () => {
-        await desktopAgent.leaveCurrentChannel();
-        const listener = <ComposeUIContextListener>await desktopAgent.addContextListener("fdc3.instrument", contextMessageHandlerMock)
-        var result = await desktopAgent.getCurrentChannel();
-        expect(result).toBeFalsy();
-        expect(listener.handleContextMessage(dummyContext))
-            .rejects
-            .toThrow("The current listener is not subscribed.");
-    });
+  it('createPrivateChannel returns private channel', async () => {
+    const channel = await desktopAgent.createPrivateChannel();
+    expect(channel).toBeInstanceOf(ComposeUIPrivateChannel);
+    expect(channel.type).toBe('private');
+  });
 
-    it('joinChannel will set the current user channel', async () => {
-        await desktopAgent.joinChannel(dummyChannelId);
-        var result = await desktopAgent.getCurrentChannel();
-        expect(result).toMatchObject<Partial<Channel>>({ id: dummyChannelId, type: "user" });
-    });
+  it('addContextListener handles openedAppContext on subscribe', async () => {
+    const openedResp: Fdc3GetOpenedAppContextResponse = {
+      context: { type: 'fdc3.instrument' }
+    };
 
-    it('createPrivateChannel returns the channel', async () => {
-        let channel = await desktopAgent.createPrivateChannel();
-        expect(channel).toBeInstanceOf(ComposeUIPrivateChannel);
-        expect(channel.type).toBe("private");
-    });
+    const messagingMock2: IMessaging = {
+      subscribe: vi.fn(() => Promise.resolve({ unsubscribe: () => {} })),
+      publish: vi.fn(() => Promise.resolve()),
+      registerService: vi.fn(() =>
+        Promise.resolve({
+          unsubscribe: () => {},
+          [Symbol.asyncDispose]: () => Promise.resolve()
+        })
+      ),
+      invokeService: vi
+        .fn(() => Promise.resolve(`${JSON.stringify(undefined)}`))
+        .mockImplementationOnce(() => Promise.resolve(`${JSON.stringify(openedResp)}`))
+    };
+    const jsonMessaging2 = new JsonMessaging(messagingMock2);
+    const channelFactory2 = buildChannelFactory(jsonMessaging2);
+    desktopAgent = new ComposeUIDesktopAgent(jsonMessaging2, channelFactory2);
 
-    it('addContextListener handles openAppContext', async() => {
-        const response: Fdc3GetOpenedAppContextResponse = {
-            context: {type: "fdc3.instrument"}
-        };
+    await desktopAgent.getOpenedAppContext();
+    const currentChannel = await desktopAgent.getCurrentChannel();
+    expect(currentChannel).toBe(null);
 
-        messageRouterClient = {
-            clientId: "dummy",
-            subscribe: jest.fn(() => {
-                return Promise.resolve({ unsubscribe: () => { } });
-            }),
-
-            publish: jest.fn(() => { return Promise.resolve() }),
-            connect: jest.fn(() => { return Promise.resolve() }),
-            registerEndpoint: jest.fn(() => { return Promise.resolve() }),
-            unregisterEndpoint: jest.fn(() => { return Promise.resolve() }),
-            registerService: jest.fn(() => { return Promise.resolve() }),
-            unregisterService: jest.fn(() => { return Promise.resolve() }),
-            invoke: jest.fn(() => { return Promise.resolve(`${JSON.stringify(undefined)}`) })
-                .mockImplementationOnce(() => Promise.resolve(`${JSON.stringify(response)}`))
-        };
-
-        let channelFactory: ChannelFactory = {
-            createPrivateChannel: jest.fn(() => { return Promise.resolve(new ComposeUIPrivateChannel("privateId", "localInstance", messageRouterClient, true)) }),
-            getChannel: jest.fn(async (channelId: string, channelType: ChannelType) => {
-                if (channelId == dummyChannelId) { return new ComposeUIChannel(channelId, channelType, messageRouterClient); }
-                else { throw new Error(ChannelError.NoChannelFound); }
-            }),
-            getIntentListener: jest.fn(() => Promise.reject("Not implemented")),
-            createAppChannel: jest.fn(() => Promise.reject("Not implemented")),
-            joinUserChannel: jest.fn(() => Promise.resolve(new ComposeUIChannel(dummyChannelId, "user", messageRouterClient))),
-            getUserChannels: jest.fn(() => Promise.reject("Not implemented")),
-            getContextListener: jest.fn((openHandled: boolean, channel: Channel, handler: ContextHandler, contextType?: string) => {return Promise.resolve(new ComposeUIContextListener(true, messageRouterClient, handler, contextType))})
-        };
-
-        desktopAgent = new ComposeUIDesktopAgent(messageRouterClient, channelFactory);
-
-        //Fill the openedAppContext field
-        await desktopAgent.getOpenedAppContext();
-
-        const currentChannel = await desktopAgent.getCurrentChannel();
-        expect(currentChannel).toBe(null);
-
-        const listener = await desktopAgent.addContextListener("fdc3.instrument", contextMessageHandlerMock);
-        expect(contextMessageHandlerMock).toHaveBeenCalledTimes(1);
-    });
+    const listener = await desktopAgent.addContextListener(
+      'fdc3.instrument',
+      contextMessageHandlerMock
+    );
+    expect(listener).toBeInstanceOf(ComposeUIContextListener);
+    expect(contextMessageHandlerMock).toHaveBeenCalledTimes(1);
+  });
 });

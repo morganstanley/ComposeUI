@@ -14,7 +14,7 @@
 
 import { AppIdentifier, DesktopAgent } from "@finos/fdc3";
 import { ComposeUIDesktopAgent } from "./ComposeUIDesktopAgent";
-import { createMessageRouter } from "@morgan-stanley/composeui-messaging-client";
+import { IMessaging } from "@morgan-stanley/composeui-messaging-abstractions";
 import { OpenAppIdentifier } from "./infrastructure/OpenAppIdentifier";
 
 declare global {
@@ -24,6 +24,9 @@ declare global {
                 config: AppIdentifier | undefined;
                 channelId : string | undefined;
                 openAppIdentifier: OpenAppIdentifier | undefined;
+            },
+            messaging: {
+                communicator: IMessaging | undefined;
             }
         }
         fdc3: DesktopAgent;
@@ -34,7 +37,8 @@ async function initialize(): Promise<void> {
     //TODO: decide if we want to join to a channel by default.
     let channelId: string | undefined = window.composeui.fdc3.channelId;
     const openAppIdentifier: OpenAppIdentifier | undefined = window.composeui.fdc3.openAppIdentifier;
-    const fdc3 = new ComposeUIDesktopAgent(createMessageRouter());
+    const messaging = window.composeui.messaging.communicator as IMessaging;
+    const fdc3 = new ComposeUIDesktopAgent(messaging);
 
     if (channelId) {
         await fdc3.joinUserChannel(channelId)

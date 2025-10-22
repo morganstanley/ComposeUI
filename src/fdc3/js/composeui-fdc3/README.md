@@ -5,7 +5,7 @@
 `composeui-fdc3` is a TypeScript/JavaScript package that provides [FDC3](https://fdc3.finos.org/) support for [ComposeUI](https://morganstanley.github.io/ComposeUI/) applications. It enables interoperability between desktop applications by implementing the FDC3 standard APIs for context sharing, intent handling, and application discovery.
 
 **Note:** This package currently supports only FDC3 version 2.0.  
-It uses the [MessageRouter TypeScript library](https://github.com/morganstanley/ComposeUI/tree/main/src/messagerouter/js) as its messaging layer.
+It uses the [Messaging abstractions TypeScript library](https://github.com/morganstanley/ComposeUI/tree/main/src/messaging/js/composeui-messaging-abstractions) as its messaging layer.
 
 ## Features
 
