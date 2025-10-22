@@ -26,18 +26,17 @@ import {
     Listener,
     PrivateChannel
 } from '@finos/fdc3';
-
-import { MessageRouter } from '@morgan-stanley/composeui-messaging-client';
+import { IMessaging, JsonMessaging } from "@morgan-stanley/composeui-messaging-abstractions";
 import { ComposeUIContextListener } from './infrastructure/ComposeUIContextListener';
 import { ComposeUIErrors } from './infrastructure/ComposeUIErrors';
 import { ChannelFactory } from './infrastructure/ChannelFactory';
-import { MessageRouterChannelFactory } from './infrastructure/MessageRouterChannelFactory';
-import { MessageRouterIntentsClient } from './infrastructure/MessageRouterIntentsClient';
+import { MessagingChannelFactory } from './infrastructure/MessagingChannelFactory';
+import { MessagingIntentsClient } from './infrastructure/MessagingIntentsClient';
 import { IntentsClient } from './infrastructure/IntentsClient';
 import { MetadataClient } from './infrastructure/MetadataClient';
-import { MessageRouterMetadataClient } from './infrastructure/MessageRouterMetadataClient';
+import { MessagingMetadataClient } from './infrastructure/MessagingMetadataClient';
 import { OpenClient } from "./infrastructure/OpenClient";
-import { MessageRouterOpenClient } from "./infrastructure/MessageRouterOpenClient";
+import { MessagingOpenClient } from "./infrastructure/MessagingOpenClient";
 
 export class ComposeUIDesktopAgent implements DesktopAgent {
     private appChannels: Channel[] = [];
@@ -54,16 +53,24 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     private openedAppContextHandled: boolean = false;
 
     //TODO: we should enable passing multiple channelId to the ctor.
-    constructor(messageRouterClient: MessageRouter, channelFactory?: ChannelFactory) {
+    constructor(
+        messaging: IMessaging, 
+        channelFactory?: ChannelFactory,
+        intentsClient?: IntentsClient,
+        metadataClient?: MetadataClient,
+        openClient?: OpenClient) {
+
         if (!window.composeui.fdc3.config || !window.composeui.fdc3.config.instanceId) {
             throw new Error(ComposeUIErrors.InstanceIdNotFound);
         }
 
+        const jsonMessaging: JsonMessaging = new JsonMessaging(messaging);
+
         // TODO: inject this directly instead of the messageRouter
-        this.channelFactory = channelFactory ?? new MessageRouterChannelFactory(messageRouterClient, window.composeui.fdc3.config.instanceId);
-        this.intentsClient = new MessageRouterIntentsClient(messageRouterClient, this.channelFactory);
-        this.metadataClient = new MessageRouterMetadataClient(messageRouterClient, window.composeui.fdc3.config);
-        this.openClient = new MessageRouterOpenClient(window.composeui.fdc3.config.instanceId!, messageRouterClient, window.composeui.fdc3.openAppIdentifier);
+        this.channelFactory = channelFactory ?? new MessagingChannelFactory(jsonMessaging, window.composeui.fdc3.config.instanceId);
+        this.intentsClient = intentsClient ?? new MessagingIntentsClient(jsonMessaging, this.channelFactory);
+        this.metadataClient = metadataClient ?? new MessagingMetadataClient(jsonMessaging, window.composeui.fdc3.config);
+        this.openClient = openClient ?? new MessagingOpenClient(window.composeui.fdc3.config.instanceId!, jsonMessaging, window.composeui.fdc3.openAppIdentifier);
     }
 
     public async open(app?: string | AppIdentifier, context?: Context): Promise<AppIdentifier> {

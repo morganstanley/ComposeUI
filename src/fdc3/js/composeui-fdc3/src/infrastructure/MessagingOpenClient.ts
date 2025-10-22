@@ -11,7 +11,6 @@
  */
 
 import { AppIdentifier, Channel, Context, OpenError } from "@finos/fdc3";
-// import { MessageRouter } from "@morgan-stanley/composeui-messaging-client";
 import { JsonMessaging } from "@morgan-stanley/composeui-messaging-abstractions";
 import { ComposeUIErrors } from "./ComposeUIErrors";
 import { ComposeUITopic } from "./ComposeUITopic";
@@ -22,7 +21,7 @@ import { Fdc3GetOpenedAppContextRequest } from "./messages/Fdc3GetOpenedAppConte
 import { Fdc3GetOpenedAppContextResponse } from "./messages/Fdc3GetOpenedAppContextResponse";
 import { OpenAppIdentifier } from "./OpenAppIdentifier";
 
-export class MessageRouterOpenClient implements OpenClient{
+export class MessagingOpenClient implements OpenClient{
     private channel?: Channel | null;
 
     constructor(
@@ -56,12 +55,11 @@ export class MessageRouterOpenClient implements OpenClient{
             context,
             this.channel?.id);
 
-        const response = await this.jsonMessaging.invokeJsonService<string, Fdc3OpenResponse>(ComposeUITopic.open(), JSON.stringify(request));
+        const response = await this.jsonMessaging.invokeJsonService<Fdc3OpenRequest, Fdc3OpenResponse>(ComposeUITopic.open(), request);
         if (!response) {
             throw new Error(ComposeUIErrors.NoAnswerWasProvided);
         }
 
-        // const response = <Fdc3OpenResponse>JSON.parse(result);
         if (response?.error) {
             throw new Error(response.error);
         }
@@ -82,12 +80,10 @@ export class MessageRouterOpenClient implements OpenClient{
             contextId: this.openAppIdentifier.openedAppContextId
         };
 
-        const response = await this.jsonMessaging.invokeJsonService<string, Fdc3GetOpenedAppContextResponse>(ComposeUITopic.getOpenedAppContext(), JSON.stringify(request));
+        const response = await this.jsonMessaging.invokeJsonService<Fdc3GetOpenedAppContextRequest, Fdc3GetOpenedAppContextResponse>(ComposeUITopic.getOpenedAppContext(), request);
         if (!response) {
             throw new Error(ComposeUIErrors.NoAnswerWasProvided);
         }
-
-        // const response = <Fdc3GetOpenedAppContextResponse>JSON.parse(payload);
 
         if (!response) {
             throw new Error(ComposeUIErrors.NoAnswerWasProvided);

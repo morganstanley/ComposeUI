@@ -12,7 +12,6 @@
  */
 
 import { AppIdentifier, AppIntent, AppMetadata, Context, IntentResolution } from "@finos/fdc3";
-// import { MessageRouter } from "@morgan-stanley/composeui-messaging-client";
 import { JsonMessaging } from "@morgan-stanley/composeui-messaging-abstractions";
 import { ChannelFactory } from "./ChannelFactory";
 import { ComposeUIErrors } from "./ComposeUIErrors";
@@ -27,9 +26,7 @@ import { Fdc3RaiseIntentRequest } from "./messages/Fdc3RaiseIntentRequest";
 import { Fdc3RaiseIntentResponse } from "./messages/Fdc3RaiseIntentResponse";
 import { Fdc3RaiseIntentForContextRequest } from "./messages/Fdc3RaiseIntentForContextRequest";
 
-export class MessageRouterIntentsClient implements IntentsClient {
-
-    // private messageRouterClient: MessageRouter;
+export class MessagingIntentsClient implements IntentsClient {
     private channelFactory: ChannelFactory;
     private jsonMessaging: JsonMessaging;
 
@@ -38,19 +35,17 @@ export class MessageRouterIntentsClient implements IntentsClient {
             throw new Error(ComposeUIErrors.InstanceIdNotFound);
         }
 
-        // this.messageRouterClient = messageRouterClient;
         this.channelFactory = channelFactory;
         this.jsonMessaging = jsonMessaging;
     }
 
     public async findIntent(intent: string, context?: Context, resultType?: string): Promise<AppIntent> {
         const request = new Fdc3FindIntentRequest(window.composeui.fdc3.config!.instanceId!, intent, context, resultType);
-        const message = await this.jsonMessaging.invokeJsonService<string, Fdc3FindIntentResponse>(ComposeUITopic.findIntent(), JSON.stringify(request));
+        const message = await this.jsonMessaging.invokeJsonService<Fdc3FindIntentRequest, Fdc3FindIntentResponse>(ComposeUITopic.findIntent(), request);
         if (!message) {
             throw new Error(ComposeUIErrors.NoAnswerWasProvided);
         }
 
-        // const findIntentResponse = <Fdc3FindIntentResponse>JSON.parse(message);
         if (message.error) {
             throw new Error(message.error);
         }
@@ -61,12 +56,11 @@ export class MessageRouterIntentsClient implements IntentsClient {
 
     public async findIntentsByContext(context: Context, resultType?: string): Promise<Array<AppIntent>> {
         const request = new Fdc3FindIntentsByContextRequest(window.composeui.fdc3.config!.instanceId!, context, resultType);
-        const message = await this.jsonMessaging.invokeJsonService<string, Fdc3FindIntentsByContextResponse>(ComposeUITopic.findIntentsByContext(), JSON.stringify(request));
+        const message = await this.jsonMessaging.invokeJsonService<Fdc3FindIntentsByContextRequest, Fdc3FindIntentsByContextResponse>(ComposeUITopic.findIntentsByContext(), request);
         if (!message) {
             throw new Error(ComposeUIErrors.NoAnswerWasProvided);
         }
 
-        // const findIntentsByContextResponse = <Fdc3FindIntentsByContextResponse>JSON.parse(message);
         if (message.error) {
             throw new Error(message.error);
         }
@@ -85,12 +79,10 @@ export class MessageRouterIntentsClient implements IntentsClient {
 
         const messageId = Math.floor(Math.random() * 10000);
         const message = new Fdc3RaiseIntentRequest(messageId, window.composeui.fdc3.config!.instanceId!, intent, context, app);
-        const response = await this.jsonMessaging.invokeJsonService<string, Fdc3RaiseIntentResponse>(ComposeUITopic.raiseIntent(), JSON.stringify(message));
+        const response = await this.jsonMessaging.invokeJsonService<Fdc3RaiseIntentRequest, Fdc3RaiseIntentResponse>(ComposeUITopic.raiseIntent(), message);
         if (!response) {
             throw new Error(ComposeUIErrors.NoAnswerWasProvided);
         }
-
-        // const response = <Fdc3RaiseIntentResponse>JSON.parse(responseFromService);
 
         if (response.error) {
             throw new Error(response.error);
@@ -112,12 +104,11 @@ export class MessageRouterIntentsClient implements IntentsClient {
             context,
             app);
 
-        const response = await this.jsonMessaging.invokeJsonService<string, Fdc3RaiseIntentResponse>(ComposeUITopic.raiseIntentForContext(), JSON.stringify(request));
+        const response = await this.jsonMessaging.invokeJsonService<Fdc3RaiseIntentForContextRequest, Fdc3RaiseIntentResponse>(ComposeUITopic.raiseIntentForContext(), request);
         if (!response) {
             throw new Error(ComposeUIErrors.NoAnswerWasProvided);
         }
 
-        // const response = <Fdc3RaiseIntentResponse>JSON.parse(responseFromService);
         if (response.error) {
             throw new Error(response.error);
         }

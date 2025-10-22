@@ -12,7 +12,6 @@
  */
 
 import { Channel, Context, ContextHandler, DisplayMetadata, Listener } from "@finos/fdc3";
-// import { MessageRouter } from "@morgan-stanley/composeui-messaging-client";
 import { JsonMessaging } from "@morgan-stanley/composeui-messaging-abstractions";
 import { ChannelType } from "./ChannelType";
 import { ComposeUIContextListener } from "./ComposeUIContextListener";
@@ -42,15 +41,13 @@ export class ComposeUIChannel implements Channel {
         this.lastContexts.set(context.type, context);
         this.lastContext = context;
         const topic = ComposeUITopic.broadcast(this.id, this.type);
-        // await this.messageRouterClient.publish(topic, JSON.stringify(context));
         await this.jsonMessaging.publishJson(topic, context);
     }
 
     public async getCurrentContext(contextType?: string | undefined): Promise<Context | null> {
-        const message = JSON.stringify(new Fdc3GetCurrentContextRequest(contextType));
-        const response = await this.jsonMessaging.invokeJsonService<string, Context>(ComposeUITopic.getCurrentContext(this.id, this.type), message);
+        const message = new Fdc3GetCurrentContextRequest(contextType);
+        const response = await this.jsonMessaging.invokeJsonService<Fdc3GetCurrentContextRequest, Context>(ComposeUITopic.getCurrentContext(this.id, this.type), message);
         if (response) {
-            // const context = <Context>JSON.parse(response);
             if (response) {
                 this.lastContext = response;
                 this.lastContexts.set(response.type, response);

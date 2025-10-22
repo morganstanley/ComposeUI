@@ -44,10 +44,8 @@ export class ComposeUIContextListener implements Listener {
     public async subscribe(channelId: string, channelType: ChannelType): Promise<void> {
         await this.registerContextListener(channelId, channelType);
         const subscribeTopic = ComposeUITopic.broadcast(channelId, channelType);
-        this.unsubscribable = await this.jsonMessaging.subscribe(subscribeTopic, (payload: string) => {
 
-            //TODO: integration test
-            const context = <Context>JSON.parse(payload!);
+        this.unsubscribable = await this.jsonMessaging.subscribeJson<Context>(subscribeTopic, async (context: Context) => {
             if (!this.contextType || this.contextType == context!.type) {
                 if (this.openHandled === true) {
                     this.handler!(context!);
@@ -55,8 +53,8 @@ export class ComposeUIContextListener implements Listener {
                     this.contexts.push(context);
                 }
             }
-            return Promise.resolve();
         });
+
         this.isSubscribed = true;
     }
 

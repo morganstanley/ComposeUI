@@ -11,7 +11,7 @@
  *  
  */
 import { AppMetadata, IntentResolution, IntentResult } from "@finos/fdc3";
-import { MessageRouter } from "@morgan-stanley/composeui-messaging-client";
+import { JsonMessaging } from "@morgan-stanley/composeui-messaging-abstractions";
 import { ChannelFactory } from "./ChannelFactory";
 import { ComposeUIErrors } from "./ComposeUIErrors";
 import { ComposeUITopic } from "./ComposeUITopic";
@@ -19,31 +19,33 @@ import { Fdc3GetIntentResultRequest } from "./messages/Fdc3GetIntentResultReques
 import { Fdc3GetIntentResultResponse } from "./messages/Fdc3GetIntentResultResponse";
 
 export class ComposeUIIntentResolution implements IntentResolution {
-    private messageRouterClient: MessageRouter;
+    private jsonMessaging: JsonMessaging;
     private channelFactory: ChannelFactory;
     public source: AppMetadata;
     public intent: string
     public messageId: string;
 
 
-    constructor(messageId: string, messageRouterClient: MessageRouter, channelFactory: ChannelFactory, intent: string, source: AppMetadata) {
+    constructor(messageId: string, jsonMessaging: JsonMessaging, channelFactory: ChannelFactory, intent: string, source: AppMetadata) {
         this.messageId = messageId;
         this.intent = intent;
         this.source = source;
-        this.messageRouterClient = messageRouterClient;
+        this.jsonMessaging = jsonMessaging;
         this.channelFactory = channelFactory;
     }
 
     async getResult(): Promise<IntentResult> {
         const intentResolutionRequest = new Fdc3GetIntentResultRequest(this.messageId, this.intent, this.source, this.source.version);
-        const response = await this.messageRouterClient.invoke(ComposeUITopic.getIntentResult(), JSON.stringify(intentResolutionRequest));
-        if (!response) {
+        const result = await this.jsonMessaging.invokeJsonService<Fdc3GetIntentResultRequest, Fdc3GetIntentResultResponse>(ComposeUITopic.getIntentResult(), intentResolutionRequest);
+
+        if (!result) {
             throw new Error(ComposeUIErrors.NoAnswerWasProvided);
         }
-        const result = <Fdc3GetIntentResultResponse>(JSON.parse(response));
+
         if (result.error) {
             throw new Error(result.error);
         }
+
         if (result.channelId && result.channelType) {
             const channel = this.channelFactory.getChannel(result.channelId, result.channelType)
             return channel;
@@ -53,6 +55,7 @@ export class ComposeUIIntentResolution implements IntentResolution {
             console.log("The IntentListener returned void. ", result.voidResult);
             return;
         }
+
         throw new Error(ComposeUIErrors.NoAnswerWasProvided);
     }
 }
