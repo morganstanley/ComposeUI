@@ -8,7 +8,7 @@
     "build:dev": "ng build --configuration development",
     "watch": "ng build --watch --configuration development",
     "test": "ng test --watch=false",
-    "test:dev": "ng test"
+    "test:dev": "ng test --watch"
   },
   "private": true,
   "dependencies": {
