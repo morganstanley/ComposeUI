@@ -14,7 +14,7 @@ It uses the [Messaging abstractions TypeScript library](https://github.com/morga
 
 ## Installation
 
-You need to embed the generated bundle into your shell application, similar to how it is handled in the current Shell POC. In that example, a .NET Framework WPF application includes the bundle as an embedded resource. When using WebView2 to load web windows, the application initializes the bundle as a script and injects it into the page.
+You need to embed the generated bundle into your shell application, similar to how it is handled in the current Shell POC. In that example, a .NET WPF application includes the bundle as an embedded resource. When using WebView2 to load web windows, the application initializes the bundle as a script and injects it into the page.
 
 To use the FDC3 APIs, install the official FINOS FDC3 library (version 2.0) in your application:
 
