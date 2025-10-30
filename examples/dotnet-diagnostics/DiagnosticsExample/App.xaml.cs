@@ -11,7 +11,6 @@
 // and limitations under the License.
 
 using Microsoft.Extensions.DependencyInjection;
-using System;
 using System.Windows;
 
 namespace DiagnosticsExample;
