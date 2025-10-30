@@ -12,7 +12,7 @@
     "clean": "npm run clean:dist && npm run clean:output",
     "bundle": "rollup -c",
     "build": "npm run clean && tsc && npm run bundle",
-    "test": "vitest"
+    "test": "vitest run"
   },
   "author": "Morgan Stanley",
   "license": "Apache-2.0",
