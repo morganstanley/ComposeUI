@@ -12,7 +12,7 @@
  */
 
 import { IntentHandler, Listener, Context, Channel, ResultError } from "@finos/fdc3";
-import { MessageRouter, TopicMessage } from "@morgan-stanley/composeui-messaging-client";
+import { JsonMessaging } from "@morgan-stanley/composeui-messaging-abstractions";
 import { Unsubscribable } from "rxjs";
 import { ComposeUITopic } from "./ComposeUITopic";
 import { Fdc3RaiseIntentResolutionRequest } from "./messages/Fdc3RaiseIntentResolutionRequest";
@@ -28,7 +28,7 @@ export class ComposeUIIntentListener implements Listener {
     private isSubscribed: boolean = false;
 
     constructor(
-        private messageRouterClient: MessageRouter,
+        private jsonMessaging: JsonMessaging,
         private intent: string,
         private instanceId: string,
         private intentHandler: IntentHandler) {
@@ -37,13 +37,7 @@ export class ComposeUIIntentListener implements Listener {
     public async registerIntentHandler(): Promise<void> {
         const topic = ComposeUITopic.raiseIntent(this.intent, this.instanceId);
 
-        //Applications register the intents and context data combinations they support in the App Directory.
-        //https://fdc3.finos.org/docs/intents/spec
-        this.unsubscribable = await this.messageRouterClient.subscribe(
-            topic,
-            async (topicMessage: TopicMessage) => {
-                const message = <Fdc3RaiseIntentResolutionRequest>(JSON.parse(topicMessage.payload!));
-                //TODO: integrationtest
+        this.unsubscribable = await this.jsonMessaging.subscribeJson<Fdc3RaiseIntentResolutionRequest>(topic, async (message: Fdc3RaiseIntentResolutionRequest) => {
                 let request: Fdc3StoreIntentResultRequest;
                 try {
                     const result = this.intentHandler(message.context, message.contextMetadata);
@@ -66,11 +60,10 @@ export class ComposeUIIntentListener implements Listener {
                     request = new Fdc3StoreIntentResultRequest(message.messageId, this.intent, this.instanceId, message.contextMetadata.source.instanceId!, undefined, undefined, undefined, false, ResultError.IntentHandlerRejected);
                 }
 
-                const result = await this.messageRouterClient.invoke(ComposeUITopic.sendIntentResult(), JSON.stringify(request));
-                if (!result) {
+                const response = await this.jsonMessaging.invokeJsonService<Fdc3StoreIntentResultRequest,Fdc3StoreIntentResultResponse>(ComposeUITopic.sendIntentResult(), request);
+                if (!response) {
                     return;
                 } else {
-                    const response = <Fdc3StoreIntentResultResponse>(JSON.parse(result));
                     if (response.error || !response.stored) {
                         console.log("Error while resolving the intent.", response.error);
                         throw new Error(response.error);
@@ -82,14 +75,16 @@ export class ComposeUIIntentListener implements Listener {
     }
 
     public unsubscribe(): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            if (!this.isSubscribed) return;
-            const message = new Fdc3IntentListenerRequest(this.intent, this.instanceId, "Unsubscribe");
-            const response = await this.messageRouterClient.invoke(ComposeUITopic.addIntentListener(), JSON.stringify(message));
-            if (!response) {
+        return new Promise<void>(async(resolve, reject) => {
+            if (!this.isSubscribed) {
+                return resolve();
+            }
+
+            const request = new Fdc3IntentListenerRequest(this.intent, this.instanceId, "Unsubscribe");
+            const result = await this.jsonMessaging.invokeJsonService<Fdc3IntentListenerRequest, Fdc3IntentListenerResponse>(ComposeUITopic.addIntentListener(), request);
+            if (!result) {
                 return reject(ComposeUIErrors.NoAnswerWasProvided);
             } else {
-                const result = <Fdc3IntentListenerResponse>JSON.parse(response);
                 if (result.error) {
                     return reject(result.error);
                 } else if (result.stored) {

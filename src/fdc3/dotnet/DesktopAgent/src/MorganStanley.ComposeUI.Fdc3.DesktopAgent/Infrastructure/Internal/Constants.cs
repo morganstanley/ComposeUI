@@ -12,8 +12,6 @@
 * and limitations under the License.
 */
 
-using System.Reflection;
-
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
 internal static class Constants

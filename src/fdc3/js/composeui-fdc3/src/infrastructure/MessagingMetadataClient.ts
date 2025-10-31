@@ -11,7 +11,7 @@
  */
 
 import { AppIdentifier, AppMetadata, ImplementationMetadata } from "@finos/fdc3";
-import { MessageRouter } from "@morgan-stanley/composeui-messaging-client";
+import { JsonMessaging } from "@morgan-stanley/composeui-messaging-abstractions";
 import { MetadataClient } from "./MetadataClient";
 import { Fdc3GetInfoRequest } from "./messages/Fdc3GetInfoRequest";
 import { Fdc3GetInfoResponse } from "./messages/Fdc3GetInfoResponse";
@@ -22,18 +22,17 @@ import { Fdc3GetAppMetadataResponse } from "./messages/Fdc3GetAppMetadataRespons
 import { ComposeUITopic } from "./ComposeUITopic";
 import { ComposeUIErrors } from "./ComposeUIErrors";
 
-export class MessageRouterMetadataClient implements MetadataClient {
-    constructor(private messageRouterClient: MessageRouter, private appIdentifier: AppIdentifier) { }
+export class MessagingMetadataClient implements MetadataClient {
+    constructor(private jsonMessaging: JsonMessaging, private appIdentifier: AppIdentifier) { }
 
     public async getInfo(): Promise<ImplementationMetadata> {
         var request = new Fdc3GetInfoRequest(this.appIdentifier);
-        var payload = await this.messageRouterClient.invoke(ComposeUITopic.getInfo(), JSON.stringify(request));
+        var response = await this.jsonMessaging.invokeJsonService<Fdc3GetInfoRequest, Fdc3GetInfoResponse>(ComposeUITopic.getInfo(), request);
 
-        if (!payload) {
+        if (!response) {
             throw new Error(ComposeUIErrors.NoAnswerWasProvided);
         }
 
-        var response = <Fdc3GetInfoResponse>JSON.parse(payload);
         if (response.error) {
             throw new Error(response.error);
         }
@@ -43,13 +42,12 @@ export class MessageRouterMetadataClient implements MetadataClient {
 
     public async findInstances(app: AppIdentifier): Promise<Array<AppIdentifier>> {
         var request = new Fdc3FindInstancesRequest(this.appIdentifier.instanceId!, app);
-        var payload = await this.messageRouterClient.invoke(ComposeUITopic.findInstances(), JSON.stringify(request));
+        var response = await this.jsonMessaging.invokeJsonService<Fdc3FindInstancesRequest, Fdc3FindInstancesResponse>(ComposeUITopic.findInstances(), request);
 
-        if (!payload) {
+        if (!response) {
             throw new Error(ComposeUIErrors.NoAnswerWasProvided);
         }
 
-        var response = <Fdc3FindInstancesResponse>JSON.parse(payload);
         if (response.error) {
             throw new Error(response.error);
         }
@@ -59,13 +57,12 @@ export class MessageRouterMetadataClient implements MetadataClient {
 
     public async getAppMetadata(app: AppIdentifier): Promise<AppMetadata> {
         var request = new Fdc3GetAppMetadataRequest(this.appIdentifier.instanceId!, app);
-        var payload = await this.messageRouterClient.invoke(ComposeUITopic.getAppMetadata(), JSON.stringify(request));
+        var response = await this.jsonMessaging.invokeJsonService<Fdc3GetAppMetadataRequest, Fdc3GetAppMetadataResponse>(ComposeUITopic.getAppMetadata(), request);
 
-        if (!payload) {
+        if (!response) {
             throw new Error(ComposeUIErrors.NoAnswerWasProvided);
         }
 
-        var response = <Fdc3GetAppMetadataResponse>JSON.parse(payload);
         if (response.error) {
             throw new Error(response.error);
         }

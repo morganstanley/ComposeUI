@@ -1,0 +1,44 @@
+{
+  "name": "@morgan-stanley/composeui-messaging-abstractions",
+  "version": "0.1.0-alpha.9",
+  "description": "TypeScript abstractions library for ComposeUI's messaging",
+  "private": false,
+  "author": "Morgan Stanley",
+  "license": "Apache-2.0",
+  "type": "module",
+    "files": [
+        "dist/**/*"
+    ],
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "npm run build:clean && npm run build:rollup",
+    "build:clean": "rimraf dist",
+    "build:rollup": "rollup -c",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/morganstanley/ComposeUI.git"
+  },
+  "dependencies": {
+    "rxjs": "^7.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "typescript": "^5.0.0",
+    "vitest": "^1.2.0",
+    "@vitest/coverage-v8": "^1.2.0",
+    "@rollup/plugin-node-resolve": "^16.0.0",
+    "@rollup/plugin-typescript": "^12.1.0",
+    "rollup": "^4.12.1",
+    "rollup-plugin-dts": "^6.1.0"
+  }
+}

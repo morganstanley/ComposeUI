@@ -1,8 +1,10 @@
 {
-  "name": "@morgan-stanley/composeui-fdc3",
+  "name": "@morgan-stanley/composeui-messaging-message-router",
   "version": "0.1.0-alpha.9",
+  "description": "TypeScript messaging implementation for ComposeUI. It uses the MessageRouter client library.",
   "private": false,
-  "description": "FDC3 DesktopAgent implementation for Compose UI",
+  "author": "Morgan Stanley",
+  "license": "Apache-2.0",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -14,31 +16,28 @@
     "build": "npm run clean && tsc && npm run bundle",
     "test": "vitest run"
   },
-  "author": "Morgan Stanley",
-  "license": "Apache-2.0",
-  "dependencies": {
-    "@finos/fdc3": "~2.0.3",
-    "@morgan-stanley/composeui-messaging-abstractions": "*",
-    "rxjs": "^7.8.1"
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/morganstanley/ComposeUI.git"
   },
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
+  "dependencies": {
+    "@morgan-stanley/composeui-messaging-abstractions": "*",
+    "@morgan-stanley/composeui-messaging-client": "*",
+    "rxjs": "^7.8.0"
   },
   "devDependencies": {
+    "@types/node": "^24.5.2",
+    "tslib": "^2.4.0",
+    "typescript": "^5.0.0",
+    "vitest": "^2.0.0",
     "@rollup/plugin-commonjs": "28.0.6",
     "@rollup/plugin-node-resolve": "16.0.1",
-    "@types/node": "^24.5.2",
-    "jsdom": "^26.0.0",
-    "rimraf": "6.0.1",
     "rollup": "^4.12.1",
-    "ts-node": "10.9.2",
-    "tslib": "^2.4.0",
-    "typescript": "^5.3.3",
-    "vitest": "^2.0.0"
+    "jsdom": "^26.0.0",
+    "rimraf": "6.0.1"
   }
 }

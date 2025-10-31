@@ -1,20 +1,42 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
-	<Description>
-      Provides an adapter for integrating with the ComposeUI Message Router, enabling .NET applications to send and receive messages using the ComposeUI messaging infrastructure.
-	  More Details: https://morganstanley.github.io/ComposeUI/
-    </Description>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<Description>
+			Provides an adapter for integrating with the ComposeUI Message Router, enabling .NET applications to send and receive messages using the ComposeUI messaging infrastructure.
+			More Details: https://morganstanley.github.io/ComposeUI/
+		</Description>
+	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" />
 	</ItemGroup>
-	
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\messaging\dotnet\src\Core\MorganStanley.ComposeUI.Messaging.Core.csproj" />
-  </ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\..\messaging\dotnet\src\Core\MorganStanley.ComposeUI.Messaging.Core.csproj" />
+		<ProjectReference Include="..\..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader.Abstractions\MorganStanley.ComposeUI.ModuleLoader.Abstractions.csproj" />
+		<ProjectReference Include="..\..\..\..\shared\dotnet\src\MorganStanley.ComposeUI.Utilities\MorganStanley.ComposeUI.Utilities.csproj" />
+	</ItemGroup>
+
+	<PropertyGroup>
+		<MessagingBundleOutput>$(ComposeUIRepositoryRoot)\src\messaging\js\composeui-messaging-message-router\dist\messageRouterMessaging-iife-bundle.js</MessagingBundleOutput>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="$(MessagingBundleOutput)" />
+	</ItemGroup>
+
+	<Target Name="InstallMonoRepoDependencies" Condition="!Exists('$(ComposeUIRepositoryRoot)\node_modules')">
+		<Message Importance="high" Text="Installing node_modules..." />
+		<Exec Command="cd $(ComposeUIRepositoryRoot) &amp;&amp; npm install" />
+		<Message Importance="normal" Text="Finished command: npm install." />
+	</Target>
+
+	<Target Name="BuildComposeUIMessagingAdapterJSBundle" BeforeTargets="PrebuildEvent" Condition="!Exists('$(MessagingBundleOutput)')">
+		<CallTarget Targets="InstallMonoRepoDependencies" />
+		<Exec Command="cd $(ComposeUIRepositoryRoot) &amp;&amp; npx lerna run build --scope={@morgan-stanley/composeui-messaging-abstractions,@morgan-stanley/composeui-messaging-client,@morgan-stanley/composeui-messaging-message-router}" />
+		<Message Importance="normal" Text="Finished building the messaging adapter JS bundle." />
+	</Target>
 
 </Project>

@@ -11,8 +11,8 @@
  *  
  */
 
-import { Context, ContextHandler, Listener, ResultError } from "@finos/fdc3";
-import { MessageRouter, TopicMessage } from "@morgan-stanley/composeui-messaging-client";
+import { Context, ContextHandler, Listener } from "@finos/fdc3";
+import { JsonMessaging } from "@morgan-stanley/composeui-messaging-abstractions";
 import { ChannelType } from "./ChannelType";
 import { Unsubscribable } from "rxjs";
 import { ComposeUITopic } from "./ComposeUITopic";
@@ -23,7 +23,7 @@ import { Fdc3AddContextListenerRequest } from "./messages/Fdc3AddContextListener
 import { Fdc3AddContextListenerResponse } from "./messages/Fdc3AddContextListenerResponse";
 
 export class ComposeUIContextListener implements Listener {
-    private readonly messageRouterClient: MessageRouter;
+    private readonly jsonMessaging: JsonMessaging;
     private unsubscribable?: Unsubscribable;
     private readonly handler: ContextHandler;
     public readonly contextType?: string;
@@ -33,9 +33,9 @@ export class ComposeUIContextListener implements Listener {
     private openHandled: boolean;
     private contexts: Context[] = [];
 
-    constructor(openHandled: boolean, messageRouterClient: MessageRouter, handler: ContextHandler, contextType?: string) {
+    constructor(openHandled: boolean, jsonMessaging: JsonMessaging, handler: ContextHandler, contextType?: string) {
         this.openHandled = openHandled;
-        this.messageRouterClient = messageRouterClient;
+        this.jsonMessaging = jsonMessaging;
         this.handler = handler;
         this.contextType = contextType;
     }
@@ -43,14 +43,8 @@ export class ComposeUIContextListener implements Listener {
     public async subscribe(channelId: string, channelType: ChannelType): Promise<void> {
         await this.registerContextListener(channelId, channelType);
         const subscribeTopic = ComposeUITopic.broadcast(channelId, channelType);
-        this.unsubscribable = await this.messageRouterClient.subscribe(subscribeTopic, (topicMessage: TopicMessage) => {
 
-            if (topicMessage.context.sourceId == this.messageRouterClient.clientId) {
-                return;
-            }
-
-            //TODO: integration test
-            const context = <Context>JSON.parse(topicMessage.payload!);
+        this.unsubscribable = await this.jsonMessaging.subscribeJson<Context>(subscribeTopic, async (context: Context) => {
             if (!this.contextType || this.contextType == context!.type) {
                 if (this.openHandled === true) {
                     this.handler!(context!);
@@ -59,6 +53,7 @@ export class ComposeUIContextListener implements Listener {
                 }
             }
         });
+
         this.isSubscribed = true;
     }
 
@@ -117,30 +112,28 @@ export class ComposeUIContextListener implements Listener {
 
     private async registerContextListener(channelId: string, channelType: ChannelType) :Promise<void>{
         const request = new Fdc3AddContextListenerRequest(window.composeui.fdc3.config?.instanceId!, this.contextType, channelId, channelType);
-        const response = await this.messageRouterClient.invoke(ComposeUITopic.addContextListener(), JSON.stringify(request));
+        const response = await this.jsonMessaging.invokeJsonService<Fdc3AddContextListenerRequest, Fdc3AddContextListenerResponse>(ComposeUITopic.addContextListener(), request);
 
         if (!response) {
             throw new Error(ComposeUIErrors.NoAnswerWasProvided);
         }
 
-        const result = <Fdc3AddContextListenerResponse>JSON.parse(response);
-        if (result.error) {
-            throw new Error(result.error);
-        } else if (!result.success) {
+        if (response.error) {
+            throw new Error(response.error);
+        } else if (!response.success) {
             throw new Error(ComposeUIErrors.SubscribeFailure);
         }
 
-        this.id = result.id!
+        this.id = response.id!;
     }
 
     private async leaveChannel() : Promise<void> {
         const request = new Fdc3RemoveContextListenerRequest(window.composeui.fdc3.config?.instanceId!, this.id!, this.contextType);
-        const result = await this.messageRouterClient.invoke(ComposeUITopic.removeContextListener(), JSON.stringify(request));
-        if (!result) {
+        const response = await this.jsonMessaging.invokeJsonService<Fdc3RemoveContextListenerRequest, Fdc3RemoveContextListenerResponse>(ComposeUITopic.removeContextListener(), request);
+        if (!response) {
             throw new Error(ComposeUIErrors.NoAnswerWasProvided);
         }
 
-        const response = <Fdc3RemoveContextListenerResponse>JSON.parse(result);
         if (response.error) {
             throw new Error(response.error);
         }

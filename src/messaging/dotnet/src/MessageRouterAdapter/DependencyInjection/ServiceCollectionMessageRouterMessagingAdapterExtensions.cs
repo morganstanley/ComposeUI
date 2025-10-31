@@ -12,6 +12,8 @@
 
 using MorganStanley.ComposeUI.MessagingAdapter;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
+using MorganStanley.ComposeUI.ModuleLoader;
+using MorganStanley.ComposeUI.Messaging.MessageRouterAdapter;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -25,6 +27,8 @@ public static class ServiceCollectionMessageRouterMessagingAdapterExtensions
     public static IServiceCollection AddMessageRouterMessagingAdapter(this IServiceCollection services)
     {
         services.AddSingleton<IMessaging, MessageRouterMessaging>();
+        services.AddTransient<IStartupAction, MessageRouterAdapterStartupAction>();
+
         return services;
     }
 }
