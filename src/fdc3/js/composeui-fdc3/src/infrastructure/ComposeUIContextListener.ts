@@ -11,9 +11,8 @@
  *  
  */
 
-import { Context, ContextHandler, Listener, ResultError } from "@finos/fdc3";
-// import { MessageRouter, TopicMessage } from "@morgan-stanley/composeui-messaging-client";
-import { JsonMessaging, TopicMessageHandler } from "@morgan-stanley/composeui-messaging-abstractions";
+import { Context, ContextHandler, Listener } from "@finos/fdc3";
+import { JsonMessaging } from "@morgan-stanley/composeui-messaging-abstractions";
 import { ChannelType } from "./ChannelType";
 import { Unsubscribable } from "rxjs";
 import { ComposeUITopic } from "./ComposeUITopic";
@@ -119,7 +118,6 @@ export class ComposeUIContextListener implements Listener {
             throw new Error(ComposeUIErrors.NoAnswerWasProvided);
         }
 
-        // const result = <Fdc3AddContextListenerResponse>JSON.parse(response);
         if (response.error) {
             throw new Error(response.error);
         } else if (!response.success) {
@@ -136,7 +134,6 @@ export class ComposeUIContextListener implements Listener {
             throw new Error(ComposeUIErrors.NoAnswerWasProvided);
         }
 
-        // const response = <Fdc3RemoveContextListenerResponse>JSON.parse(result);
         if (response.error) {
             throw new Error(response.error);
         }
