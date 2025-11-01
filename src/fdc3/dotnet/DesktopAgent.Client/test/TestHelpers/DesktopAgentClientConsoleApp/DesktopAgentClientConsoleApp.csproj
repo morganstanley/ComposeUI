@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Logging" />
+		<PackageReference Include="Serilog" />
+		<PackageReference Include="Serilog.Extensions.Logging" />
+		<PackageReference Include="Serilog.Extensions.Logging.File" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\..\..\..\messaging\dotnet\src\Client\MorganStanley.ComposeUI.Messaging.Client.csproj" />
+		<ProjectReference Include="..\..\..\..\..\..\messaging\dotnet\src\MessageRouterAdapter\MorganStanley.ComposeUI.Messaging.MessageRouterAdapter.csproj" />
+		<ProjectReference Include="..\..\..\src\MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client\MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.csproj" />
+	</ItemGroup>
+
+</Project>

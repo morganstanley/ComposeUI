@@ -20,6 +20,8 @@ See the License for the specific language governing permissions and limitations 
         Loaded="Window_Loaded"
             DataContext="{Binding RelativeSource={RelativeSource Self}}">
     <Grid>
-        <TextBlock Name="Diagnostics" Text="{Binding DiagnosticsText}"></TextBlock>
+        <TextBlock Name="Diagnostics" Text="{Binding DiagnosticsText}" VerticalAlignment="Top"></TextBlock>
+        <Button x:Name="SubscribeButton" Click="SubscribeButton_Click" VerticalAlignment="Bottom" HorizontalAlignment="Right">Subscribe</Button>
+        <Button x:Name="BroadcastButton" Click="BroadcastButton_Click" VerticalAlignment="Bottom" HorizontalAlignment="Left">Broadcast</Button>
     </Grid>
 </Window>

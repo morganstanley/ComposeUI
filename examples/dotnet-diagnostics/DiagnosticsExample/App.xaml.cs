@@ -11,6 +11,8 @@
 // and limitations under the License.
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System.IO;
 using System.Windows;
 
 namespace DiagnosticsExample;
@@ -40,6 +42,12 @@ public partial class App : Application
             serviceCollection.AddMessageRouterMessagingAdapter();
 
             serviceCollection.AddFdc3DesktopAgentClient();
+            serviceCollection.AddLogging(l =>
+            {
+                l.AddConsole().SetMinimumLevel(LogLevel.Trace);
+                l.AddDebug().SetMinimumLevel(LogLevel.Trace);
+                l.AddFile($"{Directory.GetCurrentDirectory()}\\logs\\log.txt", LogLevel.Trace).SetMinimumLevel(LogLevel.Trace);
+            });
         }
         catch
         {
