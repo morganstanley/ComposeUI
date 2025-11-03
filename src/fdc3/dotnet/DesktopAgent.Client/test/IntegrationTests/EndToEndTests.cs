@@ -6,7 +6,6 @@ using Finos.Fdc3;
 using FluentAssertions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
 using Finos.Fdc3.Context;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests.Helpers;
 using MorganStanley.ComposeUI.Fdc3.AppDirectory;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
 using DisplayMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.DisplayMetadata;
@@ -620,7 +619,7 @@ public class EndToEndTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task RaiseIntent_creates_private_channel_and_client_app_recieves_context_listener_registration()
+    public async Task RaiseIntent_creates_private_channel_and_client_app_receives_context_listener_registration()
     {
         var fdc3InstanceId = Guid.NewGuid().ToString();
         var appId = "appId1-native";

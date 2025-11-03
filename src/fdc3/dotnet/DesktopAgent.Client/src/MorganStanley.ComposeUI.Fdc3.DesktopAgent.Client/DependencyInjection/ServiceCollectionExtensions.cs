@@ -29,7 +29,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddFdc3DesktopAgentClient(
         this IServiceCollection serviceCollection)
     {
-        serviceCollection.AddSingleton<IDesktopAgent, DesktopAgentClient>();
+        serviceCollection.AddTransient<IDesktopAgent, DesktopAgentClient>();
         return serviceCollection;
     }
 }

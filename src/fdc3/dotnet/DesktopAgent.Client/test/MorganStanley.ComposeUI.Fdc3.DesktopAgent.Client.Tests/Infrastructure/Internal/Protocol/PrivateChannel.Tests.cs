@@ -53,6 +53,8 @@ public class PrivateChannelTests
     {
         _channel.Disconnect();
 
+        await Task.Delay(2000);
+
         Func<Task> act = async () => await _channel.Broadcast(Mock.Of<IContext>());
 
         await act.Should().ThrowAsync<Exception>()
@@ -109,9 +111,11 @@ public class PrivateChannelTests
     }
 
     [Fact]
-    public void OnAddContextListener_when_disconnected_throws()
+    public async Task OnAddContextListener_when_disconnected_throws()
     {
         _channel.Disconnect();
+
+        await Task.Delay(2000);
 
         Action act = () => _channel.OnAddContextListener(_ => { });
 
@@ -145,9 +149,11 @@ public class PrivateChannelTests
     }
 
     [Fact]
-    public void OnUnsubscribe_when_disconnected_throws()
+    public async Task OnUnsubscribe_when_disconnected_throws()
     {
         _channel.Disconnect();
+
+        await Task.Delay(2000);
 
         Action act = () => _channel.OnUnsubscribe(_ => { });
 
