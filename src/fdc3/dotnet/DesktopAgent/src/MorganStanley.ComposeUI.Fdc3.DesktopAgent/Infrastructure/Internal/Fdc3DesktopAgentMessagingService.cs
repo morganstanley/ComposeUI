@@ -40,7 +40,7 @@ internal class Fdc3DesktopAgentMessagingService : IHostedService
     private readonly ILogger<Fdc3DesktopAgentMessagingService> _logger;
     private readonly List<IAsyncDisposable> _registeredServices = new List<IAsyncDisposable>();
 
-    private readonly JsonSerializerOptions _jsonSerializerOptions = SerializerOptionsHelper.JsonSerializerOptions;
+    private readonly JsonSerializerOptions _jsonSerializerOptions = SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization;
 
     internal JsonSerializerOptions JsonMessageSerializerOptions => _jsonSerializerOptions;
 

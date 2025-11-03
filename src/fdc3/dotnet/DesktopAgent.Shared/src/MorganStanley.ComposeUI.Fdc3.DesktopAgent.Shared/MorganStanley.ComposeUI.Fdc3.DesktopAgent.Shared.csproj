@@ -8,6 +8,10 @@
 		</Description>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<IsPackable>true</IsPackable>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<PackageReference Include="Finos.Fdc3" />
 		<PackageReference Include="System.Text.Json" />
