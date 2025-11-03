@@ -18,7 +18,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
-internal interface IFdc3DesktopAgentBridge
+internal interface IFdc3DesktopAgentService
 {
     /// <summary>
     /// Triggers the necessary events like ModuleLoader's Subscribe when Startup.

@@ -22,7 +22,7 @@ using static MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.TestData.TestAppDir
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
 
-public class RaiseIntentForContextTests : Fdc3DesktopAgentTestsBase
+public class RaiseIntentForContextTests : Fdc3DesktopAgentServiceTestsBase
 {
     public RaiseIntentForContextTests() : base(AppDirectoryPath) { }
 

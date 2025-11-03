@@ -36,7 +36,7 @@ internal class Fdc3ShutdownAction : IShutdownAction
     {
         if (shutDownContext.ModuleInstance.Manifest.ModuleType == ModuleType.Web)
         {
-            var desktopAgent = _serviceProvider.GetRequiredService<IFdc3DesktopAgentBridge>();
+            var desktopAgent = _serviceProvider.GetRequiredService<IFdc3DesktopAgentService>();
 
             var fdc3InstanceId = shutDownContext.ModuleInstance.GetProperties<Fdc3StartupProperties>().FirstOrDefault()?.InstanceId;
 

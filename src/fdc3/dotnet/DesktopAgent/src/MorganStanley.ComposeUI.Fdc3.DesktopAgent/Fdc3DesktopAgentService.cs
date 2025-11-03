@@ -40,9 +40,9 @@ using Screenshot = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.Scr
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
-internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
+internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
 {
-    private readonly ILogger<Fdc3DesktopAgent> _logger;
+    private readonly ILogger<Fdc3DesktopAgentService> _logger;
     private readonly IResolverUICommunicator _resolverUI;
     private readonly IUserChannelSetReader _userChannelSetReader;
     private readonly ConcurrentDictionary<string, UserChannel> _userChannels = new();
@@ -64,7 +64,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     private readonly object _privateChannelsDictionaryLock = new();
     private readonly IntentResolver _intentResolver;
 
-    public Fdc3DesktopAgent(
+    public Fdc3DesktopAgentService(
         IAppDirectory appDirectory,
         IModuleLoader moduleLoader,
         IOptions<Fdc3DesktopAgentOptions> options,
@@ -78,7 +78,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         _resolverUI = resolverUI;
         _userChannelSetReader = userChannelSetReader;
         _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
-        _logger = _loggerFactory.CreateLogger<Fdc3DesktopAgent>() ?? NullLogger<Fdc3DesktopAgent>.Instance;
+        _logger = _loggerFactory.CreateLogger<Fdc3DesktopAgentService>() ?? NullLogger<Fdc3DesktopAgentService>.Instance;
 
         _intentResolver = new(appDirectory, _runningModules);
     }
