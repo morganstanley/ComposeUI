@@ -36,9 +36,9 @@ using ImplementationMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
 
-public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
+public partial class Fdc3DesktopAgentServiceTests : Fdc3DesktopAgentServiceTestsBase
 {
-    public Fdc3DesktopAgentTests() : base(AppDirectoryPath) { }
+    public Fdc3DesktopAgentServiceTests() : base(AppDirectoryPath) { }
 
     [Fact]
     public async Task AddUserChannel_wont_throw_and_adds_channel()
@@ -476,7 +476,7 @@ public partial class Fdc3DesktopAgentTests : Fdc3DesktopAgentTestsBase
             UserChannelConfigFile = new Uri("C://hello/world/test.json"),
         };
 
-        var fdc3 = new Fdc3DesktopAgent(
+        var fdc3 = new Fdc3DesktopAgentService(
             AppDirectory,
             ModuleLoader.Object,
             options,

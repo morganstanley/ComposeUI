@@ -24,11 +24,11 @@ using ILoggerFactory = Microsoft.Extensions.Logging.ILoggerFactory;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
 
-public abstract class Fdc3DesktopAgentTestsBase : IAsyncLifetime
+public abstract class Fdc3DesktopAgentServiceTestsBase : IAsyncLifetime
 {
     protected IAppDirectory AppDirectory { get; }
 
-    internal IFdc3DesktopAgentBridge Fdc3 { get; }
+    internal IFdc3DesktopAgentService Fdc3 { get; }
     protected MockModuleLoader ModuleLoader { get; } = new();
     protected Mock<IResolverUICommunicator> ResolverUICommunicator { get; } = new();
     internal Mock<ILogger<It.IsAnyType>> Logger { get; } = new();
@@ -37,7 +37,7 @@ public abstract class Fdc3DesktopAgentTestsBase : IAsyncLifetime
     private readonly ConcurrentDictionary<Guid, IModuleInstance> _modules = new();
     private IDisposable? _disposable;
 
-    public Fdc3DesktopAgentTestsBase(string appDirectorySource)
+    public Fdc3DesktopAgentServiceTestsBase(string appDirectorySource)
     {
         AppDirectory = new AppDirectory.AppDirectory(
             new AppDirectoryOptions
@@ -59,7 +59,7 @@ public abstract class Fdc3DesktopAgentTestsBase : IAsyncLifetime
             .Setup(_ => _.CreateLogger(It.IsAny<string>()))
             .Returns(Logger.Object);
 
-        Fdc3 = new Fdc3DesktopAgent(
+        Fdc3 = new Fdc3DesktopAgentService(
             AppDirectory,
             ModuleLoader.Object,
             options,

@@ -46,7 +46,7 @@ public static class ServiceCollectionExtensions
         builder.ServiceCollection.AddSingleton<IResolverUICommunicator, ResolverUICommunicator>();
         builder.ServiceCollection.AddHostedService<Fdc3DesktopAgentMessagingService>();
         serviceCollection.AddSingleton<IUserChannelSetReader, UserChannelSetReader>();
-        serviceCollection.AddSingleton<IFdc3DesktopAgentBridge, Fdc3DesktopAgent>();
+        serviceCollection.AddSingleton<IFdc3DesktopAgentService, Fdc3DesktopAgentService>();
         serviceCollection.AddTransient<IStartupAction, Fdc3StartupAction>();
         serviceCollection.AddTransient<IShutdownAction, Fdc3ShutdownAction>();
 

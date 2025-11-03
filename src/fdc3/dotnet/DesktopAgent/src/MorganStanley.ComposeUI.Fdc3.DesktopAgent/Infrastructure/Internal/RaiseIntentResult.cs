@@ -19,7 +19,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 internal partial class RaiseIntentResult<TResponse>
 {
     /// <summary>
-    /// Response for the <seealso cref="IFdc3DesktopAgentBridge"/> call.
+    /// Response for the <seealso cref="IFdc3DesktopAgentService"/> call.
     /// </summary>
     public TResponse Response { get; set; }
 
