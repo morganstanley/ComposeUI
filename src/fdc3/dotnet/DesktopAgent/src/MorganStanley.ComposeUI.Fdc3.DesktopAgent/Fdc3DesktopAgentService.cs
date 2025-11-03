@@ -693,7 +693,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
 
         if (_logger.IsEnabled(LogLevel.Debug))
         {
-            _logger.LogDebug($"Executing {nameof(Open)} request for appId: {request.AppIdentifier.AppId} with instanceId: {request.InstanceId}.");
+            _logger.LogDebug($"Executing {nameof(Open)} request for appId: {request.AppIdentifier?.AppId ?? string.Empty} with instanceId: {request.InstanceId}.");
         }
 
         if (!Guid.TryParse(request.InstanceId, out var fdc3InstanceId)
@@ -706,7 +706,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
 
         try
         {
-            var fdc3App = await _appDirectory.GetApp(request.AppIdentifier.AppId);
+            var fdc3App = await _appDirectory.GetApp(request.AppIdentifier!.AppId);
             var appMetadata = fdc3App.ToAppMetadata();
             var parameters = new Dictionary<string, string>();
 
