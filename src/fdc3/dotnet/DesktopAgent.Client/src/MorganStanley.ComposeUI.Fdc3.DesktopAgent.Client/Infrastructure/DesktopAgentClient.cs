@@ -37,12 +37,11 @@ public class DesktopAgentClient : IDesktopAgent
     private readonly IOpenClient _openClient;
 
     //This cache stores the top-level context listeners added through the `AddContextListener<T>(...)` API. It stores their actions to be able to resubscribe them when joining a new channel and handle the last context based on the FDC3 standard.
-    private readonly ConcurrentDictionary<IListener, Func<string, ChannelType, CancellationToken, ValueTask>> _contextListenersWithSubscriptionLastContextHandlingActions = new();
+    private readonly ConcurrentDictionary<IListener, Func<string, ChannelType, CancellationToken, ValueTask>> _contextListeners = new();
     private readonly ConcurrentDictionary<string, IListener> _intentListeners = new();
 
     private IChannel? _currentChannel;
     private IContext? _openedAppContext;
-    private string? _openedAppContextId;
     private bool _isOpenContextHandled = false;
 
     private readonly SemaphoreSlim _openContextLock = new(1, 1);
@@ -52,6 +51,7 @@ public class DesktopAgentClient : IDesktopAgent
     private readonly ConcurrentDictionary<string, IChannel> _appChannels = new();
 
     private readonly TaskCompletionSource<string> _initializationTaskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private string? _openedAppContextId;
 
     public DesktopAgentClient(
         IMessaging messaging,
@@ -90,17 +90,6 @@ public class DesktopAgentClient : IDesktopAgent
                 _logger.LogDebug("Initializing DesktopAgentClient...");
             }
 
-<<<<<<< HEAD
-            listener = await _channelFactory.CreateContextListener(handler, _currentChannel, contextType);
-
-            _contextListeners.Add(
-                listener,
-                async (channelId, channelType, cancellationToken) =>
-                {
-                    await listener.SubscribeAsync(channelId, channelType, cancellationToken);
-                    await HandleLastContextAsync(listener);
-                });
-=======
             var channelId = Environment.GetEnvironmentVariable(Fdc3StartupParameters.Fdc3ChannelId);
             var openedAppContextId = Environment.GetEnvironmentVariable(Fdc3StartupParameters.OpenedAppContextId);
 
@@ -184,7 +173,7 @@ public class DesktopAgentClient : IDesktopAgent
 
             await listener.SetOpenHandledAsync(_isOpenContextHandled);
 
-            bool added = _contextListenersWithSubscriptionLastContextHandlingActions.TryAdd(
+            bool added = _contextListeners.TryAdd(
                 listener,
                 async (channelId, channelType, cancellationToken) =>
                 {
@@ -195,12 +184,6 @@ public class DesktopAgentClient : IDesktopAgent
             if (!added && _logger.IsEnabled(LogLevel.Debug))
             {
                 _logger.LogDebug("Failed to add context listener to the internal collection.");
-            }
->>>>>>> 03b94987 (feat(fdc3-client) - Implement Open; seperated integration tests of the native FDC3 client)
-
-            if (_logger.IsEnabled(LogLevel.Debug))
-            {
-                _logger.LogDebug("Context listener added for context type: {ContextType}.", contextType ?? "null");
             }
 
             return listener;
