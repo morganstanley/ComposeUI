@@ -34,13 +34,14 @@
 		<ProjectReference Include="..\..\src\MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client\MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.csproj" />
 		<ProjectReference Include="..\TestHelpers\DesktopAgentClientConsoleApp\DesktopAgentClientConsoleApp.csproj" />
 	</ItemGroup>
-  <ItemGroup>
-    <Using Include="Xunit" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="testAppDirectory.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+
+	<ItemGroup>
+		<Using Include="Xunit" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Update="testAppDirectory.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
 
 </Project>
