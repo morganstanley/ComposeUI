@@ -62,7 +62,7 @@ jobs:
       - run: |
              npm ci
              lerna run build --stream
-             lerna publish from-package --no-private --yes
+             lerna publish from-package --loglevel verbose --no-private --yes --dry-run
         env:
           NPM_CONFIG_PROVENANCE: true
           COMPOSEUI_SKIP_DOWNLOAD: 'true'
@@ -90,7 +90,7 @@ jobs:
              dotnet nuget push MorganStanley.ComposeUI.Messaging.Host.*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source ${{ env.nuget_source }} --skip-duplicate
              dotnet nuget push MorganStanley.ComposeUI.Messaging.Abstractions.*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source ${{ env.nuget_source }} --skip-duplicate
              dotnet nuget push MorganStanley.ComposeUI.Fdc3.AppDirectory.*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source ${{ env.nuget_source }} --skip-duplicate
-             dotnet nuget push MorganStanley.ComposeUI.Fdc3.DesktopAgent.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source ${{ env.nuget_source }} --skip-duplicate
-             dotnet nuget push MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source ${{ env.nuget_source }} --skip-duplicate
+             dotnet nuget push MorganStanley.ComposeUI.Fdc3.DesktopAgent.*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source ${{ env.nuget_source }} --skip-duplicate
+             dotnet nuget push MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source ${{ env.nuget_source }} --skip-duplicate
              dotnet nuget push MorganStanley.ComposeUI.ModuleLoader.Abstractions.*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source ${{ env.nuget_source }} --skip-duplicate
              dotnet nuget push MorganStanley.ComposeUI.Utilities.*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source ${{ env.nuget_source }} --skip-duplicate
