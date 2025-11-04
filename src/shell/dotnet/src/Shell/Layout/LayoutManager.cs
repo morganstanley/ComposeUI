@@ -138,7 +138,10 @@ internal class LayoutManager
 
     public void AddAndSetModuleContentState(WebContent webContent)
     {
-        if (webContent == null) throw new ArgumentNullException(nameof(webContent));
+        if (webContent == null)
+        {
+            throw new ArgumentNullException(nameof(webContent));
+        }
 
         var serializationId = (webContent.ModuleInstance?.StartRequest.Parameters
             .FirstOrDefault(p => p.Key == SerializationId).Value) ?? throw new InvalidOperationException("SerializationId cannot be null");
