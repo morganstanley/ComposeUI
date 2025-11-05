@@ -62,7 +62,7 @@ jobs:
       - run: |
              npm ci
              lerna run build --stream
-             lerna publish from-package --loglevel verbose --no-private --yes --dry-run
+             lerna publish from-package --loglevel verbose --no-private --yes
         env:
           NPM_CONFIG_PROVENANCE: true
           COMPOSEUI_SKIP_DOWNLOAD: 'true'
