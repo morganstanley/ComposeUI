@@ -57,7 +57,6 @@ public class ChannelFactoryTests
 
         var result = await factory.CreateContextListenerAsync(handler, null, "fdc3.instrument");
 
-        result.Should().NotBeNull();
         result.Should().BeOfType<ContextListener<Instrument>>();
     }
 
@@ -83,7 +82,6 @@ public class ChannelFactoryTests
 
         var result = await factory.JoinUserChannelAsync("channelId");
 
-        result.Should().NotBeNull();
         result.Id.Should().Be("channelId");
         result.Type.Should().Be(ChannelType.User);
     }
@@ -198,7 +196,6 @@ public class ChannelFactoryTests
 
         var result = await factory.CreateAppChannelAsync("channelId");
 
-        result.Should().NotBeNull();
         result.Id.Should().Be("channelId");
     }
 
@@ -268,7 +265,7 @@ public class ChannelFactoryTests
         var act = async () => await factory.CreateAppChannelAsync("channelId");
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
-            .WithMessage("*The application channel with ID: channelId is not created*");
+            .WithMessage("*UnspecifiedReason*");
     }
 
     [Fact]
@@ -313,7 +310,6 @@ public class ChannelFactoryTests
         var factory = new ChannelFactory(messagingMock.Object, "instanceId");
         var result = await factory.FindChannelAsync("myChannel", ChannelType.User);
 
-        result.Should().NotBeNull();
         result.Id.Should().Be("myChannel");
         result.Type.Should().Be(ChannelType.User);
     }
@@ -408,7 +404,6 @@ public class ChannelFactoryTests
 
         var result = await factory.FindChannelAsync(channelId, ChannelType.Private);
 
-        result.Should().NotBeNull();
         result.Should().BeAssignableTo<IPrivateChannel>();
         result.Id.Should().Be(channelId);
     }

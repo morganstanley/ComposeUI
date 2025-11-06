@@ -48,7 +48,7 @@ internal interface IChannelFactory
     /// Retrieves all available user channels.
     /// </summary>
     /// <returns>A <see cref="ValueTask{IChannel[]}"/> representing the asynchronous operation that returns an array of user channels.</returns>
-    public ValueTask<IChannel[]> GetUserChannelsAsync();
+    public ValueTask<IEnumerable<IChannel>> GetUserChannelsAsync();
 
     /// <summary>
     /// Gets or creates an application channel with the specified channel ID.

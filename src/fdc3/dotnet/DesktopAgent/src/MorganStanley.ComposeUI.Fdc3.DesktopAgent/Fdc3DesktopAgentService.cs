@@ -135,6 +135,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
             _logger.LogError($"Could not create private channel while executing {nameof(CreateOrJoinPrivateChannel)} due to private channel id is null.");
             return;
         }
+
         PrivateChannel? privateChannel = null;
         try
         {
@@ -1329,8 +1330,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
         return result;
     }
 
-    private Dictionary<string, AppIntent> GetAppIntentsFromIntentMetadataCollection(
-        IEnumerable<FlatAppIntent> intentMetadataCollection)
+    private Dictionary<string, AppIntent> GetAppIntentsFromIntentMetadataCollection(IEnumerable<FlatAppIntent> intentMetadataCollection)
     {
         Dictionary<string, AppIntent> appIntents = [];
 

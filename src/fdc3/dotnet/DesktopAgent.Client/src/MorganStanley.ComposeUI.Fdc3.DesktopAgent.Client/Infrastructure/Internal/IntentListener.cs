@@ -63,13 +63,14 @@ internal class IntentListener<T> : IListener
 
             var topic = Fdc3Topic.RaiseIntentResolution(_intent, _instanceId);
 
-            _subscription = await _messaging.SubscribeAsync(
+            _subscription = await _messaging.SubscribeJsonAsync<RaiseIntentResolutionRequest>(
                 topic,
-                HandleIntentMessageAsync);
+                HandleIntentMessageAsync,
+                _jsonSerializerOptions);
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug($"{nameof(IntentListener<T>)} is subscribed for {_intent} with instance id: {_instanceId} to topic: {topic}.");
+                _logger.LogDebug("{NameOfIntentListener} is subscribed for {Intent} with instance id: {InstanceId} to topic: {Topic}.", nameof(IntentListener<T>), _intent, _instanceId, topic);
             }
 
             _isRegistered = true;
@@ -87,7 +88,7 @@ internal class IntentListener<T> : IListener
             _semaphore.Wait();
 
             var request = CreateUnsubscribeRequest();
-            LogDebug($"Unsubscribing intent listener for intent {_intent} and instanceId {_instanceId}...");
+            LogDebug("Unsubscribing intent listener for intent {Intent} and instanceId {InstanceId}...", _intent, _instanceId);
 
             var response = _messaging.InvokeJsonServiceAsync<IntentListenerRequest, IntentListenerResponse>(
                 Fdc3Topic.AddIntentListener,
@@ -98,12 +99,12 @@ internal class IntentListener<T> : IListener
 
             _subscription.DisposeAsync().GetAwaiter().GetResult();
 
-            LogDebug($"Successfully unsubscribed intent listener for intent {_intent} and instanceId {_instanceId}.");
+            LogDebug("Successfully unsubscribed intent listener for intent {Intent} and instanceId {InstanceId}.", _intent, _instanceId);
             _isRegistered = false;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error while unsubscribing intent listener for intent {_intent} and instanceId {_instanceId}.");
+            _logger.LogError(ex, "Error while unsubscribing intent listener for intent {Intent} and instanceId {InstanceId}.", _intent, _instanceId);
             throw;
         }
         finally
@@ -144,7 +145,7 @@ internal class IntentListener<T> : IListener
         {
             if (intentResult == null) //It is a simply void
             {
-                LogDebug($"The intent result is void for intent:{_intent} for message: {messageId}.");
+                LogDebug("The intent result is void for intent:{Intent} for message: {MessageId}.", _intent, messageId);
                 request.VoidResult = true;
             }
             else if (intentResult is Task<IIntentResult> resolvableTask) //It is a task with some return type
@@ -153,18 +154,19 @@ internal class IntentListener<T> : IListener
 
                 if (resolvedIntentResult is IChannel channel)
                 {
-                    LogDebug($"The intent result is a channel for intent:{_intent} for message: {messageId}. Channel: {Serialize(channel)}");
+                    LogDebug("The intent result is a channel for intent:{Intent} for message: {MessageId}. Channel: {Channel}", _intent, messageId, Serialize(channel));
                     request.ChannelId = channel.Id;
                     request.ChannelType = channel.Type;
                 }
                 else if (resolvedIntentResult is IContext ctx)
                 {
-                    LogDebug($"The intent result is a context for intent:{_intent} for message: {messageId}. Context: {Serialize(ctx)}");
-                    request.Context = Serialize(ctx);
+                    var context = Serialize(ctx);
+                    LogDebug("The intent result is a context for intent:{Intent} for message: {MessageId}. Context: {Context}", _intent, messageId, context);
+                    request.Context = context;
                 }
                 else // it is a resolvable task with no return type
                 {
-                    LogDebug($"The intent result is void for intent:{_intent} for message: {messageId}.");
+                    LogDebug("The intent result is void for intent:{Intent} for message: {MessageId}.", _intent, messageId);
                     request.VoidResult = true;
                 }
             }
@@ -174,14 +176,12 @@ internal class IntentListener<T> : IListener
             _logger.LogError(exception, "Error while resolving the intent...");
         }
     }
-    private async ValueTask HandleIntentMessageAsync(string message)
-    {
-        LogDebug($"Received intent invocation for intent {_intent} message: {message}...");
 
-        var receivedRequest = Deserialize<RaiseIntentResolutionRequest>(message);
+    private async ValueTask HandleIntentMessageAsync(RaiseIntentResolutionRequest? receivedRequest)
+    {
         if (receivedRequest == null)
         {
-            LogError($"Received null or invalid intent invocation request for intent {_intent}. Message: {message}...");
+            LogError("Received null or invalid intent invocation request for intent {Intent}.", _intent);
             throw ThrowHelper.MissingResponse();
         }
 
@@ -198,7 +198,7 @@ internal class IntentListener<T> : IListener
             var context = Deserialize<T>(receivedRequest.Context);
             if (context == null)
             {
-                LogError($"Received null or invalid context for intent {_intent}. Context: {receivedRequest.Context}...");
+                LogError("Received null or invalid context for intent {Intent}. Context: {Context}...", _intent, receivedRequest.Context);
                 throw ThrowHelper.MissingContext();
             }
 
@@ -206,20 +206,20 @@ internal class IntentListener<T> : IListener
             {
                 request.Error = ResolveError.IntentDeliveryFailed;
 
-                LogDebug($"The context type {context.Type} does not match the expected type {typeof(T).Name} for intent {_intent}. Context: {Serialize(context)}...");
+                LogDebug("The context type {ContextType} does not match the expected type {ExpectedType} for intent {Intent}. Context: {Context}...", context.Type, typeof(T).Name, _intent, Serialize(context));
             }
             else
             {
                 var intentResult = _intentHandler(context, receivedRequest.ContextMetadata);
 
-                LogDebug($"Resolved intent {_intent} with result: {intentResult}...");
+                LogDebug("Resolved intent {Intent} with result: {Result}...", _intent, intentResult);
 
                 await SetRequestResultAsync(intentResult, request, receivedRequest.MessageId);
             }
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, $"Error while resolving the received intent: {_intent}. Received message: {message}...");
+            _logger.LogError(exception, "Error while resolving the received intent: {Intent}.", _intent);
             request.Error = ResultError.IntentHandlerRejected;
         }
 
@@ -230,13 +230,13 @@ internal class IntentListener<T> : IListener
 
         if (response == null)
         {
-            LogError($"Received null or invalid response when storing the intent result for intent {_intent}. Request: {Serialize(request)}...");
+            LogError("Received null or invalid response when storing the intent result for intent {Intent}. Request: {Request}...", _intent, Serialize(request));
             throw ThrowHelper.MissingResponse();
         }
 
         if (!string.IsNullOrEmpty(response.Error))
         {
-            LogError($"Received error response when storing the intent result for intent {_intent}. Request: {Serialize(request)}, Response: {Serialize(response)}...");
+            LogError("Received error response when storing the intent result for intent {Intent}. Request: {Request}, Response: {Response}...", _intent, Serialize(request), Serialize(response));
             throw ThrowHelper.ErrorResponseReceived(response.Error);
         }
 

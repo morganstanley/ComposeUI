@@ -32,10 +32,10 @@ internal class Channel : IChannel
     private readonly ChannelType _channelType;
     private readonly string _instanceId;
     private readonly IMessaging _messaging;
+    private readonly IContext? _openedAppContext;
     private readonly DisplayMetadata? _displayMetadata;
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<Channel> _logger;
-
     private readonly SemaphoreSlim _lastContextLock = new(1,1);
     private IContext? _lastContext = null;
     private readonly ConcurrentDictionary<string, IContext> _lastContexts = new();
@@ -46,6 +46,7 @@ internal class Channel : IChannel
         ChannelType channelType,
         IMessaging messaging,
         string instanceId,
+        IContext? openedAppContext = null,
         DisplayMetadata? displayMetadata = null,
         ILoggerFactory? loggerFactory = null)
     {
@@ -53,6 +54,7 @@ internal class Channel : IChannel
         _channelType = channelType;
         _instanceId = instanceId;
         _messaging = messaging;
+        _openedAppContext = openedAppContext;
         _displayMetadata = displayMetadata;
         _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
         _logger = _loggerFactory.CreateLogger<Channel>();
@@ -64,6 +66,9 @@ internal class Channel : IChannel
 
     public IDisplayMetadata? DisplayMetadata => _displayMetadata;
 
+    protected ILoggerFactory LoggerFactory => _loggerFactory;
+    protected IMessaging Messaging => _messaging;
+
     public virtual async Task<IListener> AddContextListener<T>(string? contextType, ContextHandler<T> handler) where T : IContext
     {
         var listener = new ContextListener<T>(
@@ -71,6 +76,7 @@ internal class Channel : IChannel
             contextHandler: handler,
             messaging: _messaging,
             contextType: contextType,
+            openedAppContext: _openedAppContext,
             logger: _loggerFactory.CreateLogger<ContextListener<T>>());
 
         await listener.SubscribeAsync(_channelId, _channelType);

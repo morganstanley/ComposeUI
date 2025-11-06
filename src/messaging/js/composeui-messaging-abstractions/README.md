@@ -1,4 +1,4 @@
-@morgan-stanley/composeui-messaging-abstractions
+# @morgan-stanley/composeui-messaging-abstractions
 
 Messaging helpers that wrap a lower‑level IMessaging abstraction (publish/subscribe plus request/response). Provides simple, typed APIs for sending and receiving structured data as JSON without duplicating serialization logic in callers. Provides JSON focused extension methods available using the `JsonMessaging` class.
 
@@ -12,17 +12,17 @@ Messaging helpers that wrap a lower‑level IMessaging abstraction (publish/subs
 
 ## Installation
 
-Install as a workspace dependency (pnpm/yarn/npm):
+Install as a workspace dependency
 
 ```bash
-npm install @your-scope/composeui-messaging-abstractions
+npm install @morgan-stanley/composeui-messaging-abstractions
 ```
 
 ## Usage
 Implement the `IMessaging` API to declare your own communication.
 
 ```typescript
-import { IMessaging } from "@morgant-stanley/composeui-messaging-abstractions";
+import { IMessaging } from "@morgan-stanley/composeui-messaging-abstractions";
 import { HubConnection } from '@microsoft/signalr';
 
 export class MyMessaging implements IMessaging {
@@ -40,10 +40,10 @@ Rollup emits dual builds:
  package.json exports map require to CJS and import to ESM. Use:
 ```typescript
 // CJS
-const { JsonMessaging } = require('@your-scope/composeui-messaging-abstractions');
+const { JsonMessaging } = require('@morgan-stanley/composeui-messaging-abstractions');
 
 // ESM / TypeScript
-import { JsonMessaging } from '@your-scope/composeui-messaging-abstractions';
+import { JsonMessaging } from '@morgan-stanley/composeui-messaging-abstractions';
 ```
 
 ## Dependencies

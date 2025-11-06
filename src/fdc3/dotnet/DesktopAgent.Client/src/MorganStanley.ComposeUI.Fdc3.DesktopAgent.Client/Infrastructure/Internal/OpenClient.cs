@@ -54,7 +54,7 @@ internal class OpenClient : IOpenClient
     {
         if (_logger.IsEnabled(LogLevel.Debug))
         {
-            _logger.LogDebug($"OpenClient: Retrieving open app context for app {_instanceId}...");
+            _logger.LogDebug("OpenClient: Retrieving open app context for app {InstanceId}...", _instanceId);
         }
 
         if (string.IsNullOrEmpty(openAppContextId))

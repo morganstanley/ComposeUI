@@ -42,8 +42,7 @@ public class IntentListener
             _intent,
             _instanceId,
             (ctx, meta) => Task.FromResult<IIntentResult>(null!),
-            _loggerMock.Object
-        );
+            _loggerMock.Object);
        
         return intentListener;
     }

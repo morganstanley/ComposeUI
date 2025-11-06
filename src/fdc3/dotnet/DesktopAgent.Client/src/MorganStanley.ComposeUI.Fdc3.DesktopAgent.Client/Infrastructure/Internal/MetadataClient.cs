@@ -73,7 +73,7 @@ internal class MetadataClient : IMetadataClient
 
         if (response.Instances == null)
         {
-            throw ThrowHelper.NoAppsFound();
+            throw ThrowHelper.ErrorResponseReceived(Fdc3DesktopAgentErrors.UnspecifiedReason);
         }
 
         return response.Instances;
@@ -103,13 +103,13 @@ internal class MetadataClient : IMetadataClient
 
         if (response == null)
         {
-            _logger.LogError("{GetAppMetadataAsync} response is null returned by the server...", nameof(GetAppMetadataAsync));
+            _logger.LogError("{Method} response is null returned by the server...", nameof(GetAppMetadataAsync));
             throw ThrowHelper.MissingResponse();
         }
 
         if (response.Error != null)
         {
-            _logger.LogError("{_appId} cannot return the {AppMetadata} for {AppId} due to: {Error}.", nameof(AppMetadata), appIdentifier.AppId, response.Error);
+            _logger.LogError("{AppId} cannot return the {AppMetadata} for {TargetAppId} due to: {Error}.", _appId, nameof(AppMetadata), appIdentifier.AppId, response.Error);
             throw ThrowHelper.ErrorResponseReceived(_appId, appIdentifier.AppId, nameof(AppMetadata), response.Error);
         }
 
@@ -134,7 +134,7 @@ internal class MetadataClient : IMetadataClient
 
         if (response == null)
         {
-            _logger.LogError("{GetInfoAsync} response is null returned by the server...", nameof(GetInfoAsync));
+            _logger.LogError("{Method} response is null returned by the server...", nameof(GetInfoAsync));
             throw ThrowHelper.MissingResponse();
         }
 

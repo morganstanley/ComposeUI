@@ -28,26 +28,18 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Intern
 internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 {
     private readonly ILogger<PrivateChannel> _logger;
-    private readonly ILoggerFactory _loggerFactory;
-    private readonly IMessaging _messaging;
     private readonly PrivateChannelTopics _privateChannelTopics;
-    private readonly string _channelId;
     private readonly string _instanceId;
+    private readonly Action _onDisconnect;
     private readonly string _internalEventsTopic;
     private readonly bool _isOriginalCreator;
     private readonly string _remoteContextListenersService;
     private readonly TaskCompletionSource<string> _initializationTaskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    private readonly SemaphoreSlim _contextHandlersLock = new(1, 1);
+    private readonly SemaphoreSlim _lock = new(1, 1);
     private readonly List<IListener> _contextHandlers = new();
-
-    private readonly SemaphoreSlim _addContextListenerHandlersLock = new(1, 1);
     private readonly List<PrivateChannelContextListenerEventListener> _addContextListenerHandlers = new();
-
-    private readonly SemaphoreSlim _unsubscribeHandlersLock = new(1, 1);
     private readonly List<PrivateChannelContextListenerEventListener> _unsubscribeHandlers = new();
-
-    private readonly SemaphoreSlim _disconnectHandlersLock = new(1, 1);
     private readonly List<PrivateChannelDisconnectEventListener> _disconnectHandlers = new();
 
     private readonly JsonSerializerOptions _jsonSerializerOptions = SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization;
@@ -55,27 +47,25 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
     private IAsyncDisposable _subscription;
     private IAsyncDisposable _serviceRegistration;
     private bool _isDisconnected = false;
-    private readonly SemaphoreSlim _isDisconnectedLock = new(1, 1);
 
     public PrivateChannel(
         string channelId, 
         IMessaging messaging, 
         string instanceId,
         bool isOriginalCreator,
+        Action onDisconnect,
         DisplayMetadata? displayMetadata = null,
         ILoggerFactory? loggerFactory = null) 
-        : base(channelId, ChannelType.Private, messaging, instanceId, displayMetadata, loggerFactory)
+        : base(channelId, ChannelType.Private, messaging, instanceId, null, displayMetadata, loggerFactory)
     {
         _privateChannelTopics = Fdc3Topic.PrivateChannel(channelId);
-
         _internalEventsTopic = _privateChannelTopics.Events;
         _isOriginalCreator = isOriginalCreator;
         _remoteContextListenersService = _privateChannelTopics.GetContextHandlers(!isOriginalCreator);
-        _messaging = messaging;
-        _channelId = channelId;
+
         _instanceId = instanceId;
-        _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
-        _logger = _loggerFactory.CreateLogger<PrivateChannel>();
+        _onDisconnect = onDisconnect;
+        _logger = LoggerFactory.CreateLogger<PrivateChannel>();
 
         Task.Run(() => InitializeAsync());
     }
@@ -86,21 +76,21 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
         {
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug($"Subscribing to private channel internal events for channel '{_channelId}', instance '{_instanceId}', topic: '{_internalEventsTopic}'.");
+                _logger.LogDebug("Subscribing to private channel internal events for channel {ChannelId}, instance {InstanceId}, topic: {Topic}.", Id, _instanceId, _internalEventsTopic);
             }
 
-            _subscription = await _messaging.SubscribeAsync(_internalEventsTopic, HandleInternalEvent);
+            _subscription = await Messaging.SubscribeAsync(_internalEventsTopic, HandleInternalEvent);
 
 
             var topic = _privateChannelTopics.GetContextHandlers(_isOriginalCreator);
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug($"Registering remote private channel context handlers service for channel '{_channelId}', instance '{_instanceId}', service: '{topic}'.");
+                _logger.LogDebug("Registering remote private channel context handlers service for channel {ChannelId}, instance {InstanceId}, service: {Service}.", Id, _instanceId, topic);
             }
 
-            _serviceRegistration = await _messaging.RegisterServiceAsync(topic, HandleRemoteContextListener);
+            _serviceRegistration = await Messaging.RegisterServiceAsync(topic, HandleRemoteContextListener);
 
-            _initializationTaskCompletionSource.SetResult(_channelId);
+            _initializationTaskCompletionSource.SetResult(Id);
         }
         catch (Exception exception)
         {
@@ -114,18 +104,18 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
         try
         {
-            await _isDisconnectedLock.WaitAsync().ConfigureAwait(false);
+            await _lock.WaitAsync().ConfigureAwait(false);
 
             if (_isDisconnected)
             {
-                throw ThrowHelper.PrivateChannelDisconnected(_channelId, _instanceId);
+                throw ThrowHelper.PrivateChannelDisconnected(Id, _instanceId);
             }
 
             await base.Broadcast(context);
         }
         finally
         {
-            _isDisconnectedLock.Release();
+            _lock.Release();
         }
     }
 
@@ -135,12 +125,11 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
         try
         {
-            await _isDisconnectedLock.WaitAsync().ConfigureAwait(false);
-            await _contextHandlersLock.WaitAsync().ConfigureAwait(false);
+            await _lock.WaitAsync().ConfigureAwait(false);
 
             if (_isDisconnected)
             {
-                throw ThrowHelper.PrivateChannelDisconnected(_channelId, _instanceId);
+                throw ThrowHelper.PrivateChannelDisconnected(Id, _instanceId);
             }
 
             var listener = await base.AddContextListener(contextType, handler) as ContextListener<T>;
@@ -149,7 +138,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
             {
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {
-                    _logger.LogDebug($"Setting unsubscribe callback for {nameof(ContextListener<T>)} when adding the listener on the {nameof(PrivateChannel)}...");
+                    _logger.LogDebug("Setting unsubscribe callback for {ListenerType} when adding the listener on the {ChannelType}...", nameof(ContextListener<T>), nameof(PrivateChannel));
                 }
 
                 listener.SetUnsubscribeCallback(contextListener => RemoveContextHandler(contextListener));
@@ -161,12 +150,11 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
                 return listener;
             }
 
-            throw ThrowHelper.PrivatChannelSubscribeFailure(contextType, _channelId, _instanceId);
+            throw ThrowHelper.PrivatChannelSubscribeFailure(contextType, Id, _instanceId);
         }
         finally
         {
-            _isDisconnectedLock.Release();
-            _contextHandlersLock.Release();
+            _lock.Release();
         }
     }
 
@@ -176,11 +164,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
         try
         {
-            await _isDisconnectedLock.WaitAsync().ConfigureAwait(false);
-            await _addContextListenerHandlersLock.WaitAsync().ConfigureAwait(false);
-            await _unsubscribeHandlersLock.WaitAsync().ConfigureAwait(false);
-            await _disconnectHandlersLock.WaitAsync().ConfigureAwait(false);
-            await _contextHandlersLock.WaitAsync().ConfigureAwait(false);
+            await _lock.WaitAsync().ConfigureAwait(false);
 
             if (_isDisconnected)
             {
@@ -194,7 +178,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
                 if (_logger.IsEnabled(LogLevel.Trace))
                 {
-                    _logger.LogTrace($"Unsubscribed add context listener handler on private channel '{_channelId}'.");
+                    _logger.LogTrace("Unsubscribed add context listener handler on private channel {ChannelId}.", Id);
                 }
             }
 
@@ -204,7 +188,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
                 if (_logger.IsEnabled(LogLevel.Trace))
                 {
-                    _logger.LogTrace($"Unsubscribed unsubscribe handler on private channel '{_channelId}'.");
+                    _logger.LogTrace("Unsubscribed unsubscribe handler on private channel {ChannelId}.", Id);
                 }
             }
 
@@ -214,7 +198,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
                 if (_logger.IsEnabled(LogLevel.Trace))
                 {
-                    _logger.LogTrace($"Unsubscribed disconnect handler on private channel '{_channelId}'.");
+                    _logger.LogTrace("Unsubscribed disconnect handler on private channel {ChannelId}.", Id);
                 }
             }
 
@@ -229,27 +213,25 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
                 if (_logger.IsEnabled(LogLevel.Trace))
                 {
-                    _logger.LogTrace($"Unsubscribed context listener on private channel '{_channelId}'.");
+                    _logger.LogTrace("Unsubscribed context listener on private channel {ChannelId}.", Id);
                 }
             }
 
             var request = PrivateChannelInternalEvents.Disconnected(_instanceId);
             var serializedRequest = JsonSerializer.Serialize(request, _jsonSerializerOptions);
 
-            await _messaging.PublishAsync(_internalEventsTopic, serializedRequest);
+            await Messaging.PublishAsync(_internalEventsTopic, serializedRequest);
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug($"Private channel '{_channelId}' disconnected. Request: {serializedRequest} has been sent to the backend...");
+                _logger.LogDebug("Private channel {ChannelId} disconnected. Request: {Request} has been sent to the backend...", Id, serializedRequest);
             }
+
+            _onDisconnect();
         }
         finally
         {
-            _isDisconnectedLock.Release();
-            _addContextListenerHandlersLock.Release();
-            _unsubscribeHandlersLock.Release();
-            _disconnectHandlersLock.Release();
-            _contextHandlersLock.Release();
+            _lock.Release();
         }
     }
 
@@ -257,18 +239,17 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
     {
         try
         {
-            _isDisconnectedLock.Wait();
-            _addContextListenerHandlersLock.Wait();
+            _lock.Wait();
 
             if (_isDisconnected)
             {
-                throw ThrowHelper.PrivateChannelDisconnected(_channelId, _instanceId);
+                throw ThrowHelper.PrivateChannelDisconnected(Id, _instanceId);
             }
 
             var listener = new PrivateChannelContextListenerEventListener(
                 onContext: (contextType) => handler(contextType),
                 onUnsubscribe: RemoveAddContextListenerHandler,
-                logger: _loggerFactory.CreateLogger<PrivateChannelContextListenerEventListener>());
+                logger: LoggerFactory.CreateLogger<PrivateChannelContextListenerEventListener>());
 
             _addContextListenerHandlers.Add(listener);
 
@@ -279,8 +260,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
         }
         finally
         {
-            _isDisconnectedLock.Release();
-            _addContextListenerHandlersLock.Release();
+            _lock.Release();
         }
     }
 
@@ -288,32 +268,30 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
     {
         try
         {
-            _isDisconnectedLock.Wait();
-            _disconnectHandlersLock.Wait();
+            _lock.Wait();
 
             if (_isDisconnected)
             {
-                throw ThrowHelper.PrivateChannelDisconnected(_channelId, _instanceId);
+                throw ThrowHelper.PrivateChannelDisconnected(Id, _instanceId);
             }
 
             var listener = new PrivateChannelDisconnectEventListener(
                 onDisconnectEventHandler: () => handler(),
                 onUnsubscribeHandler: RemoveDisconnectListenerHandler,
-                logger: _loggerFactory.CreateLogger<PrivateChannelDisconnectEventListener>());
+                logger: LoggerFactory.CreateLogger<PrivateChannelDisconnectEventListener>());
 
             _disconnectHandlers.Add(listener);
 
             if (_logger.IsEnabled(LogLevel.Trace))
             {
-                _logger.LogTrace($"Added disconnect handler on private channel '{_channelId}'.");
+                _logger.LogTrace("Added disconnect handler on private channel {ChannelId}.", Id);
             }
 
             return listener;
         }
         finally
         {
-            _isDisconnectedLock.Release();
-            _disconnectHandlersLock.Release();
+            _lock.Release();
         }
     }
 
@@ -321,32 +299,30 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
     {
         try
         {
-            _isDisconnectedLock.Wait();
-            _unsubscribeHandlersLock.Wait();
+            _lock.Wait();
 
             if (_isDisconnected)
             {
-                throw ThrowHelper.PrivateChannelDisconnected(_channelId, _instanceId);
+                throw ThrowHelper.PrivateChannelDisconnected(Id, _instanceId);
             }
 
             var listener = new PrivateChannelContextListenerEventListener(
                 onContext: (contextType) => handler(contextType),
                 onUnsubscribe: RemoveUnsubscribeListenerHandler,
-                logger: _loggerFactory.CreateLogger<PrivateChannelContextListenerEventListener>());
+                logger: LoggerFactory.CreateLogger<PrivateChannelContextListenerEventListener>());
 
             _unsubscribeHandlers.Add(listener);
 
             if (_logger.IsEnabled(LogLevel.Trace))
             {
-                _logger.LogTrace($"Added unsubscribe handler on private channel '{_channelId}'.");
+                _logger.LogTrace("Added unsubscribe handler on private channel {ChannelId}.", Id);
             }
 
             return listener;
         }
         finally
         {
-            _isDisconnectedLock.Release();
-            _unsubscribeHandlersLock.Release();
+            _lock.Release();
         }
     }
 
@@ -356,7 +332,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
         try
         {
-            var listeners = await _messaging.InvokeServiceAsync(_remoteContextListenersService);
+            var listeners = await Messaging.InvokeServiceAsync(_remoteContextListenersService);
 
             var remoteListeners = string.IsNullOrEmpty(listeners)
                 ? Array.Empty<string>()
@@ -368,13 +344,13 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
                 if (_logger.IsEnabled(LogLevel.Trace))
                 {
-                    _logger.LogTrace($"Executed remote context handler for context type '{contextType}' on private channel '{_channelId}' for remote listener.");
+                    _logger.LogTrace("Executed remote context handler for context type {ContextType} on private channel {ChannelId} for remote listener.", contextType, Id);
                 }
             }
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, $"Error executing remote context handlers on private channel: {_channelId}, {_instanceId}.");
+            _logger.LogError(exception, "Error executing remote context handlers on private channel: {ChannelId}, {InstanceId}.", Id, _instanceId);
             return;
         }
     }
@@ -383,16 +359,16 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
     {
         try
         {
-            _unsubscribeHandlersLock.Wait();
+            _lock.Wait();
 
             if (!_unsubscribeHandlers.Remove(listener))
             {
-                _logger.LogWarning($"The {nameof(PrivateChannelContextListenerEventListener)} to remove was not found in the list of registered {nameof(PrivateChannelContextListenerEventListener)}.");
+                _logger.LogWarning("The {ListenerType} to remove was not found in the list of registered {ContextListenerType}.", nameof(PrivateChannelContextListenerEventListener), nameof(PrivateChannelContextListenerEventListener));
             }
         }
         finally
         {
-            _unsubscribeHandlersLock.Release();
+            _lock.Release();
         }
     }
 
@@ -400,16 +376,16 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
     {
         try
         {
-            _disconnectHandlersLock.Wait();
+            _lock.Wait();
 
             if (!_disconnectHandlers.Remove(listener))
             {
-                _logger.LogWarning($"The {nameof(PrivateChannelDisconnectEventListener)} to remove was not found in the list of registered {nameof(PrivateChannelDisconnectEventListener)}.");
+                _logger.LogWarning("The {ListenerType} to remove was not found in the list of registered {DisconnectListenerType}.", nameof(PrivateChannelDisconnectEventListener), nameof(PrivateChannelDisconnectEventListener));
             }
         }
         finally
         {
-            _disconnectHandlersLock.Release();
+            _lock.Release();
         }
     }
 
@@ -417,16 +393,16 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
     {
         try
         {
-            _addContextListenerHandlersLock.Wait();
+            _lock.Wait();
 
             if (!_addContextListenerHandlers.Remove(privateChannelContextListener))
             {
-                _logger.LogWarning($"The {nameof(PrivateChannelContextListenerEventListener)} to remove was not found in the list of registered {nameof(PrivateChannelContextListenerEventListener)}.");
+                _logger.LogWarning("The {ListenerType} to remove was not found in the list of registered {ContextListenerType}.", nameof(PrivateChannelContextListenerEventListener), nameof(PrivateChannelContextListenerEventListener));
             }
         }
         finally
         {
-            _addContextListenerHandlersLock.Release();
+            _lock.Release();
         }
     }
 
@@ -443,11 +419,11 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
         var serializedRequest = JsonSerializer.Serialize(request, _jsonSerializerOptions);
 
-        await _messaging.PublishAsync(_internalEventsTopic, serializedRequest);
+        await Messaging.PublishAsync(_internalEventsTopic, serializedRequest);
 
         if (_logger.IsEnabled(LogLevel.Debug))
         {
-            _logger.LogDebug($"Fired context handler added event for context type '{contextType}' on private channel '{_channelId}'. \nRequest has been sent to backend: {serializedRequest}.");
+            _logger.LogDebug("Fired context handler added event for context type {ContextType} on private channel {ChannelId}. Request has been sent to backend: {Request}.", contextType, Id, serializedRequest);
         }
     }
 
@@ -455,14 +431,13 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
     {
         try
         {
-            _isDisconnectedLock.Wait();
-            _contextHandlersLock.Wait();
+            _lock.Wait();
 
             if (!_isDisconnected)
             {
                 if (_contextHandlers.Remove(contextListener))
                 {
-                    _logger.LogWarning($"The context listener for context type '{contextListener.ContextType}' was removed from private channel '{_channelId}'.");
+                    _logger.LogWarning("The context listener for context type {ContextType} was removed from private channel {ChannelId}.", contextListener.ContextType, Id);
                 }
             }
             //Fire and forget
@@ -470,8 +445,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
         }
         finally
         {
-            _isDisconnectedLock.Release();
-            _contextHandlersLock.Release();
+            _lock.Release();
         }
     }
 
@@ -488,11 +462,11 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
         var serializedRequest = JsonSerializer.Serialize(request, _jsonSerializerOptions);
 
-        await _messaging.PublishAsync(_internalEventsTopic, serializedRequest);
+        await Messaging.PublishAsync(_internalEventsTopic, serializedRequest);
 
         if (_logger.IsEnabled(LogLevel.Debug))
         {
-            _logger.LogDebug($"Fired unsubscribed event for context type '{contextType}' on private channel '{_channelId}'. \nRequest has been sent to backend: {serializedRequest}.");
+            _logger.LogDebug("Fired unsubscribed event for context type {ContextType} on private channel {ChannelId}. Request has been sent to backend: {Request}.", contextType, Id, serializedRequest);
         }
     }
 
@@ -502,7 +476,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
         try
         {
-            await _contextHandlersLock.WaitAsync().ConfigureAwait(false);
+            await _lock.WaitAsync().ConfigureAwait(false);
 
             var contextListeners = _contextHandlers.AsEnumerable();
 
@@ -510,7 +484,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
         }
         finally
         {
-            _contextHandlersLock.Release();
+            _lock.Release();
         }
     }
 
@@ -518,7 +492,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
     {
         try
         {
-            await _isDisconnectedLock.WaitAsync().ConfigureAwait(false);
+            await _lock.WaitAsync().ConfigureAwait(false);
 
             if (_isDisconnected
                 || string.IsNullOrEmpty(payload))
@@ -530,7 +504,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
             if (internalEvent == null)
             {
-                _logger.LogWarning($"Received invalid internal event on private channel '{_channelId}': {payload}");
+                _logger.LogWarning("Received invalid internal event on private channel {ChannelId}: {Payload}", Id, payload);
                 return;
             }
 
@@ -539,7 +513,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
                 // Ignore events originating from this instance
                 if (_logger.IsEnabled(LogLevel.Trace))
                 {
-                    _logger.LogTrace($"Ignoring internal event from same instance '{_instanceId}' on private channel '{_channelId}'. Event: {payload}");
+                    _logger.LogTrace("Ignoring internal event from same instance {InstanceId} on private channel {ChannelId}. Event: {Payload}", _instanceId, Id, payload);
                 }
 
                 return;
@@ -547,54 +521,29 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
             if (internalEvent.Event == PrivateChannelInternalEventType.ContextListenerAdded)
             {
-                try
+                foreach (var handler in _addContextListenerHandlers)
                 {
-                    await _addContextListenerHandlersLock.WaitAsync().ConfigureAwait(false);
-
-                    foreach (var handler in _addContextListenerHandlers)
-                    {
-                        handler.Execute(internalEvent.ContextType);
-                    }
-                }
-                finally
-                {
-                    _addContextListenerHandlersLock.Release();
+                    handler.Execute(internalEvent.ContextType);
                 }
             }
             else if (internalEvent.Event == PrivateChannelInternalEventType.Unsubscribed)
             {
-                try
+                foreach (var handler in _unsubscribeHandlers)
                 {
-                    await _unsubscribeHandlersLock.WaitAsync().ConfigureAwait(false);
-                    foreach (var handler in _unsubscribeHandlers)
-                    {
-                        handler.Execute(internalEvent.ContextType);
-                    }
-                }
-                finally
-                {
-                    _unsubscribeHandlersLock.Release();
+                    handler.Execute(internalEvent.ContextType);
                 }
             }
             else if (internalEvent.Event == PrivateChannelInternalEventType.Disconnected)
             {
-                try
+                foreach (var handler in _disconnectHandlers)
                 {
-                    await _disconnectHandlersLock.WaitAsync().ConfigureAwait(false);
-                    foreach (var handler in _disconnectHandlers)
-                    {
-                        handler.Execute();
-                    }
-                }
-                finally
-                {
-                    _disconnectHandlersLock.Release();
+                    handler.Execute();
                 }
             }
         }
         finally
         {
-            _isDisconnectedLock.Release();
+            _lock.Release();
         }
     }
 

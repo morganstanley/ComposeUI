@@ -285,7 +285,6 @@ public class IntentsClientTests
 
         var result = await _client.RaiseIntentForContextAsync(context, app);
 
-        result.Should().NotBeNull();
         result.Intent.Should().Be("ViewChart");
         result.Source.AppId.Should().Be("TestApp");
     }
@@ -440,7 +439,6 @@ public class IntentsClientTests
 
         var result = await _client.AddIntentListenerAsync<Instrument>("ViewChart", (ctx, meta) => Task.FromResult<IIntentResult>(new Instrument()));
 
-        result.Should().NotBeNull();
         result.Should().BeAssignableTo<IListener>();
     }
 
@@ -522,7 +520,7 @@ public class IntentsClientTests
             .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
 
         var result = await _client.RaiseIntentAsync("IntentName", new Instrument(), new AppIdentifier { AppId = "app", InstanceId = "id" });
-        result.Should().NotBeNull();
+
         result.Should().BeAssignableTo<IIntentResolution>();
     }
 }

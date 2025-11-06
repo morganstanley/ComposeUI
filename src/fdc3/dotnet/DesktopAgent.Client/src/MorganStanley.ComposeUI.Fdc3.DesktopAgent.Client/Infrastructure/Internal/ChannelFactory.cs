@@ -12,6 +12,7 @@
  * and limitations under the License.
  */
 
+using System.Collections.Concurrent;
 using System.Text.Json;
 using Finos.Fdc3;
 using Finos.Fdc3.Context;
@@ -30,17 +31,21 @@ internal class ChannelFactory : IChannelFactory
 {
     private readonly IMessaging _messaging;
     private readonly string _instanceId;
+    private readonly IContext? _openedAppContext;
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<ChannelFactory> _logger;
     private readonly JsonSerializerOptions _jsonSerializerOptions = SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization;
+    private readonly ConcurrentDictionary<string, IPrivateChannel> _privateChannels = new();
 
     public ChannelFactory(
         IMessaging messaging,
         string fdc3InstanceId,
+        IContext? openedAppContext = null,
         ILoggerFactory? loggerFactory = null)
     {
         _messaging = messaging;
         _instanceId = fdc3InstanceId;
+        _openedAppContext = openedAppContext;
         _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
         _logger = _loggerFactory.CreateLogger<ChannelFactory>();
     }
@@ -58,6 +63,7 @@ internal class ChannelFactory : IChannelFactory
                 contextHandler: contextHandler,
                 messaging: _messaging,
                 contextType: contextType,
+                openedAppContext: _openedAppContext,
                 logger: _loggerFactory.CreateLogger<ContextListener<T>>());
         }
 
@@ -98,7 +104,7 @@ internal class ChannelFactory : IChannelFactory
 
         if (!response.Success)
         {
-            throw ThrowHelper.AppChannelIsNotCreated(channelId);
+            throw ThrowHelper.ErrorResponseReceived(Fdc3DesktopAgentErrors.UnspecifiedReason);
         }
 
         return new Channel(
@@ -110,7 +116,7 @@ internal class ChannelFactory : IChannelFactory
             loggerFactory: _loggerFactory);
     }
 
-    public async ValueTask<IChannel[]> GetUserChannelsAsync()
+    public async ValueTask<IEnumerable<IChannel>> GetUserChannelsAsync()
     {
         var request = new GetUserChannelsRequest
         {
@@ -143,7 +149,12 @@ internal class ChannelFactory : IChannelFactory
         {
             if (channel.DisplayMetadata == null)
             {
-                _logger.LogWarning($"Skipping channel with missing ChannelId: {channel.Id} or the {nameof(DisplayMetadata)}.");
+                _logger.LogDebug("Skipping channel with missing ChannelId: {ChannelId} or the {NameOfDisplayMetadata}.", channel.Id, nameof(DisplayMetadata));
+            }
+
+            if (string.IsNullOrEmpty(channel.Id))
+            {
+                _logger.LogDebug("Skipping channel with missing {NameOfChannelId}.", nameof(channel.Id));
                 continue;
             }
 
@@ -157,7 +168,13 @@ internal class ChannelFactory : IChannelFactory
 
             channels.Add(userChannel);
         }
-        return channels.ToArray();
+
+        if (!channels.Any())
+        {
+            throw ThrowHelper.NoChannelsReturned();
+        }
+
+        return channels;
     }
 
     public async ValueTask<IChannel> JoinUserChannelAsync(string channelId)
@@ -193,6 +210,7 @@ internal class ChannelFactory : IChannelFactory
             channelType: ChannelType.User,
             instanceId: _instanceId,
             messaging: _messaging,
+            openedAppContext: _openedAppContext,
             displayMetadata: response.DisplayMetadata,
             loggerFactory: _loggerFactory);
 
@@ -232,11 +250,13 @@ internal class ChannelFactory : IChannelFactory
             return await JoinPrivateChannelAsync(channelId);
         }
 
+        //This is only called when raising an intent, the RaiseIntent logic.
         return new Channel(
             channelId: channelId,
             channelType: channelType,
             instanceId: _instanceId,
             messaging: _messaging,
+            openedAppContext: _openedAppContext,
             loggerFactory: _loggerFactory);
     }
 
@@ -267,8 +287,11 @@ internal class ChannelFactory : IChannelFactory
             instanceId: _instanceId,
             messaging: _messaging,
             isOriginalCreator: true,
+            onDisconnect: () => _privateChannels.TryRemove(response.ChannelId!, out _),
             displayMetadata: null,
             loggerFactory: _loggerFactory);
+
+        _privateChannels.TryAdd(response.ChannelId!, channel);
 
         return channel;
     }
@@ -303,16 +326,19 @@ internal class ChannelFactory : IChannelFactory
 
         if (_logger.IsEnabled(LogLevel.Debug))
         {
-            _logger.LogDebug($"Joined private channel {channelId}.");
+            _logger.LogDebug("Joined private channel {ChannelId}.", channelId);
         }
 
-        var channel = new PrivateChannel(
-            channelId: channelId,
-            instanceId: _instanceId,
-            messaging: _messaging,
-            isOriginalCreator: false,
-            displayMetadata: null,
-            loggerFactory: _loggerFactory);
+        var channel = _privateChannels.GetOrAdd(
+            channelId, 
+            new PrivateChannel(
+                channelId: channelId,
+                instanceId: _instanceId,
+                messaging: _messaging,
+                isOriginalCreator: false,
+                onDisconnect: () => _privateChannels.TryRemove(channelId, out _),
+                displayMetadata: null,
+                loggerFactory: _loggerFactory));
 
         return channel;
     }

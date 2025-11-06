@@ -99,7 +99,7 @@ internal class IntentResolution : IIntentResolution
         else if (response.VoidResult != null 
             && response.VoidResult.Value)
         {
-            _logger.LogDebug($"The intent result is void for intent:{Intent} for message: {_messageId}.");
+            _logger.LogDebug("The intent result is void for intent:{Intent} for message: {MessageId}.", Intent, _messageId);
 
             return null;
         }

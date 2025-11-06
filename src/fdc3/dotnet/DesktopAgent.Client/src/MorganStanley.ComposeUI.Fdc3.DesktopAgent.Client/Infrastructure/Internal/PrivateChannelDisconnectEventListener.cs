@@ -23,8 +23,8 @@ internal delegate void PrivateChannelOnDisconnectHandler(PrivateChannelDisconnec
 
 internal class PrivateChannelDisconnectEventListener : IListener
 {
-    private readonly PrivateChannelDisconnectEventHandler _handler;
-    private readonly PrivateChannelOnDisconnectHandler _unsubscribeCallback;
+    private readonly PrivateChannelDisconnectEventHandler _onDisconnect;
+    private readonly PrivateChannelOnDisconnectHandler _onUnsubscribe;
     private readonly ILogger<PrivateChannelDisconnectEventListener> _logger;
     private readonly SemaphoreSlim _semaphoreSlim = new(1, 1);
     private bool _subscribed;
@@ -34,8 +34,8 @@ internal class PrivateChannelDisconnectEventListener : IListener
         PrivateChannelOnDisconnectHandler onUnsubscribeHandler,
         ILogger<PrivateChannelDisconnectEventListener>? logger = null)
     {
-        _handler = onDisconnectEventHandler;
-        _unsubscribeCallback = onUnsubscribeHandler;
+        _onDisconnect = onDisconnectEventHandler;
+        _onUnsubscribe = onUnsubscribeHandler;
         _subscribed = true;
         _logger = logger ?? NullLogger<PrivateChannelDisconnectEventListener>.Instance;
     }
@@ -51,7 +51,7 @@ internal class PrivateChannelDisconnectEventListener : IListener
                 return;
             }
 
-            _handler();
+            _onDisconnect();
         }
         finally
         {
@@ -76,10 +76,10 @@ internal class PrivateChannelDisconnectEventListener : IListener
             {
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {
-                    _logger.LogDebug($"Unsubscribing {nameof(PrivateChannelDisconnectEventHandler)}.");
+                    _logger.LogDebug("Unsubscribing {NameOfPrivateChannelDisconnectEventHandler}.", nameof(PrivateChannelDisconnectEventHandler));
                 }
 
-                _unsubscribeCallback(this);
+                _onUnsubscribe(this);
             }
         }
         finally

@@ -16,9 +16,9 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 
 internal class CreatePrivateChannelResponse
 {
-    public bool Success { get; set; }
-    public string? Error { get; set; }
-    public string? ChannelId { get; set; }
+    public bool Success { get; init; }
+    public string? Error { get; init; }
+    public string? ChannelId { get; init; }
 
     public static CreatePrivateChannelResponse Created(string channelId) => new CreatePrivateChannelResponse { Success = true, ChannelId = channelId, Error = null};
     public static CreatePrivateChannelResponse Failed(string error) => new CreatePrivateChannelResponse { Success = false, ChannelId = null, Error = error };
