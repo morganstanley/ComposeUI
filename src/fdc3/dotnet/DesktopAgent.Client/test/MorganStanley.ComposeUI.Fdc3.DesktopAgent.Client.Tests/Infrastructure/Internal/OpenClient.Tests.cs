@@ -59,7 +59,6 @@ public class OpenClientTests
 
         var context = await openClient.GetOpenAppContextAsync(Guid.NewGuid().ToString());
 
-        context.Should().NotBeNull();
         context.Type.Should().Be("fdc3.instrument");
     }
 
@@ -192,7 +191,6 @@ public class OpenClientTests
 
         var result = await openClient.OpenAsync(new AppIdentifier { AppId = "appId" }, new Instrument());
 
-        result.Should().NotBeNull();
         result.AppId.Should().Be("appId");
         result.InstanceId.Should().Be("instanceId");
     }

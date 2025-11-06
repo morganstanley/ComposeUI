@@ -70,4 +70,9 @@ public static class Fdc3DesktopAgentErrors
     /// Indicates that the private channel a client tried to join cannot be found
     /// </summary>
     public const string PrivateChannelNotFound = nameof(PrivateChannelNotFound);
+
+    /// <summary>
+    /// Indicates that an unspecified error occurred in the desktop agent.
+    /// </summary>
+    public const string UnspecifiedReason = nameof(UnspecifiedReason);
 }

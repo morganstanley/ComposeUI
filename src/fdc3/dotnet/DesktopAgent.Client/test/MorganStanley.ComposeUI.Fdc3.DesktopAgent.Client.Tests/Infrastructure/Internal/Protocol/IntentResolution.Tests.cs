@@ -38,7 +38,7 @@ public class IntentResolutionTests
     private readonly AppIdentifier _source = new() { AppId = "app", InstanceId = "inst" };
     private readonly JsonSerializerOptions _jsonOptions = new();
 
-    private IntentResolution CreateSut()
+    private IntentResolution CreateIntentResolution()
     {
         return new IntentResolution(
             _messageId,
@@ -46,8 +46,7 @@ public class IntentResolutionTests
             _channelFactoryMock.Object,
             _intent,
             _source,
-            _loggerMock.Object
-        );
+            _loggerMock.Object);
     }
 
     [Fact]
@@ -72,8 +71,8 @@ public class IntentResolutionTests
             .Setup(f => f.FindChannelAsync("ch1", ChannelType.User))
             .ReturnsAsync(channelMock.Object);
 
-        var sut = CreateSut();
-        var result = await sut.GetResult();
+        var intentResolution = CreateIntentResolution();
+        var result = await intentResolution.GetResult();
 
         result.Should().Be(channelMock.Object);
     }
@@ -93,8 +92,8 @@ public class IntentResolutionTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(JsonSerializer.Serialize(response, _jsonOptions));
 
-        var sut = CreateSut();
-        var result = await sut.GetResult();
+        var intentResolution = CreateIntentResolution();
+        var result = await intentResolution.GetResult();
 
         result.Should().BeOfType<Instrument>();
         ((Instrument) result!).ID!.Ticker.Should().Be("AAPL");
@@ -114,8 +113,8 @@ public class IntentResolutionTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(JsonSerializer.Serialize(response, _jsonOptions));
 
-        var sut = CreateSut();
-        var result = await sut.GetResult();
+        var intentResolution = CreateIntentResolution();
+        var result = await intentResolution.GetResult();
 
         result.Should().BeNull();
     }
@@ -130,8 +129,8 @@ public class IntentResolutionTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((string?) null);
 
-        var sut = CreateSut();
-        var act = async () => await sut.GetResult();
+        var intentResolution = CreateIntentResolution();
+        var act = async () => await intentResolution.GetResult();
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage("*No response was received*");
@@ -151,8 +150,8 @@ public class IntentResolutionTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(JsonSerializer.Serialize(response, _jsonOptions));
 
-        var sut = CreateSut();
-        var act = async () => await sut.GetResult();
+        var intentResolution = CreateIntentResolution();
+        var act = async () => await intentResolution.GetResult();
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage("*Some error*");
@@ -169,8 +168,8 @@ public class IntentResolutionTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(JsonSerializer.Serialize(response, _jsonOptions));
 
-        var sut = CreateSut();
-        var act = async () => await sut.GetResult();
+        var intentResolution = CreateIntentResolution();
+        var act = async () => await intentResolution.GetResult();
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage($"*{_intent}*");

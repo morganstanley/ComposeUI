@@ -131,7 +131,6 @@ public class ChannelTests
 
         var result = await _channel.GetCurrentContext("fdc3.instrument");
 
-        result.Should().NotBeNull();
         result.Should().BeOfType<Instrument>();
         ((Instrument) result!).Should().BeEquivalentTo(context);
     }
@@ -152,7 +151,6 @@ public class ChannelTests
 
         var result = await _channel.GetCurrentContext(null);
 
-        result.Should().NotBeNull();
         result.Should().BeOfType<Instrument>();
         ((Instrument) result!).Should().BeEquivalentTo(context);
     }

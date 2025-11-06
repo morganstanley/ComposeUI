@@ -24,6 +24,9 @@ using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure;
 
+/// <summary>
+/// Desktop Agent client implementation.
+/// </summary>
 public class DesktopAgentClient : IDesktopAgent
 {
     private readonly IMessaging _messaging;
@@ -31,20 +34,18 @@ public class DesktopAgentClient : IDesktopAgent
     private readonly ILogger<DesktopAgentClient> _logger;
     private readonly string _appId;
     private readonly string _instanceId;
-    private readonly IChannelFactory _channelFactory;
-    private readonly IMetadataClient _metadataClient;
-    private readonly IIntentsClient _intentsClient;
-    private readonly IOpenClient _openClient;
+    private IChannelFactory _channelFactory;
+    private IMetadataClient _metadataClient;
+    private IIntentsClient _intentsClient;
+    private IOpenClient _openClient;
 
     //This cache stores the top-level context listeners added through the `AddContextListener<T>(...)` API. It stores their actions to be able to resubscribe them when joining a new channel and handle the last context based on the FDC3 standard.
-    private readonly ConcurrentDictionary<IListener, Func<string, ChannelType, CancellationToken, ValueTask>> _contextListeners = new();
+    private readonly Dictionary<IListener, Func<string, ChannelType, CancellationToken, ValueTask>> _contextListeners = new();
     private readonly ConcurrentDictionary<string, IListener> _intentListeners = new();
 
     private IChannel? _currentChannel;
     private IContext? _openedAppContext;
-    private bool _isOpenContextHandled = false;
 
-    private readonly SemaphoreSlim _openContextLock = new(1, 1);
     private readonly SemaphoreSlim _currentChannelLock = new(1, 1);
 
     private readonly ConcurrentDictionary<string, IChannel> _userChannels = new();
@@ -66,12 +67,10 @@ public class DesktopAgentClient : IDesktopAgent
 
         if (_logger.IsEnabled(LogLevel.Debug))
         {
-            _logger.LogDebug($"AppID: {_appId}; InstanceId: {_instanceId} is registered for the FDC3 client app.");
+            _logger.LogDebug("AppID: {AppId}; InstanceId: {InstanceId} is registered for the FDC3 client app.", _appId, _instanceId);
         }
 
-        _channelFactory = new ChannelFactory(_messaging, _instanceId, _loggerFactory);
         _metadataClient = new MetadataClient(_appId, _instanceId, _messaging, _loggerFactory.CreateLogger<MetadataClient>());
-        _intentsClient = new IntentsClient(_messaging, _channelFactory, _instanceId, _loggerFactory);
         _openClient = new OpenClient(_instanceId, _messaging, this, _loggerFactory.CreateLogger<OpenClient>());
 
         _ = Task.Run(() => InitializeAsync());
@@ -95,7 +94,7 @@ public class DesktopAgentClient : IDesktopAgent
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug($"Retrieved startup parameters for channelId: {channelId ?? "null"}; openedAppContextId: {openedAppContextId ?? "null"}.");
+                _logger.LogDebug("Retrieved startup parameters for channelId: {ChannelId}; openedAppContextId: {OpenedAppContext}.", channelId ?? "null", openedAppContextId ?? "null");
             }
 
             if (!string.IsNullOrEmpty(channelId))
@@ -109,6 +108,9 @@ public class DesktopAgentClient : IDesktopAgent
                 await GetOpenedAppContextAsync(openedAppContextId!).ConfigureAwait(false);
             }
 
+            _channelFactory = new ChannelFactory(_messaging, _instanceId, _openedAppContext, _loggerFactory);
+            _intentsClient = new IntentsClient(_messaging, _channelFactory, _instanceId, _loggerFactory);
+
             _initializationTaskCompletionSource.SetResult(_instanceId);
         }
         catch (Exception exception)
@@ -117,74 +119,37 @@ public class DesktopAgentClient : IDesktopAgent
         }
     }
 
+    /// <summary>
+    /// Adds a context listener for the specified context type.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="contextType"></param>
+    /// <param name="handler"></param>
+    /// <returns></returns>
     public async Task<IListener> AddContextListener<T>(string? contextType, ContextHandler<T> handler) where T : IContext
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
 
         ContextListener<T> listener = null;
         await _currentChannelLock.WaitAsync().ConfigureAwait(false);
-        await _openContextLock.WaitAsync().ConfigureAwait(false);
 
         try
         {
-            // There is no context to handle - aka app was not opened via the fdc3.open
-            if (_openedAppContext == null && !_isOpenContextHandled)
-            {
-                _isOpenContextHandled = true;
-            }
-
             if (_logger.IsEnabled(LogLevel.Debug))
             {
                 _logger.LogDebug(
-                    $"Checking if the app was opened via fdc3.open. OpenedAppContext exists: {_openedAppContext != null}, current context listener's context type: {contextType}, received app context's type via open call: {_openedAppContext?.Type}.");
+                    "Checking if the app was opened via fdc3.open. OpenedAppContext exists: {IsNotNull}, current context listener's context type: {ContextType}, received app context's type via open call: {OpenedAppContextType}.", _openedAppContext != null, contextType, _openedAppContext?.Type);
             }
 
-            bool shouldInvokeHandler = 
-                _openedAppContext != null
-                && (contextType == null || _openedAppContext.Type == contextType || _openedAppContext.Type == null);
+            listener = await _channelFactory.CreateContextListenerAsync<T>(handler, _currentChannel, contextType);
 
-            T? openedAppContextOfT = default;
-            if (shouldInvokeHandler && _openedAppContext is T casted)
-            {
-                openedAppContextOfT = casted;
-                shouldInvokeHandler = true;
-            }
-            else
-            {
-                shouldInvokeHandler = false;
-            }
-
-            if (shouldInvokeHandler)
-            {
-                if (_logger.IsEnabled(LogLevel.Debug))
-                {
-                    _logger.LogDebug(
-                        $"Invoking context handler for the opened app context of type: {contextType ?? "null"}.");
-                }
-
-                if (!_isOpenContextHandled)
-                {
-                    handler(openedAppContextOfT!);
-                    _isOpenContextHandled = true;
-                }
-            }
-
-            listener = await _channelFactory.CreateContextListenerAsync(handler, _currentChannel, contextType);
-
-            await listener.SetOpenHandledAsync(_isOpenContextHandled);
-
-            bool added = _contextListeners.TryAdd(
+            _contextListeners.Add(
                 listener,
                 async (channelId, channelType, cancellationToken) =>
                 {
                     await listener.SubscribeAsync(channelId, channelType, cancellationToken);
                     await HandleLastContextAsync(listener);
                 });
-
-            if (!added && _logger.IsEnabled(LogLevel.Debug))
-            {
-                _logger.LogDebug("Failed to add context listener to the internal collection.");
-            }
 
             return listener;
         }
@@ -193,13 +158,24 @@ public class DesktopAgentClient : IDesktopAgent
             await HandleLastContextAsync(listener);
 
             _currentChannelLock.Release();
-            _openContextLock.Release();
         }
     }
 
+    /// <summary>
+    /// Adds an intent listener for the specified intent.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="intent"></param>
+    /// <param name="handler"></param>
+    /// <returns></returns>
     public async Task<IListener> AddIntentListener<T>(string intent, IntentHandler<T> handler) where T : IContext
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
+
+        if (_intentListeners.TryGetValue(intent, out var existingListener))
+        {
+            return existingListener;
+        }
 
         var listener = await _intentsClient.AddIntentListenerAsync<T>(intent, handler);
 
@@ -207,13 +183,18 @@ public class DesktopAgentClient : IDesktopAgent
         {
             if (_logger.IsEnabled(LogLevel.Warning))
             {
-                _logger.LogWarning($"Failed to add intent listener to the internal collection: {intent}.");
+                _logger.LogWarning("Failed to add intent listener to the internal collection: {Intent}.", intent);
             }
         }
 
         return listener;
     }
 
+    /// <summary>
+    /// Broadcasts the specified context to the current channel.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
     public async Task Broadcast(IContext context)
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
@@ -235,6 +216,10 @@ public class DesktopAgentClient : IDesktopAgent
         }
     }
 
+    /// <summary>
+    /// Creates a new private channel.
+    /// </summary>
+    /// <returns></returns>
     public async Task<IPrivateChannel> CreatePrivateChannel()
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
@@ -243,6 +228,11 @@ public class DesktopAgentClient : IDesktopAgent
         return privateChannel;
     }
 
+    /// <summary>
+    /// Lists all instances of the specified app.
+    /// </summary>
+    /// <param name="app"></param>
+    /// <returns></returns>
     public async Task<IEnumerable<IAppIdentifier>> FindInstances(IAppIdentifier app)
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
@@ -251,6 +241,13 @@ public class DesktopAgentClient : IDesktopAgent
         return instances;
     }
 
+    /// <summary>
+    /// Finds an app intent matching the specified parameters from the AppDirectory.
+    /// </summary>
+    /// <param name="intent"></param>
+    /// <param name="context"></param>
+    /// <param name="resultType"></param>
+    /// <returns></returns>
     public async Task<IAppIntent> FindIntent(string intent, IContext? context = null, string? resultType = null)
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
@@ -259,6 +256,12 @@ public class DesktopAgentClient : IDesktopAgent
         return result;
     }
 
+    /// <summary>
+    /// Lists all app intents matching the specified context and other parameters from the AppDirectory.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="resultType"></param>
+    /// <returns></returns>
     public async Task<IEnumerable<IAppIntent>> FindIntentsByContext(IContext context, string? resultType = null)
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
@@ -267,6 +270,11 @@ public class DesktopAgentClient : IDesktopAgent
         return appIntents;
     }
 
+    /// <summary>
+    /// Retrieves metadata for the specified app.
+    /// </summary>
+    /// <param name="app"></param>
+    /// <returns></returns>
     public async Task<IAppMetadata> GetAppMetadata(IAppIdentifier app)
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
@@ -275,6 +283,10 @@ public class DesktopAgentClient : IDesktopAgent
         return appMetadata;
     }
 
+    /// <summary>
+    /// Retrieves the current user channel the app is connected to.
+    /// </summary>
+    /// <returns></returns>
     public async Task<IChannel?> GetCurrentChannel()
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
@@ -282,6 +294,10 @@ public class DesktopAgentClient : IDesktopAgent
         return _currentChannel;
     }
 
+    /// <summary>
+    /// Retrieves implementation metadata of the current application.
+    /// </summary>
+    /// <returns></returns>
     public async Task<IImplementationMetadata> GetInfo()
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
@@ -290,6 +306,11 @@ public class DesktopAgentClient : IDesktopAgent
         return implementationMetadata;
     }
 
+    /// <summary>
+    /// Creates or retrieves an application channel with the specified id.
+    /// </summary>
+    /// <param name="channelId"></param>
+    /// <returns></returns>
     public async Task<IChannel> GetOrCreateChannel(string channelId)
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
@@ -305,13 +326,17 @@ public class DesktopAgentClient : IDesktopAgent
         {
             if (_logger.IsEnabled(LogLevel.Warning))
             {
-                _logger.LogWarning($"Failed to add app channel to the internal collection: {channelId}.");
+                _logger.LogWarning("Failed to add app channel to the internal collection: {ChannelId}.", channelId);
             }
         }
 
         return channel;
     }
 
+    /// <summary>
+    /// Lists all user channels available.
+    /// </summary>
+    /// <returns></returns>
     public async Task<IEnumerable<IChannel>> GetUserChannels()
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
@@ -320,6 +345,11 @@ public class DesktopAgentClient : IDesktopAgent
         return channels;
     }
 
+    /// <summary>
+    /// Joins to a user channel with the specified id.
+    /// </summary>
+    /// <param name="channelId"></param>
+    /// <returns></returns>
     public async Task JoinUserChannel(string channelId)
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
@@ -359,6 +389,10 @@ public class DesktopAgentClient : IDesktopAgent
         }
     }
 
+    /// <summary>
+    /// Leaves the current user channel.
+    /// </summary>
+    /// <returns></returns>
     public async Task LeaveCurrentChannel()
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
@@ -387,6 +421,12 @@ public class DesktopAgentClient : IDesktopAgent
         }
     }
 
+    /// <summary>
+    /// Opens the specified app.
+    /// </summary>
+    /// <param name="app"></param>
+    /// <param name="context"></param>
+    /// <returns></returns>
     public async Task<IAppIdentifier> Open(IAppIdentifier app, IContext? context = null)
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
@@ -395,6 +435,13 @@ public class DesktopAgentClient : IDesktopAgent
         return appIdentifier;
     }
 
+    /// <summary>
+    /// Raises the specified intent with the given context and optionally targets specific app to handle it. When multiple apps can handle the intent, the user will be prompted to choose one.
+    /// </summary>
+    /// <param name="intent"></param>
+    /// <param name="context"></param>
+    /// <param name="app"></param>
+    /// <returns></returns>
     public async Task<IIntentResolution> RaiseIntent(string intent, IContext context, IAppIdentifier? app = null)
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
@@ -403,6 +450,12 @@ public class DesktopAgentClient : IDesktopAgent
         return intentResolution;
     }
 
+    /// <summary>
+    /// Raises an intent for the given context and optionally targets specific app to handle it. When multiple apps can handle the intent, the user will be prompted to choose one.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="app"></param>
+    /// <returns></returns>
     public async Task<IIntentResolution> RaiseIntentForContext(IContext context, IAppIdentifier? app = null)
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
@@ -411,21 +464,32 @@ public class DesktopAgentClient : IDesktopAgent
         return intentResolution;
     }
 
+    /// <summary>
+    /// Checks if the app was opened through fdc3.open and retrieves the context associated with the opened app.
+    /// </summary>
+    /// <param name="openedAppContextId"></param>
+    /// <returns></returns>
     internal async ValueTask GetOpenedAppContextAsync(string openedAppContextId)
     {
         try
         {
             _openedAppContext = await _openClient.GetOpenAppContextAsync(openedAppContextId);
         }
-        catch (Exception exception)
+        catch (Fdc3DesktopAgentException exception)
         {
-            if (_logger.IsEnabled(LogLevel.Debug))
+            if (_logger.IsEnabled(LogLevel.Error))
             {
-                _logger.LogDebug(exception, "No context was received for the opened app.");
+                _logger.LogError(exception, "No context was received for the opened app.");
             }
         }
     }
 
+    /// <summary>
+    /// Handles the last context in the current channel for the specified context listener.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="listener"></param>
+    /// <returns></returns>
     private async Task HandleLastContextAsync<T>(
         ContextListener<T>? listener = null)
         where T : IContext

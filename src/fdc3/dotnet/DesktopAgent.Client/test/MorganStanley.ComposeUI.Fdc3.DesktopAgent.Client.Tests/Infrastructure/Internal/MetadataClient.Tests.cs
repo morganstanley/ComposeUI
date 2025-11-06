@@ -20,7 +20,6 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
 
@@ -283,6 +282,6 @@ public class MetadataClientTests
         var act = async () => await client.FindInstancesAsync(appIdentifier);
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
-            .WithMessage("*No app matched*");
+            .WithMessage("*UnspecifiedReason*");
     }
 }

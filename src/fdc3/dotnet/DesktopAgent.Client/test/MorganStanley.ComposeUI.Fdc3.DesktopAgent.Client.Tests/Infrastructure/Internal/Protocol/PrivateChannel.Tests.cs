@@ -45,6 +45,7 @@ public class PrivateChannelTests
             _channelId,
             _messagingMock.Object,
             _instanceId,
+            onDisconnect: () => { },
             isOriginalCreator: true);
     }
 
@@ -95,7 +96,7 @@ public class PrivateChannelTests
             _ => _.InvokeServiceAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
 
-        var channel = new PrivateChannel(_channelId, _messagingMock.Object, _instanceId, isOriginalCreator: true);
+        var channel = new PrivateChannel(_channelId, _messagingMock.Object, _instanceId, onDisconnect:() => { }, isOriginalCreator: true);
 
         var listener = await channel.AddContextListener<Instrument>(null, (ctx, ctxM) => { });
 

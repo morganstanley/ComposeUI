@@ -41,11 +41,11 @@ public partial class MainWindow : Window
         DependencyProperty.Register("DiagnosticsText", typeof(string), typeof(MainWindow), new PropertyMetadata(string.Empty));
 
     private readonly IDesktopAgent _desktopAgent;
-    private IListener _subscription;
     private IChannel _appChannel;
-    private IListener _listener;
     private IPrivateChannel? _privateChannel;
     private IListener? _privateChannelContextListener;
+    private IListener? _subscription;
+    private IListener _listener;
 
     public MainWindow()
     {
@@ -84,73 +84,87 @@ public partial class MainWindow : Window
 
     private async Task LogDiagnostics()
     {
-        var diag = await _messaging!.InvokeJsonServiceAsync<DiagnosticInfo>("Diagnostics", new JsonSerializerOptions { WriteIndented = true }).ConfigureAwait(false);
+        var textBuilder = new StringBuilder();
 
-        if (diag == null)
+        try
         {
-            return;
+            var diag = await _messaging!.InvokeJsonServiceAsync<DiagnosticInfo>("Diagnostics", new JsonSerializerOptions { WriteIndented = true }).ConfigureAwait(false);
+            if (diag != null)
+            {
+                textBuilder.AppendLine(diag.ToString());
+            }
+
+            var result = await _desktopAgent.GetAppMetadata(new AppIdentifier() { AppId = "WPFExample" }).ConfigureAwait(false);
+            textBuilder.AppendLine(result.Description);
         }
-
-        await Dispatcher.InvokeAsync(() => DiagnosticsText += diag.ToString());
-
-        var result =
-            await _desktopAgent.GetAppMetadata(new AppIdentifier()
-            { AppId = "WPFExample" }).ConfigureAwait(false);
-
-        await Dispatcher.InvokeAsync(() => DiagnosticsText += "\n" + result.Description);
+        catch (Exception ex)
+        {
+            textBuilder.AppendLine(ex.Message);
+        }
+        finally
+        {
+            await Dispatcher.InvokeAsync(() => DiagnosticsText += textBuilder.ToString());
+        }
     }
 
     private async void SubscribeButton_Click(object sender, RoutedEventArgs e)
     {
+        var textBuilder = new StringBuilder();
+        DiagnosticsText = string.Empty;
+
         try
         {
-            Dispatcher.Invoke(() => DiagnosticsText += "\n" + "Subscription is in working progress");
-
             await Task.Run(async () =>
             {
-                await JoinToUserChannel().ConfigureAwait(false);
-                _subscription = await _desktopAgent.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) =>
-                {
-                    Dispatcher.Invoke(() => DiagnosticsText += "\n" + "Context received: " + context.Name + "; type: " + context.Type);
-                }).ConfigureAwait(false);
-            });
+                textBuilder.AppendLine("Subscription is in working progress");
 
-            DiagnosticsText += "\n" + "Subscription is done.";
+                await JoinToUserChannel().ConfigureAwait(false);
+
+                _subscription = await _desktopAgent.AddContextListener<Instrument>("fdc3.instrument",
+                    (context, contextMetadata) =>
+                    {
+                        Dispatcher.Invoke(() =>
+                            DiagnosticsText += "\nContext received: " + context.Name + "; type: " + context.Type);
+                    }).ConfigureAwait(false);
+
+                textBuilder.AppendLine("Subscription is done.");
+            });
         }
         catch (Exception ex)
         {
-            await Dispatcher.InvokeAsync(() =>
-            {
-                DiagnosticsText += $"\nAddContextListener failed: {ex.Message}, {ex.ToString()}";
-            });
+            textBuilder.AppendLine($"AddContextListener failed: {ex.Message}, {ex}");
+        }
+        finally
+        {
+            await Dispatcher.InvokeAsync(() => DiagnosticsText = textBuilder.ToString());
         }
     }
 
     private async void BroadcastButton_Click(object sender, RoutedEventArgs e)
     {
+        var textBuilder = new StringBuilder();
+        DiagnosticsText = string.Empty;
+
         try
         {
-            Dispatcher.Invoke(() =>
-            {
-                DiagnosticsText += "\nBroadcasting is in working progress";
-            });
-
             await Task.Run(async () =>
             {
+                textBuilder.AppendLine("Broadcasting is in working progress");
                 await JoinToUserChannel().ConfigureAwait(false);
 
-                var instrument = new Instrument(new InstrumentID() { BBG = "test" }, $"{Guid.NewGuid().ToString()}");
+                var instrument = new Instrument(new InstrumentID() { BBG = "test" }, $"{Guid.NewGuid()}");
                 await _desktopAgent.Broadcast(instrument).ConfigureAwait(false);
-            });
 
-            Dispatcher.Invoke(() => DiagnosticsText += "\nContext broadcasted");
+                textBuilder.AppendLine("Context broadcasted");
+            });
         }
         catch (Exception ex)
         {
-            await Dispatcher.InvokeAsync(() =>
-            {
-                DiagnosticsText += $"\nBroadcast failed: {ex.Message}";
-            });
+            textBuilder.AppendLine($"Broadcast failed: {ex.Message}");
+        }
+        finally
+        {
+            await Dispatcher.InvokeAsync(() => DiagnosticsText = textBuilder.ToString());
         }
     }
 
@@ -191,7 +205,7 @@ public partial class MainWindow : Window
             {
                 Dispatcher.Invoke(() =>
                 {
-                    DiagnosticsText += "\n" + "Context received from AppChannel: " + context.Name + "; type: " + context.Type;
+                    DiagnosticsText += "\nContext received from AppChannel: " + context.Name + "; type: " + context.Type;
                 });
             }).ConfigureAwait(false);
 
@@ -283,17 +297,17 @@ public partial class MainWindow : Window
                 DiagnosticsText += $"\nRaising an intent for context: {context.Type}...";
             });
 
-            var result = await _desktopAgent.RaiseIntentForContext(context).ConfigureAwait(false);
+            var intentResolution = await _desktopAgent.RaiseIntentForContext(context).ConfigureAwait(false);
 
             Dispatcher.Invoke(() =>
             {
-                DiagnosticsText += $"\nRaiseIntentForContext is completed. Intent name: {result.Intent} for app: {result.Source.AppId}. Awaiting for IntentResolution...";
+                DiagnosticsText += $"\nRaiseIntentForContext is completed. Intent name: {intentResolution.Intent} for app: {intentResolution.Source.AppId}. Awaiting for IntentResolution...";
             });
 
-            var intentResolution = await result.GetResult().ConfigureAwait(false);
+            var intentResult = await intentResolution.GetResult().ConfigureAwait(false);
 
-            if (intentResolution != null
-                && intentResolution is IChannel channel)
+            if (intentResult != null
+                && intentResult is IChannel channel)
             {
                 Dispatcher.Invoke(() =>
                 {
@@ -324,19 +338,19 @@ public partial class MainWindow : Window
                     });
                 }
             }
-            else if (intentResolution != null
-                && intentResolution is IContext returnedContext)
+            else if (intentResult != null
+                && intentResult is IContext returnedContext)
             {
                 Dispatcher.Invoke(() =>
                 {
-                    DiagnosticsText += $"\nIntentResolution is completed. Context returned: {returnedContext.Type}...";
+                    DiagnosticsText += $"\nIntentResult is completed. Context returned: {returnedContext.Type}...";
                 });
             }
             else
             {
                 Dispatcher.Invoke(() =>
                 {
-                    DiagnosticsText += $"\nIntentResolution is completed. It was handled by the app ...";
+                    DiagnosticsText += $"\nIntentResult is completed. It was handled by the app ...";
                 });
             }
         });
@@ -350,27 +364,10 @@ public partial class MainWindow : Window
             {
                 Dispatcher.Invoke(() => DiagnosticsText += "\nAdding intent listener for OpenDiagnostics...");
 
-                _privateChannel = await _desktopAgent.CreatePrivateChannel().ConfigureAwait(false);
-                Dispatcher.Invoke(() => DiagnosticsText += $"\nCreated private channel with id: {_privateChannel.Id}...");
-
-                _privateChannel.OnAddContextListener((ctx) =>
-                {
-                    Dispatcher.Invoke(() => DiagnosticsText += $"\nContextListener added in private channel: {_privateChannel.Id} for context: {ctx}...");
-                });
-
-                _privateChannel.OnDisconnect(() =>
-                {
-                    Dispatcher.Invoke(() => DiagnosticsText += $"\nDisconnected from private channel: {_privateChannel.Id}...");
-                });
-
-                _privateChannel.OnUnsubscribe((ctx) =>
-                {
-                    Dispatcher.Invoke(() => DiagnosticsText += $"\nUnsubscribed from private channel: {_privateChannel.Id} for context: {ctx}...");
-                });
-
                 _listener = await _desktopAgent.AddIntentListener<Nothing>("OpenDiagnostics", async (context, contextMetadata) =>
                 {
                     Dispatcher.Invoke(() => DiagnosticsText += "\n" + "Intent received: " + context.Name + "; type: " + context.Type);
+                    await CreatePrivateChannelAsync();
 
                     return _privateChannel;
                 }).ConfigureAwait(false);
@@ -380,6 +377,27 @@ public partial class MainWindow : Window
         {
             Dispatcher.Invoke(() => DiagnosticsText += $"\nException was thrown: {exception.ToString()}");
         }
+    }
+
+    private async Task CreatePrivateChannelAsync()
+    {
+        _privateChannel = await _desktopAgent.CreatePrivateChannel().ConfigureAwait(false);
+        Dispatcher.Invoke(() => DiagnosticsText += $"\nCreated private channel with id: {_privateChannel.Id}...");
+
+        _privateChannel.OnAddContextListener((ctx) =>
+        {
+            Dispatcher.Invoke(() => DiagnosticsText += $"\nContextListener added in private channel: {_privateChannel.Id} for context: {ctx}...");
+        });
+
+        _privateChannel.OnDisconnect(() =>
+        {
+            Dispatcher.Invoke(() => DiagnosticsText += $"\nDisconnected from private channel: {_privateChannel.Id}...");
+        });
+
+        _privateChannel.OnUnsubscribe((ctx) =>
+        {
+            Dispatcher.Invoke(() => DiagnosticsText += $"\nUnsubscribed from private channel: {_privateChannel.Id} for context: {ctx}...");
+        });
     }
 
     private async void RaiseIntentButton_Click(object sender, RoutedEventArgs e)
@@ -571,14 +589,14 @@ public partial class MainWindow : Window
         if (await _desktopAgent.GetCurrentChannel() == null)
         {
             var channels = await _desktopAgent.GetUserChannels();
-            if (channels.Count() > 0)
-            {
-                await _desktopAgent.JoinUserChannel(channels.ElementAt(0).Id);
-            }
-            else
+            var firstChannel = channels.FirstOrDefault();
+            if (firstChannel == null)
             {
                 await _desktopAgent.JoinUserChannel("fdc3.channel.1");
+                return;
             }
+
+            await _desktopAgent.JoinUserChannel(firstChannel.Id);
         }
     }
 }

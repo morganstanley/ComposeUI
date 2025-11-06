@@ -77,12 +77,9 @@ internal static class ThrowHelper
     internal static Fdc3DesktopAgentException InvalidResponseRecevied(string instanceId, string appId, string methodName) =>
         new($"The method: {methodName} returned a not valid response from the server, app: {appId}, instance: {instanceId}.");
     public static Fdc3DesktopAgentException NoChannelsReturned() =>
-        new("The DesktopAgent backend did not return any channel.");
+        new("The DesktopAgent backend did not return any channels.");
 
-    public static Fdc3DesktopAgentException AppChannelIsNotCreated(string channelId) =>
-        new($"The application channel with ID: {channelId} is not created successfully.");
-
-    public static Fdc3DesktopAgentException AppIntentIsNotDefined(string intent, string? contextType = null, string? resultType = null) =>
+    public static Fdc3DesktopAgentException AppIntentMissingFromResponse(string intent, string? contextType = null, string? resultType = null) =>
         new($"The {nameof(AppIntent)} was not returned by the FDC3 DesktopAgent backend for intent: {intent}; context: {contextType}; and resultType: {resultType}.");
 
     public static Fdc3DesktopAgentException ChannelNotFound(string channelId, ChannelType channelType) =>

@@ -50,7 +50,7 @@ internal class PrivateChannelContextListenerEventListener : IListener
             {
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {
-                    _logger.LogDebug($"Invoking context listener for context type '{contextType}'.");
+                    _logger.LogDebug("Invoking context listener for context type '{ContextType}'.", contextType);
                 }
 
                 _handler(contextType);
@@ -79,7 +79,7 @@ internal class PrivateChannelContextListenerEventListener : IListener
             {
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {
-                    _logger.LogDebug($"Unsubscribing {nameof(PrivateChannelContextListenerEventListener)}.");
+                    _logger.LogDebug("Unsubscribing {NameOfPrivateChannelContextListenerEventListener}.", nameof(PrivateChannelContextListenerEventListener));
                 }
 
                 _unsubscribeCallback(this);

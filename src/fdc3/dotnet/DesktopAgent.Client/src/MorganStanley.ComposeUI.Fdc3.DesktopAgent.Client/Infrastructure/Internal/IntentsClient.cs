@@ -12,6 +12,7 @@
  * and limitations under the License.
  */
 
+using System.Security.Cryptography;
 using System.Text.Json;
 using Finos.Fdc3;
 using Finos.Fdc3.Context;
@@ -88,7 +89,7 @@ internal class IntentsClient : IIntentsClient
 
         if (_logger.IsEnabled(LogLevel.Debug))
         {
-            _logger.LogDebug($"Listener is registered...");
+            _logger.LogDebug("Listener is registered...");
         }
 
         return listener;
@@ -126,7 +127,7 @@ internal class IntentsClient : IIntentsClient
 
         if (response.AppIntent == null)
         {
-            throw ThrowHelper.AppIntentIsNotDefined(intent, context?.Type, resultType);
+            throw ThrowHelper.AppIntentMissingFromResponse(intent, context?.Type, resultType);
         }
 
         return response.AppIntent;
@@ -163,7 +164,7 @@ internal class IntentsClient : IIntentsClient
 
         if (response.AppIntents == null)
         {
-            throw ThrowHelper.AppIntentIsNotDefined("null", context.Type, resultType);
+            throw ThrowHelper.AppIntentMissingFromResponse("null", context.Type, resultType);
         }
 
         return response.AppIntents;
@@ -171,7 +172,7 @@ internal class IntentsClient : IIntentsClient
 
     public async ValueTask<IIntentResolution> RaiseIntentAsync(string intent, IContext context, IAppIdentifier? app)
     {
-        var messageId = new Random().Next(100000);
+        var messageId = Guid.NewGuid().GetHashCode();
 
         var request = new RaiseIntentRequest
         {
@@ -192,7 +193,7 @@ internal class IntentsClient : IIntentsClient
 
         if (_logger.IsEnabled(LogLevel.Debug))
         {
-            _logger.LogDebug($"Request is created: {JsonSerializer.Serialize(request, _jsonSerializerOptions)}");
+            _logger.LogDebug("Request is created: {Request}", JsonSerializer.Serialize(request, _jsonSerializerOptions));
         }
 
         var response = await _messaging.InvokeJsonServiceAsync<RaiseIntentRequest, RaiseIntentResponse>(
@@ -230,7 +231,7 @@ internal class IntentsClient : IIntentsClient
 
     public async ValueTask<IIntentResolution> RaiseIntentForContextAsync(IContext context, IAppIdentifier? app)
     {
-        var messageId = new Random().Next(100000);
+        var messageId = Guid.NewGuid().GetHashCode();
 
         var request = new RaiseIntentForContextRequest
         {
@@ -250,7 +251,7 @@ internal class IntentsClient : IIntentsClient
 
         if (_logger.IsEnabled(LogLevel.Debug))
         {
-            _logger.LogDebug($"Request is created: {JsonSerializer.Serialize(request, _jsonSerializerOptions)}");
+            _logger.LogDebug("Request is created: {Request}", JsonSerializer.Serialize(request, _jsonSerializerOptions));
         }
 
         var response = await _messaging.InvokeJsonServiceAsync<RaiseIntentForContextRequest, RaiseIntentResponse>(

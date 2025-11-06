@@ -93,7 +93,6 @@ public class DesktopAgentClientTests : IAsyncLifetime
 
         var result = await desktopAgent.GetAppMetadata(new AppIdentifier { AppId = "test-appId" });
 
-        result.Should().NotBeNull();
         result!.Should().BeEquivalentTo(new AppMetadata { AppId = "test-appId" });
     }
 
@@ -154,7 +153,6 @@ public class DesktopAgentClientTests : IAsyncLifetime
 
         var result = await desktopAgent.GetInfo();
 
-        result.Should().NotBeNull();
         result.Should().BeEquivalentTo(implementationMetadata);
     }
 
@@ -174,7 +172,6 @@ public class DesktopAgentClientTests : IAsyncLifetime
 
         var channel = await desktopAgent.GetCurrentChannel();
 
-        channel.Should().NotBeNull();
         channel!.Id.Should().Be("test-channelId");
     }
 
@@ -247,7 +244,6 @@ public class DesktopAgentClientTests : IAsyncLifetime
 
         var channel = await desktopAgent.GetCurrentChannel();
 
-        channel.Should().NotBeNull();
         channel!.Id.Should().Be("test-channelId");
         resultContextListenerInvocations.Should().Be(2);
     }
@@ -461,8 +457,8 @@ public class DesktopAgentClientTests : IAsyncLifetime
         result.Should().BeEquivalentTo(
             new[]
             {
-                new Channel("1", ChannelType.User, messagingMock.Object, It.IsAny<string>(), new DisplayMetadata { Name = "1" }, It.IsAny<ILoggerFactory>()),
-                new Channel("2", ChannelType.User, messagingMock.Object, It.IsAny<string>(), new DisplayMetadata { Name = "2" }, It.IsAny<ILoggerFactory>())
+                new Channel("1", ChannelType.User, messagingMock.Object, It.IsAny<string>(), null, new DisplayMetadata { Name = "1" }, It.IsAny<ILoggerFactory>()),
+                new Channel("2", ChannelType.User, messagingMock.Object, It.IsAny<string>(), null, new DisplayMetadata { Name = "2" }, It.IsAny<ILoggerFactory>())
             });
     }
 
@@ -508,75 +504,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
         var action = async () => await desktopAgent.GetUserChannels();
 
         await action.Should().ThrowAsync<Fdc3DesktopAgentException>()
-            .WithMessage("*The DesktopAgent backend did not return any channel.*");
-    }
-
-    [Fact]
-    public async Task GetUserChannels_does_ot_include_channel_if_displaymetadata_is_missing()
-    {
-        var messagingMock = new Mock<IMessaging>();
-
-        messagingMock.Setup(
-                _ => _.InvokeServiceAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()))
-            .Returns(new ValueTask<string?>(
-                JsonSerializer.Serialize(
-                    new GetUserChannelsResponse
-                    {
-                        Channels = new[]
-                        {
-                            new ChannelItem { Id = "test-id1", DisplayMetadata = new DisplayMetadata { Name = "1" } },
-                            new ChannelItem { Id = "test-id2" }
-                        }
-                    }, _jsonSerializerOptions)));
-
-        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
-
-        var result = await desktopAgent.GetUserChannels();
-
-        result.Should().NotBeNull();
-        result.Should().HaveCount(1);
-        result.Should().BeEquivalentTo(
-            new[]
-            {
-                new Channel("test-id1", ChannelType.User, messagingMock.Object, It.IsAny<string>(), new DisplayMetadata { Name = "1" }, It.IsAny<ILoggerFactory>()),
-            });
-    }
-
-    [Fact]
-    public async Task GetUserChannels_does_not_include_channel_if_displaymetadata_is_missing()
-    {
-        var messagingMock = new Mock<IMessaging>();
-
-        messagingMock.Setup(
-                _ => _.InvokeServiceAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()))
-            .Returns(new ValueTask<string?>(
-                JsonSerializer.Serialize(
-                    new GetUserChannelsResponse
-                    {
-                        Channels = new[]
-                        {
-                            new ChannelItem { Id = "test-id1", DisplayMetadata = new DisplayMetadata { Name = "1" } },
-                            new ChannelItem { Id = "test-id2" }
-                        }
-                    }, _jsonSerializerOptions)));
-
-        var desktopAgent = new DesktopAgentClient(messagingMock.Object);
-
-        var result = await desktopAgent.GetUserChannels();
-
-        result.Should().NotBeNull();
-        result.Should().HaveCount(1);
-        result.Should().BeEquivalentTo(
-            new[]
-            {
-                new Channel("test-id1", ChannelType.User, messagingMock.Object, It.IsAny<string>(), new DisplayMetadata { Name = "1" }, It.IsAny<ILoggerFactory>()),
-            });
+            .WithMessage("*The DesktopAgent backend did not return any channels.*");
     }
 
     [Fact]
@@ -620,7 +548,6 @@ public class DesktopAgentClientTests : IAsyncLifetime
         var desktopAgent = new DesktopAgentClient(messagingMock.Object);
         var channel = await desktopAgent.GetOrCreateChannel("testChannel");
 
-        channel.Should().NotBeNull();
         channel.Id.Should().Be("testChannel");
     }
 
@@ -680,7 +607,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
         var act = async () => await desktopAgent.GetOrCreateChannel("testChannel");
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
-            .WithMessage("*The application channel with ID: testChannel*");
+            .WithMessage("*Error was received from the FDC3 backend server: UnspecifiedReason*");
     }
 
     [Fact]
@@ -758,7 +685,6 @@ public class DesktopAgentClientTests : IAsyncLifetime
         var desktopAgent = new DesktopAgentClient(messaginMock.Object);
         var result = await desktopAgent.FindIntent("fdc3.instrument");
 
-        result.Should().NotBeNull();
         result.Should().BeEquivalentTo(response.AppIntent);
     }
 
@@ -793,8 +719,6 @@ public class DesktopAgentClientTests : IAsyncLifetime
         var desktopAgent = new DesktopAgentClient(messagingMock.Object);
         var result = await desktopAgent.FindInstances(new AppIdentifier { AppId = "test-appId1" });
 
-        result.Should().NotBeNull();
-        result.Should().HaveCount(2);
         result.Should().BeEquivalentTo(response.Instances);
     }
 
@@ -862,7 +786,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
         var act = async () => await desktopAgent.FindInstances(new AppIdentifier { AppId = "test-appId1" });
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
-            .WithMessage("*No app matched*");
+            .WithMessage("*UnspecifiedReason*");
     }
 
     [Fact]
@@ -899,8 +823,6 @@ public class DesktopAgentClientTests : IAsyncLifetime
 
         var result = await desktopAgent.FindIntentsByContext(context);
 
-        result.Should().NotBeNull();
-        result.Should().HaveCount(2);
         result.Should().BeEquivalentTo(response.AppIntents);
     }
 
@@ -985,7 +907,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
         var channelFactoryMock = new Mock<IChannelFactory>();
         channelFactoryMock
             .Setup(_ => _.FindChannelAsync(It.IsAny<string>(), It.IsAny<ChannelType>()))
-            .ReturnsAsync(new Channel("test-channel-id", ChannelType.User, messagingMock.Object, It.IsAny<string>(), It.IsAny<DisplayMetadata>(), It.IsAny<ILoggerFactory>()));
+            .ReturnsAsync(new Channel("test-channel-id", ChannelType.User, messagingMock.Object, It.IsAny<string>(), null, It.IsAny<DisplayMetadata>(), It.IsAny<ILoggerFactory>()));
 
         var findChannelResponse = new FindChannelResponse
         {
@@ -1013,7 +935,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
         intentResolution.Should().NotBeNull();
 
         var intentResult = await intentResolution.GetResult();
-        intentResult.Should().NotBeNull();
+
         intentResult.Should().BeAssignableTo<Channel>();
     }
 
@@ -1047,7 +969,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
         intentResolution.Should().NotBeNull();
 
         var intentResult = await intentResolution.GetResult();
-        intentResult.Should().NotBeNull();
+
         intentResult.Should().BeAssignableTo<Instrument>();
     }
 
@@ -1098,7 +1020,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
         var channelFactoryMock = new Mock<IChannelFactory>();
         channelFactoryMock
             .Setup(_ => _.FindChannelAsync(It.IsAny<string>(), It.IsAny<ChannelType>()))
-            .ReturnsAsync(new Channel("test-channel-id", ChannelType.App, messagingMock.Object, It.IsAny<string>(), It.IsAny<DisplayMetadata>(), It.IsAny<ILoggerFactory>()));
+            .ReturnsAsync(new Channel("test-channel-id", ChannelType.App, messagingMock.Object, It.IsAny<string>(), null, It.IsAny<DisplayMetadata>(), It.IsAny<ILoggerFactory>()));
 
         var findChannelResponse = new FindChannelResponse
         {
@@ -1127,7 +1049,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
         intentResolution.Should().NotBeNull();
 
         var intentResult = await intentResolution.GetResult();
-        intentResult.Should().NotBeNull();
+
         intentResult.Should().BeAssignableTo<Channel>();
     }
 
@@ -1162,7 +1084,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
         intentResolution.Should().NotBeNull();
 
         var intentResult = await intentResolution.GetResult();
-        intentResult.Should().NotBeNull();
+
         intentResult.Should().BeAssignableTo<Instrument>();
     }
 
@@ -1516,7 +1438,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
         var desktopAgent = new DesktopAgentClient(messagingMock.Object);
 
         var result = await desktopAgent.RaiseIntent("test-intent", new Instrument());
-        result.Should().NotBeNull();
+
         result.Should().BeAssignableTo<IIntentResolution>();
     }
 
@@ -1544,8 +1466,6 @@ public class DesktopAgentClientTests : IAsyncLifetime
         var desktopAgent = new DesktopAgentClient(messagingMock.Object);
 
         var result = await desktopAgent.Open(new AppIdentifier { AppId = "test-appId1" }, new Instrument());
-
-        result.Should().NotBeNull();
 
         result.Should().BeEquivalentTo(openResponse.AppIdentifier);
     }
@@ -1668,6 +1588,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
         channel.Id.Should().Be("private-channel-id");
     }
 
+    [Fact]
     public async Task CreatePrivateChannel_throws_when_null_response_received()
     {
         var messagingMock = new Mock<IMessaging>();

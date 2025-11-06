@@ -155,7 +155,6 @@ public class EndToEndTests : IAsyncLifetime
     public async Task GetAppMetadata_returns_AppMetadata()
     {
         var result = await _desktopAgent.GetAppMetadata(app: new AppIdentifier { AppId = "appId1" });
-        result.Should().NotBeNull();
         result.Should().BeEquivalentTo(TestAppDirectoryData.DefaultApp1);
     }
 
@@ -163,7 +162,7 @@ public class EndToEndTests : IAsyncLifetime
     public async Task GetInfo_returns_ImplementationMetadata()
     {
         var result = await _desktopAgent.GetInfo();
-        result.Should().NotBeNull();
+
         result.AppMetadata.Should().NotBeNull();
         result.AppMetadata.AppId.Should().Be("appId1");
     }
@@ -192,7 +191,6 @@ public class EndToEndTests : IAsyncLifetime
         await _desktopAgent.JoinUserChannel("fdc3.channel.1");
         var currentChannel = await _desktopAgent.GetCurrentChannel();
 
-        currentChannel.Should().NotBeNull();
         currentChannel.Id.Should().Be("fdc3.channel.1");
     }
 
@@ -211,7 +209,6 @@ public class EndToEndTests : IAsyncLifetime
         await _desktopAgent.JoinUserChannel("fdc3.channel.1");
         var currentChannel = await _desktopAgent.GetCurrentChannel();
 
-        currentChannel.Should().NotBeNull();
         currentChannel.Id.Should().Be("fdc3.channel.1");
 
         resultContexts.Should().HaveCount(2);
@@ -223,7 +220,6 @@ public class EndToEndTests : IAsyncLifetime
         await _desktopAgent.JoinUserChannel("fdc3.channel.1");
         var currentChannel = await _desktopAgent.GetCurrentChannel();
 
-        currentChannel.Should().NotBeNull();
         currentChannel.Id.Should().Be("fdc3.channel.1");
 
         await _desktopAgent.LeaveCurrentChannel();
@@ -273,7 +269,6 @@ public class EndToEndTests : IAsyncLifetime
 
         await _desktopAgent.Broadcast(new Instrument(new InstrumentID { Ticker = $"test-instrument-{Guid.NewGuid().ToString()}" }, "test-name"));
 
-        currentChannel.Should().NotBeNull();
         currentChannel.Id.Should().Be("fdc3.channel.1");
         resultContexts.Should().HaveCount(2); //not 4
     }
@@ -296,95 +291,10 @@ public class EndToEndTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task GetUserChannels_does_not_include_channel_if_displaymetadata_is_missing()
-    {
-        await _host.StopAsync();
-
-        var hostBuilder = new HostBuilder()
-            .ConfigureServices(
-            serviceCollection =>
-            {
-                serviceCollection.AddFdc3DesktopAgent(builder =>
-                {
-                    builder.Configure(options =>
-                    {
-                        options.ChannelId = "fdc3.channel.2";
-                        options.UserChannelConfig = new List<ChannelItem>()
-                        {
-                            new ChannelItem { Id = "fdc3.channel.1", Type = ChannelType.User, DisplayMetadata = new DisplayMetadata { Color = "#FF0000", Glyph = "icon-channel-1" } },
-                            new ChannelItem { Id = "fdc3.channel.2", Type = ChannelType.User }
-                        }.ToArray();
-                    });
-                });
-
-                serviceCollection.AddMessageRouterServer(
-                            s => s.UseWebSockets(
-                                opt =>
-                                {
-                                    opt.RootPath = _webSocketUri.AbsolutePath;
-                                    opt.Port = _webSocketUri.Port;
-                                }));
-
-                serviceCollection.AddTransient<IStartupAction, MessageRouterStartupAction>();
-
-                serviceCollection.AddMessageRouter(
-                    mr => mr
-                        .UseServer());
-
-                serviceCollection.AddFdc3AppDirectory(
-                    _ => _.Source = new Uri(@$"file:\\{Directory.GetCurrentDirectory()}\testAppDirectory.json"));
-
-                serviceCollection.AddModuleLoader();
-                serviceCollection.AddMessageRouterMessagingAdapter();
-            });
-
-
-        var host = await hostBuilder.StartAsync();
-        var moduleLoader = host.Services.GetRequiredService<IModuleLoader>();
-
-        var clientServices = new ServiceCollection()
-            .AddMessageRouter(
-                mr => mr.UseWebSocket(
-                    new MessageRouterWebSocketOptions
-                    {
-                        Uri = _webSocketUri
-                    }))
-            .AddMessageRouterMessagingAdapter()
-            .AddFdc3DesktopAgentClient();
-
-        var serviceProvider = clientServices.BuildServiceProvider();
-
-        var instanceId = Guid.NewGuid().ToString();
-
-        var instance = await moduleLoader.StartModule(new StartRequest("appId1", new Dictionary<string, string>() { { "Fdc3InstanceId", instanceId } }));
-
-        Environment.SetEnvironmentVariable(nameof(AppIdentifier.AppId), "appId1");
-        Environment.SetEnvironmentVariable(nameof(AppIdentifier.InstanceId), instanceId);
-
-        var desktopAgent = serviceProvider.GetRequiredService<IDesktopAgent>();
-
-        var result = await desktopAgent.GetUserChannels();
-
-        result.Should().NotBeNullOrEmpty();
-        result.Should().HaveCount(1);
-        result.Should().BeEquivalentTo(new[]
-        {
-            new
-            {
-                Id = "fdc3.channel.1",
-                Type = ChannelType.User,
-                DisplayMetadata = new { Color = "#FF0000", Glyph = "icon-channel-1" }
-            }
-        });
-
-        await host.StopAsync();
-    }
-
-    [Fact]
     public async Task GetOrCreateChannel_returns_channel()
     {
         var result = await _desktopAgent.GetOrCreateChannel("app-channel-1");
-        result.Should().NotBeNull();
+
         result.Id.Should().Be("app-channel-1");
         result.Type.Should().Be(ChannelType.App);
     }
@@ -416,9 +326,8 @@ public class EndToEndTests : IAsyncLifetime
 
         await appChannel.Broadcast(new Instrument(new InstrumentID { Ticker = $"test-instrument-1" }, "test-name1"));
 
-        appChannel.Should().NotBeNull();
         appChannel.Id.Should().Be("app-channel-1");
-        resultContexts.Should().HaveCount(1);
+
         resultContexts.Should().BeEquivalentTo(new List<IContext>() { new Instrument(new InstrumentID { Ticker = $"test-instrument-2" }, "test-name2") });
     }
 
@@ -427,8 +336,6 @@ public class EndToEndTests : IAsyncLifetime
     {
         var result = await _desktopAgent.FindIntent("intent1");
 
-        result.Should().NotBeNull();
-        result.Apps.Should().NotBeNullOrEmpty();
         result.Apps.Should().HaveCount(2);
 
         result.Apps.First().AppId.Should().Be("appId1");
@@ -453,7 +360,6 @@ public class EndToEndTests : IAsyncLifetime
     {
         var result = await _desktopAgent.FindInstances(new AppIdentifier { AppId = "appId1" });
 
-        result.Should().NotBeNullOrEmpty();
         result.Should().HaveCount(1);
     }
 
@@ -499,7 +405,6 @@ public class EndToEndTests : IAsyncLifetime
         result.Should().NotBeNull();
 
         var channel = await result.GetResult();
-        channel.Should().NotBeNull();
 
         channel.Should().BeAssignableTo<IChannel>();
     }
@@ -565,7 +470,7 @@ public class EndToEndTests : IAsyncLifetime
         resolution.Should().NotBeNull();
 
         var result = await resolution.GetResult();
-        result.Should().NotBeNull();
+
         result.Should().BeAssignableTo<IChannel>();
     }
 
@@ -606,7 +511,7 @@ public class EndToEndTests : IAsyncLifetime
     public async Task Open_returns_AppIdentifier()
     {
         var result = await _desktopAgent.Open(new AppIdentifier { AppId = "appId1-native" });
-        result.Should().NotBeNull();
+
         result.AppId.Should().Be("appId1-native");
         result.InstanceId.Should().NotBeNull();
     }

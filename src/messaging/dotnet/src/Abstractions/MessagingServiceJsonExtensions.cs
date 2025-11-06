@@ -99,6 +99,40 @@ public static class MessagingServiceJsonExtensions
         return messaging.RegisterServiceAsync(serviceName, CreateJsonServiceHandler(typedHandler, jsonSerializerOptions), cancellationToken);
     }
 
+    /// <summary>
+    /// Subscribes to a topic with <see cref="IMessaging.SubscribeAsync(string, TopicMessageHandler, CancellationToken)"/>. The topic handler will deserialize the incoming JSON string to the specified type.
+    /// </summary>
+    /// <typeparam name="TRequest"></typeparam>
+    /// <param name="messaging"></param>
+    /// <param name="topic"></param>
+    /// <param name="typedHandler"></param>
+    /// <param name="jsonSerializerOptions"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static ValueTask<IAsyncDisposable> SubscribeJsonAsync<TRequest>(
+        this IMessaging messaging,
+        string topic,
+        TopicMessageHandler<TRequest> typedHandler,
+        JsonSerializerOptions jsonSerializerOptions,
+        CancellationToken cancellationToken = default)
+    {
+        return messaging.SubscribeAsync(topic, CreateJsonTopicMessageHandler(typedHandler, jsonSerializerOptions), cancellationToken);
+    }
+
+    private static TopicMessageHandler CreateJsonTopicMessageHandler<TRequest>(TopicMessageHandler<TRequest> typedHandler, JsonSerializerOptions jsonSerializerOptions)
+    {
+        if (typeof(TRequest) == typeof(string))
+        {
+            throw new MessagingException("NonJsonTopic", "The handler provided accepts a string as input. This extension does not support that use-case. Use SubscribeAsync directly to register such a topic.");
+        }
+
+        return async (payload) =>
+        {
+            var request = JsonSerializer.Deserialize<TRequest>(payload, jsonSerializerOptions);
+            await typedHandler(request);
+        };
+    }
+
     private static ServiceHandler CreateJsonServiceHandler<TRequest, TResult>(ServiceHandler<TRequest, TResult> realHandler, JsonSerializerOptions jsonSerializerOptions)
     {
         if (typeof(TRequest) == typeof(string))
