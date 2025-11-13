@@ -37,4 +37,11 @@ internal interface IMetadataClient
     /// A <see cref="ValueTask{IAppMetadata}"/> representing the asynchronous operation to retrieve application metadata.
     /// </returns>
     public ValueTask<IAppMetadata> GetAppMetadataAsync(IAppIdentifier appIdentifier);
+
+    /// <summary>
+    /// Finds all instances of a specific FDC3 application.
+    /// </summary>
+    /// <param name="appIdentifier"></param>
+    /// <returns></returns>
+    public ValueTask<IEnumerable<IAppIdentifier>> FindInstancesAsync(IAppIdentifier appIdentifier);
 }

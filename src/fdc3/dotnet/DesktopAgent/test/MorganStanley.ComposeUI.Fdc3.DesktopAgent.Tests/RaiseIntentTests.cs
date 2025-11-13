@@ -23,7 +23,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
 
-public class RaiseIntentTests : Fdc3DesktopAgentTestsBase
+public class RaiseIntentTests : Fdc3DesktopAgentServiceTestsBase
 {
     public RaiseIntentTests() : base(AppDirectoryPath) { }
 

@@ -31,7 +31,7 @@ internal interface IChannelFactory
     /// <param name="currentChannel">The channel to listen on. If null, the default channel is used.</param>
     /// <param name="contextType">The context type to filter for. If null, all context types are received.</param>
     /// <returns>A <see cref="ValueTask{ContextListener}"/> representing the asynchronous operation.</returns>
-    public ValueTask<ContextListener<T>> CreateContextListener<T>(
+    public ValueTask<ContextListener<T>> CreateContextListenerAsync<T>(
         ContextHandler<T> contextHandler,
         IChannel? currentChannel = null,
         string? contextType = null)
@@ -43,4 +43,31 @@ internal interface IChannelFactory
     /// <param name="channelId">The ID of the user channel to join.</param>
     /// <returns>A <see cref="ValueTask{IChannel}"/> representing the asynchronous operation.</returns>
     public ValueTask<IChannel> JoinUserChannelAsync(string channelId);
+
+    /// <summary>
+    /// Retrieves all available user channels.
+    /// </summary>
+    /// <returns>A <see cref="ValueTask{IChannel[]}"/> representing the asynchronous operation that returns an array of user channels.</returns>
+    public ValueTask<IEnumerable<IChannel>> GetUserChannelsAsync();
+
+    /// <summary>
+    /// Gets or creates an application channel with the specified channel ID.
+    /// </summary>
+    /// <param name="channelId"></param>
+    /// <returns></returns>
+    public ValueTask<IChannel> CreateAppChannelAsync(string channelId);
+
+    /// <summary>
+    /// Sends a request to the backend to check if the channel with the specified ID and type exists, and if so, returns it.
+    /// </summary>
+    /// <param name="channelId"></param>
+    /// <param name="channelType"></param>
+    /// <returns></returns>
+    public ValueTask<IChannel> FindChannelAsync(string channelId, ChannelType channelType);
+
+    /// <summary>
+    /// Creates a private channel by sending request to the backend.
+    /// </summary>
+    /// <returns></returns>
+    public ValueTask<IPrivateChannel> CreatePrivateChannelAsync();
 }

@@ -56,10 +56,12 @@ internal class NativeModuleRunner : IModuleRunner
         foreach (var envVar in startupContext.GetProperties<EnvironmentVariables>().SelectMany(x => x.Variables))
         {
             // TODO: what to do with duplicate envvars?
-            if (!mainProcess.StartInfo.EnvironmentVariables.ContainsKey(envVar.Key))
+            if (mainProcess.StartInfo.EnvironmentVariables.ContainsKey(envVar.Key))
             {
-                mainProcess.StartInfo.EnvironmentVariables.Add(envVar.Key, envVar.Value);
+                mainProcess.StartInfo.EnvironmentVariables.Remove(envVar.Key);
             }
+
+            mainProcess.StartInfo.EnvironmentVariables.Add(envVar.Key, envVar.Value);
         }
 
         var unexpectedStopHandlers = startupContext.GetProperties<UnexpectedStopCallback>();

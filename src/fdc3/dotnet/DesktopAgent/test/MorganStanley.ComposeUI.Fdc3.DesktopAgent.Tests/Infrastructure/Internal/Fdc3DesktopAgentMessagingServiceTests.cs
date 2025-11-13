@@ -68,7 +68,7 @@ public partial class Fdc3DesktopAgentMessagingServiceTests : IAsyncLifetime
 
         _fdc3 = new Fdc3DesktopAgentMessagingService(
             _mockMessaging.Object,
-            new Fdc3DesktopAgent(
+            new Fdc3DesktopAgentService(
                 _appDirectory,
                 _mockModuleLoader.Object,
                 options,

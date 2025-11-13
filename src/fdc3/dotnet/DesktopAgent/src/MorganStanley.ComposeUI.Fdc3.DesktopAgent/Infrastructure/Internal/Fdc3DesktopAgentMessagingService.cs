@@ -14,7 +14,6 @@
 
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
 using Finos.Fdc3;
 using Finos.Fdc3.Context;
 using Microsoft.Extensions.Hosting;
@@ -25,7 +24,6 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Converters;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 
@@ -34,7 +32,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 internal class Fdc3DesktopAgentMessagingService : IHostedService
 {
     private readonly IMessaging _messaging;
-    private readonly IFdc3DesktopAgentBridge _desktopAgent;
+    private readonly IFdc3DesktopAgentService _desktopAgent;
     private readonly Fdc3DesktopAgentOptions _options;
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<Fdc3DesktopAgentMessagingService> _logger;
@@ -46,7 +44,7 @@ internal class Fdc3DesktopAgentMessagingService : IHostedService
 
     public Fdc3DesktopAgentMessagingService(
         IMessaging messaging,
-        IFdc3DesktopAgentBridge desktopAgent,
+        IFdc3DesktopAgentService desktopAgent,
         IOptions<Fdc3DesktopAgentOptions> options,
         ILoggerFactory? loggerFactory = null)
     {

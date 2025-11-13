@@ -18,6 +18,14 @@ namespace MorganStanley.ComposeUI.Messaging.Abstractions;
 public delegate ValueTask TopicMessageHandler(string payload);
 
 /// <summary>
+/// A generic delegate type to be used with typed topic subscriptions e.g. <see cref="MessagingServiceJsonExtensions.SubscribeJsonTopicAsync{T}(IMessaging, string, TopicMessageHandler{T}, System.Text.Json.JsonSerializerOptions, CancellationToken)"/>
+/// </summary>
+/// <typeparam name="T"></typeparam>
+/// <param name="payload"></param>
+/// <returns></returns>
+public delegate ValueTask TopicMessageHandler<T>(T payload);
+
+/// <summary>
 /// The delegate type that gets called when a service is invoked
 /// </summary>
 /// <param name="request"></param>
