@@ -3,8 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<Description>
-			Package for FDC3 Desktop Agent implementations and backend for ComposeUI. 
-			Contains shared models, interfaces, and utilities to facilitate building FDC3-compliant desktop agents that enable application interoperability using FDC3 context, intents, and channels. Provides foundational components for app discovery, context sharing, and intent resolution, with integration for FDC3 App Directory and support for dependency injection. Compatible with .NET Standard 2.0. More Details: https://morganstanley.github.io/ComposeUI/
+			Package for FDC3 Desktop Agent implementations and backend for ComposeUI. Contains shared models, interfaces, and utilities to facilitate building FDC3-compliant desktop agents that enable application interoperability using FDC3 context, intents, and channels. Provides foundational components for app discovery, context sharing, and intent resolution, with integration for FDC3 App Directory and support for dependency injection. Compatible with .NET Standard 2.0. More Details: https://morganstanley.github.io/ComposeUI/
 		</Description>
 	</PropertyGroup>
 
