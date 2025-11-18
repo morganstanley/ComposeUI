@@ -12,6 +12,7 @@
  * and limitations under the License.
  */
 
+using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Finos.Fdc3;
@@ -32,17 +33,20 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
     private readonly ContextHandler<T> _contextHandler;
     private readonly string? _contextType;
     private readonly IMessaging _messaging;
+    private readonly T? _openedAppContext;
     private readonly ILogger<ContextListener<T>> _logger;
     private readonly JsonSerializerOptions _jsonSerializerOptions = SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization;
-
-    private readonly SemaphoreSlim _serializedContextsLock = new(1, 1);
-    private readonly List<IContext> _serializedContexts = new();
-
     private readonly SemaphoreSlim _subscriptionLock = new(1,1);
     private bool _isSubscribed = false;
-    private IAsyncDisposable? _subscription;
 
+    private IAsyncDisposable? _subscription;
     private string _contextListenerId;
+
+    private readonly SemaphoreSlim _openedAppContextLock = new(1,1);
+    private bool _isOpenedAppContextHandled = false; 
+
+    private readonly ConcurrentQueue<T> _contexts = new();
+    private Action<ContextListener<T>>? _unsubscribeCallback;
 
     public string? ContextType => _contextType;
 
@@ -51,12 +55,23 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
         ContextHandler<T> contextHandler,
         IMessaging messaging,
         string? contextType = null,
+        IContext? openedAppContext = null,
         ILogger<ContextListener<T>>? logger = null)
     {
         _instanceId = instanceId ?? throw new ArgumentNullException(nameof(instanceId));
         _contextHandler = contextHandler;
         _contextType = contextType;
         _messaging = messaging;
+
+        if (openedAppContext != null && openedAppContext is T typedContext)
+        {
+            _openedAppContext = typedContext;
+        }
+        else
+        {
+            _isOpenedAppContextHandled = true;
+        }
+
         _logger = logger ?? NullLogger<ContextListener<T>>.Instance;
     }
 
@@ -89,6 +104,11 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
                 .GetResult();
 
             _isSubscribed = false;
+
+            if (_unsubscribeCallback != null)
+            {
+                _unsubscribeCallback(this);
+            }
         }
         finally
         {
@@ -101,7 +121,7 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
         try
         {
             await _subscriptionLock.WaitAsync().ConfigureAwait(false);
-            await _serializedContextsLock.WaitAsync().ConfigureAwait(false);
+            await _openedAppContextLock.WaitAsync().ConfigureAwait(false);
 
             if (_isSubscribed)
             {
@@ -110,6 +130,12 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
 
             await RegisterContextListenerAsync(channelId, channelType).ConfigureAwait(false);
             var topic = new ChannelTopics(channelId, channelType);
+
+            if (_openedAppContext != null && !_isOpenedAppContextHandled)
+            {
+                _contextHandler(_openedAppContext);
+                _isOpenedAppContextHandled = true;
+            }
 
             _subscription = await _messaging.SubscribeAsync(
                 topic.Broadcast,
@@ -136,8 +162,13 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
                         _logger.LogDebug("Context received: {SerializedContext}; Type to deserialize to: {Type}...", serializedContext, typeof(T));
                     }
 
+                    if (!_isOpenedAppContextHandled)
+                    {
+                        _contexts.Enqueue(context!);
+                        return new ValueTask();
+                    }
+
                     _contextHandler(context!);
-                    _serializedContexts.Add(context!);
 
                     return new ValueTask();
                 }, cancellationToken);
@@ -152,7 +183,7 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
         finally
         {
             _subscriptionLock.Release();
-            _serializedContextsLock.Release();
+            _openedAppContextLock.Release();
 
             _logger.LogInformation("Context listener subscribed to channel {ChannelId} for context type {ContextType}.", channelId, _contextType);
         }
@@ -163,6 +194,7 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
         try
         {
             await _subscriptionLock.WaitAsync().ConfigureAwait(false);
+            await _openedAppContextLock.WaitAsync().ConfigureAwait(false);
 
             if (!_isSubscribed)
             {
@@ -181,11 +213,52 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
                 return;
             }
 
-            _contextHandler((T) context);
+            if (!_isOpenedAppContextHandled)
+            {
+                _contexts.Enqueue(typedContext);
+                return;
+            }
+
+            _contextHandler(typedContext);
         }
         finally
         {
             _subscriptionLock.Release();
+            _openedAppContextLock.Release();
+        }
+    }
+
+    internal async Task SetOpenHandledAsync(bool handled)
+    {
+        try
+        {
+            await _openedAppContextLock.WaitAsync().ConfigureAwait(false);
+            _isOpenedAppContextHandled = handled;
+        }
+        finally
+        {
+            _openedAppContextLock.Release();           
+        }
+    }
+
+    //TODO: decide if we want to handle the cached contexts after the context via the fdc3.open call is handled
+    private async Task HandleCachedContextsAsync()
+    {
+        try
+        {
+            await _openedAppContextLock.WaitAsync().ConfigureAwait(false);
+
+            if (_isOpenedAppContextHandled)
+            {
+                while (_contexts.TryDequeue(out var context))
+                {
+                    _contextHandler(context);
+                }
+            }
+        }
+        finally
+        {
+            _openedAppContextLock.Release();
         }
     }
 
@@ -251,5 +324,10 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
         }
 
         _contextListenerId = null;
+    }
+
+    internal void SetUnsubscribeCallback(Action<ContextListener<T>> unsubscribeCallback)
+    {
+        _unsubscribeCallback = unsubscribeCallback;
     }
 }

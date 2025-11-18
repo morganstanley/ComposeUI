@@ -40,9 +40,9 @@ using Screenshot = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.Scr
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
-internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
+internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
 {
-    private readonly ILogger<Fdc3DesktopAgent> _logger;
+    private readonly ILogger<Fdc3DesktopAgentService> _logger;
     private readonly IResolverUICommunicator _resolverUI;
     private readonly IUserChannelSetReader _userChannelSetReader;
     private readonly ConcurrentDictionary<string, UserChannel> _userChannels = new();
@@ -64,7 +64,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
     private readonly object _privateChannelsDictionaryLock = new();
     private readonly IntentResolver _intentResolver;
 
-    public Fdc3DesktopAgent(
+    public Fdc3DesktopAgentService(
         IAppDirectory appDirectory,
         IModuleLoader moduleLoader,
         IOptions<Fdc3DesktopAgentOptions> options,
@@ -78,7 +78,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         _resolverUI = resolverUI;
         _userChannelSetReader = userChannelSetReader;
         _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
-        _logger = _loggerFactory.CreateLogger<Fdc3DesktopAgent>() ?? NullLogger<Fdc3DesktopAgent>.Instance;
+        _logger = _loggerFactory.CreateLogger<Fdc3DesktopAgentService>() ?? NullLogger<Fdc3DesktopAgentService>.Instance;
 
         _intentResolver = new(appDirectory, _runningModules);
     }
@@ -135,6 +135,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             _logger.LogError($"Could not create private channel while executing {nameof(CreateOrJoinPrivateChannel)} due to private channel id is null.");
             return;
         }
+
         PrivateChannel? privateChannel = null;
         try
         {
@@ -202,7 +203,8 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
     public async ValueTask<CreateAppChannelResponse> AddAppChannel(Func<string, AppChannel> addAppChannelFactory, CreateAppChannelRequest request)
     {
-        if (!_runningModules.TryGetValue(new Guid(request.InstanceId), out _))
+        if (!_runningModules.TryGetValue(new Guid(request.InstanceId), out _)
+            || string.IsNullOrEmpty(request.ChannelId))
         {
             return CreateAppChannelResponse.Failed(ChannelError.CreationFailed);
         }
@@ -690,6 +692,11 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             return OpenResponse.Failure(Fdc3DesktopAgentErrors.PayloadNull);
         }
 
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug($"Executing {nameof(Open)} request for appId: {request.AppIdentifier?.AppId ?? string.Empty} with instanceId: {request.InstanceId}.");
+        }
+
         if (!Guid.TryParse(request.InstanceId, out var fdc3InstanceId)
             || !_runningModules.ContainsKey(fdc3InstanceId))
         {
@@ -700,7 +707,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
         try
         {
-            var fdc3App = await _appDirectory.GetApp(request.AppIdentifier.AppId);
+            var fdc3App = await _appDirectory.GetApp(request.AppIdentifier!.AppId);
             var appMetadata = fdc3App.ToAppMetadata();
             var parameters = new Dictionary<string, string>();
 
@@ -800,9 +807,9 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             _logger.LogWarning("Source app did not register its raiseable intent(s) for context: {ContextType} in the `raises` section of AppDirectory.", contextType);
         }
 
-        var findIntentsByContextResult = await FindIntentsByContext(new FindIntentsByContextRequest() { Context = request.Context, Fdc3InstanceId = request.Fdc3InstanceId }, contextType);
+        var filteredAppIntents = await GetAppIntentsByRequest(contextType: contextType, targetAppIdentifier: request.TargetAppIdentifier);
 
-        if (findIntentsByContextResult.AppIntents == null || !findIntentsByContextResult.AppIntents.Any())
+        if (filteredAppIntents.AppIntents == null || !filteredAppIntents.AppIntents.Any())
         {
             return new()
             {
@@ -810,21 +817,11 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
             };
         }
 
-        List<AppIntent> result;
-        if (request.TargetAppIdentifier != null)
-        {
-            result = FilterAppIntentsByAppId(findIntentsByContextResult.AppIntents, request.TargetAppIdentifier).ToList();
-        }
-        else
-        {
-            result = findIntentsByContextResult.AppIntents.ToList();
-        }
-
         RaiseIntentSpecification raiseIntentSpecification;
-        if (result.Count > 1)
+        if (filteredAppIntents.AppIntents.Count > 1)
         {
             using var resolverUIIntentCancellationSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-            var resolverUIIntentResponse = await _resolverUI.SendResolverUIIntentRequest(result.Select(x => x.Intent.Name), resolverUIIntentCancellationSource.Token);
+            var resolverUIIntentResponse = await _resolverUI.SendResolverUIIntentRequest(filteredAppIntents.AppIntents.Select(x => x.Value.Intent.Name), resolverUIIntentCancellationSource.Token);
 
             if (resolverUIIntentResponse == null)
             {
@@ -856,19 +853,28 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
                 SourceAppInstanceId = new(request.Fdc3InstanceId)
             };
         }
+        else if (filteredAppIntents.AppIntents.Count == 0)
+        {
+            return new()
+            {
+                Response = new()
+                {
+                    Error = ResolveError.IntentDeliveryFailed
+                }
+            };
+        }
         else
         {
             raiseIntentSpecification = new()
             {
                 Context = request.Context,
-                Intent = result.ElementAt(0).Intent.Name,
+                Intent = filteredAppIntents.AppIntents.Values.First()!.Intent.Name,
                 RaisedIntentMessageId = request.MessageId,
                 SourceAppInstanceId = new(request.Fdc3InstanceId)
             };
         }
 
-        var appIntent = result.FirstOrDefault(x => x.Intent.Name == raiseIntentSpecification.Intent);
-        if (appIntent == null)
+        if (!filteredAppIntents.AppIntents.TryGetValue(raiseIntentSpecification.Intent, out var appIntent))
         {
             return new()
             {
@@ -996,6 +1002,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         // Semantically we know this is not null or empty
         foreach (var intent in source)
         {
+            List<AppMetadata> validatedAppMetadata = new();
             foreach (var app in intent.Apps)
             {
                 var matches = true;
@@ -1003,6 +1010,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
                 {
                     matches = false;
                 }
+
                 if (appId.InstanceId != null && appId.InstanceId != app.InstanceId)
                 {
                     matches = false;
@@ -1010,9 +1018,20 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
 
                 if (matches)
                 {
-                    yield return intent;
-                    break;
+                    validatedAppMetadata.Add(app);                    
                 }
+
+            }
+
+            if (validatedAppMetadata.Count > 0)
+            {
+                var appIntent = new AppIntent
+                {
+                    Intent = intent.Intent,
+                    Apps = validatedAppMetadata
+                };
+
+                yield return appIntent;
             }
         }
     }
@@ -1311,8 +1330,7 @@ internal class Fdc3DesktopAgent : IFdc3DesktopAgentBridge
         return result;
     }
 
-    private Dictionary<string, AppIntent> GetAppIntentsFromIntentMetadataCollection(
-        IEnumerable<FlatAppIntent> intentMetadataCollection)
+    private Dictionary<string, AppIntent> GetAppIntentsFromIntentMetadataCollection(IEnumerable<FlatAppIntent> intentMetadataCollection)
     {
         Dictionary<string, AppIntent> appIntents = [];
 

@@ -20,7 +20,7 @@ using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppI
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests;
 
-public class FindIntentsByContextTests : Fdc3DesktopAgentTestsBase
+public class FindIntentsByContextTests : Fdc3DesktopAgentServiceTestsBase
 {
     public FindIntentsByContextTests() : base(AppDirectoryPath) { }
 

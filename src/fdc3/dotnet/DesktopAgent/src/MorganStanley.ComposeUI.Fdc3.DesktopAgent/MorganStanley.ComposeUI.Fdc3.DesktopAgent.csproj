@@ -57,7 +57,7 @@
 
 	<Target Name="BuildComposeUIFdc3Bundle" BeforeTargets="PrebuildEvent" Condition="!Exists('$(Fdc3BundleOutput)')">
 		<CallTarget Targets="InstallMonoRepoDependencies" />
-		<Exec Command="cd $(ComposeUIRepositoryRoot) &amp;&amp; npx lerna run build --scope={@morgan-stanley/composeui-messaging-client,@morgan-stanley/composeui-fdc3}" />
+		<Exec Command="cd $(ComposeUIRepositoryRoot) &amp;&amp; npx lerna run build --scope={@morgan-stanley/composeui-messaging-abstractions,@morgan-stanley/composeui-messaging-client,@morgan-stanley/composeui-fdc3}" />
 		<Message Importance="normal" Text="Finished building the fdc3 bundle." />
 	</Target>
 

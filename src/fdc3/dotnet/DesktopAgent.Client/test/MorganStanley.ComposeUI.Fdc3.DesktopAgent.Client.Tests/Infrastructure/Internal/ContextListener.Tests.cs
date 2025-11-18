@@ -385,6 +385,7 @@ public class ContextListenerTests
         var handlerCalled = false;
         var handler = new ContextHandler<Instrument>((ctx, _) => handlerCalled = true);
         var listener = new ContextListener<Instrument>("instanceId", handler, _messagingMock.Object, "fdc3.instrument");
+        await listener.SetOpenHandledAsync(true);
 
         await listener.SubscribeAsync("channelId", ChannelType.App);
 
@@ -430,6 +431,7 @@ public class ContextListenerTests
         var handlerCalled = false;
         var handler = new ContextHandler<Instrument>((ctx, _) => handlerCalled = true);
         var listener = new ContextListener<Instrument>("instanceId", handler, _messagingMock.Object, "testType");
+        await listener.SetOpenHandledAsync(true);
 
         await listener.SubscribeAsync("channelId", ChannelType.App);
 
@@ -462,6 +464,7 @@ public class ContextListenerTests
         var handler = new ContextHandler<Instrument>((ctx, _) => handlerCalled = true);
 
         var listener = new ContextListener<Instrument>("instanceId", handler, _messagingMock.Object, "testType");
+        await listener.SetOpenHandledAsync(true);
 
         await listener.SubscribeAsync("channelId", ChannelType.App);
 

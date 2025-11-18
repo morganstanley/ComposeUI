@@ -1,0 +1,112 @@
+﻿/*
+ * Morgan Stanley makes this available to you under the Apache License,
+ * Version 2.0 (the "License"). You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership. Unless required by applicable law or agreed
+ * to in writing, software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions
+ * and limitations under the License.
+ */
+
+{
+  "applications": [
+    {
+      "appId": "appId1",
+      "name": "app1",
+      "type": 1,
+      "details": {
+        "url": "http://customurl.com"
+      },
+      "interop": {
+        "intents": {
+          "raises": {
+            "intent1": [
+              "singleContext",
+              "nosuchcontext",
+              "onlyApp3Context",
+              "noAppShouldReturn"
+            ],
+            "intent2": [
+              "multipleContext"
+            ],
+            "noIntentShouldHandle": [],
+            "noAppShouldReturn": [
+              "singleContext"
+            ],
+            "testIntent": [
+              "singleContext"
+            ],
+            "intentWithChannelResult": [
+              "channelContext"
+            ]
+          },
+          "listensFor": {
+            "intent1": {
+              "name": "intent1",
+              "displayName": "Intent resolved only by app 1",
+              "contexts": [
+                "singleContext"
+              ],
+              "resultType": "resultType1"
+            },
+            "TestInstrument": {
+              "name": "TestInstrument",
+              "displayName": "TestInstrument",
+              "contexts": [
+                "fdc3.valuation"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "appId": "appId1-native",
+      "name": "app1",
+      "type": "native",
+      "details": {
+        "path": "..\\..\\..\\..\\TestHelpers\\DesktopAgentClientConsoleApp\\bin\\Release\\net8.0\\DesktopAgentClientConsoleApp.exe"
+      },
+      "interop": {
+        "intents": {
+          "raises": {
+            "TestInstrument": [
+              "fdc3.instrument"
+            ],
+            "ViewInstrument": [
+              "fdc3.valuation"
+            ]
+          },
+          "listensFor": {
+            "ViewInstrument": {
+              "name": "ViewInstrument",
+              "displayName": "ViewInstrument",
+              "contexts": [
+                "fdc3.instrument"
+              ]
+            },
+            "TestInstrument": {
+              "name": "TestInstrument",
+              "displayName": "TestInstrument",
+              "contexts": [
+                "fdc3.valuation",
+                "fdc3.contact"
+              ]
+            },
+            "TestInstrument2": {
+              "name": "TestInstrument2",
+              "displayName": "TestInstrument2",
+              "contexts": [
+                "fdc3.country"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -16,7 +16,10 @@ using Finos.Fdc3;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 
-internal static class Fdc3Topic
+/// <summary>
+/// Provides topics for handling messages received via the messaging abstractions.
+/// </summary>
+public static class Fdc3Topic
 {
     internal static string TopicRoot => "ComposeUI/fdc3/v2.0/";
     internal static string FindChannel => TopicRoot + "findChannel";
@@ -26,7 +29,6 @@ internal static class Fdc3Topic
     internal static string GetIntentResult => TopicRoot + "getIntentResult";
     internal static string SendIntentResult => TopicRoot + "sendIntentResult";
     internal static string AddIntentListener => TopicRoot + "addIntentListener";
-    internal static string ResolverUI => TopicRoot + "resolverUI";
     internal static string CreatePrivateChannel => TopicRoot + "createPrivateChannel";
     internal static string CreateAppChannel => TopicRoot + "createAppChannel";
     internal static string GetUserChannels => TopicRoot + "getUserChannels";
@@ -40,7 +42,16 @@ internal static class Fdc3Topic
     internal static string Open => TopicRoot + "open";
     internal static string GetOpenedAppContext => TopicRoot + "getOpenedAppContext";
     internal static string RaiseIntentForContext => TopicRoot + "raiseIntentForContext";
-    internal static string ResolverUIIntent => TopicRoot + "resolverUIIntent";
+	
+	/// <summary>
+	/// Topic for handling ResolverUI intention (raiseIntent) from the backend based on the container.
+	/// </summary>
+	public static string ResolverUI => TopicRoot + "resolverUI";
+	
+	/// <summary>
+	/// Topic for handling ResolverUI intention (raiseIntentForContext) from the backend based on the container.
+	/// </summary>
+    public static string ResolverUIIntent => TopicRoot + "resolverUIIntent";
 
     //IntentListeners will be listening at this endpoint
     internal static string RaiseIntentResolution(string intent, string instanceId)
@@ -83,4 +94,9 @@ internal class PrivateChannelTopics : ChannelTopics
     }
 
     public string Events { get; }
+
+    public string GetContextHandlers(bool isOriginalCreator)
+    {
+        return ChannelRoot + (isOriginalCreator ? "creator" : "listener") + "/getContextHandlers";
+    }
 }

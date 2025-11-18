@@ -34,6 +34,8 @@ public static class SerializerOptionsHelper
 #if DEBUG
         WriteIndented = true,
 #endif
+        IncludeFields = true,
+        PropertyNameCaseInsensitive = true,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         Converters =
         {
@@ -45,6 +47,7 @@ public static class SerializerOptionsHelper
             new ImageJsonConverter(),
             new IntentMetadataJsonConverter(),
             new ImplementationMetadataJsonConverter(),
+            new ValuationJsonConverter(),
             new IContextJsonConverter(),
             new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
         }
