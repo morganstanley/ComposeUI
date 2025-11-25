@@ -12,7 +12,6 @@
  * and limitations under the License.
  */
 
-using System.Security.Cryptography;
 using System.Text.Json;
 using Finos.Fdc3;
 using Finos.Fdc3.Context;
@@ -29,6 +28,8 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Intern
 
 internal class IntentsClient : IIntentsClient
 {
+    private static int _messageIdCounter = 0;
+
     private readonly IMessaging _messaging;
     private readonly IChannelFactory _channelFactory;
     private readonly string _instanceId;
@@ -127,7 +128,7 @@ internal class IntentsClient : IIntentsClient
 
         if (response.AppIntent == null)
         {
-            throw ThrowHelper.AppIntentMissingFromResponse(intent, context?.Type, resultType);
+            throw ThrowHelper.DesktopAgentBackendDidNotResolveRequest(nameof(FindIntentRequest), nameof(response.AppIntent), Fdc3DesktopAgentErrors.NoAppIntent);
         }
 
         return response.AppIntent;
@@ -172,7 +173,7 @@ internal class IntentsClient : IIntentsClient
 
     public async ValueTask<IIntentResolution> RaiseIntentAsync(string intent, IContext context, IAppIdentifier? app)
     {
-        var messageId = Guid.NewGuid().GetHashCode();
+        var messageId = Interlocked.Increment(ref _messageIdCounter);
 
         var request = new RaiseIntentRequest
         {
@@ -231,7 +232,7 @@ internal class IntentsClient : IIntentsClient
 
     public async ValueTask<IIntentResolution> RaiseIntentForContextAsync(IContext context, IAppIdentifier? app)
     {
-        var messageId = Guid.NewGuid().GetHashCode();
+        var messageId = Interlocked.Increment(ref _messageIdCounter);
 
         var request = new RaiseIntentForContextRequest
         {

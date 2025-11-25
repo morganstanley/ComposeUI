@@ -282,6 +282,6 @@ public class MetadataClientTests
         var act = async () => await client.FindInstancesAsync(appIdentifier);
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
-            .WithMessage("*UnspecifiedReason*");
+            .WithMessage($"*{Fdc3DesktopAgentErrors.NoInstanceFound}*");
     }
 }

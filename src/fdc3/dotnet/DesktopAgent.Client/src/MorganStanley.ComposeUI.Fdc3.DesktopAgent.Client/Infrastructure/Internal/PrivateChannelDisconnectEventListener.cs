@@ -19,19 +19,19 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal;
 
 internal delegate void PrivateChannelDisconnectEventHandler();
-internal delegate void PrivateChannelOnDisconnectHandler(PrivateChannelDisconnectEventListener listener);
+internal delegate void PrivateChannelUnsubscribeHandler(PrivateChannelDisconnectEventListener listener);
 
 internal class PrivateChannelDisconnectEventListener : IListener
 {
     private readonly PrivateChannelDisconnectEventHandler _onDisconnect;
-    private readonly PrivateChannelOnDisconnectHandler _onUnsubscribe;
+    private readonly PrivateChannelUnsubscribeHandler _onUnsubscribe;
     private readonly ILogger<PrivateChannelDisconnectEventListener> _logger;
     private readonly SemaphoreSlim _semaphoreSlim = new(1, 1);
     private bool _subscribed;
 
     public PrivateChannelDisconnectEventListener(
         PrivateChannelDisconnectEventHandler onDisconnectEventHandler,
-        PrivateChannelOnDisconnectHandler onUnsubscribeHandler,
+        PrivateChannelUnsubscribeHandler onUnsubscribeHandler,
         ILogger<PrivateChannelDisconnectEventListener>? logger = null)
     {
         _onDisconnect = onDisconnectEventHandler;

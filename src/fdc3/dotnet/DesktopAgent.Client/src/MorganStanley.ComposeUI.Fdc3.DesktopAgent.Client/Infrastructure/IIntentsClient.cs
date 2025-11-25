@@ -42,7 +42,7 @@ internal interface IIntentsClient
     public ValueTask<IEnumerable<IAppIntent>> FindIntentsByContextAsync(IContext context, string? resultType = null);
 
     /// <summary>
-    /// Raises an intent for a given context, optionally targeting a specific application. If multiple application can handle the request the container should allow the user to choose the right app.
+    /// Raises an intent for a given context, optionally targeting a specific application. If multiple applications can handle the request the container should allow the user to choose the right app.
     /// </summary>
     /// <param name="context"></param>
     /// <param name="app"></param>
@@ -61,7 +61,7 @@ internal interface IIntentsClient
         where T : IContext;
 
     /// <summary>
-    /// Raises an intent, optionally targeting a specific application. If multiple application can handle the request the container should allow the user to choose the right app.
+    /// Raises an intent, optionally targeting a specific application. If multiple applications can handle the request the container should allow the user to choose the right app.
     /// </summary>
     /// <param name="intent"></param>
     /// <param name="context"></param>

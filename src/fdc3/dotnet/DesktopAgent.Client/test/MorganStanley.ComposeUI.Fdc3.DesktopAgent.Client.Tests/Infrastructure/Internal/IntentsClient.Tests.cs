@@ -137,7 +137,7 @@ public class IntentsClientTests
         var act = async () => await _client.FindIntentAsync("IntentName");
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
-            .WithMessage("*The AppIntent was not returned by the FDC3 DesktopAgent backend for intent: IntentName; context: ; and resultType: .*");
+            .WithMessage($"*{Fdc3DesktopAgentErrors.NoAppIntent}*");
     }
 
     [Fact]

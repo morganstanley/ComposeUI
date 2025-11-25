@@ -73,7 +73,7 @@ internal class MetadataClient : IMetadataClient
 
         if (response.Instances == null)
         {
-            throw ThrowHelper.ErrorResponseReceived(Fdc3DesktopAgentErrors.UnspecifiedReason);
+            throw ThrowHelper.DesktopAgentBackendDidNotResolveRequest(nameof(FindInstancesRequest), nameof(response.Instances), Fdc3DesktopAgentErrors.NoInstanceFound);
         }
 
         return response.Instances;

@@ -76,8 +76,9 @@ internal static class ThrowHelper
 
     internal static Fdc3DesktopAgentException InvalidResponseRecevied(string instanceId, string appId, string methodName) =>
         new($"The method: {methodName} returned a not valid response from the server, app: {appId}, instance: {instanceId}.");
-    public static Fdc3DesktopAgentException NoChannelsReturned() =>
-        new("The DesktopAgent backend did not return any channels.");
+
+    public static Fdc3DesktopAgentException DesktopAgentBackendDidNotResolveRequest(string requestType, string unvalidPropertyName, string errorReason) =>
+        new($"The DesktopAgent backend did not return valid response for {requestType}; it contained unvalid property: {unvalidPropertyName}. Specified reason: {errorReason}.");
 
     public static Fdc3DesktopAgentException AppIntentMissingFromResponse(string intent, string? contextType = null, string? resultType = null) =>
         new($"The {nameof(AppIntent)} was not returned by the FDC3 DesktopAgent backend for intent: {intent}; context: {contextType}; and resultType: {resultType}.");

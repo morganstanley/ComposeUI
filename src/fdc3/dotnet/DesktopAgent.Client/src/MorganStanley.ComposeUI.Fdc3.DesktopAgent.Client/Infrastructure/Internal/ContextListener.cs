@@ -42,7 +42,6 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
     private IAsyncDisposable? _subscription;
     private string _contextListenerId;
 
-    private readonly SemaphoreSlim _openedAppContextLock = new(1,1);
     private bool _isOpenedAppContextHandled = false; 
 
     private readonly ConcurrentQueue<T> _contexts = new();
@@ -121,7 +120,6 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
         try
         {
             await _subscriptionLock.WaitAsync().ConfigureAwait(false);
-            await _openedAppContextLock.WaitAsync().ConfigureAwait(false);
 
             if (_isSubscribed)
             {
@@ -183,7 +181,6 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
         finally
         {
             _subscriptionLock.Release();
-            _openedAppContextLock.Release();
 
             _logger.LogInformation("Context listener subscribed to channel {ChannelId} for context type {ContextType}.", channelId, _contextType);
         }
@@ -194,7 +191,6 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
         try
         {
             await _subscriptionLock.WaitAsync().ConfigureAwait(false);
-            await _openedAppContextLock.WaitAsync().ConfigureAwait(false);
 
             if (!_isSubscribed)
             {
@@ -224,42 +220,27 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
         finally
         {
             _subscriptionLock.Release();
-            _openedAppContextLock.Release();
         }
     }
 
-    internal async Task SetOpenHandledAsync(bool handled)
+    internal Task SetOpenHandledAsync(bool handled)
     {
-        try
-        {
-            await _openedAppContextLock.WaitAsync().ConfigureAwait(false);
-            _isOpenedAppContextHandled = handled;
-        }
-        finally
-        {
-            _openedAppContextLock.Release();           
-        }
+        _isOpenedAppContextHandled = handled;
+        return Task.CompletedTask;
     }
 
     //TODO: decide if we want to handle the cached contexts after the context via the fdc3.open call is handled
-    private async Task HandleCachedContextsAsync()
+    private Task HandleCachedContextsAsync()
     {
-        try
+        if (_isOpenedAppContextHandled)
         {
-            await _openedAppContextLock.WaitAsync().ConfigureAwait(false);
-
-            if (_isOpenedAppContextHandled)
+            while (_contexts.TryDequeue(out var context))
             {
-                while (_contexts.TryDequeue(out var context))
-                {
-                    _contextHandler(context);
-                }
+                _contextHandler(context);
             }
         }
-        finally
-        {
-            _openedAppContextLock.Release();
-        }
+
+        return Task.CompletedTask;
     }
 
     private async ValueTask RegisterContextListenerAsync(

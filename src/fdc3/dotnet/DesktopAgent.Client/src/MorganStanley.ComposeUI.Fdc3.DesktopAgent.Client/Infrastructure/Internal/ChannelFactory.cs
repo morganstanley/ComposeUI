@@ -138,9 +138,9 @@ internal class ChannelFactory : IChannelFactory
             throw ThrowHelper.ErrorResponseReceived(response.Error);
         }
 
-        if (response.Channels == null)
+        if (response.Channels == null || !response.Channels.Any())
         {
-            throw ThrowHelper.NoChannelsReturned();
+            throw ThrowHelper.DesktopAgentBackendDidNotResolveRequest(nameof(GetUserChannelsRequest), nameof(response.Channels), Fdc3DesktopAgentErrors.NoUserChannelSetFound);
         }
 
         var channels = new List<IChannel>();
@@ -167,11 +167,6 @@ internal class ChannelFactory : IChannelFactory
                 loggerFactory: _loggerFactory);
 
             channels.Add(userChannel);
-        }
-
-        if (!channels.Any())
-        {
-            throw ThrowHelper.NoChannelsReturned();
         }
 
         return channels;

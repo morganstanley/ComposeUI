@@ -504,7 +504,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
         var action = async () => await desktopAgent.GetUserChannels();
 
         await action.Should().ThrowAsync<Fdc3DesktopAgentException>()
-            .WithMessage("*The DesktopAgent backend did not return any channels.*");
+            .WithMessage($"*{Fdc3DesktopAgentErrors.NoUserChannelSetFound}*");
     }
 
     [Fact]
@@ -666,7 +666,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
         var act = async () => await desktopAgent.FindIntent("fdc3.instrument");
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
-            .WithMessage("*was not returned by the FDC3 DesktopAgent backend for intent: fdc3.instrument*");
+            .WithMessage($"*{Fdc3DesktopAgentErrors.NoAppIntent}*");
     }
 
     [Fact]
@@ -786,7 +786,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
         var act = async () => await desktopAgent.FindInstances(new AppIdentifier { AppId = "test-appId1" });
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
-            .WithMessage("*UnspecifiedReason*");
+            .WithMessage($"*{Fdc3DesktopAgentErrors.NoInstanceFound}*");
     }
 
     [Fact]

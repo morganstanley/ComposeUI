@@ -68,6 +68,7 @@ internal class Channel : IChannel
 
     protected ILoggerFactory LoggerFactory => _loggerFactory;
     protected IMessaging Messaging => _messaging;
+    protected string InstanceId => _instanceId;
 
     public virtual async Task<IListener> AddContextListener<T>(string? contextType, ContextHandler<T> handler) where T : IContext
     {

@@ -50,6 +50,7 @@ public class DesktopAgentClient : IDesktopAgent
 
     private readonly ConcurrentDictionary<string, IChannel> _userChannels = new();
     private readonly ConcurrentDictionary<string, IChannel> _appChannels = new();
+    private readonly SemaphoreSlim _appChannelsLock = new(1, 1);
 
     private readonly TaskCompletionSource<string> _initializationTaskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private string? _openedAppContextId;
@@ -313,24 +314,32 @@ public class DesktopAgentClient : IDesktopAgent
     /// <returns></returns>
     public async Task<IChannel> GetOrCreateChannel(string channelId)
     {
-        await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
-
-        if (_appChannels.TryGetValue(channelId, out var existingChannel))
+        try
         {
-            return existingChannel;
-        }
+            await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
+            await _appChannelsLock.WaitAsync().ConfigureAwait(false);
 
-        var channel = await _channelFactory.CreateAppChannelAsync(channelId);
-
-        if (!_appChannels.TryAdd(channelId, channel))
-        {
-            if (_logger.IsEnabled(LogLevel.Warning))
+            if (_appChannels.TryGetValue(channelId, out var existingChannel))
             {
-                _logger.LogWarning("Failed to add app channel to the internal collection: {ChannelId}.", channelId);
+                return existingChannel;
             }
-        }
 
-        return channel;
+            var channel = await _channelFactory.CreateAppChannelAsync(channelId);
+
+            if (!_appChannels.TryAdd(channelId, channel))
+            {
+                if (_logger.IsEnabled(LogLevel.Warning))
+                {
+                    _logger.LogWarning("Failed to add app channel to the internal collection: {ChannelId}.", channelId);
+                }
+            }
+
+            return channel;
+        }
+        finally
+        {
+            _appChannelsLock.Release();
+        }
     }
 
     /// <summary>
