@@ -42,7 +42,7 @@ public static class Fdc3DesktopAgentErrors
     public const string ResponseHasNoAttribute = nameof(ResponseHasNoAttribute);
 
     /// <summary>
-    /// Indicates that no user channel set was configured.
+    /// Indicates that no user channel (null) set was configured.
     /// </summary>
     public const string NoUserChannelSetFound = nameof(NoUserChannelSetFound);
 
@@ -70,4 +70,19 @@ public static class Fdc3DesktopAgentErrors
     /// Indicates that the private channel a client tried to join cannot be found
     /// </summary>
     public const string PrivateChannelNotFound = nameof(PrivateChannelNotFound);
+
+    /// <summary>
+    /// Indicates that an unspecified error occurred in the desktop agent.
+    /// </summary>
+    public const string UnspecifiedReason = nameof(UnspecifiedReason);
+
+    /// <summary>
+    /// Indicates that null instance was found for the given app identifier.
+    /// </summary>
+    public const string NoInstanceFound = nameof(NoInstanceFound);
+
+    /// <summary>
+    /// Indicates that null app intent was found for the given criteria.
+    /// </summary>
+    public const string NoAppIntent = nameof(NoAppIntent);
 }

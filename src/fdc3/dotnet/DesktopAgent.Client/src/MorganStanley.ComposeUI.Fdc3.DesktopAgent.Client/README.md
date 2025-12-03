@@ -9,6 +9,22 @@ It enables .NET applications to interact with FDC3-compliant desktop agents, fac
 - Integrates with ComposeUI messaging abstraction (`IMessaging`), so it doesn't rely on any actual messaging implementation.
 - Extensible logging support via `ILogger`.
 
+
+## Target Framework
+- .NET Standard 2.0
+
+Compatible with .NET (Core), .NET Framework.
+
+
+## Dependencies
+- [Finos.Fdc3](https://www.nuget.org/packages/Finos.Fdc3)
+- [Finos.Fdc3.AppDirectory](https://www.nuget.org/packages/Finos.Fdc3.AppDirectory)
+- [Microsoft.Extensions.Logging.Abstractions](https://www.nuget.org/packages/Microsoft.Extensions.Logging.Abstractions)
+- [System.Text.Json](https://www.nuget.org/packages/System.Text.Json)
+- [MorganStanley.ComposeUI.Messaging.Abstractions](https://www.nuget.org/packages/MorganStanley.ComposeUI.Messaging.Abstractions)
+- [MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared](https://www.nuget.org/packages/MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared)
+
+
 ## Installation
 Add a reference to the NuGet package (if available) or include the project in your solution.
 
@@ -129,6 +145,97 @@ var implementationMetadata = await desktopAgent.GetInfo();
 You can get the metadata of an app using the GetAppMetadata method by providing the AppIdentifier.
 ```csharp
 var appMetadata = await desktopAgent.GetAppMetadata(new AppIdentifier("your-app-id", "your-instance-id"));
+```
+
+### Getting User Channels
+You can retrieve user channels by using:
+```csharp
+var channels = await desktopAgent.GetUserChannels();
+await desktopAgent.JoinUserChannel(channels[0].Id);
+```
+
+### Getting or Creating a App Channel
+You can get or create an app channel by using:
+```csharp
+var appChannel = await desktopAgent.GetOrCreateChannel("your-app-channel-id");
+var listener = await appChannel.AddContextListener("fdc3.instrument", (ctx, ctxMetadata) =>
+{
+    Console.WriteLine($"Received context on app channel: {ctx}");
+});
+
+//Initiator shouldn't receive back the broadcasted context
+await appChannel.Broadcast(context);
+```
+
+### Finding apps based on the specified intent
+You can find/search for applications from the AppDirectory by using the `FindIntent` function:
+```csharp
+var apps = await desktopAgent.FindIntent("ViewChart", new Instrument(new InstrumentID { Ticker = "AAPL" }), "expected_resultType"));
+```
+
+### Finding instances for the specified app
+You can find the currently FDC3 enabled instances for the specified app by using the `FindInstances` function:
+```csharp
+var instances = await desktopAgent.FindInstances("your-app-id");
+```
+
+### Finding intents by context
+You can find the apps that can handle for the specified context by using the `FindIntentsByContext` function:
+```csharp
+var context = new Instrument(new InstrumentID { Ticker = "AAPL" }, "Apple Inc.");
+var appIntents = await desktopAgent.FindIntentsByContext(context);
+```
+
+### Raising intent for context
+You can raise an intent for the specified context by using the `RaiseIntentForContext` function and return its result by using the `GetResult` of the returned `IIntentResolution`:
+```csharp
+var intentResolution = await desktopAgent.RaiseIntentForContext(context, appIdentifier);
+var intentResult = await intentResolution.GetResult();
+```
+
+### Adding Intent Listener
+You can register an intent listener by using the `AddIntentListener` function:
+```csharp
+var currentChannel = await desktopAgent.GetCurrentChannel();
+var listener = await desktopAgent.AddIntentListener<Instrument>("ViewChart", async (ctx, ctxMetadata) =>
+{
+    Console.WriteLine($"Received intent with context: {ctx}");
+    return currentChannel;
+});
+```
+
+### Raising intents
+You can raise an intent by using the `RaiseIntent` function and return its result by using the `GetResult` of the returned `IIntentResolution`:
+```csharp
+var intentResolution = await desktopAgent.RaiseIntent("ViewChart", context, appIdentifier);
+var intentResult = await intentResolution.GetResult();
+```
+
+### Opening an app
+You can open an app by using the `Open` function:
+```csharp
+var appIdentifier = new AppIdentifier("your-app-id");
+var instrument = new Instrument();
+
+var appInstance = await desktopAgent.Open(appIdentifier, instrument);
+//The opened app should handle the context if it has registered a listener for that context type; if it does not register its context listener in time the open call will fail
+```
+
+### Creating Private Channel
+You can create a private channel by using the `CreatePrivateChannel` function:
+```csharp
+var privateChannel = await desktopAgent.CreatePrivateChannel("your-private-channel-id");
+var contextListenerHandler = privateChannel.OnAddContextListener((ctx) => {
+    Console.WriteLine($"Private channel context listener has been added for context: {ctx}");
+});
+
+var unsubscribeHandler = privateChannel.OnUnsubscribe((ctx) => {
+    Console.WriteLine($"Private channel context listener has been unsubscribed for context: {ctx}");
+});
+
+var disconnectHandler = privateChannel.OnDisconnect(() => {
+    Console.WriteLine("Private channel has been disconnected");
+});
 ```
 
 ## Documentation

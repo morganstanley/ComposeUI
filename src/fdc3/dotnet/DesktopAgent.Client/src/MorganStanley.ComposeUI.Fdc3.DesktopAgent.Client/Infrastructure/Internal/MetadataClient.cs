@@ -20,6 +20,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
+using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal;
 
@@ -41,6 +42,41 @@ internal class MetadataClient : IMetadataClient
         _instanceId = instanceId;
         _messaging = messaging;
         _logger = logger ?? NullLogger<MetadataClient>.Instance;
+    }
+
+    public async ValueTask<IEnumerable<IAppIdentifier>> FindInstancesAsync(IAppIdentifier appIdentifier)
+    {
+        var request = new FindInstancesRequest
+        {
+            Fdc3InstanceId = _instanceId,
+            AppIdentifier = new AppIdentifier
+            {
+                AppId = appIdentifier.AppId,
+                InstanceId = appIdentifier.InstanceId,
+            }
+        };
+
+        var response = await _messaging.InvokeJsonServiceAsync<FindInstancesRequest, FindInstancesResponse>(
+            Fdc3Topic.FindInstances,
+            request,
+            _jsonSerializerOptions);
+
+        if (response == null)
+        {
+            throw ThrowHelper.MissingResponse();
+        }
+
+        if (!string.IsNullOrEmpty(response.Error))
+        {
+            throw ThrowHelper.ErrorResponseReceived(response.Error);
+        }
+
+        if (response.Instances == null)
+        {
+            throw ThrowHelper.DesktopAgentBackendDidNotResolveRequest(nameof(FindInstancesRequest), nameof(response.Instances), Fdc3DesktopAgentErrors.NoInstanceFound);
+        }
+
+        return response.Instances;
     }
 
     public async ValueTask<IAppMetadata> GetAppMetadataAsync(IAppIdentifier appIdentifier)
@@ -67,13 +103,13 @@ internal class MetadataClient : IMetadataClient
 
         if (response == null)
         {
-            _logger.LogError("{GetAppMetadataAsync} response is null returned by the server...", nameof(GetAppMetadataAsync));
+            _logger.LogError("{Method} response is null returned by the server...", nameof(GetAppMetadataAsync));
             throw ThrowHelper.MissingResponse();
         }
 
         if (response.Error != null)
         {
-            _logger.LogError("{_appId} cannot return the {AppMetadata} for {AppId} due to: {Error}.", nameof(AppMetadata), appIdentifier.AppId, response.Error);
+            _logger.LogError("{AppId} cannot return the {AppMetadata} for {TargetAppId} due to: {Error}.", _appId, nameof(AppMetadata), appIdentifier.AppId, response.Error);
             throw ThrowHelper.ErrorResponseReceived(_appId, appIdentifier.AppId, nameof(AppMetadata), response.Error);
         }
 
@@ -98,7 +134,7 @@ internal class MetadataClient : IMetadataClient
 
         if (response == null)
         {
-            _logger.LogError("{GetInfoAsync} response is null returned by the server...", nameof(GetInfoAsync));
+            _logger.LogError("{Method} response is null returned by the server...", nameof(GetInfoAsync));
             throw ThrowHelper.MissingResponse();
         }
 

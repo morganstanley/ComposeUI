@@ -13,6 +13,7 @@
  */
 
 using Finos.Fdc3;
+using Finos.Fdc3.Context;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
@@ -75,4 +76,55 @@ internal static class ThrowHelper
 
     internal static Fdc3DesktopAgentException InvalidResponseRecevied(string instanceId, string appId, string methodName) =>
         new($"The method: {methodName} returned a not valid response from the server, app: {appId}, instance: {instanceId}.");
+
+    public static Fdc3DesktopAgentException DesktopAgentBackendDidNotResolveRequest(string requestType, string unvalidPropertyName, string errorReason) =>
+        new($"The DesktopAgent backend did not return valid response for {requestType}; it contained unvalid property: {unvalidPropertyName}. Specified reason: {errorReason}.");
+
+    public static Fdc3DesktopAgentException AppIntentMissingFromResponse(string intent, string? contextType = null, string? resultType = null) =>
+        new($"The {nameof(AppIntent)} was not returned by the FDC3 DesktopAgent backend for intent: {intent}; context: {contextType}; and resultType: {resultType}.");
+
+    public static Fdc3DesktopAgentException ChannelNotFound(string channelId, ChannelType channelType) =>
+        new($"The channel with ID: {channelId} and type: {channelType} is not found.");
+
+    public static Fdc3DesktopAgentException IntentResolutionIsNotDefined(string contextType, string? appId = null, string? instanceId = null, string? intent = null) =>
+        new($"The app with ID: {appId} and instanceId: {instanceId} for context: {contextType} could not return an {nameof(IntentResolution)} as message id, the {nameof(AppMetadata)} or the intent: {intent} was not retrieved from the backend.");
+
+    public static Fdc3DesktopAgentException IntentResolutionFailed(string intent, string messageId, IAppIdentifier appIdentifier) =>
+        new($"Retrieving the intent resolution failed from the backend for intent: {intent}, app: {appIdentifier.AppId}, instanceId: {appIdentifier.InstanceId}, messageId: {messageId}.");
+
+    public static Fdc3DesktopAgentException MissingContext() =>
+        new($"No context or invalid context was received as part of the {nameof(IntentResolution)}.");
+
+    public static Fdc3DesktopAgentException MissingOpenedAppContext() =>
+        new("No context was received from the backend.");
+
+    public static Fdc3DesktopAgentException IntentResultStoreFailed(string intent, string instanceId) =>
+        new($"Instance: {instanceId} was not able to store the {nameof(IIntentResult)} on the backend.");
+
+    public static Fdc3DesktopAgentException ListenerNotRegistered(string intent, string instanceId) =>
+        new($"Intent listener is not registered for the intent: {intent} on the backend for instance: {instanceId}.");
+
+    public static Fdc3DesktopAgentException ListenerNotUnRegistered(string intent, string instanceId) =>
+        new($"Intent listener is still registered for the intent: {intent} on the backend for instance: {instanceId}.");
+
+    internal static Fdc3DesktopAgentException MalformedContext() =>
+        new ($"The context is malformed when the fdc3.open method was called for the native client.");
+
+    internal static Fdc3DesktopAgentException AppIdentifierNotRetrieved() =>
+        new($"The {nameof(AppIdentifier)} cannot be returned when calling the fdc3.open from the native client...");
+
+    internal static Fdc3DesktopAgentException MissingOpenAppContext() =>
+        new("The context id was received while checking if the app is opened via the fdc3.open call...");
+
+    internal static Fdc3DesktopAgentException PrivateChannelCreationFailed() =>
+        new($"No response was received from the backend. {ChannelError.CreationFailed}.");
+
+    internal static Fdc3DesktopAgentException PrivateChannelDisconnected(string channelId, string instanceId) =>
+        new($"Private channel is disconnected. ChannelId: {channelId}; instance id: {instanceId}.");
+
+    internal static Fdc3DesktopAgentException PrivatChannelSubscribeFailure(string? contextType, string channelId, string instanceId) =>
+        new($"Private channel was not able to add context listener. ChannelId: {channelId}; instance id: {instanceId}; context type: {contextType}.");
+
+    internal static Fdc3DesktopAgentException PrivateChannelJoiningFailed(string channelId) =>
+        new($"Client was not able to join to private channel. ChannelId: {channelId}.");
 }

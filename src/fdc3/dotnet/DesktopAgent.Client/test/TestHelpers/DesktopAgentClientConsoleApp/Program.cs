@@ -14,36 +14,124 @@ using Finos.Fdc3;
 using Finos.Fdc3.Context;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
 
-Console.WriteLine("Hello, World!");
-var serviceCollection = new ServiceCollection()
-    .AddMessageRouter(m =>
+internal class Program
+{
+    private static async Task Main(string[] args)
     {
-        m.UseWebSocketFromEnvironment();
-    })
-    .AddMessageRouterMessagingAdapter()
-    .AddFdc3DesktopAgentClient()
-    .AddLogging(l => l.AddFile("./log.txt", LogLevel.Trace));
+        Console.WriteLine("Hello, World!");
 
-var serviceProvider = serviceCollection.BuildServiceProvider();
+        var serviceCollection = new ServiceCollection()
+            .AddMessageRouter(m =>
+            {
+                m.UseWebSocketFromEnvironment();
+            })
+            .AddMessageRouterMessagingAdapter()
+            .AddFdc3DesktopAgentClient()
+            .AddLogging(l => l.AddFile($"{Directory.GetCurrentDirectory}\\log.txt", LogLevel.Trace));
 
-var desktopAgentClient = serviceProvider.GetRequiredService<IDesktopAgent>();
+        var serviceProvider = serviceCollection.BuildServiceProvider();
 
-if (desktopAgentClient == null)
-{
-    throw new Exception("Failed to get IDesktopAgent from service provider...");
+        var desktopAgentClient = serviceProvider.GetRequiredService<IDesktopAgent>();
+        var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+
+        try
+        {
+            if (desktopAgentClient == null)
+            {
+                throw new Exception("Failed to get IDesktopAgent from service provider...");
+            }
+
+            await desktopAgentClient.JoinUserChannel("fdc3.channel.1");
+
+            var currentChannel = await desktopAgentClient.GetCurrentChannel();
+
+            if (currentChannel == null)
+            {
+                throw new Exception("Failed to join to a channel...");
+            }
+
+            logger.LogInformation("Joined to a channel...");
+
+            //Testing the broadcast
+            await desktopAgentClient.Broadcast(new Instrument(new InstrumentID { Ticker = "test-instrument" }, "test-name"));
+            logger.LogInformation("Broadcasted an instrument to the current channel...");
+
+            var appChannel = await desktopAgentClient.GetOrCreateChannel("app-channel-1");
+            logger.LogInformation("Got or created app channel...");
+
+            if (appChannel == null)
+            {
+                throw new Exception("Failed to get or create app channel...");
+            }
+
+            var listener = await appChannel.AddContextListener<Instrument>("fdc3.instrument", (context, metadata) =>
+            {
+                logger.LogInformation($"Received context in app channel: {context?.Name} - {context?.ID?.Ticker}");
+                Console.WriteLine($"Received context in app channel: {context?.Name} - {context?.ID?.Ticker}");
+            });
+
+            await appChannel.Broadcast(new Instrument(new InstrumentID { Ticker = $"test-instrument-2" }, "test-name2"));
+            logger.LogInformation("Broadcasted an instrument to the app channel...");
+
+            var intentListener = await desktopAgentClient.AddIntentListener<Instrument>("ViewInstrument", (context, metadata) =>
+            {
+                logger.LogInformation($"Intent received: {context?.Name} - {context?.ID?.Ticker}");
+                Console.WriteLine($"Intent received: {context?.Name} - {context?.ID?.Ticker}");
+                return Task.FromResult<IIntentResult>(currentChannel);
+            });
+
+            var instances = await desktopAgentClient.FindInstances(new AppIdentifier { AppId = "appId1" });
+            var instance = instances.First();
+
+            logger.LogDebug($"Initiator identified: {instance.AppId}; {instance.InstanceId}, but retrieved instances were : {instances.Count()}...");
+
+            try
+            {
+                var intentResolution = await desktopAgentClient.RaiseIntentForContext(new Valuation("USD", 400, 1, "02/10/2025", "10/10/2025", "USD", "USD"), instance);
+            }
+            catch (Exception exception)
+            {
+                logger.LogWarning(exception, $"Exception was thrown in the test app during raising intent for context");
+            }
+
+            var privateChannel = await desktopAgentClient.CreatePrivateChannel();
+
+            var appChannel2 = await desktopAgentClient.GetOrCreateChannel("app-channel-for-private-channel-test");
+            privateChannel.OnAddContextListener(async ctx =>
+            {
+                await appChannel2.Broadcast(new Nothing());
+            });
+
+            var listener3 = privateChannel.OnUnsubscribe((ctx) =>
+            {
+                logger.LogInformation("Private channel is unsubscribed...");
+                Console.WriteLine("Private channel is unsubscribed...");
+            });
+
+            var listener4 = privateChannel.OnAddContextListener((ctx) =>
+            {
+                logger.LogInformation($"Private channel received context listener addition information: {ctx}");
+                Console.WriteLine($"Private channel received context listener addition information context: {ctx}");
+            });
+
+            var intentListener2 = await desktopAgentClient.AddIntentListener<Contact>("TestInstrument", (context, metadata) =>
+            {
+                logger.LogInformation($"Contact Intent received: {context?.Name} - {context?.ID}, sending private channel: {privateChannel.Id}...");
+                Console.WriteLine($"Contact Intent received: {context?.Name} - {context?.ID}, sending private channel: {privateChannel.Id}...");
+                return Task.FromResult<IIntentResult>(privateChannel);
+            });
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Error during DesktopAgentClient test...");
+        }
+
+        await Task.Delay(2000);
+        logger.LogInformation("DesktopAgent is tested...");
+
+        Console.WriteLine("DesktopAgent is tested...");
+        Console.ReadLine();
+    }
 }
-
-await desktopAgentClient.JoinUserChannel("fdc3.channel.1");
-
-var currentChannel = await desktopAgentClient.GetCurrentChannel();
-if (currentChannel == null)
-{
-    throw new Exception("Failed to join to a channel...");
-}
-
-//Testing the broadcast
-await desktopAgentClient.Broadcast(new Instrument(new InstrumentID { Ticker = "test-instrument" }, "test-name"));
-
-Console.WriteLine("DesktopAgent is tested...");
-Console.ReadLine();

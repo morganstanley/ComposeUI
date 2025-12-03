@@ -33,9 +33,6 @@
             "intent2": [
               "multipleContext"
             ],
-            "intentWithNoResult": [
-              "fdc3.nothing"
-            ],
             "noIntentShouldHandle": [],
             "noAppShouldReturn": [
               "singleContext"
@@ -55,6 +52,13 @@
                 "singleContext"
               ],
               "resultType": "resultType1"
+            },
+            "TestInstrument": {
+              "name": "TestInstrument",
+              "displayName": "TestInstrument",
+              "contexts": [
+                "fdc3.valuation"
+              ]
             }
           }
         }
@@ -69,7 +73,29 @@
       },
       "interop": {
         "intents": {
+          "raises": {
+            "TestInstrument": [
+              "fdc3.instrument"
+            ],
+            "ViewInstrument": [
+              "fdc3.valuation"
+            ]
+          },
           "listensFor": {
+            "ViewInstrument": {
+              "name": "ViewInstrument",
+              "displayName": "ViewInstrument",
+              "contexts": [
+                "fdc3.instrument"
+              ]
+            },
+            "TestInstrument": {
+              "name": "TestInstrument",
+              "displayName": "TestInstrument",
+              "contexts": [
+                "fdc3.valuation"
+              ]
+            }
           }
         }
       }

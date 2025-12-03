@@ -150,10 +150,12 @@ internal class IntentResolver
             {
                 throw ThrowHelper.TargetInstanceUnavailable();
             }
+
             if (otherFilters)
             {
                 throw ThrowHelper.NoAppsFound();
             }
+
             if (appIdentifier != null)
             {
                 try

@@ -20,8 +20,27 @@ See the License for the specific language governing permissions and limitations 
         Loaded="Window_Loaded"
             DataContext="{Binding RelativeSource={RelativeSource Self}}">
     <Grid>
-        <TextBlock Name="Diagnostics" Text="{Binding DiagnosticsText}" VerticalAlignment="Top"></TextBlock>
-        <Button x:Name="SubscribeButton" Click="SubscribeButton_Click" VerticalAlignment="Bottom" HorizontalAlignment="Right">Subscribe</Button>
-        <Button x:Name="BroadcastButton" Click="BroadcastButton_Click" VerticalAlignment="Bottom" HorizontalAlignment="Left">Broadcast</Button>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <TextBlock Name="Diagnostics" Text="{Binding DiagnosticsText}" VerticalAlignment="Top" Grid.Row="0" />
+        <WrapPanel Grid.Row="1" Margin="10" HorizontalAlignment="Left">
+            <Button x:Name="SubscribeButton" Click="SubscribeButton_Click" Margin="0,10,10,0">Subscribe</Button>
+            <Button x:Name="BroadcastButton" Click="BroadcastButton_Click" Margin="0,10,10,0">Broadcast</Button>
+            <Button x:Name="AppChannelBroadcastButton" Click="AppChannelBroadcastButton_Click" Margin="0,10,10,0" ToolTip="Broadcasting on AppChannel: app-channel-1">AC - Broadcast</Button>
+            <Button x:Name="AppChannelAddContextListenerButton" Click="AppChannelAddContextListenerButton_Click"  Margin="0,10,10,0" ToolTip="Adding ContextListener on AppChannel: app-channel-1">AC - AddContextListener</Button>
+            <Button x:Name="FindIntentButton" Click="FindIntentButton_Click" Margin="0,10,10,0" ToolTip="Finding intent for ViewChart intent">FindIntent</Button>
+            <Button x:Name="FindInstancesButton" Click="FindInstancesButton_Click" Margin="0,10,10,0" ToolTip="Finding instances for current app id">FindInstances</Button>
+            <Button x:Name="FindIntentsByContextButton" Click="FindIntentsByContextButton_Click" Margin="0,10,10,0" ToolTip="FindIntentsByContext using the fdc3.instrument context type">FindIntentsByContext</Button>
+            <Button x:Name="RaiseIntentForContextButton" Click="RaiseIntentForContextButton_Click" Margin="0,10,10,0" ToolTip="Raises an intent for fdc3.nothing context type">RaiseIntentForContext</Button>
+            <Button x:Name="AddIntentListenerButton" Click="AddIntentListenerButton_Click" Margin="0,10,10,0" ToolTip="Adds Intent Listener for OpenDiagnostics intent for fdc3.nothing context type">AddIntentListener</Button>
+            <Button x:Name="RaiseIntentButton" Click="RaiseIntentButton_Click" Margin="0,10,10,0" ToolTip="Raises an intent for fdc3.instrument context type">RaiseIntent</Button>
+            <Button x:Name="OpenButton" Click="OpenButton_Click" Margin="0,10,10,0" ToolTip="Opens an app with fdc3.instrument context">Open</Button>
+            <Button x:Name="PrivateChannelBroadcastButton" Click="PrivateChannelBroadcastButton_Click" Margin="0,10,10,0" ToolTip="Broadcasts an fdc3.instrument context to a private channel (should raiseIntentForCotnext first to retrieve back the private channel)">PC - Broadcast</Button>
+            <Button x:Name="PrivateChannelAddContextListenerButton" Click="PrivateChannelAddContextListenerButton_Click" Margin="0,10,10,0" ToolTip="Adds context listener for an fdc3.instrument context to a private channel (should raiseIntentForCotnext first to retrieve back the private channel)">PC - AddContextListener</Button>
+            <Button x:Name="PrivateChannelDisconnectButton" Click="PrivateChannelDisconnectButton_Click" Margin="0,10,10,0" ToolTip="Disconnects from a private channel (should raiseIntentForCotnext first to retrieve back the private channel)">PC - Disconnect</Button>
+            <Button x:Name="PrivateChannelUnsubscribeButton" Click="PrivateChannelUnsubscribeButton_Click" Margin="0,10,10,0" ToolTip="Unsubscribes the listener from a private channel (should raiseIntentForCotnext first to retrieve back the private channel)">PC - Unsubscribe</Button>
+        </WrapPanel>
     </Grid>
 </Window>
