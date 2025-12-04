@@ -1,6 +1,6 @@
 {
   "name": "@morgan-stanley/composeui-example-pricing",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.11",
   "private": true,
   "description": "Example Web Application",
   "main": "pricing.js",
