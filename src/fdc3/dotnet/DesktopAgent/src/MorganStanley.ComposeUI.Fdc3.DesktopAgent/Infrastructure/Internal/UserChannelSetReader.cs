@@ -21,6 +21,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Converters;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
 
@@ -33,10 +34,7 @@ internal class UserChannelSetReader : IUserChannelSetReader, IDisposable
     private readonly HttpClient _httpClient;
     private readonly ILogger<UserChannelSetReader> _logger;
     private IReadOnlyDictionary<string, ChannelItem>? _userChannelSet;
-    private readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
-    {
-        Converters = { new DisplayMetadataJsonConverter(), new JsonStringEnumConverter() }
-    };
+    private readonly JsonSerializerOptions _jsonSerializerOptions = SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization;
 
     public UserChannelSetReader(
         IOptions<Fdc3DesktopAgentOptions> options,

@@ -29,11 +29,8 @@ internal class ResolverUICommunicator : IResolverUICommunicator
     private readonly IMessaging _messaging;
     private readonly TimeSpan _defaultTimeout = TimeSpan.FromMinutes(2);
 
-    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        Converters = { new AppMetadataJsonConverter() }
-    };
-
+    private readonly JsonSerializerOptions _jsonSerializerOptions = SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization;
+    
     public ResolverUICommunicator(
         IMessaging messaging,
         ILogger<ResolverUICommunicator>? logger = null)
