@@ -155,11 +155,10 @@ interface SubjectKeyValuePair {
 }
 
 @Component({
-  selector: 'app-market-watch',
-  templateUrl: './market-watch.component.html',
-  standalone: true,
-  imports: [MatTableModule, MatIconModule, MatButtonModule, MatTreeModule],
-  styleUrl: './market-watch.component.scss'
+    selector: 'app-market-watch',
+    templateUrl: './market-watch.component.html',
+    imports: [MatTableModule, MatIconModule, MatButtonModule, MatTreeModule],
+    styleUrl: './market-watch.component.scss'
 })
 export class MarketWatchComponent implements OnInit, OnDestroy{
   private listeners: Listener[] = new Array<Listener>();
