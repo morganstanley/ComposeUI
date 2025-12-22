@@ -14,9 +14,10 @@ export interface SymbolElement {
 }
 
 @Component({
-  selector: 'app-trade-idea-generator',
-  templateUrl: './trade-idea-generator.component.html',
-  styleUrl: './trade-idea-generator.component.scss'
+    selector: 'app-trade-idea-generator',
+    templateUrl: './trade-idea-generator.component.html',
+    styleUrl: './trade-idea-generator.component.scss',
+    standalone: false
 })
 export class TradeIdeaGeneratorComponent implements OnDestroy {
   public feedback?: string;
@@ -211,18 +212,17 @@ export class TradeIdeaGeneratorComponent implements OnDestroy {
 }
 
 @Component({
-  selector: 'confirmation-dialog',
-  templateUrl: './dialog.html',
-  styleUrl: './trade-idea-generator.component.scss',
-  standalone: true,
-  imports:[
-    MatDialogActions,
-    MatDialogClose,
-    MatDialogModule,
-    MatFormFieldModule,
-    FormsModule,
-    MatButtonModule
-  ]
+    selector: 'confirmation-dialog',
+    templateUrl: './dialog.html',
+    styleUrl: './trade-idea-generator.component.scss',
+    imports: [
+        MatDialogActions,
+        MatDialogClose,
+        MatDialogModule,
+        MatFormFieldModule,
+        FormsModule,
+        MatButtonModule
+    ]
 })
 export class ConfirmationDialog {
   constructor(public dialogRef: MatDialogRef<ConfirmationDialog>,
