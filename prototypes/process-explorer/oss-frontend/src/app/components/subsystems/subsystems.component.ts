@@ -8,9 +8,10 @@ import { MatSort, Sort } from '@angular/material/sort';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 @Component({
-  selector: 'app-subsystems',
-  templateUrl: './subsystems.component.html',
-  styleUrls: ['./subsystems.component.scss']
+    selector: 'app-subsystems',
+    templateUrl: './subsystems.component.html',
+    styleUrls: ['./subsystems.component.scss'],
+    standalone: false
 })
 export class SubsystemsComponent {
   subsysemsData: Array<SubsystemInfo>;

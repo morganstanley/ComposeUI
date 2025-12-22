@@ -12,16 +12,17 @@ import { Process } from 'src/app/generated-protos-files/ProcessExplorerMessages_
 
 
 @Component({
-  selector: 'app-processes',
-  templateUrl: './processes.component.html',
-  styleUrls: ['./processes.component.scss'],
-  animations: [
-    trigger('detailExpand', [
-      state('collapsed', style({ height: '0px', minHeight: '0' })),
-      state('expanded', style({ height: '*' })),
-      transition('expanded <=> collapsed', animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
-    ]),
-  ],
+    selector: 'app-processes',
+    templateUrl: './processes.component.html',
+    styleUrls: ['./processes.component.scss'],
+    animations: [
+        trigger('detailExpand', [
+            state('collapsed', style({ height: '0px', minHeight: '0' })),
+            state('expanded', style({ height: '*' })),
+            transition('expanded <=> collapsed', animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
+        ]),
+    ],
+    standalone: false
 })
 export class ProcessesComponent {
   expandedElement: any;
