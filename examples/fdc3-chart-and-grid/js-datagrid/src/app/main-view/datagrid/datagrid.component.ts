@@ -9,9 +9,10 @@ import { MockDataService } from '../services/mock-data.service';
 import { Subscription } from 'rxjs';
 
 @Component({
-  selector: 'app-datagrid',
-  templateUrl: './datagrid.component.html',
-  styleUrls: ['./datagrid.component.scss']
+    selector: 'app-datagrid',
+    templateUrl: './datagrid.component.html',
+    styleUrls: ['./datagrid.component.scss'],
+    standalone: false
 })
 
 export class DatagridComponent implements OnInit, AfterViewInit {

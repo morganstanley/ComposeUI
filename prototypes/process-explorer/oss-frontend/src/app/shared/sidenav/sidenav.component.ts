@@ -7,9 +7,10 @@ import { ThemeOption } from "../../services/theme-services/ThemeOption";
 import { ThemeService } from "../../services/theme-services/theme.service";
 
 @Component({
-  selector: 'app-sidenav',
-  templateUrl: './sidenav.component.html',
-  styleUrls: ['./sidenav.component.scss']
+    selector: 'app-sidenav',
+    templateUrl: './sidenav.component.html',
+    styleUrls: ['./sidenav.component.scss'],
+    standalone: false
 })
 export class SidenavComponent {
   options: Observable<Array<ThemeOption>> = this.themeService.getThemeOptions();

@@ -7,7 +7,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
 import { MatListModule } from '@angular/material/list'
 import { AppRoutingModule } from './app-routing.module';
-import { HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { MatMenuModule } from '@angular/material/menu';
 
 import { SidenavComponent } from './shared/sidenav/sidenav.component';
@@ -16,19 +16,17 @@ import { ThemeSelectorComponent } from './shared/theme-selector/theme-selector.c
 
 describe('AppComponent', () => {
   beforeEach(() => TestBed.configureTestingModule({
-    imports: [
-      RouterTestingModule, 
-      MatToolbarModule, 
-      MatIconModule, 
-      MatSidenavModule, 
-      BrowserAnimationsModule,
-      MatListModule,
-      AppRoutingModule,
-      HttpClientModule,
-      MatMenuModule
-    ],
-    declarations: [AppComponent, SidenavComponent, ThemeSelectorComponent]
-  }));
+    declarations: [AppComponent, SidenavComponent, ThemeSelectorComponent],
+    imports: [RouterTestingModule,
+        MatToolbarModule,
+        MatIconModule,
+        MatSidenavModule,
+        BrowserAnimationsModule,
+        MatListModule,
+        AppRoutingModule,
+        MatMenuModule],
+    providers: [provideHttpClient(withInterceptorsFromDi())]
+}));
 
   it('should create the app', () => {
     const fixture = TestBed.createComponent(AppComponent);

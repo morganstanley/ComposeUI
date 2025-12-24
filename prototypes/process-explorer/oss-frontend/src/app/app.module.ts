@@ -13,7 +13,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSortModule } from '@angular/material/sort';
-import { HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 
 import { AppRoutingModule } from './app-routing.module';
@@ -23,32 +23,25 @@ import { ProcessesComponent } from './components/processes/processes.component';
 import { ThemeSelectorComponent } from './shared/theme-selector/theme-selector.component';
 import { SubsystemsComponent } from './components/subsystems/subsystems.component';
 
-@NgModule({
-  declarations: [
-    AppComponent,
-    SidenavComponent,
-    ProcessesComponent,
-    ThemeSelectorComponent,
-    SubsystemsComponent,
-  ],
-  imports: [
-    BrowserModule,
-    AppRoutingModule,
-    MatToolbarModule,
-    MatButtonModule,
-    MatIconModule,
-    NgIf,
-    MatSidenavModule,
-    BrowserAnimationsModule,
-    MatListModule,
-    MatPaginatorModule,
-    MatTableModule,
-    MatExpansionModule,
-    MatMenuModule,
-    MatSortModule,
-    HttpClientModule
-  ],
-  providers: [],
-  bootstrap: [AppComponent]
-})
+@NgModule({ declarations: [
+        AppComponent,
+        SidenavComponent,
+        ProcessesComponent,
+        ThemeSelectorComponent,
+        SubsystemsComponent,
+    ],
+    bootstrap: [AppComponent], imports: [BrowserModule,
+        AppRoutingModule,
+        MatToolbarModule,
+        MatButtonModule,
+        MatIconModule,
+        NgIf,
+        MatSidenavModule,
+        BrowserAnimationsModule,
+        MatListModule,
+        MatPaginatorModule,
+        MatTableModule,
+        MatExpansionModule,
+        MatMenuModule,
+        MatSortModule], providers: [provideHttpClient(withInterceptorsFromDi())] })
 export class AppModule { }

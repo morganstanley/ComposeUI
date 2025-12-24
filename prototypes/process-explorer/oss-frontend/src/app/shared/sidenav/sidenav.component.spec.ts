@@ -6,7 +6,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
 import { MatListModule } from '@angular/material/list'
 import { AppRoutingModule } from '../../app-routing.module';
-import { HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { MatMenuModule } from '@angular/material/menu';
 
 
@@ -19,18 +19,16 @@ describe('SidenavComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [SidenavComponent, ThemeSelectorComponent],
-      imports: [
-        MatToolbarModule, 
-        HttpClientModule,
-        MatIconModule, 
-        MatSidenavModule, 
+    declarations: [SidenavComponent, ThemeSelectorComponent],
+    imports: [MatToolbarModule,
+        MatIconModule,
+        MatSidenavModule,
         BrowserAnimationsModule,
         MatListModule,
         AppRoutingModule,
-        MatMenuModule
-      ]
-    });
+        MatMenuModule],
+    providers: [provideHttpClient(withInterceptorsFromDi())]
+});
     fixture = TestBed.createComponent(SidenavComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

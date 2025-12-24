@@ -5,9 +5,10 @@ import { ThemeOption } from "../../services/theme-services/ThemeOption";
 import { ThemeService } from "../../services/theme-services/theme.service";
 
 @Component({
-  selector: 'app-theme-selector',
-  templateUrl: './theme-selector.component.html',
-  styleUrls: ['./theme-selector.component.scss']
+    selector: 'app-theme-selector',
+    templateUrl: './theme-selector.component.html',
+    styleUrls: ['./theme-selector.component.scss'],
+    standalone: false
 })
 export class ThemeSelectorComponent {
   @Input() options: Array<ThemeOption> | null
