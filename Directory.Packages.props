@@ -20,7 +20,7 @@
     <PackageVersion Include="Infragistics.WPF.DockManager.Trial" Version="24.2.53" />
     <PackageVersion Include="Infragistics.WPF.Ribbon.Trial" Version="24.2.53" />
     <PackageVersion Include="Infragistics.WPF.Trial" Version="24.2.53" />
-    <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="[8.0.0,9)" />
+    <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.1" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.13.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="[8.0.1,9)" />
