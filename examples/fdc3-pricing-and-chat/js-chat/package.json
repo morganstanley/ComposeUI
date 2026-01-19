@@ -23,6 +23,6 @@
     "@rollup/plugin-node-resolve": "16.0.3",
     "http-server": "14.1.1",
     "rimraf": "6.0.1",
-    "rollup": "4.53.3"
+    "rollup": "4.54.0"
   }
 }
