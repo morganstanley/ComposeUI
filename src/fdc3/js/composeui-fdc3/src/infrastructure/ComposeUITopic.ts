@@ -107,6 +107,14 @@ export class ComposeUITopic {
         return `${this.topicRoot}/${this.joinUserChannelSuffix}`;
     }
 
+    public static channelSelectorFromUI(instanceId: string): string {
+        return `${this.topicRoot}/channelSelector/UI/${instanceId}`;
+    }
+
+    public static channelSelectorFromAPI(instanceId: string): string {
+        return `${this.topicRoot}/channelSelector/API/${instanceId}`;
+    }
+
     public static getInfo(): string {
         return `${this.topicRoot}/${this.getInfoSuffix}`;
     }

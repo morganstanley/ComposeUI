@@ -13,6 +13,9 @@
 import { DisplayMetadata } from "@finos/fdc3";
 import { ChannelType } from "./ChannelType";
 
+/*
+* Represents a channel item containing its id, type and optional display metadata
+*/
 export interface ChannelItem {
     id: string;
     type: ChannelType;
