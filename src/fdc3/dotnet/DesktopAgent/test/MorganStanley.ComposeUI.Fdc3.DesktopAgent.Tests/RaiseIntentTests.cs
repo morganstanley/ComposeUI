@@ -63,7 +63,7 @@ public class RaiseIntentTests : Fdc3DesktopAgentServiceTestsBase
         };
 
         var result = await Fdc3.RaiseIntent(request, MultipleContext.Type);
-        ResolverUICommunicator.Verify(_ => _.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()));
+        ResolverUICommunicator.Verify(_ => _.SendResolverUIRequestAsync(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()));
     }
 
     [Fact]

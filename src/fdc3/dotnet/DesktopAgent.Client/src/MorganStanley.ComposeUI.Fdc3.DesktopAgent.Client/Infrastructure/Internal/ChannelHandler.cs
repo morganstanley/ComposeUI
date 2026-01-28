@@ -23,31 +23,35 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Abstractions.Exceptions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal;
 
-//TODO: Rename this class and its interface to better reflect their responsibilities
-internal class ChannelFactory : IChannelFactory
+internal class ChannelHandler : IChannelHandler
 {
     private readonly IMessaging _messaging;
     private readonly string _instanceId;
+    private readonly IDesktopAgent _desktopAgent;
     private readonly IContext? _openedAppContext;
     private readonly ILoggerFactory _loggerFactory;
-    private readonly ILogger<ChannelFactory> _logger;
+    private readonly ILogger<ChannelHandler> _logger;
     private readonly JsonSerializerOptions _jsonSerializerOptions = SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization;
     private readonly ConcurrentDictionary<string, IPrivateChannel> _privateChannels = new();
+    private IAsyncDisposable _channelSelector;
 
-    public ChannelFactory(
+    public ChannelHandler(
         IMessaging messaging,
         string fdc3InstanceId,
+        IDesktopAgent desktopAgent,
         IContext? openedAppContext = null,
         ILoggerFactory? loggerFactory = null)
     {
         _messaging = messaging;
         _instanceId = fdc3InstanceId;
+        _desktopAgent = desktopAgent;
         _openedAppContext = openedAppContext;
         _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
-        _logger = _loggerFactory.CreateLogger<ChannelFactory>();
+        _logger = _loggerFactory.CreateLogger<ChannelHandler>();
     }
 
     public async ValueTask<ContextListener<T>> CreateContextListenerAsync<T>(
@@ -67,7 +71,7 @@ internal class ChannelFactory : IChannelFactory
                 logger: _loggerFactory.CreateLogger<ContextListener<T>>());
         }
 
-        if (await currentChannel.AddContextListener<T>(contextType, contextHandler) is ContextListener<T> contextListener)
+        if (await currentChannel.AddContextListener<T>(contextType, contextHandler).ConfigureAwait(false) is ContextListener<T> contextListener)
         {
             _logger.LogDebug("Added context listener to channel {CurrentChannelId} for context type {ContextType}.)", currentChannel.Id, contextType ?? "null");
 
@@ -90,7 +94,7 @@ internal class ChannelFactory : IChannelFactory
         var response = await _messaging.InvokeJsonServiceAsync<CreateAppChannelRequest, CreateAppChannelResponse>(
             Fdc3Topic.CreateAppChannel,
             request,
-            _jsonSerializerOptions);
+            _jsonSerializerOptions).ConfigureAwait(false);
 
         if (response == null)
         {
@@ -126,7 +130,7 @@ internal class ChannelFactory : IChannelFactory
         var response = await _messaging.InvokeJsonServiceAsync<GetUserChannelsRequest, GetUserChannelsResponse>(
             Fdc3Topic.GetUserChannels,
             request,
-            _jsonSerializerOptions);
+            _jsonSerializerOptions).ConfigureAwait(false);
 
         if (response == null)
         {
@@ -183,7 +187,7 @@ internal class ChannelFactory : IChannelFactory
         var response = await _messaging.InvokeJsonServiceAsync<JoinUserChannelRequest, JoinUserChannelResponse>(
             serviceName: Fdc3Topic.JoinUserChannel,
             request,
-            _jsonSerializerOptions);
+            _jsonSerializerOptions).ConfigureAwait(false);
 
         if (response == null)
         {
@@ -209,6 +213,17 @@ internal class ChannelFactory : IChannelFactory
             displayMetadata: response.DisplayMetadata,
             loggerFactory: _loggerFactory);
 
+        try
+        {
+            var result = await _messaging.InvokeServiceAsync(Fdc3Topic.ChannelSelectorFromAPI(_instanceId), channelId).ConfigureAwait(false);
+
+            _logger.LogDebug("Triggered channel selector from API for module: {InstanceId}, with {ChannelId}, and backend returned result: {Result}", _instanceId, channel.Id, result);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogWarning(exception, "Failed to trigger channel selector from API for module: {InstanceId}, with {ChannelId}.", channelId, _instanceId);
+        }
+
         return channel;
     }
 
@@ -223,7 +238,7 @@ internal class ChannelFactory : IChannelFactory
         var response = await _messaging.InvokeJsonServiceAsync<FindChannelRequest, FindChannelResponse>(
             Fdc3Topic.FindChannel,
             request,
-            _jsonSerializerOptions);
+            _jsonSerializerOptions).ConfigureAwait(false);
 
         if (response == null)
         {
@@ -242,7 +257,7 @@ internal class ChannelFactory : IChannelFactory
 
         if (channelType == ChannelType.Private)
         {
-            return await JoinPrivateChannelAsync(channelId);
+            return await JoinPrivateChannelAsync(channelId).ConfigureAwait(false);
         }
 
         //This is only called when raising an intent, the RaiseIntent logic.
@@ -265,7 +280,7 @@ internal class ChannelFactory : IChannelFactory
         var response = await _messaging.InvokeJsonServiceAsync<CreatePrivateChannelRequest, CreatePrivateChannelResponse>(
             Fdc3Topic.CreatePrivateChannel,
             request,
-            _jsonSerializerOptions);
+            _jsonSerializerOptions).ConfigureAwait(false);
 
         if (response == null)
         {
@@ -291,6 +306,35 @@ internal class ChannelFactory : IChannelFactory
         return channel;
     }
 
+    public async ValueTask ConfigureChannelSelectorAsync(CancellationToken cancellationToken = default)
+    {
+        _channelSelector = await _messaging.RegisterServiceAsync(
+            Fdc3Topic.ChannelSelectorFromUI(_instanceId),
+            ChannelSelectorFromUI,
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    private async ValueTask<string?> ChannelSelectorFromUI(string? request)
+    {
+        if (string.IsNullOrEmpty(request))
+        {
+            return null;
+        }
+
+        var joinUserChannelRequest = JsonSerializer.Deserialize<JoinUserChannelRequest>(request, _jsonSerializerOptions);
+
+        if (joinUserChannelRequest == null || string.IsNullOrEmpty(joinUserChannelRequest.ChannelId))
+        {
+            _logger.LogDebug("Channel selector from UI received invalid request: {Request}", request);
+
+            return null;
+        }
+
+        await _desktopAgent.JoinUserChannel(joinUserChannelRequest.ChannelId).ConfigureAwait(false);
+
+        return joinUserChannelRequest.ChannelId;
+    }
+
     private async ValueTask<IPrivateChannel> JoinPrivateChannelAsync(string channelId)
     {
         var request = new JoinPrivateChannelRequest
@@ -302,7 +346,7 @@ internal class ChannelFactory : IChannelFactory
         var response = await _messaging.InvokeJsonServiceAsync<JoinPrivateChannelRequest, JoinPrivateChannelResponse>(
             Fdc3Topic.JoinPrivateChannel,
             request,
-            _jsonSerializerOptions);
+            _jsonSerializerOptions).ConfigureAwait(false);
 
         if (response == null)
         {
@@ -336,5 +380,18 @@ internal class ChannelFactory : IChannelFactory
                 loggerFactory: _loggerFactory));
 
         return channel;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_channelSelector != null)
+        {
+            await _channelSelector.DisposeAsync();
+        }
+
+        foreach (var privateChannel in _privateChannels.Values)
+        {
+            privateChannel.Disconnect();
+        }
     }
 }

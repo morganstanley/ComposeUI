@@ -25,6 +25,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
 using MorganStanley.ComposeUI.Messaging.Abstractions.Exceptions;
 using MorganStanley.ComposeUI.ModuleLoader;
 using AppChannel = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels.AppChannel;
@@ -70,6 +71,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
         IOptions<Fdc3DesktopAgentOptions> options,
         IResolverUICommunicator resolverUI,
         IUserChannelSetReader userChannelSetReader,
+        IChannelSelector? channelSelector = null,
         ILoggerFactory? loggerFactory = null)
     {
         _appDirectory = appDirectory;
@@ -91,7 +93,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
             return null;
         }
 
-        var userChannelSet = await _userChannelSetReader.GetUserChannelSet();
+        var userChannelSet = await _userChannelSetReader.GetUserChannelSet().ConfigureAwait(false);
 
         if (!userChannelSet.TryGetValue(channelId, out var channelItem) || channelItem == null)
         {
@@ -108,7 +110,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
 
         try
         {
-            await userChannel!.Connect();
+            await userChannel!.Connect().ConfigureAwait(false);
             return userChannel;
         }
         catch (DuplicateServiceNameException exception)
@@ -147,7 +149,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
 
             SafeAddToPrivateChannelsDictionary(instanceId, privateChannel);
 
-            await privateChannel!.Connect();
+            await privateChannel!.Connect().ConfigureAwait(false);
         }
         catch (DuplicateServiceNameException exception)
         {
@@ -232,7 +234,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
 
         try
         {
-            await appChannel!.Connect();
+            await appChannel!.Connect().ConfigureAwait(false);
         }
         catch (DuplicateServiceNameException exception)
         {
@@ -274,9 +276,9 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
         var privateChannelDisposeTasks = _privateChannels.Select(x => x.Value.DisposeAsync()).ToArray();
         var appChannelDisposeTasks = _appChannels.Select(x => x.Value.DisposeAsync()).ToArray();
 
-        await SafeWaitAsync(privateChannelDisposeTasks);
-        await SafeWaitAsync(userChannelDisposeTasks);
-        await SafeWaitAsync(appChannelDisposeTasks);
+        await SafeWaitAsync(privateChannelDisposeTasks).ConfigureAwait(false);
+        await SafeWaitAsync(userChannelDisposeTasks).ConfigureAwait(false);
+        await SafeWaitAsync(appChannelDisposeTasks).ConfigureAwait(false);
 
         _startedLifetimeEventSubscription?.Dispose();
         _stoppedLifetimeEventSubscription?.Dispose();
@@ -291,7 +293,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
         _pendingStartRequests.Clear();
         _userChannels.Clear();
         _privateChannels.Clear();
-        _privateChannelsByInstanceId.Clear();
+        _privateChannelsByInstanceId?.Clear();
         _appChannels.Clear();
 
         lock (_contextListenerLock)
@@ -321,7 +323,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
             return FindIntentResponse.Failure(ResolveError.IntentDeliveryFailed);
         }
 
-        var result = await GetAppIntentsByRequest(request.Intent, contextType, request.ResultType, null);
+        var result = await GetAppIntentsByRequestAsync(request.Intent, contextType, request.ResultType, null).ConfigureAwait(false);
 
         return result.AppIntents.TryGetValue(request.Intent, out var appIntent)
             ? FindIntentResponse.Success(appIntent)
@@ -335,7 +337,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
             return FindIntentsByContextResponse.Failure(ResolveError.IntentDeliveryFailed);
         }
 
-        var result = await GetAppIntentsByRequest(contextType: contextType, resultType: request.ResultType);
+        var result = await GetAppIntentsByRequestAsync(contextType: contextType, resultType: request.ResultType).ConfigureAwait(false);
 
         return !result.AppIntents.Any()
             ? FindIntentsByContextResponse.Failure(ResolveError.NoAppsFound)
@@ -357,9 +359,9 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
         try
         {
             var intentResolutionTask = GetIntentResolutionResult(request);
-            if (await Task.WhenAny(intentResolutionTask, Task.Delay(_options.IntentResultTimeout)) == intentResolutionTask)
+            if (await Task.WhenAny(intentResolutionTask, Task.Delay(_options.IntentResultTimeout)).ConfigureAwait(false) == intentResolutionTask)
             {
-                var intentResolution = await intentResolutionTask; // Completed in time
+                var intentResolution = await intentResolutionTask.ConfigureAwait(false); // Completed in time
                                                                    // Use intentResolution as needed
 
                 if (intentResolution == null)
@@ -485,7 +487,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
             return GetUserChannelsResponse.Failure(ChannelError.AccessDenied);
         }
 
-        var result = (await _userChannelSetReader.GetUserChannelSet()).Values;
+        var result = (await _userChannelSetReader.GetUserChannelSet().ConfigureAwait(false)).Values;
         if (result == null)
         {
             return GetUserChannelsResponse.Failure(Fdc3DesktopAgentErrors.NoUserChannelSetFound);
@@ -501,7 +503,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
             return JoinUserChannelResponse.Failed(Fdc3DesktopAgentErrors.MissingId);
         }
 
-        var userChannelSet = await _userChannelSetReader.GetUserChannelSet();
+        var userChannelSet = await _userChannelSetReader.GetUserChannelSet().ConfigureAwait(false);
         if (!userChannelSet.TryGetValue(request.ChannelId, out var channelItem))
         {
             return JoinUserChannelResponse.Failed(ChannelError.NoChannelFound);
@@ -509,7 +511,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
 
         try
         {
-            await AddUserChannel(addUserChannelFactory, request.ChannelId);
+            await AddUserChannel(addUserChannelFactory, request.ChannelId).ConfigureAwait(false);
         }
         catch (Exception exception)
         {
@@ -537,7 +539,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
             return GetInfoResponse.Failure(Fdc3DesktopAgentErrors.MissingId);
         }
 
-        var result = await GetAppInfo(request.AppIdentifier);
+        var result = await GetAppInfo(request.AppIdentifier).ConfigureAwait(false);
 
         return result;
     }
@@ -556,7 +558,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
 
         try
         {
-            await _appDirectory.GetApp(request.AppIdentifier.AppId!);
+            await _appDirectory.GetApp(request.AppIdentifier.AppId!).ConfigureAwait(false);
         }
         catch (AppNotFoundException)
         {
@@ -607,7 +609,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
 
         try
         {
-            var app = await _appDirectory.GetApp(request.AppIdentifier.AppId);
+            var app = await _appDirectory.GetApp(request.AppIdentifier.AppId).ConfigureAwait(false);
             var appMetadata = app.ToAppMetadata();
             return GetAppMetadataResponse.Success(appMetadata);
         }
@@ -707,7 +709,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
 
         try
         {
-            var fdc3App = await _appDirectory.GetApp(request.AppIdentifier!.AppId);
+            var fdc3App = await _appDirectory.GetApp(request.AppIdentifier!.AppId).ConfigureAwait(false);
             var appMetadata = fdc3App.ToAppMetadata();
             var parameters = new Dictionary<string, string>();
 
@@ -722,7 +724,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
                 parameters.Add(Fdc3StartupParameters.Fdc3ChannelId, request.ChannelId);
             }
 
-            var target = await StartModule(appMetadata, parameters);
+            var target = await StartModuleAsync(appMetadata, parameters).ConfigureAwait(false);
 
             if (!Guid.TryParse(target.InstanceId, out var targetInstanceId))
             {
@@ -736,11 +738,11 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
             }
 
             var cancellationToken = new CancellationToken();
-            var contextListenerTask = GetContextListener(targetInstanceId, contextType!, cancellationToken);
-            if (await Task.WhenAny(contextListenerTask, Task.Delay(_options.ListenerRegistrationTimeout, cancellationToken)) == contextListenerTask)
+            var contextListenerTask = GetContextListenerAsync(targetInstanceId, contextType!, cancellationToken);
+            if (await Task.WhenAny(contextListenerTask, Task.Delay(_options.ListenerRegistrationTimeout, cancellationToken)).ConfigureAwait(false) == contextListenerTask)
             {
                 // Task completed within timeout
-                _ = await contextListenerTask;
+                _ = await contextListenerTask.ConfigureAwait(false);
             }
             else
             {
@@ -807,7 +809,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
             _logger.LogWarning("Source app did not register its raiseable intent(s) for context: {ContextType} in the `raises` section of AppDirectory.", contextType);
         }
 
-        var filteredAppIntents = await GetAppIntentsByRequest(contextType: contextType, targetAppIdentifier: request.TargetAppIdentifier);
+        var filteredAppIntents = await GetAppIntentsByRequestAsync(contextType: contextType, targetAppIdentifier: request.TargetAppIdentifier).ConfigureAwait(false);
 
         if (filteredAppIntents.AppIntents == null || !filteredAppIntents.AppIntents.Any())
         {
@@ -821,7 +823,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
         if (filteredAppIntents.AppIntents.Count > 1)
         {
             using var resolverUIIntentCancellationSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-            var resolverUIIntentResponse = await _resolverUI.SendResolverUIIntentRequest(filteredAppIntents.AppIntents.Select(x => x.Value.Intent.Name), resolverUIIntentCancellationSource.Token);
+            var resolverUIIntentResponse = await _resolverUI.SendResolverUIIntentRequestAsync(filteredAppIntents.AppIntents.Select(x => x.Value.Intent.Name), resolverUIIntentCancellationSource.Token).ConfigureAwait(false);
 
             if (resolverUIIntentResponse == null)
             {
@@ -885,16 +887,16 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
         if (appIntent.Apps.Count() == 1)
         {
             raiseIntentSpecification.TargetAppMetadata = appIntent.Apps.ElementAt(0);
-            return await RaiseIntentToApplication(raiseIntentSpecification);
+            return await RaiseIntentToApplicationAsync(raiseIntentSpecification).ConfigureAwait(false);
         }
 
         using var resolverUICancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
 
-        var resolverUIResult = await _resolverUI.SendResolverUIRequest(appIntent.Apps, resolverUICancellationTokenSource.Token);
+        var resolverUIResult = await _resolverUI.SendResolverUIRequestAsync(appIntent.Apps, resolverUICancellationTokenSource.Token).ConfigureAwait(false);
         if (resolverUIResult != null && resolverUIResult.Error == null)
         {
             raiseIntentSpecification.TargetAppMetadata = (AppMetadata) resolverUIResult.AppMetadata!;
-            return await RaiseIntentToApplication(raiseIntentSpecification);
+            return await RaiseIntentToApplicationAsync(raiseIntentSpecification).ConfigureAwait(false);
         }
 
         if (resolverUIResult?.Error != null)
@@ -939,7 +941,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
             _logger.LogWarning("Source app did not register its raiseable intent(s) for context: {ContextType} in the `raises` section of AppDirectory.", contextType);
         }
 
-        var intentQueryResult = await GetAppIntentsByRequest(request.Intent, contextType, targetAppIdentifier: request.TargetAppIdentifier);
+        var intentQueryResult = await GetAppIntentsByRequestAsync(request.Intent, contextType, targetAppIdentifier: request.TargetAppIdentifier).ConfigureAwait(false);
 
         if (intentQueryResult.Error != null)
         {
@@ -970,17 +972,17 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
         {
             raiseIntentSpecification.TargetAppMetadata = appIntent.Apps.ElementAt(0);
 
-            return await RaiseIntentToApplication(raiseIntentSpecification);
+            return await RaiseIntentToApplicationAsync(raiseIntentSpecification).ConfigureAwait(false);
         }
 
         var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
         //Resolve to one app via ResolverUI.
-        var result = await _resolverUI.SendResolverUIRequest(appIntent.Apps, cancellationTokenSource.Token);
+        var result = await _resolverUI.SendResolverUIRequestAsync(appIntent.Apps, cancellationTokenSource.Token).ConfigureAwait(false);
 
         if (result != null && result.Error == null)
         {
             raiseIntentSpecification.TargetAppMetadata = (AppMetadata) result.AppMetadata!;
-            return await RaiseIntentToApplication(raiseIntentSpecification);
+            return await RaiseIntentToApplicationAsync(raiseIntentSpecification).ConfigureAwait(false);
         }
 
         if (result?.Error != null)
@@ -1037,9 +1039,9 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
     }
 
     //Here we have a specific application which should either start or we should send a intent resolution request
-    private async ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntentToApplication(RaiseIntentSpecification raiseIntentSpecification)
+    private async ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntentToApplicationAsync(RaiseIntentSpecification raiseIntentSpecification)
     {
-        async Task<RaiseIntentResult<RaiseIntentResponse>?> GetRaiseIntentResponse(RaiseIntentSpecification raiseIntentSpecification, string messageId)
+        async Task<RaiseIntentResult<RaiseIntentResponse>?> GetRaiseIntentResponseAsync(RaiseIntentSpecification raiseIntentSpecification, string messageId)
         {
             RaiseIntentResult<RaiseIntentResponse>? response = null;
 
@@ -1048,11 +1050,11 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
                 if (!_raisedIntentResolutions.TryGetValue(new(raiseIntentSpecification.TargetAppMetadata.InstanceId!), out var registeredFdc3App)
                     || !registeredFdc3App.IsIntentListenerRegistered(raiseIntentSpecification.Intent))
                 {
-                    await Task.Delay(1);
+                    await Task.Delay(1).ConfigureAwait(false);
                     continue;
                 }
 
-                var resolution = await GetRaiseIntentResolutionMessage(messageId, raiseIntentSpecification);
+                var resolution = await GetRaiseIntentResolutionMessageAsync(messageId, raiseIntentSpecification).ConfigureAwait(false);
                 response = new()
                 {
                     Response = RaiseIntentResponse.Success(messageId, raiseIntentSpecification.Intent, raiseIntentSpecification.TargetAppMetadata),
@@ -1071,11 +1073,11 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
             {
                 var raisedIntentMessageId = StoreRaisedIntentForTarget(raiseIntentSpecification);
 
-                var responseTask = GetRaiseIntentResponse(raiseIntentSpecification, raisedIntentMessageId);
-                var completedTask = await Task.WhenAny(responseTask, Task.Delay(_options.ListenerRegistrationTimeout));
+                var responseTask = GetRaiseIntentResponseAsync(raiseIntentSpecification, raisedIntentMessageId);
+                var completedTask = await Task.WhenAny(responseTask, Task.Delay(_options.ListenerRegistrationTimeout)).ConfigureAwait(false);
                 if (completedTask == responseTask)
                 {
-                    var response = await responseTask;
+                    var response = await responseTask.ConfigureAwait(false);
                     if (response != null)
                     {
                         return response;
@@ -1090,7 +1092,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
 
             try
             {
-                var module = await StartModule(raiseIntentSpecification.TargetAppMetadata);
+                var module = await StartModuleAsync(raiseIntentSpecification.TargetAppMetadata).ConfigureAwait(false);
 
                 raiseIntentSpecification.TargetAppMetadata = module;
 
@@ -1104,11 +1106,11 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
                     };
                 }
 
-                var responseTask = GetRaiseIntentResponse(raiseIntentSpecification, raisedIntentMessageId);
-                var completedTask = await Task.WhenAny(responseTask, Task.Delay(_options.ListenerRegistrationTimeout));
+                var responseTask = GetRaiseIntentResponseAsync(raiseIntentSpecification, raisedIntentMessageId);
+                var completedTask = await Task.WhenAny(responseTask, Task.Delay(_options.ListenerRegistrationTimeout)).ConfigureAwait(false);
                 if (completedTask == responseTask)
                 {
-                    var response = await responseTask;
+                    var response = await responseTask.ConfigureAwait(false);
 
                     if (response != null)
                     {
@@ -1140,7 +1142,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
         }
     }
 
-    private async ValueTask<AppMetadata> StartModule(AppMetadata targetAppMetadata, IEnumerable<KeyValuePair<string, string>>? additionalStartupParameters = null)
+    private async ValueTask<AppMetadata> StartModuleAsync(AppMetadata targetAppMetadata, IEnumerable<KeyValuePair<string, string>>? additionalStartupParameters = null)
     {
         var startupParameters = additionalStartupParameters?.ToDictionary(x => x.Key, y => y.Value) ?? [];
 
@@ -1170,7 +1172,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
             };
         }
 
-        var moduleInstance = await _moduleLoader.StartModule(startRequest);
+        var moduleInstance = await _moduleLoader.StartModule(startRequest).ConfigureAwait(false);
 
         if (moduleInstance == null)
         {
@@ -1184,7 +1186,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
             taskCompletionSource.TrySetException(exception);
         }
 
-        await taskCompletionSource.Task;
+        await taskCompletionSource.Task.ConfigureAwait(false);
 
         return new AppMetadata
         {
@@ -1212,7 +1214,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
                 && resolution.ResultContext == null
                 && resolution.ResultVoid == null))
         {
-            await Task.Delay(100);
+            await Task.Delay(100).ConfigureAwait(false);
         }
 
         return resolution;
@@ -1241,7 +1243,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
     }
 
     //Publishing intent resolution request to the fdc3 clients, they will receive the message and start their IntentHandler appropriately, and send a store request back to the backend.
-    private Task<RaiseIntentResolutionMessage?> GetRaiseIntentResolutionMessage(
+    private Task<RaiseIntentResolutionMessage?> GetRaiseIntentResolutionMessageAsync(
         string raisedIntentMessageId,
         RaiseIntentSpecification raiseIntentSpecification)
     {
@@ -1273,7 +1275,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
             });
     }
 
-    private async Task<IntentQueryResult> GetAppIntentsByRequest(
+    private async Task<IntentQueryResult> GetAppIntentsByRequestAsync(
         string? intent = null,
         string? contextType = null,
         string? resultType = null,
@@ -1286,7 +1288,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
         {
             try
             {
-                var filteredApps = await _intentResolver.GetMatchingAppsFromAppDirectory(intent, contextType, resultType, targetAppIdentifier?.AppId);
+                var filteredApps = await _intentResolver.GetMatchingAppsFromAppDirectoryAsync(intent, contextType, resultType, targetAppIdentifier?.AppId).ConfigureAwait(false);
 
                 var appIntents = GetAppIntentsFromIntentMetadataCollection(filteredApps);
                 result.AppIntents = appIntents;
@@ -1305,7 +1307,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
 
         try
         {
-            var filteredInstances = await _intentResolver.GetMatchingAppInstances(intent, contextType, resultType, targetAppIdentifier?.AppId, targetAppIdentifier?.InstanceId == null ? null : instanceId);
+            var filteredInstances = await _intentResolver.GetMatchingAppInstancesAsync(intent, contextType, resultType, targetAppIdentifier?.AppId, targetAppIdentifier?.InstanceId == null ? null : instanceId).ConfigureAwait(false);
             var appIntents = GetAppIntentsFromIntentMetadataCollection(filteredInstances);
             foreach (var app in appIntents)
             {
@@ -1394,7 +1396,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
         return new ValueTask<GetInfoResponse>(GetInfoResponse.Success(implementationMetadata));
     }
 
-    private async Task<ContextListener> GetContextListener(Guid instanceId, string contextType, CancellationToken cancellationToken = default)
+    private async Task<ContextListener> GetContextListenerAsync(Guid instanceId, string contextType, CancellationToken cancellationToken = default)
     {
         while (true)
         {
@@ -1417,7 +1419,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
                 }
             }
 
-            await Task.Delay(1, cancellationToken);
+            await Task.Delay(1, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -1474,7 +1476,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
         Fdc3App fdc3App;
         try
         {
-            fdc3App = await _appDirectory.GetApp(instance.Manifest.Id);
+            fdc3App = await _appDirectory.GetApp(instance.Manifest.Id).ConfigureAwait(false);
 
             if (_pendingStartRequests.TryRemove(instance.StartRequest, out var taskCompletionSource))
             {
@@ -1517,7 +1519,7 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
         {
             try
             {
-                await task;
+                await task.ConfigureAwait(false);
             }
             catch (Exception exception)
             {

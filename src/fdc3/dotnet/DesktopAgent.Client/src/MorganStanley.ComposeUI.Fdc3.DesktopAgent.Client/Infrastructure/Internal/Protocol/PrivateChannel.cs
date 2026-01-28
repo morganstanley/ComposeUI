@@ -75,7 +75,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
                 _logger.LogDebug("Subscribing to private channel internal events for channel {ChannelId}, instance {InstanceId}, topic: {Topic}.", Id, InstanceId, _internalEventsTopic);
             }
 
-            _subscription = await Messaging.SubscribeAsync(_internalEventsTopic, HandleInternalEvent);
+            _subscription = await Messaging.SubscribeAsync(_internalEventsTopic, HandleInternalEvent).ConfigureAwait(false);
 
 
             var topic = _privateChannelTopics.GetContextHandlers(_isOriginalCreator);
@@ -84,7 +84,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
                 _logger.LogDebug("Registering remote private channel context handlers service for channel {ChannelId}, instance {InstanceId}, service: {Service}.", Id, InstanceId, topic);
             }
 
-            _serviceRegistration = await Messaging.RegisterServiceAsync(topic, HandleRemoteContextListener);
+            _serviceRegistration = await Messaging.RegisterServiceAsync(topic, HandleRemoteContextListener).ConfigureAwait(false);
 
             _initializationTaskCompletionSource.SetResult(Id);
         }
@@ -128,7 +128,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
                 throw ThrowHelper.PrivateChannelDisconnected(Id, InstanceId);
             }
 
-            var listener = await base.AddContextListener(contextType, handler) as ContextListener<T>;
+            var listener = await base.AddContextListener(contextType, handler).ConfigureAwait(false) as ContextListener<T>;
 
             if (listener != null)
             {
@@ -146,7 +146,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
                 return listener;
             }
 
-            throw ThrowHelper.PrivatChannelSubscribeFailure(contextType, Id, InstanceId);
+            throw ThrowHelper.PrivateChannelSubscribeFailure(contextType, Id, InstanceId);
         }
         finally
         {
@@ -204,19 +204,26 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
             foreach (var listener in _contextHandlers)
             {
-                //Fire and forget
-                listener.Unsubscribe();
-
-                if (_logger.IsEnabled(LogLevel.Trace))
+                try
                 {
-                    _logger.LogTrace("Unsubscribed context listener on private channel {ChannelId}.", Id);
+                    //Fire and forget
+                    listener.Unsubscribe();
+
+                    if (_logger.IsEnabled(LogLevel.Trace))
+                    {
+                        _logger.LogTrace("Unsubscribed context listener on private channel {ChannelId}.", Id);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogWarning(exception, "Error unsubscribing context listener on private channel {ChannelId}.", Id);
                 }
             }
 
             var request = PrivateChannelInternalEvents.Disconnected(InstanceId);
             var serializedRequest = JsonSerializer.Serialize(request, _jsonSerializerOptions);
 
-            await Messaging.PublishAsync(_internalEventsTopic, serializedRequest);
+            await Messaging.PublishAsync(_internalEventsTopic, serializedRequest).ConfigureAwait(false);
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
@@ -224,6 +231,10 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
             }
 
             _onDisconnect();
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, "Error during disconnecting private channel {ChannelId}, instance {InstanceId}.", Id, InstanceId);
         }
         finally
         {
@@ -415,7 +426,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
         var serializedRequest = JsonSerializer.Serialize(request, _jsonSerializerOptions);
 
-        await Messaging.PublishAsync(_internalEventsTopic, serializedRequest);
+        await Messaging.PublishAsync(_internalEventsTopic, serializedRequest).ConfigureAwait(false);
 
         if (_logger.IsEnabled(LogLevel.Debug))
         {
@@ -458,7 +469,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
         var serializedRequest = JsonSerializer.Serialize(request, _jsonSerializerOptions);
 
-        await Messaging.PublishAsync(_internalEventsTopic, serializedRequest);
+        await Messaging.PublishAsync(_internalEventsTopic, serializedRequest).ConfigureAwait(false);
 
         if (_logger.IsEnabled(LogLevel.Debug))
         {

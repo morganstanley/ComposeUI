@@ -66,6 +66,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\..\fdc3\dotnet\AppDirectory\src\MorganStanley.ComposeUI.Fdc3.AppDirectory\MorganStanley.ComposeUI.Fdc3.AppDirectory.csproj" />
+		<ProjectReference Include="..\..\..\..\fdc3\dotnet\DesktopAgent.Shared\src\MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared\MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.csproj" />
 		<ProjectReference Include="..\..\..\..\fdc3\dotnet\DesktopAgent\src\MorganStanley.ComposeUI.Fdc3.DesktopAgent\MorganStanley.ComposeUI.Fdc3.DesktopAgent.csproj" />
 		<ProjectReference Include="..\..\..\..\layout-persistence\dotnet\src\MorganStanley.ComposeUI.LayoutPersistence\MorganStanley.ComposeUI.LayoutPersistence.csproj" />
 		<ProjectReference Include="..\..\..\..\messaging\dotnet\src\Host\MorganStanley.ComposeUI.Messaging.Host.csproj" />
@@ -79,10 +80,7 @@
 		<ItemGroup>
 			<DesktopAgentClientExe Include="$(SolutionDir)..\..\..\examples\dotnet-diagnostics\DiagnosticsExample\bin\$(Configuration)\net8.0-windows\DiagnosticsExample.exe" />
 		</ItemGroup>
-		<Copy
-		  SourceFiles="@(DesktopAgentClientExe)"
-		  DestinationFolder="$(OutDir)"
-		  SkipUnchangedFiles="true" />
+		<Copy SourceFiles="@(DesktopAgentClientExe)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
 	</Target>
 
 </Project>

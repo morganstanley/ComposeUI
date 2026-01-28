@@ -31,7 +31,7 @@ internal class IntentResolver
     }
 
 
-    public async Task<IEnumerable<FlatAppIntent>> GetMatchingAppsFromAppDirectory(string? intent = null, string? contextType = null, string? resultType = null, string? appIdentifier = null)
+    public async Task<IEnumerable<FlatAppIntent>> GetMatchingAppsFromAppDirectoryAsync(string? intent = null, string? contextType = null, string? resultType = null, string? appIdentifier = null)
     {
         IEnumerable<FlatAppIntent> appIntents;
 
@@ -67,7 +67,7 @@ internal class IntentResolver
         return appIntents;
     }
 
-    public async Task<IEnumerable<FlatAppIntent>> GetMatchingAppInstances(
+    public async Task<IEnumerable<FlatAppIntent>> GetMatchingAppInstancesAsync(
         string? intent = null,
         string? contextType = null,
         string? resultType = null,
@@ -77,7 +77,7 @@ internal class IntentResolver
     {
         if (instanceId != null)
         {
-            return await MatchSpecificInstance(instanceId.Value, intent, contextType, resultType, appIdentifier);
+            return await MatchSpecificInstance(instanceId.Value, intent, contextType, resultType, appIdentifier).ConfigureAwait(false);
         }
 
         var apps = Enumerable.Empty<FlatAppIntent>();
@@ -160,7 +160,7 @@ internal class IntentResolver
             {
                 try
                 {
-                    _ = await _appDirectory.GetApp(appIdentifier);
+                    _ = await _appDirectory.GetApp(appIdentifier).ConfigureAwait(false);
                     throw ThrowHelper.NoAppsFound();
                 }
                 catch (AppNotFoundException)

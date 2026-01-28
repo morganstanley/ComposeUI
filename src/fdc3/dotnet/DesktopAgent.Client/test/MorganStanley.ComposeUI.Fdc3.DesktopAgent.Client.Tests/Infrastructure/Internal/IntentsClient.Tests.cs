@@ -25,10 +25,7 @@ using IntentMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppMetadata;
 using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIntent;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
-using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal.Protocol;
 using Finos.Fdc3;
-using IntentResolution = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal.Protocol.IntentResolution;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests.Infrastructure.Internal;
@@ -37,12 +34,12 @@ public class IntentsClientTests
 {
     private readonly JsonSerializerOptions _jsonSerializerOptions = SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization;
     private readonly Mock<IMessaging> _messagingMock = new();
-    private readonly Mock<IChannelFactory> _channelFactoryMock = new();
+    private readonly Mock<IChannelHandler> _channelHandlerMock = new();
     private readonly IntentsClient _client;
 
     public IntentsClientTests()
     {
-        _client = new IntentsClient(_messagingMock.Object, _channelFactoryMock.Object, "testInstance");
+        _client = new IntentsClient(_messagingMock.Object, _channelHandlerMock.Object, "testInstance");
     }
 
     [Fact]

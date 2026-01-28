@@ -19,6 +19,7 @@ using System.Threading.Tasks;
 using Finos.Fdc3;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Converters;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
@@ -33,10 +34,7 @@ internal class ResolverUIService : IHostedService
     private readonly List<Func<ValueTask>> _disposeTask = new();
     private readonly IHost _host;
 
-    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        Converters = { new AppMetadataJsonConverter(), new IconJsonConverter() }
-    };
+    private readonly JsonSerializerOptions _jsonSerializerOptions = SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization;
 
     private readonly IResolverUIProjector _resolverUIWindow;
 

@@ -50,7 +50,7 @@ internal sealed class Fdc3StartupAction : IStartupAction
         try
         {
             var appId = (await _appDirectory.GetApp(startupContext.StartRequest.ModuleId)).AppId;
-            var userChannelSet = await _userChannelSetReader.GetUserChannelSet();
+            var userChannelSet = await _userChannelSetReader.GetUserChannelSet().ConfigureAwait(false);
 
             var fdc3InstanceId = startupContext
                 .StartRequest
@@ -74,7 +74,7 @@ internal sealed class Fdc3StartupAction : IStartupAction
 
             if (Handlers.TryGetValue(startupContext.ModuleInstance.Manifest.ModuleType, out var handler))
             {
-                await handler.HandleAsync(startupContext, appId, fdc3InstanceId, channelId, openedAppContextId);
+                await handler.HandleAsync(startupContext, appId, fdc3InstanceId, channelId, openedAppContextId).ConfigureAwait(false);
             }
         }
         catch (AppNotFoundException exception)

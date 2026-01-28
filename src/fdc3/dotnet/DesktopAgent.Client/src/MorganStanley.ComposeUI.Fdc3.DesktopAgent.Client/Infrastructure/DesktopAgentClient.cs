@@ -25,16 +25,16 @@ using MorganStanley.ComposeUI.Messaging.Abstractions;
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure;
 
 /// <summary>
-/// Desktop Agent client implementation.
+/// Desktop Agent client implementation for native apps.
 /// </summary>
-public class DesktopAgentClient : IDesktopAgent
+public class DesktopAgentClient : IDesktopAgent, IAsyncDisposable
 {
     private readonly IMessaging _messaging;
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<DesktopAgentClient> _logger;
     private readonly string _appId;
     private readonly string _instanceId;
-    private IChannelFactory _channelFactory;
+    private IChannelHandler _channelHandler;
     private IMetadataClient _metadataClient;
     private IIntentsClient _intentsClient;
     private IOpenClient _openClient;
@@ -48,12 +48,7 @@ public class DesktopAgentClient : IDesktopAgent
 
     private readonly SemaphoreSlim _currentChannelLock = new(1, 1);
 
-    private readonly ConcurrentDictionary<string, IChannel> _userChannels = new();
-    private readonly ConcurrentDictionary<string, IChannel> _appChannels = new();
-    private readonly SemaphoreSlim _appChannelsLock = new(1, 1);
-
     private readonly TaskCompletionSource<string> _initializationTaskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
-    private string? _openedAppContextId;
 
     public DesktopAgentClient(
         IMessaging messaging,
@@ -74,7 +69,7 @@ public class DesktopAgentClient : IDesktopAgent
         _metadataClient = new MetadataClient(_appId, _instanceId, _messaging, _loggerFactory.CreateLogger<MetadataClient>());
         _openClient = new OpenClient(_instanceId, _messaging, this, _loggerFactory.CreateLogger<OpenClient>());
 
-        _ = Task.Run(() => InitializeAsync());
+        _ = Task.Run(() => InitializeAsync().ConfigureAwait(false));
     }
 
     /// <summary>
@@ -105,12 +100,13 @@ public class DesktopAgentClient : IDesktopAgent
 
             if (!string.IsNullOrEmpty(openedAppContextId))
             {
-                _openedAppContextId = openedAppContextId;
                 await GetOpenedAppContextAsync(openedAppContextId!).ConfigureAwait(false);
             }
 
-            _channelFactory = new ChannelFactory(_messaging, _instanceId, _openedAppContext, _loggerFactory);
-            _intentsClient = new IntentsClient(_messaging, _channelFactory, _instanceId, _loggerFactory);
+            _channelHandler = new ChannelHandler(_messaging, _instanceId, this, _openedAppContext, _loggerFactory);
+            _intentsClient = new IntentsClient(_messaging, _channelHandler, _instanceId, _loggerFactory);
+
+            await _channelHandler.ConfigureChannelSelectorAsync(CancellationToken.None).ConfigureAwait(false);
 
             _initializationTaskCompletionSource.SetResult(_instanceId);
         }
@@ -142,21 +138,21 @@ public class DesktopAgentClient : IDesktopAgent
                     "Checking if the app was opened via fdc3.open. OpenedAppContext exists: {IsNotNull}, current context listener's context type: {ContextType}, received app context's type via open call: {OpenedAppContextType}.", _openedAppContext != null, contextType, _openedAppContext?.Type);
             }
 
-            listener = await _channelFactory.CreateContextListenerAsync<T>(handler, _currentChannel, contextType);
+            listener = await _channelHandler.CreateContextListenerAsync<T>(handler, _currentChannel, contextType).ConfigureAwait(false);
 
             _contextListeners.Add(
                 listener,
                 async (channelId, channelType, cancellationToken) =>
                 {
-                    await listener.SubscribeAsync(channelId, channelType, cancellationToken);
-                    await HandleLastContextAsync(listener);
+                    await listener.SubscribeAsync(channelId, channelType, cancellationToken).ConfigureAwait(false);
+                    await HandleLastContextAsync(listener).ConfigureAwait(false);
                 });
 
             return listener;
         }
         finally
         {
-            await HandleLastContextAsync(listener);
+            await HandleLastContextAsync(listener).ConfigureAwait(false);
 
             _currentChannelLock.Release();
         }
@@ -178,7 +174,7 @@ public class DesktopAgentClient : IDesktopAgent
             return existingListener;
         }
 
-        var listener = await _intentsClient.AddIntentListenerAsync<T>(intent, handler);
+        var listener = await _intentsClient.AddIntentListenerAsync<T>(intent, handler).ConfigureAwait(false);
 
         if (!_intentListeners.TryAdd(intent, listener))
         {
@@ -209,7 +205,7 @@ public class DesktopAgentClient : IDesktopAgent
                 throw ThrowHelper.ClientNotConnectedToUserChannel();
             }
 
-            await _currentChannel.Broadcast(context);
+            await _currentChannel.Broadcast(context).ConfigureAwait(false);
         }
         finally
         {
@@ -224,7 +220,7 @@ public class DesktopAgentClient : IDesktopAgent
     public async Task<IPrivateChannel> CreatePrivateChannel()
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
-        var privateChannel = await _channelFactory.CreatePrivateChannelAsync();
+        var privateChannel = await _channelHandler.CreatePrivateChannelAsync().ConfigureAwait(false);
 
         return privateChannel;
     }
@@ -238,7 +234,7 @@ public class DesktopAgentClient : IDesktopAgent
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
 
-        var instances = await _metadataClient.FindInstancesAsync(app);
+        var instances = await _metadataClient.FindInstancesAsync(app).ConfigureAwait(false);
         return instances;
     }
 
@@ -253,7 +249,7 @@ public class DesktopAgentClient : IDesktopAgent
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
 
-        var result = await _intentsClient.FindIntentAsync(intent, context, resultType);
+        var result = await _intentsClient.FindIntentAsync(intent, context, resultType).ConfigureAwait(false);
         return result;
     }
 
@@ -267,7 +263,7 @@ public class DesktopAgentClient : IDesktopAgent
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
 
-        var appIntents = await _intentsClient.FindIntentsByContextAsync(context, resultType);
+        var appIntents = await _intentsClient.FindIntentsByContextAsync(context, resultType).ConfigureAwait(false);
         return appIntents;
     }
 
@@ -280,7 +276,7 @@ public class DesktopAgentClient : IDesktopAgent
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
 
-        var appMetadata = await _metadataClient.GetAppMetadataAsync(app);
+        var appMetadata = await _metadataClient.GetAppMetadataAsync(app).ConfigureAwait(false);
         return appMetadata;
     }
 
@@ -303,7 +299,7 @@ public class DesktopAgentClient : IDesktopAgent
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
 
-        var implementationMetadata = await _metadataClient.GetInfoAsync();
+        var implementationMetadata = await _metadataClient.GetInfoAsync().ConfigureAwait(false);
         return implementationMetadata;
     }
 
@@ -314,32 +310,9 @@ public class DesktopAgentClient : IDesktopAgent
     /// <returns></returns>
     public async Task<IChannel> GetOrCreateChannel(string channelId)
     {
-        try
-        {
-            await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
-            await _appChannelsLock.WaitAsync().ConfigureAwait(false);
-
-            if (_appChannels.TryGetValue(channelId, out var existingChannel))
-            {
-                return existingChannel;
-            }
-
-            var channel = await _channelFactory.CreateAppChannelAsync(channelId);
-
-            if (!_appChannels.TryAdd(channelId, channel))
-            {
-                if (_logger.IsEnabled(LogLevel.Warning))
-                {
-                    _logger.LogWarning("Failed to add app channel to the internal collection: {ChannelId}.", channelId);
-                }
-            }
-
-            return channel;
-        }
-        finally
-        {
-            _appChannelsLock.Release();
-        }
+        await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
+        var channel = await _channelHandler.CreateAppChannelAsync(channelId).ConfigureAwait(false);
+        return channel;
     }
 
     /// <summary>
@@ -349,8 +322,7 @@ public class DesktopAgentClient : IDesktopAgent
     public async Task<IEnumerable<IChannel>> GetUserChannels()
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
-
-        var channels = await _channelFactory.GetUserChannelsAsync();
+        var channels = await _channelHandler.GetUserChannelsAsync().ConfigureAwait(false);
         return channels;
     }
 
@@ -373,12 +345,7 @@ public class DesktopAgentClient : IDesktopAgent
                 await LeaveCurrentChannel().ConfigureAwait(false);
             }
 
-            if (!_userChannels.TryGetValue(channelId, out var channel))
-            {
-                channel = await _channelFactory.JoinUserChannelAsync(channelId).ConfigureAwait(false);
-                _userChannels[channelId] = channel;
-            }
-
+            var channel = await _channelHandler.JoinUserChannelAsync(channelId).ConfigureAwait(false);
             _currentChannel = channel;
         }
         finally
@@ -422,7 +389,10 @@ public class DesktopAgentClient : IDesktopAgent
                 contextListener.Key.Unsubscribe();
             }
 
-            _currentChannel = null;
+            if (_currentChannel != null)
+            {
+                _currentChannel = null;
+            }
         }
         finally
         {
@@ -440,7 +410,7 @@ public class DesktopAgentClient : IDesktopAgent
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
 
-        var appIdentifier = await _openClient.OpenAsync(app, context);
+        var appIdentifier = await _openClient.OpenAsync(app, context).ConfigureAwait(false);
         return appIdentifier;
     }
 
@@ -455,7 +425,7 @@ public class DesktopAgentClient : IDesktopAgent
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
 
-        var intentResolution = await _intentsClient.RaiseIntentAsync(intent, context, app);
+        var intentResolution = await _intentsClient.RaiseIntentAsync(intent, context, app).ConfigureAwait(false);
         return intentResolution;
     }
 
@@ -469,7 +439,7 @@ public class DesktopAgentClient : IDesktopAgent
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
 
-        var intentResolution = await _intentsClient.RaiseIntentForContextAsync(context, app);
+        var intentResolution = await _intentsClient.RaiseIntentForContextAsync(context, app).ConfigureAwait(false);
         return intentResolution;
     }
 
@@ -482,7 +452,7 @@ public class DesktopAgentClient : IDesktopAgent
     {
         try
         {
-            _openedAppContext = await _openClient.GetOpenAppContextAsync(openedAppContextId);
+            _openedAppContext = await _openClient.GetOpenAppContextAsync(openedAppContextId).ConfigureAwait(false);
         }
         catch (Fdc3DesktopAgentException exception)
         {
@@ -513,7 +483,7 @@ public class DesktopAgentClient : IDesktopAgent
             return;
         }
 
-        var lastContext = await _currentChannel.GetCurrentContext(listener.ContextType);
+        var lastContext = await _currentChannel.GetCurrentContext(listener.ContextType).ConfigureAwait(false);
 
         if (lastContext == null)
         {
@@ -526,6 +496,26 @@ public class DesktopAgentClient : IDesktopAgent
             _logger.LogDebug("Invoking context handler for the last context of type: {ContextType}.", listener.ContextType ?? "null");
         }
 
-        await listener.HandleContextAsync(lastContext);
+        await listener.HandleContextAsync(lastContext).ConfigureAwait(false);
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        if (_channelHandler != null)
+        {
+            return _channelHandler.DisposeAsync();
+        }
+
+        foreach (var intentListener in _intentListeners.Values)
+        {
+            intentListener.Unsubscribe();
+        }
+
+        foreach (var contextListener in _contextListeners.Keys)
+        {
+            contextListener.Unsubscribe();
+        }
+
+        return new ValueTask();
     }
 }
