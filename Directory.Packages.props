@@ -33,7 +33,7 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="[8.0.3,9)" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="[8.0.1,9)" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="[8.0.1,9)" />
-    <PackageVersion Include="Microsoft.Extensions.Options" Version="[8.0.2,9)" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.2" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
     <PackageVersion Include="Microsoft.Web.WebView2" Version="1.0.3595.46" />
     <PackageVersion Include="Moq.Contrib.HttpClient" Version="1.4.0" />
