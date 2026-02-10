@@ -54,10 +54,11 @@ public partial class Fdc3DesktopAgentMessagingServiceTests : IAsyncLifetime
     private readonly MockModuleLoader _mockModuleLoader = new();
     private readonly ConcurrentDictionary<Guid, IModuleInstance> _modules = new();
     private IDisposable? _disposable;
+    private readonly Mock<IChannelSelector> _mockChannelSelector;
 
     public Fdc3DesktopAgentMessagingServiceTests()
     {
-
+        _mockChannelSelector = new Mock<IChannelSelector>();
         _mockMessaging.Setup(x => x.RegisterServiceAsync(It.IsAny<string>(), It.IsAny<Messaging.Abstractions.ServiceHandler>(), It.IsAny<CancellationToken>())).Returns(() => ValueTask.FromResult(new Mock<IAsyncDisposable>().Object));
 
         var options = new Fdc3DesktopAgentOptions()
@@ -74,6 +75,7 @@ public partial class Fdc3DesktopAgentMessagingServiceTests : IAsyncLifetime
                 options,
                 _mockResolverUICommunicator.Object,
                 new UserChannelSetReader(options),
+                _mockChannelSelector.Object,
                 NullLoggerFactory.Instance),
             new Fdc3DesktopAgentOptions(),
             NullLoggerFactory.Instance);
@@ -303,7 +305,7 @@ public partial class Fdc3DesktopAgentMessagingServiceTests : IAsyncLifetime
         };
 
         var result = await _fdc3.HandleRaiseIntent(raiseIntentRequest);
-        _mockResolverUICommunicator.Verify(_ => _.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()));
+        _mockResolverUICommunicator.Verify(_ => _.SendResolverUIRequestAsync(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()));
     }
 
     [Fact]
@@ -322,7 +324,7 @@ public partial class Fdc3DesktopAgentMessagingServiceTests : IAsyncLifetime
         };
 
         var result = await _fdc3.HandleRaiseIntent(raiseIntentRequest);
-        _mockResolverUICommunicator.Verify(_ => _.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()));
+        _mockResolverUICommunicator.Verify(_ => _.SendResolverUIRequestAsync(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()));
     }
 
     [Fact]

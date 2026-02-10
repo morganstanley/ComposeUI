@@ -42,6 +42,9 @@ export class ComposeUIContextListener implements Listener {
 
     public async subscribe(channelId: string, channelType: ChannelType): Promise<void> {
         await this.registerContextListener(channelId, channelType);
+
+        console.debug("Subscribed context listener with id: ", this.id, ", to channel: ", channelId, ", of type: ", channelType, ", for context type: ", this.contextType);
+
         const subscribeTopic = ComposeUITopic.broadcast(channelId, channelType);
 
         this.unsubscribable = await this.jsonMessaging.subscribeJson<Context>(subscribeTopic, async (context: Context) => {
@@ -54,6 +57,7 @@ export class ComposeUIContextListener implements Listener {
             }
         });
 
+        console.log("Registered context listener with id: ", this.id, ", to topic: ", subscribeTopic);
         this.isSubscribed = true;
     }
 
@@ -94,16 +98,18 @@ export class ComposeUIContextListener implements Listener {
 
     public async unsubscribe(): Promise<void> {
         if (!this.unsubscribable || !this.isSubscribed) {
+            console.debug("The current listener is not subscribed.");
             return;
         }
         
         try {
             await this.leaveChannel();
+            console.debug("Unsubscribed context listener with id: ", this.id);
         } catch(err) {
             console.log(err);
         }
 
-        this.unsubscribable.unsubscribe();
+        await this.unsubscribable.unsubscribe();
         this.isSubscribed = false;
 
         if (this.unsubscribeCallback) {
@@ -129,6 +135,7 @@ export class ComposeUIContextListener implements Listener {
     }
 
     private async leaveChannel() : Promise<void> {
+        console.debug("Removing context listener with id: ", this.id);
         const request = new Fdc3RemoveContextListenerRequest(window.composeui.fdc3.config?.instanceId!, this.id!, this.contextType);
         const response = await this.jsonMessaging.invokeJsonService<Fdc3RemoveContextListenerRequest, Fdc3RemoveContextListenerResponse>(ComposeUITopic.removeContextListener(), request);
         if (!response) {

@@ -12,7 +12,7 @@
  */
 import { AppMetadata, IntentResolution, IntentResult } from "@finos/fdc3";
 import { JsonMessaging } from "@morgan-stanley/composeui-messaging-abstractions";
-import { ChannelFactory } from "./ChannelFactory";
+import { ChannelHandler } from "./ChannelHandler";
 import { ComposeUIErrors } from "./ComposeUIErrors";
 import { ComposeUITopic } from "./ComposeUITopic";
 import { Fdc3GetIntentResultRequest } from "./messages/Fdc3GetIntentResultRequest";
@@ -20,18 +20,18 @@ import { Fdc3GetIntentResultResponse } from "./messages/Fdc3GetIntentResultRespo
 
 export class ComposeUIIntentResolution implements IntentResolution {
     private jsonMessaging: JsonMessaging;
-    private channelFactory: ChannelFactory;
+    private channelHandler: ChannelHandler;
     public source: AppMetadata;
     public intent: string
     public messageId: string;
 
 
-    constructor(messageId: string, jsonMessaging: JsonMessaging, channelFactory: ChannelFactory, intent: string, source: AppMetadata) {
+    constructor(messageId: string, jsonMessaging: JsonMessaging, channelHandler: ChannelHandler, intent: string, source: AppMetadata) {
         this.messageId = messageId;
         this.intent = intent;
         this.source = source;
         this.jsonMessaging = jsonMessaging;
-        this.channelFactory = channelFactory;
+        this.channelHandler = channelHandler;
     }
 
     async getResult(): Promise<IntentResult> {
@@ -47,7 +47,7 @@ export class ComposeUIIntentResolution implements IntentResolution {
         }
 
         if (result.channelId && result.channelType) {
-            const channel = this.channelFactory.getChannel(result.channelId, result.channelType)
+            const channel = this.channelHandler.getChannel(result.channelId, result.channelType)
             return channel;
         } else if (result.context) {
             return result.context;

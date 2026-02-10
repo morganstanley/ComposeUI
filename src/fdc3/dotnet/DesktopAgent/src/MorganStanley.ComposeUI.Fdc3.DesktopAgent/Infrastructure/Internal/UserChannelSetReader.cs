@@ -67,7 +67,7 @@ internal class UserChannelSetReader : IUserChannelSetReader, IDisposable
             using var stream = assembly.GetManifestResourceStream(ResourceNames.DefaultUserChannelSet);
             if (stream != null)
             {
-                var userChannels = await JsonSerializer.DeserializeAsync<ChannelItem[]>(stream, _jsonSerializerOptions);
+                var userChannels = await JsonSerializer.DeserializeAsync<ChannelItem[]>(stream, _jsonSerializerOptions).ConfigureAwait(false);
                 _userChannelSet = userChannels?.ToDictionary(x => x.Id, y => y);
             }
         }
@@ -84,14 +84,14 @@ internal class UserChannelSetReader : IUserChannelSetReader, IDisposable
                 if (_fileSystem.File.Exists(path))
                 {
                     using var stream = _fileSystem.File.OpenRead(path);
-                    _userChannelSet = (await JsonSerializer.DeserializeAsync<ChannelItem[]>(stream, _jsonSerializerOptions))?.ToDictionary(x => x.Id, y => y);
+                    _userChannelSet = (await JsonSerializer.DeserializeAsync<ChannelItem[]>(stream, _jsonSerializerOptions).ConfigureAwait(false))?.ToDictionary(x => x.Id, y => y);
                 }
             }
             else if (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
             {
-                var response = await _httpClient.GetAsync(uri, cancellationToken);
-                using var stream = await response.Content.ReadAsStreamAsync();
-                _userChannelSet = (await JsonSerializer.DeserializeAsync<ChannelItem[]>(stream, _jsonSerializerOptions))?.ToDictionary(x => x.Id, y => y);
+                var response = await _httpClient.GetAsync(uri, cancellationToken).ConfigureAwait(false);
+                using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                _userChannelSet = (await JsonSerializer.DeserializeAsync<ChannelItem[]>(stream, _jsonSerializerOptions).ConfigureAwait(false))?.ToDictionary(x => x.Id, y => y);
             }
         }
 
