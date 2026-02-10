@@ -42,7 +42,7 @@ public class ResolverUICommunicatorTests
 
         var resolverUICommunicator = new ResolverUICommunicator(messagingMock.Object, null);
 
-        var response = await resolverUICommunicator.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>());
+        var response = await resolverUICommunicator.SendResolverUIRequestAsync(It.IsAny<IEnumerable<IAppMetadata>>());
 
         response.Should().BeNull();
     }
@@ -64,7 +64,7 @@ public class ResolverUICommunicatorTests
 
         var resolverUICommunicator = new ResolverUICommunicator(messagingMock.Object, null);
 
-        var response = await resolverUICommunicator.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>());
+        var response = await resolverUICommunicator.SendResolverUIRequestAsync(It.IsAny<IEnumerable<IAppMetadata>>());
 
         response.Should().NotBeNull();
         response!.AppMetadata.Should().NotBeNull();
