@@ -21,7 +21,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure;
 /// <summary>
 /// Provides methods for creating context listeners and joining channels and doing other channel operations.
 /// </summary>
-internal interface IChannelFactory
+internal interface IChannelHandler : IAsyncDisposable
 {
     /// <summary>
     /// Creates a context listener for the specified context type.
@@ -70,4 +70,11 @@ internal interface IChannelFactory
     /// </summary>
     /// <returns></returns>
     public ValueTask<IPrivateChannel> CreatePrivateChannelAsync();
+
+    /// <summary>
+    /// Sets the handler when the user choose a user channel to join to from the UI.
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public ValueTask ConfigureChannelSelectorAsync(CancellationToken cancellationToken = default);
 }

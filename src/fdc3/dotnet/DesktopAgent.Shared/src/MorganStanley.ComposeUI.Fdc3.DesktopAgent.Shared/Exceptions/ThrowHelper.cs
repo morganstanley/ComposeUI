@@ -122,9 +122,12 @@ internal static class ThrowHelper
     internal static Fdc3DesktopAgentException PrivateChannelDisconnected(string channelId, string instanceId) =>
         new($"Private channel is disconnected. ChannelId: {channelId}; instance id: {instanceId}.");
 
-    internal static Fdc3DesktopAgentException PrivatChannelSubscribeFailure(string? contextType, string channelId, string instanceId) =>
+    internal static Fdc3DesktopAgentException PrivateChannelSubscribeFailure(string? contextType, string channelId, string instanceId) =>
         new($"Private channel was not able to add context listener. ChannelId: {channelId}; instance id: {instanceId}; context type: {contextType}.");
 
     internal static Fdc3DesktopAgentException PrivateChannelJoiningFailed(string channelId) =>
         new($"Client was not able to join to private channel. ChannelId: {channelId}.");
+
+    internal static Fdc3DesktopAgentException MissingInstanceId(string methodName) =>
+        new($"Fdc3InstanceId was missing before executing: {methodName}.");
 }

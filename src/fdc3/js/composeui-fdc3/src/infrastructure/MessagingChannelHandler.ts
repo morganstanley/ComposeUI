@@ -14,7 +14,7 @@
 import { ChannelError, ContextHandler, IntentHandler, Listener, PrivateChannel } from "@finos/fdc3";
 import { JsonMessaging } from "@morgan-stanley/composeui-messaging-abstractions";
 import { Channel } from "@finos/fdc3";
-import { ChannelFactory } from "./ChannelFactory";
+import { ChannelHandler } from "./ChannelHandler";
 import { ComposeUIPrivateChannel } from "./ComposeUIPrivateChannel";
 import { Fdc3CreatePrivateChannelRequest } from "./messages/Fdc3CreatePrivateChannelRequest";
 import { Fdc3CreatePrivateChannelResponse } from "./messages/Fdc3CreatePrivateChannelResponse";
@@ -38,13 +38,25 @@ import { Fdc3JoinUserChannelResponse } from "./messages/Fdc3JoinUserChannelRespo
 import { ChannelItem } from "./ChannelItem";
 import { ComposeUIContextListener } from "./ComposeUIContextListener";
 
-export class MessagingChannelFactory implements ChannelFactory {
+export class MessagingChannelHandler implements ChannelHandler {
     private jsonMessaging: JsonMessaging;
     private fdc3instanceId: string;
+    private channelSelector: AsyncDisposable | undefined = undefined;
 
     constructor(jsonMessaging: JsonMessaging,fdc3instanceId: string) {
         this.jsonMessaging = jsonMessaging;
         this.fdc3instanceId = fdc3instanceId;
+    }
+    
+    [Symbol.asyncDispose](): PromiseLike<void> {
+        return this.channelSelector 
+            ? this.channelSelector[Symbol.asyncDispose]() 
+            : Promise.resolve();
+    }
+
+    public async configureChannelSelectorFromUI(): Promise<void> {
+        this.channelSelector = await this.jsonMessaging.registerService(ComposeUITopic.channelSelectorFromUI(this.fdc3instanceId), this.selectUserChannelFromUIHandler);
+        console.debug("Configured channel selector for module: ", this.fdc3instanceId);
     }
 
     public async getChannel(channelId: string, channelType: ChannelType): Promise<Channel> {
@@ -117,24 +129,43 @@ export class MessagingChannelFactory implements ChannelFactory {
     }
 
     public async joinUserChannel(channelId: string): Promise<Channel> {
-        const topic: string = ComposeUITopic.joinUserChannel();
-        const request: Fdc3JoinUserChannelRequest = new Fdc3JoinUserChannelRequest(channelId, this.fdc3instanceId);
-        const response = await this.jsonMessaging.invokeJsonService<Fdc3JoinUserChannelRequest, Fdc3JoinUserChannelResponse>(topic, request);
+        try {
+            const topic: string = ComposeUITopic.joinUserChannel();
+            const request: Fdc3JoinUserChannelRequest = new Fdc3JoinUserChannelRequest(channelId, this.fdc3instanceId);
+            const response = await this.jsonMessaging.invokeJsonService<Fdc3JoinUserChannelRequest, Fdc3JoinUserChannelResponse>(topic, request);
 
-        if (!response) {
-            throw new Error(ChannelError.CreationFailed);
+            console.debug("Received joinUserChannel response: ", response);
+
+            if (!response) {
+                throw new Error(ChannelError.CreationFailed);
+            }
+
+            if (response.error) {
+                throw new Error(response.error);
+            }
+
+            if (!response.success) {
+                throw new Error(ChannelError.CreationFailed);
+            }
+
+            var channel = new ComposeUIChannel(channelId, "user", this.jsonMessaging, response.displayMetadata);
+
+            this.triggerChannelJoinedEvent(channel.id);
+
+            return channel;
+        } catch (error) {
+            console.error("Error joining user channel: ", error);
+            throw error;
         }
+    }
 
-        if (response.error) {
-            throw new Error(response.error);
+    private async triggerChannelJoinedEvent(id: string | undefined) : Promise<void> {
+        try {
+            var result = await this.jsonMessaging.invokeService(ComposeUITopic.channelSelectorFromAPI(this.fdc3instanceId), id);
+            console.debug("Triggered channel selector of container: ", this.fdc3instanceId, ", with: ", id, ", and got result:", result);
+        } catch (error) {
+            console.error("Error triggering channel joined event for module: ", this.fdc3instanceId, ", with channel id: ", id, ", error: ", error);
         }
-
-        if (!response.success) {
-            throw new Error(ChannelError.CreationFailed);
-        }
-
-        var channel = new ComposeUIChannel(channelId, "user", this.jsonMessaging, response.displayMetadata);
-        return channel;
     }
 
     public async getUserChannels(): Promise<Channel[]> {
@@ -193,4 +224,36 @@ export class MessagingChannelFactory implements ChannelFactory {
         const listener = new ComposeUIContextListener(openHandled, this.jsonMessaging, handler!, contextType ?? undefined);
         return listener;
     }
+
+    public async leaveCurrentChannel(): Promise<void> {
+        await this.triggerChannelJoinedEvent(undefined);
+    }
+
+    private async selectUserChannelFromUIHandler(request?: string | null | undefined): Promise<string | null> {
+        try {
+            if (!request) {
+                console.debug("Empty request received when the user channel selection was requested from UI.");
+                return null;
+            }
+
+            var objectRequest = JSON.parse(request);
+            var joinUserChannelRequest = objectRequest as Fdc3JoinUserChannelRequest;
+            console.debug("Parsed the request from the UI when user selected a user channel to join: ", joinUserChannelRequest);
+            
+            if (!joinUserChannelRequest || !joinUserChannelRequest.channelId) {
+                console.debug("Invalid request received when user selected a user channel to join to from the UI: ", request);
+                return null;
+            }
+
+            //We should join the channel requested by the user from the UI. -> this will trigger the handler of the module/container to show which channel the app is joined to.
+            await window.fdc3.joinUserChannel(joinUserChannelRequest.channelId);
+
+            return joinUserChannelRequest.channelId;
+
+        } catch (error) {
+            console.error("Error processing request when channel selector was invoked: ", request, ", error: ", error);
+            return null;
+        }
+    }
 }
+

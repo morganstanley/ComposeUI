@@ -231,6 +231,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new JoinUserChannelResponse { Success = true, DisplayMetadata = new DisplayMetadata() { Name = "test-channelId" } }, _jsonSerializerOptions)))
+            .Returns(new ValueTask<string?>("test-channelId"))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new AddContextListenerResponse { Success = true, Id = Guid.NewGuid().ToString() }, _jsonSerializerOptions)))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new Instrument(new InstrumentID { Ticker = "test-instrument" }, "test-name"), _jsonSerializerOptions))) //GetCurrentContext response after joining to the channels when iterating through the context listeners
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new AddContextListenerResponse { Success = true, Id = Guid.NewGuid().ToString() }, _jsonSerializerOptions)))
@@ -311,6 +312,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
         var subscriptionMock = new Mock<IAsyncDisposable>();
 
         var messagingMock = new Mock<IMessaging>();
+
         messagingMock.Setup(
             _ => _.SubscribeAsync(
                 It.IsAny<string>(),
@@ -324,6 +326,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new JoinUserChannelResponse { Success = true, DisplayMetadata = new DisplayMetadata() { Name = "test-channelId" } }, _jsonSerializerOptions)))
+            .Returns(new ValueTask<string?>("test-channelId"))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new AddContextListenerResponse { Success = true, Id = Guid.NewGuid().ToString() }, _jsonSerializerOptions)))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new Instrument(new InstrumentID { Ticker = "test-instrument" }, "test-name"), _jsonSerializerOptions)))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new AddContextListenerResponse { Success = true, Id = Guid.NewGuid().ToString() }, _jsonSerializerOptions)))
@@ -363,6 +366,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new JoinUserChannelResponse { Success = true, DisplayMetadata = new DisplayMetadata() { Name = "test-channelId" } }, _jsonSerializerOptions)))
+            .Returns(new ValueTask<string?>("test-channelId"))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new AddContextListenerResponse { Success = true, Id = Guid.NewGuid().ToString() }, _jsonSerializerOptions)))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new Instrument(new InstrumentID { Ticker = "test-instrument" }, "test-name"), _jsonSerializerOptions)))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new AddContextListenerResponse { Success = true, Id = Guid.NewGuid().ToString() }, _jsonSerializerOptions)))
@@ -904,7 +908,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
             MessageId = Guid.NewGuid().ToString()
         };
 
-        var channelFactoryMock = new Mock<IChannelFactory>();
+        var channelFactoryMock = new Mock<IChannelHandler>();
         channelFactoryMock
             .Setup(_ => _.FindChannelAsync(It.IsAny<string>(), It.IsAny<ChannelType>()))
             .ReturnsAsync(new Channel("test-channel-id", ChannelType.User, messagingMock.Object, It.IsAny<string>(), null, It.IsAny<DisplayMetadata>(), It.IsAny<ILoggerFactory>()));
@@ -1017,7 +1021,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
             MessageId = Guid.NewGuid().ToString()
         };
 
-        var channelFactoryMock = new Mock<IChannelFactory>();
+        var channelFactoryMock = new Mock<IChannelHandler>();
         channelFactoryMock
             .Setup(_ => _.FindChannelAsync(It.IsAny<string>(), It.IsAny<ChannelType>()))
             .ReturnsAsync(new Channel("test-channel-id", ChannelType.App, messagingMock.Object, It.IsAny<string>(), null, It.IsAny<DisplayMetadata>(), It.IsAny<ILoggerFactory>()));
