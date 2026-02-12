@@ -79,6 +79,7 @@ All options can be set via the `Fdc3DesktopAgentOptions` class or in your config
 - [MorganStanley.ComposeUI.Messaging.Abstractions](https://www.nuget.org/packages/MorganStanley.ComposeUI.Messaging.Abstractions)
 - [MorganStanley.ComposeUI.ModuleLoader.Abstractions](https://www.nuget.org/packages/MorganStanley.ComposeUI.ModuleLoader.Abstractions)
 - [MorganStanley.ComposeUI.Utilities] (https://www.nuget.org/packages/MorganStanley.ComposeUI.Utilities)
+- [MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared] (https://www.nuget.org/packages/MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared)
 - [Finos.Fdc3](https://www.nuget.org/packages/Finos.Fdc3)
 - [Finos.Fdc3.AppDirectory](https://www.nuget.org/packages/Finos.Fdc3.AppDirectory)
 - [Microsoft.Bcl.AsyncInterfaces](https://www.nuget.org/packages/Microsoft.Bcl.AsyncInterfaces)
@@ -114,6 +115,68 @@ services.AddFdc3DesktopAgent();
 ```
 
 These dependencies are required for the Desktop Agent to function correctly and enable features such as app discovery, intent resolution, and inter-application messaging.
+
+### Channel Selector Integration
+
+## Channel Selector Integration
+Our TypeScript and C# FDC3 clients let a module’s container expose a user-channel selector. On startup, each client subscribes to `ComposeUI/fdc3/${fdc3Version}/channelSelector/UI/${fdc3InstanceIdPerModule}`. This allows the client library to receive channel-selection updates from the UI that handles user channel joining logic. The UI should publish updates to that topic, for example:
+```csharp
+if (string.IsNullOrEmpty(_fdc3InstanceId))
+{
+   return;
+}
+
+JoinUserChannelRequest? request = null;
+
+if (sender is MyHeaderToolItem item)
+{
+     var channelId = item.Header as string;
+
+     if (string.IsNullOrEmpty(channelId))
+     {
+          return;
+     }
+
+     var result = await _moduleChannelSelector.InvokeJoinUserChannelFromUIAsync(_fdc3InstanceId, channelId);
+
+    if (string.IsNullOrEmpty(result))
+    {
+        return;
+    }
+}
+```
+
+When an update arrives on that topic, the client libraries are calling `fdc3.joinUserChannel(channelId)` and wires up the top-level context listeners for the selected channel.  
+The UI must also subscribe to `ComposeUI/fdc3/${fdc3Version}/channelSelector/API/${fdc3InstanceIdPerModule}` (`Fdc3Topic.ChannelSelectorFromAPI(fdc3InstanceIdPerModule)`) to reflect changes when `fdc3.joinUserChannel` is invoked by the client libraries.
+
+To support this, the module’s container should expose an endpoint that receives these API-originated updates and updates the UI to show the current channel. For that each FDC3 enabled module should ensure the module’s container resolves `IModuleChannelSelector` to register the handler for API updates.
+
+Example usage:
+```csharp
+await _moduleChannelSelector.RegisterChannelSelectorHandlerInitiatedFromClientsAsync(_fdc3InstanceId,
+    (channelId) =>
+    {
+       var channel = _userChannels.FirstOrDefault(c => c.Id == channelId);
+       if (channel != null)
+       {
+           _logger.Debug($"Instance {_fdc3InstanceId} joined channel {channelId} via Channel Selector API.");
+
+           Application.Current.Dispatcher.Invoke(() =>
+           {
+                 if (myContainer.Header is { Content: Border { Child: TextBlock textBlock } })
+                 {
+                       textBlock.ToolTip = $"Current Channel: {channel.Id}";
+                       var drawingColor = System.Drawing.Color.FromName(channel.DisplayMetadata.Color);
+                       var mediaColor = System.Windows.Media.Color.FromArgb(drawingColor.A, drawingColor.R, drawingColor.G, drawingColor.B);
+                       var brush = new SolidColorBrush(mediaColor);
+                       textBlock.Background = brush;
+                       textBlock.Width = 30;
+                       textBlock.Margin = new Thickness(5, 0, 5, 0);
+                  }
+             });
+       }
+}).ConfigureAwait(false);
+```
 
 ## License
 

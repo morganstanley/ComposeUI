@@ -39,6 +39,33 @@ async function initialize(): Promise<void> {
     const openAppIdentifier: OpenAppIdentifier | undefined = window.composeui.fdc3.openAppIdentifier;
     const messaging = window.composeui.messaging.communicator as IMessaging;
     const fdc3 = new ComposeUIDesktopAgent(messaging);
+    await fdc3.init();
+
+    let _disposed = false;
+
+    const disposeAgent = () => {
+        if (_disposed) {
+            return;
+        }
+
+        _disposed = true;
+
+        try {
+            const agent: ComposeUIDesktopAgent = (window.fdc3 as ComposeUIDesktopAgent) || fdc3;
+            if (agent) {
+                agent[Symbol.asyncDispose]()
+            }
+        } catch (err) {
+            console.warn("Error disposing FDC3 agent", err);
+        } finally {
+            // remove handlers after first run
+            window.removeEventListener("beforeunload", disposeAgent);
+            window.removeEventListener("unload", disposeAgent);
+        }
+    };
+
+    window.addEventListener("beforeunload", disposeAgent);
+    window.addEventListener("unload", disposeAgent);
 
     if (channelId) {
         await fdc3.joinUserChannel(channelId)
@@ -47,10 +74,12 @@ async function initialize(): Promise<void> {
                     await fdc3.getOpenedAppContext()
                         .then(() => {
                             window.fdc3 = fdc3;
+                            console.log("FDC3 initialized, handled initial context which initiates that the app was opened via `fdc3.open` and joined to channel: ", channelId, window.fdc3);
                             window.dispatchEvent(new Event("fdc3Ready"));
                         })
                 } else {
                     window.fdc3 = fdc3;
+                    console.log("FDC3 initialized and joined to channel: ", channelId, window.fdc3);
                     window.dispatchEvent(new Event("fdc3Ready"));
                 }
             });
@@ -58,10 +87,12 @@ async function initialize(): Promise<void> {
         if (openAppIdentifier) {
             await fdc3.getOpenedAppContext().then(() => {
                 window.fdc3 = fdc3;
+                console.log("FDC3 initialized, handled initial context which initiates that the app was opened via `fdc3.open`: ", window.fdc3);
                 window.dispatchEvent(new Event("fdc3Ready"));
             })
         } else {
             window.fdc3 = fdc3;
+            console.log("FDC3 initialized: ", window.fdc3);
             window.dispatchEvent(new Event("fdc3Ready"));
         }
     }

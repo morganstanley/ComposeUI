@@ -25,7 +25,7 @@ using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests.Infrastructure.Internal;
 
-public class ChannelFactoryTests
+public class ChannelHandlerTests
 {
     private readonly JsonSerializerOptions _jsonSerializerOptions = SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization;
 
@@ -37,11 +37,13 @@ public class ChannelFactoryTests
         var handler = new ContextHandler<Instrument>((ctx, _)=> { });
         var expectedListener = new ContextListener<Instrument>("instanceId", handler, messagingMock.Object, "fdc3.instrument");
 
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+
         channelMock
             .Setup(c => c.AddContextListener("fdc3.instrument", handler))
             .ReturnsAsync(expectedListener);
 
-        var factory = new ChannelFactory(messagingMock.Object, "instanceId");
+        var factory = new ChannelHandler(messagingMock.Object, "instanceId", desktopAgentClientMock.Object);
 
         var result = await factory.CreateContextListenerAsync(handler, channelMock.Object, "fdc3.instrument");
 
@@ -53,7 +55,8 @@ public class ChannelFactoryTests
     {
         var messagingMock = new Mock<IMessaging>();
         var handler = new ContextHandler<Instrument>((ctx, _) => { });
-        var factory = new ChannelFactory(messagingMock.Object, "instanceId");
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+        var factory = new ChannelHandler(messagingMock.Object, "instanceId", desktopAgentClientMock.Object);
 
         var result = await factory.CreateContextListenerAsync(handler, null, "fdc3.instrument");
 
@@ -78,7 +81,8 @@ public class ChannelFactoryTests
                     It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)));
 
-        var factory = new ChannelFactory(messagingMock.Object, "instanceId");
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+        var factory = new ChannelHandler(messagingMock.Object, "instanceId", desktopAgentClientMock.Object);
 
         var result = await factory.JoinUserChannelAsync("channelId");
 
@@ -97,7 +101,8 @@ public class ChannelFactoryTests
             It.IsAny<CancellationToken>()))
         .Returns(new ValueTask<string?>((string?) null));
 
-        var factory = new ChannelFactory(messagingMock.Object, "instanceId");
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+        var factory = new ChannelHandler(messagingMock.Object, "instanceId", desktopAgentClientMock.Object);
 
         var act = async () => await factory.JoinUserChannelAsync("channelId");
 
@@ -122,7 +127,8 @@ public class ChannelFactoryTests
                 It.IsAny<CancellationToken>()))
         .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)));
 
-        var factory = new ChannelFactory(messagingMock.Object, "instanceId");
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+        var factory = new ChannelHandler(messagingMock.Object, "instanceId", desktopAgentClientMock.Object);
 
         var act = async () => await factory.JoinUserChannelAsync("channelId");
 
@@ -147,7 +153,8 @@ public class ChannelFactoryTests
                 It.IsAny<CancellationToken>()))
         .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)));
 
-        var factory = new ChannelFactory(messagingMock.Object, "instanceId");
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+        var factory = new ChannelHandler(messagingMock.Object, "instanceId", desktopAgentClientMock.Object);
 
         var act = async() => await factory.JoinUserChannelAsync("channelId");
 
@@ -167,7 +174,8 @@ public class ChannelFactoryTests
                     It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Messaging error"));
 
-        var factory = new ChannelFactory(messagingMock.Object, "instanceId");
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+        var factory = new ChannelHandler(messagingMock.Object, "instanceId", desktopAgentClientMock.Object);
 
         var act = async () => await factory.JoinUserChannelAsync("channelId");
 
@@ -192,7 +200,8 @@ public class ChannelFactoryTests
                 It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)));
 
-        var factory = new ChannelFactory(messagingMock.Object, "instanceId");
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+        var factory = new ChannelHandler(messagingMock.Object, "instanceId", desktopAgentClientMock.Object);
 
         var result = await factory.CreateAppChannelAsync("channelId");
 
@@ -210,7 +219,8 @@ public class ChannelFactoryTests
                 It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<string?>((string?) null));
 
-        var factory = new ChannelFactory(messagingMock.Object, "instanceId");
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+        var factory = new ChannelHandler(messagingMock.Object, "instanceId", desktopAgentClientMock.Object);
 
         var act = async () => await factory.CreateAppChannelAsync("channelId");
 
@@ -235,7 +245,8 @@ public class ChannelFactoryTests
                 It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)));
 
-        var factory = new ChannelFactory(messagingMock.Object, "instanceId");
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+        var factory = new ChannelHandler(messagingMock.Object, "instanceId", desktopAgentClientMock.Object);
 
         var act = async () => await factory.CreateAppChannelAsync("channelId");
 
@@ -260,7 +271,8 @@ public class ChannelFactoryTests
                 It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)));
 
-        var factory = new ChannelFactory(messagingMock.Object, "instanceId");
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+        var factory = new ChannelHandler(messagingMock.Object, "instanceId", desktopAgentClientMock.Object);
 
         var act = async () => await factory.CreateAppChannelAsync("channelId");
 
@@ -280,7 +292,8 @@ public class ChannelFactoryTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Messaging error"));
 
-        var factory = new ChannelFactory(messagingMock.Object, "instanceId");
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+        var factory = new ChannelHandler(messagingMock.Object, "instanceId", desktopAgentClientMock.Object);
 
         var act = async () => await factory.CreateAppChannelAsync("channelId");
 
@@ -307,7 +320,8 @@ public class ChannelFactoryTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(responseJson);
 
-        var factory = new ChannelFactory(messagingMock.Object, "instanceId");
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+        var factory = new ChannelHandler(messagingMock.Object, "instanceId", desktopAgentClientMock.Object);
         var result = await factory.FindChannelAsync("myChannel", ChannelType.User);
 
         result.Id.Should().Be("myChannel");
@@ -325,7 +339,8 @@ public class ChannelFactoryTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((string?) null);
 
-        var factory = new ChannelFactory(messagingMock.Object, "instanceId");
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+        var factory = new ChannelHandler(messagingMock.Object, "instanceId", desktopAgentClientMock.Object);
         var act = async () => await factory.FindChannelAsync("myChannel", ChannelType.User);
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
@@ -350,7 +365,8 @@ public class ChannelFactoryTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(responseJson);
 
-        var factory = new ChannelFactory(messagingMock.Object, "instanceId");
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+        var factory = new ChannelHandler(messagingMock.Object, "instanceId", desktopAgentClientMock.Object);
         var act = async () => await factory.FindChannelAsync("myChannel", ChannelType.User);
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
@@ -375,7 +391,8 @@ public class ChannelFactoryTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(responseJson);
 
-        var factory = new ChannelFactory(messagingMock.Object, "instanceId");
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+        var factory = new ChannelHandler(messagingMock.Object, "instanceId", desktopAgentClientMock.Object);
         var act = async () => await factory.FindChannelAsync("myChannel", ChannelType.User);
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
@@ -386,7 +403,6 @@ public class ChannelFactoryTests
     public async Task FindChannelAsync_joins_private_channel()
     {
         var messagingMock = new Mock<IMessaging>();
-        var instanceId = "test-instance";
         var channelId = "private-channel";
 
         var findChannelResponse = new FindChannelResponse { Found = true };
@@ -400,7 +416,8 @@ public class ChannelFactoryTests
             .ReturnsAsync(JsonSerializer.Serialize(findChannelResponse, _jsonSerializerOptions))
             .ReturnsAsync(JsonSerializer.Serialize(joinPrivateChannelResponse, _jsonSerializerOptions));
 
-        var factory = new ChannelFactory(messagingMock.Object, instanceId);
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+        var factory = new ChannelHandler(messagingMock.Object, "instanceId", desktopAgentClientMock.Object);
 
         var result = await factory.FindChannelAsync(channelId, ChannelType.Private);
 
@@ -425,7 +442,8 @@ public class ChannelFactoryTests
             .ReturnsAsync(JsonSerializer.Serialize(findChannelResponse, _jsonSerializerOptions))
             .ReturnsAsync(JsonSerializer.Serialize((string?)null));
 
-        var factory = new ChannelFactory(messagingMock.Object, instanceId);
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+        var factory = new ChannelHandler(messagingMock.Object, "instanceId", desktopAgentClientMock.Object);
 
         var act = async() => await factory.FindChannelAsync(channelId, ChannelType.Private);
 
@@ -451,7 +469,8 @@ public class ChannelFactoryTests
             .ReturnsAsync(JsonSerializer.Serialize(findChannelResponse, _jsonSerializerOptions))
             .ReturnsAsync(JsonSerializer.Serialize(joinPrivateChannelResponse, _jsonSerializerOptions));
 
-        var factory = new ChannelFactory(messagingMock.Object, instanceId);
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+        var factory = new ChannelHandler(messagingMock.Object, "instanceId", desktopAgentClientMock.Object);
 
         var act = async () => await factory.FindChannelAsync(channelId, ChannelType.Private);
 
@@ -477,7 +496,8 @@ public class ChannelFactoryTests
             .ReturnsAsync(JsonSerializer.Serialize(findChannelResponse, _jsonSerializerOptions))
             .ReturnsAsync(JsonSerializer.Serialize(joinPrivateChannelResponse, _jsonSerializerOptions));
 
-        var factory = new ChannelFactory(messagingMock.Object, instanceId);
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+        var factory = new ChannelHandler(messagingMock.Object, "instanceId", desktopAgentClientMock.Object);
 
         var act = async () => await factory.FindChannelAsync(channelId, ChannelType.Private);
 

@@ -31,7 +31,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests.Infrastructure.
 public class IntentResolutionTests
 {
     private readonly Mock<IMessaging> _messagingMock = new();
-    private readonly Mock<IChannelFactory> _channelFactoryMock = new();
+    private readonly Mock<IChannelHandler> _channelHandleryMock = new();
     private readonly Mock<ILogger<IntentResolution>> _loggerMock = new();
     private readonly string _messageId = "msg-1";
     private readonly string _intent = "ViewChart";
@@ -43,7 +43,7 @@ public class IntentResolutionTests
         return new IntentResolution(
             _messageId,
             _messagingMock.Object,
-            _channelFactoryMock.Object,
+            _channelHandleryMock.Object,
             _intent,
             _source,
             _loggerMock.Object);
@@ -67,7 +67,7 @@ public class IntentResolutionTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(JsonSerializer.Serialize(response, _jsonOptions));
 
-        _channelFactoryMock
+        _channelHandleryMock
             .Setup(f => f.FindChannelAsync("ch1", ChannelType.User))
             .ReturnsAsync(channelMock.Object);
 

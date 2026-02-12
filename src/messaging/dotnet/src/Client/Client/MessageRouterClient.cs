@@ -1,4 +1,4 @@
-// Morgan Stanley makes this available to you under the Apache License,
+﻿// Morgan Stanley makes this available to you under the Apache License,
 // Version 2.0 (the "License"). You may obtain a copy of the License at
 //
 //      http://www.apache.org/licenses/LICENSE-2.0.
@@ -392,6 +392,7 @@ internal sealed class MessageRouterClient : IMessageRouter
                         e,
                         $"Unhandled exception while processing an {nameof(InvokeRequest)}: {{ExceptionMessage}}",
                         e.Message);
+
                     OnRequestStop(message, e);
                 }
             },

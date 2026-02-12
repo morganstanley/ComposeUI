@@ -25,7 +25,7 @@ public interface IResolverUICommunicator
     /// <param name="intents"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task<ResolverUIIntentResponse?> SendResolverUIIntentRequest(IEnumerable<string> intents, CancellationToken cancellationToken = default);
+    public Task<ResolverUIIntentResponse?> SendResolverUIIntentRequestAsync(IEnumerable<string> intents, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Sends a request for the shell to show a window, aka ResolverUI, with the appropriate AppMetadata that can solve the raised intent.
@@ -33,5 +33,5 @@ public interface IResolverUICommunicator
     /// <param name="appMetadata"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task<ResolverUIResponse?> SendResolverUIRequest(IEnumerable<IAppMetadata> appMetadata, CancellationToken cancellationToken = default);
+    public Task<ResolverUIResponse?> SendResolverUIRequestAsync(IEnumerable<IAppMetadata> appMetadata, CancellationToken cancellationToken = default);
 }
