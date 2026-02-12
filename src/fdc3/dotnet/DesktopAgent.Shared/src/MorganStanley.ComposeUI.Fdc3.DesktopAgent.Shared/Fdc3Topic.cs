@@ -53,6 +53,26 @@ public static class Fdc3Topic
 	/// </summary>
     public static string ResolverUIIntent => TopicRoot + "resolverUIIntent";
 
+    /// <summary>
+    /// Topic for handling join user channel request from the UI (per container)
+    /// </summary>
+    /// <param name="fdc3InstanceId"></param>
+    /// <returns></returns>
+    public static string ChannelSelectorFromUI(string fdc3InstanceId)
+    {
+        return $"{TopicRoot}channelSelector/UI/{fdc3InstanceId}";
+    }
+
+    /// <summary>
+    /// Topic for handling join user channel request from the API (per container)
+    /// </summary>
+    /// <param name="fdc3InstanceId"></param>
+    /// <returns></returns>
+    public static string ChannelSelectorFromAPI(string fdc3InstanceId)
+    {
+        return $"{TopicRoot}channelSelector/API/{fdc3InstanceId}";
+    }
+
     //IntentListeners will be listening at this endpoint
     internal static string RaiseIntentResolution(string intent, string instanceId)
     {

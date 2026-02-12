@@ -16,7 +16,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 
-internal sealed class JoinUserChannelResponse
+public sealed class JoinUserChannelResponse
 {
     /// <summary>
     /// Error while executing the JoinUserChannel call.

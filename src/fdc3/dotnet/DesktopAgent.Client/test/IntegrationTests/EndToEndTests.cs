@@ -11,6 +11,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
 using DisplayMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.DisplayMetadata;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.IntegrationTests.Helpers;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.IntegrationTests;
 
@@ -26,6 +27,7 @@ public class EndToEndTests : IAsyncLifetime
     private readonly List<IModuleInstance> _runningApps = [];
     private IDisposable _runningAppsObserver;
     private IDesktopAgent _desktopAgent;
+
     public EndToEndTests()
     {
         var repoRoot = RootPathResolver.GetRepositoryRoot();
@@ -199,7 +201,9 @@ public class EndToEndTests : IAsyncLifetime
     {
         var resultContexts = new List<IContext>();
 
-        var module = await _moduleLoader.StartModule(new StartRequest("appId1-native", new Dictionary<string, string>() { { "Fdc3InstanceId", Guid.NewGuid().ToString() } })); // This will ensure that the DesktopAgent backend knows its an FDC3 enabled module. The app broadcasts an instrument context after it joined to the fdc3.channel.1.
+        var instanceId = Guid.NewGuid().ToString();
+
+        var module = await _moduleLoader.StartModule(new StartRequest("appId1-native", new Dictionary<string, string>() { { "Fdc3InstanceId", instanceId } })); // This will ensure that the DesktopAgent backend knows its an FDC3 enabled module. The app broadcasts an instrument context after it joined to the fdc3.channel.1.
         //We need to wait somehow for the module to finish up the broadcast
         await Task.Delay(2000);
 
@@ -320,7 +324,9 @@ public class EndToEndTests : IAsyncLifetime
             resultContexts.Add(context);
         });
 
-        var module = await _moduleLoader.StartModule(new StartRequest("appId1-native", new Dictionary<string, string>() { { "Fdc3InstanceId", Guid.NewGuid().ToString() } })); // This will ensure that the DesktopAgent backend knows its an FDC3 enabled module. For test only
+        var instanceId = Guid.NewGuid().ToString();
+
+        var module = await _moduleLoader.StartModule(new StartRequest("appId1-native", new Dictionary<string, string>() { { "Fdc3InstanceId", instanceId } })); // This will ensure that the DesktopAgent backend knows its an FDC3 enabled module. For test only
         //We need to wait somehow for the module to finish up the broadcast
         await Task.Delay(2000);
 
@@ -330,6 +336,8 @@ public class EndToEndTests : IAsyncLifetime
 
         resultContexts.Should().BeEquivalentTo(new List<IContext>() { new Instrument(new InstrumentID { Ticker = $"test-instrument-2" }, "test-name2") });
     }
+
+    private void ChannelSelectorBehavior(string? obj) { }
 
     [Fact]
     public async Task FindIntent_returns_AppIntent()

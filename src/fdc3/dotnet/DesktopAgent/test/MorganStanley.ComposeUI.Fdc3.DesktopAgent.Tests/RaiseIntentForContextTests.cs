@@ -52,7 +52,7 @@ public class RaiseIntentForContextTests : Fdc3DesktopAgentServiceTestsBase
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.GetFdc3InstanceId(origin);
 
         ResolverUICommunicator
-            .Setup(x => x.SendResolverUIIntentRequest(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.SendResolverUIIntentRequestAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ResolverUIIntentResponse()
             {
                 SelectedIntent = Intent2.Name
@@ -66,8 +66,8 @@ public class RaiseIntentForContextTests : Fdc3DesktopAgentServiceTestsBase
 
         var result = await Fdc3.RaiseIntentForContext(request, MultipleContext.Type);
 
-        ResolverUICommunicator.Verify(_ => _.SendResolverUIIntentRequest(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()));
-        ResolverUICommunicator.Verify(_ => _.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()));
+        ResolverUICommunicator.Verify(_ => _.SendResolverUIIntentRequestAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()));
+        ResolverUICommunicator.Verify(_ => _.SendResolverUIRequestAsync(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()));
         ResolverUICommunicator.VerifyNoOtherCalls();
     }
 
@@ -78,7 +78,7 @@ public class RaiseIntentForContextTests : Fdc3DesktopAgentServiceTestsBase
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.GetFdc3InstanceId(origin);
 
         ResolverUICommunicator
-            .Setup(x => x.SendResolverUIIntentRequest(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.SendResolverUIIntentRequestAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
             .Returns(Task.FromResult<ResolverUIIntentResponse?>(new ResolverUIIntentResponse()
             {
                 SelectedIntent = IntentWithNoResult.Name
@@ -92,8 +92,8 @@ public class RaiseIntentForContextTests : Fdc3DesktopAgentServiceTestsBase
 
         var result = await Fdc3.RaiseIntentForContext(request, ContextTypes.Nothing);
 
-        ResolverUICommunicator.Verify(_ => _.SendResolverUIIntentRequest(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()));
-        ResolverUICommunicator.Verify(_ => _.SendResolverUIRequest(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()));
+        ResolverUICommunicator.Verify(_ => _.SendResolverUIIntentRequestAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()));
+        ResolverUICommunicator.Verify(_ => _.SendResolverUIRequestAsync(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()));
         ResolverUICommunicator.VerifyNoOtherCalls();
     }
 
@@ -104,7 +104,7 @@ public class RaiseIntentForContextTests : Fdc3DesktopAgentServiceTestsBase
         var originFdc3InstanceId = Fdc3InstanceIdRetriever.GetFdc3InstanceId(origin);
 
         ResolverUICommunicator
-            .Setup(x => x.SendResolverUIIntentRequest(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.SendResolverUIIntentRequestAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ResolverUIIntentResponse()
             {
                 SelectedIntent = IntentWithNoResult.Name
@@ -118,7 +118,7 @@ public class RaiseIntentForContextTests : Fdc3DesktopAgentServiceTestsBase
 
         var result = await Fdc3.RaiseIntentForContext(request, OnlyApp3Context.Type);
 
-        ResolverUICommunicator.Verify(_ => _.SendResolverUIIntentRequest(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()));
+        ResolverUICommunicator.Verify(_ => _.SendResolverUIIntentRequestAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()));
         ResolverUICommunicator.VerifyNoOtherCalls();
     }
 
