@@ -80,7 +80,7 @@ internal class Channel : IChannel
             openedAppContext: _openedAppContext,
             logger: _loggerFactory.CreateLogger<ContextListener<T>>());
 
-        await listener.SubscribeAsync(_channelId, _channelType);
+        await listener.SubscribeAsync(_channelId, _channelType).ConfigureAwait(false);
         return listener;
     }
 
@@ -100,7 +100,7 @@ internal class Channel : IChannel
             await _messaging.PublishJsonAsync(
                 new ChannelTopics(_channelId, _channelType).Broadcast,
                 context,
-                _jsonSerializerOptions);
+                _jsonSerializerOptions).ConfigureAwait(false);
         }
         finally
         {

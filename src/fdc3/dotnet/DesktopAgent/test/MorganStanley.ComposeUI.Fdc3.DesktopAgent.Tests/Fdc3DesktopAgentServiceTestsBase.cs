@@ -33,6 +33,7 @@ public abstract class Fdc3DesktopAgentServiceTestsBase : IAsyncLifetime
     protected Mock<IResolverUICommunicator> ResolverUICommunicator { get; } = new();
     internal Mock<ILogger<It.IsAnyType>> Logger { get; } = new();
     protected Mock<ILoggerFactory> LoggerFactory { get; } = new();
+    protected Mock<IChannelSelector> ChannelSelector { get; } = new();
 
     private readonly ConcurrentDictionary<Guid, IModuleInstance> _modules = new();
     private IDisposable? _disposable;
@@ -65,6 +66,7 @@ public abstract class Fdc3DesktopAgentServiceTestsBase : IAsyncLifetime
             options,
             ResolverUICommunicator.Object,
             new UserChannelSetReader(options),
+            ChannelSelector.Object,
             LoggerFactory.Object);
     }
 

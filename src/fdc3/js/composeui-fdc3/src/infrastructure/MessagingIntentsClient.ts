@@ -13,7 +13,7 @@
 
 import { AppIdentifier, AppIntent, AppMetadata, Context, IntentResolution } from "@finos/fdc3";
 import { JsonMessaging } from "@morgan-stanley/composeui-messaging-abstractions";
-import { ChannelFactory } from "./ChannelFactory";
+import { ChannelHandler } from "./ChannelHandler";
 import { ComposeUIErrors } from "./ComposeUIErrors";
 import { ComposeUIIntentResolution } from "./ComposeUIIntentResolution";
 import { ComposeUITopic } from "./ComposeUITopic";
@@ -27,15 +27,15 @@ import { Fdc3RaiseIntentResponse } from "./messages/Fdc3RaiseIntentResponse";
 import { Fdc3RaiseIntentForContextRequest } from "./messages/Fdc3RaiseIntentForContextRequest";
 
 export class MessagingIntentsClient implements IntentsClient {
-    private channelFactory: ChannelFactory;
+    private channelHandler: ChannelHandler;
     private jsonMessaging: JsonMessaging;
 
-    constructor( jsonMessaging: JsonMessaging, channelFactory: ChannelFactory, ) {
+    constructor( jsonMessaging: JsonMessaging, channelFactory: ChannelHandler, ) {
         if (!window.composeui.fdc3.config || !window.composeui.fdc3.config.instanceId) {
             throw new Error(ComposeUIErrors.InstanceIdNotFound);
         }
 
-        this.channelFactory = channelFactory;
+        this.channelHandler = channelFactory;
         this.jsonMessaging = jsonMessaging;
     }
 
@@ -69,7 +69,7 @@ export class MessagingIntentsClient implements IntentsClient {
     }
 
     public async getIntentResolution(messageId: string, intent: string, source: AppMetadata): Promise<IntentResolution> {
-        return new ComposeUIIntentResolution(messageId, this.jsonMessaging, this.channelFactory, intent, source);
+        return new ComposeUIIntentResolution(messageId, this.jsonMessaging, this.channelHandler, intent, source);
     }
 
     public async raiseIntent(intent: string, context: Context, app?: string | AppIdentifier): Promise<IntentResolution> {
@@ -88,7 +88,7 @@ export class MessagingIntentsClient implements IntentsClient {
             throw new Error(response.error);
         }
 
-        const intentResolution = new ComposeUIIntentResolution(response.messageId, this.jsonMessaging, this.channelFactory, response.intent!, response.appMetadata!);
+        const intentResolution = new ComposeUIIntentResolution(response.messageId, this.jsonMessaging, this.channelHandler, response.intent!, response.appMetadata!);
         return intentResolution;
     }
 
@@ -113,7 +113,7 @@ export class MessagingIntentsClient implements IntentsClient {
             throw new Error(response.error);
         }
         
-        const intentResolution = new ComposeUIIntentResolution(response.messageId!, this.jsonMessaging, this.channelFactory, response.intent!, response.appMetadata!);
+        const intentResolution = new ComposeUIIntentResolution(response.messageId!, this.jsonMessaging, this.channelHandler, response.intent!, response.appMetadata!);
         return intentResolution;
     }
 }

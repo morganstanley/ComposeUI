@@ -39,11 +39,11 @@ internal class ResolverUICommunicator : IResolverUICommunicator
         _logger = logger ?? NullLogger<ResolverUICommunicator>.Instance;
     }
 
-    public async Task<ResolverUIResponse?> SendResolverUIRequest(IEnumerable<IAppMetadata> appMetadata, CancellationToken cancellationToken = default)
+    public async Task<ResolverUIResponse?> SendResolverUIRequestAsync(IEnumerable<IAppMetadata> appMetadata, CancellationToken cancellationToken = default)
     {
         try
         {
-            return await SendResolverUIRequestCore(appMetadata, cancellationToken);
+            return await SendResolverUIRequestCore(appMetadata, cancellationToken).ConfigureAwait(false);
         }
         catch (TimeoutException ex)
         {
@@ -70,18 +70,18 @@ internal class ResolverUICommunicator : IResolverUICommunicator
             Fdc3Topic.ResolverUI,
             request,
             _jsonSerializerOptions,
-            cancellationToken);
+            cancellationToken).ConfigureAwait(false);
 
         return response;
     }
 
 
-    public async Task<ResolverUIIntentResponse?> SendResolverUIIntentRequest(IEnumerable<string> intents, CancellationToken cancellationToken = default)
+    public async Task<ResolverUIIntentResponse?> SendResolverUIIntentRequestAsync(IEnumerable<string> intents, CancellationToken cancellationToken = default)
     {
         //TODO: use the same ResolverUI
         try
         {
-            return await SendResolverUIIntentRequestCore(intents, cancellationToken);
+            return await SendResolverUIIntentRequestCore(intents, cancellationToken).ConfigureAwait(false);
         }
         catch (TimeoutException ex)
         {
@@ -106,8 +106,9 @@ internal class ResolverUICommunicator : IResolverUICommunicator
 
         var response = await _messaging.InvokeJsonServiceAsync<ResolverUIIntentRequest, ResolverUIIntentResponse>(
             Fdc3Topic.ResolverUIIntent,
-            request, _jsonSerializerOptions,
-            cancellationToken: cancellationToken);
+            request, 
+            _jsonSerializerOptions,
+            cancellationToken: cancellationToken).ConfigureAwait(false);
 
         return response;
     }
