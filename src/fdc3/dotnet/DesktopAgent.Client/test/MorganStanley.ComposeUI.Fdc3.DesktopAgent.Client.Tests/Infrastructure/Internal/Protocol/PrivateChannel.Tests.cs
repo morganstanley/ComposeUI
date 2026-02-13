@@ -134,9 +134,16 @@ public class PrivateChannelTests
     [Fact]
     public void OnDisconnect_when_disconnected_throws()
     {
-        _channel.Disconnect();
+        var channel = new PrivateChannel(
+            _channelId,
+            _messagingMock.Object,
+            _instanceId,
+            true,
+            () => { });
 
-        Action act = () => _channel.OnDisconnect(() => { });
+        channel.Disconnect();
+
+        Action act = () => channel.OnDisconnect(() => { });
 
         act.Should().Throw<Fdc3DesktopAgentException>().WithMessage("*disconnected*");
     }

@@ -32,7 +32,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests.Infrastructure.
 public class OpenClientTests
 {
     private readonly Mock<IMessaging> _messagingMock = new();
-    private readonly Mock<IChannelFactory> _channelFactoryMock = new();
+    private readonly Mock<IChannelHandler> _channelHandlerMock = new();
     private readonly Mock<IListener> _listenerMock = new();
     private readonly Mock<IDesktopAgent> _desktopAgentMock = new();
     private readonly JsonSerializerOptions _jsonSerializerOptions = SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization;

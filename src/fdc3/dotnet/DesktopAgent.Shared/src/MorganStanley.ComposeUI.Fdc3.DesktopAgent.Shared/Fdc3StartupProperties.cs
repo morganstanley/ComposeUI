@@ -14,7 +14,10 @@
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 
-internal class Fdc3StartupProperties
+/// <summary>
+/// FDC3 specific startup properties for the application/module.
+/// </summary>
+public class Fdc3StartupProperties
 {
     /// <summary>
     /// Fdc3 DesktopAgent's specific identifier for the created application instance.
@@ -27,7 +30,7 @@ internal class Fdc3StartupProperties
     public string? ChannelId { get; init; }
 
     /// <summary>
-    /// This implies that the opened app was started via using the fdc3.open() call. Thi id ensures that if the app opens and it's available on the object then the opened app can request the context and handle it when its context listener is being registered for the right context type.
+    /// This implies that the opened app was started via using the fdc3.open() call. This id ensures that if the app opens and it's available on the object then the opened app can request the context and handle it when its context listener is being registered for the right context type.
     /// </summary>
     public string? OpenedAppContextId { get; set; }
 }

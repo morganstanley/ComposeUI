@@ -35,7 +35,7 @@ export class ComposeUIChannel implements Channel {
         this.displayMetadata = displayMetadata;
     }
 
-    //Broadcasting on the composeui/fdc3/v2.0/broadcast topic
+    //Broadcasting on the composeui/fdc3/v2.0/<channel>/broadcast topic
     public async broadcast(context: Context): Promise<void> {
         //Setting the last published context message.
         this.lastContexts.set(context.type, context);
