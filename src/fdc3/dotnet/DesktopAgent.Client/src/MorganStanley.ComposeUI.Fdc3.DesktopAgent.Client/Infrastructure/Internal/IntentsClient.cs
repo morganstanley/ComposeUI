@@ -31,7 +31,7 @@ internal class IntentsClient : IIntentsClient
     private static int _messageIdCounter = 0;
 
     private readonly IMessaging _messaging;
-    private readonly IChannelFactory _channelFactory;
+    private readonly IChannelHandler _channelFactory;
     private readonly string _instanceId;
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<IntentsClient> _logger;
@@ -39,7 +39,7 @@ internal class IntentsClient : IIntentsClient
 
     public IntentsClient(
         IMessaging messaging,
-        IChannelFactory channelFactory,
+        IChannelHandler channelFactory,
         string instanceId,
         ILoggerFactory? loggerFactory = null)
     {
@@ -59,7 +59,7 @@ internal class IntentsClient : IIntentsClient
             handler,
             _loggerFactory.CreateLogger<IntentListener<T>>());
 
-        await listener.RegisterIntentHandlerAsync();
+        await listener.RegisterIntentHandlerAsync().ConfigureAwait(false);
 
         var request = new IntentListenerRequest
         {
@@ -71,7 +71,7 @@ internal class IntentsClient : IIntentsClient
         var response = await _messaging.InvokeJsonServiceAsync<IntentListenerRequest, IntentListenerResponse>(
             Fdc3Topic.AddIntentListener,
             request,
-            _jsonSerializerOptions);
+            _jsonSerializerOptions).ConfigureAwait(false);
 
         if (response == null)
         {
@@ -114,7 +114,7 @@ internal class IntentsClient : IIntentsClient
         var response = await _messaging.InvokeJsonServiceAsync<FindIntentRequest, FindIntentResponse>(
             Fdc3Topic.FindIntent,
             request,
-            _jsonSerializerOptions);
+            _jsonSerializerOptions).ConfigureAwait(false);
 
         if (response == null)
         {
@@ -151,7 +151,7 @@ internal class IntentsClient : IIntentsClient
         var response = await _messaging.InvokeJsonServiceAsync<FindIntentsByContextRequest, FindIntentsByContextResponse>(
             Fdc3Topic.FindIntentsByContext,
             request,
-            _jsonSerializerOptions);
+            _jsonSerializerOptions).ConfigureAwait(false);
 
         if (response == null)
         {
@@ -200,7 +200,7 @@ internal class IntentsClient : IIntentsClient
         var response = await _messaging.InvokeJsonServiceAsync<RaiseIntentRequest, RaiseIntentResponse>(
             Fdc3Topic.RaiseIntent,
             request,
-            _jsonSerializerOptions);
+            _jsonSerializerOptions).ConfigureAwait(false);
 
         if (response == null)
         {
@@ -258,7 +258,7 @@ internal class IntentsClient : IIntentsClient
         var response = await _messaging.InvokeJsonServiceAsync<RaiseIntentForContextRequest, RaiseIntentResponse>(
             Fdc3Topic.RaiseIntentForContext,
             request,
-            _jsonSerializerOptions);
+            _jsonSerializerOptions).ConfigureAwait(false);
 
         if (response == null)
         {

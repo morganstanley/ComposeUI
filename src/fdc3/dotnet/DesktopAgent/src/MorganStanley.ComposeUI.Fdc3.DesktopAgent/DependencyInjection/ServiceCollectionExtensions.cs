@@ -14,6 +14,7 @@
 
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.ModuleLoader;
 
 // ReSharper disable once CheckNamespace
@@ -49,6 +50,7 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddSingleton<IFdc3DesktopAgentService, Fdc3DesktopAgentService>();
         serviceCollection.AddTransient<IStartupAction, Fdc3StartupAction>();
         serviceCollection.AddTransient<IShutdownAction, Fdc3ShutdownAction>();
+        serviceCollection.AddTransient<IModuleChannelSelector, ModuleChannelSelector>();
 
         return serviceCollection;
     }

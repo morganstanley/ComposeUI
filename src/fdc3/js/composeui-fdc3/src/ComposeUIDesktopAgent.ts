@@ -29,8 +29,8 @@ import {
 import { IMessaging, JsonMessaging } from "@morgan-stanley/composeui-messaging-abstractions";
 import { ComposeUIContextListener } from './infrastructure/ComposeUIContextListener';
 import { ComposeUIErrors } from './infrastructure/ComposeUIErrors';
-import { ChannelFactory } from './infrastructure/ChannelFactory';
-import { MessagingChannelFactory } from './infrastructure/MessagingChannelFactory';
+import { ChannelHandler } from './infrastructure/ChannelHandler';
+import { MessagingChannelHandler } from './infrastructure/MessagingChannelHandler';
 import { MessagingIntentsClient } from './infrastructure/MessagingIntentsClient';
 import { IntentsClient } from './infrastructure/IntentsClient';
 import { MetadataClient } from './infrastructure/MetadataClient';
@@ -38,14 +38,11 @@ import { MessagingMetadataClient } from './infrastructure/MessagingMetadataClien
 import { OpenClient } from "./infrastructure/OpenClient";
 import { MessagingOpenClient } from "./infrastructure/MessagingOpenClient";
 
-export class ComposeUIDesktopAgent implements DesktopAgent {
-    private appChannels: Channel[] = [];
-    private userChannels: Channel[] = [];
-    private privateChannels: Channel[] = [];
+export class ComposeUIDesktopAgent implements DesktopAgent, AsyncDisposable {
     private currentChannel?: Channel;
     private topLevelContextListeners: ComposeUIContextListener[] = [];
     private intentListeners: Listener[] = [];
-    private channelFactory: ChannelFactory;
+    private channelHandler: ChannelHandler;
     private intentsClient: IntentsClient;
     private metadataClient: MetadataClient;
     private openClient: OpenClient;
@@ -55,7 +52,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     //TODO: we should enable passing multiple channelId to the ctor.
     constructor(
         messaging: IMessaging, 
-        channelFactory?: ChannelFactory,
+        channelHandler?: ChannelHandler,
         intentsClient?: IntentsClient,
         metadataClient?: MetadataClient,
         openClient?: OpenClient) {
@@ -67,10 +64,33 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
         const jsonMessaging: JsonMessaging = new JsonMessaging(messaging);
 
         // TODO: inject this directly instead of the messageRouter
-        this.channelFactory = channelFactory ?? new MessagingChannelFactory(jsonMessaging, window.composeui.fdc3.config.instanceId);
-        this.intentsClient = intentsClient ?? new MessagingIntentsClient(jsonMessaging, this.channelFactory);
+        this.channelHandler = channelHandler ?? new MessagingChannelHandler(jsonMessaging, window.composeui.fdc3.config.instanceId);
+        this.intentsClient = intentsClient ?? new MessagingIntentsClient(jsonMessaging, this.channelHandler);
         this.metadataClient = metadataClient ?? new MessagingMetadataClient(jsonMessaging, window.composeui.fdc3.config);
         this.openClient = openClient ?? new MessagingOpenClient(window.composeui.fdc3.config.instanceId!, jsonMessaging, window.composeui.fdc3.openAppIdentifier);
+    }
+
+    public async [Symbol.asyncDispose](): Promise<void> {
+        console.debug("Disposing ComposeUIDesktopAgent");
+        
+        await this.channelHandler[Symbol.asyncDispose]();
+
+        for (const listener of this.intentListeners) {
+            await listener.unsubscribe();
+        }
+
+        this.intentListeners = [];
+
+        for (const listener of this.topLevelContextListeners) {
+            await listener.unsubscribe();
+        }
+
+        this.topLevelContextListeners = [];
+    }
+
+    // This regiters an endpoint to listen when an action was initiated from the UI to select a user channel to join to.
+    public async init(): Promise<void> {
+        await this.channelHandler.configureChannelSelectorFromUI();
     }
 
     public async open(app?: string | AppIdentifier, context?: Context): Promise<AppIdentifier> {
@@ -106,7 +126,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     }
 
     public async addIntentListener(intent: string, handler: IntentHandler): Promise<Listener> {
-        var listener = await this.channelFactory.getIntentListener(intent, handler);
+        var listener = await this.channelHandler.getIntentListener(intent, handler);
         this.intentListeners.push(listener);
         return listener;
     }
@@ -132,7 +152,7 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
             this.openedAppContextHandled = true;
         }
 
-        const listener = <ComposeUIContextListener>await this.channelFactory.getContextListener(this.openedAppContextHandled, this.currentChannel, handler, contextType);
+        const listener = <ComposeUIContextListener>await this.channelHandler.getContextListener(this.openedAppContextHandled, this.currentChannel, handler, contextType);
         this.topLevelContextListeners.push(listener);
 
         if (!this.currentChannel) {
@@ -147,24 +167,22 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     }
 
     public async getUserChannels(): Promise<Array<Channel>> {
-        return await this.channelFactory.getUserChannels();
+        return await this.channelHandler.getUserChannels();
     }
 
     public async joinUserChannel(channelId: string): Promise<void> {
         if (this.currentChannel) {
             //DesktopAgnet clients can listen on only one channel
+            console.debug("Leaving current channel: ", this.currentChannel.id);
             await this.leaveCurrentChannel();
         }
 
-        let channel = this.userChannels.find(innerChannel => innerChannel.id == channelId);
+        let channel = await this.channelHandler.joinUserChannel(channelId);
+
+        console.debug("Joined to user channel: ", channelId);
+
         if (!channel) {
-            channel = await this.channelFactory.joinUserChannel(channelId);
-            
-            if (!channel) {
-                throw new Error(ChannelError.NoChannelFound);
-            }
-    
-            this.addChannel(channel);
+            throw new Error(ChannelError.NoChannelFound);
         }
 
         this.currentChannel = channel;
@@ -178,19 +196,12 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
     }
 
     public async getOrCreateChannel(channelId: string): Promise<Channel> {
-        let appChannel = this.appChannels.find(channel => channel.id == channelId);
-        if (appChannel) {
-            return appChannel;
-        }
-
-        appChannel = await this.channelFactory.createAppChannel(channelId);
-
-        this.addChannel(appChannel!);
+        let appChannel = await this.channelHandler.createAppChannel(channelId);
         return appChannel!;
     }
 
     public async createPrivateChannel(): Promise<PrivateChannel> {
-        return await this.channelFactory.createPrivateChannel();
+        return await this.channelHandler.createPrivateChannel();
     }
 
     public async getCurrentChannel(): Promise<Channel | null> {
@@ -199,11 +210,15 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
 
     public async leaveCurrentChannel(): Promise<void> {
         //The context listeners, that have been added through the `fdc3.addContextListener()` should unsubscribe
+        console.debug("Unsubscribing top level context listeners: ", this.topLevelContextListeners);
         for (const listener of this.topLevelContextListeners) {
             await listener.unsubscribe();
         }
         
-        this.currentChannel = undefined;
+        if (this.currentChannel) {
+            await this.channelHandler.leaveCurrentChannel();
+            this.currentChannel = undefined;
+        }
     }
 
     public async getInfo(): Promise<ImplementationMetadata> {
@@ -231,21 +246,6 @@ export class ComposeUIDesktopAgent implements DesktopAgent {
             this.openedAppContext = await this.openClient.getOpenedAppContext();
         } catch (err) {
             console.error("The opened app via fdc3.open() could not retrieve the context: ", err);
-        }
-    }
-
-    private addChannel(channel: Channel): void {
-        if (channel == null) return;
-        switch (channel.type) {
-            case "app":
-                this.appChannels.push(channel);
-                break;
-            case "user":
-                this.userChannels.push(channel);
-                break;
-            case "private":
-                this.privateChannels.push(channel);
-                break;
         }
     }
 

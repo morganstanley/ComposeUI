@@ -104,7 +104,7 @@ export class ComposeUIPrivateChannel extends ComposeUIChannel implements Private
         if (this.disconnected) {
             throw new Error("Channel disconnected");
         }
-
+        
         return super.broadcast(context)
     }
 

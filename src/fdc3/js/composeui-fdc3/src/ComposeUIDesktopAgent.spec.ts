@@ -18,7 +18,7 @@ import { ComposeUIDesktopAgent } from './ComposeUIDesktopAgent';
 import { ComposeUITopic } from './infrastructure/ComposeUITopic';
 import { Channel, ChannelError, ContextHandler } from '@finos/fdc3';
 import { ComposeUIErrors } from './infrastructure/ComposeUIErrors';
-import { ChannelFactory } from './infrastructure/ChannelFactory';
+import { ChannelHandler } from './infrastructure/ChannelHandler';
 import { ComposeUIPrivateChannel } from './infrastructure/ComposeUIPrivateChannel';
 import { ChannelType } from './infrastructure/ChannelType';
 import { Fdc3GetOpenedAppContextResponse } from './infrastructure/messages/Fdc3GetOpenedAppContextResponse';
@@ -36,7 +36,7 @@ const testInstrument = {
 
 const contextMessageHandlerMock = vi.fn((_ctx) => 'dummy');
 
-const buildChannelFactory = (jm: JsonMessaging): ChannelFactory => ({
+const buildChannelFactory = (jm: JsonMessaging): ChannelHandler => ({
   createPrivateChannel: vi.fn(() =>
     Promise.resolve(new ComposeUIPrivateChannel('privateId', 'localInstance', jm, true))
   ),
@@ -51,7 +51,10 @@ const buildChannelFactory = (jm: JsonMessaging): ChannelFactory => ({
   getContextListener: vi.fn(
     (_openHandled: boolean, _channel: Channel, handler: ContextHandler, contextType?: string) =>
       Promise.resolve(new ComposeUIContextListener(true, jm, handler, contextType))
-  )
+  ),
+  leaveCurrentChannel: vi.fn(() => Promise.resolve()),
+  configureChannelSelectorFromUI: vi.fn(() => Promise.resolve()),
+  [Symbol.asyncDispose]: vi.fn(() => Promise.resolve())
 });
 
 describe('Tests for ComposeUIDesktopAgent implementation API', () => {

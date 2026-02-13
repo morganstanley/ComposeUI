@@ -29,13 +29,13 @@ internal class IntentResolution : IIntentResolution
 {
     private readonly string _messageId;
     private readonly IMessaging _messaging;
-    private readonly IChannelFactory _channelFactory;
+    private readonly IChannelHandler _channelFactory;
     private readonly JsonSerializerOptions _jsonSerializerOptions = SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization;
 
     public IntentResolution(
         string messageId,
         IMessaging messaging,
-        IChannelFactory channelFactory,
+        IChannelHandler channelFactory,
         string intent,
         IAppIdentifier source,
         ILogger<IntentResolution>? logger = null)
@@ -73,7 +73,7 @@ internal class IntentResolution : IIntentResolution
         var response = await _messaging.InvokeJsonServiceAsync<GetIntentResultRequest, GetIntentResultResponse>(
             Fdc3Topic.GetIntentResult,
             request,
-            _jsonSerializerOptions);
+            _jsonSerializerOptions).ConfigureAwait(false);
 
         if (response == null)
         {
@@ -88,7 +88,7 @@ internal class IntentResolution : IIntentResolution
         if (!string.IsNullOrEmpty(response.ChannelId)
             && response.ChannelType != null)
         {
-            var channel = await _channelFactory.FindChannelAsync(response.ChannelId!, response.ChannelType.Value);
+            var channel = await _channelFactory.FindChannelAsync(response.ChannelId!, response.ChannelType.Value).ConfigureAwait(false);
             return channel;
         }
         else if (!string.IsNullOrEmpty(response.Context))
