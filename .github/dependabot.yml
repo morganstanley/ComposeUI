@@ -25,6 +25,8 @@ updates:
         versions: [ '>=2.1' ]
       - dependency-name: 'FluentAssertions*'
         versions: [ '>=8.0' ]
+      - dependency-name: "Microsoft.Extensions.*"
+        versions: ["10.*"]
     groups:
       infragistics:
         patterns:
@@ -44,6 +46,8 @@ updates:
     ignore:
       - dependency-name: 'FluentAssertions*'
         versions: [ '>=8.0' ]
+      - dependency-name: "Microsoft.Extensions.*"
+        versions: ["10.*"]
     groups:
       infragistics:
         patterns:
@@ -63,6 +67,8 @@ updates:
     ignore:
       - dependency-name: 'FluentAssertions*'
         versions: [ '>=8.0' ]
+      - dependency-name: "Microsoft.Extensions.*"
+        versions: ["10.*"]
     groups:
       infragistics:
         patterns:
@@ -82,6 +88,8 @@ updates:
     ignore:
       - dependency-name: 'FluentAssertions*'
         versions: [ '>=8.0' ]
+      - dependency-name: "Microsoft.Extensions.*"
+        versions: ["10.*"]
     groups:
       infragistics:
         patterns:
@@ -101,6 +109,8 @@ updates:
     ignore:
       - dependency-name: 'FluentAssertions*'
         versions: [ '>=8.0' ]
+      - dependency-name: "Microsoft.Extensions.*"
+        versions: ["10.*"]
     groups:
       infragistics:
         patterns:
@@ -120,6 +130,8 @@ updates:
     ignore:
       - dependency-name: 'FluentAssertions*'
         versions: [ '>=8.0' ]
+      - dependency-name: "Microsoft.Extensions.*"
+        versions: ["10.*"]
     groups:
       infragistics:
         patterns:
@@ -139,6 +151,8 @@ updates:
     ignore:
       - dependency-name: 'FluentAssertions*'
         versions: [ '>=8.0' ]
+      - dependency-name: "Microsoft.Extensions.*"
+        versions: ["10.*"]
     groups:
       infragistics:
         patterns:
