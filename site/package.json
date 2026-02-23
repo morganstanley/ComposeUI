@@ -23,6 +23,6 @@
   },
   "devDependencies": {
     "prettier": "^3.8.1",
-    "rimraf": "^6.1.2"
+    "rimraf": "^6.1.3"
   }
 }
