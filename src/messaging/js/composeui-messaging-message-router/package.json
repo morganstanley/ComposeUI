@@ -27,17 +27,17 @@
   "dependencies": {
     "@morgan-stanley/composeui-messaging-abstractions": "*",
     "@morgan-stanley/composeui-messaging-client": "*",
-    "rxjs": "^7.8.0"
+    "rxjs": "7.8.2"
   },
   "devDependencies": {
     "@types/node": "^24.5.2",
-    "tslib": "^2.4.0",
-    "typescript": "^5.0.0",
-    "vitest": "^2.0.0",
+    "tslib": "2.8.1",
+    "typescript": "5.9.3",
+    "vitest": "4.0.18",
     "@rollup/plugin-commonjs": "29.0.0",
     "@rollup/plugin-node-resolve": "16.0.3",
-    "rollup": "^4.12.1",
+    "rollup": "4.59.0",
     "jsdom": "^28.1.0",
-    "rimraf": "6.0.1"
+    "rimraf": "6.1.3"
   }
 }
