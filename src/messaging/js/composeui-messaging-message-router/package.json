@@ -36,7 +36,7 @@
     "vitest": "4.0.18",
     "@rollup/plugin-commonjs": "29.0.0",
     "@rollup/plugin-node-resolve": "16.0.3",
-    "rollup": "4.57.1",
+    "rollup": "4.59.0",
     "jsdom": "^28.1.0",
     "rimraf": "6.1.3"
   }
