@@ -1,6 +1,6 @@
 {
     "name": "@morgan-stanley/composeui-messaging-client",
-    "version": "0.1.0-alpha.11",
+    "version": "0.1.0-alpha.12",
     "private": false,
     "description": "JavaScript client for ComposeUI's Message Router",
     "type": "module",

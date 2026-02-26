@@ -1,6 +1,6 @@
 {
   "name": "@morgan-stanley/composeui-messaging-message-router",
-  "version": "0.1.0-alpha.11",
+  "version": "0.1.0-alpha.12",
   "description": "TypeScript messaging implementation for ComposeUI. It uses the MessageRouter client library.",
   "private": false,
   "author": "Morgan Stanley",
