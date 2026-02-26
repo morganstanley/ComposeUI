@@ -11,6 +11,7 @@
  *  
  */
 
+import { ContextHandler } from '@finos/fdc3';
 import { ComposeUIContextListener } from './infrastructure/ComposeUIContextListener';
 import { Fdc3AddContextListenerResponse } from './infrastructure/messages/Fdc3AddContextListenerResponse';
 import { IMessaging, JsonMessaging } from '@morgan-stanley/composeui-messaging-abstractions';
@@ -34,13 +35,19 @@ const wrongContext = {
     type: 'dummy'
 }
 
-const contextMessageHandlerMock = {
-  contextHandler: (_: unknown) => {}
-};
+export interface ContextHandlerMock {
+    contextHandler: ContextHandler;
+}
+
+let contextMessageHandlerMock : ContextHandlerMock;
 
 describe('Tests for ComposeUIContextListener implementation API', () => {
     
     beforeEach(async () => {
+
+        contextMessageHandlerMock = {
+            contextHandler: (_: unknown) => {}
+        };
 
         // @ts-ignore
         window.composeui = {

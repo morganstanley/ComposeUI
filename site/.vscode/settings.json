@@ -5,7 +5,7 @@
   "html.format.wrapAttributes": "force-aligned",
   "eslint.format.enable": true,
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
+    "source.fixAll.eslint": "explicit"
   },
   "eslint.validate": ["javascript"],
   "editor.formatOnSave": true,
