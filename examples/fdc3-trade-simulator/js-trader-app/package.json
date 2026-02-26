@@ -1,6 +1,6 @@
 {
   "name": "@morgan-stanley/composeui-example-trader-app",
-  "version": "0.1.0-alpha.11",
+  "version": "0.1.0-alpha.12",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

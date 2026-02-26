@@ -1,6 +1,6 @@
 {
   "name": "@morgan-stanley/composeui-messaging-abstractions",
-  "version": "0.1.0-alpha.11",
+  "version": "0.1.0-alpha.12",
   "description": "TypeScript abstractions library for ComposeUI's messaging",
   "private": false,
   "author": "Morgan Stanley",
