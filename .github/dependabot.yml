@@ -25,8 +25,8 @@ updates:
         versions: [ '>=2.1' ]
       - dependency-name: 'FluentAssertions*'
         versions: [ '>=8.0' ]
-      - dependency-name: "Microsoft.Extensions.*"
-        versions: ["10.*"]
+      - dependency-name: 'Microsoft.Extensions.*'
+        versions: ['10.*']
     groups:
       infragistics:
         patterns:
@@ -46,8 +46,8 @@ updates:
     ignore:
       - dependency-name: 'FluentAssertions*'
         versions: [ '>=8.0' ]
-      - dependency-name: "Microsoft.Extensions.*"
-        versions: ["10.*"]
+      - dependency-name: 'Microsoft.Extensions.*'
+        versions: ['10.*']
     groups:
       infragistics:
         patterns:
@@ -67,8 +67,8 @@ updates:
     ignore:
       - dependency-name: 'FluentAssertions*'
         versions: [ '>=8.0' ]
-      - dependency-name: "Microsoft.Extensions.*"
-        versions: ["10.*"]
+      - dependency-name: 'Microsoft.Extensions.*'
+        versions: ['10.*']
     groups:
       infragistics:
         patterns:
@@ -88,8 +88,8 @@ updates:
     ignore:
       - dependency-name: 'FluentAssertions*'
         versions: [ '>=8.0' ]
-      - dependency-name: "Microsoft.Extensions.*"
-        versions: ["10.*"]
+      - dependency-name: 'Microsoft.Extensions.*'
+        versions: ['10.*']
     groups:
       infragistics:
         patterns:
@@ -109,8 +109,8 @@ updates:
     ignore:
       - dependency-name: 'FluentAssertions*'
         versions: [ '>=8.0' ]
-      - dependency-name: "Microsoft.Extensions.*"
-        versions: ["10.*"]
+      - dependency-name: 'Microsoft.Extensions.*'
+        versions: ['10.*']
     groups:
       infragistics:
         patterns:
@@ -130,8 +130,8 @@ updates:
     ignore:
       - dependency-name: 'FluentAssertions*'
         versions: [ '>=8.0' ]
-      - dependency-name: "Microsoft.Extensions.*"
-        versions: ["10.*"]
+      - dependency-name: 'Microsoft.Extensions.*'
+        versions: ['10.*']
     groups:
       infragistics:
         patterns:
@@ -151,8 +151,8 @@ updates:
     ignore:
       - dependency-name: 'FluentAssertions*'
         versions: [ '>=8.0' ]
-      - dependency-name: "Microsoft.Extensions.*"
-        versions: ["10.*"]
+      - dependency-name: 'Microsoft.Extensions.*'
+        versions: ['10.*']
     groups:
       infragistics:
         patterns:
@@ -167,14 +167,14 @@ updates:
 
   - package-ecosystem: 'nuget'
     directories:
-      - "/src/**/dotnet/**"
+      - '/src/**/dotnet/**'
     schedule:
       interval: 'monthly'
     ignore:
-      - dependency-name: "System.*"
-        versions: ["10.*"]
-      - dependency-name: "Microsoft.Bcl.AsyncInterfaces.*"
-        versions: ["10.*"]
+      - dependency-name: 'System.*'
+        versions: ['10.*']
+      - dependency-name: 'Microsoft.Bcl.AsyncInterfaces.*'
+        versions: ['10.*']
 
   - package-ecosystem: 'npm'
     directory: '/'
