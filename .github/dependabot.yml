@@ -19,7 +19,6 @@ updates:
   - package-ecosystem: 'nuget'
     directories:
       - '/src/**/dotnet/**'
-      - '/prototypes/multi-module-prototype/examples/multi-module-example/ModulesPrototype'
     schedule:
       interval: 'monthly'
     ignore:
