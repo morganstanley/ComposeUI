@@ -17,6 +17,6 @@
     "url": "git+https://github.com/MorganStanley/ComposeUI.git"
   },
   "devDependencies": {
-    "lerna": "^9.0.0"
+    "lerna": "^9.0.4"
   }
 }

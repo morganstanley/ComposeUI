@@ -165,6 +165,17 @@ updates:
         patterns:
           - 'Microsoft.CodeAnalysis*'
 
+  - package-ecosystem: 'nuget'
+    directories:
+      - "/src/**/dotnet/**"
+    schedule:
+      interval: 'monthly'
+    ignore:
+      - dependency-name: "System.*"
+        versions: ["10.*"]
+      - dependency-name: "Microsoft.Bcl.AsyncInterfaces.*"
+        versions: ["10.*"]
+
   - package-ecosystem: 'npm'
     directory: '/'
     schedule:

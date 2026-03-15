@@ -191,7 +191,7 @@ export class MarketWatchComponent implements OnInit, OnDestroy{
   constructor(private ngZone: NgZone) {
     this.subject.subscribe(data => {
       this.ngZone.run(() => {
-        this.dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
+        console.debug("Market Watch received new data for symbol: " + data.Symbol);
         this.dataSource.data = [...data.DataSource];
         this.treeControl.dataNodes.forEach(x => {
           if (x.Symbol === data.Symbol && x.Expandable) {
