@@ -71,7 +71,6 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
         IOptions<Fdc3DesktopAgentOptions> options,
         IResolverUICommunicator resolverUI,
         IUserChannelSetReader userChannelSetReader,
-        IChannelSelector? channelSelector = null,
         ILoggerFactory? loggerFactory = null)
     {
         _appDirectory = appDirectory;

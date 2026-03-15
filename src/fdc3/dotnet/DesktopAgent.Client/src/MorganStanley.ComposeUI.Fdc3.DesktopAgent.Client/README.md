@@ -92,7 +92,119 @@ Key methods provided by IDesktopAgent:
 - Microsoft.Extensions.Logging.Abstractions
 - MorganStanley.ComposeUI.Messaging.Abstractions
 
-## Usage
+## IDesktopAgentClientFactory
+The `IDesktopAgentClientFactory` interface provides a shell-specific factory for resolving `IDesktopAgent` instances. This abstraction allows the Desktop Agent client to remain decoupled from the specifics of how the `IDesktopAgent` is provided, enabling greater flexibility and testability.
+
+> **Important:** The `IDesktopAgentClientFactory` implementation should be registered as a singleton in your dependency injection container to ensure proper FDC3 integration. A single instance is required to maintain consistent state and coordination across all modules and in-process applications.
+
+### Methods
+- **GetDesktopAgentAsync(string identifier, Action\<IDesktopAgent\> onReady)**: Returns the `IDesktopAgent` implementation for a given module identifier. The `onReady` callback signals when the desktop agent client is ready.
+- **RegisterInProcessAppPropertiesAsync(Fdc3StartupProperties fdc3Properties)**: Registers FDC3 properties for in-process apps, enabling them to participate in the FDC3 ecosystem. This is particularly important for distinguishing multiple in-process apps running within the same shell.
+
+### Example
+```csharp
+public class MyShellIntegration
+{
+    private readonly IDesktopAgentClientFactory _factory;
+
+    public MyShellIntegration(IDesktopAgentClientFactory factory)
+    {
+        _factory = factory;
+    }
+
+    public async Task InitializeModule(string moduleId)
+    {
+        await _factory.GetDesktopAgentAsync(moduleId, desktopAgent =>
+        {
+            // Desktop agent is ready for use
+        });
+    }
+}
+```
+
+## Fdc3StartupProperties
+The `Fdc3StartupProperties` class represents the FDC3 properties for an application, providing necessary identification and context information for proper FDC3 integration.
+
+### Properties
+| Property | Description |
+|----------|-------------|
+| `AppId` | The unique application identifier as defined in the FDC3 App Directory. |
+| `InstanceId` | The unique instance identifier for this running instance of the application. |
+| `ChannelId` | The channel identifier that the application is currently joined to. |
+| `OpenedAppContextId` | The context identifier used when opening the application, typically containing context data passed during Open or RaiseIntent operations. |
+
+### Example
+```csharp
+var properties = new Fdc3StartupProperties
+{
+    AppId = "my-app",
+    InstanceId = Guid.NewGuid().ToString(),
+    ChannelId = "fdc3.channel.1",
+    OpenedAppContextId = "context-123"
+};
+
+await _desktopAgentClientFactory.RegisterInProcessAppPropertiesAsync(properties);
+```
+
+### Channel Selector Behavior for Native Clients
+Native clients must handle channel selection UI independently since the Desktop Agent Client does not have knowledge of the container's UI. The implementation uses a messaging-based approach where containers can register their own channel selector logic.
+
+#### Registering a Channel Selector
+Each container instance should register its own channel selector logic by subscribing to the `Fdc3Topic.ChannelSelectorFromAPI({instanceId})` topic. This service is invoked whenever `JoinUserChannel` is called from the API, allowing the UI to update and reflect the currently joined user channel.
+
+#### Initial User Channel Behavior
+When the Desktop Agent Client is initialized with an initial user channel (via `Fdc3StartupProperties.ChannelId` or environment variable), the implementation joins the channel **without triggering the registered channel selector service**. This is intentional because:
+- The container already knows the initial channel value (it provided it during startup)
+- This avoids unnecessary round-trips and potential UI flickering during initialization
+- The container can immediately display the correct initial state without waiting for a callback
+
+The container is responsible for displaying the initial user channel state in its UI channel selector component.
+
+#### JoinUserChannel Triggers the Channel Selector
+After initialization, whenever `JoinUserChannel(channelId)` is called (either by the application or via the UI), the implementation:
+1. Joins the specified user channel
+2. Triggers the registered channel selector service at `Fdc3Topic.ChannelSelectorFromAPI({instanceId})` with the channel ID
+
+This ensures the UI can update to reflect the new channel membership.
+
+#### Channel Selection from UI
+If you provide a UI channel selector component, it can trigger channel joins by invoking the `Fdc3Topic.ChannelSelectorFromUI({instanceId})` service with a `JoinUserChannelRequest` payload. The Desktop Agent Client registers this service during initialization and will call `JoinUserChannel` internally when invoked.
+
+```csharp
+// Example: Container registering to receive channel selector updates
+await messaging.RegisterServiceAsync(
+    Fdc3Topic.ChannelSelectorFromAPI(instanceId),
+    (channelId) =>
+    {
+        // Update your UI channel selector to display the joined channel
+        UpdateChannelSelectorUI(channelId);
+        return ValueTask.FromResult<string?>(null);
+    });
+
+// Example: UI triggering a channel join
+var request = new JoinUserChannelRequest { ChannelId = "fdc3.channel.1" };
+await messaging.InvokeServiceAsync(
+    Fdc3Topic.ChannelSelectorFromUI(instanceId),
+    JsonSerializer.Serialize(request));
+```
+
+> **Note:** The initial user channel provided during startup will not trigger the channel selector callback. The container must handle displaying the initial channel state itself based on the `Fdc3StartupProperties.ChannelId` value it provided.
+
+### Getting or Creating a App Channel
+You can get or create an app channel by using:
+```csharp
+var appChannel = await desktopAgent.GetOrCreateChannel("your-app-channel-id");
+var listener = await appChannel.AddContextListener("fdc3.instrument", (ctx, ctxMetadata) =>
+{
+    Console.WriteLine($"Received context on app channel: {ctx}");
+});
+
+//Initiator shouldn't receive back the broadcasted context
+await appChannel.Broadcast(context);
+```
+
+
+## Default Usage of IDesktopAgent
 ### Broadcasting Context
 An app is not able to broadcast any message unless it has joined a channel. After joining a channel, you can broadcast context to all listeners in that channel.
 ```csharp
@@ -152,19 +264,6 @@ You can retrieve user channels by using:
 ```csharp
 var channels = await desktopAgent.GetUserChannels();
 await desktopAgent.JoinUserChannel(channels[0].Id);
-```
-
-### Getting or Creating a App Channel
-You can get or create an app channel by using:
-```csharp
-var appChannel = await desktopAgent.GetOrCreateChannel("your-app-channel-id");
-var listener = await appChannel.AddContextListener("fdc3.instrument", (ctx, ctxMetadata) =>
-{
-    Console.WriteLine($"Received context on app channel: {ctx}");
-});
-
-//Initiator shouldn't receive back the broadcasted context
-await appChannel.Broadcast(context);
 ```
 
 ### Finding apps based on the specified intent

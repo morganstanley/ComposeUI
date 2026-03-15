@@ -44,6 +44,9 @@ internal interface IChannelHandler : IAsyncDisposable
     /// <returns>A <see cref="ValueTask{IChannel}"/> representing the asynchronous operation.</returns>
     public ValueTask<IChannel> JoinUserChannelAsync(string channelId);
 
+
+    public ValueTask TriggerChannelSelector(IChannel channel);
+
     /// <summary>
     /// Retrieves all available user channels.
     /// </summary>
