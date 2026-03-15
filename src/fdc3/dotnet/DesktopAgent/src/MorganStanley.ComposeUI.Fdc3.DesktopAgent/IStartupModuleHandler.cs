@@ -12,12 +12,12 @@
 
 using MorganStanley.ComposeUI.ModuleLoader;
 
-namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
+namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
 /// <summary>
-/// Abstract base class for handling startup actions for different module types.
+/// Interface for handling FDC3 related startup actions for different module types.
 /// </summary>
-internal abstract class StartupModuleHandler
+public interface IStartupModuleHandler
 {
     /// <summary>
     /// Executes the startup logic for the specified module type.
@@ -27,5 +27,5 @@ internal abstract class StartupModuleHandler
     /// <param name="fdc3InstanceId">The FDC3 instance identifier.</param>
     /// <param name="channelId">The channel identifier, if any.</param>
     /// <param name="openedAppContextId">The opened app context identifier, if any.</param>
-    public abstract Task HandleAsync(StartupContext startupContext, string appId, string fdc3InstanceId, string? channelId, string? openedAppContextId);
+    public Task HandleAsync(StartupContext startupContext, string appId, string fdc3InstanceId, string? channelId, string? openedAppContextId);
 }

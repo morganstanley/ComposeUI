@@ -19,10 +19,10 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 /// <summary>
 /// Handles startup logic for native modules by setting environment variables.
 /// </summary>
-internal sealed class NativeStartupModuleHandler : StartupModuleHandler
+internal sealed class NativeStartupModuleHandler : IStartupModuleHandler
 {
     /// <inheritdoc/>
-    public override Task HandleAsync(StartupContext startupContext, string appId, string fdc3InstanceId, string? channelId, string? openedAppContextId)
+    public Task HandleAsync(StartupContext startupContext, string appId, string fdc3InstanceId, string? channelId, string? openedAppContextId)
     {
         var envs = new Dictionary<string, string>
         {

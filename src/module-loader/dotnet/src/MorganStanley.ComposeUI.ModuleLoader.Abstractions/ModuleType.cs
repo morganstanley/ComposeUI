@@ -19,4 +19,5 @@ public static class ModuleType
 {
     public const string Native = "native";
     public const string Web = "web";
+    public const string NativeInProcess = "native-in-process";
 }

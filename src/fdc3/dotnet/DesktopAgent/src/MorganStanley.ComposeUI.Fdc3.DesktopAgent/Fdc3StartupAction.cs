@@ -27,7 +27,7 @@ internal sealed class Fdc3StartupAction : IStartupAction
     private readonly IUserChannelSetReader _userChannelSetReader;
     private readonly Fdc3DesktopAgentOptions _options;
     private readonly ILogger<Fdc3StartupAction> _logger;
-    private static readonly Dictionary<string, StartupModuleHandler> Handlers = new()
+    private static readonly Dictionary<string, IStartupModuleHandler> Handlers = new()
     {
         { ModuleType.Web, new WebStartupModuleHandler() },
         { ModuleType.Native, new NativeStartupModuleHandler() }
@@ -37,11 +37,18 @@ internal sealed class Fdc3StartupAction : IStartupAction
         IAppDirectory appDirectory,
         IUserChannelSetReader userChannelSetReader,
         IOptions<Fdc3DesktopAgentOptions> options,
+        IStartupModuleHandler? inProcessStartupModuleHandler = null,
         ILogger<Fdc3StartupAction>? logger = null)
     {
         _appDirectory = appDirectory;
         _userChannelSetReader = userChannelSetReader;
         _options = options.Value;
+        
+        if (inProcessStartupModuleHandler != null)
+        {
+            Handlers.Add(ModuleType.NativeInProcess, inProcessStartupModuleHandler);
+        }
+
         _logger = logger ?? NullLogger<Fdc3StartupAction>.Instance;
     }
 
@@ -49,7 +56,7 @@ internal sealed class Fdc3StartupAction : IStartupAction
     {
         try
         {
-            var appId = (await _appDirectory.GetApp(startupContext.StartRequest.ModuleId)).AppId;
+            var appId = (await _appDirectory.GetApp(startupContext.StartRequest.ModuleId).ConfigureAwait(false)).AppId;
             var userChannelSet = await _userChannelSetReader.GetUserChannelSet().ConfigureAwait(false);
 
             var fdc3InstanceId = startupContext
@@ -82,6 +89,6 @@ internal sealed class Fdc3StartupAction : IStartupAction
             _logger.LogError(exception, $"Fdc3 bundle js could be not added to the {startupContext.StartRequest.ModuleId}.");
         }
 
-        await next.Invoke();
+        await next.Invoke().ConfigureAwait(false);
     }
 }

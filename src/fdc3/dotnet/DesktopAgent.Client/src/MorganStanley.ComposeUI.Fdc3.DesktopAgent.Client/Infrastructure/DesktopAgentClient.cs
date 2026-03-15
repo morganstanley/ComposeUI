@@ -32,8 +32,8 @@ public class DesktopAgentClient : IDesktopAgent, IAsyncDisposable
     private readonly IMessaging _messaging;
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<DesktopAgentClient> _logger;
-    private readonly string _appId;
-    private readonly string _instanceId;
+    private string _appId;
+    private string _instanceId;
     private IChannelHandler _channelHandler;
     private IMetadataClient _metadataClient;
     private IIntentsClient _intentsClient;
@@ -50,52 +50,85 @@ public class DesktopAgentClient : IDesktopAgent, IAsyncDisposable
 
     private readonly TaskCompletionSource<string> _initializationTaskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
+    public Task<string> Initialize => _initializationTaskCompletionSource.Task;
+
+    /// <summary>
+    /// The app and instance identifiers can be provided through environment variables or by setting the relative arguments in the ctor. 
+    /// </summary>
+    /// <param name="messaging"></param>
+    /// <param name="appId">Fdc3App app id</param>
+    /// <param name="instanceId">Fdc3App insatnce id</param>
+    /// <param name="loggerFactory"></param>
     public DesktopAgentClient(
         IMessaging messaging,
+        string? appId = null,
+        string? instanceId = null,
+        string? initialUserChannelId = null,
+        string? initialOpenAppContextId = null,
+        Action<IDesktopAgent>? onReady = null,
         ILoggerFactory? loggerFactory = null)
     {
         _messaging = messaging;
         _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
         _logger = _loggerFactory.CreateLogger<DesktopAgentClient>();
 
-        _appId = Environment.GetEnvironmentVariable(nameof(AppIdentifier.AppId)) ?? throw ThrowHelper.MissingAppId(string.Empty);
-        _instanceId = Environment.GetEnvironmentVariable(nameof(AppIdentifier.InstanceId)) ?? throw ThrowHelper.MissingInstanceId(_appId, string.Empty);
+        _appId = Environment.GetEnvironmentVariable(nameof(AppIdentifier.AppId));
+        _instanceId = Environment.GetEnvironmentVariable(nameof(AppIdentifier.InstanceId));
+
+        if (string.IsNullOrEmpty(_appId) || string.IsNullOrEmpty(_instanceId))
+        {
+            if (string.IsNullOrEmpty(appId) || string.IsNullOrEmpty(instanceId))
+            {
+                throw ThrowHelper.MissingAppIdentifier(appId, instanceId);
+            }
+            else
+            {
+                _appId = appId!;
+                _instanceId = instanceId!;
+            }
+        }
+
+        var channelId = Environment.GetEnvironmentVariable(Fdc3StartupParameters.Fdc3ChannelId);
+        if (string.IsNullOrEmpty(channelId)
+            && !string.IsNullOrEmpty(initialUserChannelId))
+        {
+            channelId = initialUserChannelId;
+        }
+
+        var openedAppContextId = Environment.GetEnvironmentVariable(Fdc3StartupParameters.OpenedAppContextId);
+        if (string.IsNullOrEmpty(openedAppContextId)
+            && !string.IsNullOrEmpty(initialOpenAppContextId))
+        {
+            openedAppContextId = initialOpenAppContextId;
+        }
 
         if (_logger.IsEnabled(LogLevel.Debug))
         {
             _logger.LogDebug("AppID: {AppId}; InstanceId: {InstanceId} is registered for the FDC3 client app.", _appId, _instanceId);
         }
 
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("Retrieved startup parameters for channelId: {ChannelId}; openedAppContextId: {OpenedAppContext}.", channelId ?? "null", openedAppContextId ?? "null");
+        }
+
         _metadataClient = new MetadataClient(_appId, _instanceId, _messaging, _loggerFactory.CreateLogger<MetadataClient>());
         _openClient = new OpenClient(_instanceId, _messaging, this, _loggerFactory.CreateLogger<OpenClient>());
 
-        _ = Task.Run(() => InitializeAsync().ConfigureAwait(false));
+        _ = Task.Run(() => InitializeAsync(channelId, openedAppContextId, onReady).ConfigureAwait(false));
     }
 
     /// <summary>
     /// Joins to a user channel if the channel id is initially defined for the app and requests to backend to return the context if the app was opened through fdc3.open call.
     /// </summary>
     /// <returns></returns>
-    private async Task InitializeAsync()
+    private async Task InitializeAsync(string? channelId, string? openedAppContextId, Action<IDesktopAgent>? onReady = null)
     {
         try
         {
             if (_logger.IsEnabled(LogLevel.Debug))
             {
                 _logger.LogDebug("Initializing DesktopAgentClient...");
-            }
-
-            var channelId = Environment.GetEnvironmentVariable(Fdc3StartupParameters.Fdc3ChannelId);
-            var openedAppContextId = Environment.GetEnvironmentVariable(Fdc3StartupParameters.OpenedAppContextId);
-
-            if (_logger.IsEnabled(LogLevel.Debug))
-            {
-                _logger.LogDebug("Retrieved startup parameters for channelId: {ChannelId}; openedAppContextId: {OpenedAppContext}.", channelId ?? "null", openedAppContextId ?? "null");
-            }
-
-            if (!string.IsNullOrEmpty(channelId))
-            {
-                await JoinUserChannel(channelId!).ConfigureAwait(false);
             }
 
             if (!string.IsNullOrEmpty(openedAppContextId))
@@ -106,13 +139,22 @@ public class DesktopAgentClient : IDesktopAgent, IAsyncDisposable
             _channelHandler = new ChannelHandler(_messaging, _instanceId, this, _openedAppContext, _loggerFactory);
             _intentsClient = new IntentsClient(_messaging, _channelHandler, _instanceId, _loggerFactory);
 
-            await _channelHandler.ConfigureChannelSelectorAsync(CancellationToken.None).ConfigureAwait(false);
+            await _channelHandler.ConfigureChannelSelectorAsync().ConfigureAwait(false);
 
             _initializationTaskCompletionSource.SetResult(_instanceId);
         }
         catch (Exception exception)
         {
             _initializationTaskCompletionSource.TrySetException(exception);
+        }
+        finally
+        {
+            if (!string.IsNullOrEmpty(channelId))
+            {
+                await JoinUserChannel(channelId!).ConfigureAwait(false);
+            }
+
+            onReady?.Invoke(this);
         }
     }
 
@@ -333,8 +375,6 @@ public class DesktopAgentClient : IDesktopAgent, IAsyncDisposable
     /// <returns></returns>
     public async Task JoinUserChannel(string channelId)
     {
-        await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
-
         try
         {
             await _currentChannelLock.WaitAsync().ConfigureAwait(false);
