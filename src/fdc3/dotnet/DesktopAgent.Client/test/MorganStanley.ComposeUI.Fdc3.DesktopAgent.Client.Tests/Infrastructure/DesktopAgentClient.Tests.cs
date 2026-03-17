@@ -333,6 +333,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new Context("test-type"), _jsonSerializerOptions)));
 
         var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
         await desktopAgent.JoinUserChannel("test-channelId");
 
         var listener = await desktopAgent.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) => { resultContextListenerInvocations++; });

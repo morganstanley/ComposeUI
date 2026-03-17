@@ -149,7 +149,7 @@ public class DesktopAgentClient : IDesktopAgent, IAsyncDisposable
         {
             if (!string.IsNullOrEmpty(channelId))
             {
-                await JoinUserChannel(channelId!).ConfigureAwait(false);
+                await JoinUserChannelAsync(channelId!).ConfigureAwait(false);
             }
 
             onReady?.Invoke(this);
@@ -372,6 +372,12 @@ public class DesktopAgentClient : IDesktopAgent, IAsyncDisposable
     /// <param name="channelId"></param>
     /// <returns></returns>
     public async Task JoinUserChannel(string channelId)
+    {
+        await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
+        await JoinUserChannelAsync(channelId).ConfigureAwait(false);
+    }
+
+    private async Task JoinUserChannelAsync(string channelId)
     {
         try
         {
