@@ -50,8 +50,6 @@ public class DesktopAgentClient : IDesktopAgent, IAsyncDisposable
 
     private readonly TaskCompletionSource<string> _initializationTaskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    public Task<string> Initialize => _initializationTaskCompletionSource.Task;
-
     /// <summary>
     /// The app and instance identifiers can be provided through environment variables or by setting the relative arguments in the ctor. 
     /// </summary>
@@ -382,7 +380,9 @@ public class DesktopAgentClient : IDesktopAgent, IAsyncDisposable
             if (_currentChannel != null)
             {
                 _logger.LogInformation("Leaving current channel: {CurrentChannelId}...", _currentChannel.Id);
-                await LeaveCurrentChannel().ConfigureAwait(false);
+
+                //If we call directly the LeaveCurrentChannel then we might encounter a deadlock
+                LeaveCurrentChannelWithoutLock();
             }
 
             var channel = await _channelHandler.JoinUserChannelAsync(channelId).ConfigureAwait(false);
@@ -416,27 +416,32 @@ public class DesktopAgentClient : IDesktopAgent, IAsyncDisposable
         try
         {
             await _currentChannelLock.WaitAsync().ConfigureAwait(false);
-            var contextListeners = _contextListeners.Reverse();
-
-            //The context listeners, that have been added through the `fdc3.addContextListener()` should unsubscribe, but the context listeners should remain registered to the DesktopAgentClient instance.
-            foreach (var contextListener in contextListeners)
-            {
-                if (_logger.IsEnabled(LogLevel.Debug))
-                {
-                    _logger.LogDebug("Unsubscribing context listener from channel: {CurrentChannelId}...", _currentChannel?.Id);
-                }
-
-                contextListener.Key.Unsubscribe();
-            }
-
-            if (_currentChannel != null)
-            {
-                _currentChannel = null;
-            }
+            LeaveCurrentChannelWithoutLock();
         }
         finally
         {
             _currentChannelLock.Release();
+        }
+    }
+
+    private void LeaveCurrentChannelWithoutLock()
+    {
+        var contextListeners = _contextListeners.Reverse();
+
+        //The context listeners, that have been added through the `fdc3.addContextListener()` should unsubscribe, but the context listeners should remain registered to the DesktopAgentClient instance.
+        foreach (var contextListener in contextListeners)
+        {
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("Unsubscribing context listener from channel: {CurrentChannelId}...", _currentChannel?.Id);
+            }
+
+            contextListener.Key.Unsubscribe();
+        }
+
+        if (_currentChannel != null)
+        {
+            _currentChannel = null;
         }
     }
 
