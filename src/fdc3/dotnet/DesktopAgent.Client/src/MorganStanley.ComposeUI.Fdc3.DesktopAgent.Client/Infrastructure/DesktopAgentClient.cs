@@ -379,7 +379,7 @@ public class DesktopAgentClient : IDesktopAgent, IAsyncDisposable
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
         await JoinUserChannelAsync(channelId).ConfigureAwait(false);
-        await _channelHandler.TriggerChannelSelector(_currentChannel!).ConfigureAwait(false);
+        await _channelHandler.TriggerChannelSelectorAsync(_currentChannel!).ConfigureAwait(false);
     }
 
     private async Task JoinUserChannelAsync(string channelId)

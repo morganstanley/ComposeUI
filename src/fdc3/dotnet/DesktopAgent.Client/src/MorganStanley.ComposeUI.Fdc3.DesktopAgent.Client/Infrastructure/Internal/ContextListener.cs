@@ -116,7 +116,7 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
                 _unsubscribeCallback(this);
             }
         }
-        catch (Exception exception)
+        catch (Exception)
         {
             throw;
         }
