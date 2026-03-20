@@ -215,7 +215,7 @@ internal class ChannelHandler : IChannelHandler
         return channel;
     }
 
-    public async ValueTask TriggerChannelSelector(IChannel channel)
+    public async ValueTask TriggerChannelSelectorAsync(IChannel channel)
     {
         try
         {

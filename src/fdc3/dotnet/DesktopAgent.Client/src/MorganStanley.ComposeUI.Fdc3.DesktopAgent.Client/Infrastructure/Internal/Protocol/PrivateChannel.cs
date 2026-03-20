@@ -436,24 +436,17 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
     private void RemoveContextHandler<T>(ContextListener<T> contextListener) where T : IContext
     {
-        try
+        //this is being called within a lock once disposing the client.
+        if (!_isDisconnected)
         {
-            _lock.Wait();
-
-            if (!_isDisconnected)
+            if (_contextHandlers.Remove(contextListener))
             {
-                if (_contextHandlers.Remove(contextListener))
-                {
-                    _logger.LogWarning("The context listener for context type {ContextType} was removed from private channel {ChannelId}.", contextListener.ContextType, Id);
-                }
+                _logger.LogWarning("The context listener for context type {ContextType} was removed from private channel {ChannelId}.", contextListener.ContextType, Id);
             }
-            //Fire and forget
-            _ = FireUnsubscribed(contextListener.ContextType);
         }
-        finally
-        {
-            _lock.Release();
-        }
+
+        //Fire and forget
+        _ = FireUnsubscribed(contextListener.ContextType);
     }
 
     private async ValueTask FireUnsubscribed(string? contextType)

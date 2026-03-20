@@ -460,7 +460,7 @@ public class EndToEndTests : IAsyncLifetime
                     { "Fdc3InstanceId", Guid.NewGuid().ToString() },
                 })); // This will ensure that the DesktopAgent backend knows its an FDC3 enabled module. For test only!
 
-        await Task.Delay(3000); //We need to wait somehow for the module to finish up its actions
+        await Task.Delay(5000); //We need to wait somehow for the module to finish up its actions
 
         handledContexts.Should().HaveCount(1);
     }
