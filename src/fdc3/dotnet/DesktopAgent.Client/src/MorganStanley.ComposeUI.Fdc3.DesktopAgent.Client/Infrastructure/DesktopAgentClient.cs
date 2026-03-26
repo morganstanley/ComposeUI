@@ -147,13 +147,11 @@ public class DesktopAgentClient : IDesktopAgent, IAsyncDisposable
         }
         finally
         {
-            //The responsibility of triggering the channel selector using native client is the container's since the desktop agent client doesn't have the information about the UI.
-            //If the channelId is provided through startup parameters, the desktop agent client will join the channel directly without triggering the channel selector.
-            //In this case, we need to trigger the channel selector to update the UI in order to reflect the current channel that the app has joined.
-            //Because it can cause deadlock to trigger the channel selector within the lock in the JoinUserChannelAsync, we trigger it here after the initialization is completed and the channel is joined.
+            //It can cause deadlock to trigger the channel selector within the lock in the JoinUserChannelAsync, we trigger it here after the initialization is completed and the channel is joined.
             if (!string.IsNullOrEmpty(channelId))
             {
                 await JoinUserChannelAsync(channelId!).ConfigureAwait(false);
+                _ = _channelHandler.TriggerChannelSelectorAsync(_currentChannel!).ConfigureAwait(false);
             }
 
             onReady?.Invoke(this);
