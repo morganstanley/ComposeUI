@@ -32,7 +32,7 @@
     "rxjs": "7.8.2"
   },
   "devDependencies": {
-    "@types/node": "^24.5.2",
+    "@types/node": "^25.5.2",
     "typescript": "5.9.3",
     "vitest": "4.0.18",
     "@vitest/coverage-v8": "4.0.18",
