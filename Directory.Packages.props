@@ -7,7 +7,7 @@
     <PackageVersion Include="Finos.Fdc3" Version="[2.0.0, 2.1)" />
     <PackageVersion Include="Finos.Fdc3.NewtonsoftJson" Version="[2.0.0, 2.1)" />
     <PackageVersion Include="Finos.Fdc3.AppDirectory" Version="[2.0.0, 2.1)" />
-    <PackageVersion Include="FluentAssertions" Version="[7.2.1, 8)" />
+    <PackageVersion Include="FluentAssertions" Version="[7.2.2, 8.0.0)" />
     <PackageVersion Include="FluentAssertions.Json" Version="[6.1.0, 8.0)" />
     <PackageVersion Include="Google.Protobuf" Version="3.29.3" />
     <PackageVersion Include="Grpc.AspNetCore.Server" Version="2.67.0" />
