@@ -14,13 +14,18 @@ registries:
     token: ${{ secrets.DEPENDABOT_GITHUB_PACKAGES }}
 
 updates:
-  # Dependabot doesn't support glob syntax. Every solution needs an entry
+  # Dependabot does support glob syntax.
 
   - package-ecosystem: 'nuget'
-    directory: '/src/fdc3/dotnet/DesktopAgent/src/DesktopAgent'
+    directories:
+      - '/src/**/dotnet/**'
     schedule:
       interval: 'monthly'
     ignore:
+      - dependency-name: 'System.*'
+        versions: ['10.*']
+      - dependency-name: 'Microsoft.Bcl.AsyncInterfaces.*'
+        versions: ['10.*']
       - dependency-name: 'Finos.Fdc3*'
         versions: [ '>=2.1' ]
       - dependency-name: 'FluentAssertions*'
@@ -38,143 +43,6 @@ updates:
       codeanalysis:
         patterns:
           - 'Microsoft.CodeAnalysis*'
-
-  - package-ecosystem: 'nuget'
-    directory: '/src/messaging/dotnet/src/Client'
-    schedule:
-      interval: 'monthly'
-    ignore:
-      - dependency-name: 'FluentAssertions*'
-        versions: [ '>=8.0' ]
-      - dependency-name: 'Microsoft.Extensions.*'
-        versions: ['10.*']
-    groups:
-      infragistics:
-        patterns:
-          - 'Infragistics*'
-      grpc:
-        patterns:
-          - 'Grpc*'
-          - 'Google.Protobuf*'
-      codeanalysis:
-        patterns:
-          - 'Microsoft.CodeAnalysis*'
-
-  - package-ecosystem: 'nuget'
-    directory: '/src/messaging/dotnet/src/Core'
-    schedule:
-      interval: 'monthly'
-    ignore:
-      - dependency-name: 'FluentAssertions*'
-        versions: [ '>=8.0' ]
-      - dependency-name: 'Microsoft.Extensions.*'
-        versions: ['10.*']
-    groups:
-      infragistics:
-        patterns:
-          - 'Infragistics*'
-      grpc:
-        patterns:
-          - 'Grpc*'
-          - 'Google.Protobuf*'
-      codeanalysis:
-        patterns:
-          - 'Microsoft.CodeAnalysis*'
-
-  - package-ecosystem: 'nuget'
-    directory: '/src/messaging/dotnet/src/Host'
-    schedule:
-      interval: 'monthly'
-    ignore:
-      - dependency-name: 'FluentAssertions*'
-        versions: [ '>=8.0' ]
-      - dependency-name: 'Microsoft.Extensions.*'
-        versions: ['10.*']
-    groups:
-      infragistics:
-        patterns:
-          - 'Infragistics*'
-      grpc:
-        patterns:
-          - 'Grpc*'
-          - 'Google.Protobuf*'
-      codeanalysis:
-        patterns:
-          - 'Microsoft.CodeAnalysis*'
-
-  - package-ecosystem: 'nuget'
-    directory: '/src/messaging/dotnet/src/Server'
-    schedule:
-      interval: 'monthly'
-    ignore:
-      - dependency-name: 'FluentAssertions*'
-        versions: [ '>=8.0' ]
-      - dependency-name: 'Microsoft.Extensions.*'
-        versions: ['10.*']
-    groups:
-      infragistics:
-        patterns:
-          - 'Infragistics*'
-      grpc:
-        patterns:
-          - 'Grpc*'
-          - 'Google.Protobuf*'
-      codeanalysis:
-        patterns:
-          - 'Microsoft.CodeAnalysis*'
-
-  - package-ecosystem: 'nuget'
-    directory: '/src/shell/dotnet/Shell'
-    schedule:
-      interval: 'monthly'
-    ignore:
-      - dependency-name: 'FluentAssertions*'
-        versions: [ '>=8.0' ]
-      - dependency-name: 'Microsoft.Extensions.*'
-        versions: ['10.*']
-    groups:
-      infragistics:
-        patterns:
-          - 'Infragistics*'
-      grpc:
-        patterns:
-          - 'Grpc*'
-          - 'Google.Protobuf*'
-      codeanalysis:
-        patterns:
-          - 'Microsoft.CodeAnalysis*'
-
-  - package-ecosystem: 'nuget'
-    directory: '/prototypes/multi-module-prototype/examples/multi-module-example/ModulesPrototype'
-    schedule:
-      interval: 'monthly'
-    ignore:
-      - dependency-name: 'FluentAssertions*'
-        versions: [ '>=8.0' ]
-      - dependency-name: 'Microsoft.Extensions.*'
-        versions: ['10.*']
-    groups:
-      infragistics:
-        patterns:
-          - 'Infragistics*'
-      grpc:
-        patterns:
-          - 'Grpc*'
-          - 'Google.Protobuf*'
-      codeanalysis:
-        patterns:
-          - 'Microsoft.CodeAnalysis*'
-
-  - package-ecosystem: 'nuget'
-    directories:
-      - '/src/**/dotnet/**'
-    schedule:
-      interval: 'monthly'
-    ignore:
-      - dependency-name: 'System.*'
-        versions: ['10.*']
-      - dependency-name: 'Microsoft.Bcl.AsyncInterfaces.*'
-        versions: ['10.*']
 
   - package-ecosystem: 'npm'
     directory: '/'
