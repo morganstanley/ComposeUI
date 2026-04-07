@@ -10,7 +10,7 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@mui/material": "^7.3.7",
+    "@mui/material": "^7.3.9",
     "@morganstanley/gatsby-theme-ms-gh-pages": "1.2.1",
     "gatsby": "5.16.1",
     "react": "19.2.4",
