@@ -23,7 +23,6 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
-using MorganStanley.ComposeUI.Messaging.Abstractions.Exceptions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal;
 
@@ -213,18 +212,21 @@ internal class ChannelHandler : IChannelHandler
             displayMetadata: response.DisplayMetadata,
             loggerFactory: _loggerFactory);
 
+        return channel;
+    }
+
+    public async ValueTask TriggerChannelSelectorAsync(IChannel channel)
+    {
         try
         {
-            var result = await _messaging.InvokeServiceAsync(Fdc3Topic.ChannelSelectorFromAPI(_instanceId), channelId).ConfigureAwait(false);
+            var result = await _messaging.InvokeServiceAsync(Fdc3Topic.ChannelSelectorFromAPI(_instanceId), channel.Id).ConfigureAwait(false);
 
             _logger.LogDebug("Triggered channel selector from API for module: {InstanceId}, with {ChannelId}, and backend returned result: {Result}", _instanceId, channel.Id, result);
         }
         catch (Exception exception)
         {
-            _logger.LogWarning(exception, "Failed to trigger channel selector from API for module: {InstanceId}, with {ChannelId}.", channelId, _instanceId);
+            _logger.LogWarning(exception, "Failed to trigger channel selector from API for module: {InstanceId}, with {ChannelId}.", channel.Id, _instanceId);
         }
-
-        return channel;
     }
 
     public async ValueTask<IChannel> FindChannelAsync(string channelId, ChannelType channelType)

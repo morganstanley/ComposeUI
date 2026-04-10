@@ -231,7 +231,6 @@ public class DesktopAgentClientTests : IAsyncLifetime
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new JoinUserChannelResponse { Success = true, DisplayMetadata = new DisplayMetadata() { Name = "test-channelId" } }, _jsonSerializerOptions)))
-            .Returns(new ValueTask<string?>("test-channelId"))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new AddContextListenerResponse { Success = true, Id = Guid.NewGuid().ToString() }, _jsonSerializerOptions)))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new Instrument(new InstrumentID { Ticker = "test-instrument" }, "test-name"), _jsonSerializerOptions))) //GetCurrentContext response after joining to the channels when iterating through the context listeners
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new AddContextListenerResponse { Success = true, Id = Guid.NewGuid().ToString() }, _jsonSerializerOptions)))
@@ -333,6 +332,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new Context("test-type"), _jsonSerializerOptions)));
 
         var desktopAgent = new DesktopAgentClient(messagingMock.Object);
+
         await desktopAgent.JoinUserChannel("test-channelId");
 
         var listener = await desktopAgent.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) => { resultContextListenerInvocations++; });

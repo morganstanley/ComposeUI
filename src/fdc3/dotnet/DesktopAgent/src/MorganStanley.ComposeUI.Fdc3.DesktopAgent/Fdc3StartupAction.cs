@@ -15,19 +15,24 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Extensions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.ModuleLoader;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent;
 
+/// <summary>
+/// Default implementation how to handle FDC3 related startup actions for different module types in the FDC3 Desktop Agent infrastructure. 
+/// It retrieves necessary information from the app directory and user channel set, and delegates the handling to specific module handlers based on the module type.
+/// </summary>
 internal sealed class Fdc3StartupAction : IStartupAction
 {
     private readonly IAppDirectory _appDirectory;
     private readonly IUserChannelSetReader _userChannelSetReader;
     private readonly Fdc3DesktopAgentOptions _options;
     private readonly ILogger<Fdc3StartupAction> _logger;
-    private static readonly Dictionary<string, StartupModuleHandler> Handlers = new()
+    private static readonly Dictionary<string, IStartupModuleHandler> Handlers = new()
     {
         { ModuleType.Web, new WebStartupModuleHandler() },
         { ModuleType.Native, new NativeStartupModuleHandler() }
@@ -49,32 +54,14 @@ internal sealed class Fdc3StartupAction : IStartupAction
     {
         try
         {
-            var appId = (await _appDirectory.GetApp(startupContext.StartRequest.ModuleId)).AppId;
-            var userChannelSet = await _userChannelSetReader.GetUserChannelSet().ConfigureAwait(false);
+            var properties = await startupContext.GetFdc3Properties(_appDirectory, _userChannelSetReader, _logger).ConfigureAwait(false);
 
-            var fdc3InstanceId = startupContext
-                .StartRequest
-                .Parameters
-                .FirstOrDefault(parameter => parameter.Key == Fdc3StartupParameters.Fdc3InstanceId).Value
-                                 ?? Guid.NewGuid().ToString();
-
-            var channelId = startupContext
-                .StartRequest
-                .Parameters
-                .FirstOrDefault(parameter => parameter.Key == Fdc3StartupParameters.Fdc3ChannelId).Value ?? _options.ChannelId
-                    ?? userChannelSet.FirstOrDefault().Key;
-
-            var openedAppContextId = startupContext
-                .StartRequest
-                .Parameters
-                .FirstOrDefault(x => x.Key == Fdc3StartupParameters.OpenedAppContextId).Value;
-
-            var fdc3StartupProperties = new Fdc3StartupProperties { InstanceId = fdc3InstanceId, ChannelId = channelId, OpenedAppContextId = openedAppContextId };
-            fdc3InstanceId = startupContext.GetOrAddProperty<Fdc3StartupProperties>(_ => fdc3StartupProperties).InstanceId;
+            var fdc3StartupProperties = new Fdc3StartupProperties { AppId = properties.AppId, InstanceId = properties.InstanceId, ChannelId = properties.ChannelId ?? _options.ChannelId, OpenedAppContextId = properties.OpenedAppContextId };
+            var fdc3InstanceId = startupContext.GetOrAddProperty<Fdc3StartupProperties>(_ => fdc3StartupProperties).InstanceId;
 
             if (Handlers.TryGetValue(startupContext.ModuleInstance.Manifest.ModuleType, out var handler))
             {
-                await handler.HandleAsync(startupContext, appId, fdc3InstanceId, channelId, openedAppContextId).ConfigureAwait(false);
+                await handler.HandleAsync(startupContext, fdc3StartupProperties).ConfigureAwait(false);
             }
         }
         catch (AppNotFoundException exception)
@@ -82,6 +69,6 @@ internal sealed class Fdc3StartupAction : IStartupAction
             _logger.LogError(exception, $"Fdc3 bundle js could be not added to the {startupContext.StartRequest.ModuleId}.");
         }
 
-        await next.Invoke();
+        await next.Invoke().ConfigureAwait(false);
     }
 }

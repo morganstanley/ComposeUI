@@ -130,4 +130,7 @@ internal static class ThrowHelper
 
     internal static Fdc3DesktopAgentException MissingInstanceId(string methodName) =>
         new($"Fdc3InstanceId was missing before executing: {methodName}.");
+
+    internal static Fdc3DesktopAgentException MissingAppIdentifier(string? appId, string? fdc3InstanceId) =>
+        new($"Fdc3InstanceId or the AppId were missing to initialize the DesktopAgentClient; AppId: {appId}, InstanceId: {fdc3InstanceId}.");
 }
