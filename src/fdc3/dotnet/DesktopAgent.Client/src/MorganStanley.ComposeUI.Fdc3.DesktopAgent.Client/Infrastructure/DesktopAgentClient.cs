@@ -56,6 +56,9 @@ public class DesktopAgentClient : IDesktopAgent, IAsyncDisposable
     /// <param name="messaging"></param>
     /// <param name="appId">Fdc3App app id</param>
     /// <param name="instanceId">Fdc3App insatnce id</param>
+    /// <param name="initialOpenAppContextId">The initial opened app context id which can be provided for the app opened through fdc3.open call. This is needed to properly handle the context for the app opened through fdc3.open.</param>
+    /// <param name="initialUserChannelId">The initial user channel id which can be provided for the app to automatically join to a user channel on initialization.</param>
+    /// <param name="onReady">Callback which signals that the desktop agent client is ready for the module. This can be handy to ensure that the client is fully initialized before the module starts using it for Fdc3 operations, preventing potential issues related to uninitialized state.</param>
     /// <param name="loggerFactory"></param>
     public DesktopAgentClient(
         IMessaging messaging,
@@ -70,35 +73,20 @@ public class DesktopAgentClient : IDesktopAgent, IAsyncDisposable
         _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
         _logger = _loggerFactory.CreateLogger<DesktopAgentClient>();
 
-        _appId = Environment.GetEnvironmentVariable(nameof(AppIdentifier.AppId));
-        _instanceId = Environment.GetEnvironmentVariable(nameof(AppIdentifier.InstanceId));
+        _appId = Environment.GetEnvironmentVariable(nameof(AppIdentifier.AppId)) 
+            ?? appId
+            ?? throw ThrowHelper.MissingAppIdentifier(appId, instanceId);
+        
+        _instanceId = Environment.GetEnvironmentVariable(nameof(AppIdentifier.InstanceId)) 
+            ?? instanceId
+            ?? throw ThrowHelper.MissingAppIdentifier(appId, instanceId);
+        
+        var channelId = Environment.GetEnvironmentVariable(Fdc3StartupParameters.Fdc3ChannelId)
+            ?? initialUserChannelId;
+        
+        var openedAppContextId = Environment.GetEnvironmentVariable(Fdc3StartupParameters.OpenedAppContextId)
+            ?? initialOpenAppContextId;
 
-        if (string.IsNullOrEmpty(_appId) || string.IsNullOrEmpty(_instanceId))
-        {
-            if (string.IsNullOrEmpty(appId) || string.IsNullOrEmpty(instanceId))
-            {
-                throw ThrowHelper.MissingAppIdentifier(appId, instanceId);
-            }
-            else
-            {
-                _appId = appId!;
-                _instanceId = instanceId!;
-            }
-        }
-
-        var channelId = Environment.GetEnvironmentVariable(Fdc3StartupParameters.Fdc3ChannelId);
-        if (string.IsNullOrEmpty(channelId)
-            && !string.IsNullOrEmpty(initialUserChannelId))
-        {
-            channelId = initialUserChannelId;
-        }
-
-        var openedAppContextId = Environment.GetEnvironmentVariable(Fdc3StartupParameters.OpenedAppContextId);
-        if (string.IsNullOrEmpty(openedAppContextId)
-            && !string.IsNullOrEmpty(initialOpenAppContextId))
-        {
-            openedAppContextId = initialOpenAppContextId;
-        }
 
         if (_logger.IsEnabled(LogLevel.Debug))
         {
@@ -147,13 +135,11 @@ public class DesktopAgentClient : IDesktopAgent, IAsyncDisposable
         }
         finally
         {
-            //The responsibility of triggering the channel selector using native client is the container's since the desktop agent client doesn't have the information about the UI.
-            //If the channelId is provided through startup parameters, the desktop agent client will join the channel directly without triggering the channel selector.
-            //In this case, we need to trigger the channel selector to update the UI in order to reflect the current channel that the app has joined.
-            //Because it can cause deadlock to trigger the channel selector within the lock in the JoinUserChannelAsync, we trigger it here after the initialization is completed and the channel is joined.
+            //It can cause deadlock to trigger the channel selector within the lock in the JoinUserChannelAsync, we trigger it here after the initialization is completed and the channel is joined.
             if (!string.IsNullOrEmpty(channelId))
             {
                 await JoinUserChannelAsync(channelId!).ConfigureAwait(false);
+                _ = _channelHandler.TriggerChannelSelectorAsync(_currentChannel!).ConfigureAwait(false);
             }
 
             onReady?.Invoke(this);
@@ -450,10 +436,7 @@ public class DesktopAgentClient : IDesktopAgent, IAsyncDisposable
             contextListener.Key.Unsubscribe();
         }
 
-        if (_currentChannel != null)
-        {
-            _currentChannel = null;
-        }
+        _currentChannel = null;
     }
 
     /// <summary>

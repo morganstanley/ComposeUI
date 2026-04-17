@@ -153,12 +153,7 @@ Native clients must handle channel selection UI independently since the Desktop 
 Each container instance should register its own channel selector logic by subscribing to the `Fdc3Topic.ChannelSelectorFromAPI({instanceId})` topic. This service is invoked whenever `JoinUserChannel` is called from the API, allowing the UI to update and reflect the currently joined user channel.
 
 #### Initial User Channel Behavior
-When the Desktop Agent Client is initialized with an initial user channel (via `Fdc3StartupProperties.ChannelId` or environment variable), the implementation joins the channel **without triggering the registered channel selector service**. This is intentional because:
-- The container already knows the initial channel value (it provided it during startup)
-- This avoids unnecessary round-trips and potential UI flickering during initialization
-- The container can immediately display the correct initial state without waiting for a callback
-
-The container is responsible for displaying the initial user channel state in its UI channel selector component.
+When the Desktop Agent Client is initialized with an initial user channel (via `Fdc3StartupProperties.ChannelId` or environment variable), the implementation joins the channel **also triggering the registered channel selector service in the background**.
 
 #### JoinUserChannel Triggers the Channel Selector
 After initialization, whenever `JoinUserChannel(channelId)` is called (either by the application or via the UI), the implementation:
@@ -182,13 +177,38 @@ await messaging.RegisterServiceAsync(
     });
 
 // Example: UI triggering a channel join
-var request = new JoinUserChannelRequest { ChannelId = "fdc3.channel.1" };
+var request = new JoinUserChannelRequest { ChannelId = "fdc3.channel.1", InstanceId = instanceId };
 await messaging.InvokeServiceAsync(
     Fdc3Topic.ChannelSelectorFromUI(instanceId),
     JsonSerializer.Serialize(request));
 ```
 
-> **Note:** The initial user channel provided during startup will not trigger the channel selector callback. The container must handle displaying the initial channel state itself based on the `Fdc3StartupProperties.ChannelId` value it provided.
+#### Default module channel selector provided by the Desktop Agent backend
+The container registers a handler for the `Fdc3Topic.ChannelSelectorFromAPI({instanceId})` topic, which updates the current channel in the Desktop Agent Client when a channel is joined via the API. 
+This allows the Desktop Agent Client to maintain accurate state of the currently joined channel and ensures that any UI components subscribed to this topic can update accordingly. 
+It also provides functionality to trigger the module instance's client to join a channel when the `Fdc3Topic.ChannelSelectorFromUI({instanceId})` service is invoked, enabling seamless integration between the UI and the Desktop Agent Client for channel management.
+As mentioned above, the Desktop Agent Client will join the specified channel and trigger the registered channel selector service in the background, ensuring that the UI can update to reflect the new channel membership. 
+This interface `IModuleChannelSelector` is ready to use out of the box for any container that wants to integrate with the Desktop Agent Client, but containers can also choose to implement their own channel selector logic if they want more control over the UI/UX of channel selection.
+The clients (both .NET and Typescript) are communicating with the channel selector through a messaging-based approach, allowing for flexibility in how the channel selector is implemented and integrated within the container's UI. 
+They are using the `Fdc3Topic.ChannelSelectorFromAPI({instanceId})` topic to receive updates about channel joins from the API and the `Fdc3Topic.ChannelSelectorFromUI({instanceId})` service to trigger channel joins from the UI, ensuring a seamless flow of information between the Desktop Agent Client and the container's channel selector UI component.
+Once the clients are initialized, they will subscribe to the `Fdc3Topic.ChannelSelectorFromAPI({instanceId})` topic to receive updates about channel joins from the API. 
+When a channel join occurs via the API, the clients will trigger the registered channel selector service with the new channel ID, allowing the UI to update accordingly -if the service is not found they won't throw any exception.
+
+Example usage:
+```csharp
+await _moduleChannelSelector.RegisterChannelSelectorHandlerInitiatedFromClientsAsync(instanceId, (channelId) =>
+{
+    // Update your UI channel selector to display the joined channel
+    UpdateChannelSelectorUI(channelId);
+    return ValueTask.FromResult<string?>(null);
+});
+```
+
+To trigger a channel join from the UI, the container can invoke the `Fdc3Topic.ChannelSelectorFromUI({instanceId})` service with a `JoinUserChannelRequest` payload containing the desired channel ID.
+The Desktop Agent Client will handle this invocation and call `JoinUserChannel` internally to join the specified channel.
+```csharp
+var result = await _moduleChannelSelector.InvokeJoinUserChannelFromUIAsync(instanceId, channelId);
+```
 
 ### Getting or Creating a App Channel
 You can get or create an app channel by using:
