@@ -11,6 +11,7 @@
 // and limitations under the License.
 
 using System.Text;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.ModuleLoader;
 using ResourceReader = MorganStanley.ComposeUI.Utilities.ResourceReader;
 
@@ -19,10 +20,10 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 /// <summary>
 /// Handles startup logic for web modules by injecting configuration scripts.
 /// </summary>
-internal sealed class WebStartupModuleHandler : StartupModuleHandler
+internal sealed class WebStartupModuleHandler : IStartupModuleHandler
 {
     /// <inheritdoc/>
-    public override Task HandleAsync(StartupContext startupContext, string appId, string fdc3InstanceId, string? channelId, string? openedAppContextId)
+    public Task HandleAsync(StartupContext startupContext, Fdc3StartupProperties fdc3StartupProperties)
     {
         var webProperties = startupContext.GetOrAddProperty<WebStartupProperties>();
 
@@ -31,25 +32,25 @@ internal sealed class WebStartupModuleHandler : StartupModuleHandler
                     window.composeui.fdc3 = {
                         ...window.composeui.fdc3, 
                         config: {
-                            appId: "{{appId}}",
-                            instanceId: "{{fdc3InstanceId}}"
+                            appId: "{{fdc3StartupProperties.AppId}}",
+                            instanceId: "{{fdc3StartupProperties.InstanceId}}"
                         }
                   """);
 
-        if (channelId != null)
+        if (fdc3StartupProperties.ChannelId != null)
         {
             stringBuilder.Append($$"""
                 ,
-                channelId: "{{channelId}}"
+                channelId: "{{fdc3StartupProperties.ChannelId}}"
                 """);
         }
 
-        if (openedAppContextId != null)
+        if (fdc3StartupProperties.OpenedAppContextId != null)
         {
             stringBuilder.Append($$"""
                 ,
                 openAppIdentifier: {
-                    openedAppContextId: "{{openedAppContextId}}"
+                    openedAppContextId: "{{fdc3StartupProperties.OpenedAppContextId}}"
                 }
                 """);
         }

@@ -147,7 +147,7 @@ if (sender is MyHeaderToolItem item)
 ```
 
 When an update arrives on that topic, the client libraries are calling `fdc3.joinUserChannel(channelId)` and wires up the top-level context listeners for the selected channel.  
-The UI must also subscribe to `ComposeUI/fdc3/${fdc3Version}/channelSelector/API/${fdc3InstanceIdPerModule}` (`Fdc3Topic.ChannelSelectorFromAPI(fdc3InstanceIdPerModule)`) to reflect changes when `fdc3.joinUserChannel` is invoked by the client libraries.
+The UI must also subscribe to `ComposeUI/fdc3/${fdc3Version}/channelSelector/API/${fdc3InstanceIdPerModule}` (`Fdc3Topic.NotifyUserChannelChanged(fdc3InstanceIdPerModule)`) to reflect changes when `fdc3.joinUserChannel` is invoked by the client libraries.
 
 To support this, the module’s container should expose an endpoint that receives these API-originated updates and updates the UI to show the current channel. For that each FDC3 enabled module should ensure the module’s container resolves `IModuleChannelSelector` to register the handler for API updates.
 
@@ -177,6 +177,66 @@ await _moduleChannelSelector.RegisterChannelSelectorHandlerInitiatedFromClientsA
        }
 }).ConfigureAwait(false);
 ```
+
+### FDC3 startup parameters (instance id, channel, opened app context)
+
+When a module is started by the `ModuleLoader` it is possible to pass arbitrary startup parameters in the `StartRequest`.
+The Desktop Agent uses three well-known keys to convey FDC3-specific information to a newly started module:
+
+- `Fdc3InstanceId` — a Desktop Agent generated identifier for the specific application instance. This id is used by client libraries to subscribe to per-instance topics (for example the channel selector UI topic).
+- `Fdc3ChannelId` — the id of the user channel the opened app should join on startup (optional).
+- `OpenedAppContextId` — when an app is opened via `fdc3.open(...)` this id marks the context that should be made available to the opened app when it registers its context listeners.
+
+These keys are passed as `StartRequest.Parameters` (a collection of `KeyValuePair<string,string>`) by the code that requests the module to start. Example of starting a module and passing the values:
+
+```csharp
+using MorganStanley.ComposeUI.ModuleLoader;
+
+var parameters = new[]
+{
+    new KeyValuePair<string,string>("Fdc3InstanceId", "instance-123"),
+    new KeyValuePair<string,string>("Fdc3ChannelId", "trade-channel"),
+    new KeyValuePair<string,string>("OpenedAppContextId", "open-ctx-456")
+};
+
+var startRequest = new StartRequest("com.mycompany.myModule", parameters);
+await moduleLoader.StartModuleAsync(startRequest);
+```
+
+Retrieval: the Desktop Agent provides an extension helper that extracts these values, resolves the app id from the configured `IAppDirectory`, and stores the resulting `Fdc3StartupProperties` in the `StartupContext` so other startup handlers can access them:
+
+```csharp
+// inside an IStartupAction implementation
+public async Task ExecuteAsync(StartupContext startupContext)
+{
+    // GetFdc3Properties fetches app id, resolves defaults (like a generated instance id or a default channel)
+    // and stores the properties into the startupContext for other handlers.
+    var fdc3Props = await startupContext.GetFdc3Properties(appDirectory, userChannelSetReader, logger);
+
+    // use the properties
+    var instanceId = fdc3Props.InstanceId; // used for client subscriptions
+    var channelId = fdc3Props.ChannelId;   // optional channel to join immediately
+    var openedAppContextId = fdc3Props.OpenedAppContextId; // used to request initial context
+}
+```
+
+Alternatively consumers can read the `Fdc3StartupProperties` from the `StartupContext` property bag if a previous handler already added it:
+
+```csharp
+var existing = startupContext.GetProperties<Fdc3StartupProperties>().FirstOrDefault();
+if (existing != null)
+{
+    // already set by another handler - reuse it
+}
+```
+
+Why this matters:
+
+- Deterministic client initialization: client libraries use the `Fdc3InstanceId` so they can subscribe to per-instance messaging channels (for example the channel selector UI topic). When the UI or other modules publish to that topic the client will react only for the matching instance.
+- Initial channel join: supplying `Fdc3ChannelId` at startup allows a module to join the intended user channel immediately and wire up top-level context listeners for that channel.
+- Opened app context handoff: when an app is started via `fdc3.open(...)`, `OpenedAppContextId` lets the opened app request the specific context it should receive, avoiding race conditions between startup and listener registration.
+
+This mechanism also allows different desktop agent clients to opt-in or override the channel they should join at initialization time. A module's container (or the code that starts the module) can choose which `Fdc3ChannelId` to pass, so different clients or UI shells can control channel membership per instance.
 
 ## License
 
