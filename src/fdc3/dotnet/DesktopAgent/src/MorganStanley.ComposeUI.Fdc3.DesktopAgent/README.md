@@ -147,7 +147,7 @@ if (sender is MyHeaderToolItem item)
 ```
 
 When an update arrives on that topic, the client libraries are calling `fdc3.joinUserChannel(channelId)` and wires up the top-level context listeners for the selected channel.  
-The UI must also subscribe to `ComposeUI/fdc3/${fdc3Version}/channelSelector/API/${fdc3InstanceIdPerModule}` (`Fdc3Topic.ChannelSelectorFromAPI(fdc3InstanceIdPerModule)`) to reflect changes when `fdc3.joinUserChannel` is invoked by the client libraries.
+The UI must also subscribe to `ComposeUI/fdc3/${fdc3Version}/channelSelector/API/${fdc3InstanceIdPerModule}` (`Fdc3Topic.NotifyUserChannelChanged(fdc3InstanceIdPerModule)`) to reflect changes when `fdc3.joinUserChannel` is invoked by the client libraries.
 
 To support this, the module’s container should expose an endpoint that receives these API-originated updates and updates the UI to show the current channel. For that each FDC3 enabled module should ensure the module’s container resolves `IModuleChannelSelector` to register the handler for API updates.
 

@@ -45,11 +45,13 @@ internal interface IChannelHandler : IAsyncDisposable
     public ValueTask<IChannel> JoinUserChannelAsync(string channelId);
 
     /// <summary>
-    /// Triggers channel selector for the current instance.
+    /// Sends a notification message to the module that the user channel has been changed to the specified client that is injected by the module. 
+    /// The module is responsible to subscribe to the topic and handle based on its UI logic. 
+    /// The module could also use IModuleChannelSelector to pass the logic to update the UI action based on the update without knowing what kind of topic they should subscribe to.
     /// </summary>
     /// <param name="channel"></param>
     /// <returns></returns>
-    public ValueTask TriggerChannelSelectorAsync(IChannel channel);
+    public ValueTask NotifyUserChannelChangedAsync(IChannel channel);
 
     /// <summary>
     /// Retrieves all available user channels.

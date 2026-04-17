@@ -215,11 +215,11 @@ internal class ChannelHandler : IChannelHandler
         return channel;
     }
 
-    public async ValueTask TriggerChannelSelectorAsync(IChannel channel)
+    public async ValueTask NotifyUserChannelChangedAsync(IChannel channel)
     {
         try
         {
-            var result = await _messaging.InvokeServiceAsync(Fdc3Topic.ChannelSelectorFromAPI(_instanceId), channel.Id).ConfigureAwait(false);
+            var result = await _messaging.InvokeServiceAsync(Fdc3Topic.NotifyUserChannelChanged(_instanceId), channel.Id).ConfigureAwait(false);
 
             _logger.LogDebug("Triggered channel selector from API for module: {InstanceId}, with {ChannelId}, and backend returned result: {Result}", _instanceId, channel.Id, result);
         }
@@ -311,12 +311,12 @@ internal class ChannelHandler : IChannelHandler
     public async ValueTask ConfigureChannelSelectorAsync(CancellationToken cancellationToken = default)
     {
         _channelSelector = await _messaging.RegisterServiceAsync(
-            Fdc3Topic.ChannelSelectorFromUI(_instanceId),
-            ChannelSelectorFromUI,
+            Fdc3Topic.NotifyUserChannelChangedViaUserInteraction(_instanceId),
+            NotifyUserChannelChangedViaUserInteraction,
             cancellationToken).ConfigureAwait(false);
     }
 
-    private async ValueTask<string?> ChannelSelectorFromUI(string? request)
+    private async ValueTask<string?> NotifyUserChannelChangedViaUserInteraction(string? request)
     {
         if (string.IsNullOrEmpty(request))
         {

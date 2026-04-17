@@ -370,7 +370,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
             if (!_unsubscribeHandlers.Remove(listener))
             {
-                _logger.LogWarning("The {ListenerType} to remove was not found in the list of registered {ContextListenerType}.", nameof(PrivateChannelContextListenerEventListener), nameof(PrivateChannelContextListenerEventListener));
+                _logger.LogDebug("The {ListenerType} to remove was not found in the list of registered {ContextListenerType}.", nameof(PrivateChannelContextListenerEventListener), nameof(PrivateChannelContextListenerEventListener));
             }
         }
         finally
@@ -387,7 +387,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
             if (!_disconnectHandlers.Remove(listener))
             {
-                _logger.LogWarning("The {ListenerType} to remove was not found in the list of registered {DisconnectListenerType}.", nameof(PrivateChannelDisconnectEventListener), nameof(PrivateChannelDisconnectEventListener));
+                _logger.LogDebug("The {ListenerType} to remove was not found in the list of registered {DisconnectListenerType}.", nameof(PrivateChannelDisconnectEventListener), nameof(PrivateChannelDisconnectEventListener));
             }
         }
         finally
@@ -404,7 +404,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
             if (!_addContextListenerHandlers.Remove(privateChannelContextListener))
             {
-                _logger.LogWarning("The {ListenerType} to remove was not found in the list of registered {ContextListenerType}.", nameof(PrivateChannelContextListenerEventListener), nameof(PrivateChannelContextListenerEventListener));
+                _logger.LogDebug("The {ListenerType} to remove was not found in the list of registered {ContextListenerType}.", nameof(PrivateChannelContextListenerEventListener), nameof(PrivateChannelContextListenerEventListener));
             }
         }
         finally
@@ -437,12 +437,15 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
     private void RemoveContextHandler<T>(ContextListener<T> contextListener) where T : IContext
     {
         //this is being called within a lock once disposing the client.
-        if (!_isDisconnected)
+        if (_isDisconnected)
         {
-            if (_contextHandlers.Remove(contextListener))
-            {
-                _logger.LogWarning("The context listener for context type {ContextType} was removed from private channel {ChannelId}.", contextListener.ContextType, Id);
-            }
+            _ = FireUnsubscribed(contextListener.ContextType);
+            return;
+        }
+
+        if (_contextHandlers.Remove(contextListener))
+        {
+            _logger.LogDebug("The context listener for context type {ContextType} was removed from private channel {ChannelId}.", contextListener.ContextType, Id);
         }
 
         //Fire and forget

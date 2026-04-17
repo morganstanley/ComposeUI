@@ -54,7 +54,7 @@ public class ModuleChannelSelector : IModuleChannelSelector
         }
 
         _handler = await _messaging.RegisterServiceAsync(
-            Fdc3Topic.ChannelSelectorFromAPI(fdc3InstanceId),
+            Fdc3Topic.NotifyUserChannelChanged(fdc3InstanceId),
             (channelId) =>
             {
                 _logger.LogDebug("Request for instance: {InstanceId} was received with content: {ChannelId}", fdc3InstanceId, channelId);
@@ -75,7 +75,7 @@ public class ModuleChannelSelector : IModuleChannelSelector
             ChannelId = channelId
         };
 
-        var result = await _messaging.InvokeServiceAsync(Fdc3Topic.ChannelSelectorFromUI(fdc3InstanceId), JsonSerializer.Serialize(request, _jsonSerializerOptions), cancellationToken).ConfigureAwait(false);
+        var result = await _messaging.InvokeServiceAsync(Fdc3Topic.NotifyUserChannelChangedViaUserInteraction(fdc3InstanceId), JsonSerializer.Serialize(request, _jsonSerializerOptions), cancellationToken).ConfigureAwait(false);
         return result;
     }
 
