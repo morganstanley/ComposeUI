@@ -34,35 +34,32 @@ internal class Fdc3ShutdownAction : IShutdownAction
 
     public async Task InvokeAsync(ShutdownContext shutDownContext, Func<Task> next, TimeSpan timeout = default)
     {
-        if (shutDownContext.ModuleInstance.Manifest.ModuleType == ModuleType.Web)
+        var desktopAgent = _serviceProvider.GetRequiredService<IFdc3DesktopAgentService>();
+
+        var fdc3InstanceId = shutDownContext.ModuleInstance.GetProperties<Fdc3StartupProperties>().FirstOrDefault()?.InstanceId;
+
+        if (fdc3InstanceId != null)
         {
-            var desktopAgent = _serviceProvider.GetRequiredService<IFdc3DesktopAgentService>();
-
-            var fdc3InstanceId = shutDownContext.ModuleInstance.GetProperties<Fdc3StartupProperties>().FirstOrDefault()?.InstanceId;
-
-            if (fdc3InstanceId != null)
+            if (timeout == default)
             {
-                if (timeout == default)
-                {
-                    timeout = DefaultTimeout;
-                }
+                timeout = DefaultTimeout;
+            }
 
-                using var cts = new CancellationTokenSource(timeout);
+            using var cts = new CancellationTokenSource(timeout);
 
-                try
-                {   
-                    await desktopAgent.CloseModule(fdc3InstanceId, cts.Token);
-                }
-                catch(OperationCanceledException)
-                {
-                    _logger.LogError("Timeout: Couldn't finish cleanup task in time. Failed to close module.");
-                    throw;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError($"Clouldn't close module: {ex.Message}");
-                    throw;
-                }
+            try
+            {
+                await desktopAgent.CloseModule(fdc3InstanceId, cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogError("Timeout: Couldn't finish cleanup task in time. Failed to close module.");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Couldn't close module: {ex.Message}");
+                throw;
             }
         }
 

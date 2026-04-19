@@ -107,11 +107,11 @@ export class ComposeUITopic {
         return `${this.topicRoot}/${this.joinUserChannelSuffix}`;
     }
 
-    public static channelSelectorFromUI(instanceId: string): string {
+    public static notifyUserChannelChangedViaUIInteraction(instanceId: string): string {
         return `${this.topicRoot}/channelSelector/UI/${instanceId}`;
     }
 
-    public static channelSelectorFromAPI(instanceId: string): string {
+    public static notifyUserChannelChangedViaAPI(instanceId: string): string {
         return `${this.topicRoot}/channelSelector/API/${instanceId}`;
     }
 
