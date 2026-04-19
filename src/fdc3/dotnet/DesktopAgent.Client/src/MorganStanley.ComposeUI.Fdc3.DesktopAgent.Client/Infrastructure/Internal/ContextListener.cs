@@ -90,14 +90,21 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
                 return;
             }
 
-            UnregisterContextListenerAsync()
-                .AsTask()
-                .ConfigureAwait(false)
-                .GetAwaiter()
-                .GetResult();
+            async Task UnregisterAndCatchAsync()
+            {
+                try
+                {
+                    await UnregisterContextListenerAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error during UnregisterContextListenerAsync.");
+                }
+            }
+
+            _ = UnregisterAndCatchAsync();
 
             _subscription?.DisposeAsync()
-                .AsTask()
                 .ConfigureAwait(false)
                 .GetAwaiter()
                 .GetResult();
@@ -108,6 +115,10 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
             {
                 _unsubscribeCallback(this);
             }
+        }
+        catch (Exception)
+        {
+            throw;
         }
         finally
         {
@@ -280,31 +291,38 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
 
     private async ValueTask UnregisterContextListenerAsync()
     {
-        var request = new RemoveContextListenerRequest
+        try
         {
-            ListenerId = _contextListenerId,
-            Fdc3InstanceId = _instanceId,
-            ContextType = _contextType
-        };
+            var request = new RemoveContextListenerRequest
+            {
+                ListenerId = _contextListenerId,
+                Fdc3InstanceId = _instanceId,
+                ContextType = _contextType
+            };
 
-        var response = await _messaging.InvokeJsonServiceAsync<RemoveContextListenerRequest, RemoveContextListenerResponse>(Fdc3Topic.RemoveContextListener, request, _jsonSerializerOptions);
+            var response = await _messaging.InvokeJsonServiceAsync<RemoveContextListenerRequest, RemoveContextListenerResponse>(Fdc3Topic.RemoveContextListener, request, _jsonSerializerOptions);
 
-        if (response == null)
-        {
-            throw ThrowHelper.MissingResponse();
+            if (response == null)
+            {
+                throw ThrowHelper.MissingResponse();
+            }
+
+            if (!string.IsNullOrEmpty(response.Error))
+            {
+                throw ThrowHelper.ErrorResponseReceived(response.Error);
+            }
+
+            if (!response.Success)
+            {
+                throw ThrowHelper.UnsuccessfulSubscriptionUnRegistration(request);
+            }
+
+            _contextListenerId = null;
         }
-
-        if (!string.IsNullOrEmpty(response.Error))
+        catch (Exception)
         {
-            throw ThrowHelper.ErrorResponseReceived(response.Error);
+            throw;
         }
-
-        if (!response.Success)
-        {
-            throw ThrowHelper.UnsuccessfulSubscriptionUnRegistration(request);
-        }
-
-        _contextListenerId = null;
     }
 
     internal void SetUnsubscribeCallback(Action<ContextListener<T>> unsubscribeCallback)
