@@ -1,6 +1,6 @@
 {
   "name": "@morgan-stanley/composeui-example-chart",  
-  "version": "0.1.0-alpha.12",
+  "version": "0.1.0-alpha.13",
   "private": true,
   "description": "Example Web Application",
   "main": "chart.js",
@@ -15,7 +15,7 @@
   "dependencies": {
     "@finos/fdc3": "^2.0.3",
     "bootstrap": "5.3.8",
-    "highcharts": "12.5.0",
+    "highcharts": "11.4.8",
     "jquery": "4.0.0",
     "tslib": "2.8.1"
   },
