@@ -15,7 +15,7 @@
     "@finos/fdc3": "~2.0.3",
     "bootstrap": "5.3.8",
     "jquery": "4.0.0",
-    "rollup-plugin-import-css": "4.2.0",
+    "rollup-plugin-import-css": "4.2.1",
     "tslib": "2.8.1"
   },
   "devDependencies": {
