@@ -20,6 +20,11 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 public class Fdc3StartupProperties
 {
     /// <summary>
+    /// Id of the FDC3 app.
+    /// </summary>
+    public string AppId { get; init; }
+
+    /// <summary>
     /// Fdc3 DesktopAgent's specific identifier for the created application instance.
     /// </summary>
     public string InstanceId { get; init; }

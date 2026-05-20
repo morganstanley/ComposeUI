@@ -1,6 +1,6 @@
 {
   "name": "@morgan-stanley/composeui-messaging-abstractions",
-  "version": "0.1.0-alpha.12",
+  "version": "0.1.0-alpha.13",
   "description": "TypeScript abstractions library for ComposeUI's messaging",
   "private": false,
   "author": "Morgan Stanley",
@@ -38,7 +38,7 @@
     "@vitest/coverage-v8": "4.0.18",
     "@rollup/plugin-node-resolve": "16.0.3",
     "@rollup/plugin-typescript": "12.3.0",
-    "rollup": "4.59.0",
-    "rollup-plugin-dts": "6.3.0"
+    "rollup": "4.60.4",
+    "rollup-plugin-dts": "6.4.1"
   }
 }

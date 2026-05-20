@@ -10,22 +10,20 @@
 // or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.ModuleLoader;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
 /// <summary>
-/// Abstract base class for handling startup actions for different module types.
+/// Interface for handling FDC3 related startup actions for different module types.
 /// </summary>
-internal abstract class StartupModuleHandler
+internal interface IStartupModuleHandler
 {
     /// <summary>
     /// Executes the startup logic for the specified module type.
     /// </summary>
     /// <param name="startupContext">The startup context for the module.</param>
-    /// <param name="appId">The application identifier.</param>
-    /// <param name="fdc3InstanceId">The FDC3 instance identifier.</param>
-    /// <param name="channelId">The channel identifier, if any.</param>
-    /// <param name="openedAppContextId">The opened app context identifier, if any.</param>
-    public abstract Task HandleAsync(StartupContext startupContext, string appId, string fdc3InstanceId, string? channelId, string? openedAppContextId);
+    /// <param name="fdc3StartupProperties">Fdc3 startup properties</param>
+    public Task HandleAsync(StartupContext startupContext, Fdc3StartupProperties fdc3StartupProperties);
 }

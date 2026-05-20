@@ -1,6 +1,6 @@
 {
   "name": "@morgan-stanley/composeui-node-launcher",
-  "version": "0.1.0-alpha.12",
+  "version": "0.1.0-alpha.13",
   "private": false,
   "description": "Package to launch ComposeUI from Node.js",
   "main": "output/index.js",
@@ -26,7 +26,7 @@
     "composeui": "./output/cli/cli.js"
   },
   "dependencies": {
-    "axios": "1.13.5",
+    "axios": "1.16.1",
     "extract-zip": "^2.0.1"
   },
   "devDependencies": {

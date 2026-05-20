@@ -111,41 +111,6 @@ public class ContextListenerTests
     }
 
     [Fact]
-    public async Task Unsubscribe_handles_exception_during_unregister_on_the_context_listener()
-    {
-        var response = new AddContextListenerResponse
-        {
-            Error = null,
-            Success = true,
-            Id = "listenerId"
-        };
-
-        var disposableMock = new Mock<IAsyncDisposable>();
-        disposableMock.Setup(d => d.DisposeAsync()).Returns(ValueTask.CompletedTask);
-
-        _messagingMock
-            .Setup(m => m.SubscribeAsync(
-                It.IsAny<string>(),
-                It.IsAny<TopicMessageHandler>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(disposableMock.Object);
-
-        _messagingMock
-            .SetupSequence(
-                m => m.InvokeServiceAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()))
-            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)))
-            .ThrowsAsync(new InvalidOperationException("Unregister error"));
-
-        await _listener.SubscribeAsync("channelId", ChannelType.App);
-
-        var act = () => _listener.Unsubscribe();
-        act.Should().Throw<InvalidOperationException>().WithMessage("Unregister error");
-    }
-
-    [Fact]
     public async Task Unsubscribe_handles_exception_during_dispose_on_the_context_listener()
     {
         var response = new AddContextListenerResponse

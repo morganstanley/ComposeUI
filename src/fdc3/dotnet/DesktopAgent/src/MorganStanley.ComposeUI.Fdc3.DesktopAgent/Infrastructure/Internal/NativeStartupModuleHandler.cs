@@ -19,25 +19,25 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 /// <summary>
 /// Handles startup logic for native modules by setting environment variables.
 /// </summary>
-internal sealed class NativeStartupModuleHandler : StartupModuleHandler
+internal sealed class NativeStartupModuleHandler : IStartupModuleHandler
 {
     /// <inheritdoc/>
-    public override Task HandleAsync(StartupContext startupContext, string appId, string fdc3InstanceId, string? channelId, string? openedAppContextId)
+    public Task HandleAsync(StartupContext startupContext, Fdc3StartupProperties fdc3StartupProperties)
     {
         var envs = new Dictionary<string, string>
         {
-            { nameof(AppIdentifier.AppId), appId },
-            { nameof(AppIdentifier.InstanceId), fdc3InstanceId }
+            { nameof(AppIdentifier.AppId), fdc3StartupProperties.AppId },
+            { nameof(AppIdentifier.InstanceId), fdc3StartupProperties.InstanceId }
         };
 
-        if (channelId != null)
+        if (fdc3StartupProperties.ChannelId != null)
         {
-            envs.Add(nameof(Fdc3StartupProperties.ChannelId), channelId);
+            envs.Add(nameof(Fdc3StartupProperties.ChannelId), fdc3StartupProperties.ChannelId);
         }
 
-        if (openedAppContextId != null)
+        if (fdc3StartupProperties.OpenedAppContextId != null)
         {
-            envs.Add(nameof(Fdc3StartupProperties.OpenedAppContextId), openedAppContextId);
+            envs.Add(nameof(Fdc3StartupProperties.OpenedAppContextId), fdc3StartupProperties.OpenedAppContextId);
         }
 
         startupContext.AddProperty(new EnvironmentVariables(envs));

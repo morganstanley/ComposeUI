@@ -58,7 +58,7 @@ public static class Fdc3Topic
     /// </summary>
     /// <param name="fdc3InstanceId"></param>
     /// <returns></returns>
-    public static string ChannelSelectorFromUI(string fdc3InstanceId)
+    public static string NotifyUserChannelChangedViaUserInteraction(string fdc3InstanceId)
     {
         return $"{TopicRoot}channelSelector/UI/{fdc3InstanceId}";
     }
@@ -68,7 +68,7 @@ public static class Fdc3Topic
     /// </summary>
     /// <param name="fdc3InstanceId"></param>
     /// <returns></returns>
-    public static string ChannelSelectorFromAPI(string fdc3InstanceId)
+    public static string NotifyUserChannelChanged(string fdc3InstanceId)
     {
         return $"{TopicRoot}channelSelector/API/{fdc3InstanceId}";
     }

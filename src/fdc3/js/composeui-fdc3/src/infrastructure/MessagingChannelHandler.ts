@@ -55,7 +55,7 @@ export class MessagingChannelHandler implements ChannelHandler {
     }
 
     public async configureChannelSelectorFromUI(): Promise<void> {
-        this.channelSelector = await this.jsonMessaging.registerService(ComposeUITopic.channelSelectorFromUI(this.fdc3instanceId), this.selectUserChannelFromUIHandler);
+        this.channelSelector = await this.jsonMessaging.registerService(ComposeUITopic.notifyUserChannelChangedViaUIInteraction(this.fdc3instanceId), this.selectUserChannelFromUIHandler);
         console.debug("Configured channel selector for module: ", this.fdc3instanceId);
     }
 
@@ -161,7 +161,7 @@ export class MessagingChannelHandler implements ChannelHandler {
 
     private async triggerChannelJoinedEvent(id: string | undefined) : Promise<void> {
         try {
-            var result = await this.jsonMessaging.invokeService(ComposeUITopic.channelSelectorFromAPI(this.fdc3instanceId), id);
+            var result = await this.jsonMessaging.invokeService(ComposeUITopic.notifyUserChannelChangedViaAPI(this.fdc3instanceId), id);
             console.debug("Triggered channel selector of container: ", this.fdc3instanceId, ", with: ", id, ", and got result:", result);
         } catch (error) {
             console.error("Error triggering channel joined event for module: ", this.fdc3instanceId, ", with channel id: ", id, ", error: ", error);

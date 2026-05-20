@@ -43,7 +43,7 @@ public class ModuleChannelSelectorTests
             onChannelJoined);
 
         _mockMessaging.Verify(m => m.RegisterServiceAsync(
-            It.Is<string>(s => s == Fdc3Topic.ChannelSelectorFromAPI(fdc3InstanceId)),
+            It.Is<string>(s => s == Fdc3Topic.NotifyUserChannelChanged(fdc3InstanceId)),
             It.IsAny<ServiceHandler>(),
             It.IsAny<CancellationToken>()),
             Times.Once);
