@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net10.0</TargetFramework>
+		<TargetFramework>netstandard2.0</TargetFramework>
 		<AssemblyName>MorganStanley.ComposeUI.Fdc3.DesktopAgent</AssemblyName>
 		<RootNamespace>MorganStanley.ComposeUI.Fdc3.DesktopAgent</RootNamespace>
 		<Description>
