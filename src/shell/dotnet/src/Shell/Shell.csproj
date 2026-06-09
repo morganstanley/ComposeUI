@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<TargetFramework>$(TargetFrameworkVersion)-windows</TargetFramework>
+		<TargetFramework>net10.0-windows</TargetFramework>
 		<UseWPF>true</UseWPF>
 		<EnableDefaultPageItems>false</EnableDefaultPageItems>
 		<AssemblyName>MorganStanley.ComposeUI.Shell</AssemblyName>
