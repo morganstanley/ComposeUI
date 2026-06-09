@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and limitations 
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<TargetFramework>net10.0-windows</TargetFramework>
+		<TargetFramework>$(TargetFrameworkVersion)-windows</TargetFramework>
 		<UseWPF>true</UseWPF>
 	</PropertyGroup>
 
