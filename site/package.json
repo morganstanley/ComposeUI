@@ -14,7 +14,7 @@
     "@morganstanley/gatsby-theme-ms-gh-pages": "1.2.1",
     "gatsby": "5.16.1",
     "react": "19.2.4",
-    "react-dom": "19.2.4",
+    "react-dom": "19.2.7",
     "style-to-object": "^1.0.14"
   },
   "scripts": {
