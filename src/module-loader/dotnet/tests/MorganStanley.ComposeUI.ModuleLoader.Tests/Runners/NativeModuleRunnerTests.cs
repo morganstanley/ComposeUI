@@ -107,9 +107,9 @@ public class NativeModuleRunnerTests : IDisposable
         var details = new NativeManifestDetails()
         {
 #if DEBUG
-            Path = new Uri(@"..\..\..\..\NativeRunnerTestApp\bin\Debug\net8.0\NativeRunnerTestApp.exe", UriKind.Relative),
+            Path = new Uri(@"..\..\..\..\NativeRunnerTestApp\bin\Debug\net10.0\NativeRunnerTestApp.exe", UriKind.Relative),
 #else
-            Path = new Uri(@"..\..\..\..\NativeRunnerTestApp\bin\Release\net8.0\NativeRunnerTestApp.exe", UriKind.Relative),
+            Path = new Uri(@"..\..\..\..\NativeRunnerTestApp\bin\Release\net10.0\NativeRunnerTestApp.exe", UriKind.Relative),
 #endif
             EnvironmentVariables = new Dictionary<string, string> { { variableName, randomString } }
         };
