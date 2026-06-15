@@ -8,7 +8,7 @@
 - Implements the `IMessageRouter` interface for advanced messaging scenarios
 - Supports dependency injection with provided DI extension methods
 - Designed for reliability and scalability in distributed systems
-- Targets .NET 8.0
+- Targets .NET 10.0
 
 ## Installation
 

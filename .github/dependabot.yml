@@ -22,16 +22,10 @@ updates:
     schedule:
       interval: 'monthly'
     ignore:
-      - dependency-name: 'System.*'
-        versions: ['10.*']
-      - dependency-name: 'Microsoft.Bcl.AsyncInterfaces.*'
-        versions: ['10.*']
       - dependency-name: 'Finos.Fdc3*'
         versions: [ '>=2.1' ]
       - dependency-name: 'FluentAssertions*'
         versions: [ '>=8.0' ]
-      - dependency-name: 'Microsoft.Extensions.*'
-        versions: ['10.*']
     groups:
       infragistics:
         patterns:

@@ -9,7 +9,7 @@
 - Integrates with dependency injection and Microsoft.Extensions
 - Supports in-process and out-of-process hosting scenarios
 - Designed for scalability and reliability
-- Targets .NET 8.0
+- Targets .NET 10.0
 
 ## Installation
 
