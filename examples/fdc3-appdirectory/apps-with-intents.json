@@ -6,7 +6,7 @@
       "type": "native",
       "description":  "This is an example WPF application",
       "details": {
-        "path": "..\\..\\..\\..\\..\\..\\..\\..\\examples\\dotnet-diagnostics\\DiagnosticsExample\\bin\\Debug\\net8.0-windows\\DiagnosticsExample.exe"
+        "path": "..\\..\\..\\..\\..\\..\\..\\..\\examples\\dotnet-diagnostics\\DiagnosticsExample\\bin\\Debug\\net10.0-windows\\DiagnosticsExample.exe"
       },
       "hostManifests": {
         "sail": { "inject-api": "2.0" },
