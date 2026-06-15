@@ -36,7 +36,7 @@ We've released the FDC3 2.0 compliant container in **v0.1.0-alpha.6** with IPC r
 
 ## Prerequisites
 * Node.js 22+
-* .NET 8 (SDK 8.0.x, Desktop Runtime 8.0.x)
+* .NET 10 (SDK 10.0.x, Desktop Runtime 10.0.x)
 * Visual Studio 2022 Community Edition
 
 ## Building the ComposeUI Container

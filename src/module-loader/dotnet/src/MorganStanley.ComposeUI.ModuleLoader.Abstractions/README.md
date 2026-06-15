@@ -94,7 +94,7 @@ Alternatively, you can use the `MorganStanley.ComposeUI.ModuleLoader` package, w
 - Supports starting, stopping, and monitoring modules at runtime
 - Integrates with .NET dependency injection for easy setup
 - Provides extensibility points for custom module loading strategies
-- Targets .NET 8.0
+- Targets .NET 10.0
 
 ###### Setup
 Please NOTE that currently we are not releasing the `MorganStanley.ComposeUI.ModuleLoader` NuGet package.
