@@ -23,7 +23,6 @@
 	  <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
 	  <PackageReference Include="Microsoft.Extensions.Options" />
 
-	  <PackageReference Include="System.IO.Pipelines" />
 	  <PackageReference Include="System.Reactive" />
 	  <PackageReference Include="System.Reactive.Async" />
 	</ItemGroup>

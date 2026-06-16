@@ -21,7 +21,6 @@
 		<PackageReference Include="Microsoft.Extensions.Hosting" />
 		<PackageReference Include="Microsoft.Extensions.Http" />
 		<PackageReference Include="Microsoft.Web.WebView2" />
-		<PackageReference Include="System.Drawing.Common" />
 		<PackageReference Include="Infragistics.WPF.DockManager.Trial" />
 		<PackageReference Include="Infragistics.WPF.Trial" />
 		<PackageReference Include="Infragistics.WPF.Ribbon.Trial" />
