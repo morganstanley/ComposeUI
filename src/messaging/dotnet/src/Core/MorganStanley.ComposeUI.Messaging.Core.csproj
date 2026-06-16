@@ -24,7 +24,6 @@
 
 		<PackageReference Include="System.Reactive" />
 		<PackageReference Include="System.Reactive.Async" />
-		<PackageReference Include="System.Text.Json" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -17,8 +17,6 @@
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
 		<PackageReference Include="Microsoft.Extensions.Options" />
-		<PackageReference Include="System.IO.Pipelines" />
-		<PackageReference Include="System.Text.Json" />
 	</ItemGroup>
 
 	<ItemGroup>
