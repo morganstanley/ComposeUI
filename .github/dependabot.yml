@@ -53,6 +53,7 @@ updates:
         versions: [ '>=2.1' ]
       - dependency-name: '@angular*'
         update-types: ['version-update:semver-major']
+      - dependency-name: 'highcharts'
     groups:
       react:
         patterns:
