@@ -33,7 +33,9 @@ public class PrivateChannelTests
     private readonly string _instanceId = "test-instance";
     private readonly DisplayMetadata _displayMetadata = new();
     private readonly PrivateChannel _channel;
+    private readonly TaskCompletionSource _disconnectTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly JsonSerializerOptions _jsonSerializerOptions = SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization;
+    private static readonly TimeSpan DisconnectTimeout = TimeSpan.FromSeconds(5);
 
     public PrivateChannelTests()
     {
@@ -45,7 +47,7 @@ public class PrivateChannelTests
             _channelId,
             _messagingMock.Object,
             _instanceId,
-            onDisconnect: () => { },
+            onDisconnect: () => _disconnectTcs.TrySetResult(),
             isOriginalCreator: true);
     }
 
@@ -53,8 +55,7 @@ public class PrivateChannelTests
     public async Task Broadcast_when_disconnected_throws()
     {
         _channel.Disconnect();
-
-        await Task.Delay(2000);
+        await _disconnectTcs.Task.WaitAsync(DisconnectTimeout);
 
         Func<Task> act = async () => await _channel.Broadcast(Mock.Of<IContext>());
 
@@ -76,6 +77,7 @@ public class PrivateChannelTests
     public async Task AddContextListener_when_disconnected_throws()
     {
         _channel.Disconnect();
+        await _disconnectTcs.Task.WaitAsync(DisconnectTimeout);
 
         Func<Task> act = async () => await _channel.AddContextListener<Instrument>(null, (ctx, ctxM) => { });
 
@@ -115,8 +117,7 @@ public class PrivateChannelTests
     public async Task OnAddContextListener_when_disconnected_throws()
     {
         _channel.Disconnect();
-
-        await Task.Delay(2000);
+        await _disconnectTcs.Task.WaitAsync(DisconnectTimeout);
 
         Action act = () => _channel.OnAddContextListener(_ => { });
 
@@ -132,16 +133,18 @@ public class PrivateChannelTests
     }
 
     [Fact]
-    public void OnDisconnect_when_disconnected_throws()
+    public async Task OnDisconnect_when_disconnected_throws()
     {
+        var disconnectTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var channel = new PrivateChannel(
             _channelId,
             _messagingMock.Object,
             _instanceId,
             true,
-            () => { });
+            () => disconnectTcs.TrySetResult());
 
         channel.Disconnect();
+        await disconnectTcs.Task.WaitAsync(DisconnectTimeout);
 
         Action act = () => channel.OnDisconnect(() => { });
 
@@ -160,8 +163,7 @@ public class PrivateChannelTests
     public async Task OnUnsubscribe_when_disconnected_throws()
     {
         _channel.Disconnect();
-
-        await Task.Delay(2000);
+        await _disconnectTcs.Task.WaitAsync(DisconnectTimeout);
 
         Action act = () => _channel.OnUnsubscribe(_ => { });
 
