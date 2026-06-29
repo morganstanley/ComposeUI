@@ -52,9 +52,7 @@ public class PrivateChannelTests
     [Fact]
     public async Task Broadcast_when_disconnected_throws()
     {
-        _channel.Disconnect();
-
-        await Task.Delay(2000);
+        await _channel.DisconnectAsync();
 
         Func<Task> act = async () => await _channel.Broadcast(Mock.Of<IContext>());
 
@@ -75,7 +73,7 @@ public class PrivateChannelTests
     [Fact]
     public async Task AddContextListener_when_disconnected_throws()
     {
-        _channel.Disconnect();
+        await _channel.DisconnectAsync();
 
         Func<Task> act = async () => await _channel.AddContextListener<Instrument>(null, (ctx, ctxM) => { });
 
@@ -114,9 +112,7 @@ public class PrivateChannelTests
     [Fact]
     public async Task OnAddContextListener_when_disconnected_throws()
     {
-        _channel.Disconnect();
-
-        await Task.Delay(2000);
+        await _channel.DisconnectAsync();
 
         Action act = () => _channel.OnAddContextListener(_ => { });
 
@@ -132,7 +128,7 @@ public class PrivateChannelTests
     }
 
     [Fact]
-    public void OnDisconnect_when_disconnected_throws()
+    public async Task OnDisconnect_when_disconnected_throws()
     {
         var channel = new PrivateChannel(
             _channelId,
@@ -141,7 +137,7 @@ public class PrivateChannelTests
             true,
             () => { });
 
-        channel.Disconnect();
+        await channel.DisconnectAsync();
 
         Action act = () => channel.OnDisconnect(() => { });
 
@@ -159,9 +155,7 @@ public class PrivateChannelTests
     [Fact]
     public async Task OnUnsubscribe_when_disconnected_throws()
     {
-        _channel.Disconnect();
-
-        await Task.Delay(2000);
+        await _channel.DisconnectAsync();
 
         Action act = () => _channel.OnUnsubscribe(_ => { });
 
