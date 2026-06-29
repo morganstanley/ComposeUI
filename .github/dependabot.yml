@@ -79,8 +79,7 @@ updates:
     groups:
       react:
         patterns:
-          - 'react'
-          - 'react-dom'
+          - 'react*'
 
   - package-ecosystem: github-actions
     directory: /
