@@ -76,6 +76,10 @@ updates:
     directory: '/site'
     schedule:
       interval: 'monthly'
+    groups:
+      react:
+        patterns:
+          - 'react*'
 
   - package-ecosystem: github-actions
     directory: /
