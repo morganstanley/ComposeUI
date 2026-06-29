@@ -35,6 +35,7 @@ public class PrivateChannelTests
     private readonly PrivateChannel _channel;
     private readonly TaskCompletionSource _disconnectTcs = new();
     private readonly JsonSerializerOptions _jsonSerializerOptions = SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization;
+    private static readonly TimeSpan DisconnectTimeout = TimeSpan.FromSeconds(5);
 
     public PrivateChannelTests()
     {
@@ -54,7 +55,7 @@ public class PrivateChannelTests
     public async Task Broadcast_when_disconnected_throws()
     {
         _channel.Disconnect();
-        await _disconnectTcs.Task;
+        await _disconnectTcs.Task.WaitAsync(DisconnectTimeout);
 
         Func<Task> act = async () => await _channel.Broadcast(Mock.Of<IContext>());
 
@@ -76,7 +77,7 @@ public class PrivateChannelTests
     public async Task AddContextListener_when_disconnected_throws()
     {
         _channel.Disconnect();
-        await _disconnectTcs.Task;
+        await _disconnectTcs.Task.WaitAsync(DisconnectTimeout);
 
         Func<Task> act = async () => await _channel.AddContextListener<Instrument>(null, (ctx, ctxM) => { });
 
@@ -116,7 +117,7 @@ public class PrivateChannelTests
     public async Task OnAddContextListener_when_disconnected_throws()
     {
         _channel.Disconnect();
-        await _disconnectTcs.Task;
+        await _disconnectTcs.Task.WaitAsync(DisconnectTimeout);
 
         Action act = () => _channel.OnAddContextListener(_ => { });
 
@@ -143,7 +144,7 @@ public class PrivateChannelTests
             () => disconnectTcs.TrySetResult());
 
         channel.Disconnect();
-        await disconnectTcs.Task;
+        await disconnectTcs.Task.WaitAsync(DisconnectTimeout);
 
         Action act = () => channel.OnDisconnect(() => { });
 
@@ -162,7 +163,7 @@ public class PrivateChannelTests
     public async Task OnUnsubscribe_when_disconnected_throws()
     {
         _channel.Disconnect();
-        await _disconnectTcs.Task;
+        await _disconnectTcs.Task.WaitAsync(DisconnectTimeout);
 
         Action act = () => _channel.OnUnsubscribe(_ => { });
 
