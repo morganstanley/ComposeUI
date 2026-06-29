@@ -21,7 +21,6 @@
 		<PackageReference Include="Microsoft.Extensions.Hosting" />
 		<PackageReference Include="Microsoft.Extensions.Http" />
 		<PackageReference Include="Microsoft.Web.WebView2" />
-		<PackageReference Include="System.Drawing.Common" />
 		<PackageReference Include="Infragistics.WPF.DockManager.Trial" />
 		<PackageReference Include="Infragistics.WPF.Trial" />
 		<PackageReference Include="Infragistics.WPF.Ribbon.Trial" />
@@ -78,7 +77,7 @@
 
 	<Target Name="CopyDesktopAgentClientConsoleApp" AfterTargets="Build">
 		<ItemGroup>
-			<DesktopAgentClientExe Include="$(SolutionDir)..\..\..\examples\dotnet-diagnostics\DiagnosticsExample\bin\$(Configuration)\net8.0-windows\DiagnosticsExample.exe" />
+			<DesktopAgentClientExe Include="$(SolutionDir)..\..\..\examples\dotnet-diagnostics\DiagnosticsExample\bin\$(Configuration)\net10.0-windows\DiagnosticsExample.exe" />
 		</ItemGroup>
 		<Copy SourceFiles="@(DesktopAgentClientExe)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
 	</Target>

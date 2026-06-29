@@ -8,7 +8,7 @@
 - Concurrency and synchronization primitives for messaging scenarios
 - Shared infrastructure for building messaging clients, hosts, and adapters
 - Designed for extensibility and high performance
-- Compatible with .NET 8.0
+- Compatible with .NET 10.0
 
 ## Installation
 

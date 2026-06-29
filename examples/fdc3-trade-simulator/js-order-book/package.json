@@ -1,6 +1,6 @@
 {
   "name": "@morgan-stanley/composeui-example-order-book",
-  "version": "0.1.0-alpha.13",
+  "version": "0.1.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -11,7 +11,7 @@
   "private": true,
   "dependencies": {
     "@angular/animations": "21.1.5",
-    "@angular/common": "^21.1.5",
+    "@angular/common": "^20.3.25",
     "@angular/compiler": "^21.1.5",
     "@angular/core": "^21.1.5",
     "@angular/forms": "^21.1.5",
