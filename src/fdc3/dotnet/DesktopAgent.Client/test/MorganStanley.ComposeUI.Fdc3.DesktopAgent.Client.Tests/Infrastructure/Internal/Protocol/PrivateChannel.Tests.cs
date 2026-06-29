@@ -33,7 +33,7 @@ public class PrivateChannelTests
     private readonly string _instanceId = "test-instance";
     private readonly DisplayMetadata _displayMetadata = new();
     private readonly PrivateChannel _channel;
-    private readonly TaskCompletionSource _disconnectTcs = new();
+    private readonly TaskCompletionSource _disconnectTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly JsonSerializerOptions _jsonSerializerOptions = SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization;
     private static readonly TimeSpan DisconnectTimeout = TimeSpan.FromSeconds(5);
 
@@ -135,7 +135,7 @@ public class PrivateChannelTests
     [Fact]
     public async Task OnDisconnect_when_disconnected_throws()
     {
-        var disconnectTcs = new TaskCompletionSource();
+        var disconnectTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var channel = new PrivateChannel(
             _channelId,
             _messagingMock.Object,
