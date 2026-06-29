@@ -154,14 +154,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
         }
     }
 
-    public void Disconnect()
-    {
-        _ = DisconnectAsync().ContinueWith(
-            t => _logger.LogError(t.Exception, "Unhandled error during disconnect of private channel {ChannelId}.", Id),
-            TaskContinuationOptions.OnlyOnFaulted);
-    }
-
-    internal async Task DisconnectAsync()
+    public async void Disconnect()
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
 
