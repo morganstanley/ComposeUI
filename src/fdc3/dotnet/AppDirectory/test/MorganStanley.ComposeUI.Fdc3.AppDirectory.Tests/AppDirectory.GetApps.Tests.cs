@@ -17,7 +17,7 @@ using System.Text;
 using Moq.Contrib.HttpClient;
 using Finos.Fdc3.AppDirectory;
 using Newtonsoft.Json.Linq;
-using TaskExtensions = MorganStanley.ComposeUI.Testing.TaskExtensions;
+using System.Diagnostics;
 using System.IO.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.AppDirectory;
@@ -67,9 +67,18 @@ public partial class AppDirectoryTests
             useApiSchema ? GetAppsApiResponseChanged : GetAppsJsonArrayChanged,
             Encoding.UTF8);
 
-        await TaskExtensions.WaitForBackgroundTasksAsync(TimeSpan.FromSeconds(20));
-
-        var apps = await appDirectory.GetApps();
+        // Poll until the cache is invalidated and the updated data is returned
+        const int pollIntervalMs = 50;
+        var timeout = TimeSpan.FromSeconds(20);
+        var stopwatch = Stopwatch.StartNew();
+        IEnumerable<Fdc3App> apps;
+        do
+        {
+            apps = await appDirectory.GetApps();
+            if (apps.Count() == GetAppsExpectationChanged.Count)
+                break;
+            await Task.Delay(pollIntervalMs);
+        } while (stopwatch.Elapsed < timeout);
 
         apps.Should().BeEquivalentTo(GetAppsExpectationChanged);
     }
