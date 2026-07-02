@@ -23,7 +23,7 @@
     "@webpack-cli/generators": "^3.0.7",
     "http-server": "14.1.1",
     "rimraf": "6.1.3",
-    "webpack": "5.105.2",
+    "webpack": "5.108.3",
     "webpack-cli": "^6.0.1"
   }
 }
