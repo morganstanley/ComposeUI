@@ -12,7 +12,7 @@
   "dependencies": {
     "@angular/animations": "21.1.5",
     "@angular/cdk": "^21.1.5",
-    "@angular/common": "^20.3.25",
+    "@angular/common": "^20.3.26",
     "@angular/compiler": "^21.1.5",
     "@angular/core": "^21.1.5",
     "@angular/forms": "^21.1.5",
