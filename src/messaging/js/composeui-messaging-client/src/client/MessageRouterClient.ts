@@ -266,8 +266,12 @@ export class MessageRouterClient implements MessageRouter {
     }
 
     private failPendingRequests(error: any) {
-        for (let requestId in this.pendingRequests) {
-            this.pendingRequests[requestId].reject(error);
+        const requestIds = Object.keys(this.pendingRequests);
+        for (let requestId of requestIds) {
+            const deferred = this.pendingRequests[requestId];
+            if (deferred) {
+                deferred.reject(error);
+            }
             delete this.pendingRequests[requestId];
         }
     }
@@ -275,7 +279,9 @@ export class MessageRouterClient implements MessageRouter {
     private async failSubscribers(error: any) {
         for (let topicName in this.topics) {
             const topic = this.topics[topicName];
-            topic.error(error);
+            if (topic) {
+                topic.error(error);
+            }
         }
     }
 
