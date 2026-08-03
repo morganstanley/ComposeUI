@@ -51,7 +51,7 @@
     <PackageVersion Include="System.IO.Pipelines" Version="10.0.5" />
     <PackageVersion Include="System.Management" Version="8.0.0" />
     <PackageVersion Include="System.Reactive.Async" Version="6.0.0-alpha.18" />
-    <PackageVersion Include="System.Reactive" Version="6.1.0" />
+    <PackageVersion Include="System.Reactive" Version="7.0.0" />
     <PackageVersion Include="System.Security.Cryptography.Xml" Version="8.0.3" />
     <PackageVersion Include="System.ServiceModel.Primitives" Version="8.1.1" />
     <PackageVersion Include="System.Text.Json" Version="10.0.8" />
