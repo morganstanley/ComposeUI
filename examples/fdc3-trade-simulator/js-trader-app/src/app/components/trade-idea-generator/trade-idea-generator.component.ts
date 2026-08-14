@@ -1,5 +1,5 @@
 /* Morgan Stanley makes this available to you under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. See the NOTICE file distributed with this work for additional information regarding copyright ownership. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. */
-import { Component, Inject, Input, NgZone, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, Input, NgZone, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup, FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogActions, MatDialogClose, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -17,6 +17,7 @@ export interface SymbolElement {
     selector: 'app-trade-idea-generator',
     templateUrl: './trade-idea-generator.component.html',
     styleUrl: './trade-idea-generator.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class TradeIdeaGeneratorComponent implements OnDestroy {
