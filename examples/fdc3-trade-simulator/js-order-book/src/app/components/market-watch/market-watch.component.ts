@@ -160,7 +160,6 @@ interface SubjectKeyValuePair {
     imports: [MatTableModule, MatIconModule, MatButtonModule, MatTreeModule],
     styleUrl: './market-watch.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager
-
 })
 export class MarketWatchComponent implements OnInit, OnDestroy{
   private listeners: Listener[] = new Array<Listener>();
