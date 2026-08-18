@@ -22,7 +22,7 @@
     "cross-spawn": "^7.0.6",
     "lodash": "^4.17.21",
     "micromatch": "^4.0.8",
-    "minimatch": "^10.2.6",
+    "minimatch": "^5.1.6",
     "nanoid": "^3.1.31",
     "serialize-javascript": "^7.1.0",
     "ws": "^8.21.3"
