@@ -25,7 +25,7 @@ using MorganStanley.ComposeUI.Messaging.Server.Abstractions;
 
 namespace MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 
-internal class WebSocketConnection : IClientConnection
+internal class WebSocketConnection : IClientConnection, ICloseWithPolicyViolation
 {
     public WebSocketConnection(
         IMessageRouterServer messageRouter,
@@ -89,6 +89,20 @@ internal class WebSocketConnection : IClientConnection
         return ValueTask.CompletedTask;
     }
 
+    /// <summary>
+    /// Completing the send channel (instead of cancelling) lets the send loop write the messages that are already
+    /// queued, for example the error response to a rejected Connect, and then close the socket with the status
+    /// "policy violation".
+    /// </summary>
+    public ValueTask CloseWithPolicyViolationAsync(string reason)
+    {
+        _closeDescription = reason;
+        _closeRequested = true;
+        _sendChannel.Writer.TryComplete();
+
+        return ValueTask.CompletedTask;
+    }
+
     public ValueTask DisposeAsync()
     {
         return CloseAsync();
@@ -147,6 +161,10 @@ internal class WebSocketConnection : IClientConnection
         });
 
     private readonly CancellationTokenSource _stopTokenSource = new();
+    private volatile bool _closeRequested;
+    private string? _closeDescription;
+
+    private static readonly TimeSpan CloseHandshakeTimeout = TimeSpan.FromSeconds(5);
 
     private async Task ReceiveMessagesAsync(
         System.Net.WebSockets.WebSocket webSocket,
@@ -171,7 +189,11 @@ internal class WebSocketConnection : IClientConnection
                             _logger.LogDebug("Close message received from WebSocket client");
                         }
 
-                        await webSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
+                        // Not in this state when the server closed first and this is the client's answer
+                        if (webSocket.State == WebSocketState.CloseReceived)
+                        {
+                            await webSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
+                        }
 
                         break;
                     }
@@ -233,6 +255,20 @@ internal class WebSocketConnection : IClientConnection
                     WebSocketMessageType.Text,
                     WebSocketMessageFlags.EndOfMessage,
                     cancellationToken);
+            }
+
+            // Reached when the send channel was completed by CloseWithPolicyViolationAsync, after everything was sent.
+            // The close frame is sent here because cancelling the receive loop aborts the socket.
+            if (_closeRequested && webSocket.State == WebSocketState.Open)
+            {
+                await webSocket.CloseOutputAsync(
+                    WebSocketCloseStatus.PolicyViolation,
+                    _closeDescription,
+                    CancellationToken.None);
+
+                // Give the client the chance to read the close frame and answer it before the socket is torn down.
+                // The receive loop ends, and with it the token, when the client's close frame arrives.
+                await Task.Delay(CloseHandshakeTimeout, cancellationToken);
             }
         }
         catch (OperationCanceledException e) { }
