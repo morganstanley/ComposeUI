@@ -10,6 +10,10 @@
         "strict": true,
         "noImplicitAny": true,
         "noImplicitThis": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "noUncheckedIndexedAccess": true,
+        "noPropertyAccessFromIndexSignature": true,
         "outDir": "dist",
         "lib": [
             "es2022",
