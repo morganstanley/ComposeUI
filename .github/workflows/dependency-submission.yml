@@ -25,6 +25,6 @@ jobs:
               powershell ./build/dotnet-restore.ps1
               powershell ./build/dotnet-build.ps1
       - name: Component detection 
-        uses: advanced-security/component-detection-dependency-submission-action@b282c67b1008fde9b60da4bdfcd8849613e293b2 # v0.1.6
+        uses: advanced-security/component-detection-dependency-submission-action@a02aeda7a175ad4dd38a13c4d3ff2df9da8f2cf0 # v0.2.0
         with:
           detectorsFilter: "NuGetProjectCentric,Npm,NpmLockfile3"
