@@ -140,31 +140,33 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
                 var iconSrc = app.Icons?.FirstOrDefault()?.Src;
 
                 var nativeDetails = (NativeAppDetails) app.Details;
-                var path = new Uri(nativeDetails.Path, UriKind.RelativeOrAbsolute);
-
-                // TODO: Get the root directory as quick turnaround, but this should be improved to support more scenarios - like when the app is not located under the source directory.
-                var repositoryRoot = Environment.GetEnvironmentVariable(Consts.COMPOSEUI_MODULE_REPOSITORY_ENVIRONMENT_VARIABLE_NAME);
-
-                if (string.IsNullOrEmpty(repositoryRoot))
-                {
-                    repositoryRoot = Consts.COMPOSEUI_MODULE_REPOSITORY_DEFAULT_ROOT;
-                }
-
-                var fullPath = path.IsAbsoluteUri
-                    ? path.LocalPath
-                    : Path.GetFullPath(nativeDetails.Path);
-
-                if (!fullPath.StartsWith(repositoryRoot, StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new NotSupportedException($"Native app path must be under the ComposeUI executable directory: {repositoryRoot}, and it was under: {fullPath}.");
-                }
 
                 Details = new NativeManifestDetails
                 {
-                    Path = path,
+                    Path = new Uri(nativeDetails.Path, UriKind.RelativeOrAbsolute),
                     Icon = iconSrc != null ? new Uri(iconSrc, UriKind.Absolute) : null,
                 };
             }
+
+            Details.Path = GetValidatedPath(app.AppId, Details.Path);
+        }
+
+        private static Uri GetValidatedPath(string appId, Uri path)
+        {
+            // TODO: Get the root directory as quick turnaround, but this should be improved to support more scenarios - like when the app is not located under the source directory.
+            var repositoryRoot = Environment.GetEnvironmentVariable(Consts.COMPOSEUI_MODULE_REPOSITORY_ENVIRONMENT_VARIABLE_NAME);
+
+            if (string.IsNullOrEmpty(repositoryRoot))
+            {
+                repositoryRoot = Consts.COMPOSEUI_MODULE_REPOSITORY_DEFAULT_ROOT;
+            }
+
+            if (!NativePathValidator.TryValidate(path, repositoryRoot, out var fullPath, out var error))
+            {
+                throw new NotSupportedException($"The native app '{appId}' cannot be started. {error}");
+            }
+
+            return new Uri(fullPath, UriKind.Absolute);
         }
 
         public string Id { get; init; }

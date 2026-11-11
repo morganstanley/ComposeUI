@@ -40,7 +40,7 @@ internal class NativeModuleRunner : IModuleRunner
         var mainProcess = new Process();
         var processInfo = new MainProcessInfo(mainProcess);
 
-        var filename = details.Path.IsAbsoluteUri ? details.Path.AbsolutePath : details.Path.ToString();
+        var filename = details.Path.IsAbsoluteUri ? details.Path.LocalPath : details.Path.ToString();
 
         mainProcess.StartInfo.FileName = Path.GetFullPath(filename);
         startupContext.AddProperty(processInfo);

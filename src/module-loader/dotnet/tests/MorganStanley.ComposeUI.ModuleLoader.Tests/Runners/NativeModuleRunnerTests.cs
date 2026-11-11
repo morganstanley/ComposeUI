@@ -24,6 +24,7 @@ public class NativeModuleRunnerTests : IDisposable
     private readonly NativeModuleRunner _runner = new NativeModuleRunner();
     private static readonly TimeSpan Timeout = TimeSpan.FromMinutes(1);
     private Process? _mainProcess;
+    private string? _tempDirectory;
 
     [Fact]
     public void ModuleType_is_Native()
@@ -166,6 +167,47 @@ public class NativeModuleRunnerTests : IDisposable
         result.Output.Should().Contain($"{variableName}={randomString}");
     }
 
+    [Fact]
+    public async Task AbsolutePathModuleIsLaunchedFromADirectoryWithSpacesInItsName()
+    {
+#if DEBUG
+        var sourceExe = Path.GetFullPath(@"..\..\..\..\NativeRunnerTestApp\bin\Debug\net10.0\NativeRunnerTestApp.exe");
+#else
+        var sourceExe = Path.GetFullPath(@"..\..\..\..\NativeRunnerTestApp\bin\Release\net10.0\NativeRunnerTestApp.exe");
+#endif
+        _tempDirectory = Path.Combine(Path.GetTempPath(), "composeui runner " + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(_tempDirectory);
+
+        foreach (var file in Directory.GetFiles(Path.GetDirectoryName(sourceExe)!))
+        {
+            File.Copy(file, Path.Combine(_tempDirectory, Path.GetFileName(file)));
+        }
+
+        var startRequest = new StartRequest("testModule");
+        var manifest = new Mock<IModuleManifest<NativeManifestDetails>>();
+        var randomString = Guid.NewGuid().ToString();
+        var details = new NativeManifestDetails()
+        {
+            Path = new Uri(Path.Combine(_tempDirectory, Path.GetFileName(sourceExe)), UriKind.Absolute),
+            Arguments = new[] { "Hello", randomString }
+        };
+        manifest.SetupGet(x => x.Details).Returns(details);
+        var moduleInstance = new ModuleInstance(Guid.NewGuid(), manifest.Object, startRequest);
+        var startupContext = new StartupContext(startRequest, moduleInstance);
+
+        await _runner.Start(startupContext, () => RedirectMainProcessOutput(startupContext));
+
+        var processInfo = startupContext.GetOrAddProperty<MainProcessInfo>(() =>
+        {
+            Execute.Assertion.FailWith("No MainProcessInfo found");
+            return null!;
+        });
+
+        _mainProcess = processInfo.MainProcess;
+        var result = await _mainProcess.WaitForExitAsync(Timeout);
+        result.Output.Trim().Should().Be($"Hello {randomString}");
+    }
+
     private static Task RedirectMainProcessOutput(StartupContext startupContext)
     {
         var mainProcessInfo = startupContext.GetProperties<MainProcessInfo>().First();
@@ -179,6 +221,12 @@ public class NativeModuleRunnerTests : IDisposable
         if (_mainProcess != null && !_mainProcess.HasExited)
         {
             _mainProcess.Kill();
+            _mainProcess.WaitForExit();
+        }
+
+        if (_tempDirectory != null && Directory.Exists(_tempDirectory))
+        {
+            Directory.Delete(_tempDirectory, recursive: true);
         }
     }
 }
