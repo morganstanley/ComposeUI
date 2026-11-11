@@ -112,9 +112,6 @@ public partial class App : Application
 
     private async Task StartAsync(StartupEventArgs e)
     {
-        var repositoryRoot = RootPathResolver.GetRepositoryRoot();
-        Environment.SetEnvironmentVariable(Consts.COMPOSEUI_MODULE_REPOSITORY_ENVIRONMENT_VARIABLE_NAME, repositoryRoot, EnvironmentVariableTarget.Process);
-
         var host = new HostBuilder()
             .ConfigureAppConfiguration(
                 config => config

@@ -51,6 +51,19 @@ public class Fdc3ModuleCatalogNativeModulesTests : IDisposable
     }
 
     [Fact]
+    public async Task GetManifest_uses_the_modules_directory_of_the_executable_when_no_root_is_configured()
+    {
+        Environment.SetEnvironmentVariable(Consts.COMPOSEUI_MODULE_REPOSITORY_ENVIRONMENT_VARIABLE_NAME, null);
+        var modulesDirectory = Path.Combine(AppContext.BaseDirectory, "modules");
+
+        var inModules = await CreateCatalog(Path.Combine("sub", "app.exe")).GetManifest("nativeApp");
+        var outside = () => CreateCatalog(Path.Combine(AppContext.BaseDirectory, "app.exe")).GetManifest("nativeApp");
+
+        GetDetails(inModules).Path.LocalPath.Should().Be(Path.Combine(modulesDirectory, "sub", "app.exe"));
+        await outside.Should().ThrowAsync<NotSupportedException>();
+    }
+
+    [Fact]
     public async Task GetManifest_resolves_a_relative_path_against_the_root_and_not_against_the_working_directory()
     {
         var catalog = CreateCatalog(Path.Combine("sub", "app.exe"));

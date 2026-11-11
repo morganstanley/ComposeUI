@@ -87,6 +87,12 @@ public class MyService
 - `HttpClientName`: (Optional) Name of the HTTP client for custom configuration. If specified, an `IHttpClientFactory` must be provided to the `AppDirectory` constructor with a matching client. If an HTTP endpoint is set as the source and no `HttpClientName` is provided, a new `HttpClient` instance will be used to fetch data.
 
 
+### Native apps
+
+A native app can only be started from a path under the module root directory. Relative paths are resolved against that root, not against the working directory.
+The root is the `modules` directory next to the executable; set the `COMPOSEUI_MODULE_REPOSITORY_ROOT` environment variable to use another directory.
+Paths that leave the root (for example with `..`), paths that are not files and, for the details returned by the host manifest mapper too, paths outside the root are rejected with an error that names the app.
+
 ### 4. Supported Sources
 
 - **File**: `file:///path/to/apps.json`
