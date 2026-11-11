@@ -124,13 +124,54 @@ public class Fdc3ModuleCatalogNativeModulesTests : IDisposable
             Path = new Uri(Path.Combine("sub", "app.exe"), UriKind.Relative),
             Arguments = ["--flag"]
         });
-        var catalog = CreateCatalog(Path.Combine(_root, "app.exe"), mapper);
+        var catalog = CreateCatalog(Path.Combine(_root, "app.exe"), mapper, new AppDirectoryOptions { AllowNativeArguments = true });
 
         var manifest = await catalog.GetManifest("nativeApp");
 
         var details = GetDetails(manifest);
         details.Path.LocalPath.Should().Be(Path.Combine(_root, "sub", "app.exe"));
         details.Arguments.Should().Equal("--flag");
+    }
+
+    [Fact]
+    public async Task GetManifest_throws_when_the_app_directory_gives_arguments_and_they_are_not_allowed()
+    {
+        var mapper = CreateMapper(new NativeManifestDetails { Path = new Uri("app.exe", UriKind.Relative), Arguments = ["--flag"] });
+        var catalog = CreateCatalog(Path.Combine(_root, "app.exe"), mapper);
+
+        var action = () => catalog.GetManifest("nativeApp");
+
+        await action.Should().ThrowAsync<NotSupportedException>().WithMessage("*nativeApp*arguments*");
+    }
+
+    [Fact]
+    public async Task GetManifest_throws_when_the_app_directory_gives_environment_variables_and_they_are_not_allowed()
+    {
+        var mapper = CreateMapper(new NativeManifestDetails
+        {
+            Path = new Uri("app.exe", UriKind.Relative),
+            EnvironmentVariables = new Dictionary<string, string> { { "MY_VARIABLE", "value" } }
+        });
+        var catalog = CreateCatalog(Path.Combine(_root, "app.exe"), mapper, new AppDirectoryOptions { AllowNativeArguments = true });
+
+        var action = () => catalog.GetManifest("nativeApp");
+
+        await action.Should().ThrowAsync<NotSupportedException>().WithMessage("*nativeApp*environment variables*");
+    }
+
+    [Fact]
+    public async Task GetManifest_returns_the_environment_variables_of_the_app_directory_when_they_are_allowed()
+    {
+        var mapper = CreateMapper(new NativeManifestDetails
+        {
+            Path = new Uri("app.exe", UriKind.Relative),
+            EnvironmentVariables = new Dictionary<string, string> { { "MY_VARIABLE", "value" } }
+        });
+        var catalog = CreateCatalog(Path.Combine(_root, "app.exe"), mapper, new AppDirectoryOptions { AllowNativeEnvironmentVariables = true });
+
+        var manifest = await catalog.GetManifest("nativeApp");
+
+        GetDetails(manifest).EnvironmentVariables.Should().Equal(new Dictionary<string, string> { { "MY_VARIABLE", "value" } });
     }
 
     private static NativeManifestDetails GetDetails(IModuleManifest manifest) =>
@@ -143,7 +184,7 @@ public class Fdc3ModuleCatalogNativeModulesTests : IDisposable
         return mapper.Object;
     }
 
-    private static IModuleCatalog CreateCatalog(string appPath, IHostManifestMapper? mapper = null)
+    private static IModuleCatalog CreateCatalog(string appPath, IHostManifestMapper? mapper = null, AppDirectoryOptions? options = null)
     {
         var fileSystem = TestUtils.SetUpFileSystemWithSingleFile(
             path: "/apps.json",
@@ -162,6 +203,6 @@ public class Fdc3ModuleCatalogNativeModulesTests : IDisposable
             new AppDirectoryOptions { Source = new Uri("file:///apps.json") },
             fileSystem: fileSystem);
 
-        return new Fdc3ModuleCatalog(appDirectory, mapper);
+        return new Fdc3ModuleCatalog(appDirectory, mapper, options);
     }
 }

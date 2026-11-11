@@ -93,6 +93,10 @@ A native app can only be started from a path under the module root directory. Re
 The root is the `modules` directory next to the executable; set the `COMPOSEUI_MODULE_REPOSITORY_ROOT` environment variable to use another directory.
 Paths that leave the root (for example with `..`), paths that are not files and, for the details returned by the host manifest mapper too, paths outside the root are rejected with an error that names the app.
 
+The arguments and the environment variables that the host manifest mapper takes from the app directory are rejected by default, because the directory can come from a remote source.
+Set `AllowNativeArguments` and `AllowNativeEnvironmentVariables` in the `AppDirectoryOptions` to allow them.
+Whatever their source, the module loader still checks every native launch against its `NativeModuleLaunchOptions` before it starts the process: the allowed roots, an optional list of allowed executables, the limits of the arguments and the list of blocked environment variables such as `PATH` and `DOTNET_*`.
+
 ### 4. Supported Sources
 
 - **File**: `file:///path/to/apps.json`

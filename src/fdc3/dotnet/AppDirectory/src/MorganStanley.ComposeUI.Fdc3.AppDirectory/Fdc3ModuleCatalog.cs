@@ -14,6 +14,7 @@
 
 using MorganStanley.ComposeUI.ModuleLoader;
 using Finos.Fdc3.AppDirectory;
+using Microsoft.Extensions.Options;
 
 namespace MorganStanley.ComposeUI.Fdc3.AppDirectory;
 
@@ -21,13 +22,16 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
 {
     private readonly IAppDirectory _appDirectory;
     private readonly IHostManifestMapper? _hostManifestMapper;
+    private readonly AppDirectoryOptions _options;
 
     public Fdc3ModuleCatalog(
         IAppDirectory fdc3AppDirectory,
-        IHostManifestMapper? hostManifestMapper = null)
+        IHostManifestMapper? hostManifestMapper = null,
+        IOptions<AppDirectoryOptions>? options = null)
     {
         _appDirectory = fdc3AppDirectory;
         _hostManifestMapper = hostManifestMapper;
+        _options = options?.Value ?? new AppDirectoryOptions();
     }
 
     public async Task<IModuleManifest> GetManifest(string moduleId)
@@ -39,7 +43,7 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
     private IModuleManifest GetManifest(Fdc3App app) => app.Type switch
     {
         AppType.Web => new Fdc3WebModuleManifest(app, _hostManifestMapper),
-        AppType.Native => new Fdc3NativeModuleManifest(app, _hostManifestMapper),
+        AppType.Native => new Fdc3NativeModuleManifest(app, _hostManifestMapper, _options),
         _ => throw new NotSupportedException($"Unsupported module type: {app.Type}"),
     };
 
@@ -114,7 +118,7 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
     {
         private readonly IHostManifestMapper? _hostManifestMapper;
 
-        public Fdc3NativeModuleManifest(Fdc3App app, IHostManifestMapper hostManifestMapper)
+        public Fdc3NativeModuleManifest(Fdc3App app, IHostManifestMapper? hostManifestMapper, AppDirectoryOptions options)
         {
             if (app.Type != AppType.Native)
             {
@@ -146,6 +150,16 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
                     Path = new Uri(nativeDetails.Path, UriKind.RelativeOrAbsolute),
                     Icon = iconSrc != null ? new Uri(iconSrc, UriKind.Absolute) : null,
                 };
+            }
+
+            if (Details.Arguments.Length > 0 && !options.AllowNativeArguments)
+            {
+                throw new NotSupportedException($"The native app '{app.AppId}' cannot be started. The app directory gives arguments, which are not allowed. Set {nameof(AppDirectoryOptions.AllowNativeArguments)} to allow them.");
+            }
+
+            if (Details.EnvironmentVariables.Count > 0 && !options.AllowNativeEnvironmentVariables)
+            {
+                throw new NotSupportedException($"The native app '{app.AppId}' cannot be started. The app directory gives environment variables, which are not allowed. Set {nameof(AppDirectoryOptions.AllowNativeEnvironmentVariables)} to allow them.");
             }
 
             Details.Path = GetValidatedPath(app.AppId, Details.Path);
