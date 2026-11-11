@@ -21,6 +21,11 @@ namespace MorganStanley.ComposeUI.Shell.Messaging;
 /// </summary>
 public class NativeModuleMessageRouterConfigurator : IModuleTypeMessageRouterConfigurator
 {
+    internal NativeModuleMessageRouterConfigurator(IModuleTokenStore tokenStore)
+    {
+        _tokenStore = tokenStore;
+    }
+
     /// <summary>
     /// <inheritdoc/>
     /// </summary>
@@ -28,12 +33,18 @@ public class NativeModuleMessageRouterConfigurator : IModuleTypeMessageRouterCon
     /// <param name="webSocketServer"></param>
     public void Configure(StartupContext startupContext, IMessageRouterWebSocketServer webSocketServer)
     {
+        var accessToken = _tokenStore.Issue(
+            startupContext.ModuleInstance.InstanceId,
+            startupContext.ModuleInstance.Manifest.Id);
+
         startupContext.AddProperty(
             new EnvironmentVariables(
                 new[] 
                 { 
                     new KeyValuePair<string, string>(WebSocketEnvironmentVariableNames.Uri, webSocketServer.WebSocketUrl.AbsoluteUri),
-                    new KeyValuePair<string, string>(ComposeUI.Messaging.EnvironmentVariableNames.AccessToken, App.Current.MessageRouterAccessToken)
+                    new KeyValuePair<string, string>(ComposeUI.Messaging.EnvironmentVariableNames.AccessToken, accessToken)
                 }));
     }
+
+    private readonly IModuleTokenStore _tokenStore;
 }

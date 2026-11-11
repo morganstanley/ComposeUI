@@ -15,10 +15,14 @@ namespace MorganStanley.ComposeUI.Messaging.Server;
 internal class MessageRouterServerDependencies
 {
     public MessageRouterServerDependencies(
-        IAccessTokenValidator? accessTokenValidator = null)
+        IAccessTokenValidator? accessTokenValidator = null,
+        IClientAuthenticator? clientAuthenticator = null)
     {
         AccessTokenValidator = accessTokenValidator;
+        ClientAuthenticator = clientAuthenticator;
     }
 
     public IAccessTokenValidator? AccessTokenValidator { get; }
+
+    public IClientAuthenticator? ClientAuthenticator { get; }
 }

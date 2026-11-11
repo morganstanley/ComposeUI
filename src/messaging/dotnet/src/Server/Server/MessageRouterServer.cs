@@ -12,6 +12,7 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Security.Claims;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MorganStanley.ComposeUI.Messaging.Exceptions;
@@ -29,7 +30,18 @@ internal class MessageRouterServer : IMessageRouterServer
         ILogger<MessageRouterServer>? logger = null)
     {
         _accessTokenValidator = dependencies.AccessTokenValidator;
+        _clientAuthenticator = dependencies.ClientAuthenticator;
         _logger = logger ?? NullLogger<MessageRouterServer>.Instance;
+    }
+
+    /// <summary>
+    /// Gets the identity of a connected client.
+    /// Clients that were not authenticated by an <see cref="IClientAuthenticator"/> have an unauthenticated principal.
+    /// </summary>
+    /// <returns>The principal, or <c>null</c> if there is no connected client with the specified ID.</returns>
+    internal ClaimsPrincipal? GetClientPrincipal(string clientId)
+    {
+        return _clients.TryGetValue(clientId, out var client) ? client.Principal : null;
     }
 
     public async ValueTask DisposeAsync()
@@ -80,6 +92,7 @@ internal class MessageRouterServer : IMessageRouterServer
     private readonly ConcurrentDictionary<string, Topic> _topics = new();
     private readonly ConcurrentDictionary<IClientConnection, Client> _connectionToClient = new();
     private readonly IAccessTokenValidator? _accessTokenValidator;
+    private readonly IClientAuthenticator? _clientAuthenticator;
 
     private async Task HandleConnectRequest(
         Client client,
@@ -93,6 +106,12 @@ internal class MessageRouterServer : IMessageRouterServer
             if (_accessTokenValidator != null)
             {
                 await _accessTokenValidator.Validate(client.ClientId, message.AccessToken);
+            }
+
+            if (_clientAuthenticator != null)
+            {
+                client.Principal = await _clientAuthenticator.Authenticate(client.ClientId, message.AccessToken)
+                    ?? throw new InvalidOperationException("The client authenticator did not return an identity");
             }
 
             await client.Connection.SendAsync(
@@ -619,6 +638,7 @@ internal class MessageRouterServer : IMessageRouterServer
         public CancellationTokenSource StopTokenSource { get; } = new();
         public TaskCompletionSource StopTaskSource { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public string ClientId { get; } = Guid.NewGuid().ToString("N");
+        public ClaimsPrincipal Principal { get; set; } = new(new ClaimsIdentity());
     }
 
     private class Topic

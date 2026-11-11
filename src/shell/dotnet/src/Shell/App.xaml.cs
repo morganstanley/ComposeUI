@@ -107,8 +107,8 @@ public partial class App : Application
     private ILogger _logger = NullLogger<App>.Instance;
     private MainWindow? _shellWindow;
 
-    // TODO: Assign a unique token for each module
-    internal readonly string MessageRouterAccessToken = Guid.NewGuid().ToString("N");
+    // Issues a separate message router access token to each module instance, and one to the shell host.
+    private readonly ModuleTokenStore _moduleTokenStore = new();
 
     private async Task StartAsync(StartupEventArgs e)
     {
@@ -163,22 +163,21 @@ public partial class App : Application
         void ConfigureMessageRouter()
         {
             // TODO: Extensibility: plugins should be able to configure the service collection.
+            services.AddSingleton<IModuleTokenStore>(_moduleTokenStore);
+
             services.AddMessageRouterServer(
                 mr => mr
                     .UseWebSockets()
-                    .UseAccessTokenValidator(
-                        (clientId, token) =>
-                        {
-                            if (MessageRouterAccessToken != token)
-                                throw new InvalidOperationException("The provided access token is invalid");
-                        }));
+                    .UseClientAuthenticator(sp => new ModuleTokenClientAuthenticator(sp.GetRequiredService<IModuleTokenStore>())));
 
+            // The shell's in-process client (and the services built on it, e.g. the FDC3 desktop agent) connect as the host.
             services.AddMessageRouter(
                 mr => mr
                     .UseServer()
-                    .UseAccessToken(MessageRouterAccessToken));
+                    .UseAccessToken(_moduleTokenStore.HostToken));
 
             services.AddTransient<IStartupAction, MessageRouterStartupAction>();
+            services.AddHostedService<ModuleTokenRevocationService>();
             services.AddMessageRouterMessagingAdapter();
         }
 
