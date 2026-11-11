@@ -21,10 +21,18 @@ namespace MorganStanley.ComposeUI.ModuleLoader.Tests.Runners;
 
 public class NativeModuleRunnerTests : IDisposable
 {
-    private readonly NativeModuleRunner _runner = new NativeModuleRunner();
+    private readonly NativeModuleLaunchOptions _options = new();
+    private readonly NativeModuleRunner _runner;
     private static readonly TimeSpan Timeout = TimeSpan.FromMinutes(1);
     private Process? _mainProcess;
     private string? _tempDirectory;
+
+    public NativeModuleRunnerTests()
+    {
+        // The root of the test projects: the test app is started from there.
+        _options.AllowedRoots.Add(Path.GetFullPath(@"..\..\..\.."));
+        _runner = new NativeModuleRunner(_options);
+    }
 
     [Fact]
     public void ModuleType_is_Native()
@@ -108,9 +116,9 @@ public class NativeModuleRunnerTests : IDisposable
         var details = new NativeManifestDetails()
         {
 #if DEBUG
-            Path = new Uri(@"..\..\..\..\NativeRunnerTestApp\bin\Debug\net10.0\NativeRunnerTestApp.exe", UriKind.Relative),
+            Path = new Uri(@"NativeRunnerTestApp\bin\Debug\net10.0\NativeRunnerTestApp.exe", UriKind.Relative),
 #else
-            Path = new Uri(@"..\..\..\..\NativeRunnerTestApp\bin\Release\net10.0\NativeRunnerTestApp.exe", UriKind.Relative),
+            Path = new Uri(@"NativeRunnerTestApp\bin\Release\net10.0\NativeRunnerTestApp.exe", UriKind.Relative),
 #endif
             EnvironmentVariables = new Dictionary<string, string> { { variableName, randomString } }
         };
@@ -177,6 +185,7 @@ public class NativeModuleRunnerTests : IDisposable
 #endif
         _tempDirectory = Path.Combine(Path.GetTempPath(), "composeui runner " + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(_tempDirectory);
+        _options.AllowedRoots.Add(_tempDirectory);
 
         foreach (var file in Directory.GetFiles(Path.GetDirectoryName(sourceExe)!))
         {
@@ -206,6 +215,82 @@ public class NativeModuleRunnerTests : IDisposable
         _mainProcess = processInfo.MainProcess;
         var result = await _mainProcess.WaitForExitAsync(Timeout);
         result.Output.Trim().Should().Be($"Hello {randomString}");
+    }
+
+    [Fact]
+    public async Task ModuleOutsideTheAllowedRootsIsNotStartedAndTheStartupPipelineDoesNotRun()
+    {
+        var startRequest = new StartRequest("testModule");
+        var manifest = new Mock<IModuleManifest<NativeManifestDetails>>();
+        manifest.SetupGet(x => x.Id).Returns("testModule");
+        manifest.SetupGet(x => x.Details).Returns(new NativeManifestDetails
+        {
+            Path = new Uri(Path.Combine(Path.GetTempPath(), "outside", "app.exe"), UriKind.Absolute)
+        });
+        var moduleInstance = new ModuleInstance(Guid.NewGuid(), manifest.Object, startRequest);
+        var startupContext = new StartupContext(startRequest, moduleInstance);
+        var pipelineRan = false;
+
+        var action = () => _runner.Start(startupContext, () =>
+        {
+            pipelineRan = true;
+            return Task.CompletedTask;
+        });
+
+        await action.Should().ThrowAsync<ModuleLoaderException>().WithMessage("*testModule*");
+        pipelineRan.Should().BeFalse();
+        startupContext.GetProperties<MainProcessInfo>().Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ModuleWithABlockedEnvironmentVariableIsNotStarted()
+    {
+        var startRequest = new StartRequest("testModule");
+        var manifest = new Mock<IModuleManifest<NativeManifestDetails>>();
+        manifest.SetupGet(x => x.Id).Returns("testModule");
+        manifest.SetupGet(x => x.Details).Returns(new NativeManifestDetails
+        {
+#if DEBUG
+            Path = new Uri(@"NativeRunnerTestApp\bin\Debug\net10.0\NativeRunnerTestApp.exe", UriKind.Relative),
+#else
+            Path = new Uri(@"NativeRunnerTestApp\bin\Release\net10.0\NativeRunnerTestApp.exe", UriKind.Relative),
+#endif
+            EnvironmentVariables = new Dictionary<string, string> { { "DOTNET_STARTUP_HOOKS", "evil.dll" } }
+        });
+        var moduleInstance = new ModuleInstance(Guid.NewGuid(), manifest.Object, startRequest);
+        var startupContext = new StartupContext(startRequest, moduleInstance);
+
+        var action = () => _runner.Start(startupContext, () => Task.CompletedTask);
+
+        await action.Should().ThrowAsync<ModuleLoaderException>().WithMessage("*DOTNET_STARTUP_HOOKS*");
+    }
+
+    [Fact]
+    public async Task ModuleOutsideTheAllowedRootsIsStartedWhenTheLaunchGuardIsDisabled()
+    {
+        _options.AllowedRoots.Clear();
+        _options.AllowedRoots.Add(Path.Combine(Path.GetTempPath(), "unrelated-root"));
+        _options.DisableLaunchGuard = true;
+        var startRequest = new StartRequest("testModule");
+        var manifest = new Mock<IModuleManifest<NativeManifestDetails>>();
+        manifest.SetupGet(x => x.Id).Returns("testModule");
+        manifest.SetupGet(x => x.Details).Returns(new NativeManifestDetails
+        {
+#if DEBUG
+            Path = new Uri(Path.GetFullPath(@"..\..\..\..\NativeRunnerTestApp\bin\Debug\net10.0\NativeRunnerTestApp.exe")),
+#else
+            Path = new Uri(Path.GetFullPath(@"..\..\..\..\NativeRunnerTestApp\bin\Release\net10.0\NativeRunnerTestApp.exe")),
+#endif
+            Arguments = new[] { "Hello" }
+        });
+        var moduleInstance = new ModuleInstance(Guid.NewGuid(), manifest.Object, startRequest);
+        var startupContext = new StartupContext(startRequest, moduleInstance);
+
+        await _runner.Start(startupContext, () => RedirectMainProcessOutput(startupContext));
+
+        _mainProcess = startupContext.GetProperties<MainProcessInfo>().Single().MainProcess;
+        var result = await _mainProcess.WaitForExitAsync(Timeout);
+        result.Output.Trim().Should().Be("Hello");
     }
 
     private static Task RedirectMainProcessOutput(StartupContext startupContext)
