@@ -259,7 +259,7 @@ internal class WebSocketConnection : IClientConnection, ICloseWithPolicyViolatio
 
             // Reached when the send channel was completed by CloseWithPolicyViolationAsync, after everything was sent.
             // The close frame is sent here because cancelling the receive loop aborts the socket.
-            if (_closeRequested && webSocket.State == WebSocketState.Open)
+            if (_closeRequested & webSocket.State == WebSocketState.Open)
             {
                 await webSocket.CloseOutputAsync(
                     WebSocketCloseStatus.PolicyViolation,

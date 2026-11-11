@@ -12,6 +12,8 @@
 
 using System.Diagnostics;
 using System.Linq.Expressions;
+using System.Threading.Channels;
+using Microsoft.Extensions.Logging;
 using MorganStanley.ComposeUI.Messaging.Instrumentation;
 using MorganStanley.ComposeUI.Messaging.Protocol;
 using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
@@ -481,6 +483,34 @@ public class MessageRouterServerTests
         WasClosed(client).Should().BeFalse();
     }
 
+    [Fact]
+    public async Task A_connection_that_supports_it_is_closed_with_the_reason_of_the_violation()
+    {
+        var connection = new PolicyViolationConnection();
+        await _server.ClientConnected(connection);
+
+        await connection.SendToServer(new PublishMessage {Topic = "test-topic"});
+        await WaitUntilAsync(() => connection.PolicyViolationReason != null, "the server to close the connection");
+
+        connection.PolicyViolationReason.Should().Be("Message received before the connection request");
+        connection.CloseCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task A_failure_while_closing_the_connection_is_logged()
+    {
+        var logger = new Mock<ILogger<MessageRouterServer>>();
+        var server = new MessageRouterServer(new MessageRouterServerDependencies(null, null), logger.Object);
+        var client = CreateClient();
+        client.Setup(_ => _.CloseAsync()).Throws(new InvalidOperationException("Close failed"));
+        await server.ClientConnected(client.Object);
+
+        await client.SendToServer(new PublishMessage {Topic = "test-topic"});
+
+        await WaitUntilAsync(
+            () => logger.Invocations.Any(invocation => invocation.Arguments[0] is LogLevel.Error),
+            "the failure to be logged");
+    }
     public MessageRouterServerTests()
     {
         _server = CreateServer(_accessTokenValidator.Object);
@@ -556,5 +586,37 @@ public class MessageRouterServerTests
     private async Task WaitForCompletionAsync()
     {
         await _diagnosticObserver.WaitForCompletionAsync(TestTimeout);
+    }
+
+    private sealed class PolicyViolationConnection : IClientConnection, ICloseWithPolicyViolation
+    {
+        public string? PolicyViolationReason { get; private set; }
+
+        public int CloseCount { get; private set; }
+
+        public ValueTask SendToServer(Message message) => _incoming.Writer.WriteAsync(message);
+
+        public ValueTask SendAsync(Message message, CancellationToken cancellationToken = default) => default;
+
+        public ValueTask<Message> ReceiveAsync(CancellationToken cancellationToken = default) =>
+            _incoming.Reader.ReadAsync(cancellationToken);
+
+        public ValueTask CloseAsync()
+        {
+            CloseCount++;
+            _incoming.Writer.TryComplete();
+
+            return default;
+        }
+
+        public ValueTask CloseWithPolicyViolationAsync(string reason)
+        {
+            PolicyViolationReason = reason;
+            _incoming.Writer.TryComplete();
+
+            return default;
+        }
+
+        private readonly Channel<Message> _incoming = Channel.CreateUnbounded<Message>();
     }
 }
