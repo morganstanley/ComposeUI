@@ -104,4 +104,32 @@ public class ComposeUIHostManifestMapperTests
         result.Coordinates.Should().BeNull();
     }
 
+    [Theory]
+    [InlineData("file:///C:/apps/index.html")]
+    [InlineData("data:text/html,<script>alert(1)</script>")]
+    [InlineData("javascript:alert(1)")]
+    [InlineData("blob:https://example.com/3f1b6c1e-0d5a-4a4a-9a53-1c1c3f3a1f55")]
+    [InlineData("ftp://example.com/app")]
+    [InlineData("about:blank")]
+    public void MapModuleDetails_Should_Reject_Web_App_With_Unsupported_Url_Scheme(string url)
+    {
+        var fdc3App = new Fdc3App("testAppId", "testName", AppType.Web, new WebAppDetails(url));
+
+        var action = () => _mapper.MapModuleDetails(fdc3App);
+
+        action.Should().Throw<NotSupportedException>().WithMessage("*testAppId*");
+    }
+
+    [Theory]
+    [InlineData("https://app.example.com/")]
+    [InlineData("http://localhost:5000/app")]
+    public void MapModuleDetails_Should_Accept_Web_App_With_Http_Or_Https_Url(string url)
+    {
+        var fdc3App = new Fdc3App("testAppId", "testName", AppType.Web, new WebAppDetails(url));
+
+        var result = _mapper.MapModuleDetails(fdc3App) as WebManifestDetails;
+
+        result.Should().NotBeNull();
+        result.Url.Should().Be(new Uri(url));
+    }
 }

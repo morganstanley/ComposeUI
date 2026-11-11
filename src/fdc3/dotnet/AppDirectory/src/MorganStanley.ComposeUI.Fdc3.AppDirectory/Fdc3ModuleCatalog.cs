@@ -14,6 +14,8 @@
 
 using MorganStanley.ComposeUI.ModuleLoader;
 using Finos.Fdc3.AppDirectory;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.AppDirectory;
 
@@ -21,13 +23,16 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
 {
     private readonly IAppDirectory _appDirectory;
     private readonly IHostManifestMapper? _hostManifestMapper;
+    private readonly ILogger<Fdc3ModuleCatalog> _logger;
 
     public Fdc3ModuleCatalog(
         IAppDirectory fdc3AppDirectory,
-        IHostManifestMapper? hostManifestMapper = null)
+        IHostManifestMapper? hostManifestMapper = null,
+        ILogger<Fdc3ModuleCatalog>? logger = null)
     {
         _appDirectory = fdc3AppDirectory;
         _hostManifestMapper = hostManifestMapper;
+        _logger = logger ?? NullLogger<Fdc3ModuleCatalog>.Instance;
     }
 
     public async Task<IModuleManifest> GetManifest(string moduleId)
@@ -81,6 +86,11 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
                 var iconSrc = app.Icons?.FirstOrDefault()?.Src;
                 var url = new Uri(((WebAppDetails) app.Details).Url, UriKind.Absolute);
 
+                if (url.Scheme != Uri.UriSchemeHttp && url.Scheme != Uri.UriSchemeHttps)
+                {
+                    throw new NotSupportedException($"The web app {app.AppId} must use an http or https URL, but its URL scheme is {url.Scheme}.");
+                }
+
                 Details = new WebManifestDetails
                 {
                     Url = url,
@@ -105,8 +115,22 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
     public async Task<IEnumerable<IModuleManifest>> GetAllManifests()
     {
         var apps = await _appDirectory.GetApps();
+        var manifests = new List<IModuleManifest>();
 
-        return apps.Select(GetManifest);
+        foreach (var app in apps)
+        {
+            try
+            {
+                manifests.Add(GetManifest(app));
+            }
+            catch (NotSupportedException exception)
+            {
+                // One unusable app must not hide all the others.
+                _logger.LogWarning("The app {AppId} is left out of the module list: {Reason}", app.AppId, exception.Message);
+            }
+        }
+
+        return manifests;
     }
 
 

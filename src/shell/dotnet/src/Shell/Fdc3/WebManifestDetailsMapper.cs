@@ -30,6 +30,11 @@ internal sealed partial class ComposeUIHostManifestMapper
             var webDetails = (WebAppDetails)fdc3App.Details;
             var url = new Uri(webDetails.Url, UriKind.Absolute);
 
+            if (url.Scheme != Uri.UriSchemeHttp && url.Scheme != Uri.UriSchemeHttps)
+            {
+                throw new NotSupportedException($"The web app {fdc3App.AppId} must use an http or https URL, but its URL scheme is {url.Scheme}.");
+            }
+
             return new WebManifestDetails
             {
                 Url = url,
