@@ -52,7 +52,7 @@ internal static class NativeLaunchGuard
             var realPath = ResolveLinks(fullPath);
             var realRoot = ResolveLinks(Path.GetFullPath(root));
 
-            if (NativePathValidator.TryValidate(new Uri(realPath, UriKind.Absolute), realRoot, out _, out error))
+            if (NativePathValidator.TryValidate(NativePathValidator.ToFileUri(realPath), realRoot, out _, out error))
             {
                 return realPath;
             }

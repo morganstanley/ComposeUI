@@ -113,6 +113,25 @@ public class NativePathValidatorTests
     }
 
     [Fact]
+    public void ToFileUri_keeps_the_path_exactly_as_it_is_with_percent_sequences_and_spaces()
+    {
+        var path = Path.Combine(Root, "a%41b", "%2e%2e", "two words.exe");
+
+        var uri = NativePathValidator.ToFileUri(path);
+
+        uri.IsAbsoluteUri.Should().BeTrue();
+        uri.LocalPath.Should().Be(path);
+    }
+
+    [WindowsFact]
+    public void ToFileUri_keeps_a_unc_path_exactly_as_it_is()
+    {
+        var path = @"\\server\share\mod%41les\two words.exe";
+
+        NativePathValidator.ToFileUri(path).LocalPath.Should().Be(path);
+    }
+
+    [Fact]
     public void TryValidate_rejects_a_null_path()
     {
         var result = NativePathValidator.TryValidate(null, Root, out _, out _);
@@ -138,27 +157,17 @@ public class NativePathValidatorTests
         result.Should().BeFalse();
     }
 
-    [Fact]
+    [WindowsFact]
     public void TryValidate_rejects_a_unc_path_when_the_root_is_not_a_unc_path()
     {
-        if (!OperatingSystem.IsWindows())
-        {
-            return;
-        }
-
         var result = NativePathValidator.TryValidate(new Uri(@"\\server\share\app.exe", UriKind.Absolute), Root, out _, out _);
 
         result.Should().BeFalse();
     }
 
-    [Fact]
+    [WindowsFact]
     public void TryValidate_accepts_a_unc_path_under_a_unc_root()
     {
-        if (!OperatingSystem.IsWindows())
-        {
-            return;
-        }
-
         var result = NativePathValidator.TryValidate(
             new Uri(@"\\server\share\modules\app.exe", UriKind.Absolute),
             @"\\server\share\modules",

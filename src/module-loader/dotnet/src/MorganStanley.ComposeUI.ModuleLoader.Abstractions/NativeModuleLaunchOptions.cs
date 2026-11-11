@@ -37,6 +37,7 @@ public sealed class NativeModuleLaunchOptions
 
     /// <summary>
     /// Optional list of the executables that can be started, as file names or full paths.
+    /// A file name matches an executable with that name in any directory under the allowed roots.
     /// When the list is empty, any executable under the allowed roots can be started.
     /// </summary>
     public IList<string> AllowedExecutables { get; } = new List<string>();
@@ -52,19 +53,43 @@ public sealed class NativeModuleLaunchOptions
     public int MaxArgumentLength { get; set; } = 8192;
 
     /// <summary>
-    /// The names of the environment variables that a manifest cannot set. A trailing <c>*</c> matches any ending.
+    /// The names of the environment variables that a manifest cannot set, compared without regard to case.
+    /// A trailing <c>*</c> matches any ending.
     /// </summary>
+    /// <remarks>
+    /// The default list contains the variables that make a process load code from somewhere else:
+    /// the search paths, the loader and runtime variables of .NET, native loaders, Node.js, Java, Python, Perl and Ruby,
+    /// and the shell and system directory variables.
+    /// </remarks>
     public IList<string> BlockedEnvironmentVariables { get; } = new List<string>
     {
         "PATH",
         "PATHEXT",
         "COMSPEC",
-        "LD_PRELOAD",
-        "LD_LIBRARY_PATH",
+        "SYSTEMROOT",
+        "WINDIR",
+        "PSMODULEPATH",
+        "BASH_ENV",
+        "ENV",
+        "LD_*",
+        "DYLD_*",
         "DOTNET_*",
         "COR_*",
         "CORECLR_*",
-        "DYLD_*"
+        "COMPLUS_*",
+        "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES",
+        "NODE_OPTIONS",
+        "NODE_PATH",
+        "JAVA_TOOL_OPTIONS",
+        "_JAVA_OPTIONS",
+        "JDK_JAVA_OPTIONS",
+        "PYTHONPATH",
+        "PYTHONHOME",
+        "PYTHONSTARTUP",
+        "PERL5OPT",
+        "PERL5LIB",
+        "RUBYOPT",
+        "RUBYLIB"
     };
 
     /// <summary>
@@ -72,7 +97,11 @@ public sealed class NativeModuleLaunchOptions
     /// </summary>
     public bool DisableLaunchGuard { get; set; }
 
-    internal IReadOnlyList<string> GetEffectiveRoots()
+    /// <summary>
+    /// Gets the directories that native modules can be started from:
+    /// <see cref="AllowedRoots"/>, or the default root if the list is empty.
+    /// </summary>
+    public IReadOnlyList<string> GetEffectiveRoots()
     {
         if (AllowedRoots.Count > 0)
         {
@@ -81,6 +110,6 @@ public sealed class NativeModuleLaunchOptions
 
         var root = Environment.GetEnvironmentVariable(RepositoryRootEnvironmentVariableName);
 
-        return [string.IsNullOrEmpty(root) ? Path.Combine(AppContext.BaseDirectory, "modules") : root];
+        return new[] { string.IsNullOrEmpty(root) ? Path.Combine(AppContext.BaseDirectory, "modules") : root };
     }
 }

@@ -243,6 +243,36 @@ public class NativeModuleRunnerTests : IDisposable
     }
 
     [Fact]
+    public async Task ModuleWhoseDetailsChangeDuringTheStartupPipelineIsCheckedAgainAndNotStarted()
+    {
+        var startRequest = new StartRequest("testModule");
+        var manifest = new Mock<IModuleManifest<NativeManifestDetails>>();
+        manifest.SetupGet(x => x.Id).Returns("testModule");
+        var details = new NativeManifestDetails
+        {
+#if DEBUG
+            Path = new Uri(@"NativeRunnerTestApp\bin\Debug\net10.0\NativeRunnerTestApp.exe", UriKind.Relative),
+#else
+            Path = new Uri(@"NativeRunnerTestApp\bin\Release\net10.0\NativeRunnerTestApp.exe", UriKind.Relative),
+#endif
+        };
+        manifest.SetupGet(x => x.Details).Returns(details);
+        var moduleInstance = new ModuleInstance(Guid.NewGuid(), manifest.Object, startRequest);
+        var startupContext = new StartupContext(startRequest, moduleInstance);
+
+        var action = () => _runner.Start(startupContext, () =>
+        {
+            details.Path = new Uri(Path.Combine(Path.GetTempPath(), "outside", "app.exe"), UriKind.Absolute);
+            return Task.CompletedTask;
+        });
+
+        await action.Should().ThrowAsync<ModuleLoaderException>().WithMessage("*testModule*");
+        var process = startupContext.GetProperties<MainProcessInfo>().Single().MainProcess;
+        var processId = () => process.Id;
+        processId.Should().Throw<InvalidOperationException>("the process was never started");
+    }
+
+    [Fact]
     public async Task ModuleWithABlockedEnvironmentVariableIsNotStarted()
     {
         var startRequest = new StartRequest("testModule");

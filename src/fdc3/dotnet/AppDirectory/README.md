@@ -91,6 +91,8 @@ public class MyService
 
 A native app can only be started from a path under the module root directory. Relative paths are resolved against that root, not against the working directory.
 The root is the `modules` directory next to the executable; set the `COMPOSEUI_MODULE_REPOSITORY_ROOT` environment variable to use another directory.
+The roots that are configured in the `AllowedRoots` of `NativeModuleLaunchOptions` (see `AddModuleLoader`) apply to the catalog and to the module loader alike, and replace the default root.
+An app that cannot be started is skipped, with a warning in the log, when all the apps of the directory are listed; asking for that app by its id fails with an error that names it.
 Paths that leave the root (for example with `..`), paths that are not files and, for the details returned by the host manifest mapper too, paths outside the root are rejected with an error that names the app.
 
 The arguments and the environment variables that the host manifest mapper takes from the app directory are rejected by default, because the directory can come from a remote source.

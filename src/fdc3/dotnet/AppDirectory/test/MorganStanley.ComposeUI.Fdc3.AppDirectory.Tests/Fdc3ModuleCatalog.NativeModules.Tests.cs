@@ -184,11 +184,54 @@ public class Fdc3ModuleCatalogNativeModulesTests : IDisposable
         return mapper.Object;
     }
 
-    private static IModuleCatalog CreateCatalog(string appPath, IHostManifestMapper? mapper = null, AppDirectoryOptions? options = null)
+    [Fact]
+    public async Task GetAllManifests_skips_the_native_apps_that_cannot_be_started_and_returns_the_other_apps()
     {
-        var fileSystem = TestUtils.SetUpFileSystemWithSingleFile(
-            path: "/apps.json",
-            contents: $$"""
+        var catalog = CreateCatalogFromApps(
+            $$"""
+            [
+              { "appId": "webApp", "name": "Web App", "type": "web", "details": { "url": "https://example.com/web" } },
+              { "appId": "goodApp", "name": "Good", "type": "native", "details": { "path": {{JsonConvert.ToString(Path.Combine(_root, "good.exe"))}} } },
+              { "appId": "outsideApp", "name": "Outside", "type": "native", "details": { "path": {{JsonConvert.ToString(Path.Combine(_root + "-evil", "app.exe"))}} } }
+            ]
+            """);
+
+        var manifests = await catalog.GetAllManifests();
+
+        manifests.Select(m => m.Id).Should().Equal("webApp", "goodApp");
+    }
+
+    [Fact]
+    public async Task GetManifest_uses_the_allowed_roots_of_the_launch_options()
+    {
+        var otherRoot = Path.Combine(Path.GetTempPath(), "composeui-other-" + Guid.NewGuid().ToString("N"));
+        var launchOptions = new NativeModuleLaunchOptions();
+        launchOptions.AllowedRoots.Add(otherRoot);
+
+        var inOtherRoot = await CreateCatalog(Path.Combine(otherRoot, "app.exe"), launchOptions: launchOptions).GetManifest("nativeApp");
+        var inEnvironmentRoot = () => CreateCatalog(Path.Combine(_root, "app.exe"), launchOptions: launchOptions).GetManifest("nativeApp");
+
+        GetDetails(inOtherRoot).Path.LocalPath.Should().Be(Path.Combine(otherRoot, "app.exe"));
+        await inEnvironmentRoot.Should().ThrowAsync<NotSupportedException>();
+    }
+
+    [Fact]
+    public async Task GetManifest_returns_a_path_that_is_the_validated_path_even_when_it_contains_percent_sequences()
+    {
+        var catalog = CreateCatalog("%2e%2e/%2e%2e/outside/evil.exe");
+
+        var manifest = await catalog.GetManifest("nativeApp");
+
+        GetDetails(manifest).Path.LocalPath.Should().Be(Path.Combine(_root, "%2e%2e", "%2e%2e", "outside", "evil.exe"));
+    }
+
+    private static IModuleCatalog CreateCatalog(
+        string appPath,
+        IHostManifestMapper? mapper = null,
+        AppDirectoryOptions? options = null,
+        NativeModuleLaunchOptions? launchOptions = null) =>
+        CreateCatalogFromApps(
+            $$"""
             [
               {
                 "appId": "nativeApp",
@@ -197,12 +240,23 @@ public class Fdc3ModuleCatalogNativeModulesTests : IDisposable
                 "details": { "path": {{JsonConvert.ToString(appPath)}} }
               }
             ]
-            """);
+            """,
+            mapper,
+            options,
+            launchOptions);
+
+    private static IModuleCatalog CreateCatalogFromApps(
+        string appsJson,
+        IHostManifestMapper? mapper = null,
+        AppDirectoryOptions? options = null,
+        NativeModuleLaunchOptions? launchOptions = null)
+    {
+        var fileSystem = TestUtils.SetUpFileSystemWithSingleFile(path: "/apps.json", contents: appsJson);
 
         var appDirectory = new AppDirectory(
             new AppDirectoryOptions { Source = new Uri("file:///apps.json") },
             fileSystem: fileSystem);
 
-        return new Fdc3ModuleCatalog(appDirectory, mapper, options);
+        return new Fdc3ModuleCatalog(appDirectory, mapper, options, launchOptions);
     }
 }

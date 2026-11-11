@@ -12,7 +12,6 @@
 
 using MorganStanley.ComposeUI.ModuleLoader;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.ModuleLoader.Runners;
 
 // ReSharper disable once CheckNamespace

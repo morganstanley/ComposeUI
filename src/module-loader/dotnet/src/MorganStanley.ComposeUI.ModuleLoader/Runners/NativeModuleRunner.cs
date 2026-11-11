@@ -59,6 +59,12 @@ internal class NativeModuleRunner : IModuleRunner
         //Waits for other IStartActions to finish first.
         await pipeline();
 
+        // The startup actions run for a while, so check again right before the process is started.
+        if (!_options.DisableLaunchGuard)
+        {
+            mainProcess.StartInfo.FileName = NativeLaunchGuard.Validate(startupContext.ModuleInstance.Manifest.Id, details, _options);
+        }
+
         foreach (var argument in details.Arguments)
         {
             mainProcess.StartInfo.ArgumentList.Add(argument);

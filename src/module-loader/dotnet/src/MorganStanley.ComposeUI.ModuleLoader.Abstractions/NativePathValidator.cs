@@ -95,6 +95,26 @@ public static class NativePathValidator
         }
     }
 
+    /// <summary>
+    /// Creates an absolute <see cref="Uri"/> whose <see cref="Uri.LocalPath"/> is exactly <paramref name="fullPath"/>.
+    /// </summary>
+    /// <remarks>
+    /// A plain <c>new Uri(path)</c> decodes percent sequences in the local path,
+    /// so a validated path like <c>root\%2e%2e\app.exe</c> would point to <c>root\..\app.exe</c>.
+    /// The path is therefore turned into a <c>file</c> uri with every segment escaped.
+    /// </remarks>
+    public static Uri ToFileUri(string fullPath)
+    {
+        var segments = fullPath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        var isUnc = segments.Length > 2 && segments[0].Length == 0 && segments[1].Length == 0;
+        var isDrive = segments[0].Length == 2 && segments[0][1] == ':';
+
+        var escaped = (isUnc ? segments.Skip(2) : segments)
+            .Select((segment, index) => index == 0 && isDrive ? segment : Uri.EscapeDataString(segment));
+
+        return new Uri((isDrive ? "file:///" : "file://") + string.Join("/", escaped), UriKind.Absolute);
+    }
+
     private static StringComparison PathComparison =>
         RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? StringComparison.OrdinalIgnoreCase

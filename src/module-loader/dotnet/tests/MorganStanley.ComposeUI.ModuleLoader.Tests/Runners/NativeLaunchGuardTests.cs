@@ -100,12 +100,9 @@ public class NativeLaunchGuardTests : IDisposable
     }
 
     [Fact]
-    public void Validate_rejects_a_path_through_a_junction_that_points_outside_the_root()
+    public void Validate_rejects_a_path_through_a_directory_link_that_points_outside_the_root()
     {
-        if (!TryCreateJunction(Path.Combine(_root, "link"), _outside))
-        {
-            return;
-        }
+        CreateDirectoryLink(Path.Combine(_root, "link"), _outside);
 
         var action = () => NativeLaunchGuard.Validate("app", Details(Path.Combine(_root, "link", "evil.exe")), Options());
 
@@ -113,32 +110,20 @@ public class NativeLaunchGuardTests : IDisposable
     }
 
     [Fact]
-    public void Validate_accepts_a_path_through_a_junction_that_points_inside_the_root()
+    public void Validate_accepts_a_path_through_a_directory_link_that_points_inside_the_root()
     {
-        if (!TryCreateJunction(Path.Combine(_root, "link"), Path.Combine(_root, "sub")))
-        {
-            return;
-        }
+        CreateDirectoryLink(Path.Combine(_root, "link"), Path.Combine(_root, "sub"));
 
         var path = NativeLaunchGuard.Validate("app", Details(Path.Combine(_root, "link", "other.exe")), Options());
 
         path.Should().Be(Path.Combine(_root, "sub", "other.exe"));
     }
 
-    [Fact]
+    [SymlinkFact]
     public void Validate_rejects_a_file_symbolic_link_that_points_outside_the_root()
     {
         var link = Path.Combine(_root, "evil-link.exe");
-
-        try
-        {
-            File.CreateSymbolicLink(link, Path.Combine(_outside, "evil.exe"));
-        }
-        catch (Exception e) when (e is UnauthorizedAccessException or IOException)
-        {
-            // Creating symbolic links needs a privilege on Windows.
-            return;
-        }
+        File.CreateSymbolicLink(link, Path.Combine(_outside, "evil.exe"));
 
         var action = () => NativeLaunchGuard.Validate("app", Details(link), Options());
 
@@ -244,7 +229,23 @@ public class NativeLaunchGuardTests : IDisposable
     [InlineData("CORECLR_ENABLE_PROFILING")]
     [InlineData("LD_PRELOAD")]
     [InlineData("LD_LIBRARY_PATH")]
+    [InlineData("LD_AUDIT")]
     [InlineData("DYLD_INSERT_LIBRARIES")]
+    [InlineData("COMPlus_EnableDiagnostics")]
+    [InlineData("ASPNETCORE_HOSTINGSTARTUPASSEMBLIES")]
+    [InlineData("NODE_OPTIONS")]
+    [InlineData("NODE_PATH")]
+    [InlineData("JAVA_TOOL_OPTIONS")]
+    [InlineData("_JAVA_OPTIONS")]
+    [InlineData("JDK_JAVA_OPTIONS")]
+    [InlineData("PYTHONPATH")]
+    [InlineData("PYTHONSTARTUP")]
+    [InlineData("PERL5OPT")]
+    [InlineData("RUBYOPT")]
+    [InlineData("BASH_ENV")]
+    [InlineData("PSModulePath")]
+    [InlineData("SystemRoot")]
+    [InlineData("windir")]
     public void Validate_rejects_a_blocked_environment_variable(string name)
     {
         var details = Details(Path.Combine(_root, "app.exe"), variables: new() { [name] = "value" });
@@ -312,11 +313,16 @@ public class NativeLaunchGuardTests : IDisposable
             EnvironmentVariables = variables ?? new()
         };
 
-    private bool TryCreateJunction(string link, string target)
+    /// <summary>
+    /// Creates a junction on Windows, which does not need a privilege, and a symbolic link elsewhere.
+    /// </summary>
+    private void CreateDirectoryLink(string link, string target)
     {
         if (!OperatingSystem.IsWindows())
         {
-            return false;
+            Directory.CreateSymbolicLink(link, target);
+            _links.Add(link);
+            return;
         }
 
         using var process = Process.Start(new ProcessStartInfo("cmd.exe", $"/c mklink /J \"{link}\" \"{target}\"")
@@ -327,12 +333,7 @@ public class NativeLaunchGuardTests : IDisposable
         })!;
         process.WaitForExit();
 
-        if (process.ExitCode != 0)
-        {
-            return false;
-        }
-
+        process.ExitCode.Should().Be(0, "creating a junction must work in the test environment");
         _links.Add(link);
-        return true;
     }
 }
