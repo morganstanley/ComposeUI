@@ -12,6 +12,7 @@
 
 using System.Diagnostics;
 using System.Linq.Expressions;
+using System.Security.Claims;
 using MorganStanley.ComposeUI.Messaging.Instrumentation;
 using MorganStanley.ComposeUI.Messaging.Protocol;
 using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
@@ -91,6 +92,91 @@ public class MessageRouterServerTests
         var connectResponse = await connectResponseReceived.Task;
 
         connectResponse.Error!.Message.Should().Be("Invalid token");
+    }
+
+    [Fact]
+    public async Task It_assigns_the_principal_returned_by_the_authenticator_to_the_client()
+    {
+        var authenticator = CreateAuthenticator(token => CreatePrincipal(token!));
+        var server = CreateServer(null, authenticator.Object);
+
+        var clientId = await ConnectWithToken(server, "module-a");
+
+        var principal = server.GetClientPrincipal(clientId);
+        principal.Should().NotBeNull();
+        principal!.Identity!.IsAuthenticated.Should().BeTrue();
+        principal.FindFirst("module")!.Value.Should().Be("module-a");
+        authenticator.Verify(_ => _.Authenticate(clientId, "module-a"), Times.Once);
+    }
+
+    [Fact]
+    public async Task It_assigns_different_principals_to_clients_with_different_tokens()
+    {
+        var authenticator = CreateAuthenticator(token => CreatePrincipal(token!));
+        var server = CreateServer(null, authenticator.Object);
+
+        var clientIdA = await ConnectWithToken(server, "module-a");
+        var clientIdB = await ConnectWithToken(server, "module-b");
+
+        server.GetClientPrincipal(clientIdA)!.FindFirst("module")!.Value.Should().Be("module-a");
+        server.GetClientPrincipal(clientIdB)!.FindFirst("module")!.Value.Should().Be("module-b");
+    }
+
+    [Fact]
+    public async Task It_rejects_the_connection_if_the_authenticator_throws()
+    {
+        var connectResponseReceived = new TaskCompletionSource<ConnectResponse>();
+        var authenticator = CreateAuthenticator(_ => throw new InvalidOperationException("Not authenticated"));
+        var server = CreateServer(null, authenticator.Object);
+        var client = CreateClient();
+        client.Handle<ConnectResponse>(connectResponseReceived.SetResult);
+
+        await server.ClientConnected(client.Object);
+        await client.SendToServer(new ConnectRequest {AccessToken = "bad-token"});
+        var connectResponse = await connectResponseReceived.Task;
+
+        connectResponse.Error!.Message.Should().Be("Not authenticated");
+        connectResponse.ClientId.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task It_does_not_call_the_authenticator_if_the_validator_rejects_the_connection()
+    {
+        var connectResponseReceived = new TaskCompletionSource<ConnectResponse>();
+        _accessTokenValidator
+            .Setup(_ => _.Validate(It.IsAny<string>(), It.IsAny<string?>()))
+            .Throws(new InvalidOperationException("Invalid token"));
+        var authenticator = CreateAuthenticator(token => CreatePrincipal(token!));
+        var server = CreateServer(_accessTokenValidator.Object, authenticator.Object);
+        var client = CreateClient();
+        client.Handle<ConnectResponse>(connectResponseReceived.SetResult);
+
+        await server.ClientConnected(client.Object);
+        await client.SendToServer(new ConnectRequest {AccessToken = "token"});
+        var connectResponse = await connectResponseReceived.Task;
+
+        connectResponse.Error!.Message.Should().Be("Invalid token");
+        authenticator.Verify(
+            _ => _.Authenticate(It.IsAny<string>(), It.IsAny<string?>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task It_assigns_an_unauthenticated_principal_if_no_authenticator_is_registered()
+    {
+        var server = CreateServer(null);
+
+        var clientId = await ConnectWithToken(server, null);
+
+        var principal = server.GetClientPrincipal(clientId);
+        principal.Should().NotBeNull();
+        principal!.Identity!.IsAuthenticated.Should().BeFalse();
+    }
+
+    [Fact]
+    public void GetClientPrincipal_returns_null_for_an_unknown_client()
+    {
+        _server.GetClientPrincipal("unknown-client").Should().BeNull();
     }
 
 
@@ -351,8 +437,40 @@ public class MessageRouterServerTests
     private Mock<IAccessTokenValidator> _accessTokenValidator = new();
     private MessageRouterDiagnosticObserver _diagnosticObserver;
 
-    private MessageRouterServer CreateServer(IAccessTokenValidator? accessTokenValidator) =>
-        new MessageRouterServer(new MessageRouterServerDependencies(accessTokenValidator));
+    private MessageRouterServer CreateServer(
+        IAccessTokenValidator? accessTokenValidator,
+        IClientAuthenticator? clientAuthenticator = null) =>
+        new MessageRouterServer(new MessageRouterServerDependencies(accessTokenValidator, clientAuthenticator));
+
+    private static Mock<IClientAuthenticator> CreateAuthenticator(Func<string?, ClaimsPrincipal> authenticate)
+    {
+        var authenticator = new Mock<IClientAuthenticator>();
+        authenticator
+            .Setup(_ => _.Authenticate(It.IsAny<string>(), It.IsAny<string?>()))
+            .Returns((string _, string? token) => new ValueTask<ClaimsPrincipal>(authenticate(token)));
+
+        return authenticator;
+    }
+
+    private static ClaimsPrincipal CreatePrincipal(string module) =>
+        new(new ClaimsIdentity(new[] {new Claim("module", module)}, authenticationType: "test"));
+
+    private async Task<string> ConnectWithToken(MessageRouterServer server, string? token)
+    {
+        // The server registers the client after it has sent the ConnectResponse,
+        // so wait for the request to complete before looking at the server's state.
+        using var observer = new MessageRouterDiagnosticObserver(server);
+        var connectResponseReceived = new TaskCompletionSource<ConnectResponse>();
+        var client = CreateClient();
+        client.Handle<ConnectResponse>(connectResponseReceived.SetResult);
+
+        await server.ClientConnected(client.Object);
+        await client.SendToServer(observer.RegisterRequest(new ConnectRequest {AccessToken = token}));
+        var connectResponse = await connectResponseReceived.Task;
+        await observer.WaitForCompletionAsync(TestTimeout);
+
+        return connectResponse.ClientId!;
+    }
 
     private MockClientConnection CreateClient() => new();
 

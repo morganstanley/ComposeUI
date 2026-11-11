@@ -18,15 +18,17 @@ namespace MorganStanley.ComposeUI.Shell.Messaging;
 internal sealed class MessageRouterStartupAction : IStartupAction
 {
     private readonly IMessageRouterWebSocketServer? _webSocketServer;
-    private static Dictionary<string, IModuleTypeMessageRouterConfigurator> _configurators;
+    private readonly Dictionary<string, IModuleTypeMessageRouterConfigurator> _configurators;
 
-    public MessageRouterStartupAction(IMessageRouterWebSocketServer? webSocketServer = null)
+    public MessageRouterStartupAction(
+        IModuleTokenStore tokenStore,
+        IMessageRouterWebSocketServer? webSocketServer = null)
     {
         _webSocketServer = webSocketServer;
         _configurators = new()
         {
-            { ModuleType.Web, new WebModuleMessageRouterConfigurator() },
-            { ModuleType.Native, new NativeModuleMessageRouterConfigurator() }
+            { ModuleType.Web, new WebModuleMessageRouterConfigurator(tokenStore) },
+            { ModuleType.Native, new NativeModuleMessageRouterConfigurator(tokenStore) }
         };
     }
 

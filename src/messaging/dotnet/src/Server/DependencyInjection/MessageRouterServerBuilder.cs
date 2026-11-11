@@ -66,5 +66,25 @@ public sealed class MessageRouterServerBuilder
         return this;
     }
 
+    /// <summary>
+    /// Registers an <see cref="IClientAuthenticator"/> that establishes the identity of connecting clients.
+    /// </summary>
+    public MessageRouterServerBuilder UseClientAuthenticator(IClientAuthenticator authenticator)
+    {
+        ServiceCollection.AddSingleton(authenticator);
+
+        return this;
+    }
+
+    /// <summary>
+    /// Registers an <see cref="IClientAuthenticator"/> that establishes the identity of connecting clients.
+    /// </summary>
+    public MessageRouterServerBuilder UseClientAuthenticator(Func<IServiceProvider, IClientAuthenticator> factory)
+    {
+        ServiceCollection.AddSingleton(factory);
+
+        return this;
+    }
+
     internal IServiceCollection ServiceCollection { get; }
 }
