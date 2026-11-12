@@ -6,4 +6,4 @@ A module is generally developed by third parties and they may be generic applica
 ## Examples
  - Any Application with launch information described in the manifest (e.g. Notepad.exe)
  - Any website with access information described in the manifest (e.g. https://morganstanley.com)
- - A module specifically written for compose and launch information described in the manifest, like the sample apps DataTable, Chart or DataService or the ProcessExplorer
+ - A module specifically written for compose and launch information described in the manifest, like the sample apps DataTable, Chart or DataService.
