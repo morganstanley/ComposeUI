@@ -19,6 +19,10 @@ using System.Threading.Tasks;
 using Finos.Fdc3;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Converters;
@@ -30,9 +34,11 @@ internal class ResolverUIService : IHostedService
 {
     private readonly object _disposeLock = new();
     private IAsyncDisposable? _resolverUiService;
+    private IAsyncDisposable? _legacyResolverUiService;
     private IAsyncDisposable? _resolverUiIntentService;
     private readonly List<Func<ValueTask>> _disposeTask = new();
     private readonly IHost _host;
+    private readonly ILogger<ResolverUIService> _logger;
 
     private readonly JsonSerializerOptions _jsonSerializerOptions = SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization;
 
@@ -40,10 +46,12 @@ internal class ResolverUIService : IHostedService
 
     public ResolverUIService(
         IHost host,
-        IResolverUIProjector resolverUIWindow)
+        IResolverUIProjector resolverUIWindow,
+        ILogger<ResolverUIService>? logger = null)
     {
         _host = host;
         _resolverUIWindow = resolverUIWindow;
+        _logger = logger ?? NullLogger<ResolverUIService>.Instance;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -75,7 +83,7 @@ internal class ResolverUIService : IHostedService
         var messageRouter = _host.Services.GetRequiredService<IMessaging>();
 
         _resolverUiService = await messageRouter.RegisterJsonServiceAsync<ResolverUIRequest, ResolverUIResponse>(
-            "ComposeUI/fdc3/v2.0/resolverUI",
+            Fdc3Topic.ResolverUI,
             async (request) =>
             {
                 if (request == null)
@@ -83,13 +91,35 @@ internal class ResolverUIService : IHostedService
                     throw new ArgumentNullException(nameof(request));
                 }
 
-                return await ShowResolverUI(request.AppMetadata);
+                return await ShowResolverUI(request.Candidates);
             },
             _jsonSerializerOptions,
             cancellationToken);
 
+        if (_host.Services.GetService<IOptions<Fdc3DesktopAgentOptions>>()?.Value.AllowLegacyResolverUI == true)
+        {
+            _legacyResolverUiService = await messageRouter.RegisterJsonServiceAsync<ResolverUIRequest, ResolverUIResponse>(
+                Fdc3Topic.LegacyResolverUI,
+                async (request) =>
+                {
+                    if (request == null)
+                    {
+                        throw new ArgumentNullException(nameof(request));
+                    }
+
+                    if (_logger.IsEnabled(LogLevel.Warning))
+                    {
+                        _logger.LogWarning("The legacy ResolverUI contract is used, in which the ResolverUI returns the selected app itself. It is deprecated and is going to be removed.");
+                    }
+
+                    return await ShowResolverUI(request.AppMetadata);
+                },
+                _jsonSerializerOptions,
+                cancellationToken);
+        }
+
         _resolverUiIntentService = await messageRouter.RegisterJsonServiceAsync<ResolverUIIntentRequest, ResolverUIIntentResponse>(
-              "ComposeUI/fdc3/v2.0/resolverUIIntent",
+              Fdc3Topic.ResolverUIIntent,
               async (request) =>
               {
                   if (request == null)
@@ -108,8 +138,10 @@ internal class ResolverUIService : IHostedService
                 async () =>
                 {
                     var resolverUiTask = _resolverUiService == null ? ValueTask.CompletedTask : _resolverUiService.DisposeAsync();
+                    var legacyResolverUiTask = _legacyResolverUiService == null ? ValueTask.CompletedTask : _legacyResolverUiService.DisposeAsync();
                     var resolverUiIntentTask = _resolverUiIntentService == null ? ValueTask.CompletedTask : _resolverUiIntentService.DisposeAsync();
                     await resolverUiTask;
+                    await legacyResolverUiTask;
                     await resolverUiIntentTask;
                 });
         }
@@ -123,5 +155,24 @@ internal class ResolverUIService : IHostedService
     private ValueTask<ResolverUIResponse> ShowResolverUI(IEnumerable<IAppMetadata> apps)
     {
         return _resolverUIWindow.ShowResolverUI(apps, TimeSpan.FromMinutes(1));
+    }
+
+    private async ValueTask<ResolverUIResponse> ShowResolverUI(IEnumerable<ResolverUICandidate> candidates)
+    {
+        var offered = candidates.ToArray();
+
+        var response = await ShowResolverUI(offered.Select(candidate => candidate.AppMetadata).ToArray());
+
+        if (response.Error != null)
+        {
+            return new ResolverUIResponse { Error = response.Error };
+        }
+
+        // The window gives back the very app object it was shown, so the selection is mapped back to the id of that candidate.
+        var selected = offered.FirstOrDefault(candidate => ReferenceEquals(candidate.AppMetadata, response.AppMetadata));
+
+        return selected == null
+            ? new ResolverUIResponse { Error = ResolveError.ResolverUnavailable }
+            : new ResolverUIResponse { SelectedCandidateId = selected.Id };
     }
 }

@@ -67,6 +67,40 @@ public class RaiseIntentTests : Fdc3DesktopAgentServiceTestsBase
     }
 
     [Fact]
+    public async Task RaiseIntent_returns_ResolverUnavailable_when_the_ResolverUI_selected_no_app_and_gave_no_error()
+    {
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
+        ResolverUICommunicator
+            .Setup(_ => _.SendResolverUIRequestAsync(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ResolverUIResponse());
+
+        var result = await Fdc3.RaiseIntent(MultipleAppsRequest(origin), MultipleContext.Type);
+
+        result.Response.Error.Should().Be(ResolveError.ResolverUnavailable);
+    }
+
+    [Fact]
+    public async Task RaiseIntent_returns_ResolverUnavailable_and_does_not_throw_when_the_ResolverUI_returned_an_app_that_is_not_the_metadata_of_the_agent()
+    {
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
+        ResolverUICommunicator
+            .Setup(_ => _.SendResolverUIRequestAsync(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ResolverUIResponse { AppMetadata = Mock.Of<IAppMetadata>(m => m.AppId == "foreignApp") });
+
+        var result = await Fdc3.RaiseIntent(MultipleAppsRequest(origin), MultipleContext.Type);
+
+        result.Response.Error.Should().Be(ResolveError.ResolverUnavailable);
+    }
+
+    private static RaiseIntentRequest MultipleAppsRequest(IModuleInstance origin) => new()
+    {
+        MessageId = 1,
+        Fdc3InstanceId = Fdc3InstanceIdRetriever.GetFdc3InstanceId(origin),
+        Intent = Intent2.Name,
+        Context = MultipleContext.AsJson()
+    };
+
+    [Fact]
     public async Task RaiseIntent_returns_one_running_app()
     {
         //TODO: should add some identifier to the query => "fdc3:" + instance.Manifest.Id

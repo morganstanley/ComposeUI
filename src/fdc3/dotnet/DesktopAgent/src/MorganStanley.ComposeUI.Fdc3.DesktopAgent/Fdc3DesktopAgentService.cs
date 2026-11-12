@@ -894,7 +894,12 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
         var resolverUIResult = await _resolverUI.SendResolverUIRequestAsync(appIntent.Apps, resolverUICancellationTokenSource.Token).ConfigureAwait(false);
         if (resolverUIResult != null && resolverUIResult.Error == null)
         {
-            raiseIntentSpecification.TargetAppMetadata = (AppMetadata) resolverUIResult.AppMetadata!;
+            if (resolverUIResult.AppMetadata is not AppMetadata selectedApp)
+            {
+                return ResolverUIReturnedNoOfferedApp();
+            }
+
+            raiseIntentSpecification.TargetAppMetadata = selectedApp;
             return await RaiseIntentToApplicationAsync(raiseIntentSpecification).ConfigureAwait(false);
         }
 
@@ -980,7 +985,12 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
 
         if (result != null && result.Error == null)
         {
-            raiseIntentSpecification.TargetAppMetadata = (AppMetadata) result.AppMetadata!;
+            if (result.AppMetadata is not AppMetadata selectedApp)
+            {
+                return ResolverUIReturnedNoOfferedApp();
+            }
+
+            raiseIntentSpecification.TargetAppMetadata = selectedApp;
             return await RaiseIntentToApplicationAsync(raiseIntentSpecification).ConfigureAwait(false);
         }
 
@@ -1038,6 +1048,19 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
     }
 
     //Here we have a specific application which should either start or we should send a intent resolution request
+    private RaiseIntentResult<RaiseIntentResponse> ResolverUIReturnedNoOfferedApp()
+    {
+        if (_logger.IsEnabled(LogLevel.Warning))
+        {
+            _logger.LogWarning("The ResolverUI did not return one of the apps that the Desktop Agent offered, so the raised intent is not delivered.");
+        }
+
+        return new()
+        {
+            Response = RaiseIntentResponse.Failure(ResolveError.ResolverUnavailable)
+        };
+    }
+
     private async ValueTask<RaiseIntentResult<RaiseIntentResponse>> RaiseIntentToApplicationAsync(RaiseIntentSpecification raiseIntentSpecification)
     {
         async Task<RaiseIntentResult<RaiseIntentResponse>?> GetRaiseIntentResponseAsync(RaiseIntentSpecification raiseIntentSpecification, string messageId)
