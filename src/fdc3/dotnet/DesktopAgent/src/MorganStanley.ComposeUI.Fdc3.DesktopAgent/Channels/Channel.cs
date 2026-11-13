@@ -18,6 +18,7 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
@@ -30,8 +31,10 @@ internal abstract class Channel : IAsyncDisposable
     private readonly ILogger _logger;
     private readonly ChannelTopics _topics;
     private readonly ConcurrentDictionary<string, string> _contexts = new();
+    private readonly ConcurrentDictionary<string, ContextMetadata?> _contextMetadatas = new();
     private readonly object _contextsLock = new();
     private string? _lastContext = null;
+    private ContextMetadata? _lastContextMetadata = null;
     private IAsyncDisposable? _broadcastSubscription;
     private int _disposed = 0;
     protected JsonSerializerOptions JsonSerializerOptions { get; }
@@ -54,7 +57,7 @@ internal abstract class Channel : IAsyncDisposable
             throw new ObjectDisposedException(nameof(Channel));
         }
 
-        _getCurrentContextService = await MessagingService.RegisterJsonServiceAsync<GetCurrentContextRequest, string?>(_topics.GetCurrentContext, GetCurrentContext, JsonSerializerOptions);
+        _getCurrentContextService = await MessagingService.RegisterJsonServiceAsync<GetCurrentContextRequest, GetCurrentContextResponse>(_topics.GetCurrentContext, GetCurrentContextWithMetadata, JsonSerializerOptions);
 
         var broadcastSubscription = MessagingService.SubscribeAsync(_topics.Broadcast, HandleBroadcast);
 
@@ -81,10 +84,42 @@ internal abstract class Channel : IAsyncDisposable
             }
 
             LogPayload(payloadBuffer);
+
+            // FDC3 3.0: Parse BroadcastPayload to extract context and metadata
+            BroadcastPayload? broadcastPayload = null;
+            string? contextJson = null;
+            ContextMetadata? metadata = null;
+
+            try
+            {
+                broadcastPayload = JsonSerializer.Deserialize<BroadcastPayload>(payload, JsonSerializerOptions);
+                if (broadcastPayload?.Context != null)
+                {
+                    contextJson = broadcastPayload.Context;
+                    metadata = broadcastPayload.Metadata;
+                }
+                else
+                {
+                    // Fallback: try to parse as raw context (backward compatibility)
+                    contextJson = payload;
+                }
+            }
+            catch (JsonException)
+            {
+                // Fallback: try to parse as raw context (backward compatibility)
+                contextJson = payload;
+            }
+
+            if (string.IsNullOrEmpty(contextJson))
+            {
+                LogInvalidPayloadJson();
+                return new ValueTask();
+            }
+
             JsonNode ctx;
             try
             {
-                ctx = JsonNode.Parse(payload, new JsonNodeOptions() { PropertyNameCaseInsensitive = true })!;
+                ctx = JsonNode.Parse(contextJson, new JsonNodeOptions() { PropertyNameCaseInsensitive = true })!;
             }
             catch (JsonException)
             {
@@ -102,10 +137,16 @@ internal abstract class Channel : IAsyncDisposable
 
             _contexts.AddOrUpdate(
                 contextType!,
-                _ => payloadBuffer,
-                (_, _) => payloadBuffer);
+                _ => contextJson,
+                (_, _) => contextJson);
 
-            _lastContext = payloadBuffer;
+            _contextMetadatas.AddOrUpdate(
+                contextType!,
+                _ => metadata,
+                (_, _) => metadata);
+
+            _lastContext = contextJson;
+            _lastContextMetadata = metadata;
 
             return new ValueTask();
         }
@@ -123,6 +164,38 @@ internal abstract class Channel : IAsyncDisposable
             return _contexts.TryGetValue(request.ContextType, out var messageBuffer)
                 ? new ValueTask<string?>(messageBuffer)
                 : new ValueTask<string?>((string?) null);
+        }
+    }
+
+    // FDC3 3.0: New method that returns context with metadata
+    internal ValueTask<GetCurrentContextResponse> GetCurrentContextWithMetadata(GetCurrentContextRequest? request)
+    {
+        lock (_contextsLock)
+        {
+            if (request?.ContextType == null)
+            {
+                return new ValueTask<GetCurrentContextResponse>(new GetCurrentContextResponse
+                {
+                    Context = _lastContext,
+                    Metadata = _lastContextMetadata
+                });
+            }
+
+            if (_contexts.TryGetValue(request.ContextType, out var messageBuffer))
+            {
+                _contextMetadatas.TryGetValue(request.ContextType, out var metadata);
+                return new ValueTask<GetCurrentContextResponse>(new GetCurrentContextResponse
+                {
+                    Context = messageBuffer,
+                    Metadata = metadata
+                });
+            }
+
+            return new ValueTask<GetCurrentContextResponse>(new GetCurrentContextResponse
+            {
+                Context = null,
+                Metadata = null
+            });
         }
     }
 
