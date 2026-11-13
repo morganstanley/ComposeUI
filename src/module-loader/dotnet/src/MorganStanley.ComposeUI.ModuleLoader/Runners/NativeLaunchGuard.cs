@@ -102,11 +102,18 @@ internal static class NativeLaunchGuard
 
     private static void ValidateEnvironmentVariables(string moduleId, Dictionary<string, string> variables, NativeModuleLaunchOptions options)
     {
-        foreach (var name in variables.Keys)
+        foreach (var (name, value) in variables)
         {
             if (name.Length == 0 || name.Contains('=') || name.Contains('\0'))
             {
                 throw new ModuleLoaderException($"The native module '{moduleId}' cannot be started. '{name}' is not a valid environment variable name.");
+            }
+
+            // On Windows the environment is passed to the process as one block that is separated by NUL characters,
+            // so a NUL in a value would add variables that are not checked here.
+            if (value != null && value.Contains('\0'))
+            {
+                throw new ModuleLoaderException($"The native module '{moduleId}' cannot be started. The value of the environment variable '{name}' contains a NUL character.");
             }
 
             if (options.BlockedEnvironmentVariables.Any(pattern => Matches(pattern, name)))

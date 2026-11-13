@@ -281,6 +281,18 @@ public class NativeLaunchGuardTests : IDisposable
         action.Should().Throw<ModuleLoaderException>();
     }
 
+    [Theory]
+    [InlineData("x\0COR_ENABLE_PROFILING=1")]
+    [InlineData("\0")]
+    public void Validate_rejects_an_environment_variable_value_with_a_nul_character(string value)
+    {
+        var details = Details(Path.Combine(_root, "app.exe"), variables: new() { ["MY_VARIABLE"] = value });
+
+        var action = () => NativeLaunchGuard.Validate("app", details, Options());
+
+        action.Should().Throw<ModuleLoaderException>().WithMessage("*app*MY_VARIABLE*NUL*");
+    }
+
     [Fact]
     public void Validate_uses_the_configured_list_of_blocked_environment_variables()
     {
