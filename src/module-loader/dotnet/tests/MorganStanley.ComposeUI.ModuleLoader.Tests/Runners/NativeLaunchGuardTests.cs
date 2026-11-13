@@ -36,7 +36,8 @@ public class NativeLaunchGuardTests : IDisposable
 
     public void Dispose()
     {
-        foreach (var link in _links.Where(Directory.Exists))
+        // A link can point to a directory behind an earlier link, so the links are removed in reverse order.
+        foreach (var link in Enumerable.Reverse(_links).Where(Directory.Exists))
         {
             Directory.Delete(link, recursive: false);
         }
@@ -119,6 +120,19 @@ public class NativeLaunchGuardTests : IDisposable
         path.Should().Be(Path.Combine(_root, "sub", "other.exe"));
     }
 
+    [Fact]
+    public void Validate_rejects_a_link_whose_target_runs_through_another_link_that_points_outside_the_root()
+    {
+        Directory.CreateDirectory(Path.Combine(_outside, "x"));
+        File.WriteAllText(Path.Combine(_outside, "x", "app.exe"), "");
+        CreateDirectoryLink(Path.Combine(_root, "hop"), _outside);
+        CreateDirectoryLink(Path.Combine(_root, "entry"), Path.Combine(_root, "hop", "x"));
+
+        var action = () => NativeLaunchGuard.Validate("app", Details(Path.Combine(_root, "entry", "app.exe")), Options());
+
+        action.Should().Throw<ModuleLoaderException>().WithMessage("*app*");
+    }
+
     [SymlinkFact]
     public void Validate_rejects_a_file_symbolic_link_that_points_outside_the_root()
     {
@@ -128,6 +142,19 @@ public class NativeLaunchGuardTests : IDisposable
         var action = () => NativeLaunchGuard.Validate("app", Details(link), Options());
 
         action.Should().Throw<ModuleLoaderException>();
+    }
+
+    [SymlinkFact]
+    public void Validate_names_the_module_when_the_links_of_the_path_cannot_be_resolved()
+    {
+        var first = Path.Combine(_root, "loop-a.exe");
+        var second = Path.Combine(_root, "loop-b.exe");
+        File.CreateSymbolicLink(first, second);
+        File.CreateSymbolicLink(second, first);
+
+        var action = () => NativeLaunchGuard.Validate("app", Details(first), Options());
+
+        action.Should().Throw<ModuleLoaderException>().WithMessage("*app*");
     }
 
     [Fact]

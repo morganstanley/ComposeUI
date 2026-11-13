@@ -49,8 +49,19 @@ internal static class NativeLaunchGuard
                 continue;
             }
 
-            var realPath = ResolveLinks(fullPath);
-            var realRoot = ResolveLinks(Path.GetFullPath(root));
+            string realPath;
+            string realRoot;
+
+            try
+            {
+                realPath = ResolveLinks(fullPath, GetLinkTarget);
+                realRoot = ResolveLinks(Path.GetFullPath(root), GetLinkTarget);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                errors.Add($"The links of the path cannot be resolved: {e.Message}");
+                continue;
+            }
 
             if (NativePathValidator.TryValidate(NativePathValidator.ToFileUri(realPath), realRoot, out _, out error))
             {
@@ -128,25 +139,95 @@ internal static class NativeLaunchGuard
             ? name.StartsWith(pattern.Substring(0, pattern.Length - 1), StringComparison.OrdinalIgnoreCase)
             : string.Equals(pattern, name, StringComparison.OrdinalIgnoreCase);
 
+    // Linux stops after 40 links in a path, which also stops links that point to each other.
+    private const int MaxFollowedLinks = 40;
+
+    private static readonly char[] Separators = [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
+
     /// <summary>
-    /// Resolves the symbolic links and junctions in a full path, one component at a time.
+    /// Resolves the symbolic links and junctions in a full path the way the operating system does:
+    /// one component at a time, and the target of a link is resolved the same way.
     /// </summary>
-    private static string ResolveLinks(string fullPath)
+    /// <remarks>
+    /// On Unix .NET does not give a canonical path for a link, so the text that the link stores is resolved here:
+    /// it can run through other links, and ".." in it must be applied to the directory that the path got to,
+    /// which is not the directory that comes before it in the text when a link was followed.
+    /// </remarks>
+    /// <param name="fullPath">The full path to resolve.</param>
+    /// <param name="getLinkTarget">Gets the target of the link at a path, or null when the path is not a link.</param>
+    internal static string ResolveLinks(string fullPath, Func<string, string?> getLinkTarget)
     {
         var root = Path.GetPathRoot(fullPath) ?? string.Empty;
         var current = root;
+        var pending = new Stack<string>();
+        PushSegments(pending, fullPath.Substring(root.Length));
+        var followedLinks = 0;
 
-        foreach (var segment in fullPath.Substring(root.Length).Split([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries))
+        while (pending.Count > 0)
         {
-            var next = Path.Combine(current, segment);
-            FileSystemInfo info = Directory.Exists(next) ? new DirectoryInfo(next) : new FileInfo(next);
+            var segment = pending.Pop();
 
-            current = info.Exists && info.ResolveLinkTarget(returnFinalTarget: true) is { } target
-                ? target.FullName
-                : next;
+            if (segment == ".")
+            {
+                continue;
+            }
+
+            if (segment == "..")
+            {
+                // The path so far has no links, so its parent is the real parent. The root has no parent.
+                current = Path.GetDirectoryName(current) ?? current;
+                continue;
+            }
+
+            var next = Path.Combine(current, segment);
+            var target = getLinkTarget(next);
+
+            if (target == null)
+            {
+                current = next;
+                continue;
+            }
+
+            if (++followedLinks > MaxFollowedLinks)
+            {
+                throw new IOException($"Too many levels of links in '{fullPath}'.");
+            }
+
+            if (Path.IsPathRooted(target))
+            {
+                var targetRoot = Path.GetPathRoot(target) ?? string.Empty;
+                current = targetRoot;
+                PushSegments(pending, target.Substring(targetRoot.Length));
+            }
+            else
+            {
+                // A relative target starts at the directory of the link, which is where the path got to.
+                PushSegments(pending, target);
+            }
         }
 
         return current;
+    }
+
+    private static void PushSegments(Stack<string> pending, string path)
+    {
+        foreach (var segment in path.Split(Separators, StringSplitOptions.RemoveEmptyEntries).Reverse())
+        {
+            pending.Push(segment);
+        }
+    }
+
+    private static string? GetLinkTarget(string path)
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            // Windows resolves the whole target path, so this is the final path.
+            FileSystemInfo info = Directory.Exists(path) ? new DirectoryInfo(path) : new FileInfo(path);
+
+            return info.Exists ? info.ResolveLinkTarget(returnFinalTarget: true)?.FullName : null;
+        }
+
+        return new FileInfo(path).LinkTarget;
     }
 
     private static StringComparison PathComparison =>
