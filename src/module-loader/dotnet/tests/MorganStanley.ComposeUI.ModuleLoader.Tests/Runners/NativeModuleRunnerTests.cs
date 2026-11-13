@@ -13,6 +13,7 @@
 using System.Diagnostics;
 using FluentAssertions;
 using FluentAssertions.Execution;
+using Microsoft.Extensions.Logging;
 using Moq;
 using MorganStanley.ComposeUI.ModuleLoader.Runners;
 using MorganStanley.ComposeUI.ModuleLoader.Tests.TestUtils;
@@ -368,6 +369,40 @@ public class NativeModuleRunnerTests : IDisposable
         var action = () => runner.Start(startupContext, () => Task.CompletedTask);
 
         await action.Should().ThrowAsync<ModuleLoaderException>().WithMessage("*testModule*");
+    }
+
+    [Fact]
+    public async Task ModuleStartedWithTheLaunchGuardDisabledIsLoggedAsAWarning()
+    {
+        var logger = new ListLogger();
+        var runner = new NativeModuleRunner(new NativeModuleLaunchOptions { DisableLaunchGuard = true }, logger);
+        var startRequest = new StartRequest("testModule");
+        var manifest = new Mock<IModuleManifest<NativeManifestDetails>>();
+        manifest.SetupGet(x => x.Id).Returns("testModule");
+        manifest.SetupGet(x => x.Details).Returns(new NativeManifestDetails
+        {
+            Path = new Uri(Path.Combine(Path.GetTempPath(), "outside", "app.exe"), UriKind.Absolute)
+        });
+        var moduleInstance = new ModuleInstance(Guid.NewGuid(), manifest.Object, startRequest);
+        var startupContext = new StartupContext(startRequest, moduleInstance);
+
+        // The startup pipeline stops the start, so this test does not start a process.
+        var action = () => runner.Start(startupContext, () => throw new InvalidOperationException("stop"));
+
+        await action.Should().ThrowAsync<InvalidOperationException>();
+        logger.Entries.Should().ContainSingle(e => e.Level == LogLevel.Warning && e.Message.Contains("testModule"));
+    }
+
+    private sealed class ListLogger : ILogger<NativeModuleRunner>
+    {
+        public List<(LogLevel Level, string Message)> Entries { get; } = [];
+
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) =>
+            Entries.Add((logLevel, formatter(state, exception)));
     }
 
     private static Task RedirectMainProcessOutput(StartupContext startupContext)

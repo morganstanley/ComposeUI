@@ -11,6 +11,7 @@
 // and limitations under the License.
 
 using Finos.Fdc3.AppDirectory;
+using Microsoft.Extensions.Logging;
 using MorganStanley.ComposeUI.ModuleLoader;
 using Newtonsoft.Json;
 
@@ -243,6 +244,24 @@ public class Fdc3ModuleCatalogNativeModulesTests : IDisposable
     }
 
     [Fact]
+    public async Task GetAllManifests_logs_a_warning_for_a_native_app_that_is_skipped()
+    {
+        var logger = new ListLogger<Fdc3ModuleCatalog>();
+        var catalog = CreateCatalogFromApps(
+            $$"""
+            [
+              { "appId": "outsideApp", "name": "Outside", "type": "native", "details": { "path": {{JsonConvert.ToString(Path.Combine(_root + "-evil", "app.exe"))}} } }
+            ]
+            """,
+            logger: logger);
+
+        var manifests = await catalog.GetAllManifests();
+
+        manifests.Should().BeEmpty();
+        logger.Entries.Should().ContainSingle(e => e.Level == LogLevel.Warning && e.Message.Contains("outsideApp"));
+    }
+
+    [Fact]
     public async Task GetManifest_returns_the_icon_of_a_native_app_when_there_is_no_host_manifest_mapper()
     {
         var catalog = CreateCatalogFromApps(
@@ -317,7 +336,8 @@ public class Fdc3ModuleCatalogNativeModulesTests : IDisposable
         string appsJson,
         IHostManifestMapper? mapper = null,
         AppDirectoryOptions? options = null,
-        NativeModuleLaunchOptions? launchOptions = null)
+        NativeModuleLaunchOptions? launchOptions = null,
+        ILogger<Fdc3ModuleCatalog>? logger = null)
     {
         var fileSystem = TestUtils.SetUpFileSystemWithSingleFile(path: "/apps.json", contents: appsJson);
 
@@ -325,6 +345,18 @@ public class Fdc3ModuleCatalogNativeModulesTests : IDisposable
             new AppDirectoryOptions { Source = new Uri("file:///apps.json") },
             fileSystem: fileSystem);
 
-        return new Fdc3ModuleCatalog(appDirectory, mapper, options, launchOptions);
+        return new Fdc3ModuleCatalog(appDirectory, mapper, options, launchOptions, logger);
+    }
+
+    private sealed class ListLogger<T> : ILogger<T>
+    {
+        public List<(LogLevel Level, string Message)> Entries { get; } = [];
+
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) =>
+            Entries.Add((logLevel, formatter(state, exception)));
     }
 }
