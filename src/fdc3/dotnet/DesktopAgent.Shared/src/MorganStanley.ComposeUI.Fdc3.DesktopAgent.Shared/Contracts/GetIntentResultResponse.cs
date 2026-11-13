@@ -34,7 +34,7 @@ internal sealed class GetIntentResultResponse
     /// <summary>
     /// FDC3 3.0 - Metadata about the intent resolution result.
     /// </summary>
-    public ContextMetadata? Metadata { get; set; }
+    public Protocol.ContextMetadata? Metadata { get; set; }
 
     /// <summary>
     /// Indicates that the IntentResult is a typeof Channel.
