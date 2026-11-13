@@ -51,9 +51,22 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
     private IModuleManifest GetManifest(Fdc3App app) => app.Type switch
     {
         AppType.Web => new Fdc3WebModuleManifest(app, _hostManifestMapper),
-        AppType.Native => new Fdc3NativeModuleManifest(app, _hostManifestMapper, _options, _launchOptions),
+        AppType.Native => GetNativeManifest(app),
         _ => throw new NotSupportedException($"Unsupported module type: {app.Type}"),
     };
+
+    private IModuleManifest GetNativeManifest(Fdc3App app)
+    {
+        try
+        {
+            return new Fdc3NativeModuleManifest(app, _hostManifestMapper, _options, _launchOptions);
+        }
+        catch (UriFormatException e)
+        {
+            // A path like \\?\C:\app.exe is not a valid uri. It must be reported like the other paths that are rejected.
+            throw new NotSupportedException($"The native app '{app.AppId}' cannot be started. {e.Message}", e);
+        }
+    }
 
     public async Task<IEnumerable<string>> GetModuleIds()
     {

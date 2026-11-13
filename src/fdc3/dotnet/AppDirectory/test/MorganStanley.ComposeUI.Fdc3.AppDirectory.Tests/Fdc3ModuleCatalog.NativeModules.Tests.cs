@@ -105,6 +105,30 @@ public class Fdc3ModuleCatalogNativeModulesTests : IDisposable
         await action.Should().ThrowAsync<NotSupportedException>().WithMessage("*nativeApp*");
     }
 
+    [Theory]
+    [InlineData(@"\\?\C:\apps\app.exe")]
+    [InlineData(@"\\.\C:\apps\app.exe")]
+    public async Task GetManifest_throws_with_the_name_of_the_app_when_the_path_is_not_a_valid_uri(string path)
+    {
+        var catalog = CreateCatalog(path);
+
+        var action = () => catalog.GetManifest("nativeApp");
+
+        await action.Should().ThrowAsync<NotSupportedException>().WithMessage("*nativeApp*");
+    }
+
+    [Fact]
+    public async Task GetManifest_throws_with_the_name_of_the_app_when_the_host_manifest_mapper_cannot_build_a_uri()
+    {
+        var mapper = new Mock<IHostManifestMapper>();
+        mapper.Setup(_ => _.MapModuleDetails(It.IsAny<Fdc3App>())).Throws(new UriFormatException("Invalid URI"));
+        var catalog = CreateCatalog(Path.Combine(_root, "app.exe"), mapper.Object);
+
+        var action = () => catalog.GetManifest("nativeApp");
+
+        await action.Should().ThrowAsync<NotSupportedException>().WithMessage("*nativeApp*");
+    }
+
     [Fact]
     public async Task GetManifest_throws_when_the_host_manifest_mapper_returns_a_path_outside_the_root()
     {
@@ -193,6 +217,23 @@ public class Fdc3ModuleCatalogNativeModulesTests : IDisposable
               { "appId": "webApp", "name": "Web App", "type": "web", "details": { "url": "https://example.com/web" } },
               { "appId": "goodApp", "name": "Good", "type": "native", "details": { "path": {{JsonConvert.ToString(Path.Combine(_root, "good.exe"))}} } },
               { "appId": "outsideApp", "name": "Outside", "type": "native", "details": { "path": {{JsonConvert.ToString(Path.Combine(_root + "-evil", "app.exe"))}} } }
+            ]
+            """);
+
+        var manifests = await catalog.GetAllManifests();
+
+        manifests.Select(m => m.Id).Should().Equal("webApp", "goodApp");
+    }
+
+    [Fact]
+    public async Task GetAllManifests_skips_the_native_app_whose_path_is_not_a_valid_uri()
+    {
+        var catalog = CreateCatalogFromApps(
+            $$"""
+            [
+              { "appId": "webApp", "name": "Web App", "type": "web", "details": { "url": "https://example.com/web" } },
+              { "appId": "deviceApp", "name": "Device", "type": "native", "details": { "path": {{JsonConvert.ToString(@"\\?\C:\apps\app.exe")}} } },
+              { "appId": "goodApp", "name": "Good", "type": "native", "details": { "path": {{JsonConvert.ToString(Path.Combine(_root, "good.exe"))}} } }
             ]
             """);
 
