@@ -147,6 +147,36 @@ public class NativePathValidatorTests
         action.Should().Throw<ArgumentException>();
     }
 
+    [Fact]
+    public void TryValidate_rejects_an_empty_path()
+    {
+        var result = NativePathValidator.TryValidate(new Uri(string.Empty, UriKind.Relative), Root, out var fullPath, out var error);
+
+        result.Should().BeFalse();
+        fullPath.Should().BeEmpty();
+        error.Should().Contain("empty");
+    }
+
+    [Fact]
+    public void TryValidate_rejects_a_root_with_a_nul_character()
+    {
+        var result = NativePathValidator.TryValidate(new Uri("app.exe", UriKind.Relative), "ro\0ot", out var fullPath, out var error);
+
+        result.Should().BeFalse();
+        fullPath.Should().BeEmpty();
+        error.Should().Contain("not valid");
+    }
+
+    [WindowsFact]
+    public void TryValidate_rejects_a_root_that_is_too_long()
+    {
+        var result = NativePathValidator.TryValidate(new Uri("app.exe", UriKind.Relative), @"C:\" + new string('a', 40000), out var fullPath, out var error);
+
+        result.Should().BeFalse();
+        fullPath.Should().BeEmpty();
+        error.Should().Contain("not valid");
+    }
+
     [Theory]
     [InlineData("file:////?/C:/composeui-modules/app.exe")]
     [InlineData("file://?/C:/composeui-modules/app.exe")]

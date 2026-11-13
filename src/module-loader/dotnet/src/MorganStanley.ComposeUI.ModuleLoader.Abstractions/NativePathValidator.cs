@@ -12,8 +12,8 @@
 * and limitations under the License.
 */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
-using System.Security;
 
 namespace MorganStanley.ComposeUI.ModuleLoader;
 
@@ -89,7 +89,7 @@ public static class NativePathValidator
             fullPath = resolved;
             return true;
         }
-        catch (Exception e) when (e is ArgumentException or NotSupportedException or PathTooLongException or SecurityException)
+        catch (Exception e) when (e is ArgumentException or PathTooLongException)
         {
             error = $"The path is not valid: {e.Message}";
             return false;
@@ -116,6 +116,8 @@ public static class NativePathValidator
         return new Uri((isDrive ? "file:///" : "file://") + string.Join("/", escaped), UriKind.Absolute);
     }
 
+    // The operating system decides, so only one of the two results can be seen on a machine.
+    [ExcludeFromCodeCoverage]
     private static StringComparison PathComparison =>
         RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? StringComparison.OrdinalIgnoreCase

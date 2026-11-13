@@ -12,6 +12,7 @@
 * and limitations under the License.
 */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace MorganStanley.ComposeUI.ModuleLoader.Runners;
@@ -157,7 +158,7 @@ internal static class NativeLaunchGuard
     /// <param name="getLinkTarget">Gets the target of the link at a path, or null when the path is not a link.</param>
     internal static string ResolveLinks(string fullPath, Func<string, string?> getLinkTarget)
     {
-        var root = Path.GetPathRoot(fullPath) ?? string.Empty;
+        var root = Path.GetPathRoot(fullPath)!;
         var current = root;
         var pending = new Stack<string>();
         PushSegments(pending, fullPath.Substring(root.Length));
@@ -195,7 +196,7 @@ internal static class NativeLaunchGuard
 
             if (Path.IsPathRooted(target))
             {
-                var targetRoot = Path.GetPathRoot(target) ?? string.Empty;
+                var targetRoot = Path.GetPathRoot(target)!;
                 current = targetRoot;
                 PushSegments(pending, target.Substring(targetRoot.Length));
             }
@@ -217,19 +218,19 @@ internal static class NativeLaunchGuard
         }
     }
 
-    private static string? GetLinkTarget(string path)
+    [ExcludeFromCodeCoverage(Justification = "The operating system decides which link lookup runs, so only one of them can run on a machine.")]
+    private static string? GetLinkTarget(string path) =>
+        OperatingSystem.IsWindows() ? GetFinalLinkTarget(path) : new FileInfo(path).LinkTarget;
+
+    // Windows resolves the whole target path, so this is the final path.
+    private static string? GetFinalLinkTarget(string path)
     {
-        if (OperatingSystem.IsWindows())
-        {
-            // Windows resolves the whole target path, so this is the final path.
-            FileSystemInfo info = Directory.Exists(path) ? new DirectoryInfo(path) : new FileInfo(path);
+        FileSystemInfo info = Directory.Exists(path) ? new DirectoryInfo(path) : new FileInfo(path);
 
-            return info.Exists ? info.ResolveLinkTarget(returnFinalTarget: true)?.FullName : null;
-        }
-
-        return new FileInfo(path).LinkTarget;
+        return info.Exists ? info.ResolveLinkTarget(returnFinalTarget: true)?.FullName : null;
     }
 
+    [ExcludeFromCodeCoverage(Justification = "The operating system decides, so only one of the two results can be seen on a machine.")]
     private static StringComparison PathComparison =>
         RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? StringComparison.OrdinalIgnoreCase

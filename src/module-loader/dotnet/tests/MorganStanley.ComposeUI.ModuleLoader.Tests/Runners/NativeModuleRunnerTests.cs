@@ -323,6 +323,53 @@ public class NativeModuleRunnerTests : IDisposable
         result.Output.Trim().Should().Be("Hello");
     }
 
+    [Fact]
+    public async Task ModuleWithARelativePathIsStartedFromTheWorkingDirectoryWhenTheLaunchGuardIsDisabled()
+    {
+        _options.AllowedRoots.Clear();
+        _options.AllowedRoots.Add(Path.Combine(Path.GetTempPath(), "unrelated-root"));
+        _options.DisableLaunchGuard = true;
+        var startRequest = new StartRequest("testModule");
+        var manifest = new Mock<IModuleManifest<NativeManifestDetails>>();
+        manifest.SetupGet(x => x.Id).Returns("testModule");
+        manifest.SetupGet(x => x.Details).Returns(new NativeManifestDetails
+        {
+#if DEBUG
+            Path = new Uri(@"..\..\..\..\NativeRunnerTestApp\bin\Debug\net10.0\NativeRunnerTestApp.exe", UriKind.Relative),
+#else
+            Path = new Uri(@"..\..\..\..\NativeRunnerTestApp\bin\Release\net10.0\NativeRunnerTestApp.exe", UriKind.Relative),
+#endif
+            Arguments = new[] { "Hello" }
+        });
+        var moduleInstance = new ModuleInstance(Guid.NewGuid(), manifest.Object, startRequest);
+        var startupContext = new StartupContext(startRequest, moduleInstance);
+
+        await _runner.Start(startupContext, () => RedirectMainProcessOutput(startupContext));
+
+        _mainProcess = startupContext.GetProperties<MainProcessInfo>().Single().MainProcess;
+        var result = await _mainProcess.WaitForExitAsync(Timeout);
+        result.Output.Trim().Should().Be("Hello");
+    }
+
+    [Fact]
+    public async Task ModuleOutsideTheDefaultRootIsNotStartedWhenTheRunnerHasNoOptions()
+    {
+        var runner = new NativeModuleRunner();
+        var startRequest = new StartRequest("testModule");
+        var manifest = new Mock<IModuleManifest<NativeManifestDetails>>();
+        manifest.SetupGet(x => x.Id).Returns("testModule");
+        manifest.SetupGet(x => x.Details).Returns(new NativeManifestDetails
+        {
+            Path = new Uri(Path.Combine(Path.GetTempPath(), "outside", "app.exe"), UriKind.Absolute)
+        });
+        var moduleInstance = new ModuleInstance(Guid.NewGuid(), manifest.Object, startRequest);
+        var startupContext = new StartupContext(startRequest, moduleInstance);
+
+        var action = () => runner.Start(startupContext, () => Task.CompletedTask);
+
+        await action.Should().ThrowAsync<ModuleLoaderException>().WithMessage("*testModule*");
+    }
+
     private static Task RedirectMainProcessOutput(StartupContext startupContext)
     {
         var mainProcessInfo = startupContext.GetProperties<MainProcessInfo>().First();

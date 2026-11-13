@@ -243,6 +243,33 @@ public class Fdc3ModuleCatalogNativeModulesTests : IDisposable
     }
 
     [Fact]
+    public async Task GetManifest_returns_the_icon_of_a_native_app_when_there_is_no_host_manifest_mapper()
+    {
+        var catalog = CreateCatalogFromApps(
+            $$"""
+            [
+              {
+                "appId": "nativeApp",
+                "name": "Native App",
+                "type": "native",
+                "details": { "path": {{JsonConvert.ToString(Path.Combine(_root, "app.exe"))}} },
+                "icons": [ { "src": "https://example.com/icon.png" } ]
+              }
+            ]
+            """);
+
+        var manifest = await catalog.GetManifest("nativeApp");
+
+        GetDetails(manifest).Icon.Should().Be(new Uri("https://example.com/icon.png"));
+    }
+
+    [Fact]
+    public void The_default_module_root_is_the_modules_directory_next_to_the_executable()
+    {
+        Consts.COMPOSEUI_MODULE_REPOSITORY_DEFAULT_ROOT.Should().Be(Path.Combine(AppContext.BaseDirectory, "modules"));
+    }
+
+    [Fact]
     public async Task GetManifest_uses_the_allowed_roots_of_the_launch_options()
     {
         var otherRoot = Path.Combine(Path.GetTempPath(), "composeui-other-" + Guid.NewGuid().ToString("N"));

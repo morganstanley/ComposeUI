@@ -295,6 +295,26 @@ public class NativeLaunchGuardTests : IDisposable
         action.Should().NotThrow();
     }
 
+    [Fact]
+    public void Validate_accepts_an_environment_variable_without_a_value()
+    {
+        var details = Details(Path.Combine(_root, "app.exe"), variables: new() { ["MY_VARIABLE"] = null! });
+
+        var action = () => NativeLaunchGuard.Validate("app", details, Options());
+
+        action.Should().NotThrow();
+    }
+
+    [Fact]
+    public void Validate_returns_the_path_of_a_module_that_does_not_exist()
+    {
+        var path = Path.Combine(_root, "not-there", "app.exe");
+
+        var result = NativeLaunchGuard.Validate("app", Details(path), Options());
+
+        result.Should().Be(path);
+    }
+
     [Theory]
     [InlineData("A=B")]
     [InlineData("A\0B")]

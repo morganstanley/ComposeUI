@@ -96,6 +96,16 @@ public class NativeLaunchGuardLinkResolutionTests
     }
 
     [Fact]
+    public void ResolveLinks_ignores_a_single_dot_in_a_target()
+    {
+        var links = new Dictionary<string, string> { [P("root", "a")] = Path.Combine(".", "sub", ".", "deep") };
+
+        var resolved = NativeLaunchGuard.ResolveLinks(P("root", "a", "app.exe"), Links(links));
+
+        resolved.Should().Be(P("root", "sub", "deep", "app.exe"));
+    }
+
+    [Fact]
     public void ResolveLinks_stays_at_the_root_when_a_target_goes_above_it()
     {
         var links = new Dictionary<string, string> { [P("root", "a")] = Path.Combine(Enumerable.Repeat("..", 60).ToArray()) };
