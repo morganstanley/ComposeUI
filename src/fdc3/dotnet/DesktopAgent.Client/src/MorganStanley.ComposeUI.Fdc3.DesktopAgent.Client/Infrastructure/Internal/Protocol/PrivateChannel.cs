@@ -154,7 +154,8 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
         }
     }
 
-    public async void Disconnect()
+    // FDC3 3.0: Changed from async void to return Task for proper async support
+    public async Task DisconnectAsync()
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
 
@@ -240,6 +241,16 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
         {
             _lock.Release();
         }
+    }
+
+    /// <summary>
+    /// Backward compatibility wrapper for DisconnectAsync().
+    /// Calls async disconnect without awaiting (fire and forget).
+    /// </summary>
+    [Obsolete("Use DisconnectAsync() for proper async support")]
+    public void Disconnect()
+    {
+        _ = DisconnectAsync();
     }
 
     public IListener OnAddContextListener(Action<string?> handler)
