@@ -87,6 +87,18 @@ public class MyService
 - `HttpClientName`: (Optional) Name of the HTTP client for custom configuration. If specified, an `IHttpClientFactory` must be provided to the `AppDirectory` constructor with a matching client. If an HTTP endpoint is set as the source and no `HttpClientName` is provided, a new `HttpClient` instance will be used to fetch data.
 
 
+### Native apps
+
+A native app can only be started from a path under the module root directory. Relative paths are resolved against that root, not against the working directory.
+The root is the `modules` directory next to the executable; set the `COMPOSEUI_MODULE_REPOSITORY_ROOT` environment variable to use another directory.
+The roots that are configured in the `AllowedRoots` of `NativeModuleLaunchOptions` (see `AddModuleLoader`) apply to the catalog and to the module loader alike, and replace the default root.
+An app that cannot be started is skipped, with a warning in the log, when all the apps of the directory are listed; asking for that app by its id fails with an error that names it.
+Paths that leave the root (for example with `..`), paths that are not files and, for the details returned by the host manifest mapper too, paths outside the root are rejected with an error that names the app.
+
+The arguments and the environment variables that the host manifest mapper takes from the app directory are rejected by default, because the directory can come from a remote source.
+Set `AllowNativeArguments` and `AllowNativeEnvironmentVariables` in the `AppDirectoryOptions` to allow them.
+Whatever their source, the module loader still checks every native launch against its `NativeModuleLaunchOptions` before it starts the process: the allowed roots, an optional list of allowed executables, the limits of the arguments and the list of blocked environment variables such as `PATH` and `DOTNET_*`.
+
 ### 4. Supported Sources
 
 - **File**: `file:///path/to/apps.json`

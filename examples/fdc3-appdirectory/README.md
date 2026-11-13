@@ -11,3 +11,6 @@ To run the example:
     --url http://localhost:4200 --FDC3:AppDirectory:Source $(ComposeUIRepositoryRoot)/examples/fdc3-appdirectory/apps.json
     ```
     (you'll have to manually substitute `$(ComposeUIRepositoryRoot)` with the actual root path of the repo).
+
+The native app in `apps-with-intents.json` is given relative to the module root. Native apps can only be started from under that root, which is the `modules` directory next to the Shell executable by default.
+To start the example, set the `COMPOSEUI_MODULE_REPOSITORY_ROOT` environment variable to the root path of the repo, and add `--FDC3:AppDirectory:AllowNativeEnvironmentVariables true` to the command line, because the example app sets an environment variable and the environment variables of an app directory are rejected by default.

@@ -28,4 +28,27 @@ public class ServiceCollectionExtensionsTests
         services.Count(s => s.ServiceType == typeof(IModuleRunner) && s.ImplementationType == typeof(WebModuleRunner)).Should().Be(1);
         services.Count(s => s.ServiceType == typeof(IModuleRunner) && s.ImplementationType == typeof(NativeModuleRunner)).Should().Be(1);
     }
+
+    [Fact]
+    public void WhenAddModuleLoader_DefaultNativeModuleLaunchOptionsAreAdded()
+    {
+        var provider = new ServiceCollection()
+            .AddModuleLoader()
+            .BuildServiceProvider();
+
+        var options = provider.GetRequiredService<NativeModuleLaunchOptions>();
+
+        options.AllowedRoots.Should().BeEmpty();
+        options.DisableLaunchGuard.Should().BeFalse();
+    }
+
+    [Fact]
+    public void WhenAddModuleLoaderWithConfiguration_ConfiguredNativeModuleLaunchOptionsAreUsed()
+    {
+        var provider = new ServiceCollection()
+            .AddModuleLoader(options => options.AllowedRoots.Add("testRoot"))
+            .BuildServiceProvider();
+
+        provider.GetRequiredService<NativeModuleLaunchOptions>().AllowedRoots.Should().Equal("testRoot");
+    }
 }

@@ -14,6 +14,9 @@
 
 using MorganStanley.ComposeUI.ModuleLoader;
 using Finos.Fdc3.AppDirectory;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace MorganStanley.ComposeUI.Fdc3.AppDirectory;
 
@@ -21,13 +24,22 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
 {
     private readonly IAppDirectory _appDirectory;
     private readonly IHostManifestMapper? _hostManifestMapper;
+    private readonly AppDirectoryOptions _options;
+    private readonly NativeModuleLaunchOptions _launchOptions;
+    private readonly ILogger<Fdc3ModuleCatalog> _logger;
 
     public Fdc3ModuleCatalog(
         IAppDirectory fdc3AppDirectory,
-        IHostManifestMapper? hostManifestMapper = null)
+        IHostManifestMapper? hostManifestMapper = null,
+        IOptions<AppDirectoryOptions>? options = null,
+        NativeModuleLaunchOptions? launchOptions = null,
+        ILogger<Fdc3ModuleCatalog>? logger = null)
     {
         _appDirectory = fdc3AppDirectory;
         _hostManifestMapper = hostManifestMapper;
+        _options = options?.Value ?? new AppDirectoryOptions();
+        _launchOptions = launchOptions ?? new NativeModuleLaunchOptions();
+        _logger = logger ?? NullLogger<Fdc3ModuleCatalog>.Instance;
     }
 
     public async Task<IModuleManifest> GetManifest(string moduleId)
@@ -39,9 +51,22 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
     private IModuleManifest GetManifest(Fdc3App app) => app.Type switch
     {
         AppType.Web => new Fdc3WebModuleManifest(app, _hostManifestMapper),
-        AppType.Native => new Fdc3NativeModuleManifest(app, _hostManifestMapper),
+        AppType.Native => GetNativeManifest(app),
         _ => throw new NotSupportedException($"Unsupported module type: {app.Type}"),
     };
+
+    private IModuleManifest GetNativeManifest(Fdc3App app)
+    {
+        try
+        {
+            return new Fdc3NativeModuleManifest(app, _hostManifestMapper, _options, _launchOptions);
+        }
+        catch (UriFormatException e)
+        {
+            // A path like \\?\C:\app.exe is not a valid uri. It must be reported like the other paths that are rejected.
+            throw new NotSupportedException($"The native app '{app.AppId}' cannot be started. {e.Message}", e);
+        }
+    }
 
     public async Task<IEnumerable<string>> GetModuleIds()
     {
@@ -105,8 +130,22 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
     public async Task<IEnumerable<IModuleManifest>> GetAllManifests()
     {
         var apps = await _appDirectory.GetApps();
+        var manifests = new List<IModuleManifest>();
 
-        return apps.Select(GetManifest);
+        foreach (var app in apps)
+        {
+            try
+            {
+                manifests.Add(GetManifest(app));
+            }
+            catch (NotSupportedException e)
+            {
+                // One app that cannot be started must not hide the other apps of the directory.
+                _logger.LogWarning(e, "The app '{AppId}' of the app directory is skipped. {Reason}", app.AppId, e.Message);
+            }
+        }
+
+        return manifests;
     }
 
 
@@ -114,7 +153,11 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
     {
         private readonly IHostManifestMapper? _hostManifestMapper;
 
-        public Fdc3NativeModuleManifest(Fdc3App app, IHostManifestMapper hostManifestMapper)
+        public Fdc3NativeModuleManifest(
+            Fdc3App app,
+            IHostManifestMapper? hostManifestMapper,
+            AppDirectoryOptions options,
+            NativeModuleLaunchOptions launchOptions)
         {
             if (app.Type != AppType.Native)
             {
@@ -140,31 +183,42 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
                 var iconSrc = app.Icons?.FirstOrDefault()?.Src;
 
                 var nativeDetails = (NativeAppDetails) app.Details;
-                var path = new Uri(nativeDetails.Path, UriKind.RelativeOrAbsolute);
-
-                // TODO: Get the root directory as quick turnaround, but this should be improved to support more scenarios - like when the app is not located under the source directory.
-                var repositoryRoot = Environment.GetEnvironmentVariable(Consts.COMPOSEUI_MODULE_REPOSITORY_ENVIRONMENT_VARIABLE_NAME);
-
-                if (string.IsNullOrEmpty(repositoryRoot))
-                {
-                    repositoryRoot = Consts.COMPOSEUI_MODULE_REPOSITORY_DEFAULT_ROOT;
-                }
-
-                var fullPath = path.IsAbsoluteUri
-                    ? path.LocalPath
-                    : Path.GetFullPath(nativeDetails.Path);
-
-                if (!fullPath.StartsWith(repositoryRoot, StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new NotSupportedException($"Native app path must be under the ComposeUI executable directory: {repositoryRoot}, and it was under: {fullPath}.");
-                }
 
                 Details = new NativeManifestDetails
                 {
-                    Path = path,
+                    Path = new Uri(nativeDetails.Path, UriKind.RelativeOrAbsolute),
                     Icon = iconSrc != null ? new Uri(iconSrc, UriKind.Absolute) : null,
                 };
             }
+
+            if (Details.Arguments.Length > 0 && !options.AllowNativeArguments)
+            {
+                throw new NotSupportedException($"The native app '{app.AppId}' cannot be started. The app directory gives arguments, which are not allowed. Set {nameof(AppDirectoryOptions.AllowNativeArguments)} to allow them.");
+            }
+
+            if (Details.EnvironmentVariables.Count > 0 && !options.AllowNativeEnvironmentVariables)
+            {
+                throw new NotSupportedException($"The native app '{app.AppId}' cannot be started. The app directory gives environment variables, which are not allowed. Set {nameof(AppDirectoryOptions.AllowNativeEnvironmentVariables)} to allow them.");
+            }
+
+            Details.Path = GetValidatedPath(app.AppId, Details.Path, launchOptions);
+        }
+
+        private static Uri GetValidatedPath(string appId, Uri path, NativeModuleLaunchOptions launchOptions)
+        {
+            var errors = new List<string>();
+
+            foreach (var root in launchOptions.GetEffectiveRoots())
+            {
+                if (NativePathValidator.TryValidate(path, root, out var fullPath, out var error))
+                {
+                    return NativePathValidator.ToFileUri(fullPath);
+                }
+
+                errors.Add(error);
+            }
+
+            throw new NotSupportedException($"The native app '{appId}' cannot be started. {string.Join(" ", errors)}");
         }
 
         public string Id { get; init; }
