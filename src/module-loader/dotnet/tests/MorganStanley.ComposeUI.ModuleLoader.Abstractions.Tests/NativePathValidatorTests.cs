@@ -158,6 +158,40 @@ public class NativePathValidatorTests
     }
 
     [WindowsFact]
+    public void TryValidate_accepts_a_path_under_the_root_of_a_drive()
+    {
+        var result = NativePathValidator.TryValidate(new Uri(@"C:\apps\app.exe", UriKind.Absolute), @"C:\", out var fullPath, out _);
+
+        result.Should().BeTrue();
+        fullPath.Should().Be(@"C:\apps\app.exe");
+    }
+
+    [WindowsFact]
+    public void TryValidate_rejects_the_root_of_a_drive_itself()
+    {
+        var result = NativePathValidator.TryValidate(new Uri(@"C:\", UriKind.Absolute), @"C:\", out _, out _);
+
+        result.Should().BeFalse();
+    }
+
+    [UnixFact]
+    public void TryValidate_accepts_a_path_when_the_root_is_the_root_of_the_file_system()
+    {
+        var result = NativePathValidator.TryValidate(new Uri("/bin/ls", UriKind.Absolute), "/", out var fullPath, out _);
+
+        result.Should().BeTrue();
+        fullPath.Should().Be("/bin/ls");
+    }
+
+    [UnixFact]
+    public void TryValidate_rejects_the_root_of_the_file_system_itself()
+    {
+        var result = NativePathValidator.TryValidate(new Uri("/", UriKind.Absolute), "/", out _, out _);
+
+        result.Should().BeFalse();
+    }
+
+    [WindowsFact]
     public void TryValidate_rejects_a_unc_path_when_the_root_is_not_a_unc_path()
     {
         var result = NativePathValidator.TryValidate(new Uri(@"\\server\share\app.exe", UriKind.Absolute), Root, out _, out _);

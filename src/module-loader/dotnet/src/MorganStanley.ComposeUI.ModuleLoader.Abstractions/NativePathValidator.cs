@@ -75,7 +75,8 @@ public static class NativePathValidator
         {
             var root = Path.GetFullPath(allowedRoot);
             var trimmedRoot = root.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            var rootWithSeparator = (trimmedRoot.Length == 0 ? root : trimmedRoot) + Path.DirectorySeparatorChar;
+            // The root of a Unix file system trims to nothing, so its prefix is the separator alone.
+            var rootWithSeparator = trimmedRoot + Path.DirectorySeparatorChar;
 
             var resolved = Path.GetFullPath(Path.IsPathRooted(candidate) ? candidate : Path.Combine(root, candidate));
 
