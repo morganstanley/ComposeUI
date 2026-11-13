@@ -16,6 +16,7 @@ using System.Text.Json.Serialization;
 using Finos.Fdc3;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Converters;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 
@@ -29,6 +30,11 @@ internal sealed class GetIntentResultResponse
     /// </summary>
     [JsonConverter(typeof(ContextJsonConverter))]
     public string? Context { get; set; }
+
+    /// <summary>
+    /// FDC3 3.0 - Metadata about the intent resolution result.
+    /// </summary>
+    public ContextMetadata? Metadata { get; set; }
 
     /// <summary>
     /// Indicates that the IntentResult is a typeof Channel.
