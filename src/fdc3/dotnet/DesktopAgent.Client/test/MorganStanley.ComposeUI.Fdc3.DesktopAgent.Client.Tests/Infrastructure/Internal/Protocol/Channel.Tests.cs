@@ -96,7 +96,8 @@ public class ChannelTests
         await _channel.Broadcast(context);
 
         publishedTopic.Should().Contain(ChannelId);
-        publishedPayload.Should().BeEquivalentTo(JsonSerializer.Serialize(new Instrument(), SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
+        var broadcastPayload = JsonSerializer.Deserialize<BroadcastPayload>((string)publishedPayload!, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization);
+        broadcastPayload!.Context.Should().Be(JsonSerializer.Serialize(new Instrument(), SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
     }
 
     [Fact]
