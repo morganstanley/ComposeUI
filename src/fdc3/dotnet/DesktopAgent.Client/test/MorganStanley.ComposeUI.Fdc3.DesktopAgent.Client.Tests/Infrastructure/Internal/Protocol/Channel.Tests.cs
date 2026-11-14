@@ -96,7 +96,8 @@ public class ChannelTests
         await _channel.Broadcast(context);
 
         publishedTopic.Should().Contain(ChannelId);
-        publishedPayload.Should().BeEquivalentTo(JsonSerializer.Serialize(new Instrument(), SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
+        var broadcastPayload = JsonSerializer.Deserialize<BroadcastPayload>((string)publishedPayload!, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization);
+        broadcastPayload!.Context.Should().Be(JsonSerializer.Serialize(new Instrument(), SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
     }
 
     [Fact]
@@ -108,7 +109,7 @@ public class ChannelTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()))
-            .ReturnsAsync((string) null!);
+            .ReturnsAsync(JsonSerializer.Serialize(new GetCurrentContextResponse(), SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
 
         var result = await _channel.GetCurrentContext("TestType");
 
@@ -127,7 +128,7 @@ public class ChannelTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()))
-            .ReturnsAsync(contextJson);
+            .ReturnsAsync(JsonSerializer.Serialize(new GetCurrentContextResponse { Context = contextJson }, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
 
         var result = await _channel.GetCurrentContext("fdc3.instrument");
 
@@ -147,7 +148,7 @@ public class ChannelTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()))
-            .ReturnsAsync(contextJson);
+            .ReturnsAsync(JsonSerializer.Serialize(new GetCurrentContextResponse { Context = contextJson }, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
 
         var result = await _channel.GetCurrentContext(null);
 
@@ -167,7 +168,7 @@ public class ChannelTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()))
-            .ReturnsAsync(contextJson);
+            .ReturnsAsync(JsonSerializer.Serialize(new GetCurrentContextResponse { Context = contextJson }, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
 
         var result = await _channel.GetCurrentContext("NonExistentType");
 

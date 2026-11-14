@@ -23,6 +23,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
+using ContextMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.ContextMetadata;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal;
 
@@ -148,27 +149,57 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
 
             _subscription = await _messaging.SubscribeAsync(
                 topic.Broadcast,
-                serializedContext =>
+                serializedPayload =>
                 {
                     //Messaging implementation by default should not pass the message back to the sender if that is subscribed to the same topic.
-                    if (string.IsNullOrEmpty(serializedContext))
+                    if (string.IsNullOrEmpty(serializedPayload))
                     {
-                        _logger.LogWarning("Null context was received: {SerializedContext}...", serializedContext);
+                        _logger.LogWarning("Null payload was received: {SerializedPayload}...", serializedPayload);
                         return new ValueTask();
                     }
 
-                    var contextType = (string?)JsonNode.Parse(serializedContext, new JsonNodeOptions { PropertyNameCaseInsensitive = true })?["type"];
+                    // FDC3 3.0: Parse BroadcastPayload to extract context and metadata
+                    string? contextJson = null;
+                    ContextMetadata? metadata = null;
+
+                    try
+                    {
+                        var payload = JsonSerializer.Deserialize<BroadcastPayload>(serializedPayload, _jsonSerializerOptions);
+                        if (payload?.Context != null)
+                        {
+                            contextJson = payload.Context;
+                            metadata = payload.Metadata;
+                        }
+                        else
+                        {
+                            // Fallback: try to parse as raw context (backward compatibility)
+                            contextJson = serializedPayload;
+                        }
+                    }
+                    catch (JsonException)
+                    {
+                        // Fallback: try to parse as raw context (backward compatibility)
+                        contextJson = serializedPayload;
+                    }
+
+                    if (string.IsNullOrEmpty(contextJson))
+                    {
+                        _logger.LogWarning("Empty context in payload");
+                        return new ValueTask();
+                    }
+
+                    var contextType = (string?)JsonNode.Parse(contextJson, new JsonNodeOptions { PropertyNameCaseInsensitive = true })?["type"];
 
                     if (contextType != null && contextType != _contextType && !string.IsNullOrEmpty(_contextType))
                     {
                         return new ValueTask();
                     }
 
-                    var context = JsonSerializer.Deserialize<T>(serializedContext!, _jsonSerializerOptions);
+                    var context = JsonSerializer.Deserialize<T>(contextJson!, _jsonSerializerOptions);
 
                     if (_logger.IsEnabled(LogLevel.Debug))
                     {
-                        _logger.LogDebug("Context received: {SerializedContext}; Type to deserialize to: {Type}...", serializedContext, typeof(T));
+                        _logger.LogDebug("Context received: {SerializedContext}; Type to deserialize to: {Type}...", contextJson, typeof(T));
                     }
 
                     if (!_isOpenedAppContextHandled)

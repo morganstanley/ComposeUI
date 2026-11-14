@@ -154,8 +154,8 @@ public class EndToEndTests : IAsyncLifetime
     [Fact]
     public async Task GetCurrentContextReturnsNullBeforeBroadcast()
     {
-        var resultBuffer = await _messaging.InvokeJsonServiceAsync<GetCurrentContextRequest, string>(_topics.GetCurrentContext, RequestWithEmptyContextType, _jsonOptions);
-        resultBuffer.Should().BeNull();
+        var resultBuffer = await _messaging.InvokeJsonServiceAsync<GetCurrentContextRequest, GetCurrentContextResponse>(_topics.GetCurrentContext, RequestWithEmptyContextType, _jsonOptions);
+        resultBuffer!.Context.Should().BeNull();
     }
 
     [Fact]
@@ -167,10 +167,10 @@ public class EndToEndTests : IAsyncLifetime
 
         await Task.Delay(100);
 
-        var resultBuffer = await _messaging.InvokeServiceAsync(_topics.GetCurrentContext, JsonSerializer.Serialize(RequestWithContextType, _jsonOptions));
+        var response = await _messaging.InvokeJsonServiceAsync<GetCurrentContextRequest, GetCurrentContextResponse>(_topics.GetCurrentContext, RequestWithContextType, _jsonOptions);
 
-        resultBuffer.Should().NotBeNull();
-        var result = ReadJson<Contact>(resultBuffer);
+        response?.Context.Should().NotBeNull();
+        var result = ReadJson<Contact>(response!.Context!);
 
         result.Should().BeEquivalentTo(ReadJson<Contact>(ctx));
     }
@@ -184,10 +184,10 @@ public class EndToEndTests : IAsyncLifetime
 
         await Task.Delay(100);
 
-        var resultBuffer = await _messaging.InvokeServiceAsync(_topics.GetCurrentContext, JsonSerializer.Serialize(RequestWithEmptyContextType, _jsonOptions));
+        var response = await _messaging.InvokeJsonServiceAsync<GetCurrentContextRequest, GetCurrentContextResponse>(_topics.GetCurrentContext, RequestWithEmptyContextType, _jsonOptions);
 
-        resultBuffer.Should().NotBeNull();
-        var result = ReadJson<Contact>(resultBuffer);
+        response?.Context.Should().NotBeNull();
+        var result = ReadJson<Contact>(response!.Context!);
 
         result.Should().BeEquivalentTo(ReadJson<Contact>(ctx));
     }
@@ -198,8 +198,8 @@ public class EndToEndTests : IAsyncLifetime
         var ctx = GetContext();
         await _messaging.PublishAsync(_topics.Broadcast, ctx);
         await Task.Delay(100);
-        var resultBuffer = await _messaging.InvokeJsonServiceAsync<GetCurrentContextRequest, string>(_topics.GetCurrentContext, RequestWithOtherContextType, _jsonOptions);
-        resultBuffer.Should().BeNull();
+        var resultBuffer = await _messaging.InvokeJsonServiceAsync<GetCurrentContextRequest, GetCurrentContextResponse>(_topics.GetCurrentContext, RequestWithOtherContextType, _jsonOptions);
+        resultBuffer!.Context.Should().BeNull();
     }
 
     [Fact]

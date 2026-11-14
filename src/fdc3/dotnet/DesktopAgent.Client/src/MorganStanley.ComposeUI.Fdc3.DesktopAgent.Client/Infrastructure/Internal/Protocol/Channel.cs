@@ -23,6 +23,8 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 using DisplayMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.DisplayMetadata;
+using ContextMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.ContextMetadata;
+using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal;
 
@@ -38,7 +40,9 @@ internal class Channel : IChannel
     private readonly ILogger<Channel> _logger;
     private readonly SemaphoreSlim _lastContextLock = new(1,1);
     private IContext? _lastContext = null;
+    private ContextMetadata? _lastContextMetadata = null;
     private readonly ConcurrentDictionary<string, IContext> _lastContexts = new();
+    private readonly ConcurrentDictionary<string, ContextMetadata?> _lastContextMetadatas = new();
     private readonly JsonSerializerOptions _jsonSerializerOptions = SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization;
 
     public Channel(
@@ -97,9 +101,26 @@ internal class Channel : IChannel
 
             _lastContext = context;
 
+            // FDC3 3.0: Create fresh metadata with source information for this broadcast
+            var metadata = new ContextMetadata
+            {
+                Source = new AppIdentifier
+                {
+                    AppId = _instanceId,
+                    InstanceId = _instanceId
+                }
+            };
+
+            // Publish both context and metadata as a payload
+            var payload = new BroadcastPayload
+            {
+                Context = JsonSerializer.Serialize(context, _jsonSerializerOptions),
+                Metadata = metadata
+            };
+
             await _messaging.PublishJsonAsync(
                 new ChannelTopics(_channelId, _channelType).Broadcast,
-                context,
+                payload,
                 _jsonSerializerOptions).ConfigureAwait(false);
         }
         finally
@@ -116,30 +137,37 @@ internal class Channel : IChannel
             
             var request = new GetCurrentContextRequest { ContextType = contextType };
 
-            var contextJson = await _messaging.InvokeServiceAsync(
+            var response = await _messaging.InvokeJsonServiceAsync<GetCurrentContextRequest, GetCurrentContextResponse>(
                 new ChannelTopics(_channelId, _channelType).GetCurrentContext,
-                JsonSerializer.Serialize(request, _jsonSerializerOptions)).ConfigureAwait(false);
+                request,
+                _jsonSerializerOptions).ConfigureAwait(false);
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug("GetCurrentContext response: {ContextJson}", contextJson);
+                _logger.LogDebug("GetCurrentContext response: {ContextJson}", response?.Context);
             }
 
-            if (string.IsNullOrEmpty(contextJson))
+            if (response?.Context == null)
             {
                 return null;
             }
 
-            var context = JsonSerializer.Deserialize<IContext>(contextJson!, _jsonSerializerOptions);
+            var context = JsonSerializer.Deserialize<IContext>(response.Context, _jsonSerializerOptions);
 
             if (context != null)
             {
                 _lastContext = context;
+                _lastContextMetadata = response.Metadata;
 
                 _lastContexts.AddOrUpdate(
                     context.Type,
                     (key) => context,
                     (key, existingContext) => context);
+
+                _lastContextMetadatas.AddOrUpdate(
+                    context.Type,
+                    (key) => response.Metadata,
+                    (key, existingMetadata) => response.Metadata);
             }
 
             if (string.IsNullOrEmpty(contextType))

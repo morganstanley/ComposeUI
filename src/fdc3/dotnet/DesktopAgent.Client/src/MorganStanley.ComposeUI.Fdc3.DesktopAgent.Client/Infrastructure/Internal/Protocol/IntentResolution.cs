@@ -22,6 +22,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
+using ContextMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.ContextMetadata;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal.Protocol;
 
@@ -31,6 +32,8 @@ internal class IntentResolution : IIntentResolution
     private readonly IMessaging _messaging;
     private readonly IChannelHandler _channelFactory;
     private readonly JsonSerializerOptions _jsonSerializerOptions = SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization;
+    private readonly ILogger<IntentResolution> _logger;
+    private ContextMetadata? _resultMetadata;
 
     public IntentResolution(
         string messageId,
@@ -50,11 +53,17 @@ internal class IntentResolution : IIntentResolution
 
     public IAppIdentifier Source { get; }
 
-    private readonly ILogger<IntentResolution> _logger;
-
     public string Intent { get; }
 
     public string? Version { get; }
+
+    /// <summary>
+    /// FDC3 3.0 - Gets the metadata of the intent result.
+    /// </summary>
+    public IContextMetadata? GetResultMetadata()
+    {
+        return _resultMetadata;
+    }
 
     public async Task<IIntentResult?> GetResult()
     {
@@ -84,6 +93,9 @@ internal class IntentResolution : IIntentResolution
         {
             throw ThrowHelper.ErrorResponseReceived(response.Error);
         }
+
+        // FDC3 3.0: Store result metadata
+        _resultMetadata = response.Metadata;
 
         if (!string.IsNullOrEmpty(response.ChannelId)
             && response.ChannelType != null)
