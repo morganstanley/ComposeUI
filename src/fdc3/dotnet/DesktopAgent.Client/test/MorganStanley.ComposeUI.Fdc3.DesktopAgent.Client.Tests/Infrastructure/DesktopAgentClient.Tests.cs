@@ -232,7 +232,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
                     It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new JoinUserChannelResponse { Success = true, DisplayMetadata = new DisplayMetadata() { Name = "test-channelId" } }, _jsonSerializerOptions)))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new AddContextListenerResponse { Success = true, Id = Guid.NewGuid().ToString() }, _jsonSerializerOptions)))
-            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new Instrument(new InstrumentID { Ticker = "test-instrument" }, "test-name"), _jsonSerializerOptions))) //GetCurrentContext response after joining to the channels when iterating through the context listeners
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new GetCurrentContextResponse { Context = JsonSerializer.Serialize(new Instrument(new InstrumentID { Ticker = "test-instrument" }, "test-name"), _jsonSerializerOptions) }, _jsonSerializerOptions))) //GetCurrentContext response after joining to the channels when iterating through the context listeners
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new AddContextListenerResponse { Success = true, Id = Guid.NewGuid().ToString() }, _jsonSerializerOptions)))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new GetCurrentContextResponse { Context = JsonSerializer.Serialize(new Context("test-type"), _jsonSerializerOptions) }, _jsonSerializerOptions))); //This shouldn't be the last context which is received by the second context listener as the last context for the registered context type is already set when invoking the GetCurrentContext for the first context listener
 
