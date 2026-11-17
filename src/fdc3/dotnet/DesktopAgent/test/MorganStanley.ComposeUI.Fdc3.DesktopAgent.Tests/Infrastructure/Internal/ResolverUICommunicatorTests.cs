@@ -201,7 +201,20 @@ public class ResolverUICommunicatorTests
             Times.AtLeastOnce);
     }
 
-    private ResolverUICommunicator CreateCommunicator(Func<ResolverUIRequest, string?> reply, bool allowLegacy = false)
+    [Fact]
+    public async Task SendResolverUIRequest_uses_the_contract_with_candidate_ids_when_there_are_no_options()
+    {
+        var communicator = CreateCommunicator(
+            request => Reply(new ResolverUIResponse { SelectedCandidateId = request.Candidates.First().Id }),
+            withOptions: false);
+
+        var response = await communicator.SendResolverUIRequestAsync(new IAppMetadata[] { _app1 });
+
+        response!.AppMetadata.Should().BeSameAs(_app1);
+        _calls.Should().ContainSingle().Which.Topic.Should().Be(Fdc3Topic.ResolverUI);
+    }
+
+    private ResolverUICommunicator CreateCommunicator(Func<ResolverUIRequest, string?> reply, bool allowLegacy = false, bool withOptions = true)
     {
         var messaging = new Mock<IMessaging>();
         messaging
@@ -218,7 +231,7 @@ public class ResolverUICommunicatorTests
         return new ResolverUICommunicator(
             messaging.Object,
             _logger.Object,
-            Options.Create(new Fdc3DesktopAgentOptions { AllowLegacyResolverUI = allowLegacy }));
+            withOptions ? Options.Create(new Fdc3DesktopAgentOptions { AllowLegacyResolverUI = allowLegacy }) : null);
     }
 
     private static string Reply(ResolverUIResponse response) => JsonSerializer.Serialize(response, JsonOptions);

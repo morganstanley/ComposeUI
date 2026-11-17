@@ -92,6 +92,26 @@ public class RaiseIntentTests : Fdc3DesktopAgentServiceTestsBase
         result.Response.Error.Should().Be(ResolveError.ResolverUnavailable);
     }
 
+    [Fact]
+    public async Task RaiseIntent_starts_the_app_that_the_ResolverUI_selected_from_the_offered_apps()
+    {
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
+        IAppMetadata? selected = null;
+        ResolverUICommunicator
+            .Setup(_ => _.SendResolverUIRequestAsync(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IEnumerable<IAppMetadata> apps, CancellationToken _) =>
+            {
+                selected = apps.First(app => app.InstanceId == null && app.AppId != App1.AppId);
+                return new ResolverUIResponse { AppMetadata = selected };
+            });
+
+        var result = await Fdc3.RaiseIntent(MultipleAppsRequest(origin), MultipleContext.Type);
+
+        selected.Should().NotBeNull();
+        result.Response.Error.Should().NotBe(ResolveError.ResolverUnavailable);
+        ModuleLoader.Verify(_ => _.StartModule(It.Is<StartRequest>(r => r.ModuleId == selected!.AppId)), Times.Once);
+    }
+
     private static RaiseIntentRequest MultipleAppsRequest(IModuleInstance origin) => new()
     {
         MessageId = 1,
