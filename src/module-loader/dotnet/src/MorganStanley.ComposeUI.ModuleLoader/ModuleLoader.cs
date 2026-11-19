@@ -70,7 +70,20 @@ internal sealed class ModuleLoader : IModuleLoader, IAsyncDisposable
                 () => Task.CompletedTask,
                 (next, action) => () => action.InvokeAsync(startupContext, next));
 
-        await moduleRunner.Start(startupContext, pipeline);
+        try
+        {
+            await moduleRunner.Start(startupContext, pipeline);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Could not start module, instanceId: {InstanceId}, moduleId: {ModuleId}.", instanceId, manifest.Id);
+
+            // The module never ran, but startup actions may have already allocated resources for it
+            // (e.g. a message router access token). Signal the end of its lifetime so they can be released.
+            _lifetimeEvents.OnNext(new LifetimeEvent.Stopped(moduleInstance, false));
+            throw;
+        }
+
         moduleInstance.AddProperties(startupContext.GetProperties());
         _lifetimeEvents.OnNext(new LifetimeEvent.Started(moduleInstance));
 

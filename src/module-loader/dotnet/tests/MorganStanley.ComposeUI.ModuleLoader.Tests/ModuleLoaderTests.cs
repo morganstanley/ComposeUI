@@ -57,6 +57,31 @@ public class ModuleLoaderTests
     }
 
     [Fact]
+    public async Task WhenModuleRunnerStartFails_WhenStart_PublishesUnexpectedStoppedEventAndRethrows()
+    {
+        var moduleManifestMock = new Mock<IModuleManifest>();
+        moduleManifestMock.Setup(m => m.ModuleType).Returns("test");
+        var moduleCatalogMock = new Mock<IModuleCatalog>();
+        moduleCatalogMock.Setup(c => c.GetManifest(It.IsAny<string>())).Returns(Task.FromResult<IModuleManifest>(moduleManifestMock.Object));
+        moduleCatalogMock.Setup(c => c.GetModuleIds()).Returns(Task.FromResult<IEnumerable<string>>(new[] { "valid" }));
+        var failure = new InvalidOperationException("start failed");
+        var moduleRunnerMock = new Mock<IModuleRunner>();
+        moduleRunnerMock.Setup(r => r.ModuleType).Returns("test");
+        moduleRunnerMock.Setup(r => r.Start(It.IsAny<StartupContext>(), It.IsAny<Func<Task>>())).ThrowsAsync(failure);
+
+        var moduleLoader = new ModuleLoader(new[] { moduleCatalogMock.Object }, new[] { moduleRunnerMock.Object }, Enumerable.Empty<IStartupAction>(), Enumerable.Empty<IShutdownAction>());
+        var events = new List<LifetimeEvent>();
+        moduleLoader.LifetimeEvents.Subscribe(events.Add);
+
+        var action = () => moduleLoader.StartModule(new StartRequest("valid"));
+
+        (await action.Should().ThrowAsync<InvalidOperationException>()).Which.Should().BeSameAs(failure);
+        events.Select(e => e.EventType).Should().Equal(LifetimeEventType.Starting, LifetimeEventType.Stopped);
+        events[1].Should().BeOfType<LifetimeEvent.Stopped>().Which.IsExpected.Should().BeFalse();
+        events[1].Instance.Should().BeSameAs(events[0].Instance);
+    }
+
+    [Fact]
     public async Task StartModule_EndToEndTest()
     {
         const string moduleId = "Google";
