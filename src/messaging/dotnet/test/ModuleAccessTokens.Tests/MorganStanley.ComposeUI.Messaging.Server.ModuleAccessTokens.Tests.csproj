@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<IsPackable>false</IsPackable>
+		<RootNamespace>MorganStanley.ComposeUI.Messaging.Server.ModuleAccessTokens</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Using Include="Xunit" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\ModuleAccessTokens\MorganStanley.ComposeUI.Messaging.Server.ModuleAccessTokens.csproj" />
+		<ProjectReference Include="..\..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader\MorganStanley.ComposeUI.ModuleLoader.csproj" />
+	</ItemGroup>
+
+</Project>

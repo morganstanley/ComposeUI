@@ -21,5 +21,6 @@ export const ErrorNames = {
     connectionClosed: "ConnectionClosed",
     connectionAborted: "ConnectionAborted",
     invalidAccessToken: "InvalidAccessToken",
+    authenticationFailed: "AuthenticationFailed",
     connectionFailed: "ConnectionFailed",
 }

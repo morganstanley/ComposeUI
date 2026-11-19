@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<RootNamespace>MorganStanley.ComposeUI.Messaging.Server.ModuleAccessTokens</RootNamespace>
+		<Description>
+			Provides per-module-instance message router access tokens and client identity for ComposeUI hosts.
+			More Details: https://morganstanley.github.io/ComposeUI/
+		</Description>
+		<Tags>ComposeUI</Tags>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<IsPackable>true</IsPackable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Server\MorganStanley.ComposeUI.Messaging.Server.csproj" />
+		<ProjectReference Include="..\..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader.Abstractions\MorganStanley.ComposeUI.ModuleLoader.Abstractions.csproj" />
+	</ItemGroup>
+
+</Project>

@@ -16,18 +16,19 @@ internal class MessageRouterServerDependencies
 {
     public MessageRouterServerDependencies(
         IAccessTokenValidator? accessTokenValidator = null,
-        TimeSpan? connectTimeout = null)
+        TimeSpan? connectTimeout = null,
+        IClientAuthenticator? clientAuthenticator = null)
     {
         AccessTokenValidator = accessTokenValidator;
         ConnectTimeout = connectTimeout ?? DefaultConnectTimeout;
+        ClientAuthenticator = clientAuthenticator;
     }
 
     public IAccessTokenValidator? AccessTokenValidator { get; }
 
-    /// <summary>
-    /// How long a connection may stay open without sending a Connect request.
-    /// </summary>
     public TimeSpan ConnectTimeout { get; }
 
     private static readonly TimeSpan DefaultConnectTimeout = TimeSpan.FromSeconds(10);
+
+    public IClientAuthenticator? ClientAuthenticator { get; }
 }

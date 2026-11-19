@@ -82,6 +82,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "architecture", "architectur
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.MessageRouterAdapter", "..\..\messaging\dotnet\src\MessageRouterAdapter\MorganStanley.ComposeUI.Messaging.MessageRouterAdapter.csproj", "{CBC47631-1F28-4CDB-A5A6-2F88BB694295}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Messaging.Server.ModuleAccessTokens", "..\..\messaging\dotnet\src\ModuleAccessTokens\MorganStanley.ComposeUI.Messaging.Server.ModuleAccessTokens.csproj", "{1162EDE5-4720-490F-9D32-B2B93C1ED051}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared", "..\..\fdc3\dotnet\DesktopAgent.Shared\src\MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared\MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.csproj", "{DFD59209-6C8B-47C6-A11A-436CE9317AF4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shell.Interaction.Abstraction", "src\Shell.Interaction.Abstraction\Shell.Interaction.Abstraction.csproj", "{5507AF4A-94D8-4F96-B371-4C8EFBB5DC61}"
@@ -154,6 +156,10 @@ Global
 		{CBC47631-1F28-4CDB-A5A6-2F88BB694295}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CBC47631-1F28-4CDB-A5A6-2F88BB694295}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CBC47631-1F28-4CDB-A5A6-2F88BB694295}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1162EDE5-4720-490F-9D32-B2B93C1ED051}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1162EDE5-4720-490F-9D32-B2B93C1ED051}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1162EDE5-4720-490F-9D32-B2B93C1ED051}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1162EDE5-4720-490F-9D32-B2B93C1ED051}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DFD59209-6C8B-47C6-A11A-436CE9317AF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DFD59209-6C8B-47C6-A11A-436CE9317AF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DFD59209-6C8B-47C6-A11A-436CE9317AF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -188,6 +194,7 @@ Global
 		{F90449AE-B26E-42E0-873B-4F0CAE6FCD98} = {E7A2C581-4BF4-47A5-8A11-59B2DEBADCA7}
 		{DF5677FE-614D-4BD1-A645-119FBA6F3C34} = {E7A2C581-4BF4-47A5-8A11-59B2DEBADCA7}
 		{CBC47631-1F28-4CDB-A5A6-2F88BB694295} = {E7A2C581-4BF4-47A5-8A11-59B2DEBADCA7}
+		{1162EDE5-4720-490F-9D32-B2B93C1ED051} = {E7A2C581-4BF4-47A5-8A11-59B2DEBADCA7}
 		{DFD59209-6C8B-47C6-A11A-436CE9317AF4} = {E7A2C581-4BF4-47A5-8A11-59B2DEBADCA7}
 		{5507AF4A-94D8-4F96-B371-4C8EFBB5DC61} = {9173857E-84BF-4F8B-906B-39BCF0A8915B}
 		{F548E5A5-C610-4250-96DB-AAAD7E5A63A6} = {E7A2C581-4BF4-47A5-8A11-59B2DEBADCA7}
