@@ -59,6 +59,12 @@ public static class MessageRouterErrors
     public const string InvalidAccessToken = "InvalidAccessToken";
 
     /// <summary>
+    /// Sent by the server if the client could not be authenticated, for example because
+    /// the configured authenticator did not establish an identity for it.
+    /// </summary>
+    public const string AuthenticationFailed = "AuthenticationFailed";
+
+    /// <summary>
     /// Client side error that occurs when connecting to the Message Router server fails.
     /// </summary>
     public const string ConnectionFailed = "ConnectionFailed";

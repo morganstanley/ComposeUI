@@ -13,6 +13,7 @@
  */
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.Json;
 using System.Windows;
@@ -26,6 +27,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 using MorganStanley.ComposeUI.LayoutPersistence;
 using MorganStanley.ComposeUI.LayoutPersistence.Abstractions;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Server.ModuleAccessTokens;
 using MorganStanley.ComposeUI.ModuleLoader;
 using MorganStanley.ComposeUI.Shell.Abstractions;
 using MorganStanley.ComposeUI.Shell.Fdc3;
@@ -107,9 +109,6 @@ public partial class App : Application
     private ILogger _logger = NullLogger<App>.Instance;
     private MainWindow? _shellWindow;
 
-    // TODO: Assign a unique token for each module
-    internal readonly string MessageRouterAccessToken = Guid.NewGuid().ToString("N");
-
     private async Task StartAsync(StartupEventArgs e)
     {
         var repositoryRoot = RootPathResolver.GetRepositoryRoot();
@@ -144,6 +143,8 @@ public partial class App : Application
         Dispatcher.Invoke(() => OnAsyncStartupCompleted(e));
     }
 
+    // Composition root of the WPF application: it only runs when the real shell starts, so it can't be unit tested.
+    [ExcludeFromCodeCoverage]
     private void ConfigureServices(HostBuilderContext context, IServiceCollection services)
     {
         services.AddSingleton(this);
@@ -162,21 +163,17 @@ public partial class App : Application
 
         void ConfigureMessageRouter()
         {
+            // Issues a separate message router access token to each module instance, and one to the shell host.
             // TODO: Extensibility: plugins should be able to configure the service collection.
-            services.AddMessageRouterServer(
-                mr => mr
-                    .UseWebSockets()
-                    .UseAccessTokenValidator(
-                        (clientId, token) =>
-                        {
-                            if (MessageRouterAccessToken != token)
-                                throw new InvalidOperationException("The provided access token is invalid");
-                        }));
+            var moduleTokenStore = services.AddModuleAccessTokens();
 
+            services.AddMessageRouterServer(mr => mr.UseWebSockets());
+
+            // The shell's in-process client (and the services built on it, e.g. the FDC3 desktop agent) connect as the host.
             services.AddMessageRouter(
                 mr => mr
                     .UseServer()
-                    .UseAccessToken(MessageRouterAccessToken));
+                    .UseAccessToken(moduleTokenStore.HostToken));
 
             services.AddTransient<IStartupAction, MessageRouterStartupAction>();
             services.AddMessageRouterMessagingAdapter();
