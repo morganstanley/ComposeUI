@@ -72,7 +72,7 @@ internal static class NativeLaunchGuard
             errors.Add($"The path resolves through a link to '{realPath}', which is outside of '{realRoot}'.");
         }
 
-        throw new ModuleLoaderException($"The native module '{moduleId}' cannot be started. {string.Join(" ", errors)}");
+        throw ThrowHelper.NativePathRejected(moduleId, errors);
     }
 
     private static void ValidateExecutable(string moduleId, string path, NativeModuleLaunchOptions options)
@@ -87,7 +87,7 @@ internal static class NativeLaunchGuard
         if (!options.AllowedExecutables.Any(allowed =>
                 string.Equals(allowed, fileName, PathComparison) || string.Equals(allowed, path, PathComparison)))
         {
-            throw new ModuleLoaderException($"The native module '{moduleId}' cannot be started. '{fileName}' is not on the list of the allowed executables.");
+            throw ThrowHelper.ExecutableNotAllowed(moduleId, fileName);
         }
     }
 
@@ -95,19 +95,19 @@ internal static class NativeLaunchGuard
     {
         if (arguments.Length > options.MaxArgumentCount)
         {
-            throw new ModuleLoaderException($"The native module '{moduleId}' cannot be started. It has {arguments.Length} arguments, and at most {options.MaxArgumentCount} are allowed.");
+            throw ThrowHelper.TooManyArguments(moduleId, arguments.Length, options.MaxArgumentCount);
         }
 
         foreach (var argument in arguments)
         {
             if (argument.Length > options.MaxArgumentLength)
             {
-                throw new ModuleLoaderException($"The native module '{moduleId}' cannot be started. An argument is longer than {options.MaxArgumentLength} characters.");
+                throw ThrowHelper.ArgumentTooLong(moduleId, options.MaxArgumentLength);
             }
 
             if (argument.Contains('\0'))
             {
-                throw new ModuleLoaderException($"The native module '{moduleId}' cannot be started. An argument contains a NUL character.");
+                throw ThrowHelper.ArgumentContainsNul(moduleId);
             }
         }
     }
@@ -118,19 +118,19 @@ internal static class NativeLaunchGuard
         {
             if (name.Length == 0 || name.Contains('=') || name.Contains('\0'))
             {
-                throw new ModuleLoaderException($"The native module '{moduleId}' cannot be started. '{name}' is not a valid environment variable name.");
+                throw ThrowHelper.InvalidEnvironmentVariableName(moduleId, name);
             }
 
             // On Windows the environment is passed to the process as one block that is separated by NUL characters,
             // so a NUL in a value would add variables that are not checked here.
             if (value != null && value.Contains('\0'))
             {
-                throw new ModuleLoaderException($"The native module '{moduleId}' cannot be started. The value of the environment variable '{name}' contains a NUL character.");
+                throw ThrowHelper.EnvironmentVariableValueContainsNul(moduleId, name);
             }
 
             if (options.BlockedEnvironmentVariables.Any(pattern => Matches(pattern, name)))
             {
-                throw new ModuleLoaderException($"The native module '{moduleId}' cannot be started. The environment variable '{name}' cannot be set.");
+                throw ThrowHelper.EnvironmentVariableBlocked(moduleId, name);
             }
         }
     }
