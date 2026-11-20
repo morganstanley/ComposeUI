@@ -175,13 +175,33 @@ public class ResolverUICommunicatorTests
 
         var response = await communicator.SendResolverUIRequestAsync(new IAppMetadata[] { _app1, _app2 });
 
+        var topic = allowLegacy ? Fdc3Topic.LegacyResolverUI : Fdc3Topic.ResolverUI;
         response!.Error.Should().Be(ResolveError.ResolverUnavailable);
         response.AppMetadata.Should().BeNull();
         _logger.Verify(
             l => l.Log(
                 LogLevel.Warning,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((state, _) => state.ToString()!.Contains("could not be reached")),
+                It.Is<It.IsAnyType>((state, _) => state.ToString()!.Contains($"could not be reached on the {topic} topic (UnknownEndpoint)")),
+                It.IsAny<MessagingException>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task SendResolverUIIntentRequest_returns_an_error_and_logs_a_warning_when_the_resolver_does_not_host_the_endpoint()
+    {
+        var communicator = CreateCommunicator(_ => throw new MessagingException("UnknownEndpoint", "The endpoint is not registered."));
+
+        var response = await communicator.SendResolverUIIntentRequestAsync(new[] { "ViewChart", "ViewNews" });
+
+        response!.Error.Should().Be(ResolveError.ResolverUnavailable);
+        response.SelectedIntent.Should().BeNull();
+        _logger.Verify(
+            l => l.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((state, _) => state.ToString()!.Contains($"could not be reached on the {Fdc3Topic.ResolverUIIntent} topic (UnknownEndpoint)")),
                 It.IsAny<MessagingException>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);

@@ -81,8 +81,9 @@ internal class ResolverUICommunicator : IResolverUICommunicator
             {
                 _logger.LogWarning(
                     ex,
-                    "The ResolverUI could not be reached on the {Topic} topic. A ResolverUI that does not host this endpoint, for example one that only hosts the legacy endpoint while the legacy contract is not allowed, is not used.",
-                    _allowLegacyResolverUI ? Fdc3Topic.LegacyResolverUI : Fdc3Topic.ResolverUI);
+                    "The ResolverUI could not be reached on the {Topic} topic ({ErrorName}). If it does not host this endpoint, for example it only hosts the legacy endpoint while the legacy contract is not allowed, it is not used.",
+                    _allowLegacyResolverUI ? Fdc3Topic.LegacyResolverUI : Fdc3Topic.ResolverUI,
+                    ex.Name);
             }
 
             return new ResolverUIResponse()
@@ -180,6 +181,18 @@ internal class ResolverUICommunicator : IResolverUICommunicator
             return new ResolverUIIntentResponse
             {
                 Error = ResolveError.ResolverTimeout
+            };
+        }
+        catch (MessagingException ex)
+        {
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning(ex, "The ResolverUI could not be reached on the {Topic} topic ({ErrorName}).", Fdc3Topic.ResolverUIIntent, ex.Name);
+            }
+
+            return new ResolverUIIntentResponse
+            {
+                Error = ResolveError.ResolverUnavailable
             };
         }
     }
