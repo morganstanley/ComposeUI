@@ -114,8 +114,10 @@ cd .src\shell\dotnet\
 2. Launch the FDC3 Example in the ComposeUI Shell:
 
 ```
-MorganStanley.ComposeUI.Shell --ModuleCatalog:CatalogUrl file:///C:/ComposeUI/src/Shell/dotnet/examples/module-catalog.json --FDC3:AppDirectory:Source C:/ComposeUI/examples/fdc3-appdirectory/apps-with-intents.json
+MorganStanley.ComposeUI.Shell --ModuleCatalog:CatalogUrl file:///C:/ComposeUI/src/Shell/dotnet/examples/module-catalog.json --FDC3:AppDirectory:Source C:/ComposeUI/examples/fdc3-appdirectory/apps-with-intents.json --FDC3:AppDirectory:AllowNativeEnvironmentVariables true
 ```
+
+Native apps can only be started from under the directory that the `COMPOSEUI_MODULE_REPOSITORY_ROOT` environment variable points to, so set it to the root path of the repo before the launch. The `AllowNativeEnvironmentVariables` option is needed because the example native app sets an environment variable, and the environment variables of an app directory are rejected by default.
 
 ### Serving web application
 
@@ -249,8 +251,10 @@ cd .src\shell\dotnet\
 2. Launch the FDC3 Example in the ComposeUI Shell:
 
 ```
-MorganStanley.ComposeUI.Shell --ModuleCatalog:CatalogUrl file:///C:/ComposeUI/src/Shell/dotnet/examples/module-catalog.json --FDC3:AppDirectory:Source C:/ComposeUI/examples/fdc3-appdirectory/apps-with-intents.json
+MorganStanley.ComposeUI.Shell --ModuleCatalog:CatalogUrl file:///C:/ComposeUI/src/Shell/dotnet/examples/module-catalog.json --FDC3:AppDirectory:Source C:/ComposeUI/examples/fdc3-appdirectory/apps-with-intents.json --FDC3:AppDirectory:AllowNativeEnvironmentVariables true
 ```
+
+Native apps can only be started from under the directory that the `COMPOSEUI_MODULE_REPOSITORY_ROOT` environment variable points to, so set it to the root path of the repo before the launch. The `AllowNativeEnvironmentVariables` option is needed because the example native app sets an environment variable, and the environment variables of an app directory are rejected by default.
 
 ## Visual Studio
 

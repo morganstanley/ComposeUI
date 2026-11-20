@@ -49,6 +49,18 @@ public sealed class AppDirectoryOptions : IOptions<AppDirectoryOptions>
     public int CacheExpirationInSeconds { get; set; } = (int)DefaultCacheExpiration.TotalSeconds;
 
     /// <summary>
+    ///     Gets or sets whether native apps can be started with the arguments that the app directory provides.
+    ///     The arguments are rejected by default, because the app directory can come from a remote source.
+    /// </summary>
+    public bool AllowNativeArguments { get; set; }
+
+    /// <summary>
+    ///     Gets or sets whether native apps can be started with the environment variables that the app directory provides.
+    ///     The environment variables are rejected by default, because the app directory can come from a remote source.
+    /// </summary>
+    public bool AllowNativeEnvironmentVariables { get; set; }
+
+    /// <summary>
     /// Gets the default cache expiration time
     /// </summary>
     public static readonly TimeSpan DefaultCacheExpiration = TimeSpan.FromHours(1);

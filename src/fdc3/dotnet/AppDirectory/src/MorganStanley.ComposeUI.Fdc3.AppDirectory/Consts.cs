@@ -25,7 +25,8 @@ public static class Consts
     public const string COMPOSEUI_MODULE_REPOSITORY_ENVIRONMENT_VARIABLE_NAME = "COMPOSEUI_MODULE_REPOSITORY_ROOT";
 
     /// <summary>
-    /// Default root path for the ComposeUI module repository if the environment variable is not set.
+    /// Default root path for the ComposeUI module repository if the environment variable is not set:
+    /// the <c>modules</c> directory next to the executable.
     /// </summary>
-    public static readonly string COMPOSEUI_MODULE_REPOSITORY_DEFAULT_ROOT = Path.Combine(RootPathResolver.GetRepositoryRoot(), "apps");
+    public static readonly string COMPOSEUI_MODULE_REPOSITORY_DEFAULT_ROOT = Path.Combine(AppContext.BaseDirectory, "modules");
 }
