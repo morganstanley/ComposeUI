@@ -62,7 +62,7 @@ internal sealed partial class ComposeUIHostManifestMapper : IHostManifestMapper
         {
             return mapper.Map(fdc3App, composeUIHostManifest, iconSrc);
         }
-        catch (Exception exception)
+        catch (Exception exception) when (exception is not NotSupportedException)
         {
             _logger.LogError(exception, $"Exception was thrown while mapping {fdc3App.Type} manifest details.");
             throw;
