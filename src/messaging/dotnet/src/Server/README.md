@@ -47,6 +47,17 @@ var app = builder.Build();
 await app.RunAsync();
 ```
 
+### 2. Connection handling
+
+A client must send a `Connect` request first, whether or not an access token validator is registered. The server closes the connection, without processing the message, if:
+
+- the first message is anything other than `Connect`, or no `Connect` arrives within 10 seconds;
+- the `Connect` request is rejected by the access token validator (the client still receives the error response first);
+- a second `Connect` arrives on a connected client;
+- a client sends a message type that only the server sends (for example `ConnectResponse` or `Topic`).
+
+WebSocket connections are closed with the status `PolicyViolation` (1008). The messages of the .NET and JavaScript clients are not affected, they already send `Connect` first.
+
 ## Dependencies
 
 This package depends on the following NuGet packages:

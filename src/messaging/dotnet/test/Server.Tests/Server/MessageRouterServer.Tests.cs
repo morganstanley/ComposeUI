@@ -12,6 +12,8 @@
 
 using System.Diagnostics;
 using System.Linq.Expressions;
+using System.Threading.Channels;
+using Microsoft.Extensions.Logging;
 using MorganStanley.ComposeUI.Messaging.Instrumentation;
 using MorganStanley.ComposeUI.Messaging.Protocol;
 using MorganStanley.ComposeUI.Messaging.Protocol.Messages;
@@ -341,6 +343,174 @@ public class MessageRouterServerTests
         connection.Verify(_ => _.CloseAsync(), Times.Once);
     }
 
+    [Theory]
+    [InlineData("Subscribe")]
+    [InlineData("Unsubscribe")]
+    [InlineData("Publish")]
+    [InlineData("Invoke")]
+    [InlineData("InvokeResponse")]
+    [InlineData("RegisterService")]
+    [InlineData("UnregisterService")]
+    public async Task Messages_sent_before_Connect_are_not_processed_and_the_connection_is_closed(string messageKind)
+    {
+        var subscriber = await CreateAndConnectClient();
+        await subscriber.SendToServer(RegisterRequest(new SubscribeMessage {Topic = "test-topic"}));
+        await WaitForCompletionAsync();
+        var client = CreateClient();
+        await _server.ClientConnected(client.Object);
+
+        await client.SendToServer(CreateMessage(messageKind));
+        await WaitForCloseAsync(client);
+
+        client.Received.Should().BeEmpty("the server must not answer a client that has not connected");
+        subscriber.Received.OfType<Protocol.Messages.TopicMessage>().Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task A_service_registered_before_Connect_does_not_block_the_endpoint()
+    {
+        var attacker = CreateClient();
+        await _server.ClientConnected(attacker.Object);
+        await attacker.SendToServer(new RegisterServiceRequest {RequestId = "1", Endpoint = "test-service"});
+        await WaitForCloseAsync(attacker);
+        var service = await CreateAndConnectClient();
+        var registered = new TaskCompletionSource<RegisterServiceResponse>();
+        service.Handle<RegisterServiceResponse>(registered.SetResult);
+
+        await service.SendToServer(new RegisterServiceRequest {RequestId = "2", Endpoint = "test-service"});
+        var response = await registered.Task.WaitAsync(TestTimeout);
+
+        response.Error.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task It_closes_the_connection_after_a_rejected_Connect_and_ignores_the_messages_behind_it()
+    {
+        _accessTokenValidator
+            .Setup(_ => _.Validate(It.IsAny<string>(), "invalid-token"))
+            .Throws(new InvalidOperationException("Invalid token"));
+        var subscriber = await CreateAndConnectClient();
+        await subscriber.SendToServer(RegisterRequest(new SubscribeMessage {Topic = "test-topic"}));
+        await WaitForCompletionAsync();
+        var client = CreateClient();
+        await _server.ClientConnected(client.Object);
+
+        await client.SendToServer(new ConnectRequest {AccessToken = "invalid-token"});
+        await client.SendToServer(new PublishMessage {Topic = "test-topic", Payload = MessageBuffer.Create("x")});
+        await WaitForCloseAsync(client);
+
+        client.Expect<ConnectResponse>(msg => msg.Error != null && msg.Error.Message == "Invalid token", Times.Once);
+        subscriber.Received.OfType<Protocol.Messages.TopicMessage>().Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task A_second_Connect_closes_the_connection()
+    {
+        var client = await CreateAndConnectClient();
+
+        await client.SendToServer(new ConnectRequest());
+
+        await WaitForCloseAsync(client);
+    }
+
+    [Theory]
+    [InlineData("ConnectResponse")]
+    [InlineData("SubscribeResponse")]
+    [InlineData("UnsubscribeResponse")]
+    [InlineData("PublishResponse")]
+    [InlineData("RegisterServiceResponse")]
+    [InlineData("UnregisterServiceResponse")]
+    [InlineData("Topic")]
+    public async Task Message_types_that_only_the_server_may_send_close_the_connection(string messageKind)
+    {
+        var client = await CreateAndConnectClient();
+
+        await client.SendToServer(CreateMessage(messageKind));
+
+        await WaitForCloseAsync(client);
+    }
+
+    [Fact]
+    public async Task The_gate_applies_when_no_access_token_validator_is_registered()
+    {
+        var server = CreateServer(null);
+        var client = CreateClient();
+        await server.ClientConnected(client.Object);
+
+        await client.SendToServer(new PublishMessage {Topic = "test-topic"});
+
+        await WaitForCloseAsync(client);
+    }
+
+    [Fact]
+    public async Task A_Publish_sent_right_behind_Connect_without_waiting_for_the_response_is_delivered()
+    {
+        var subscriber = await CreateAndConnectClient();
+        await subscriber.SendToServer(RegisterRequest(new SubscribeMessage {Topic = "test-topic"}));
+        await WaitForCompletionAsync();
+        var publisher = CreateClient();
+        await _server.ClientConnected(publisher.Object);
+
+        await publisher.SendToServer(new ConnectRequest());
+        await publisher.SendToServer(
+            new PublishMessage {Topic = "test-topic", Payload = MessageBuffer.Create("test-payload")});
+        await WaitUntilAsync(() => subscriber.Received.OfType<Protocol.Messages.TopicMessage>().Any());
+
+        WasClosed(publisher).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task A_connection_that_never_sends_Connect_is_closed_after_the_connect_timeout()
+    {
+        var server = CreateServer(null, TimeSpan.FromMilliseconds(100));
+        var client = CreateClient();
+
+        await server.ClientConnected(client.Object);
+
+        await WaitForCloseAsync(client);
+    }
+
+    [Fact]
+    public async Task The_connect_timeout_does_not_close_a_client_that_has_connected()
+    {
+        var server = CreateServer(null, TimeSpan.FromMilliseconds(100));
+        var client = CreateClient();
+        await server.ClientConnected(client.Object);
+        await client.Connect();
+
+        await Task.Delay(TimeSpan.FromMilliseconds(500));
+
+        WasClosed(client).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task A_connection_that_supports_it_is_closed_with_the_reason_of_the_violation()
+    {
+        var connection = new PolicyViolationConnection();
+        await _server.ClientConnected(connection);
+
+        await connection.SendToServer(new PublishMessage {Topic = "test-topic"});
+        await WaitUntilAsync(() => connection.PolicyViolationReason != null, "the server to close the connection");
+
+        connection.PolicyViolationReason.Should().Be("Message received before the connection request");
+        connection.CloseCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task A_failure_while_closing_the_connection_is_logged()
+    {
+        var logger = new Mock<ILogger<MessageRouterServer>>();
+        var server = new MessageRouterServer(new MessageRouterServerDependencies(null, null), logger.Object);
+        var client = CreateClient();
+        client.Setup(_ => _.CloseAsync()).Throws(new InvalidOperationException("Close failed"));
+        await server.ClientConnected(client.Object);
+
+        await client.SendToServer(new PublishMessage {Topic = "test-topic"});
+
+        await WaitUntilAsync(
+            () => logger.Invocations.Any(invocation => invocation.Arguments[0] is LogLevel.Error),
+            "the failure to be logged");
+    }
     public MessageRouterServerTests()
     {
         _server = CreateServer(_accessTokenValidator.Object);
@@ -351,8 +521,8 @@ public class MessageRouterServerTests
     private Mock<IAccessTokenValidator> _accessTokenValidator = new();
     private MessageRouterDiagnosticObserver _diagnosticObserver;
 
-    private MessageRouterServer CreateServer(IAccessTokenValidator? accessTokenValidator) =>
-        new MessageRouterServer(new MessageRouterServerDependencies(accessTokenValidator));
+    private MessageRouterServer CreateServer(IAccessTokenValidator? accessTokenValidator, TimeSpan? connectTimeout = null) =>
+        new MessageRouterServer(new MessageRouterServerDependencies(accessTokenValidator, connectTimeout));
 
     private MockClientConnection CreateClient() => new();
 
@@ -367,6 +537,47 @@ public class MessageRouterServerTests
 
     private static readonly TimeSpan TestTimeout = TimeSpan.FromSeconds(2);
 
+    private static Message CreateMessage(string kind) =>
+        kind switch
+        {
+            "Subscribe" => new SubscribeMessage {RequestId = "1", Topic = "test-topic"},
+            "Unsubscribe" => new UnsubscribeMessage {RequestId = "1", Topic = "test-topic"},
+            "Publish" => new PublishMessage {Topic = "test-topic", Payload = MessageBuffer.Create("test-payload")},
+            "Invoke" => new InvokeRequest {RequestId = "1", Endpoint = "test-service"},
+            "InvokeResponse" => new InvokeResponse {RequestId = "1"},
+            "RegisterService" => new RegisterServiceRequest {RequestId = "1", Endpoint = "test-service"},
+            "UnregisterService" => new UnregisterServiceRequest {RequestId = "1", Endpoint = "test-service"},
+            "ConnectResponse" => new ConnectResponse {ClientId = "client"},
+            "SubscribeResponse" => new SubscribeResponse {RequestId = "1"},
+            "UnsubscribeResponse" => new UnsubscribeResponse {RequestId = "1"},
+            "PublishResponse" => new PublishResponse {RequestId = "1"},
+            "RegisterServiceResponse" => new RegisterServiceResponse {RequestId = "1"},
+            "UnregisterServiceResponse" => new UnregisterServiceResponse {RequestId = "1"},
+            "Topic" => new Protocol.Messages.TopicMessage {Topic = "test-topic", SourceId = "client"},
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
+        };
+
+    private static bool WasClosed(MockClientConnection client) =>
+        client.Invocations.Any(invocation => invocation.Method.Name == nameof(IClientConnection.CloseAsync));
+
+    private static Task WaitForCloseAsync(MockClientConnection client) =>
+        WaitUntilAsync(() => WasClosed(client), "the server to close the connection");
+
+    private static async Task WaitUntilAsync(Func<bool> condition, string description = "the condition")
+    {
+        var deadline = DateTime.UtcNow + TestTimeout;
+
+        while (!condition())
+        {
+            if (DateTime.UtcNow > deadline)
+            {
+                throw new TimeoutException($"Timed out waiting for {description}.");
+            }
+
+            await Task.Delay(10);
+        }
+    }
+
     private TMessage RegisterRequest<TMessage>(TMessage message) where TMessage : Message
     {
         return _diagnosticObserver.RegisterRequest(message);
@@ -375,5 +586,37 @@ public class MessageRouterServerTests
     private async Task WaitForCompletionAsync()
     {
         await _diagnosticObserver.WaitForCompletionAsync(TestTimeout);
+    }
+
+    private sealed class PolicyViolationConnection : IClientConnection, ICloseWithPolicyViolation
+    {
+        public string? PolicyViolationReason { get; private set; }
+
+        public int CloseCount { get; private set; }
+
+        public ValueTask SendToServer(Message message) => _incoming.Writer.WriteAsync(message);
+
+        public ValueTask SendAsync(Message message, CancellationToken cancellationToken = default) => default;
+
+        public ValueTask<Message> ReceiveAsync(CancellationToken cancellationToken = default) =>
+            _incoming.Reader.ReadAsync(cancellationToken);
+
+        public ValueTask CloseAsync()
+        {
+            CloseCount++;
+            _incoming.Writer.TryComplete();
+
+            return default;
+        }
+
+        public ValueTask CloseWithPolicyViolationAsync(string reason)
+        {
+            PolicyViolationReason = reason;
+            _incoming.Writer.TryComplete();
+
+            return default;
+        }
+
+        private readonly Channel<Message> _incoming = Channel.CreateUnbounded<Message>();
     }
 }

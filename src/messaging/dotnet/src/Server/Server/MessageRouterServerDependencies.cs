@@ -15,10 +15,19 @@ namespace MorganStanley.ComposeUI.Messaging.Server;
 internal class MessageRouterServerDependencies
 {
     public MessageRouterServerDependencies(
-        IAccessTokenValidator? accessTokenValidator = null)
+        IAccessTokenValidator? accessTokenValidator = null,
+        TimeSpan? connectTimeout = null)
     {
         AccessTokenValidator = accessTokenValidator;
+        ConnectTimeout = connectTimeout ?? DefaultConnectTimeout;
     }
 
     public IAccessTokenValidator? AccessTokenValidator { get; }
+
+    /// <summary>
+    /// How long a connection may stay open without sending a Connect request.
+    /// </summary>
+    public TimeSpan ConnectTimeout { get; }
+
+    private static readonly TimeSpan DefaultConnectTimeout = TimeSpan.FromSeconds(10);
 }
