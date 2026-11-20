@@ -46,5 +46,11 @@ public sealed class Fdc3DesktopAgentOptions : IOptions<Fdc3DesktopAgentOptions>
     /// </summary>
     public TimeSpan ListenerRegistrationTimeout { get; set; } = TimeSpan.FromSeconds(5);
 
+    /// <summary>
+    /// Allows the legacy ResolverUI contract, in which the resolver returns the selected app itself instead of the id of one of the offered candidates.
+    /// It is off by default. When it is on, the Desktop Agent uses the legacy endpoint and logs a warning, because it trusts the app that the resolver names.
+    /// </summary>
+    public bool AllowLegacyResolverUI { get; set; }
+
     Fdc3DesktopAgentOptions IOptions<Fdc3DesktopAgentOptions>.Value => this;
 }

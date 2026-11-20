@@ -16,10 +16,13 @@ using System.Text.Json;
 using Finos.Fdc3;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.DependencyInjection;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Converters;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Abstractions.Exceptions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
@@ -28,15 +31,18 @@ internal class ResolverUICommunicator : IResolverUICommunicator
     private readonly ILogger<ResolverUICommunicator> _logger;
     private readonly IMessaging _messaging;
     private readonly TimeSpan _defaultTimeout = TimeSpan.FromMinutes(2);
+    private readonly bool _allowLegacyResolverUI;
 
     private readonly JsonSerializerOptions _jsonSerializerOptions = SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization;
     
     public ResolverUICommunicator(
         IMessaging messaging,
-        ILogger<ResolverUICommunicator>? logger = null)
+        ILogger<ResolverUICommunicator>? logger = null,
+        IOptions<Fdc3DesktopAgentOptions>? options = null)
     {
         _messaging = messaging;
         _logger = logger ?? NullLogger<ResolverUICommunicator>.Instance;
+        _allowLegacyResolverUI = options?.Value.AllowLegacyResolverUI ?? false;
     }
 
     public async Task<ResolverUIResponse?> SendResolverUIRequestAsync(IEnumerable<IAppMetadata> appMetadata, CancellationToken cancellationToken = default)
@@ -57,13 +63,51 @@ internal class ResolverUICommunicator : IResolverUICommunicator
                 Error = ResolveError.ResolverTimeout
             };
         }
+        catch (JsonException ex)
+        {
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning(ex, "The response of the ResolverUI could not be read.");
+            }
+
+            return new ResolverUIResponse()
+            {
+                Error = ResolveError.ResolverUnavailable
+            };
+        }
+        catch (MessagingException ex)
+        {
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning(
+                    ex,
+                    "The ResolverUI could not be reached on the {Topic} topic ({ErrorName}). If it does not host this endpoint, for example it only hosts the legacy endpoint while the legacy contract is not allowed, it is not used.",
+                    _allowLegacyResolverUI ? Fdc3Topic.LegacyResolverUI : Fdc3Topic.ResolverUI,
+                    ex.Name);
+            }
+
+            return new ResolverUIResponse()
+            {
+                Error = ResolveError.ResolverUnavailable
+            };
+        }
     }
 
     private async Task<ResolverUIResponse?> SendResolverUIRequestCore(IEnumerable<IAppMetadata> appMetadata, CancellationToken cancellationToken = default)
     {
+        if (_allowLegacyResolverUI)
+        {
+            return await SendLegacyResolverUIRequestCore(appMetadata, cancellationToken).ConfigureAwait(false);
+        }
+
+        // The ids are generated per request, so a response can only select an app that was offered in this very request.
+        var candidates = appMetadata
+            .Select(app => new ResolverUICandidate { Id = Guid.NewGuid().ToString("N"), AppMetadata = app })
+            .ToArray();
+
         var request = new ResolverUIRequest
         {
-            AppMetadata = appMetadata
+            Candidates = candidates
         };
 
         var response = await _messaging.InvokeJsonServiceAsync<ResolverUIRequest, ResolverUIResponse>(
@@ -72,7 +116,51 @@ internal class ResolverUICommunicator : IResolverUICommunicator
             _jsonSerializerOptions,
             cancellationToken).ConfigureAwait(false);
 
-        return response;
+        if (response == null)
+        {
+            return null;
+        }
+
+        if (response.Error != null)
+        {
+            return new ResolverUIResponse { Error = response.Error };
+        }
+
+        // Only the id is used from the response: the app is always the one that the Desktop Agent offered.
+        var selected = string.IsNullOrEmpty(response.SelectedCandidateId)
+            ? null
+            : candidates.FirstOrDefault(candidate => string.Equals(candidate.Id, response.SelectedCandidateId, StringComparison.Ordinal));
+
+        if (selected == null)
+        {
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning("The ResolverUI did not select any of the apps that were offered, so the raised intent is not delivered.");
+            }
+
+            return new ResolverUIResponse { Error = ResolveError.ResolverUnavailable };
+        }
+
+        return new ResolverUIResponse { AppMetadata = selected.AppMetadata };
+    }
+
+    private async Task<ResolverUIResponse?> SendLegacyResolverUIRequestCore(IEnumerable<IAppMetadata> appMetadata, CancellationToken cancellationToken)
+    {
+        if (_logger.IsEnabled(LogLevel.Warning))
+        {
+            _logger.LogWarning("The legacy ResolverUI contract is used, in which the Desktop Agent trusts the app that the ResolverUI names. It is deprecated and is going to be removed.");
+        }
+
+        var request = new ResolverUIRequest
+        {
+            AppMetadata = appMetadata
+        };
+
+        return await _messaging.InvokeJsonServiceAsync<ResolverUIRequest, ResolverUIResponse>(
+            Fdc3Topic.LegacyResolverUI,
+            request,
+            _jsonSerializerOptions,
+            cancellationToken).ConfigureAwait(false);
     }
 
 
@@ -93,6 +181,18 @@ internal class ResolverUICommunicator : IResolverUICommunicator
             return new ResolverUIIntentResponse
             {
                 Error = ResolveError.ResolverTimeout
+            };
+        }
+        catch (MessagingException ex)
+        {
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning(ex, "The ResolverUI could not be reached on the {Topic} topic ({ErrorName}).", Fdc3Topic.ResolverUIIntent, ex.Name);
+            }
+
+            return new ResolverUIIntentResponse
+            {
+                Error = ResolveError.ResolverUnavailable
             };
         }
     }

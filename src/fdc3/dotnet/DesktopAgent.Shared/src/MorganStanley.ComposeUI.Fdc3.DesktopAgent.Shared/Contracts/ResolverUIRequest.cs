@@ -22,7 +22,14 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 public class ResolverUIRequest
 {
     /// <summary>
+    /// The apps that can resolve the raised intent, each with an id for this request.
+    /// The resolver selects one of them by returning its id in <see cref="ResolverUIResponse.SelectedCandidateId"/>.
+    /// </summary>
+    public IEnumerable<ResolverUICandidate> Candidates { get; set; } = Array.Empty<ResolverUICandidate>();
+
+    /// <summary>
     /// Possible list of AppMetadata that can resolve the raised intent.
+    /// Only the legacy contract uses it, which is served only when it is allowed.
     /// </summary>
     public IEnumerable<IAppMetadata> AppMetadata { get; set; }
 }

@@ -70,6 +70,7 @@ This registers the FDC3 Desktop Agent service in your application, enabling its 
 - `UserChannelConfig`: (Optional) An array of user channel definitions (`ChannelItem[]`) to configure available user channels directly in code or configuration.
 - `IntentResultTimeout`: (Optional) Timeout for receiving intent results from the backend (default: 5 seconds).
 - `ListenerRegistrationTimeout`: (Optional) Timeout for registering listeners when launching a new FDC3 app instance (default: 5 seconds).
+- `AllowLegacyResolverUI`: (Optional) Allows the legacy ResolverUI contract (default: `false`). By default the Desktop Agent offers the apps to the ResolverUI with ids that it generates for each request, on the `ComposeUI/fdc3/v2.0/v2/resolverUI` topic, and accepts only the id of one of them. A custom ResolverUI on the old `ComposeUI/fdc3/v2.0/resolverUI` topic is not called then, and the raised intent fails with `ResolverUnavailable`. Set it to `true` to keep using such a resolver for now. It is deprecated, and the Desktop Agent trusts the app that the resolver names.
 
 All options can be set via the `Fdc3DesktopAgentOptions` class or in your configuration file.
 

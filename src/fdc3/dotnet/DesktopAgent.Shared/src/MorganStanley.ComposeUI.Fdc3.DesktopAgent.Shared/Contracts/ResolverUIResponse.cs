@@ -22,7 +22,14 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 public class ResolverUIResponse
 {
     /// <summary>
+    /// The id of the <see cref="ResolverUICandidate"/> that the user chose to handle the raised intent.
+    /// </summary>
+    public string? SelectedCandidateId { get; set; }
+
+    /// <summary>
     /// The chosen app to send the raised intent to handle.
+    /// Only the legacy contract uses it, which is served only when it is allowed.
+    /// The Desktop Agent returns its own metadata of the chosen candidate here.
     /// </summary>
     public IAppMetadata? AppMetadata { get; set; }
 

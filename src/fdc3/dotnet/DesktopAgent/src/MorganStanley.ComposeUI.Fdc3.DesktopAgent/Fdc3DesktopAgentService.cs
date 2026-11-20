@@ -894,7 +894,12 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
         var resolverUIResult = await _resolverUI.SendResolverUIRequestAsync(appIntent.Apps, resolverUICancellationTokenSource.Token).ConfigureAwait(false);
         if (resolverUIResult != null && resolverUIResult.Error == null)
         {
-            raiseIntentSpecification.TargetAppMetadata = (AppMetadata) resolverUIResult.AppMetadata!;
+            if (resolverUIResult.AppMetadata is not AppMetadata selectedApp)
+            {
+                return ResolverUIReturnedNoOfferedApp();
+            }
+
+            raiseIntentSpecification.TargetAppMetadata = selectedApp;
             return await RaiseIntentToApplicationAsync(raiseIntentSpecification).ConfigureAwait(false);
         }
 
@@ -980,7 +985,12 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
 
         if (result != null && result.Error == null)
         {
-            raiseIntentSpecification.TargetAppMetadata = (AppMetadata) result.AppMetadata!;
+            if (result.AppMetadata is not AppMetadata selectedApp)
+            {
+                return ResolverUIReturnedNoOfferedApp();
+            }
+
+            raiseIntentSpecification.TargetAppMetadata = selectedApp;
             return await RaiseIntentToApplicationAsync(raiseIntentSpecification).ConfigureAwait(false);
         }
 
@@ -1035,6 +1045,16 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
                 yield return appIntent;
             }
         }
+    }
+
+    private RaiseIntentResult<RaiseIntentResponse> ResolverUIReturnedNoOfferedApp()
+    {
+        _logger.LogWarning("The ResolverUI did not return one of the apps that the Desktop Agent offered, so the raised intent is not delivered.");
+
+        return new()
+        {
+            Response = RaiseIntentResponse.Failure(ResolveError.ResolverUnavailable)
+        };
     }
 
     //Here we have a specific application which should either start or we should send a intent resolution request
