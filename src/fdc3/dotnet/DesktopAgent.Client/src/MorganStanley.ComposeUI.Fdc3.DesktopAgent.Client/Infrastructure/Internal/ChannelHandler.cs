@@ -29,6 +29,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Intern
 internal class ChannelHandler : IChannelHandler
 {
     private readonly IMessaging _messaging;
+    private readonly string _appId;
     private readonly string _instanceId;
     private readonly IDesktopAgent _desktopAgent;
     private readonly IContext? _openedAppContext;
@@ -40,12 +41,14 @@ internal class ChannelHandler : IChannelHandler
 
     public ChannelHandler(
         IMessaging messaging,
+        string appId,
         string fdc3InstanceId,
         IDesktopAgent desktopAgent,
         IContext? openedAppContext = null,
         ILoggerFactory? loggerFactory = null)
     {
         _messaging = messaging;
+        _appId = appId ?? throw new ArgumentNullException(nameof(appId));
         _instanceId = fdc3InstanceId;
         _desktopAgent = desktopAgent;
         _openedAppContext = openedAppContext;
@@ -114,6 +117,7 @@ internal class ChannelHandler : IChannelHandler
             channelId: channelId,
             channelType: ChannelType.App,
             messaging: _messaging,
+            appId: _appId,
             instanceId: _instanceId,
             displayMetadata: null,
             loggerFactory: _loggerFactory);
@@ -164,8 +168,9 @@ internal class ChannelHandler : IChannelHandler
             var userChannel = new Channel(
                 channelId: channel.Id,
                 channelType: ChannelType.User,
-                instanceId: _instanceId,
                 messaging: _messaging,
+                appId: _appId,
+                instanceId: _instanceId,
                 displayMetadata: channel.DisplayMetadata,
                 loggerFactory: _loggerFactory);
 
@@ -206,8 +211,9 @@ internal class ChannelHandler : IChannelHandler
         var channel = new Channel(
             channelId: channelId,
             channelType: ChannelType.User,
-            instanceId: _instanceId,
             messaging: _messaging,
+            appId: _appId,
+            instanceId: _instanceId,
             openedAppContext: _openedAppContext,
             displayMetadata: response.DisplayMetadata,
             loggerFactory: _loggerFactory);
@@ -266,8 +272,9 @@ internal class ChannelHandler : IChannelHandler
         return new Channel(
             channelId: channelId,
             channelType: channelType,
-            instanceId: _instanceId,
             messaging: _messaging,
+            appId: _appId,
+            instanceId: _instanceId,
             openedAppContext: _openedAppContext,
             loggerFactory: _loggerFactory);
     }
@@ -296,8 +303,9 @@ internal class ChannelHandler : IChannelHandler
 
         var channel = new PrivateChannel(
             channelId: response.ChannelId!,
-            instanceId: _instanceId,
             messaging: _messaging,
+            appId: _appId,
+            instanceId: _instanceId,
             isOriginalCreator: true,
             onDisconnect: () => _privateChannels.TryRemove(response.ChannelId!, out _),
             displayMetadata: null,
@@ -374,8 +382,9 @@ internal class ChannelHandler : IChannelHandler
             channelId, 
             new PrivateChannel(
                 channelId: channelId,
-                instanceId: _instanceId,
                 messaging: _messaging,
+                appId: _appId,
+                instanceId: _instanceId,
                 isOriginalCreator: false,
                 onDisconnect: () => _privateChannels.TryRemove(channelId, out _),
                 displayMetadata: null,

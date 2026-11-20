@@ -48,13 +48,14 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
     public PrivateChannel(
         string channelId, 
-        IMessaging messaging, 
+        IMessaging messaging,
+        string appId,
         string instanceId,
         bool isOriginalCreator,
         Action onDisconnect,
         DisplayMetadata? displayMetadata = null,
         ILoggerFactory? loggerFactory = null) 
-        : base(channelId, ChannelType.Private, messaging, instanceId, null, displayMetadata, loggerFactory)
+        : base(channelId, ChannelType.Private, messaging, appId, instanceId, null, displayMetadata, loggerFactory)
     {
         _privateChannelTopics = Fdc3Topic.PrivateChannel(channelId);
         _internalEventsTopic = _privateChannelTopics.Events;

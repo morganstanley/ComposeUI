@@ -157,7 +157,7 @@ public class DesktopAgentClient : IDesktopAgent, IAsyncDisposable
                 await GetOpenedAppContextAsync(openedAppContextId!).ConfigureAwait(false);
             }
 
-            _channelHandler = new ChannelHandler(_messaging, _instanceId, this, _openedAppContext, _loggerFactory);
+            _channelHandler = new ChannelHandler(_messaging, _appId, _instanceId, this, _openedAppContext, _loggerFactory);
             _intentsClient = new IntentsClient(_messaging, _channelHandler, _instanceId, _loggerFactory);
 
             await _channelHandler.ConfigureChannelSelectorAsync().ConfigureAwait(false);

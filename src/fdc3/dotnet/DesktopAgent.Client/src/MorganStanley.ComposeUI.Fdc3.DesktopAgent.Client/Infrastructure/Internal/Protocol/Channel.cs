@@ -32,6 +32,7 @@ internal class Channel : IChannel
 {
     private readonly string _channelId;
     private readonly ChannelType _channelType;
+    private readonly string _appId;
     private readonly string _instanceId;
     private readonly IMessaging _messaging;
     private readonly IContext? _openedAppContext;
@@ -49,6 +50,7 @@ internal class Channel : IChannel
         string channelId,
         ChannelType channelType,
         IMessaging messaging,
+        string appId,
         string instanceId,
         IContext? openedAppContext = null,
         DisplayMetadata? displayMetadata = null,
@@ -56,6 +58,7 @@ internal class Channel : IChannel
     {
         _channelId = channelId ?? throw ThrowHelper.MissingChannelId();
         _channelType = channelType;
+        _appId = appId ?? throw new ArgumentNullException(nameof(appId));
         _instanceId = instanceId;
         _messaging = messaging;
         _openedAppContext = openedAppContext;
@@ -101,12 +104,12 @@ internal class Channel : IChannel
 
             _lastContext = context;
 
-            // FDC3 3.0: Create fresh metadata with source information for this broadcast
+            // FDC3 3.0: Create fresh metadata with source application information for this broadcast
             var metadata = new ContextMetadata
             {
                 Source = new AppIdentifier
                 {
-                    AppId = _instanceId,
+                    AppId = _appId,
                     InstanceId = _instanceId
                 }
             };
