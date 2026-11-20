@@ -21,6 +21,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 using DisplayMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.DisplayMetadata;
+using SystemAction = System.Action;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal.Protocol;
 
@@ -28,7 +29,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 {
     private readonly ILogger<PrivateChannel> _logger;
     private readonly PrivateChannelTopics _privateChannelTopics;
-    private readonly Action _onDisconnect;
+    private readonly SystemAction _onDisconnect;
     private readonly string _internalEventsTopic;
     private readonly bool _isOriginalCreator;
     private readonly string _remoteContextListenersService;
@@ -52,7 +53,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
         string appId,
         string instanceId,
         bool isOriginalCreator,
-        Action onDisconnect,
+        SystemAction onDisconnect,
         DisplayMetadata? displayMetadata = null,
         ILoggerFactory? loggerFactory = null) 
         : base(channelId, ChannelType.Private, messaging, appId, instanceId, null, displayMetadata, loggerFactory)
@@ -172,7 +173,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
             _isDisconnected = true;
             foreach (var handler in _addContextListenerHandlers)
             {
-                handler.UnsubscribeCore(false);
+                await handler.UnsubscribeCoreAsync(false).ConfigureAwait(false);
 
                 if (_logger.IsEnabled(LogLevel.Trace))
                 {
@@ -182,7 +183,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
             foreach (var handler in _unsubscribeHandlers)
             {
-                handler.UnsubscribeCore(false);
+                await handler.UnsubscribeCoreAsync(false).ConfigureAwait(false);
 
                 if (_logger.IsEnabled(LogLevel.Trace))
                 {
@@ -192,7 +193,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
             foreach (var handler in _disconnectHandlers)
             {
-                handler.UnsubscribeCore(false);
+                await handler.UnsubscribeCoreAsync(false).ConfigureAwait(false);
 
                 if (_logger.IsEnabled(LogLevel.Trace))
                 {
@@ -281,7 +282,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
         }
     }
 
-    public IListener OnDisconnect(Action handler)
+    public IListener OnDisconnect(SystemAction handler)
     {
         try
         {

@@ -60,9 +60,18 @@ internal class IntentResolution : IIntentResolution
     /// <summary>
     /// FDC3 3.0 - Gets the metadata of the intent result asynchronously.
     /// </summary>
-    public async Task<IContextMetadata?> GetResultMetadata()
+    public async Task<IContextMetadata> GetResultMetadata()
     {
-        return await Task.FromResult(_resultMetadata);
+        return await Task.FromResult<IContextMetadata>(
+            _resultMetadata ?? new ContextMetadata
+            {
+                Source = new AppIdentifier
+                {
+                    AppId = Source.AppId,
+                    InstanceId = Source.InstanceId
+                },
+                Timestamp = DateTime.UtcNow
+            });
     }
 
     public async Task<IIntentResult?> GetResult()

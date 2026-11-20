@@ -207,7 +207,7 @@ internal class Channel : IChannel
         }
     }
 
-    public virtual async Task<IContextMetadata?> GetCurrentContextWithMetadata(string? contextType)
+    public virtual async Task<IContextWithMetadata?> GetCurrentContextWithMetadata(string? contextType)
     {
         try
         {
@@ -220,19 +220,33 @@ internal class Channel : IChannel
                 request,
                 _jsonSerializerOptions).ConfigureAwait(false);
 
-            if (response?.Metadata != null)
+            if (response?.Context == null)
             {
-                _lastContextMetadata = response.Metadata;
-                if (!string.IsNullOrEmpty(contextType))
-                {
-                    _lastContextMetadatas.AddOrUpdate(
-                        contextType,
-                        (key) => response.Metadata,
-                        (key, existingMetadata) => response.Metadata);
-                }
+                return null;
             }
 
-            return response?.Metadata;
+            var context = JsonSerializer.Deserialize<IContext>(response.Context, _jsonSerializerOptions);
+            if (context == null)
+            {
+                return null;
+            }
+
+            var metadata = response.Metadata ?? new ContextMetadata
+            {
+                Source = new AppIdentifier
+                {
+                    AppId = _appId,
+                    InstanceId = _instanceId
+                },
+                Timestamp = DateTime.UtcNow
+            };
+
+            _lastContext = context;
+            _lastContextMetadata = metadata;
+            _lastContexts.AddOrUpdate(context.Type, _ => context, (_, _) => context);
+            _lastContextMetadatas.AddOrUpdate(context.Type, _ => metadata, (_, _) => metadata);
+
+            return new ContextWithMetadata(context, metadata);
         }
         catch (Exception exception)
         {
@@ -279,5 +293,17 @@ internal class Channel : IChannel
         {
             await Task.CompletedTask;
         }
+    }
+
+    private class ContextWithMetadata : IContextWithMetadata
+    {
+        public ContextWithMetadata(IContext context, IContextMetadata metadata)
+        {
+            Context = context;
+            Metadata = metadata;
+        }
+
+        public IContext Context { get; }
+        public IContextMetadata Metadata { get; }
     }
 }
