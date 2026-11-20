@@ -461,8 +461,8 @@ public class DesktopAgentClientTests : IAsyncLifetime
         result.Should().BeEquivalentTo(
             new[]
             {
-                new Channel("1", ChannelType.User, messagingMock.Object, It.IsAny<string>(), It.IsAny<string>(), null, new DisplayMetadata { Name = "1" }, It.IsAny<ILoggerFactory>()),
-                new Channel("2", ChannelType.User, messagingMock.Object, It.IsAny<string>(), It.IsAny<string>(), null, new DisplayMetadata { Name = "2" }, It.IsAny<ILoggerFactory>())
+                new Channel("1", ChannelType.User, messagingMock.Object, "test-app", "test-instance", null, new DisplayMetadata { Name = "1" }, It.IsAny<ILoggerFactory>()),
+                new Channel("2", ChannelType.User, messagingMock.Object, "test-app", "test-instance", null, new DisplayMetadata { Name = "2" }, It.IsAny<ILoggerFactory>())
             });
     }
 
@@ -911,7 +911,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
         var channelFactoryMock = new Mock<IChannelHandler>();
         channelFactoryMock
             .Setup(_ => _.FindChannelAsync(It.IsAny<string>(), It.IsAny<ChannelType>()))
-            .ReturnsAsync(new Channel("test-channel-id", ChannelType.User, messagingMock.Object, It.IsAny<string>(), It.IsAny<string>(), null, It.IsAny<DisplayMetadata>(), It.IsAny<ILoggerFactory>()));
+            .ReturnsAsync(new Channel("test-channel-id", ChannelType.User, messagingMock.Object, "test-app", "test-instance", null, It.IsAny<DisplayMetadata>(), It.IsAny<ILoggerFactory>()));
 
         var findChannelResponse = new FindChannelResponse
         {
@@ -1024,7 +1024,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
         var channelFactoryMock = new Mock<IChannelHandler>();
         channelFactoryMock
             .Setup(_ => _.FindChannelAsync(It.IsAny<string>(), It.IsAny<ChannelType>()))
-            .ReturnsAsync(new Channel("test-channel-id", ChannelType.App, messagingMock.Object, It.IsAny<string>(), It.IsAny<string>(), null, It.IsAny<DisplayMetadata>(), It.IsAny<ILoggerFactory>()));
+            .ReturnsAsync(new Channel("test-channel-id", ChannelType.App, messagingMock.Object, "test-app", "test-instance", null, It.IsAny<DisplayMetadata>(), It.IsAny<ILoggerFactory>()));
 
         var findChannelResponse = new FindChannelResponse
         {
