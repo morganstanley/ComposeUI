@@ -14,6 +14,7 @@
 
 using Finos.Fdc3.AppDirectory;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using MorganStanley.ComposeUI.ModuleLoader;
 
 namespace MorganStanley.ComposeUI.Shell.Fdc3;
@@ -131,5 +132,44 @@ public class ComposeUIHostManifestMapperTests
 
         result.Should().NotBeNull();
         result.Url.Should().Be(new Uri(url));
+    }
+
+    [Fact]
+    public void MapModuleDetails_Should_Not_Log_An_Error_When_The_Url_Scheme_Is_Rejected()
+    {
+        // The module catalog logs the rejected app, so logging it here as well would report it twice.
+        var logger = new CapturingLogger();
+        var mapper = new ComposeUIHostManifestMapper(logger);
+        var fdc3App = new Fdc3App("testAppId", "testName", AppType.Web, new WebAppDetails("file:///C:/apps/index.html"));
+
+        var action = () => mapper.MapModuleDetails(fdc3App);
+
+        action.Should().Throw<NotSupportedException>();
+        logger.Entries.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void MapModuleDetails_Should_Still_Log_An_Error_For_Other_Failures()
+    {
+        var logger = new CapturingLogger();
+        var mapper = new ComposeUIHostManifestMapper(logger);
+        var fdc3App = new Fdc3App("testAppId", "testName", AppType.Web, new WebAppDetails("not a url"));
+
+        var action = () => mapper.MapModuleDetails(fdc3App);
+
+        action.Should().Throw<UriFormatException>();
+        logger.Entries.Should().ContainSingle().Which.Level.Should().Be(LogLevel.Error);
+    }
+
+    private sealed class CapturingLogger : ILogger<ComposeUIHostManifestMapper>
+    {
+        public List<(LogLevel Level, Exception? Exception)> Entries { get; } = new();
+
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) =>
+            Entries.Add((logLevel, exception));
     }
 }

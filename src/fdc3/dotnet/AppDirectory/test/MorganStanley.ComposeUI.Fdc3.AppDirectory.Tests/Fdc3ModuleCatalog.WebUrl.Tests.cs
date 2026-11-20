@@ -93,8 +93,28 @@ public class Fdc3ModuleCatalogWebUrlTests
         var manifests = await catalog.GetAllManifests();
 
         manifests.Select(manifest => manifest.Id).Should().BeEquivalentTo("app1", "app3");
-        VerifyWarningLogged(logger, "app2");
-        VerifyWarningLogged(logger, "app4");
+        VerifyLogged(logger, LogLevel.Warning, "app2");
+        VerifyLogged(logger, LogLevel.Warning, "app4");
+    }
+
+    [Fact]
+    public async Task GetAllManifests_warns_about_a_left_out_app_only_once_and_logs_later_calls_as_debug()
+    {
+        var logger = new Mock<ILogger<Fdc3ModuleCatalog>>();
+        var catalog = CreateCatalog(
+            logger.Object,
+            ("app1", "https://example.com/app1"),
+            ("app2", "file:///C:/apps/index.html"),
+            ("app4", "javascript:alert(1)"));
+
+        await catalog.GetAllManifests();
+        await catalog.GetAllManifests();
+        await catalog.GetAllManifests();
+
+        VerifyLogged(logger, LogLevel.Warning, "app2");
+        VerifyLogged(logger, LogLevel.Warning, "app4");
+        VerifyLogged(logger, LogLevel.Debug, "app2", Times.Exactly(2));
+        VerifyLogged(logger, LogLevel.Debug, "app4", Times.Exactly(2));
     }
 
     [Fact]
@@ -109,15 +129,15 @@ public class Fdc3ModuleCatalogWebUrlTests
         logger.Invocations.Where(invocation => invocation.Method.Name == nameof(ILogger.Log)).Should().BeEmpty();
     }
 
-    private static void VerifyWarningLogged(Mock<ILogger<Fdc3ModuleCatalog>> logger, string appId) =>
+    private static void VerifyLogged(Mock<ILogger<Fdc3ModuleCatalog>> logger, LogLevel level, string appId, Times? times = null) =>
         logger.Verify(
             l => l.Log(
-                LogLevel.Warning,
+                level,
                 It.IsAny<EventId>(),
                 It.Is<It.IsAnyType>((state, _) => state.ToString()!.Contains(appId)),
                 It.IsAny<Exception?>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
+            times ?? Times.Once());
 
     private static IModuleCatalog CreateCatalog(ILogger<Fdc3ModuleCatalog> logger, params (string AppId, string Url)[] apps)
     {

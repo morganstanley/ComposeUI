@@ -12,6 +12,7 @@
 * and limitations under the License.
 */
 
+using System.Collections.Concurrent;
 using MorganStanley.ComposeUI.ModuleLoader;
 using Finos.Fdc3.AppDirectory;
 using Microsoft.Extensions.Logging;
@@ -24,6 +25,7 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
     private readonly IAppDirectory _appDirectory;
     private readonly IHostManifestMapper? _hostManifestMapper;
     private readonly ILogger<Fdc3ModuleCatalog> _logger;
+    private readonly ConcurrentDictionary<string, byte> _reportedApps = new();
 
     public Fdc3ModuleCatalog(
         IAppDirectory fdc3AppDirectory,
@@ -126,7 +128,9 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
             catch (NotSupportedException exception)
             {
                 // One unusable app must not hide all the others.
-                _logger.LogWarning("The app {AppId} is left out of the module list: {Reason}", app.AppId, exception.Message);
+                // This runs on every call, so only the first one per app is a warning.
+                var level = _reportedApps.TryAdd(app.AppId, 0) ? LogLevel.Warning : LogLevel.Debug;
+                _logger.Log(level, "The app {AppId} is left out of the module list: {Reason}", app.AppId, exception.Message);
             }
         }
 
