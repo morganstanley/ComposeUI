@@ -9,7 +9,9 @@
       "declaration": true,
       "outDir": "output",
       "lib": [ "es2022", "DOM" ],
-      "strict": true
+      "strict": true,
+      "noImplicitReturns": true,
+      "noFallthroughCasesInSwitch": true
     },
     "files": [ "src/index.ts" ]
 }
