@@ -21,6 +21,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Abstractions.Exceptions;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppMetadata;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Infrastructure.Internal;
@@ -161,6 +162,29 @@ public class ResolverUICommunicatorTests
         var response = await communicator.SendResolverUIRequestAsync(new IAppMetadata[] { _app1, _app2 });
 
         response!.Error.Should().Be(ResolveError.ResolverUnavailable);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SendResolverUIRequest_returns_an_error_and_logs_a_warning_when_the_resolver_does_not_host_the_endpoint(bool allowLegacy)
+    {
+        var communicator = CreateCommunicator(
+            _ => throw new MessagingException("UnknownEndpoint", "The endpoint is not registered."),
+            allowLegacy);
+
+        var response = await communicator.SendResolverUIRequestAsync(new IAppMetadata[] { _app1, _app2 });
+
+        response!.Error.Should().Be(ResolveError.ResolverUnavailable);
+        response.AppMetadata.Should().BeNull();
+        _logger.Verify(
+            l => l.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((state, _) => state.ToString()!.Contains("could not be reached")),
+                It.IsAny<MessagingException>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
     }
 
     [Fact]

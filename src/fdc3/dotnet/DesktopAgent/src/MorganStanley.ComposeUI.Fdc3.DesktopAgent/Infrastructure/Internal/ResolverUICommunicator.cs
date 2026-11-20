@@ -22,6 +22,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Converters;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
+using MorganStanley.ComposeUI.Messaging.Abstractions.Exceptions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
@@ -67,6 +68,21 @@ internal class ResolverUICommunicator : IResolverUICommunicator
             if (_logger.IsEnabled(LogLevel.Warning))
             {
                 _logger.LogWarning(ex, "The response of the ResolverUI could not be read.");
+            }
+
+            return new ResolverUIResponse()
+            {
+                Error = ResolveError.ResolverUnavailable
+            };
+        }
+        catch (MessagingException ex)
+        {
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning(
+                    ex,
+                    "The ResolverUI could not be reached on the {Topic} topic. A ResolverUI that does not host this endpoint, for example one that only hosts the legacy endpoint while the legacy contract is not allowed, is not used.",
+                    _allowLegacyResolverUI ? Fdc3Topic.LegacyResolverUI : Fdc3Topic.ResolverUI);
             }
 
             return new ResolverUIResponse()
