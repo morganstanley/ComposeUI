@@ -30,5 +30,5 @@ public class ResolverUICandidate
     /// <summary>
     /// The app that can resolve the raised intent. It is meant to be shown to the user.
     /// </summary>
-    public IAppMetadata AppMetadata { get; set; } = null!;
+    public IAppMetadata AppMetadata { get; init; }
 }
