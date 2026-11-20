@@ -68,6 +68,19 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
         Task.Run(() => InitializeAsync());
     }
 
+    // Backward-compatible overload used by older tests/callers that do not pass appId.
+    public PrivateChannel(
+        string channelId,
+        IMessaging messaging,
+        string instanceId,
+        bool isOriginalCreator,
+        SystemAction onDisconnect,
+        DisplayMetadata? displayMetadata = null,
+        ILoggerFactory? loggerFactory = null)
+        : this(channelId, messaging, string.Empty, instanceId, isOriginalCreator, onDisconnect, displayMetadata, loggerFactory)
+    {
+    }
+
     private async ValueTask InitializeAsync()
     {
         try

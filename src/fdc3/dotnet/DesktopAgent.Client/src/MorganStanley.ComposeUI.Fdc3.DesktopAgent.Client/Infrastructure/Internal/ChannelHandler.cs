@@ -56,6 +56,17 @@ internal class ChannelHandler : IChannelHandler
         _logger = _loggerFactory.CreateLogger<ChannelHandler>();
     }
 
+    // Backward-compatible overload used by older tests/callers that do not pass appId.
+    public ChannelHandler(
+        IMessaging messaging,
+        string fdc3InstanceId,
+        IDesktopAgent desktopAgent,
+        IContext? openedAppContext = null,
+        ILoggerFactory? loggerFactory = null)
+        : this(messaging, string.Empty, fdc3InstanceId, desktopAgent, openedAppContext, loggerFactory)
+    {
+    }
+
     public async ValueTask<ContextListener<T>> CreateContextListenerAsync<T>(
         ContextHandler<T> contextHandler,
         IChannel? currentChannel = null,

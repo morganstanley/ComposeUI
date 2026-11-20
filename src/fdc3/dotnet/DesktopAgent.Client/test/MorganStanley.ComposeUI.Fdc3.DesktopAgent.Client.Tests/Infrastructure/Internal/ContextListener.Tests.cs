@@ -47,11 +47,11 @@ public class ContextListenerTests
     }
 
     [Fact]
-    public void Unsubscribe_does_nothing_when_not_subscribed_on_the_context_listener()
+    public async Task Unsubscribe_does_nothing_when_not_subscribed_on_the_context_listener()
     {
-        var act = () => _listener.Unsubscribe();
+        Func<Task> act = async () => await _listener.Unsubscribe();
 
-        act.Should().NotThrow();
+        await act.Should().NotThrowAsync();
 
         _messagingMock.Verify(
             m => m.InvokeServiceAsync(
@@ -97,9 +97,9 @@ public class ContextListenerTests
 
         await _listener.SubscribeAsync("channelId", ChannelType.App);
 
-        var act = () => _listener.Unsubscribe();
+        Func<Task> act = async () => await _listener.Unsubscribe();
 
-        act.Should().NotThrow();
+        await act.Should().NotThrowAsync();
         disposableMock.Verify(d => d.DisposeAsync(), Times.Once);
 
         _messagingMock.Verify(
@@ -145,8 +145,8 @@ public class ContextListenerTests
 
         await _listener.SubscribeAsync("channelId", ChannelType.App);
 
-        Action act = () => _listener.Unsubscribe();
-        act.Should().Throw<InvalidOperationException>().WithMessage("Dispose error");
+        Func<Task> act = async () => await _listener.Unsubscribe();
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("Dispose error");
     }
 
     [Fact]

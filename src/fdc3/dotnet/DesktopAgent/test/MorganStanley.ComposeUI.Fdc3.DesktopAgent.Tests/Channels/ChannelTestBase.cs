@@ -125,7 +125,7 @@ public abstract class ChannelTestBase
     private int _counter;
     private GetCurrentContextRequest RequestWithContextType => new GetCurrentContextRequest { ContextType = new Contact().Type };
     private GetCurrentContextRequest RequestWithOtherContextType => new GetCurrentContextRequest { ContextType = new Email(null).Type };
-    private Contact GetContext() => new Contact(new ContactID() { Email = $"test{_counter}@test.org", FdsId = $"test{_counter++}" }, "Testy Tester");
+    private Contact GetContext() => new Contact(new ContactID() { Email = $"test{_counter}@test.org", FDS_ID = $"test{_counter++}" }, "Testy Tester");
     private GetCurrentContextRequest RequestWithDifferentContextType => new GetCurrentContextRequest { ContextType = new Currency().Type };
     private Currency GetDifferentContext() => new Currency(new CurrencyID() { CURRENCY_ISOCODE = "HUF" });
 
