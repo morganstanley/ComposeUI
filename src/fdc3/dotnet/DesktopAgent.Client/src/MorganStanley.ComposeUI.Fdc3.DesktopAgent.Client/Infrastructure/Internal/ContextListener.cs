@@ -75,40 +75,34 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
         _logger = logger ?? NullLogger<ContextListener<T>>.Instance;
     }
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
-        Unsubscribe();
-        return new ValueTask();
+        await Unsubscribe();
     }
 
-    public void Unsubscribe()
+    public async Task Unsubscribe()
     {
         try
         {
-            _subscriptionLock.Wait();
+            await _subscriptionLock.WaitAsync().ConfigureAwait(false);
             if (!_isSubscribed)
             {
                 return;
             }
 
-            async Task UnregisterAndCatchAsync()
+            try
             {
-                try
-                {
-                    await UnregisterContextListenerAsync();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error during UnregisterContextListenerAsync.");
-                }
+                await UnregisterContextListenerAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during UnregisterContextListenerAsync.");
             }
 
-            _ = UnregisterAndCatchAsync();
-
-            _subscription?.DisposeAsync()
-                .ConfigureAwait(false)
-                .GetAwaiter()
-                .GetResult();
+            if (_subscription != null)
+            {
+                await _subscription.DisposeAsync().ConfigureAwait(false);
+            }
 
             _isSubscribed = false;
 

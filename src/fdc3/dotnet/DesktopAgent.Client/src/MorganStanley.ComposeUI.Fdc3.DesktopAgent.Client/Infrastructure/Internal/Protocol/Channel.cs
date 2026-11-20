@@ -93,6 +93,12 @@ internal class Channel : IChannel
 
     public virtual async Task Broadcast(IContext context)
     {
+        // Call the new FDC3 3.0 method with null metadata (internally generated)
+        await Broadcast(context, null).ConfigureAwait(false);
+    }
+
+    public virtual async Task Broadcast(IContext context, IAppProvidableContextMetadata? metadata)
+    {
         try
         {
             await _lastContextLock.WaitAsync().ConfigureAwait(false);
@@ -105,20 +111,25 @@ internal class Channel : IChannel
             _lastContext = context;
 
             // FDC3 3.0: Create fresh metadata with source application information for this broadcast
-            var metadata = new ContextMetadata
+            var contextMetadata = new ContextMetadata
             {
                 Source = new AppIdentifier
                 {
                     AppId = _appId,
                     InstanceId = _instanceId
-                }
+                },
+                Timestamp = DateTime.UtcNow,
+                TraceId = metadata?.TraceId,
+                Signature = metadata?.Signature,
+                AntiReplay = metadata?.AntiReplay,
+                Custom = metadata?.Custom
             };
 
             // Publish both context and metadata as a payload
             var payload = new BroadcastPayload
             {
                 Context = JsonSerializer.Serialize(context, _jsonSerializerOptions),
-                Metadata = metadata
+                Metadata = contextMetadata
             };
 
             await _messaging.PublishJsonAsync(
@@ -193,6 +204,80 @@ internal class Channel : IChannel
         finally
         {
             _lastContextLock.Release();
+        }
+    }
+
+    public virtual async Task<IContextMetadata?> GetCurrentContextWithMetadata(string? contextType)
+    {
+        try
+        {
+            await _lastContextLock.WaitAsync().ConfigureAwait(false);
+            
+            var request = new GetCurrentContextRequest { ContextType = contextType };
+
+            var response = await _messaging.InvokeJsonServiceAsync<GetCurrentContextRequest, GetCurrentContextResponse>(
+                new ChannelTopics(_channelId, _channelType).GetCurrentContext,
+                request,
+                _jsonSerializerOptions).ConfigureAwait(false);
+
+            if (response?.Metadata != null)
+            {
+                _lastContextMetadata = response.Metadata;
+                if (!string.IsNullOrEmpty(contextType))
+                {
+                    _lastContextMetadatas.AddOrUpdate(
+                        contextType,
+                        (key) => response.Metadata,
+                        (key, existingMetadata) => response.Metadata);
+                }
+            }
+
+            return response?.Metadata;
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, @"Error while getting current context metadata from channel '{ChannelId}'", _channelId);
+            throw;
+        }
+        finally
+        {
+            _lastContextLock.Release();
+        }
+    }
+
+    public virtual async Task ClearContext(string? contextType)
+    {
+        // FDC3 3.0: Clear context for specified type
+        // For now, implementation depends on backend support
+        _logger.LogDebug("ClearContext called for context type: {ContextType}", contextType ?? "null");
+        
+        if (string.IsNullOrEmpty(contextType))
+        {
+            _lastContext = null;
+        }
+        else
+        {
+            _lastContexts.TryRemove(contextType, out _);
+            _lastContextMetadatas.TryRemove(contextType, out _);
+        }
+
+        await Task.CompletedTask;
+    }
+
+    public virtual async Task<IListener> AddEventListener(string? eventType, Fdc3EventHandler handler)
+    {
+        // FDC3 3.0: Add event listener for channel events
+        _logger.LogDebug("AddEventListener called for event type: {EventType}", eventType ?? "null");
+        
+        // Return a stub listener for now - actual implementation depends on backend
+        return new StubEventListener();
+    }
+
+    private class StubEventListener : IListener
+    {
+        public async Task Unsubscribe()
+        {
+            await Task.CompletedTask;
         }
     }
 }

@@ -448,7 +448,7 @@ public class DesktopAgentClient : IDesktopAgent, IAsyncDisposable
         try
         {
             await _currentChannelLock.WaitAsync().ConfigureAwait(false);
-            LeaveCurrentChannelWithoutLock();
+            await LeaveCurrentChannelWithoutLock().ConfigureAwait(false);
         }
         finally
         {
@@ -456,7 +456,7 @@ public class DesktopAgentClient : IDesktopAgent, IAsyncDisposable
         }
     }
 
-    private void LeaveCurrentChannelWithoutLock()
+    private async Task LeaveCurrentChannelWithoutLock()
     {
         var contextListeners = _contextListeners.Reverse();
 
@@ -468,7 +468,7 @@ public class DesktopAgentClient : IDesktopAgent, IAsyncDisposable
                 _logger.LogDebug("Unsubscribing context listener from channel: {CurrentChannelId}...", _currentChannel?.Id);
             }
 
-            contextListener.Key.Unsubscribe();
+            await contextListener.Key.Unsubscribe().ConfigureAwait(false);
         }
 
         _currentChannel = null;
@@ -573,23 +573,22 @@ public class DesktopAgentClient : IDesktopAgent, IAsyncDisposable
         await listener.HandleContextAsync(lastContext).ConfigureAwait(false);
     }
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         if (_channelHandler != null)
         {
-            return _channelHandler.DisposeAsync();
+            await _channelHandler.DisposeAsync();
+            return;
         }
 
         foreach (var intentListener in _intentListeners.Values)
         {
-            intentListener.Unsubscribe();
+            await intentListener.Unsubscribe().ConfigureAwait(false);
         }
 
         foreach (var contextListener in _contextListeners.Keys)
         {
-            contextListener.Unsubscribe();
+            await contextListener.Unsubscribe().ConfigureAwait(false);
         }
-
-        return new ValueTask();
     }
 }

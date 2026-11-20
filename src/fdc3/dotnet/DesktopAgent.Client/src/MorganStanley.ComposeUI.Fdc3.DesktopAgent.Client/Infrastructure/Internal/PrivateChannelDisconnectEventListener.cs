@@ -59,16 +59,16 @@ internal class PrivateChannelDisconnectEventListener : IListener
         }
     }
 
-    public void Unsubscribe()
+    public async Task Unsubscribe()
     {
-        UnsubscribeCore(true);
+        await UnsubscribeCoreAsync(true);
     }
 
-    internal void UnsubscribeCore(bool doCallback)
+    internal async Task UnsubscribeCoreAsync(bool doCallback)
     {
         try
         {
-            _semaphoreSlim.Wait();
+            await _semaphoreSlim.WaitAsync().ConfigureAwait(false);
 
             _subscribed = false;
 

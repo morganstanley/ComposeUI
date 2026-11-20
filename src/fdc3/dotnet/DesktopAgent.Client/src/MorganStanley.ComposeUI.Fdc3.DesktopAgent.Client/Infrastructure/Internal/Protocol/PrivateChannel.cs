@@ -209,7 +209,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
                 try
                 {
                     //Fire and forget
-                    listener.Unsubscribe();
+                    _ = listener.Unsubscribe();
 
                     if (_logger.IsEnabled(LogLevel.Trace))
                     {
@@ -245,13 +245,11 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
     }
 
     /// <summary>
-    /// Backward compatibility wrapper for DisconnectAsync().
-    /// Calls async disconnect without awaiting (fire and forget).
+    /// FDC3 3.0: Disconnect from the private channel.
     /// </summary>
-    [Obsolete("Use DisconnectAsync() for proper async support")]
-    public void Disconnect()
+    public async Task Disconnect()
     {
-        _ = DisconnectAsync();
+        await DisconnectAsync();
     }
 
     public IListener OnAddContextListener(Action<string?> handler)
@@ -566,7 +564,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
 
-        Disconnect();
+        await Disconnect().ConfigureAwait(false);
         await _serviceRegistration.DisposeAsync().ConfigureAwait(false);
         await _subscription.DisposeAsync().ConfigureAwait(false);
     }
