@@ -29,6 +29,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests.Infrastructure.
 public class ChannelTests
 {
     private const string ChannelId = "testChannel";
+    private const string AppId = "testApp";
     private const string InstanceId = "testInstance";
     private readonly Mock<IMessaging> _messagingMock = new();
     private readonly ChannelType _channelType = ChannelType.App;
@@ -40,6 +41,7 @@ public class ChannelTests
             ChannelId,
             _channelType,
             _messagingMock.Object,
+            AppId,
             InstanceId,
             displayMetadata: null,
             loggerFactory: new NullLoggerFactory());

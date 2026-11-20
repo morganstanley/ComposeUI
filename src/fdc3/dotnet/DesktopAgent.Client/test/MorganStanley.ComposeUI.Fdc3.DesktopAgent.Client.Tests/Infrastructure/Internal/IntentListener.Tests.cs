@@ -48,7 +48,7 @@ public class IntentListener
     }
 
     [Fact]
-    public void Unsubscribe_throws_when_no_error_but_the_listener_is_still_stored()
+    public async Task Unsubscribe_throws_when_no_error_but_the_listener_is_still_stored()
     {
         var response = new IntentListenerResponse { Stored = true };
         _messagingMock
@@ -65,14 +65,14 @@ public class IntentListener
 
         var listener = CreateIntentListener();
 
-        var act = () => listener.Unsubscribe();
+        Func<Task> act = async () => await listener.Unsubscribe();
 
-        act.Should().Throw<Fdc3DesktopAgentException>()
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage($"*Intent listener is still registered for the intent: {_intent}*");
     }
 
     [Fact]
-    public void Unsubscribe_throws_when_no_response_received_from_server()
+    public async Task Unsubscribe_throws_when_no_response_received_from_server()
     {
         _messagingMock
             .Setup(m => m.InvokeServiceAsync(
@@ -83,14 +83,14 @@ public class IntentListener
 
         var listener = CreateIntentListener();
 
-        var act = () => listener.Unsubscribe();
+        Func<Task> act = async () => await listener.Unsubscribe();
 
-        act.Should().Throw<Fdc3DesktopAgentException>()
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage("*No response*");
     }
 
     [Fact]
-    public void Unsubscribe_throws_when_error_response_received_from_the_server()
+    public async Task Unsubscribe_throws_when_error_response_received_from_the_server()
     {
         var response = new IntentListenerResponse { Error = "Some error" };
         _messagingMock
@@ -102,9 +102,9 @@ public class IntentListener
 
         var listener = CreateIntentListener();
 
-        var act = () => listener.Unsubscribe();
+        Func<Task> act = async () => await listener.Unsubscribe();
 
-        act.Should().Throw<Fdc3DesktopAgentException>()
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage("*Some error*");
     }
 
@@ -135,7 +135,7 @@ public class IntentListener
 
         await listener.RegisterIntentHandlerAsync();
 
-        listener.Unsubscribe();
+        await listener.Unsubscribe();
 
         _subscriptionMock.Verify(s => s.DisposeAsync(), Times.Once);
     }
@@ -156,9 +156,9 @@ public class IntentListener
 
         await listener.RegisterIntentHandlerAsync();
 
-        var act = () => listener.Unsubscribe();
+        Func<Task> act = async () => await listener.Unsubscribe();
 
-        act.Should().Throw<NullReferenceException>();
+        await act.Should().ThrowAsync<NullReferenceException>();
     }
 
     [Fact]
