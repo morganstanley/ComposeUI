@@ -24,6 +24,7 @@ using MorganStanley.ComposeUI.Messaging.Abstractions;
 using System.Text.Json;
 using IntentResolution = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal.Protocol.IntentResolution;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
+using ContextMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.ContextMetadata;
 using Finos.Fdc3.Context;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests.Infrastructure.Internal.Protocol;
@@ -173,5 +174,45 @@ public class IntentResolutionTests
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage($"*{_intent}*");
+    }
+
+    [Fact]
+    public async Task GetResultMetadata_returns_default_metadata_before_get_result()
+    {
+        var intentResolution = CreateIntentResolution();
+
+        var metadata = await intentResolution.GetResultMetadata();
+
+        metadata.Source.Should().NotBeNull();
+        metadata.Source!.AppId.Should().Be(_source.AppId);
+        metadata.Source.InstanceId.Should().Be(_source.InstanceId);
+    }
+
+    [Fact]
+    public async Task GetResultMetadata_returns_metadata_from_get_result_response()
+    {
+        var response = new GetIntentResultResponse
+        {
+            VoidResult = true,
+            Metadata = new ContextMetadata
+            {
+                Source = new AppIdentifier { AppId = "origin-app", InstanceId = "origin-instance" },
+                TraceId = "trace-id"
+            }
+        };
+
+        _messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                Fdc3Topic.GetIntentResult,
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonOptions));
+
+        var intentResolution = CreateIntentResolution();
+        await intentResolution.GetResult();
+
+        var metadata = await intentResolution.GetResultMetadata();
+        metadata.Source!.AppId.Should().Be("origin-app");
+        metadata.TraceId.Should().Be("trace-id");
     }
 }
