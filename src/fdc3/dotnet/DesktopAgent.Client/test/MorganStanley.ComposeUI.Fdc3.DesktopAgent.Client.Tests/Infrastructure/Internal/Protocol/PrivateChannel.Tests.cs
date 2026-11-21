@@ -190,4 +190,28 @@ public class PrivateChannelTests
 
         await act.Should().NotThrowAsync();
     }
+
+    [Fact]
+    public async Task Disconnect_async_method_marks_channel_disconnected()
+    {
+        await _channel.Disconnect();
+        await _disconnectTcs.Task.WaitAsync(DisconnectTimeout);
+
+        Func<Task> act = async () => await _channel.Broadcast(Mock.Of<IContext>());
+        await act.Should().ThrowAsync<Exception>().WithMessage("*disconnected*");
+    }
+
+    [Fact]
+    public async Task Backward_compatible_constructor_creates_channel()
+    {
+        var channel = new PrivateChannel(
+            _channelId,
+            _messagingMock.Object,
+            _instanceId,
+            isOriginalCreator: true,
+            onDisconnect: () => { });
+
+        Func<Task> act = async () => await channel.DisposeAsync();
+        await act.Should().NotThrowAsync();
+    }
 }

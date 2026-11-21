@@ -270,6 +270,32 @@ public class ChannelTests
     }
 
     [Fact]
+    public async Task GetCurrentContextWithMetadata_returns_null_when_response_context_is_missing_on_the_channel()
+    {
+        _messagingMock
+            .Setup(
+                m => m.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(new GetCurrentContextResponse { Context = null }, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
+
+        var result = await _channel.GetCurrentContextWithMetadata("fdc3.instrument");
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task ClearContext_clears_type_and_all_contexts_on_the_channel()
+    {
+        Func<Task> clearTyped = async () => await _channel.ClearContext("fdc3.instrument");
+        Func<Task> clearAll = async () => await _channel.ClearContext(null);
+
+        await clearTyped.Should().NotThrowAsync();
+        await clearAll.Should().NotThrowAsync();
+    }
+
+    [Fact]
     public async Task AddEventListener_returns_listener_that_can_unsubscribe_on_the_channel()
     {
         var listener = await _channel.AddEventListener("context-changed", _ => { });

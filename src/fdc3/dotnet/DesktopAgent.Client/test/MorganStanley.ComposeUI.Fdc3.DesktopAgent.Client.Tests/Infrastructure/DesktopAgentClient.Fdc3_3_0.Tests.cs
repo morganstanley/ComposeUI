@@ -64,6 +64,36 @@ public class DesktopAgentClientFdc3_3_0Tests
     }
 
     [Fact]
+    public async Task AddIntentListenerWithContext_invokes_handler_for_matching_context_type()
+    {
+        var desktopAgent = CreateClientWithMinimalMessaging();
+        await desktopAgent.GetCurrentChannel();
+
+        var intentsClient = new Mock<IIntentsClient>();
+        IntentHandler<Instrument>? capturedHandler = null;
+        intentsClient
+            .Setup(m => m.AddIntentListenerAsync("test-intent-filter", It.IsAny<IntentHandler<Instrument>>()))
+            .Callback<string, IntentHandler<Instrument>>((_, handler) => capturedHandler = handler)
+            .ReturnsAsync(Mock.Of<IListener>());
+
+        SetPrivateField(desktopAgent, "_intentsClient", intentsClient.Object);
+
+        var invocationCount = 0;
+        await desktopAgent.AddIntentListenerWithContext<Instrument>(
+            "test-intent-filter",
+            "fdc3.instrument",
+            (context, metadata) =>
+            {
+                invocationCount++;
+                return Task.FromResult<IIntentResult>(new Instrument());
+            });
+
+        await capturedHandler!(new Instrument(), null);
+
+        invocationCount.Should().Be(1);
+    }
+
+    [Fact]
     public async Task Open_with_metadata_overload_returns_result()
     {
         var messagingMock = new Mock<IMessaging>();
@@ -150,6 +180,17 @@ public class DesktopAgentClientFdc3_3_0Tests
         var listener = await desktopAgent.AddEventListener("context-changed", _ => { });
 
         listener.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task AddEventListener_throws_when_not_joined_to_channel()
+    {
+        var desktopAgent = CreateClientWithMinimalMessaging();
+
+        var act = async () => await desktopAgent.AddEventListener("context-changed", _ => { });
+
+        await act.Should().ThrowAsync<Exception>()
+            .WithMessage("*No current channel*");
     }
 
     [Fact]

@@ -19,6 +19,7 @@ using ContextMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protoco
 using Icon = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.Icon;
 using Screenshot = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.Screenshot;
 using Finos.Fdc3;
+using Moq;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests.Infrastructure.Internal.Protocol;
 
@@ -27,10 +28,16 @@ public class SharedProtocolMappingsTests
     [Fact]
     public void ContextMetadata_explicit_interface_members_return_backing_values()
     {
+        var timestamp = DateTime.UtcNow;
+        var detachedSignature = new Mock<IDetachedSignature>().Object;
+        var antiReplay = new Mock<IAntiReplayClaims>().Object;
         var metadata = new ContextMetadata
         {
             Source = new AppIdentifier { AppId = "source-app", InstanceId = "source-instance" },
+            Timestamp = timestamp,
             TraceId = "trace-id",
+            Signature = detachedSignature,
+            AntiReplay = antiReplay,
             Custom = new Dictionary<string, object> { ["key"] = "value" }
         };
 
@@ -38,8 +45,11 @@ public class SharedProtocolMappingsTests
         var appProvidableMetadata = (IAppProvidableContextMetadata)metadata;
 
         contextMetadata.Source!.AppId.Should().Be("source-app");
+        contextMetadata.Timestamp.Should().Be(timestamp);
         contextMetadata.TraceId.Should().Be("trace-id");
         appProvidableMetadata.TraceId.Should().Be("trace-id");
+        appProvidableMetadata.Signature.Should().BeSameAs(detachedSignature);
+        appProvidableMetadata.AntiReplay.Should().BeSameAs(antiReplay);
         appProvidableMetadata.Custom!.Should().ContainKey("key");
     }
 
