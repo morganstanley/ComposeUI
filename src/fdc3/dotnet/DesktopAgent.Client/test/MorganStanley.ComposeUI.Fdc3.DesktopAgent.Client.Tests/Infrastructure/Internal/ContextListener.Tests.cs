@@ -47,11 +47,11 @@ public class ContextListenerTests
     }
 
     [Fact]
-    public void Unsubscribe_does_nothing_when_not_subscribed_on_the_context_listener()
+    public async Task Unsubscribe_does_nothing_when_not_subscribed_on_the_context_listener()
     {
-        var act = () => _listener.Unsubscribe();
+        Func<Task> act = async () => await _listener.Unsubscribe();
 
-        act.Should().NotThrow();
+        await act.Should().NotThrowAsync();
 
         _messagingMock.Verify(
             m => m.InvokeServiceAsync(
@@ -97,9 +97,9 @@ public class ContextListenerTests
 
         await _listener.SubscribeAsync("channelId", ChannelType.App);
 
-        var act = () => _listener.Unsubscribe();
+        Func<Task> act = async () => await _listener.Unsubscribe();
 
-        act.Should().NotThrow();
+        await act.Should().NotThrowAsync();
         disposableMock.Verify(d => d.DisposeAsync(), Times.Once);
 
         _messagingMock.Verify(
@@ -145,8 +145,8 @@ public class ContextListenerTests
 
         await _listener.SubscribeAsync("channelId", ChannelType.App);
 
-        Action act = () => _listener.Unsubscribe();
-        act.Should().Throw<InvalidOperationException>().WithMessage("Dispose error");
+        Func<Task> act = async () => await _listener.Unsubscribe();
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("Dispose error");
     }
 
     [Fact]
@@ -438,6 +438,91 @@ public class ContextListenerTests
         await listener.HandleContextAsync(context);
 
         handlerCalled.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SubscribeAsync_handler_parses_broadcast_payload_context()
+    {
+        var response = new AddContextListenerResponse
+        {
+            Success = true,
+            Id = "listenerId"
+        };
+
+        _messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)));
+
+        TopicMessageHandler? capturedHandler = null;
+        _messagingMock
+            .Setup(m => m.SubscribeAsync(
+                It.IsAny<string>(),
+                It.IsAny<TopicMessageHandler>(),
+                It.IsAny<CancellationToken>()))
+            .Callback<string, TopicMessageHandler, CancellationToken>((_, handler, _) => capturedHandler = handler)
+            .ReturnsAsync(Mock.Of<IAsyncDisposable>());
+
+        var handled = false;
+        var listener = new ContextListener<Instrument>(
+            "instanceId",
+            (ctx, _) => handled = true,
+            _messagingMock.Object,
+            "fdc3.instrument");
+
+        await listener.SubscribeAsync("channelId", ChannelType.App);
+
+        var payload = new BroadcastPayload
+        {
+            Context = JsonSerializer.Serialize(new Instrument(), _jsonSerializerOptions),
+            Metadata = null
+        };
+
+        await capturedHandler!(JsonSerializer.Serialize(payload, _jsonSerializerOptions));
+
+        handled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SubscribeAsync_handler_falls_back_to_raw_context_payload()
+    {
+        var response = new AddContextListenerResponse
+        {
+            Success = true,
+            Id = "listenerId"
+        };
+
+        _messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)));
+
+        TopicMessageHandler? capturedHandler = null;
+        _messagingMock
+            .Setup(m => m.SubscribeAsync(
+                It.IsAny<string>(),
+                It.IsAny<TopicMessageHandler>(),
+                It.IsAny<CancellationToken>()))
+            .Callback<string, TopicMessageHandler, CancellationToken>((_, handler, _) => capturedHandler = handler)
+            .ReturnsAsync(Mock.Of<IAsyncDisposable>());
+
+        var handled = false;
+        var listener = new ContextListener<Instrument>(
+            "instanceId",
+            (ctx, _) => handled = true,
+            _messagingMock.Object,
+            "fdc3.instrument");
+
+        await listener.SubscribeAsync("channelId", ChannelType.App);
+
+        var rawContextPayload = JsonSerializer.Serialize(new Instrument(), _jsonSerializerOptions);
+        await capturedHandler!(rawContextPayload);
+
+        handled.Should().BeTrue();
     }
 
     private class MyContext : IContext

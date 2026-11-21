@@ -38,4 +38,6 @@ public class AppMetadata : IAppMetadata
     public string AppId { get; set; }
 
     public string? InstanceId { get; set; }
+
+    public IInstanceMetadata? InstanceMetadata { get; set; }
 }

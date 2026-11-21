@@ -23,6 +23,8 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 using DisplayMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.DisplayMetadata;
+using ContextMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.ContextMetadata;
+using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal;
 
@@ -30,6 +32,7 @@ internal class Channel : IChannel
 {
     private readonly string _channelId;
     private readonly ChannelType _channelType;
+    private readonly string _appId;
     private readonly string _instanceId;
     private readonly IMessaging _messaging;
     private readonly IContext? _openedAppContext;
@@ -38,13 +41,16 @@ internal class Channel : IChannel
     private readonly ILogger<Channel> _logger;
     private readonly SemaphoreSlim _lastContextLock = new(1,1);
     private IContext? _lastContext = null;
+    private ContextMetadata? _lastContextMetadata = null;
     private readonly ConcurrentDictionary<string, IContext> _lastContexts = new();
+    private readonly ConcurrentDictionary<string, ContextMetadata?> _lastContextMetadatas = new();
     private readonly JsonSerializerOptions _jsonSerializerOptions = SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization;
 
     public Channel(
         string channelId,
         ChannelType channelType,
         IMessaging messaging,
+        string appId,
         string instanceId,
         IContext? openedAppContext = null,
         DisplayMetadata? displayMetadata = null,
@@ -52,6 +58,7 @@ internal class Channel : IChannel
     {
         _channelId = channelId ?? throw ThrowHelper.MissingChannelId();
         _channelType = channelType;
+        _appId = appId ?? throw new ArgumentNullException(nameof(appId));
         _instanceId = instanceId;
         _messaging = messaging;
         _openedAppContext = openedAppContext;
@@ -86,6 +93,12 @@ internal class Channel : IChannel
 
     public virtual async Task Broadcast(IContext context)
     {
+        // Call the new FDC3 3.0 method with null metadata (internally generated)
+        await Broadcast(context, null).ConfigureAwait(false);
+    }
+
+    public virtual async Task Broadcast(IContext context, IAppProvidableContextMetadata? metadata)
+    {
         try
         {
             await _lastContextLock.WaitAsync().ConfigureAwait(false);
@@ -97,9 +110,31 @@ internal class Channel : IChannel
 
             _lastContext = context;
 
+            // FDC3 3.0: Create fresh metadata with source application information for this broadcast
+            var contextMetadata = new ContextMetadata
+            {
+                Source = new AppIdentifier
+                {
+                    AppId = _appId,
+                    InstanceId = _instanceId
+                },
+                Timestamp = DateTime.UtcNow,
+                TraceId = metadata?.TraceId,
+                Signature = metadata?.Signature,
+                AntiReplay = metadata?.AntiReplay,
+                Custom = metadata?.Custom
+            };
+
+            // Publish both context and metadata as a payload
+            var payload = new BroadcastPayload
+            {
+                Context = JsonSerializer.Serialize(context, _jsonSerializerOptions),
+                Metadata = contextMetadata
+            };
+
             await _messaging.PublishJsonAsync(
                 new ChannelTopics(_channelId, _channelType).Broadcast,
-                context,
+                payload,
                 _jsonSerializerOptions).ConfigureAwait(false);
         }
         finally
@@ -116,30 +151,37 @@ internal class Channel : IChannel
             
             var request = new GetCurrentContextRequest { ContextType = contextType };
 
-            var contextJson = await _messaging.InvokeServiceAsync(
+            var response = await _messaging.InvokeJsonServiceAsync<GetCurrentContextRequest, GetCurrentContextResponse>(
                 new ChannelTopics(_channelId, _channelType).GetCurrentContext,
-                JsonSerializer.Serialize(request, _jsonSerializerOptions)).ConfigureAwait(false);
+                request,
+                _jsonSerializerOptions).ConfigureAwait(false);
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug("GetCurrentContext response: {ContextJson}", contextJson);
+                _logger.LogDebug("GetCurrentContext response: {ContextJson}", response?.Context);
             }
 
-            if (string.IsNullOrEmpty(contextJson))
+            if (response?.Context == null)
             {
                 return null;
             }
 
-            var context = JsonSerializer.Deserialize<IContext>(contextJson!, _jsonSerializerOptions);
+            var context = JsonSerializer.Deserialize<IContext>(response.Context, _jsonSerializerOptions);
 
             if (context != null)
             {
                 _lastContext = context;
+                _lastContextMetadata = response.Metadata;
 
                 _lastContexts.AddOrUpdate(
                     context.Type,
                     (key) => context,
                     (key, existingContext) => context);
+
+                _lastContextMetadatas.AddOrUpdate(
+                    context.Type,
+                    (key) => response.Metadata,
+                    (key, existingMetadata) => response.Metadata);
             }
 
             if (string.IsNullOrEmpty(contextType))
@@ -163,5 +205,105 @@ internal class Channel : IChannel
         {
             _lastContextLock.Release();
         }
+    }
+
+    public virtual async Task<IContextWithMetadata?> GetCurrentContextWithMetadata(string? contextType)
+    {
+        try
+        {
+            await _lastContextLock.WaitAsync().ConfigureAwait(false);
+            
+            var request = new GetCurrentContextRequest { ContextType = contextType };
+
+            var response = await _messaging.InvokeJsonServiceAsync<GetCurrentContextRequest, GetCurrentContextResponse>(
+                new ChannelTopics(_channelId, _channelType).GetCurrentContext,
+                request,
+                _jsonSerializerOptions).ConfigureAwait(false);
+
+            if (response?.Context == null)
+            {
+                return null;
+            }
+
+            var context = JsonSerializer.Deserialize<IContext>(response.Context, _jsonSerializerOptions);
+            if (context == null)
+            {
+                return null;
+            }
+
+            var metadata = response.Metadata ?? new ContextMetadata
+            {
+                Source = new AppIdentifier
+                {
+                    AppId = _appId,
+                    InstanceId = _instanceId
+                },
+                Timestamp = DateTime.UtcNow
+            };
+
+            _lastContext = context;
+            _lastContextMetadata = metadata;
+            _lastContexts.AddOrUpdate(context.Type, _ => context, (_, _) => context);
+            _lastContextMetadatas.AddOrUpdate(context.Type, _ => metadata, (_, _) => metadata);
+
+            return new ContextWithMetadata(context, metadata);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, @"Error while getting current context metadata from channel '{ChannelId}'", _channelId);
+            throw;
+        }
+        finally
+        {
+            _lastContextLock.Release();
+        }
+    }
+
+    public virtual async Task ClearContext(string? contextType)
+    {
+        // FDC3 3.0: Clear context for specified type
+        // For now, implementation depends on backend support
+        _logger.LogDebug("ClearContext called for context type: {ContextType}", contextType ?? "null");
+        
+        if (string.IsNullOrEmpty(contextType))
+        {
+            _lastContext = null;
+        }
+        else
+        {
+            _lastContexts.TryRemove(contextType, out _);
+            _lastContextMetadatas.TryRemove(contextType, out _);
+        }
+
+        await Task.CompletedTask;
+    }
+
+    public virtual async Task<IListener> AddEventListener(string? eventType, Fdc3EventHandler handler)
+    {
+        // FDC3 3.0: Add event listener for channel events
+        _logger.LogDebug("AddEventListener called for event type: {EventType}", eventType ?? "null");
+        
+        // Return a stub listener for now - actual implementation depends on backend
+        return new StubEventListener();
+    }
+
+    private class StubEventListener : IListener
+    {
+        public async Task Unsubscribe()
+        {
+            await Task.CompletedTask;
+        }
+    }
+
+    private class ContextWithMetadata : IContextWithMetadata
+    {
+        public ContextWithMetadata(IContext context, IContextMetadata metadata)
+        {
+            Context = context;
+            Metadata = metadata;
+        }
+
+        public IContext Context { get; }
+        public IContextMetadata Metadata { get; }
     }
 }

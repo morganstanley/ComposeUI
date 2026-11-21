@@ -232,9 +232,9 @@ public class DesktopAgentClientTests : IAsyncLifetime
                     It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new JoinUserChannelResponse { Success = true, DisplayMetadata = new DisplayMetadata() { Name = "test-channelId" } }, _jsonSerializerOptions)))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new AddContextListenerResponse { Success = true, Id = Guid.NewGuid().ToString() }, _jsonSerializerOptions)))
-            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new Instrument(new InstrumentID { Ticker = "test-instrument" }, "test-name"), _jsonSerializerOptions))) //GetCurrentContext response after joining to the channels when iterating through the context listeners
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new GetCurrentContextResponse { Context = JsonSerializer.Serialize(new Instrument(new InstrumentID { Ticker = "test-instrument" }, "test-name"), _jsonSerializerOptions) }, _jsonSerializerOptions))) //GetCurrentContext response after joining to the channels when iterating through the context listeners
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new AddContextListenerResponse { Success = true, Id = Guid.NewGuid().ToString() }, _jsonSerializerOptions)))
-            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new Context("test-type"), _jsonSerializerOptions))); //This shouldn't be the last context which is received by the second context listener as the last context for the registered context type is already set when invoking the GetCurrentContext for the first context listener
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new GetCurrentContextResponse { Context = JsonSerializer.Serialize(new Context("test-type"), _jsonSerializerOptions) }, _jsonSerializerOptions))); //This shouldn't be the last context which is received by the second context listener as the last context for the registered context type is already set when invoking the GetCurrentContext for the first context listener
 
         var desktopAgent = new DesktopAgentClient(messagingMock.Object, null, null);
         var listener = await desktopAgent.AddContextListener<Instrument>("fdc3.instrument", (context, contextMetadata) => { resultContextListenerInvocations++; });
@@ -327,9 +327,9 @@ public class DesktopAgentClientTests : IAsyncLifetime
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new JoinUserChannelResponse { Success = true, DisplayMetadata = new DisplayMetadata() { Name = "test-channelId" } }, _jsonSerializerOptions)))
             .Returns(new ValueTask<string?>("test-channelId"))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new AddContextListenerResponse { Success = true, Id = Guid.NewGuid().ToString() }, _jsonSerializerOptions)))
-            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new Instrument(new InstrumentID { Ticker = "test-instrument" }, "test-name"), _jsonSerializerOptions)))
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new GetCurrentContextResponse { Context = JsonSerializer.Serialize(new Instrument(new InstrumentID { Ticker = "test-instrument" }, "test-name"), _jsonSerializerOptions) }, _jsonSerializerOptions)))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new AddContextListenerResponse { Success = true, Id = Guid.NewGuid().ToString() }, _jsonSerializerOptions)))
-            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new Context("test-type"), _jsonSerializerOptions)));
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new GetCurrentContextResponse { Context = JsonSerializer.Serialize(new Context("test-type"), _jsonSerializerOptions) }, _jsonSerializerOptions)));
 
         var desktopAgent = new DesktopAgentClient(messagingMock.Object, null, null);
 
@@ -368,9 +368,9 @@ public class DesktopAgentClientTests : IAsyncLifetime
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new JoinUserChannelResponse { Success = true, DisplayMetadata = new DisplayMetadata() { Name = "test-channelId" } }, _jsonSerializerOptions)))
             .Returns(new ValueTask<string?>("test-channelId"))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new AddContextListenerResponse { Success = true, Id = Guid.NewGuid().ToString() }, _jsonSerializerOptions)))
-            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new Instrument(new InstrumentID { Ticker = "test-instrument" }, "test-name"), _jsonSerializerOptions)))
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new GetCurrentContextResponse { Context = JsonSerializer.Serialize(new Instrument(new InstrumentID { Ticker = "test-instrument" }, "test-name"), _jsonSerializerOptions) }, _jsonSerializerOptions)))
             .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new AddContextListenerResponse { Success = true, Id = Guid.NewGuid().ToString() }, _jsonSerializerOptions)))
-            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new Context("test-type"), _jsonSerializerOptions)));
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(new GetCurrentContextResponse { Context = JsonSerializer.Serialize(new Context("test-type"), _jsonSerializerOptions) }, _jsonSerializerOptions)));
 
         var desktopAgent = new DesktopAgentClient(messagingMock.Object, null, null);
         await desktopAgent.JoinUserChannel("test-channelId");
@@ -461,8 +461,8 @@ public class DesktopAgentClientTests : IAsyncLifetime
         result.Should().BeEquivalentTo(
             new[]
             {
-                new Channel("1", ChannelType.User, messagingMock.Object, It.IsAny<string>(), null, new DisplayMetadata { Name = "1" }, It.IsAny<ILoggerFactory>()),
-                new Channel("2", ChannelType.User, messagingMock.Object, It.IsAny<string>(), null, new DisplayMetadata { Name = "2" }, It.IsAny<ILoggerFactory>())
+                new Channel("1", ChannelType.User, messagingMock.Object, "test-app", "test-instance", null, new DisplayMetadata { Name = "1" }, It.IsAny<ILoggerFactory>()),
+                new Channel("2", ChannelType.User, messagingMock.Object, "test-app", "test-instance", null, new DisplayMetadata { Name = "2" }, It.IsAny<ILoggerFactory>())
             });
     }
 
@@ -911,7 +911,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
         var channelFactoryMock = new Mock<IChannelHandler>();
         channelFactoryMock
             .Setup(_ => _.FindChannelAsync(It.IsAny<string>(), It.IsAny<ChannelType>()))
-            .ReturnsAsync(new Channel("test-channel-id", ChannelType.User, messagingMock.Object, It.IsAny<string>(), null, It.IsAny<DisplayMetadata>(), It.IsAny<ILoggerFactory>()));
+            .ReturnsAsync(new Channel("test-channel-id", ChannelType.User, messagingMock.Object, "test-app", "test-instance", null, It.IsAny<DisplayMetadata>(), It.IsAny<ILoggerFactory>()));
 
         var findChannelResponse = new FindChannelResponse
         {
@@ -1024,7 +1024,7 @@ public class DesktopAgentClientTests : IAsyncLifetime
         var channelFactoryMock = new Mock<IChannelHandler>();
         channelFactoryMock
             .Setup(_ => _.FindChannelAsync(It.IsAny<string>(), It.IsAny<ChannelType>()))
-            .ReturnsAsync(new Channel("test-channel-id", ChannelType.App, messagingMock.Object, It.IsAny<string>(), null, It.IsAny<DisplayMetadata>(), It.IsAny<ILoggerFactory>()));
+            .ReturnsAsync(new Channel("test-channel-id", ChannelType.App, messagingMock.Object, "test-app", "test-instance", null, It.IsAny<DisplayMetadata>(), It.IsAny<ILoggerFactory>()));
 
         var findChannelResponse = new FindChannelResponse
         {

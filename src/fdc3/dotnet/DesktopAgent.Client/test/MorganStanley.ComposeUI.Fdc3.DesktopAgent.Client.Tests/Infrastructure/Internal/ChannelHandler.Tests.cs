@@ -64,6 +64,26 @@ public class ChannelHandlerTests
     }
 
     [Fact]
+    public async Task CreateContextListenerAsync_throws_when_channel_returns_non_internal_listener()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+        var channelMock = new Mock<IChannel>();
+        var handler = new ContextHandler<Instrument>((ctx, _) => { });
+
+        channelMock
+            .Setup(c => c.AddContextListener("fdc3.instrument", handler))
+            .ReturnsAsync(Mock.Of<IListener>());
+
+        var factory = new ChannelHandler(messagingMock.Object, "instanceId", desktopAgentClientMock.Object);
+
+        var act = async () => await factory.CreateContextListenerAsync(handler, channelMock.Object, "fdc3.instrument");
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*not created/returned on channel*");
+    }
+
+    [Fact]
     public async Task JoinUserChannelAsync_returns_channel_when_successful()
     {
         var messagingMock = new Mock<IMessaging>();
