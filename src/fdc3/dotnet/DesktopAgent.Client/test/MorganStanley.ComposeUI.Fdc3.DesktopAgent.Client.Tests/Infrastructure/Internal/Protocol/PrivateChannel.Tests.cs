@@ -214,4 +214,23 @@ public class PrivateChannelTests
         Func<Task> act = async () => await channel.DisposeAsync();
         await act.Should().NotThrowAsync();
     }
+
+    [Fact]
+    public async Task DisconnectAsync_after_context_listener_registration_does_not_throw()
+    {
+        var response = new AddContextListenerResponse
+        {
+            Success = true,
+            Id = "listener-id"
+        };
+
+        _messagingMock
+            .Setup(m => m.InvokeServiceAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        await _channel.AddContextListener<Instrument>(null, (ctx, metadata) => { });
+
+        Func<Task> act = async () => await _channel.DisconnectAsync();
+        await act.Should().NotThrowAsync();
+    }
 }

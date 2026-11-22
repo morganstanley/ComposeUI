@@ -19,6 +19,7 @@ using Finos.Fdc3.Context;
 using FluentAssertions;
 using Moq;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
@@ -208,6 +209,70 @@ public class DesktopAgentClientFdc3_3_0Tests
         var currentChannel = await desktopAgent.GetCurrentChannel();
 
         currentChannel.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task DisposeAsync_disposes_channel_handler_when_present()
+    {
+        var desktopAgent = CreateClientWithMinimalMessaging();
+        var channelHandler = new Mock<IChannelHandler>();
+        channelHandler
+            .Setup(h => h.DisposeAsync())
+            .Returns(ValueTask.CompletedTask);
+
+        SetPrivateField(desktopAgent, "_channelHandler", channelHandler.Object);
+
+        await desktopAgent.DisposeAsync();
+
+        channelHandler.Verify(h => h.DisposeAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task DisposeAsync_unsubscribes_intent_and_context_listeners_when_handler_missing()
+    {
+        var desktopAgent = CreateClientWithMinimalMessaging();
+        await desktopAgent.GetCurrentChannel();
+        SetPrivateField(desktopAgent, "_channelHandler", null!);
+
+        var intentListener = new Mock<IListener>();
+        intentListener.Setup(l => l.Unsubscribe()).Returns(Task.CompletedTask);
+        var contextListener = new Mock<IListener>();
+        contextListener.Setup(l => l.Unsubscribe()).Returns(Task.CompletedTask);
+
+        var intentListenersField = typeof(DesktopAgentClient).GetField("_intentListeners", BindingFlags.Instance | BindingFlags.NonPublic);
+        var contextListenersField = typeof(DesktopAgentClient).GetField("_contextListeners", BindingFlags.Instance | BindingFlags.NonPublic);
+        intentListenersField.Should().NotBeNull();
+        contextListenersField.Should().NotBeNull();
+
+        var intentListeners = (System.Collections.Concurrent.ConcurrentDictionary<string, IListener>)intentListenersField!.GetValue(desktopAgent)!;
+        var contextListeners = (Dictionary<IListener, Func<string, ChannelType, CancellationToken, ValueTask>>)contextListenersField!.GetValue(desktopAgent)!;
+
+        intentListeners.TryAdd("intent", intentListener.Object);
+        contextListeners.Add(contextListener.Object, (_, _, _) => ValueTask.CompletedTask);
+
+        await desktopAgent.DisposeAsync();
+
+        intentListener.Verify(l => l.Unsubscribe(), Times.Once);
+        contextListener.Verify(l => l.Unsubscribe(), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetOpenedAppContextAsync_handles_fdc3_exception_from_open_client()
+    {
+        var desktopAgent = CreateClientWithMinimalMessaging();
+        var openClient = new Mock<IOpenClient>();
+        openClient
+            .Setup(c => c.GetOpenAppContextAsync("ctx-id"))
+            .ThrowsAsync(new Fdc3DesktopAgentException("open-failed"));
+
+        SetPrivateField(desktopAgent, "_openClient", openClient.Object);
+
+        var method = typeof(DesktopAgentClient).GetMethod("GetOpenedAppContextAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+        method.Should().NotBeNull();
+        var task = (ValueTask)method!.Invoke(desktopAgent, new object[] { "ctx-id" })!;
+
+        Func<Task> act = async () => await task.AsTask();
+        await act.Should().NotThrowAsync();
     }
 
     private static DesktopAgentClient CreateClientWithMinimalMessaging()
