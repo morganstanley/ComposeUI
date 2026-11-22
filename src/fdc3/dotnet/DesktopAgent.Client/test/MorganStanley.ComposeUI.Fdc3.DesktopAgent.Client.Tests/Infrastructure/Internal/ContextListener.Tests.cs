@@ -525,6 +525,51 @@ public class ContextListenerTests
         handled.Should().BeTrue();
     }
 
+    [Fact]
+    public async Task SubscribeAsync_handler_ignores_empty_context_in_broadcast_payload()
+    {
+        var response = new AddContextListenerResponse
+        {
+            Success = true,
+            Id = "listenerId"
+        };
+
+        _messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)));
+
+        TopicMessageHandler? capturedHandler = null;
+        _messagingMock
+            .Setup(m => m.SubscribeAsync(
+                It.IsAny<string>(),
+                It.IsAny<TopicMessageHandler>(),
+                It.IsAny<CancellationToken>()))
+            .Callback<string, TopicMessageHandler, CancellationToken>((_, handler, _) => capturedHandler = handler)
+            .ReturnsAsync(Mock.Of<IAsyncDisposable>());
+
+        var handled = false;
+        var listener = new ContextListener<Instrument>(
+            "instanceId",
+            (ctx, _) => handled = true,
+            _messagingMock.Object,
+            "fdc3.instrument");
+
+        await listener.SubscribeAsync("channelId", ChannelType.App);
+
+        var payload = new BroadcastPayload
+        {
+            Context = string.Empty,
+            Metadata = null
+        };
+
+        await capturedHandler!(JsonSerializer.Serialize(payload, _jsonSerializerOptions));
+
+        handled.Should().BeFalse();
+    }
+
     private class MyContext : IContext
     {
         public object? ID { get; set; }

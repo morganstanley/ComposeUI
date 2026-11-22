@@ -17,6 +17,7 @@ using Finos.Fdc3;
 using Microsoft.Extensions.Logging;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Channels;
@@ -77,5 +78,46 @@ public class UserChannelTests : ChannelTestBase
         // Assert
         Func<Task> act = async () => await channel.Connect();
         await act.Should().ThrowAsync<ObjectDisposedException>();
+    }
+
+    [Fact]
+    public async Task HandleBroadcast_EmptyWrappedContext_LogsWarningAndSkips()
+    {
+        var loggerMock = new Mock<ILogger>();
+        loggerMock.Setup(l => l.IsEnabled(LogLevel.Warning)).Returns(true);
+
+        var messagingMock = new Mock<IMessaging>();
+        var topics = new ChannelTopics(TestChannel, ChannelType.User);
+        JsonSerializerOptions jsonSerializerOptions = new();
+
+        var channel = new TestChannel(TestChannel, messagingMock.Object, jsonSerializerOptions, loggerMock.Object, topics);
+        var wrappedPayload = JsonSerializer.Serialize(new BroadcastPayload { Context = string.Empty, Metadata = null });
+
+        await channel.CallHandleBroadcast(wrappedPayload);
+        var currentContext = await channel.GetCurrentContext(new GetCurrentContextRequest { ContextType = null });
+
+        currentContext.Should().BeNull();
+        loggerMock.Invocations
+            .Should()
+            .ContainSingle(invocation =>
+                invocation.Method.Name == nameof(ILogger.Log) &&
+                invocation.Arguments.Count > 2 &&
+                (LogLevel)invocation.Arguments[0] == LogLevel.Warning);
+    }
+
+    [Fact]
+    public async Task DisposeAsync_CalledTwice_DoesNotThrow()
+    {
+        var loggerMock = new Mock<ILogger>();
+        var messagingMock = new Mock<IMessaging>();
+        var topics = new ChannelTopics("test", ChannelType.User);
+        JsonSerializerOptions jsonSerializerOptions = new();
+
+        var channel = new TestChannel("test", messagingMock.Object, jsonSerializerOptions, loggerMock.Object, topics);
+
+        await channel.DisposeAsync();
+        Func<Task> act = async () => await channel.DisposeAsync();
+
+        await act.Should().NotThrowAsync();
     }
 }

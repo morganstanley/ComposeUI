@@ -286,6 +286,38 @@ public class ChannelTests
     }
 
     [Fact]
+    public async Task GetCurrentContextWithMetadata_returns_null_when_context_deserializes_to_null_on_the_channel()
+    {
+        _messagingMock
+            .Setup(
+                m => m.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(new GetCurrentContextResponse { Context = "null" }, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
+
+        var result = await _channel.GetCurrentContextWithMetadata("fdc3.instrument");
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetCurrentContextWithMetadata_throws_when_messaging_throws_on_the_channel()
+    {
+        _messagingMock
+            .Setup(
+                m => m.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Messaging error"));
+
+        var act = async () => await _channel.GetCurrentContextWithMetadata("fdc3.instrument");
+
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("Messaging error");
+    }
+
+    [Fact]
     public async Task ClearContext_clears_type_and_all_contexts_on_the_channel()
     {
         Func<Task> clearTyped = async () => await _channel.ClearContext("fdc3.instrument");
