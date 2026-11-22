@@ -215,6 +215,7 @@ public class DesktopAgentClientFdc3_3_0Tests
     public async Task DisposeAsync_disposes_channel_handler_when_present()
     {
         var desktopAgent = CreateClientWithMinimalMessaging();
+        await desktopAgent.GetCurrentChannel();
         var channelHandler = new Mock<IChannelHandler>();
         channelHandler
             .Setup(h => h.DisposeAsync())
@@ -259,7 +260,19 @@ public class DesktopAgentClientFdc3_3_0Tests
     [Fact]
     public async Task GetOpenedAppContextAsync_handles_fdc3_exception_from_open_client()
     {
-        var desktopAgent = CreateClientWithMinimalMessaging();
+        var loggerMock = new Mock<Microsoft.Extensions.Logging.ILogger>();
+        loggerMock.Setup(l => l.IsEnabled(Microsoft.Extensions.Logging.LogLevel.Error)).Returns(true);
+        var loggerFactoryMock = new Mock<Microsoft.Extensions.Logging.ILoggerFactory>();
+        loggerFactoryMock
+            .Setup(f => f.CreateLogger(It.IsAny<string>()))
+            .Returns(loggerMock.Object);
+
+        var messagingMock = new Mock<IMessaging>();
+        messagingMock
+            .Setup(m => m.RegisterServiceAsync(It.IsAny<string>(), It.IsAny<ServiceHandler>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Mock.Of<IAsyncDisposable>());
+
+        var desktopAgent = new DesktopAgentClient(messagingMock.Object, "test-app", "test-instance", loggerFactory: loggerFactoryMock.Object);
         var openClient = new Mock<IOpenClient>();
         openClient
             .Setup(c => c.GetOpenAppContextAsync("ctx-id"))
@@ -273,6 +286,13 @@ public class DesktopAgentClientFdc3_3_0Tests
 
         Func<Task> act = async () => await task.AsTask();
         await act.Should().NotThrowAsync();
+        loggerMock.Verify(l => l.Log(
+                Microsoft.Extensions.Logging.LogLevel.Error,
+                It.IsAny<Microsoft.Extensions.Logging.EventId>(),
+                It.IsAny<It.IsAnyType>(),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
     }
 
     private static DesktopAgentClient CreateClientWithMinimalMessaging()

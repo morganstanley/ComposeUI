@@ -524,4 +524,33 @@ public class ChannelHandlerTests
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage("*Client was not able to join to private channel*");
     }
+
+    [Fact]
+    public async Task GetUserChannelsAsync_keeps_channel_with_missing_display_metadata_when_id_exists()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var response = new GetUserChannelsResponse
+        {
+            Channels = new[]
+            {
+                new MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.ChannelItem
+                {
+                    Id = "green",
+                    Type = ChannelType.User,
+                    DisplayMetadata = null
+                }
+            }
+        };
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+        var handler = new ChannelHandler(messagingMock.Object, "test-app", "instance-id", desktopAgentClientMock.Object);
+
+        var channels = (await handler.GetUserChannelsAsync()).ToArray();
+
+        channels.Should().ContainSingle(c => c.Id == "green");
+    }
 }
