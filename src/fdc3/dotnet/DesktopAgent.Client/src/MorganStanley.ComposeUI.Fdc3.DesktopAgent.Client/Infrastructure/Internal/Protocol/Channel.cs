@@ -165,12 +165,23 @@ internal class Channel : IChannel
                 request,
                 _jsonSerializerOptions).ConfigureAwait(false);
 
-            if (_logger.IsEnabled(LogLevel.Debug))
+            string? contextJson = null;
+            if (response != null)
             {
-                _logger.LogDebug("GetCurrentContext response: {ContextJson}", response?.Context);
+                contextJson = response.Context;
             }
 
-            if (response?.Context == null)
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("GetCurrentContext response: {ContextJson}", contextJson);
+            }
+
+            if (response == null)
+            {
+                return null;
+            }
+
+            if (response.Context == null)
             {
                 return null;
             }
