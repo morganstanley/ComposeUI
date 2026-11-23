@@ -243,6 +243,26 @@ public class ChannelTests
     }
 
     [Fact]
+    public async Task GetCurrentContext_returns_last_context_when_context_type_is_empty_on_the_channel()
+    {
+        var context = new Instrument();
+        var contextJson = JsonSerializer.Serialize(context, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization);
+
+        _messagingMock
+            .Setup(
+                m => m.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(new GetCurrentContextResponse { Context = contextJson }, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
+
+        var result = await _channel.GetCurrentContext(string.Empty);
+
+        result.Should().BeOfType<Instrument>();
+        ((Instrument)result!).Should().BeEquivalentTo(context);
+    }
+
+    [Fact]
     public async Task GetCurrentContext_logs_and_returns_null_when_context_type_not_found_on_the_channel()
     {
         var context = new Instrument(new InstrumentID() { Ticker = "MS" }, Guid.NewGuid().ToString());
@@ -417,6 +437,14 @@ public class ChannelTests
 
         await clearTyped.Should().NotThrowAsync();
         await clearAll.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task ClearContext_clears_all_contexts_when_context_type_is_empty_on_the_channel()
+    {
+        var act = async () => await _channel.ClearContext(string.Empty);
+
+        await act.Should().NotThrowAsync();
     }
 
     [Fact]
