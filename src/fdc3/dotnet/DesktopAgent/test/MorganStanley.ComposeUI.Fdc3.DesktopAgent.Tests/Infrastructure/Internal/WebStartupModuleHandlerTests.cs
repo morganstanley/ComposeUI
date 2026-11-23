@@ -124,6 +124,14 @@ public class WebStartupModuleHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_sends_exactly_the_app_id_and_the_instance_id_in_the_config()
+    {
+        var result = await RunStartupScriptAsync(new Fdc3StartupProperties { AppId = "my-app", InstanceId = "instance" });
+
+        result.Config.EnumerateObject().Select(property => property.Name).Should().BeEquivalentTo("appId", "instanceId");
+    }
+
+    [Fact]
     public async Task HandleAsync_keeps_the_startup_configuration_shape_for_regular_values()
     {
         var result = await RunStartupScriptAsync(new Fdc3StartupProperties
