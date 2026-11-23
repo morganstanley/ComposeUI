@@ -781,6 +781,81 @@ public class ContextListenerTests
     }
 
     [Fact]
+    public async Task SubscribeAsync_handler_processes_payload_with_null_context_type_property()
+    {
+        var response = new AddContextListenerResponse
+        {
+            Success = true,
+            Id = "listenerId"
+        };
+
+        _messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)));
+
+        TopicMessageHandler? capturedHandler = null;
+        _messagingMock
+            .Setup(m => m.SubscribeAsync(
+                It.IsAny<string>(),
+                It.IsAny<TopicMessageHandler>(),
+                It.IsAny<CancellationToken>()))
+            .Callback<string, TopicMessageHandler, CancellationToken>((_, handler, _) => capturedHandler = handler)
+            .ReturnsAsync(Mock.Of<IAsyncDisposable>());
+
+        var handled = false;
+        var listener = new ContextListener<MyContext>(
+            "instanceId",
+            (ctx, _) => handled = true,
+            _messagingMock.Object,
+            "fdc3.instrument");
+
+        await listener.SubscribeAsync("channelId", ChannelType.App);
+        await capturedHandler!("{\"type\":null,\"name\":\"test-context\"}");
+
+        handled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SubscribeAsync_handler_throws_for_non_object_json_payload()
+    {
+        var response = new AddContextListenerResponse
+        {
+            Success = true,
+            Id = "listenerId"
+        };
+
+        _messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)));
+
+        TopicMessageHandler? capturedHandler = null;
+        _messagingMock
+            .Setup(m => m.SubscribeAsync(
+                It.IsAny<string>(),
+                It.IsAny<TopicMessageHandler>(),
+                It.IsAny<CancellationToken>()))
+            .Callback<string, TopicMessageHandler, CancellationToken>((_, handler, _) => capturedHandler = handler)
+            .ReturnsAsync(Mock.Of<IAsyncDisposable>());
+
+        var listener = new ContextListener<MyContext>(
+            "instanceId",
+            (ctx, _) => { },
+            _messagingMock.Object,
+            "fdc3.instrument");
+
+        await listener.SubscribeAsync("channelId", ChannelType.App);
+
+        Func<Task> act = async () => await capturedHandler!("[]");
+        await act.Should().ThrowAsync<JsonException>();
+    }
+
+    [Fact]
     public async Task SubscribeAsync_handler_ignores_null_payload()
     {
         var response = new AddContextListenerResponse

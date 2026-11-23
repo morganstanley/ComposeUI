@@ -203,6 +203,22 @@ public class ChannelTests
     }
 
     [Fact]
+    public async Task GetCurrentContext_returns_null_when_service_response_object_is_null_on_the_channel()
+    {
+        _messagingMock
+            .Setup(
+                m => m.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>((string?)null));
+
+        var result = await _channel.GetCurrentContext("fdc3.instrument");
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
     public async Task GetCurrentContext_returns_deserialized_context_and_updates_last_context_on_the_channel()
     {
         var context = new Instrument(new InstrumentID() { Ticker = "MS" }, "test-name");
