@@ -24,6 +24,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal;
 using Instrument = Finos.Fdc3.Context.Instrument;
 using Finos.Fdc3.Context;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
 using ContextMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.ContextMetadata;
 
@@ -48,6 +49,36 @@ public class ChannelTests
             InstanceId,
             displayMetadata: null,
             loggerFactory: new NullLoggerFactory());
+    }
+
+    [Fact]
+    public void Constructor_throws_when_channel_id_is_null()
+    {
+        System.Action act = () => new Channel(
+            channelId: null!,
+            channelType: _channelType,
+            messaging: _messagingMock.Object,
+            appId: AppId,
+            instanceId: InstanceId,
+            displayMetadata: null,
+            loggerFactory: new NullLoggerFactory());
+
+        act.Should().Throw<Fdc3DesktopAgentException>();
+    }
+
+    [Fact]
+    public void Constructor_throws_when_app_id_is_null()
+    {
+        System.Action act = () => new Channel(
+            channelId: ChannelId,
+            channelType: _channelType,
+            messaging: _messagingMock.Object,
+            appId: null!,
+            instanceId: InstanceId,
+            displayMetadata: null,
+            loggerFactory: new NullLoggerFactory());
+
+        act.Should().Throw<ArgumentNullException>().WithParameterName("appId");
     }
 
     [Fact]

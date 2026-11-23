@@ -48,6 +48,20 @@ public class ContextListenerTests
     }
 
     [Fact]
+    public void Constructor_throws_when_instance_id_is_null()
+    {
+        ContextHandler<IContext> contextHandler = (_, _) => { };
+
+        System.Action act = () => new ContextListener<IContext>(
+            instanceId: null!,
+            contextHandler: contextHandler,
+            messaging: _messagingMock.Object,
+            contextType: "fdc3.instrument");
+
+        act.Should().Throw<ArgumentNullException>().WithParameterName("instanceId");
+    }
+
+    [Fact]
     public async Task Unsubscribe_does_nothing_when_not_subscribed_on_the_context_listener()
     {
         Func<Task> act = async () => await _listener.Unsubscribe();
