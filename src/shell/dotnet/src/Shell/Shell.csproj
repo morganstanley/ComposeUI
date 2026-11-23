@@ -77,9 +77,10 @@
 
 	<Target Name="CopyDesktopAgentClientConsoleApp" AfterTargets="Build">
 		<ItemGroup>
-			<DesktopAgentClientExe Include="$(SolutionDir)..\..\..\examples\dotnet-diagnostics\DiagnosticsExample\bin\$(Configuration)\net10.0-windows\DiagnosticsExample.exe" />
+			<DesktopAgentClientExe Include="$(SolutionDir)..\..\..\examples\dotnet-diagnostics\DiagnosticsExample\bin\$(Configuration)\net10.0-windows\DiagnosticsExample.exe"
+			                       Condition="Exists('$(SolutionDir)..\..\..\examples\dotnet-diagnostics\DiagnosticsExample\bin\$(Configuration)\net10.0-windows\DiagnosticsExample.exe')" />
 		</ItemGroup>
-		<Copy SourceFiles="@(DesktopAgentClientExe)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+		<Copy SourceFiles="@(DesktopAgentClientExe)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" Condition="'@(DesktopAgentClientExe)' != ''" />
 	</Target>
 
 </Project>
