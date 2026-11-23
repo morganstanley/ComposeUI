@@ -256,14 +256,14 @@ public class DesktopAgentClient : IDesktopAgent, IAsyncDisposable
     {
         return await AddIntentListener<T>(
             intent,
-            async (context, metadata) =>
+            (context, metadata) =>
             {
                 if (string.IsNullOrEmpty(contextType) || context.Type == contextType)
                 {
-                    await handler(context, metadata).ConfigureAwait(false);
+                    return handler(context, metadata);
                 }
 
-                return null!;
+                return Task.FromResult<IIntentResult>(null!);
             }).ConfigureAwait(false);
     }
 
@@ -534,7 +534,7 @@ public class DesktopAgentClient : IDesktopAgent, IAsyncDisposable
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
 
-        var intentResolution = await _intentsClient.RaiseIntentAsync(intent, context, app).ConfigureAwait(false);
+        var intentResolution = await _intentsClient.RaiseIntentAsync(intent, context, app, newInstance, metadata).ConfigureAwait(false);
         return intentResolution;
     }
 
@@ -557,7 +557,7 @@ public class DesktopAgentClient : IDesktopAgent, IAsyncDisposable
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
 
-        var intentResolution = await _intentsClient.RaiseIntentForContextAsync(context, app).ConfigureAwait(false);
+        var intentResolution = await _intentsClient.RaiseIntentForContextAsync(context, app, newInstance, metadata).ConfigureAwait(false);
         return intentResolution;
     }
 

@@ -737,7 +737,12 @@ public partial class Fdc3DesktopAgentMessagingServiceTests : IAsyncLifetime
 
         var result = await _fdc3.HandleGetIntentResult(getIntentResultRequest);
         result.Should().NotBeNull();
-        result!.Should().BeEquivalentTo(GetIntentResultResponse.Success(context: resultContext.AsJson()));
+        result!.Should().BeEquivalentTo(
+            GetIntentResultResponse.Success(context: resultContext.AsJson()),
+            options => options.Excluding(response => response.Metadata));
+        result.Metadata.Should().NotBeNull();
+        result.Metadata!.Source!.AppId.Should().Be(App1.AppId);
+        result.Metadata.Source.InstanceId.Should().Be(originFdc3InstanceId);
     }
 
     [Fact]
@@ -803,7 +808,12 @@ public partial class Fdc3DesktopAgentMessagingServiceTests : IAsyncLifetime
         var result = await _fdc3.HandleGetIntentResult(getIntentResultRequest);
         result.Should().NotBeNull();
         result!.Should()
-            .BeEquivalentTo(GetIntentResultResponse.Success(channelType: channelType, channelId: channelId));
+            .BeEquivalentTo(
+                GetIntentResultResponse.Success(channelType: channelType, channelId: channelId),
+                options => options.Excluding(response => response.Metadata));
+        result.Metadata.Should().NotBeNull();
+        result.Metadata!.Source!.AppId.Should().Be(App1.AppId);
+        result.Metadata.Source.InstanceId.Should().Be(originFdc3InstanceId);
     }
 
     [Fact]
@@ -865,7 +875,12 @@ public partial class Fdc3DesktopAgentMessagingServiceTests : IAsyncLifetime
 
         var result = await _fdc3.HandleGetIntentResult(getIntentResultRequest);
         result.Should().NotBeNull();
-        result!.Should().BeEquivalentTo(GetIntentResultResponse.Success(voidResult: true));
+        result!.Should().BeEquivalentTo(
+            GetIntentResultResponse.Success(voidResult: true),
+            options => options.Excluding(response => response.Metadata));
+        result.Metadata.Should().NotBeNull();
+        result.Metadata!.Source!.AppId.Should().Be(App1.AppId);
+        result.Metadata.Source.InstanceId.Should().Be(originFdc3InstanceId);
     }
 
     [Fact]

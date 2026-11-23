@@ -183,9 +183,7 @@ public class IntentResolutionTests
 
         var metadata = await intentResolution.GetResultMetadata();
 
-        metadata.Source.Should().NotBeNull();
-        metadata.Source!.AppId.Should().Be(_source.AppId);
-        metadata.Source.InstanceId.Should().Be(_source.InstanceId);
+        metadata.Source.Should().BeNull();
     }
 
     [Fact]

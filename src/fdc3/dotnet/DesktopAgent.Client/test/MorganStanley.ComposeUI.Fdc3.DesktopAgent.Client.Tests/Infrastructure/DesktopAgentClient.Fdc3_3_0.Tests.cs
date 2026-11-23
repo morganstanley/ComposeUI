@@ -121,52 +121,48 @@ public class DesktopAgentClientFdc3_3_0Tests
     [Fact]
     public async Task RaiseIntent_with_new_instance_and_metadata_overload_returns_resolution()
     {
-        var messagingMock = new Mock<IMessaging>();
-        var raiseIntentResponse = new RaiseIntentResponse
-        {
-            AppMetadata = new AppMetadata { AppId = "target-app" },
-            Intent = "ViewChart",
-            MessageId = Guid.NewGuid().ToString()
-        };
+        var desktopAgent = CreateClientWithMinimalMessaging();
+        await desktopAgent.GetCurrentChannel();
 
-        messagingMock
-            .Setup(m => m.InvokeServiceAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(JsonSerializer.Serialize(raiseIntentResponse, JsonOptions));
+        var metadata = new ContextMetadata { TraceId = "trace-intent" };
+        var resolution = new Mock<IIntentResolution>();
+        var intentsClient = new Mock<IIntentsClient>();
+        intentsClient
+            .Setup(m => m.RaiseIntentAsync("ViewChart", It.IsAny<Instrument>(), null, true, metadata))
+            .ReturnsAsync(resolution.Object);
+        SetPrivateField(desktopAgent, "_intentsClient", intentsClient.Object);
 
-        var desktopAgent = new DesktopAgentClient(messagingMock.Object, "test-app", "test-instance");
         var result = await desktopAgent.RaiseIntent(
             "ViewChart",
             new Instrument(),
             app: null,
             newInstance: true,
-            metadata: new ContextMetadata { TraceId = "trace-intent" });
+            metadata: metadata);
 
-        result.Should().NotBeNull();
+        result.Should().Be(resolution.Object);
     }
 
     [Fact]
     public async Task RaiseIntentForContext_with_new_instance_and_metadata_overload_returns_resolution()
     {
-        var messagingMock = new Mock<IMessaging>();
-        var raiseIntentResponse = new RaiseIntentResponse
-        {
-            AppMetadata = new AppMetadata { AppId = "target-app" },
-            Intent = "ViewChart",
-            MessageId = Guid.NewGuid().ToString()
-        };
+        var desktopAgent = CreateClientWithMinimalMessaging();
+        await desktopAgent.GetCurrentChannel();
 
-        messagingMock
-            .Setup(m => m.InvokeServiceAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(JsonSerializer.Serialize(raiseIntentResponse, JsonOptions));
+        var metadata = new ContextMetadata { TraceId = "trace-intent-context" };
+        var resolution = new Mock<IIntentResolution>();
+        var intentsClient = new Mock<IIntentsClient>();
+        intentsClient
+            .Setup(m => m.RaiseIntentForContextAsync(It.IsAny<Instrument>(), null, true, metadata))
+            .ReturnsAsync(resolution.Object);
+        SetPrivateField(desktopAgent, "_intentsClient", intentsClient.Object);
 
-        var desktopAgent = new DesktopAgentClient(messagingMock.Object, "test-app", "test-instance");
         var result = await desktopAgent.RaiseIntentForContext(
             new Instrument(),
             app: null,
             newInstance: true,
-            metadata: new ContextMetadata { TraceId = "trace-intent-context" });
+            metadata: metadata);
 
-        result.Should().NotBeNull();
+        result.Should().Be(resolution.Object);
     }
 
     [Fact]

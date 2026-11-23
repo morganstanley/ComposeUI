@@ -65,11 +65,6 @@ internal class IntentResolution : IIntentResolution
         return await Task.FromResult<IContextMetadata>(
             _resultMetadata ?? new ContextMetadata
             {
-                Source = new AppIdentifier
-                {
-                    AppId = Source.AppId,
-                    InstanceId = Source.InstanceId
-                },
                 Timestamp = DateTime.UtcNow
             });
     }

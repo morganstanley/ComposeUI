@@ -56,13 +56,14 @@ internal class Channel : IChannel
         DisplayMetadata? displayMetadata = null,
         ILoggerFactory? loggerFactory = null)
     {
-        if (channelId == null)
-        {
-            throw ThrowHelper.MissingChannelId();
-        }
         if (appId == null)
         {
             throw new ArgumentNullException(nameof(appId));
+        }
+
+        if (channelId == null)
+        {
+            throw ThrowHelper.MissingChannelId();
         }
 
         _channelId = channelId;

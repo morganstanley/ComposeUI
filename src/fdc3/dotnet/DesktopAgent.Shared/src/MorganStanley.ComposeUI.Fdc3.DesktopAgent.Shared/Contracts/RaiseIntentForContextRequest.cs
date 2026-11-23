@@ -13,6 +13,7 @@
 using System.Text.Json.Serialization;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Converters;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
+using ContextMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.ContextMetadata;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 
@@ -38,4 +39,14 @@ internal sealed class RaiseIntentForContextRequest
     /// Information about the app that should resolve the raised intent.
     /// </summary>
     public AppIdentifier TargetAppIdentifier { get; set; }
+
+    /// <summary>
+    /// Indicates whether the target app should be opened in a new instance.
+    /// </summary>
+    public bool? NewInstance { get; set; }
+
+    /// <summary>
+    /// Optional metadata provided by the source app for the context.
+    /// </summary>
+    public ContextMetadata? Metadata { get; set; }
 }

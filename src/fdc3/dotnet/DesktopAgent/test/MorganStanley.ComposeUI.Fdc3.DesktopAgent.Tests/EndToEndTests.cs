@@ -29,6 +29,7 @@ using static MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.TestData.TestAppDir
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
 using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIntent;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppMetadata;
+using ContextMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.ContextMetadata;
 using DisplayMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.DisplayMetadata;
 using ImplementationMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.ImplementationMetadata;
 
@@ -672,7 +673,15 @@ public class EndToEndTests : IAsyncLifetime
 
         var expectedResponse = new GetIntentResultResponse
         {
-            Context = testContext.AsJson()
+            Context = testContext.AsJson(),
+            Metadata = new ContextMetadata
+            {
+                Source = new AppIdentifier
+                {
+                    AppId = App1.AppId,
+                    InstanceId = originFdc3InstanceId
+                }
+            }
         };
 
         var app2 = _runningApps.First(application => application.Manifest.Id == App2.AppId);
@@ -681,7 +690,9 @@ public class EndToEndTests : IAsyncLifetime
 
         var result = await _messaging.InvokeJsonServiceAsync<GetIntentResultRequest, GetIntentResultResponse>(Fdc3Topic.GetIntentResult, request, _jsonOptions);
 
-        result!.Should().BeEquivalentTo(expectedResponse);
+        result!.Should().BeEquivalentTo(
+            expectedResponse,
+            options => options.Excluding(response => response.Metadata!.Timestamp));
     }
 
     [Fact]

@@ -60,9 +60,13 @@ internal sealed class GetIntentResultResponse
         string? channelId = null,
         ChannelType? channelType = null,
         string? context = null,
-        bool? voidResult = null)
+        bool? voidResult = null,
+        Protocol.ContextMetadata? metadata = null)
     {
-        var response = new GetIntentResultResponse();
+        var response = new GetIntentResultResponse
+        {
+            Metadata = metadata
+        };
         if (channelId != null && channelType != null)
         {
             response.ChannelId = channelId;
