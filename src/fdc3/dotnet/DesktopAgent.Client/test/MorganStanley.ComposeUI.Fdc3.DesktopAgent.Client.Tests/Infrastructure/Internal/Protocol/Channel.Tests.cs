@@ -14,6 +14,7 @@
 
 using Finos.Fdc3;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
@@ -334,5 +335,40 @@ public class ChannelTests
 
         listener.Should().NotBeNull();
         await listener.Unsubscribe();
+    }
+
+    [Fact]
+    public async Task GetCurrentContext_logs_debug_response_when_debug_enabled_on_the_channel()
+    {
+        var loggerMock = new Mock<ILogger>();
+        loggerMock.Setup(l => l.IsEnabled(LogLevel.Debug)).Returns(true);
+        var loggerFactoryMock = new Mock<ILoggerFactory>();
+        loggerFactoryMock.Setup(f => f.CreateLogger(It.IsAny<string>())).Returns(loggerMock.Object);
+
+        var channel = new Channel(
+            ChannelId,
+            _channelType,
+            _messagingMock.Object,
+            AppId,
+            InstanceId,
+            displayMetadata: null,
+            loggerFactory: loggerFactoryMock.Object);
+
+        _messagingMock
+            .Setup(
+                m => m.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(new GetCurrentContextResponse { Context = null }, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
+
+        await channel.GetCurrentContext("fdc3.instrument");
+
+        loggerMock.Verify(l => l.Log(
+            LogLevel.Debug,
+            It.IsAny<EventId>(),
+            It.IsAny<It.IsAnyType>(),
+            It.IsAny<Exception>(),
+            It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.AtLeastOnce);
     }
 }

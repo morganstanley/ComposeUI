@@ -17,8 +17,10 @@ using System.Text.Json;
 using Finos.Fdc3;
 using Finos.Fdc3.Context;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
@@ -293,6 +295,42 @@ public class DesktopAgentClientFdc3_3_0Tests
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task JoinUserChannel_leaves_previous_channel_and_unsubscribes_context_listeners()
+    {
+        var desktopAgent = CreateClientWithMinimalMessaging();
+        await desktopAgent.GetCurrentChannel();
+
+        var oldChannel = new Mock<IChannel>();
+        oldChannel.SetupGet(c => c.Id).Returns("old");
+        oldChannel.SetupGet(c => c.Type).Returns(ChannelType.User);
+
+        var newChannel = new Mock<IChannel>();
+        newChannel.SetupGet(c => c.Id).Returns("new");
+        newChannel.SetupGet(c => c.Type).Returns(ChannelType.User);
+
+        var channelHandler = new Mock<IChannelHandler>();
+        channelHandler
+            .Setup(h => h.JoinUserChannelAsync("new"))
+            .Returns(new ValueTask<IChannel>(newChannel.Object));
+
+        var contextListener = new Mock<IListener>();
+        contextListener.Setup(l => l.Unsubscribe()).Returns(Task.CompletedTask);
+
+        SetPrivateField(desktopAgent, "_currentChannel", oldChannel.Object);
+        SetPrivateField(desktopAgent, "_channelHandler", channelHandler.Object);
+
+        var contextListenersField = typeof(DesktopAgentClient).GetField("_contextListeners", BindingFlags.Instance | BindingFlags.NonPublic);
+        contextListenersField.Should().NotBeNull();
+        var contextListeners = (Dictionary<IListener, Func<string, ChannelType, CancellationToken, ValueTask>>)contextListenersField!.GetValue(desktopAgent)!;
+        contextListeners.Add(contextListener.Object, (_, _, _) => ValueTask.CompletedTask);
+
+        await desktopAgent.JoinUserChannel("new");
+
+        contextListener.Verify(l => l.Unsubscribe(), Times.Once);
+        channelHandler.Verify(h => h.JoinUserChannelAsync("new"), Times.Once);
     }
 
     private static DesktopAgentClient CreateClientWithMinimalMessaging()

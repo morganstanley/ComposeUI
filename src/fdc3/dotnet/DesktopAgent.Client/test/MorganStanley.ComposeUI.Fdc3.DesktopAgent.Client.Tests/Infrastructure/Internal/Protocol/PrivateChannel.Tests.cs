@@ -233,4 +233,15 @@ public class PrivateChannelTests
         Func<Task> act = async () => await _channel.DisconnectAsync();
         await act.Should().NotThrowAsync();
     }
+
+    [Fact]
+    public async Task DisconnectAsync_unsubscribes_registered_private_channel_event_handlers()
+    {
+        _channel.OnAddContextListener(_ => { });
+        _channel.OnUnsubscribe(_ => { });
+        _channel.OnDisconnect(() => { });
+
+        Func<Task> act = async () => await _channel.DisconnectAsync();
+        await act.Should().NotThrowAsync();
+    }
 }

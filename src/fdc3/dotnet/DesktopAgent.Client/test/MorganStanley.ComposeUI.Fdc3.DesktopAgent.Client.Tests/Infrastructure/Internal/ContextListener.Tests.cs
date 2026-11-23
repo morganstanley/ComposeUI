@@ -16,6 +16,7 @@ using System.Text.Json;
 using Finos.Fdc3;
 using Finos.Fdc3.Context;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
@@ -147,6 +148,49 @@ public class ContextListenerTests
 
         Func<Task> act = async () => await _listener.Unsubscribe();
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("Dispose error");
+    }
+
+    [Fact]
+    public async Task Unsubscribe_logs_and_continues_when_unregister_fails_on_the_context_listener()
+    {
+        var response = new AddContextListenerResponse
+        {
+            Success = true,
+            Id = "listener-id"
+        };
+
+        var loggerMock = new Mock<ILogger<ContextListener<Instrument>>>();
+        loggerMock.Setup(l => l.IsEnabled(LogLevel.Error)).Returns(true);
+
+        var messagingMock = new Mock<IMessaging>();
+        messagingMock
+            .SetupSequence(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)))
+            .Throws(new InvalidOperationException("unregister failed"));
+
+        var disposableMock = new Mock<IAsyncDisposable>();
+        disposableMock.Setup(d => d.DisposeAsync()).Returns(ValueTask.CompletedTask);
+        messagingMock
+            .Setup(m => m.SubscribeAsync(
+                It.IsAny<string>(),
+                It.IsAny<TopicMessageHandler>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(disposableMock.Object);
+
+        var listener = new ContextListener<Instrument>(
+            "instanceId",
+            (ctx, _) => { },
+            messagingMock.Object,
+            "fdc3.instrument",
+            logger: loggerMock.Object);
+
+        await listener.SubscribeAsync("channelId", ChannelType.App);
+        await listener.Unsubscribe();
+
+        disposableMock.Verify(d => d.DisposeAsync(), Times.Once);
     }
 
     [Fact]
@@ -684,6 +728,53 @@ public class ContextListenerTests
     }
 
     [Fact]
+    public async Task SubscribeAsync_handler_logs_debug_when_debug_enabled()
+    {
+        var response = new AddContextListenerResponse
+        {
+            Success = true,
+            Id = "listenerId"
+        };
+
+        var loggerMock = new Mock<ILogger<ContextListener<Instrument>>>();
+        loggerMock.Setup(l => l.IsEnabled(LogLevel.Debug)).Returns(true);
+
+        var messagingMock = new Mock<IMessaging>();
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)));
+
+        TopicMessageHandler? capturedHandler = null;
+        messagingMock
+            .Setup(m => m.SubscribeAsync(
+                It.IsAny<string>(),
+                It.IsAny<TopicMessageHandler>(),
+                It.IsAny<CancellationToken>()))
+            .Callback<string, TopicMessageHandler, CancellationToken>((_, handler, _) => capturedHandler = handler)
+            .ReturnsAsync(Mock.Of<IAsyncDisposable>());
+
+        var listener = new ContextListener<Instrument>(
+            "instanceId",
+            (ctx, _) => { },
+            messagingMock.Object,
+            "fdc3.instrument",
+            logger: loggerMock.Object);
+
+        await listener.SubscribeAsync("channelId", ChannelType.App);
+        await capturedHandler!(JsonSerializer.Serialize(new Instrument(), _jsonSerializerOptions));
+
+        loggerMock.Verify(l => l.Log(
+            LogLevel.Debug,
+            It.IsAny<EventId>(),
+            It.IsAny<It.IsAnyType>(),
+            It.IsAny<Exception>(),
+            It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.AtLeastOnce);
+    }
+
+    [Fact]
     public async Task SubscribeAsync_handler_queues_context_when_opened_context_not_yet_handled()
     {
         var response = new AddContextListenerResponse
@@ -721,6 +812,39 @@ public class ContextListenerTests
         await capturedHandler!(JsonSerializer.Serialize(new Instrument(), _jsonSerializerOptions));
 
         handledCount.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task DisposeAsync_calls_unsubscribe_on_context_listener()
+    {
+        var response = new AddContextListenerResponse
+        {
+            Success = true,
+            Id = "listener-id"
+        };
+        var removeResponse = new RemoveContextListenerResponse { Success = true };
+
+        _messagingMock
+            .SetupSequence(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)))
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(removeResponse, _jsonSerializerOptions)));
+
+        var disposableMock = new Mock<IAsyncDisposable>();
+        disposableMock.Setup(d => d.DisposeAsync()).Returns(ValueTask.CompletedTask);
+        _messagingMock
+            .Setup(m => m.SubscribeAsync(
+                It.IsAny<string>(),
+                It.IsAny<TopicMessageHandler>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(disposableMock.Object);
+
+        await _listener.SubscribeAsync("channelId", ChannelType.App);
+        await _listener.DisposeAsync();
+
+        disposableMock.Verify(d => d.DisposeAsync(), Times.Once);
     }
 
     private class MyContext : IContext
