@@ -97,6 +97,36 @@ public class DesktopAgentClientFdc3_3_0Tests
     }
 
     [Fact]
+    public async Task AddIntentListenerWithContext_invokes_handler_when_context_type_filter_is_empty()
+    {
+        var desktopAgent = CreateClientWithMinimalMessaging();
+        await desktopAgent.GetCurrentChannel();
+
+        var intentsClient = new Mock<IIntentsClient>();
+        IntentHandler<Instrument>? capturedHandler = null;
+        intentsClient
+            .Setup(m => m.AddIntentListenerAsync("test-intent-filter", It.IsAny<IntentHandler<Instrument>>()))
+            .Callback<string, IntentHandler<Instrument>>((_, handler) => capturedHandler = handler)
+            .ReturnsAsync(Mock.Of<IListener>());
+
+        SetPrivateField(desktopAgent, "_intentsClient", intentsClient.Object);
+
+        var invocationCount = 0;
+        await desktopAgent.AddIntentListenerWithContext<Instrument>(
+            "test-intent-filter",
+            string.Empty,
+            (context, metadata) =>
+            {
+                invocationCount++;
+                return Task.FromResult<IIntentResult>(new Instrument());
+            });
+
+        await capturedHandler!(new Instrument(), null);
+
+        invocationCount.Should().Be(1);
+    }
+
+    [Fact]
     public async Task Open_with_metadata_overload_returns_result()
     {
         var messagingMock = new Mock<IMessaging>();
