@@ -182,7 +182,13 @@ internal class ContextListener<T> : IListener, IAsyncDisposable
                         return new ValueTask();
                     }
 
-                    var contextType = (string?)JsonNode.Parse(contextJson, new JsonNodeOptions { PropertyNameCaseInsensitive = true })?["type"];
+                    string? contextType = null;
+                    if (JsonNode.Parse(contextJson, new JsonNodeOptions { PropertyNameCaseInsensitive = true }) is JsonObject contextNode &&
+                        contextNode.TryGetPropertyValue("type", out var typeNode) &&
+                        typeNode != null)
+                    {
+                        contextType = typeNode.GetValue<string>();
+                    }
 
                     if (contextType != null && contextType != _contextType && !string.IsNullOrEmpty(_contextType))
                     {

@@ -743,6 +743,44 @@ public class ContextListenerTests
     }
 
     [Fact]
+    public async Task SubscribeAsync_handler_processes_payload_without_context_type_property()
+    {
+        var response = new AddContextListenerResponse
+        {
+            Success = true,
+            Id = "listenerId"
+        };
+
+        _messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)));
+
+        TopicMessageHandler? capturedHandler = null;
+        _messagingMock
+            .Setup(m => m.SubscribeAsync(
+                It.IsAny<string>(),
+                It.IsAny<TopicMessageHandler>(),
+                It.IsAny<CancellationToken>()))
+            .Callback<string, TopicMessageHandler, CancellationToken>((_, handler, _) => capturedHandler = handler)
+            .ReturnsAsync(Mock.Of<IAsyncDisposable>());
+
+        var handled = false;
+        var listener = new ContextListener<MyContext>(
+            "instanceId",
+            (ctx, _) => handled = true,
+            _messagingMock.Object,
+            "fdc3.instrument");
+
+        await listener.SubscribeAsync("channelId", ChannelType.App);
+        await capturedHandler!("{\"name\":\"test-context\"}");
+
+        handled.Should().BeTrue();
+    }
+
+    [Fact]
     public async Task SubscribeAsync_handler_ignores_null_payload()
     {
         var response = new AddContextListenerResponse
