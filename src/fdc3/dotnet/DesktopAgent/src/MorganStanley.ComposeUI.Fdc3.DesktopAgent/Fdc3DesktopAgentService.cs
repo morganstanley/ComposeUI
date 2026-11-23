@@ -387,7 +387,8 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
                     intentResolution!.ResultChannelId,
                     intentResolution!.ResultChannelType,
                     intentResolution!.ResultContext,
-                    intentResolution!.ResultVoid);
+                    intentResolution!.ResultVoid,
+                    intentResolution!.ContextMetadata);
             }
             else
             {
@@ -808,6 +809,12 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
             _logger.LogWarning("Source app did not register its raiseable intent(s) for context: {ContextType} in the `raises` section of AppDirectory.", contextType);
         }
 
+        var sourceAppIdentifier = new AppIdentifier
+        {
+            AppId = sourceApp.AppId,
+            InstanceId = fdc3SourceInstanceId.ToString()
+        };
+
         var filteredAppIntents = await GetAppIntentsByRequestAsync(contextType: contextType, targetAppIdentifier: request.TargetAppIdentifier).ConfigureAwait(false);
 
         if (filteredAppIntents.AppIntents == null || !filteredAppIntents.AppIntents.Any())
@@ -851,7 +858,9 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
                 Context = request.Context,
                 Intent = resolverUIIntentResponse.SelectedIntent!,
                 RaisedIntentMessageId = request.MessageId,
-                SourceAppInstanceId = new(request.Fdc3InstanceId)
+                SourceAppInstanceId = new(request.Fdc3InstanceId),
+                NewInstance = request.NewInstance,
+                ContextMetadata = CreateContextMetadata(request.Metadata, sourceAppIdentifier)
             };
         }
         else if (filteredAppIntents.AppIntents.Count == 0)
@@ -871,7 +880,9 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
                 Context = request.Context,
                 Intent = filteredAppIntents.AppIntents.Values.First()!.Intent.Name,
                 RaisedIntentMessageId = request.MessageId,
-                SourceAppInstanceId = new(request.Fdc3InstanceId)
+                SourceAppInstanceId = new(request.Fdc3InstanceId),
+                NewInstance = request.NewInstance,
+                ContextMetadata = CreateContextMetadata(request.Metadata, sourceAppIdentifier)
             };
         }
 
@@ -945,6 +956,12 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
             _logger.LogWarning("Source app did not register its raiseable intent(s) for context: {ContextType} in the `raises` section of AppDirectory.", contextType);
         }
 
+        var sourceAppIdentifier = new AppIdentifier
+        {
+            AppId = sourceApp.AppId,
+            InstanceId = fdc3SourceInstanceId.ToString()
+        };
+
         var intentQueryResult = await GetAppIntentsByRequestAsync(request.Intent, contextType, targetAppIdentifier: request.TargetAppIdentifier).ConfigureAwait(false);
 
         if (intentQueryResult.Error != null)
@@ -969,7 +986,9 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
             Context = request.Context,
             Intent = request.Intent,
             RaisedIntentMessageId = request.MessageId,
-            SourceAppInstanceId = new(request.Fdc3InstanceId)
+            SourceAppInstanceId = new(request.Fdc3InstanceId),
+            NewInstance = request.NewInstance,
+            ContextMetadata = CreateContextMetadata(request.Metadata, sourceAppIdentifier)
         };
 
         if (appIntent.Apps.Count() == 1)
@@ -1088,7 +1107,8 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
 
         try
         {
-            if (!string.IsNullOrEmpty(raiseIntentSpecification.TargetAppMetadata.InstanceId))
+            if (!raiseIntentSpecification.NewInstance.GetValueOrDefault()
+                && !string.IsNullOrEmpty(raiseIntentSpecification.TargetAppMetadata.InstanceId))
             {
                 var raisedIntentMessageId = StoreRaisedIntentForTarget(raiseIntentSpecification);
 
@@ -1245,7 +1265,8 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
             raiseIntentMessageId: raiseIntentSpecification.RaisedIntentMessageId,
             intent: raiseIntentSpecification.Intent,
             originFdc3InstanceId: raiseIntentSpecification.SourceAppInstanceId.ToString(),
-            contextToHandle: raiseIntentSpecification.Context);
+            contextToHandle: raiseIntentSpecification.Context,
+            contextMetadata: raiseIntentSpecification.ContextMetadata);
 
         //At this point the InstanceId should be not null.
         _raisedIntentResolutions.AddOrUpdate(
@@ -1277,6 +1298,8 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
             InstanceId = raiseIntentSpecification.SourceAppInstanceId.ToString()
         };
 
+        var contextMetadata = CreateContextMetadata(raiseIntentSpecification.ContextMetadata, sourceAppIdentifier);
+
         return Task.FromResult<RaiseIntentResolutionMessage?>(
             new()
             {
@@ -1286,12 +1309,22 @@ internal class Fdc3DesktopAgentService : IFdc3DesktopAgentService
                 {
                     MessageId = raisedIntentMessageId,
                     Context = raiseIntentSpecification.Context,
-                    ContextMetadata = new ContextMetadata
-                    {
-                        Source = sourceAppIdentifier
-                    }
+                    ContextMetadata = contextMetadata
                 }
             });
+    }
+
+    private static ContextMetadata CreateContextMetadata(ContextMetadata? metadata, AppIdentifier sourceAppIdentifier)
+    {
+        return new ContextMetadata
+        {
+            Source = sourceAppIdentifier,
+            Timestamp = metadata?.Timestamp ?? DateTime.UtcNow,
+            TraceId = metadata?.TraceId,
+            Signature = metadata?.Signature,
+            AntiReplay = metadata?.AntiReplay,
+            Custom = metadata?.Custom
+        };
     }
 
     private async Task<IntentQueryResult> GetAppIntentsByRequestAsync(

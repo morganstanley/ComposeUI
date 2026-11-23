@@ -29,6 +29,7 @@ using static MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.TestData.TestAppDir
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
 using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIntent;
 using AppMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppMetadata;
+using ContextMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.ContextMetadata;
 using DisplayMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.DisplayMetadata;
 using ImplementationMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.ImplementationMetadata;
 
@@ -154,8 +155,8 @@ public class EndToEndTests : IAsyncLifetime
     [Fact]
     public async Task GetCurrentContextReturnsNullBeforeBroadcast()
     {
-        var resultBuffer = await _messaging.InvokeJsonServiceAsync<GetCurrentContextRequest, string>(_topics.GetCurrentContext, RequestWithEmptyContextType, _jsonOptions);
-        resultBuffer.Should().BeNull();
+        var resultBuffer = await _messaging.InvokeJsonServiceAsync<GetCurrentContextRequest, GetCurrentContextResponse>(_topics.GetCurrentContext, RequestWithEmptyContextType, _jsonOptions);
+        resultBuffer!.Context.Should().BeNull();
     }
 
     [Fact]
@@ -167,10 +168,10 @@ public class EndToEndTests : IAsyncLifetime
 
         await Task.Delay(100);
 
-        var resultBuffer = await _messaging.InvokeServiceAsync(_topics.GetCurrentContext, JsonSerializer.Serialize(RequestWithContextType, _jsonOptions));
+        var response = await _messaging.InvokeJsonServiceAsync<GetCurrentContextRequest, GetCurrentContextResponse>(_topics.GetCurrentContext, RequestWithContextType, _jsonOptions);
 
-        resultBuffer.Should().NotBeNull();
-        var result = ReadJson<Contact>(resultBuffer);
+        response?.Context.Should().NotBeNull();
+        var result = ReadJson<Contact>(response!.Context!);
 
         result.Should().BeEquivalentTo(ReadJson<Contact>(ctx));
     }
@@ -184,10 +185,10 @@ public class EndToEndTests : IAsyncLifetime
 
         await Task.Delay(100);
 
-        var resultBuffer = await _messaging.InvokeServiceAsync(_topics.GetCurrentContext, JsonSerializer.Serialize(RequestWithEmptyContextType, _jsonOptions));
+        var response = await _messaging.InvokeJsonServiceAsync<GetCurrentContextRequest, GetCurrentContextResponse>(_topics.GetCurrentContext, RequestWithEmptyContextType, _jsonOptions);
 
-        resultBuffer.Should().NotBeNull();
-        var result = ReadJson<Contact>(resultBuffer);
+        response?.Context.Should().NotBeNull();
+        var result = ReadJson<Contact>(response!.Context!);
 
         result.Should().BeEquivalentTo(ReadJson<Contact>(ctx));
     }
@@ -198,8 +199,8 @@ public class EndToEndTests : IAsyncLifetime
         var ctx = GetContext();
         await _messaging.PublishAsync(_topics.Broadcast, ctx);
         await Task.Delay(100);
-        var resultBuffer = await _messaging.InvokeJsonServiceAsync<GetCurrentContextRequest, string>(_topics.GetCurrentContext, RequestWithOtherContextType, _jsonOptions);
-        resultBuffer.Should().BeNull();
+        var resultBuffer = await _messaging.InvokeJsonServiceAsync<GetCurrentContextRequest, GetCurrentContextResponse>(_topics.GetCurrentContext, RequestWithOtherContextType, _jsonOptions);
+        resultBuffer!.Context.Should().BeNull();
     }
 
     [Fact]
@@ -672,7 +673,15 @@ public class EndToEndTests : IAsyncLifetime
 
         var expectedResponse = new GetIntentResultResponse
         {
-            Context = testContext.AsJson()
+            Context = testContext.AsJson(),
+            Metadata = new ContextMetadata
+            {
+                Source = new AppIdentifier
+                {
+                    AppId = App1.AppId,
+                    InstanceId = originFdc3InstanceId
+                }
+            }
         };
 
         var app2 = _runningApps.First(application => application.Manifest.Id == App2.AppId);
@@ -681,7 +690,9 @@ public class EndToEndTests : IAsyncLifetime
 
         var result = await _messaging.InvokeJsonServiceAsync<GetIntentResultRequest, GetIntentResultResponse>(Fdc3Topic.GetIntentResult, request, _jsonOptions);
 
-        result!.Should().BeEquivalentTo(expectedResponse);
+        result!.Should().BeEquivalentTo(
+            expectedResponse,
+            options => options.Excluding(response => response.Metadata!.Timestamp));
     }
 
     [Fact]
@@ -1748,7 +1759,7 @@ public class EndToEndTests : IAsyncLifetime
     {
         return JsonSerializer.Serialize(
             new Contact(
-                new ContactID { Email = $"test{_counter}@test.org", FdsId = $"test{_counter++}" },
+                new ContactID { Email = $"test{_counter}@test.org", FDS_ID = $"test{_counter++}" },
                 name: "Testy Tester"), _jsonOptions);
     }
 

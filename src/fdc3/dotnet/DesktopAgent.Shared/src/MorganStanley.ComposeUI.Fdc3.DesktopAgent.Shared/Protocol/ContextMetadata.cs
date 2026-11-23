@@ -14,8 +14,20 @@ using Finos.Fdc3;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
 
-public class ContextMetadata : IContextMetadata
+public class ContextMetadata : IContextMetadata, IAppProvidableContextMetadata
 {
     public AppIdentifier? Source { get; set; }
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public string? TraceId { get; set; }
+    public IDetachedSignature? Signature { get; set; }
+    public IAntiReplayClaims? AntiReplay { get; set; }
+    public Dictionary<string, object>? Custom { get; set; }
+
     IAppIdentifier? IContextMetadata.Source => Source;
+    DateTime IContextMetadata.Timestamp => Timestamp;
+    string? IContextMetadata.TraceId => TraceId;
+    string? IAppProvidableContextMetadata.TraceId => TraceId;
+    IDetachedSignature? IAppProvidableContextMetadata.Signature => Signature;
+    IAntiReplayClaims? IAppProvidableContextMetadata.AntiReplay => AntiReplay;
+    Dictionary<string, object>? IAppProvidableContextMetadata.Custom => Custom;
 }
