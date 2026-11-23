@@ -112,6 +112,44 @@ public class ContextListenerTests
     }
 
     [Fact]
+    public async Task Unsubscribe_invokes_callback_when_registered_on_the_context_listener()
+    {
+        var response = new AddContextListenerResponse
+        {
+            Success = true,
+            Id = "listener-id"
+        };
+        var removeResponse = new RemoveContextListenerResponse
+        {
+            Success = true
+        };
+
+        _messagingMock
+            .SetupSequence(
+                m => m.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(response, _jsonSerializerOptions)))
+            .Returns(new ValueTask<string?>(JsonSerializer.Serialize(removeResponse, _jsonSerializerOptions)));
+
+        _messagingMock
+            .Setup(m => m.SubscribeAsync(
+                It.IsAny<string>(),
+                It.IsAny<TopicMessageHandler>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Mock.Of<IAsyncDisposable>());
+
+        var callbackCount = 0;
+        _listener.SetUnsubscribeCallback(_ => callbackCount++);
+
+        await _listener.SubscribeAsync("channelId", ChannelType.App);
+        await _listener.Unsubscribe();
+
+        callbackCount.Should().Be(1);
+    }
+
+    [Fact]
     public async Task Unsubscribe_handles_exception_during_dispose_on_the_context_listener()
     {
         var response = new AddContextListenerResponse

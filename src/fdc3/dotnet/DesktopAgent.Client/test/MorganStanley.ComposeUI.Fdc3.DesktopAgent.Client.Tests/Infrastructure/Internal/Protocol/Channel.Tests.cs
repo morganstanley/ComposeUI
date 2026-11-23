@@ -131,6 +131,31 @@ public class ChannelTests
     }
 
     [Fact]
+    public async Task Broadcast_updates_cached_context_when_same_type_is_broadcast_twice_on_the_channel()
+    {
+        _messagingMock
+            .Setup(
+                m => m.PublishAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .Returns(ValueTask.CompletedTask);
+
+        var first = new Instrument(new InstrumentID { Ticker = "MS" }, "first");
+        var second = new Instrument(new InstrumentID { Ticker = "MS" }, "second");
+
+        await _channel.Broadcast(first);
+        await _channel.Broadcast(second);
+
+        _messagingMock.Verify(
+            m => m.PublishAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()),
+            Times.Exactly(2));
+    }
+
+    [Fact]
     public async Task GetCurrentContext_returns_null_when_service_returns_null_on_the_channel()
     {
         _messagingMock
@@ -319,6 +344,41 @@ public class ChannelTests
     }
 
     [Fact]
+    public async Task GetCurrentContextWithMetadata_updates_existing_cached_context_for_same_type_on_the_channel()
+    {
+        var firstContext = new Instrument(new InstrumentID { Ticker = "MS" }, "first");
+        var secondContext = new Instrument(new InstrumentID { Ticker = "IBM" }, "second");
+        var firstMetadata = new ContextMetadata { TraceId = "trace-1" };
+        var secondMetadata = new ContextMetadata { TraceId = "trace-2" };
+
+        _messagingMock
+            .SetupSequence(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(
+                new GetCurrentContextResponse
+                {
+                    Context = JsonSerializer.Serialize(firstContext, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization),
+                    Metadata = firstMetadata
+                },
+                SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization))
+            .ReturnsAsync(JsonSerializer.Serialize(
+                new GetCurrentContextResponse
+                {
+                    Context = JsonSerializer.Serialize(secondContext, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization),
+                    Metadata = secondMetadata
+                },
+                SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
+
+        var firstResult = await _channel.GetCurrentContextWithMetadata("fdc3.instrument");
+        var secondResult = await _channel.GetCurrentContextWithMetadata("fdc3.instrument");
+
+        firstResult!.Metadata.TraceId.Should().Be("trace-1");
+        secondResult!.Metadata.TraceId.Should().Be("trace-2");
+    }
+
+    [Fact]
     public async Task ClearContext_clears_type_and_all_contexts_on_the_channel()
     {
         Func<Task> clearTyped = async () => await _channel.ClearContext("fdc3.instrument");
@@ -332,6 +392,15 @@ public class ChannelTests
     public async Task AddEventListener_returns_listener_that_can_unsubscribe_on_the_channel()
     {
         var listener = await _channel.AddEventListener("context-changed", _ => { });
+
+        listener.Should().NotBeNull();
+        await listener.Unsubscribe();
+    }
+
+    [Fact]
+    public async Task AddEventListener_accepts_null_event_type_on_the_channel()
+    {
+        var listener = await _channel.AddEventListener(null, _ => { });
 
         listener.Should().NotBeNull();
         await listener.Unsubscribe();

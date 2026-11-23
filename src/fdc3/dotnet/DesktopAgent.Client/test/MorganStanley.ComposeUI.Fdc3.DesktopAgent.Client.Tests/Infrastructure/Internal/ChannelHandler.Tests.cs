@@ -30,6 +30,21 @@ public class ChannelHandlerTests
     private readonly JsonSerializerOptions _jsonSerializerOptions = SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization;
 
     [Fact]
+    public void Constructor_throws_when_app_id_is_null()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+
+        System.Action act = () => new ChannelHandler(
+            messagingMock.Object,
+            appId: null!,
+            fdc3InstanceId: "instance-id",
+            desktopAgent: desktopAgentClientMock.Object);
+
+        act.Should().Throw<ArgumentNullException>().WithParameterName("appId");
+    }
+
+    [Fact]
     public async Task CreateContextListenerAsync_returns_listener_from_channel_when_currentChannel_is_provided()
     {
         var messagingMock = new Mock<IMessaging>();
