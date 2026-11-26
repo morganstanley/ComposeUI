@@ -11,11 +11,22 @@
 // and limitations under the License.
 
 using System.Diagnostics;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MorganStanley.ComposeUI.ModuleLoader.Runners;
 
 internal class NativeModuleRunner : IModuleRunner
 {
+    private readonly NativeModuleLaunchOptions _options;
+    private readonly ILogger<NativeModuleRunner> _logger;
+
+    public NativeModuleRunner(NativeModuleLaunchOptions? options = null, ILogger<NativeModuleRunner>? logger = null)
+    {
+        _options = options ?? new NativeModuleLaunchOptions();
+        _logger = logger ?? NullLogger<NativeModuleRunner>.Instance;
+    }
+
     public string ModuleType => ComposeUI.ModuleLoader.ModuleType.Native;
 
     public async Task Start(StartupContext startupContext, Func<Task> pipeline)
@@ -24,6 +35,8 @@ internal class NativeModuleRunner : IModuleRunner
         {
             throw new Exception("Unable to get native manifest details");
         }
+
+        var fileName = GetFileName(startupContext.ModuleInstance.Manifest.Id, details);
 
         startupContext.AddProperty(new EnvironmentVariables(details.EnvironmentVariables));
 
@@ -40,13 +53,17 @@ internal class NativeModuleRunner : IModuleRunner
         var mainProcess = new Process();
         var processInfo = new MainProcessInfo(mainProcess);
 
-        var filename = details.Path.IsAbsoluteUri ? details.Path.AbsolutePath : details.Path.ToString();
-
-        mainProcess.StartInfo.FileName = Path.GetFullPath(filename);
+        mainProcess.StartInfo.FileName = fileName;
         startupContext.AddProperty(processInfo);
 
         //Waits for other IStartActions to finish first.
         await pipeline();
+
+        // The startup actions run for a while, so check again right before the process is started.
+        if (!_options.DisableLaunchGuard)
+        {
+            mainProcess.StartInfo.FileName = NativeLaunchGuard.Validate(startupContext.ModuleInstance.Manifest.Id, details, _options);
+        }
 
         foreach (var argument in details.Arguments)
         {
@@ -72,6 +89,20 @@ internal class NativeModuleRunner : IModuleRunner
         }
 
         mainProcess.Start();
+    }
+
+    private string GetFileName(string moduleId, NativeManifestDetails details)
+    {
+        if (!_options.DisableLaunchGuard)
+        {
+            return NativeLaunchGuard.Validate(moduleId, details, _options);
+        }
+
+        _logger.LogWarning(
+            "The launch guard is disabled: the native module '{ModuleId}' is started without checking its path, arguments and environment variables.",
+            moduleId);
+
+        return Path.GetFullPath(details.Path.IsAbsoluteUri ? details.Path.LocalPath : details.Path.ToString());
     }
 
     public async Task Stop(IModuleInstance moduleInstance)

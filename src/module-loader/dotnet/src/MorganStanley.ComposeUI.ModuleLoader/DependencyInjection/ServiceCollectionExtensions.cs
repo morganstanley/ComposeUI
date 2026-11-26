@@ -11,6 +11,7 @@
 // and limitations under the License.
 
 using MorganStanley.ComposeUI.ModuleLoader;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using MorganStanley.ComposeUI.ModuleLoader.Runners;
 
 // ReSharper disable once CheckNamespace
@@ -23,7 +24,23 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddSingleton<IModuleLoader, ModuleLoader>();
         serviceCollection.AddSingleton<IModuleRunner, WebModuleRunner>();
         serviceCollection.AddSingleton<IModuleRunner, NativeModuleRunner>();
+        serviceCollection.TryAddSingleton<NativeModuleLaunchOptions>();
 
         return serviceCollection;
+    }
+
+    /// <summary>
+    /// Adds the module loader and configures what native modules can be started.
+    /// </summary>
+    public static IServiceCollection AddModuleLoader(
+        this IServiceCollection serviceCollection,
+        Action<NativeModuleLaunchOptions> configureNativeModuleLaunch)
+    {
+        var options = new NativeModuleLaunchOptions();
+        configureNativeModuleLaunch(options);
+
+        serviceCollection.Replace(ServiceDescriptor.Singleton(options));
+
+        return serviceCollection.AddModuleLoader();
     }
 }
