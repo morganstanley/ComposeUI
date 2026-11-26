@@ -30,6 +30,21 @@ public class ChannelHandlerTests
     private readonly JsonSerializerOptions _jsonSerializerOptions = SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization;
 
     [Fact]
+    public void Constructor_throws_when_app_id_is_null()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+
+        System.Action act = () => new ChannelHandler(
+            messagingMock.Object,
+            appId: null!,
+            fdc3InstanceId: "instance-id",
+            desktopAgent: desktopAgentClientMock.Object);
+
+        act.Should().Throw<ArgumentNullException>().WithParameterName("appId");
+    }
+
+    [Fact]
     public async Task CreateContextListenerAsync_returns_listener_from_channel_when_currentChannel_is_provided()
     {
         var messagingMock = new Mock<IMessaging>();
@@ -61,6 +76,26 @@ public class ChannelHandlerTests
         var result = await factory.CreateContextListenerAsync(handler, null, "fdc3.instrument");
 
         result.Should().BeOfType<ContextListener<Instrument>>();
+    }
+
+    [Fact]
+    public async Task CreateContextListenerAsync_throws_when_channel_returns_non_internal_listener()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+        var channelMock = new Mock<IChannel>();
+        var handler = new ContextHandler<Instrument>((ctx, _) => { });
+
+        channelMock
+            .Setup(c => c.AddContextListener("fdc3.instrument", handler))
+            .ReturnsAsync(Mock.Of<IListener>());
+
+        var factory = new ChannelHandler(messagingMock.Object, "instanceId", desktopAgentClientMock.Object);
+
+        var act = async () => await factory.CreateContextListenerAsync(handler, channelMock.Object, "fdc3.instrument");
+
+        await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
+            .WithMessage("*not created/returned on channel*");
     }
 
     [Fact]
@@ -503,5 +538,34 @@ public class ChannelHandlerTests
 
         await act.Should().ThrowAsync<Fdc3DesktopAgentException>()
             .WithMessage("*Client was not able to join to private channel*");
+    }
+
+    [Fact]
+    public async Task GetUserChannelsAsync_keeps_channel_with_missing_display_metadata_when_id_exists()
+    {
+        var messagingMock = new Mock<IMessaging>();
+        var response = new GetUserChannelsResponse
+        {
+            Channels = new[]
+            {
+                new MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.ChannelItem
+                {
+                    Id = "green",
+                    Type = ChannelType.User,
+                    DisplayMetadata = null
+                }
+            }
+        };
+
+        messagingMock
+            .Setup(m => m.InvokeServiceAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        var desktopAgentClientMock = new Mock<IDesktopAgent>();
+        var handler = new ChannelHandler(messagingMock.Object, "test-app", "instance-id", desktopAgentClientMock.Object);
+
+        var channels = (await handler.GetUserChannelsAsync()).ToArray();
+
+        channels.Should().ContainSingle(c => c.Id == "green");
     }
 }

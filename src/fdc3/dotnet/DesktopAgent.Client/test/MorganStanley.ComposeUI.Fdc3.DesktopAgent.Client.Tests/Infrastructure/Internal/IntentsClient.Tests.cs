@@ -27,6 +27,7 @@ using AppIntent = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppI
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure;
 using Finos.Fdc3;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
+using ContextMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.ContextMetadata;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests.Infrastructure.Internal;
 
@@ -287,6 +288,38 @@ public class IntentsClientTests
     }
 
     [Fact]
+    public async Task RaiseIntentForContextAsync_sends_new_instance_and_metadata_when_provided()
+    {
+        var context = new Instrument(new InstrumentID() { Ticker = "AAPL" });
+        var response = new RaiseIntentResponse
+        {
+            MessageId = Guid.NewGuid().ToString(),
+            Intent = "ViewChart",
+            AppMetadata = new AppMetadata { AppId = "TestApp" }
+        };
+
+        RaiseIntentForContextRequest? capturedRequest = null;
+        _messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                Fdc3Topic.RaiseIntentForContext,
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .Callback<string, string, CancellationToken>((_, payload, _) => capturedRequest = JsonSerializer.Deserialize<RaiseIntentForContextRequest>(payload, _jsonSerializerOptions))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        await _client.RaiseIntentForContextAsync(
+            context,
+            app: null,
+            newInstance: true,
+            metadata: new ContextMetadata { TraceId = "trace-id" });
+
+        capturedRequest.Should().NotBeNull();
+        capturedRequest!.NewInstance.Should().BeTrue();
+        capturedRequest.Metadata.Should().NotBeNull();
+        capturedRequest.Metadata!.TraceId.Should().Be("trace-id");
+    }
+
+    [Fact]
     public async Task RaiseIntentForContextAsync_throws_when_response_is_null()
     {
         var context = new Instrument(new InstrumentID() { Ticker = "AAPL" });
@@ -519,5 +552,37 @@ public class IntentsClientTests
         var result = await _client.RaiseIntentAsync("IntentName", new Instrument(), new AppIdentifier { AppId = "app", InstanceId = "id" });
 
         result.Should().BeAssignableTo<IIntentResolution>();
+    }
+
+    [Fact]
+    public async Task RaiseIntentAsync_sends_new_instance_and_metadata_when_provided()
+    {
+        var response = new RaiseIntentResponse
+        {
+            MessageId = Guid.NewGuid().ToString(),
+            Intent = "ViewChart",
+            AppMetadata = new AppMetadata { AppId = "TestApp" }
+        };
+
+        RaiseIntentRequest? capturedRequest = null;
+        _messagingMock
+            .Setup(m => m.InvokeServiceAsync(
+                Fdc3Topic.RaiseIntent,
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .Callback<string, string, CancellationToken>((_, payload, _) => capturedRequest = JsonSerializer.Deserialize<RaiseIntentRequest>(payload, _jsonSerializerOptions))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        await _client.RaiseIntentAsync(
+            "IntentName",
+            new Instrument(),
+            app: null,
+            newInstance: true,
+            metadata: new ContextMetadata { TraceId = "trace-id" });
+
+        capturedRequest.Should().NotBeNull();
+        capturedRequest!.NewInstance.Should().BeTrue();
+        capturedRequest.Metadata.Should().NotBeNull();
+        capturedRequest.Metadata!.TraceId.Should().Be("trace-id");
     }
 }

@@ -98,6 +98,65 @@ public class RaiseIntentForContextTests : Fdc3DesktopAgentServiceTestsBase
     }
 
     [Fact]
+    public async Task RaiseIntentForContext_returns_ResolverUnavailable_when_the_ResolverUI_selected_no_app_and_gave_no_error()
+    {
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
+        SetUpIntentAndAppSelection(new ResolverUIResponse());
+
+        var result = await Fdc3.RaiseIntentForContext(NothingContextRequest(origin), ContextTypes.Nothing);
+
+        result.Response.Error.Should().Be(ResolveError.ResolverUnavailable);
+    }
+
+    [Fact]
+    public async Task RaiseIntentForContext_returns_ResolverUnavailable_and_does_not_throw_when_the_ResolverUI_returned_an_app_that_is_not_the_metadata_of_the_agent()
+    {
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
+        SetUpIntentAndAppSelection(new ResolverUIResponse { AppMetadata = Mock.Of<IAppMetadata>(m => m.AppId == "foreignApp") });
+
+        var result = await Fdc3.RaiseIntentForContext(NothingContextRequest(origin), ContextTypes.Nothing);
+
+        result.Response.Error.Should().Be(ResolveError.ResolverUnavailable);
+    }
+
+    [Fact]
+    public async Task RaiseIntentForContext_starts_the_app_that_the_ResolverUI_selected_from_the_offered_apps()
+    {
+        var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));
+        SetUpIntentAndAppSelection(new ResolverUIResponse());
+        IAppMetadata? selected = null;
+        ResolverUICommunicator
+            .Setup(x => x.SendResolverUIRequestAsync(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IEnumerable<IAppMetadata> apps, CancellationToken _) =>
+            {
+                selected = apps.First(app => app.InstanceId == null && app.AppId != App1.AppId);
+                return new ResolverUIResponse { AppMetadata = selected };
+            });
+
+        var result = await Fdc3.RaiseIntentForContext(NothingContextRequest(origin), ContextTypes.Nothing);
+
+        selected.Should().NotBeNull();
+        result.Response.Error.Should().NotBe(ResolveError.ResolverUnavailable);
+        ModuleLoader.Verify(_ => _.StartModule(It.Is<StartRequest>(r => r.ModuleId == selected!.AppId)), Times.Once);
+    }
+
+    private void SetUpIntentAndAppSelection(ResolverUIResponse appSelection)
+    {
+        ResolverUICommunicator
+            .Setup(x => x.SendResolverUIIntentRequestAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.FromResult<ResolverUIIntentResponse?>(new ResolverUIIntentResponse { SelectedIntent = IntentWithNoResult.Name }));
+        ResolverUICommunicator
+            .Setup(x => x.SendResolverUIRequestAsync(It.IsAny<IEnumerable<IAppMetadata>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(appSelection);
+    }
+
+    private static RaiseIntentForContextRequest NothingContextRequest(IModuleInstance origin) => new()
+    {
+        Fdc3InstanceId = Fdc3InstanceIdRetriever.GetFdc3InstanceId(origin),
+        Context = ContextType.Nothing.AsJson(),
+    };
+
+    [Fact]
     public async Task RaiseIntentForContext_with_multiple_intents_but_single_app_calls_ResolverUI()
     {
         var origin = await ModuleLoader.Object.StartModule(new StartRequest(App1.AppId));

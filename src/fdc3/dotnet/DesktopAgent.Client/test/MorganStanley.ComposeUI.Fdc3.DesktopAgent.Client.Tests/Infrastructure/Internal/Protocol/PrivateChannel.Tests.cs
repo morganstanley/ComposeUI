@@ -23,6 +23,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
+using SystemAction = System.Action;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests.Infrastructure.Internal.Protocol;
 
@@ -30,6 +31,7 @@ public class PrivateChannelTests
 {
     private readonly Mock<IMessaging> _messagingMock = new();
     private readonly string _channelId = "test-channel";
+    private readonly string _appId = "test-app";
     private readonly string _instanceId = "test-instance";
     private readonly DisplayMetadata _displayMetadata = new();
     private readonly PrivateChannel _channel;
@@ -46,6 +48,7 @@ public class PrivateChannelTests
         _channel = new PrivateChannel(
             _channelId,
             _messagingMock.Object,
+            _appId,
             _instanceId,
             onDisconnect: () => _disconnectTcs.TrySetResult(),
             isOriginalCreator: true);
@@ -98,7 +101,7 @@ public class PrivateChannelTests
             _ => _.InvokeServiceAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
 
-        var channel = new PrivateChannel(_channelId, _messagingMock.Object, _instanceId, onDisconnect:() => { }, isOriginalCreator: true);
+        var channel = new PrivateChannel(_channelId, _messagingMock.Object, _appId, _instanceId, onDisconnect:() => { }, isOriginalCreator: true);
 
         var listener = await channel.AddContextListener<Instrument>(null, (ctx, ctxM) => { });
 
@@ -119,7 +122,7 @@ public class PrivateChannelTests
         _channel.Disconnect();
         await _disconnectTcs.Task.WaitAsync(DisconnectTimeout);
 
-        Action act = () => _channel.OnAddContextListener(_ => { });
+        SystemAction act = () => _channel.OnAddContextListener(_ => { });
 
         act.Should().Throw<Fdc3DesktopAgentException>().WithMessage("*disconnected*");
     }
@@ -139,6 +142,7 @@ public class PrivateChannelTests
         var channel = new PrivateChannel(
             _channelId,
             _messagingMock.Object,
+            _appId,
             _instanceId,
             true,
             () => disconnectTcs.TrySetResult());
@@ -146,7 +150,7 @@ public class PrivateChannelTests
         channel.Disconnect();
         await disconnectTcs.Task.WaitAsync(DisconnectTimeout);
 
-        Action act = () => channel.OnDisconnect(() => { });
+        SystemAction act = () => channel.OnDisconnect(() => { });
 
         act.Should().Throw<Fdc3DesktopAgentException>().WithMessage("*disconnected*");
     }
@@ -165,7 +169,7 @@ public class PrivateChannelTests
         _channel.Disconnect();
         await _disconnectTcs.Task.WaitAsync(DisconnectTimeout);
 
-        Action act = () => _channel.OnUnsubscribe(_ => { });
+        SystemAction act = () => _channel.OnUnsubscribe(_ => { });
 
         act.Should().Throw<Fdc3DesktopAgentException>().WithMessage("*disconnected*");
     }
@@ -174,7 +178,7 @@ public class PrivateChannelTests
     public void Disconnect_when_called_multiple_times_does_not_throw()
     {
         _channel.Disconnect();
-        Action act = () => _channel.Disconnect();
+        SystemAction act = () => _channel.Disconnect();
 
         act.Should().NotThrow();
     }
@@ -184,6 +188,60 @@ public class PrivateChannelTests
     {
         Func<Task> act = async () => await _channel.DisposeAsync();
 
+        await act.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task Disconnect_async_method_marks_channel_disconnected()
+    {
+        await _channel.Disconnect();
+        await _disconnectTcs.Task.WaitAsync(DisconnectTimeout);
+
+        Func<Task> act = async () => await _channel.Broadcast(Mock.Of<IContext>());
+        await act.Should().ThrowAsync<Exception>().WithMessage("*disconnected*");
+    }
+
+    [Fact]
+    public async Task Backward_compatible_constructor_creates_channel()
+    {
+        var channel = new PrivateChannel(
+            _channelId,
+            _messagingMock.Object,
+            _instanceId,
+            isOriginalCreator: true,
+            onDisconnect: () => { });
+
+        Func<Task> act = async () => await channel.DisposeAsync();
+        await act.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task DisconnectAsync_after_context_listener_registration_does_not_throw()
+    {
+        var response = new AddContextListenerResponse
+        {
+            Success = true,
+            Id = "listener-id"
+        };
+
+        _messagingMock
+            .Setup(m => m.InvokeServiceAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(response, _jsonSerializerOptions));
+
+        await _channel.AddContextListener<Instrument>(null, (ctx, metadata) => { });
+
+        Func<Task> act = async () => await _channel.DisconnectAsync();
+        await act.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task DisconnectAsync_unsubscribes_registered_private_channel_event_handlers()
+    {
+        _channel.OnAddContextListener(_ => { });
+        _channel.OnUnsubscribe(_ => { });
+        _channel.OnDisconnect(() => { });
+
+        Func<Task> act = async () => await _channel.DisconnectAsync();
         await act.Should().NotThrowAsync();
     }
 }

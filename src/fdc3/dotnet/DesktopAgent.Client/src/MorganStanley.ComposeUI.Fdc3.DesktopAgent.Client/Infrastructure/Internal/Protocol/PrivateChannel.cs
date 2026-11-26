@@ -21,6 +21,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 using DisplayMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.DisplayMetadata;
+using SystemAction = System.Action;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal.Protocol;
 
@@ -28,7 +29,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 {
     private readonly ILogger<PrivateChannel> _logger;
     private readonly PrivateChannelTopics _privateChannelTopics;
-    private readonly Action _onDisconnect;
+    private readonly SystemAction _onDisconnect;
     private readonly string _internalEventsTopic;
     private readonly bool _isOriginalCreator;
     private readonly string _remoteContextListenersService;
@@ -48,13 +49,14 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
     public PrivateChannel(
         string channelId, 
-        IMessaging messaging, 
+        IMessaging messaging,
+        string appId,
         string instanceId,
         bool isOriginalCreator,
-        Action onDisconnect,
+        SystemAction onDisconnect,
         DisplayMetadata? displayMetadata = null,
         ILoggerFactory? loggerFactory = null) 
-        : base(channelId, ChannelType.Private, messaging, instanceId, null, displayMetadata, loggerFactory)
+        : base(channelId, ChannelType.Private, messaging, appId, instanceId, null, displayMetadata, loggerFactory)
     {
         _privateChannelTopics = Fdc3Topic.PrivateChannel(channelId);
         _internalEventsTopic = _privateChannelTopics.Events;
@@ -64,6 +66,19 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
         _logger = LoggerFactory.CreateLogger<PrivateChannel>();
 
         Task.Run(() => InitializeAsync());
+    }
+
+    // Backward-compatible overload used by older tests/callers that do not pass appId.
+    public PrivateChannel(
+        string channelId,
+        IMessaging messaging,
+        string instanceId,
+        bool isOriginalCreator,
+        SystemAction onDisconnect,
+        DisplayMetadata? displayMetadata = null,
+        ILoggerFactory? loggerFactory = null)
+        : this(channelId, messaging, string.Empty, instanceId, isOriginalCreator, onDisconnect, displayMetadata, loggerFactory)
+    {
     }
 
     private async ValueTask InitializeAsync()
@@ -154,7 +169,8 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
         }
     }
 
-    public async void Disconnect()
+    // FDC3 3.0: Changed from async void to return Task for proper async support
+    public async Task DisconnectAsync()
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
 
@@ -170,7 +186,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
             _isDisconnected = true;
             foreach (var handler in _addContextListenerHandlers)
             {
-                handler.UnsubscribeCore(false);
+                await handler.UnsubscribeCoreAsync(false).ConfigureAwait(false);
 
                 if (_logger.IsEnabled(LogLevel.Trace))
                 {
@@ -180,7 +196,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
             foreach (var handler in _unsubscribeHandlers)
             {
-                handler.UnsubscribeCore(false);
+                await handler.UnsubscribeCoreAsync(false).ConfigureAwait(false);
 
                 if (_logger.IsEnabled(LogLevel.Trace))
                 {
@@ -190,7 +206,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
 
             foreach (var handler in _disconnectHandlers)
             {
-                handler.UnsubscribeCore(false);
+                await handler.UnsubscribeCoreAsync(false).ConfigureAwait(false);
 
                 if (_logger.IsEnabled(LogLevel.Trace))
                 {
@@ -207,7 +223,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
                 try
                 {
                     //Fire and forget
-                    listener.Unsubscribe();
+                    _ = listener.Unsubscribe();
 
                     if (_logger.IsEnabled(LogLevel.Trace))
                     {
@@ -242,6 +258,14 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// FDC3 3.0: Disconnect from the private channel.
+    /// </summary>
+    public async Task Disconnect()
+    {
+        await DisconnectAsync();
+    }
+
     public IListener OnAddContextListener(Action<string?> handler)
     {
         try
@@ -271,7 +295,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
         }
     }
 
-    public IListener OnDisconnect(Action handler)
+    public IListener OnDisconnect(SystemAction handler)
     {
         try
         {
@@ -554,7 +578,7 @@ internal class PrivateChannel : Channel, IPrivateChannel, IAsyncDisposable
     {
         await _initializationTaskCompletionSource.Task.ConfigureAwait(false);
 
-        Disconnect();
+        await Disconnect().ConfigureAwait(false);
         await _serviceRegistration.DisposeAsync().ConfigureAwait(false);
         await _subscription.DisposeAsync().ConfigureAwait(false);
     }

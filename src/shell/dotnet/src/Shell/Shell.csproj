@@ -73,11 +73,12 @@
 		<ProjectReference Include="..\..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader.Abstractions\MorganStanley.ComposeUI.ModuleLoader.Abstractions.csproj" />
 		<ProjectReference Include="..\..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader\MorganStanley.ComposeUI.ModuleLoader.csproj" />
 		<ProjectReference Include="..\..\..\..\shared\dotnet\src\MorganStanley.ComposeUI.Utilities\MorganStanley.ComposeUI.Utilities.csproj" />
+		<ProjectReference Include="..\..\..\..\..\examples\dotnet-diagnostics\DiagnosticsExample\DiagnosticsExample.csproj" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 
 	<Target Name="CopyDesktopAgentClientConsoleApp" AfterTargets="Build">
 		<ItemGroup>
-			<DesktopAgentClientExe Include="$(SolutionDir)..\..\..\examples\dotnet-diagnostics\DiagnosticsExample\bin\$(Configuration)\net10.0-windows\DiagnosticsExample.exe" />
+			<DesktopAgentClientExe Include="..\..\..\..\..\examples\dotnet-diagnostics\DiagnosticsExample\bin\$(Configuration)\net10.0-windows\DiagnosticsExample.exe" />
 		</ItemGroup>
 		<Copy SourceFiles="@(DesktopAgentClientExe)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
 	</Target>

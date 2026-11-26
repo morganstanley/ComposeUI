@@ -18,6 +18,8 @@ using Finos.Fdc3.Context;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Channels;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
+using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
+using ContextMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.ContextMetadata;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Channels;
 
@@ -34,6 +36,18 @@ public abstract class ChannelTestBase
         var request = new GetCurrentContextRequest() { ContextType = contextType };
         var ctx = await Channel.GetCurrentContext(request);
         ctx.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData([null])]
+    [InlineData(["testType"])]
+    public async Task CallingGetCurrentContextWithMetadataOnNewChannelReturnsNull(string? contextType)
+    {
+        var request = new GetCurrentContextRequest() { ContextType = contextType };
+        var response = await Channel.GetCurrentContextWithMetadata(request);
+
+        response.Context.Should().BeNull();
+        response.Metadata.Should().BeNull();
     }
 
     [Fact]
@@ -122,10 +136,37 @@ public abstract class ChannelTestBase
         ctx2.Should().BeEquivalentTo(second);
     }
 
+    [Fact]
+    public async Task BroadcastedChannelReturnsContextMetadataForType()
+    {
+        var context = GetContext();
+        var metadata = new ContextMetadata
+        {
+            Source = new AppIdentifier { AppId = "publisher-app", InstanceId = "publisher-instance" },
+            TraceId = "trace-1"
+        };
+        var wrappedPayload = JsonSerializer.Serialize(
+            new BroadcastPayload
+            {
+                Context = SerializeJson(context),
+                Metadata = metadata
+            },
+            new JsonSerializerOptions(JsonSerializerDefaults.Web));
+
+        await Channel.HandleBroadcast(wrappedPayload);
+
+        var response = await Channel.GetCurrentContextWithMetadata(RequestWithContextType);
+
+        response.Context.Should().BeEquivalentTo(SerializeJson(context));
+        response.Metadata.Should().NotBeNull();
+        response.Metadata!.Source!.AppId.Should().Be("publisher-app");
+        response.Metadata.TraceId.Should().Be("trace-1");
+    }
+
     private int _counter;
     private GetCurrentContextRequest RequestWithContextType => new GetCurrentContextRequest { ContextType = new Contact().Type };
     private GetCurrentContextRequest RequestWithOtherContextType => new GetCurrentContextRequest { ContextType = new Email(null).Type };
-    private Contact GetContext() => new Contact(new ContactID() { Email = $"test{_counter}@test.org", FdsId = $"test{_counter++}" }, "Testy Tester");
+    private Contact GetContext() => new Contact(new ContactID() { Email = $"test{_counter}@test.org", FDS_ID = $"test{_counter++}" }, "Testy Tester");
     private GetCurrentContextRequest RequestWithDifferentContextType => new GetCurrentContextRequest { ContextType = new Currency().Type };
     private Currency GetDifferentContext() => new Currency(new CurrencyID() { CURRENCY_ISOCODE = "HUF" });
 

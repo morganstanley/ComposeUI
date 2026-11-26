@@ -47,7 +47,11 @@ internal interface IIntentsClient
     /// <param name="context"></param>
     /// <param name="app"></param>
     /// <returns></returns>
-    public ValueTask<IIntentResolution> RaiseIntentForContextAsync(IContext context, IAppIdentifier? app);
+    public ValueTask<IIntentResolution> RaiseIntentForContextAsync(
+        IContext context,
+        IAppIdentifier? app,
+        bool? newInstance = null,
+        IAppProvidableContextMetadata? metadata = null);
 
     /// <summary>
     /// Adds an intent listener which handles the sent intents with the provided handler.
@@ -67,5 +71,10 @@ internal interface IIntentsClient
     /// <param name="context"></param>
     /// <param name="app"></param>
     /// <returns></returns>
-    public ValueTask<IIntentResolution> RaiseIntentAsync(string intent, IContext context, IAppIdentifier? app);
+    public ValueTask<IIntentResolution> RaiseIntentAsync(
+        string intent,
+        IContext context,
+        IAppIdentifier? app,
+        bool? newInstance = null,
+        IAppProvidableContextMetadata? metadata = null);
 }

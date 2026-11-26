@@ -15,6 +15,7 @@
 using Finos.Fdc3.Context;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 using System.Text.Json;
+using SystemAction = System.Action;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Tests.Shared.Converters;
 
@@ -63,7 +64,7 @@ public class ValuationJsonConverterTests
             ""price"": 123.45
         }";
 
-        Action act = () => JsonSerializer.Deserialize<Valuation>(json, _options);
+        SystemAction act = () => JsonSerializer.Deserialize<Valuation>(json, _options);
 
         act.Should().Throw<JsonException>()
             .WithMessage("*currencyISOCode*null*");

@@ -11,7 +11,9 @@
 // and limitations under the License.
 
 using System.Text;
+using System.Text.Json;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol;
 using MorganStanley.ComposeUI.ModuleLoader;
 using ResourceReader = MorganStanley.ComposeUI.Utilities.ResourceReader;
 
@@ -22,40 +24,35 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 /// </summary>
 internal sealed class WebStartupModuleHandler : IStartupModuleHandler
 {
+    // The script reads the startup config with camelCase names.
+    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
     /// <inheritdoc/>
     public Task HandleAsync(StartupContext startupContext, Fdc3StartupProperties fdc3StartupProperties)
     {
         var webProperties = startupContext.GetOrAddProperty<WebStartupProperties>();
 
-        var stringBuilder = new StringBuilder();
-        stringBuilder.Append($$"""
-                    window.composeui.fdc3 = {
-                        ...window.composeui.fdc3, 
-                        config: {
-                            appId: "{{fdc3StartupProperties.AppId}}",
-                            instanceId: "{{fdc3StartupProperties.InstanceId}}"
-                        }
-                  """);
+        var startupConfig = new Dictionary<string, object>
+        {
+            ["config"] = new AppIdentifier { AppId = fdc3StartupProperties.AppId, InstanceId = fdc3StartupProperties.InstanceId }
+        };
 
         if (fdc3StartupProperties.ChannelId != null)
         {
-            stringBuilder.Append($$"""
-                ,
-                channelId: "{{fdc3StartupProperties.ChannelId}}"
-                """);
+            startupConfig["channelId"] = fdc3StartupProperties.ChannelId;
         }
 
         if (fdc3StartupProperties.OpenedAppContextId != null)
         {
-            stringBuilder.Append($$"""
-                ,
-                openAppIdentifier: {
-                    openedAppContextId: "{{fdc3StartupProperties.OpenedAppContextId}}"
-                }
-                """);
+            startupConfig["openAppIdentifier"] = new { openedAppContextId = fdc3StartupProperties.OpenedAppContextId };
         }
 
+        // The values are serialized, never concatenated, so they can only ever end up as JSON string literals.
+        var stringBuilder = new StringBuilder();
         stringBuilder.Append($$"""
+            window.composeui.fdc3 = {
+                ...window.composeui.fdc3,
+                ...{{JsonSerializer.Serialize(startupConfig, JsonOptions)}}
             };
             """);
 

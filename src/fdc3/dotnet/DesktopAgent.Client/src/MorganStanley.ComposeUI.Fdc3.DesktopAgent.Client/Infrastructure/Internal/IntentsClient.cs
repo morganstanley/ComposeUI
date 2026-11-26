@@ -22,6 +22,7 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
 using MorganStanley.ComposeUI.Messaging.Abstractions;
 using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
+using ContextMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.ContextMetadata;
 using IntentResolution = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal.Protocol.IntentResolution;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal;
@@ -171,7 +172,12 @@ internal class IntentsClient : IIntentsClient
         return response.AppIntents;
     }
 
-    public async ValueTask<IIntentResolution> RaiseIntentAsync(string intent, IContext context, IAppIdentifier? app)
+    public async ValueTask<IIntentResolution> RaiseIntentAsync(
+        string intent,
+        IContext context,
+        IAppIdentifier? app,
+        bool? newInstance = null,
+        IAppProvidableContextMetadata? metadata = null)
     {
         var messageId = Interlocked.Increment(ref _messageIdCounter);
 
@@ -181,6 +187,8 @@ internal class IntentsClient : IIntentsClient
             Fdc3InstanceId = _instanceId,
             Intent = intent,
             Context = JsonSerializer.Serialize(context, _jsonSerializerOptions),
+            NewInstance = newInstance,
+            Metadata = CreateContextMetadata(metadata),
         };
 
         if (app != null)
@@ -230,7 +238,11 @@ internal class IntentsClient : IIntentsClient
         return intentResolution;
     }
 
-    public async ValueTask<IIntentResolution> RaiseIntentForContextAsync(IContext context, IAppIdentifier? app)
+    public async ValueTask<IIntentResolution> RaiseIntentForContextAsync(
+        IContext context,
+        IAppIdentifier? app,
+        bool? newInstance = null,
+        IAppProvidableContextMetadata? metadata = null)
     {
         var messageId = Interlocked.Increment(ref _messageIdCounter);
 
@@ -238,7 +250,9 @@ internal class IntentsClient : IIntentsClient
         {
             Fdc3InstanceId = _instanceId,
             Context = JsonSerializer.Serialize(context, _jsonSerializerOptions),
-            MessageId = messageId
+            MessageId = messageId,
+            NewInstance = newInstance,
+            Metadata = CreateContextMetadata(metadata),
         };
 
         if (app != null)
@@ -286,5 +300,21 @@ internal class IntentsClient : IIntentsClient
             _loggerFactory.CreateLogger<IntentResolution>());
 
         return intentResolution;
+    }
+
+    private static ContextMetadata? CreateContextMetadata(IAppProvidableContextMetadata? metadata)
+    {
+        if (metadata == null)
+        {
+            return null;
+        }
+
+        return new ContextMetadata
+        {
+            TraceId = metadata.TraceId,
+            Signature = metadata.Signature,
+            AntiReplay = metadata.AntiReplay,
+            Custom = metadata.Custom,
+        };
     }
 }

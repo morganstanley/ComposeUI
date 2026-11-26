@@ -29,6 +29,7 @@ internal class MessageRouterServer : IMessageRouterServer
         ILogger<MessageRouterServer>? logger = null)
     {
         _accessTokenValidator = dependencies.AccessTokenValidator;
+        _connectTimeout = dependencies.ConnectTimeout;
         _logger = logger ?? NullLogger<MessageRouterServer>.Instance;
     }
 
@@ -80,6 +81,7 @@ internal class MessageRouterServer : IMessageRouterServer
     private readonly ConcurrentDictionary<string, Topic> _topics = new();
     private readonly ConcurrentDictionary<IClientConnection, Client> _connectionToClient = new();
     private readonly IAccessTokenValidator? _accessTokenValidator;
+    private readonly TimeSpan _connectTimeout;
 
     private async Task HandleConnectRequest(
         Client client,
@@ -103,6 +105,7 @@ internal class MessageRouterServer : IMessageRouterServer
                 CancellationToken.None);
 
             _clients.TryAdd(client.ClientId, client);
+            client.IsAuthenticated = true;
             OnRequestStop(message);
         }
         catch (Exception e)
@@ -474,7 +477,12 @@ internal class MessageRouterServer : IMessageRouterServer
         {
             while (!client.StopTokenSource.IsCancellationRequested)
             {
-                var message = await client.Connection.ReceiveAsync(cancellationToken);
+                var message = await ReceiveAsync(client, cancellationToken);
+                if (message == null)
+                {
+                    break;
+                }
+
                 OnMessageReceived(message);
 
                 if (_logger.IsEnabled(LogLevel.Debug))
@@ -485,12 +493,27 @@ internal class MessageRouterServer : IMessageRouterServer
                         client.ClientId);
                 }
 
+                var violation = GetProtocolViolation(client, message);
+                if (violation != null)
+                {
+                    await CloseConnectionAsync(client, violation);
+
+                    break;
+                }
+
                 try
                 {
                     switch (message.Type)
                     {
                         case MessageType.Connect:
                             await HandleConnectRequest(client, (ConnectRequest) message, cancellationToken);
+
+                            if (!client.IsAuthenticated)
+                            {
+                                // The error response is already queued, the connection sends it before it closes.
+                                // Closing stops the loop, so the messages behind the Connect are not processed.
+                                await CloseConnectionAsync(client, "The connection request was rejected");
+                            }
 
                             break;
 
@@ -568,6 +591,87 @@ internal class MessageRouterServer : IMessageRouterServer
         client.StopTaskSource.TrySetResult();
     }
 
+    /// <summary>
+    /// Receives the next message. A client that has not connected yet must send its Connect request within the
+    /// connect timeout, otherwise the connection is closed and the method returns null.
+    /// </summary>
+    private async Task<Message?> ReceiveAsync(Client client, CancellationToken cancellationToken)
+    {
+        if (client.IsAuthenticated)
+        {
+            return await client.Connection.ReceiveAsync(cancellationToken);
+        }
+
+        using var timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeoutSource.CancelAfter(_connectTimeout);
+
+        try
+        {
+            return await client.Connection.ReceiveAsync(timeoutSource.Token);
+        }
+        catch (OperationCanceledException) when (timeoutSource.IsCancellationRequested
+                                                 && !cancellationToken.IsCancellationRequested)
+        {
+            await CloseConnectionAsync(client, "No connection request was received in time");
+
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Returns the reason why the message is not allowed from this client, or null if it is.
+    /// Until the Connect request succeeded, only Connect is accepted. After that, Connect is not accepted again,
+    /// and neither are the message types that only the server sends.
+    /// </summary>
+    private static string? GetProtocolViolation(Client client, Message message)
+    {
+        switch (message.Type)
+        {
+            case MessageType.ConnectResponse:
+            case MessageType.SubscribeResponse:
+            case MessageType.UnsubscribeResponse:
+            case MessageType.PublishResponse:
+            case MessageType.RegisterServiceResponse:
+            case MessageType.UnregisterServiceResponse:
+            case MessageType.Topic:
+                return "Message type sent by a client that only the server may send";
+
+            case MessageType.Connect:
+                return client.IsAuthenticated ? "Connect request received on a connected client" : null;
+
+            default:
+                return client.IsAuthenticated ? null : "Message received before the connection request";
+        }
+    }
+
+    private async Task CloseConnectionAsync(Client client, string reason)
+    {
+        // The access token is never logged
+        _logger.LogWarning("Closing the connection of client '{ClientId}': {Reason}", client.ClientId, reason);
+
+        client.StopTokenSource.Cancel();
+
+        try
+        {
+            if (client.Connection is ICloseWithPolicyViolation connection)
+            {
+                await connection.CloseWithPolicyViolationAsync(reason);
+            }
+            else
+            {
+                await client.Connection.CloseAsync();
+            }
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(
+                e,
+                "Exception thrown while closing the connection of client '{ClientId}': {ExceptionMessage}",
+                client.ClientId,
+                e.Message);
+        }
+    }
+
     private void OnMessageReceived(Message message)
     {
         if (MessageRouterDiagnosticSource.Log.IsEnabled(MessageRouterEventTypes.MessageReceived))
@@ -619,6 +723,11 @@ internal class MessageRouterServer : IMessageRouterServer
         public CancellationTokenSource StopTokenSource { get; } = new();
         public TaskCompletionSource StopTaskSource { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public string ClientId { get; } = Guid.NewGuid().ToString("N");
+
+        /// <summary>
+        /// True once the Connect request of the client succeeded.
+        /// </summary>
+        public bool IsAuthenticated { get; set; }
     }
 
     private class Topic

@@ -12,6 +12,7 @@
 * and limitations under the License.
 */
 
+using System.Collections.Concurrent;
 using MorganStanley.ComposeUI.ModuleLoader;
 using Finos.Fdc3.AppDirectory;
 using Microsoft.Extensions.Logging;
@@ -27,6 +28,7 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
     private readonly AppDirectoryOptions _options;
     private readonly NativeModuleLaunchOptions _launchOptions;
     private readonly ILogger<Fdc3ModuleCatalog> _logger;
+    private readonly ConcurrentDictionary<string, byte> _reportedApps = new();
 
     public Fdc3ModuleCatalog(
         IAppDirectory fdc3AppDirectory,
@@ -106,6 +108,11 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
                 var iconSrc = app.Icons?.FirstOrDefault()?.Src;
                 var url = new Uri(((WebAppDetails) app.Details).Url, UriKind.Absolute);
 
+                if (url.Scheme != Uri.UriSchemeHttp && url.Scheme != Uri.UriSchemeHttps)
+                {
+                    throw new NotSupportedException($"The web app {app.AppId} must use an http or https URL, but its URL scheme is {url.Scheme}.");
+                }
+
                 Details = new WebManifestDetails
                 {
                     Url = url,
@@ -138,10 +145,12 @@ public sealed class Fdc3ModuleCatalog : IModuleCatalog
             {
                 manifests.Add(GetManifest(app));
             }
-            catch (NotSupportedException e)
+            catch (NotSupportedException exception)
             {
                 // One app that cannot be started must not hide the other apps of the directory.
-                _logger.LogWarning(e, "The app '{AppId}' of the app directory is skipped. {Reason}", app.AppId, e.Message);
+                // This runs on every call, so only the first one per app is a warning.
+                var level = _reportedApps.TryAdd(app.AppId, 0) ? LogLevel.Warning : LogLevel.Debug;
+                _logger.Log(level, "The app '{AppId}' of the app directory is skipped. {Reason}", app.AppId, exception.Message);
             }
         }
 

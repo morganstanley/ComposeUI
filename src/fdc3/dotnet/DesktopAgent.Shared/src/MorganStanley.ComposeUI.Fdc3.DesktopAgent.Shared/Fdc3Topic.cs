@@ -22,6 +22,7 @@ namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
 public static class Fdc3Topic
 {
     internal static string TopicRoot => "ComposeUI/fdc3/v2.0/";
+    internal static string VersionedTopicRoot => TopicRoot + "v2/";
     internal static string FindChannel => TopicRoot + "findChannel";
     internal static string FindIntent => TopicRoot + "findIntent";
     internal static string FindIntentsByContext => TopicRoot + "findIntentsByContext";
@@ -44,9 +45,14 @@ public static class Fdc3Topic
     internal static string RaiseIntentForContext => TopicRoot + "raiseIntentForContext";
 	
 	/// <summary>
-	/// Topic for handling ResolverUI intention (raiseIntent) from the backend based on the container.
+	/// Topic for handling ResolverUI intention (raiseIntent) from the backend based on the container. The resolver returns the id of the selected candidate.
 	/// </summary>
-	public static string ResolverUI => TopicRoot + "resolverUI";
+	public static string ResolverUI => VersionedTopicRoot + "resolverUI";
+	
+	/// <summary>
+	/// Topic of the legacy ResolverUI contract, in which the resolver returns the selected app itself. It is used only when the legacy contract is allowed.
+	/// </summary>
+	public static string LegacyResolverUI => TopicRoot + "resolverUI";
 	
 	/// <summary>
 	/// Topic for handling ResolverUI intention (raiseIntentForContext) from the backend based on the container.

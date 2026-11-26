@@ -81,23 +81,23 @@ internal class IntentListener<T> : IListener
         }        
     }
 
-    public void Unsubscribe()
+    public async Task Unsubscribe()
     {
         try
         {
-            _semaphore.Wait();
+            await _semaphore.WaitAsync().ConfigureAwait(false);
 
             var request = CreateUnsubscribeRequest();
             LogDebug("Unsubscribing intent listener for intent {Intent} and instanceId {InstanceId}...", _intent, _instanceId);
 
-            var response = _messaging.InvokeJsonServiceAsync<IntentListenerRequest, IntentListenerResponse>(
+            var response = await _messaging.InvokeJsonServiceAsync<IntentListenerRequest, IntentListenerResponse>(
                 Fdc3Topic.AddIntentListener,
                 request,
-                _jsonSerializerOptions).GetAwaiter().GetResult();
+                _jsonSerializerOptions).ConfigureAwait(false);
 
             ValidateUnsubscribeResponse(response);
 
-            _subscription.DisposeAsync().GetAwaiter().GetResult();
+            await _subscription.DisposeAsync().ConfigureAwait(false);
 
             LogDebug("Successfully unsubscribed intent listener for intent {Intent} and instanceId {InstanceId}.", _intent, _instanceId);
             _isRegistered = false;

@@ -14,6 +14,7 @@
 
 using Finos.Fdc3;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared;
@@ -23,12 +24,16 @@ using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Infrastructure.Internal;
 using Instrument = Finos.Fdc3.Context.Instrument;
 using Finos.Fdc3.Context;
 using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Contracts;
+using MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Exceptions;
+using AppIdentifier = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.AppIdentifier;
+using ContextMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.ContextMetadata;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Client.Tests.Infrastructure.Internal.Protocol;
 
 public class ChannelTests
 {
     private const string ChannelId = "testChannel";
+    private const string AppId = "testApp";
     private const string InstanceId = "testInstance";
     private readonly Mock<IMessaging> _messagingMock = new();
     private readonly ChannelType _channelType = ChannelType.App;
@@ -40,9 +45,40 @@ public class ChannelTests
             ChannelId,
             _channelType,
             _messagingMock.Object,
+            AppId,
             InstanceId,
             displayMetadata: null,
             loggerFactory: new NullLoggerFactory());
+    }
+
+    [Fact]
+    public void Constructor_throws_when_channel_id_is_null()
+    {
+        System.Action act = () => new Channel(
+            channelId: null!,
+            channelType: _channelType,
+            messaging: _messagingMock.Object,
+            appId: AppId,
+            instanceId: InstanceId,
+            displayMetadata: null,
+            loggerFactory: new NullLoggerFactory());
+
+        act.Should().Throw<Fdc3DesktopAgentException>();
+    }
+
+    [Fact]
+    public void Constructor_throws_when_app_id_is_null()
+    {
+        System.Action act = () => new Channel(
+            channelId: ChannelId,
+            channelType: _channelType,
+            messaging: _messagingMock.Object,
+            appId: null!,
+            instanceId: InstanceId,
+            displayMetadata: null,
+            loggerFactory: new NullLoggerFactory());
+
+        act.Should().Throw<ArgumentNullException>().WithParameterName("appId");
     }
 
     [Fact]
@@ -96,7 +132,58 @@ public class ChannelTests
         await _channel.Broadcast(context);
 
         publishedTopic.Should().Contain(ChannelId);
-        publishedPayload.Should().BeEquivalentTo(JsonSerializer.Serialize(new Instrument(), SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
+        var broadcastPayload = JsonSerializer.Deserialize<BroadcastPayload>((string)publishedPayload!, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization);
+        broadcastPayload!.Context.Should().Be(JsonSerializer.Serialize(new Instrument(), SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
+    }
+
+    [Fact]
+    public async Task Broadcast_with_metadata_publishes_source_and_trace_metadata_on_the_channel()
+    {
+        var context = new Instrument();
+        string? publishedPayload = null;
+        var metadata = new ContextMetadata { TraceId = "trace-1" };
+
+        _messagingMock
+            .Setup(
+                m => m.PublishAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .Callback<string, string, CancellationToken>((_, payload, _) => publishedPayload = payload)
+            .Returns(ValueTask.CompletedTask);
+
+        await _channel.Broadcast(context, metadata);
+
+        var broadcastPayload = JsonSerializer.Deserialize<BroadcastPayload>(publishedPayload!, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization);
+        broadcastPayload!.Metadata.Should().NotBeNull();
+        broadcastPayload.Metadata!.Source!.AppId.Should().Be(AppId);
+        broadcastPayload.Metadata.Source.InstanceId.Should().Be(InstanceId);
+        broadcastPayload.Metadata.TraceId.Should().Be("trace-1");
+    }
+
+    [Fact]
+    public async Task Broadcast_updates_cached_context_when_same_type_is_broadcast_twice_on_the_channel()
+    {
+        _messagingMock
+            .Setup(
+                m => m.PublishAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .Returns(ValueTask.CompletedTask);
+
+        var first = new Instrument(new InstrumentID { Ticker = "MS" }, "first");
+        var second = new Instrument(new InstrumentID { Ticker = "MS" }, "second");
+
+        await _channel.Broadcast(first);
+        await _channel.Broadcast(second);
+
+        _messagingMock.Verify(
+            m => m.PublishAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()),
+            Times.Exactly(2));
     }
 
     [Fact]
@@ -108,9 +195,25 @@ public class ChannelTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()))
-            .ReturnsAsync((string) null!);
+            .ReturnsAsync(JsonSerializer.Serialize(new GetCurrentContextResponse(), SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
 
         var result = await _channel.GetCurrentContext("TestType");
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetCurrentContext_returns_null_when_service_response_object_is_null_on_the_channel()
+    {
+        _messagingMock
+            .Setup(
+                m => m.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<string?>((string?)null));
+
+        var result = await _channel.GetCurrentContext("fdc3.instrument");
 
         result.Should().BeNull();
     }
@@ -127,7 +230,7 @@ public class ChannelTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()))
-            .ReturnsAsync(contextJson);
+            .ReturnsAsync(JsonSerializer.Serialize(new GetCurrentContextResponse { Context = contextJson }, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
 
         var result = await _channel.GetCurrentContext("fdc3.instrument");
 
@@ -147,12 +250,32 @@ public class ChannelTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()))
-            .ReturnsAsync(contextJson);
+            .ReturnsAsync(JsonSerializer.Serialize(new GetCurrentContextResponse { Context = contextJson }, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
 
         var result = await _channel.GetCurrentContext(null);
 
         result.Should().BeOfType<Instrument>();
         ((Instrument) result!).Should().BeEquivalentTo(context);
+    }
+
+    [Fact]
+    public async Task GetCurrentContext_returns_last_context_when_context_type_is_empty_on_the_channel()
+    {
+        var context = new Instrument();
+        var contextJson = JsonSerializer.Serialize(context, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization);
+
+        _messagingMock
+            .Setup(
+                m => m.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(new GetCurrentContextResponse { Context = contextJson }, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
+
+        var result = await _channel.GetCurrentContext(string.Empty);
+
+        result.Should().BeOfType<Instrument>();
+        ((Instrument)result!).Should().BeEquivalentTo(context);
     }
 
     [Fact]
@@ -167,7 +290,7 @@ public class ChannelTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()))
-            .ReturnsAsync(contextJson);
+            .ReturnsAsync(JsonSerializer.Serialize(new GetCurrentContextResponse { Context = contextJson }, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
 
         var result = await _channel.GetCurrentContext("NonExistentType");
 
@@ -189,5 +312,207 @@ public class ChannelTests
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("Messaging error");
+    }
+
+    [Fact]
+    public async Task GetCurrentContextWithMetadata_returns_context_and_response_metadata_on_the_channel()
+    {
+        var context = new Instrument(new InstrumentID() { Ticker = "MS" }, "test-name");
+        var metadata = new ContextMetadata
+        {
+            Source = new AppIdentifier { AppId = "upstream-app", InstanceId = "upstream-instance" },
+            TraceId = "trace-2"
+        };
+        var contextJson = JsonSerializer.Serialize(context, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization);
+
+        _messagingMock
+            .Setup(
+                m => m.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(new GetCurrentContextResponse { Context = contextJson, Metadata = metadata }, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
+
+        var result = await _channel.GetCurrentContextWithMetadata("fdc3.instrument");
+
+        result.Should().NotBeNull();
+        result!.Context.Should().BeEquivalentTo(context);
+        result.Metadata.Source!.AppId.Should().Be("upstream-app");
+        result.Metadata.TraceId.Should().Be("trace-2");
+    }
+
+    [Fact]
+    public async Task GetCurrentContextWithMetadata_generates_metadata_when_missing_on_the_channel()
+    {
+        var context = new Instrument(new InstrumentID() { Ticker = "MS" }, "test-name");
+        var contextJson = JsonSerializer.Serialize(context, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization);
+
+        _messagingMock
+            .Setup(
+                m => m.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(new GetCurrentContextResponse { Context = contextJson, Metadata = null }, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
+
+        var result = await _channel.GetCurrentContextWithMetadata("fdc3.instrument");
+
+        result.Should().NotBeNull();
+        result!.Metadata.Source!.AppId.Should().Be(AppId);
+        result.Metadata.Source.InstanceId.Should().Be(InstanceId);
+    }
+
+    [Fact]
+    public async Task GetCurrentContextWithMetadata_returns_null_when_response_context_is_missing_on_the_channel()
+    {
+        _messagingMock
+            .Setup(
+                m => m.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(new GetCurrentContextResponse { Context = null }, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
+
+        var result = await _channel.GetCurrentContextWithMetadata("fdc3.instrument");
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetCurrentContextWithMetadata_returns_null_when_context_deserializes_to_null_on_the_channel()
+    {
+        _messagingMock
+            .Setup(
+                m => m.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(new GetCurrentContextResponse { Context = "null" }, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
+
+        var result = await _channel.GetCurrentContextWithMetadata("fdc3.instrument");
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetCurrentContextWithMetadata_throws_when_messaging_throws_on_the_channel()
+    {
+        _messagingMock
+            .Setup(
+                m => m.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Messaging error"));
+
+        var act = async () => await _channel.GetCurrentContextWithMetadata("fdc3.instrument");
+
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("Messaging error");
+    }
+
+    [Fact]
+    public async Task GetCurrentContextWithMetadata_updates_existing_cached_context_for_same_type_on_the_channel()
+    {
+        var firstContext = new Instrument(new InstrumentID { Ticker = "MS" }, "first");
+        var secondContext = new Instrument(new InstrumentID { Ticker = "IBM" }, "second");
+        var firstMetadata = new ContextMetadata { TraceId = "trace-1" };
+        var secondMetadata = new ContextMetadata { TraceId = "trace-2" };
+
+        _messagingMock
+            .SetupSequence(m => m.InvokeServiceAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(
+                new GetCurrentContextResponse
+                {
+                    Context = JsonSerializer.Serialize(firstContext, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization),
+                    Metadata = firstMetadata
+                },
+                SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization))
+            .ReturnsAsync(JsonSerializer.Serialize(
+                new GetCurrentContextResponse
+                {
+                    Context = JsonSerializer.Serialize(secondContext, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization),
+                    Metadata = secondMetadata
+                },
+                SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
+
+        var firstResult = await _channel.GetCurrentContextWithMetadata("fdc3.instrument");
+        var secondResult = await _channel.GetCurrentContextWithMetadata("fdc3.instrument");
+
+        firstResult!.Metadata.TraceId.Should().Be("trace-1");
+        secondResult!.Metadata.TraceId.Should().Be("trace-2");
+    }
+
+    [Fact]
+    public async Task ClearContext_clears_type_and_all_contexts_on_the_channel()
+    {
+        Func<Task> clearTyped = async () => await _channel.ClearContext("fdc3.instrument");
+        Func<Task> clearAll = async () => await _channel.ClearContext(null);
+
+        await clearTyped.Should().NotThrowAsync();
+        await clearAll.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task ClearContext_clears_all_contexts_when_context_type_is_empty_on_the_channel()
+    {
+        var act = async () => await _channel.ClearContext(string.Empty);
+
+        await act.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task AddEventListener_returns_listener_that_can_unsubscribe_on_the_channel()
+    {
+        var listener = await _channel.AddEventListener("context-changed", _ => { });
+
+        listener.Should().NotBeNull();
+        await listener.Unsubscribe();
+    }
+
+    [Fact]
+    public async Task AddEventListener_accepts_null_event_type_on_the_channel()
+    {
+        var listener = await _channel.AddEventListener(null, _ => { });
+
+        listener.Should().NotBeNull();
+        await listener.Unsubscribe();
+    }
+
+    [Fact]
+    public async Task GetCurrentContext_logs_debug_response_when_debug_enabled_on_the_channel()
+    {
+        var loggerMock = new Mock<ILogger>();
+        loggerMock.Setup(l => l.IsEnabled(LogLevel.Debug)).Returns(true);
+        var loggerFactoryMock = new Mock<ILoggerFactory>();
+        loggerFactoryMock.Setup(f => f.CreateLogger(It.IsAny<string>())).Returns(loggerMock.Object);
+
+        var channel = new Channel(
+            ChannelId,
+            _channelType,
+            _messagingMock.Object,
+            AppId,
+            InstanceId,
+            displayMetadata: null,
+            loggerFactory: loggerFactoryMock.Object);
+
+        _messagingMock
+            .Setup(
+                m => m.InvokeServiceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JsonSerializer.Serialize(new GetCurrentContextResponse { Context = null }, SerializerOptionsHelper.JsonSerializerOptionsWithContextSerialization));
+
+        await channel.GetCurrentContext("fdc3.instrument");
+
+        loggerMock.Verify(l => l.Log(
+            LogLevel.Debug,
+            It.IsAny<EventId>(),
+            It.IsAny<It.IsAnyType>(),
+            It.IsAny<Exception>(),
+            It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.AtLeastOnce);
     }
 }

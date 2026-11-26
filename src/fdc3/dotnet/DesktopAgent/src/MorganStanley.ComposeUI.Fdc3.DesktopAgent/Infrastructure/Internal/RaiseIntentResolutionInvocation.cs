@@ -13,6 +13,7 @@
  */
 
 using Finos.Fdc3;
+using SharedContextMetadata = MorganStanley.ComposeUI.Fdc3.DesktopAgent.Shared.Protocol.ContextMetadata;
 
 namespace MorganStanley.ComposeUI.Fdc3.DesktopAgent.Infrastructure.Internal;
 
@@ -27,7 +28,8 @@ internal class RaiseIntentResolutionInvocation
         string? resultChannelId = null,
         ChannelType? resultChannelType = null,
         bool? resultVoid = null,
-        string? resultError = null)
+        string? resultError = null,
+        SharedContextMetadata? contextMetadata = null)
     {
         RaiseIntentMessageId = $"{raiseIntentMessageId}-{Guid.NewGuid()}";
         Intent = intent;
@@ -38,6 +40,7 @@ internal class RaiseIntentResolutionInvocation
         ResultChannelType = resultChannelType;
         ResultVoid = resultVoid;
         ResultError = resultError;
+        ContextMetadata = contextMetadata;
     }
 
     public string RaiseIntentMessageId { get; }
@@ -49,5 +52,6 @@ internal class RaiseIntentResolutionInvocation
     public ChannelType? ResultChannelType { get; set; }
     public bool? ResultVoid { get; set; }
     public string? ResultError { get; set; }
+    public SharedContextMetadata? ContextMetadata { get; set; }
     public bool IsResolved { get; set; } = false;
 }
