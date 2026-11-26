@@ -37,7 +37,7 @@ public class WebModuleMessageRouterConfigurator : IModuleTypeMessageRouterConfig
                     messageRouterConfig: {
                         accessToken: "{{JsonEncodedText.Encode(App.Current.MessageRouterAccessToken)}}",
                         webSocket: {
-                            url: "{{webSocketServer.WebSocketUrl}}"
+                            url: "{{JsonEncodedText.Encode(webSocketServer.WebSocketUrl.AbsoluteUri)}}"
                         }
                     }
                 };

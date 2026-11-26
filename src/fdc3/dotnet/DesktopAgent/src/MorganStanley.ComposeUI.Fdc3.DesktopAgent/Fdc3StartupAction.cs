@@ -57,7 +57,8 @@ internal sealed class Fdc3StartupAction : IStartupAction
             var properties = await startupContext.GetFdc3Properties(_appDirectory, _userChannelSetReader, _logger).ConfigureAwait(false);
 
             var fdc3StartupProperties = new Fdc3StartupProperties { AppId = properties.AppId, InstanceId = properties.InstanceId, ChannelId = properties.ChannelId ?? _options.ChannelId, OpenedAppContextId = properties.OpenedAppContextId };
-            var fdc3InstanceId = startupContext.GetOrAddProperty<Fdc3StartupProperties>(_ => fdc3StartupProperties).InstanceId;
+            Fdc3StartupPropertiesValidator.Validate(fdc3StartupProperties);
+            var fdc3InstanceId =startupContext.GetOrAddProperty<Fdc3StartupProperties>(_ => fdc3StartupProperties).InstanceId;
 
             if (Handlers.TryGetValue(startupContext.ModuleInstance.Manifest.ModuleType, out var handler))
             {
