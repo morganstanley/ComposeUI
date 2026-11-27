@@ -11,6 +11,7 @@
 // and limitations under the License.
 
 using System.Text.Json;
+using MorganStanley.ComposeUI.Messaging.Server.ModuleAccessTokens;
 using MorganStanley.ComposeUI.Messaging.Server.WebSocket;
 using MorganStanley.ComposeUI.ModuleLoader;
 
@@ -21,6 +22,11 @@ namespace MorganStanley.ComposeUI.Shell.Messaging;
 /// </summary>
 public class WebModuleMessageRouterConfigurator : IModuleTypeMessageRouterConfigurator
 {
+    internal WebModuleMessageRouterConfigurator(IModuleTokenStore tokenStore)
+    {
+        _tokenStore = tokenStore;
+    }
+
     /// <summary>
     /// <inheritdoc/>
     /// </summary>
@@ -28,6 +34,10 @@ public class WebModuleMessageRouterConfigurator : IModuleTypeMessageRouterConfig
     /// <param name="webSocketServer"></param>
     public void Configure(StartupContext startupContext, IMessageRouterWebSocketServer webSocketServer)
     {
+        var accessToken = _tokenStore.Issue(
+            startupContext.ModuleInstance.InstanceId,
+            startupContext.ModuleInstance.Manifest.Id);
+
         var webProperties = startupContext.GetOrAddProperty<WebStartupProperties>();
         webProperties.ScriptProviders.Add(
             _ => new ValueTask<string>(
@@ -35,7 +45,7 @@ public class WebModuleMessageRouterConfigurator : IModuleTypeMessageRouterConfig
                 window.composeui = {
                     ...window.composeui,
                     messageRouterConfig: {
-                        accessToken: "{{JsonEncodedText.Encode(App.Current.MessageRouterAccessToken)}}",
+                        accessToken: "{{JsonEncodedText.Encode(accessToken)}}",
                         webSocket: {
                             url: "{{JsonEncodedText.Encode(webSocketServer.WebSocketUrl.AbsoluteUri)}}"
                         }
@@ -43,4 +53,6 @@ public class WebModuleMessageRouterConfigurator : IModuleTypeMessageRouterConfig
                 };
                 """));
     }
+
+    private readonly IModuleTokenStore _tokenStore;
 }

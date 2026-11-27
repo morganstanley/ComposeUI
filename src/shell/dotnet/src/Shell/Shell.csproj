@@ -70,6 +70,7 @@
 		<ProjectReference Include="..\..\..\..\layout-persistence\dotnet\src\MorganStanley.ComposeUI.LayoutPersistence\MorganStanley.ComposeUI.LayoutPersistence.csproj" />
 		<ProjectReference Include="..\..\..\..\messaging\dotnet\src\Host\MorganStanley.ComposeUI.Messaging.Host.csproj" />
 		<ProjectReference Include="..\..\..\..\messaging\dotnet\src\MessageRouterAdapter\MorganStanley.ComposeUI.Messaging.MessageRouterAdapter.csproj" />
+		<ProjectReference Include="..\..\..\..\messaging\dotnet\src\ModuleAccessTokens\MorganStanley.ComposeUI.Messaging.Server.ModuleAccessTokens.csproj" />
 		<ProjectReference Include="..\..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader.Abstractions\MorganStanley.ComposeUI.ModuleLoader.Abstractions.csproj" />
 		<ProjectReference Include="..\..\..\..\module-loader\dotnet\src\MorganStanley.ComposeUI.ModuleLoader\MorganStanley.ComposeUI.ModuleLoader.csproj" />
 		<ProjectReference Include="..\..\..\..\shared\dotnet\src\MorganStanley.ComposeUI.Utilities\MorganStanley.ComposeUI.Utilities.csproj" />
